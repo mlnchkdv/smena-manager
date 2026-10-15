@@ -15,5 +15,6 @@
 @import './pages/settings.css';
 @import './pages/auth.css';
 @import './pages/knowledge.css';
+@import './pages/bookmarks.css';
 @import './motion.css';
 @import './responsive.css';

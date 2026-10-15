@@ -25,6 +25,7 @@ import { pageSettings } from '../pages/settings.js';
 import { pageStates, pageSystem } from '../pages/design-system.js';
 import { pageArchive } from '../features/archive.js';
 import { pageKnowledge } from '../pages/knowledge.js';
+import { pageBookmarks } from '../pages/bookmarks.js';
 
 export function renderShell() {
   const u = S.ui;
@@ -63,6 +64,7 @@ export function renderPage() {
       team: pageTeam,
       activity: pageActivity,
       knowledge: pageKnowledge,
+      bookmarks: pageBookmarks,
       settings: pageSettings,
       system: pageSystem,
       states: pageStates,
@@ -113,6 +115,7 @@ export function renderSidebar() {
         ${sItem('calendar', 'Calendar', 'calendar')}
         ${sItem('timeline', 'Timeline', 'chart-gantt')}
         ${sItem('knowledge', 'Knowledge base', 'library-big', { ct: d.knowledgeNotes?.length || '' })}
+        ${sItem('bookmarks', 'Bookmarks', 'bookmark', { ct: d.links?.filter(link => !link.is_archived).length || '' })}
         ${sItem('members', 'Members', 'users')}
         ${sItem('activity', 'Activity', 'activity')}
       </div>

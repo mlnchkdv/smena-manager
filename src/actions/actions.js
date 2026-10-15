@@ -176,6 +176,28 @@ function noteWikiLinks(markdown) {
   return [...String(markdown || '').matchAll(/\[\[([^\]]+)\]\]/g)].map(match => match[1].trim()).filter(Boolean);
 }
 
+const IMPORTANCE_LEVELS = new Set(['low', 'medium', 'high', 'critical']);
+
+function bookmarkCollections() {
+  if (!Array.isArray(D().links)) D().links = [];
+  if (!Array.isArray(D().linkFolders)) D().linkFolders = [];
+  return { links: D().links, folders: D().linkFolders };
+}
+
+function emptyBookmarkDraft(folder = '') {
+  return { url: '', title: '', description: '', folder, tags: '', importance: 'medium' };
+}
+
+function normalizedBookmarkUrl(value) {
+  const candidate = /^https?:\/\//i.test(value.trim()) ? value.trim() : `https://${value.trim()}`;
+  try {
+    const parsed = new URL(candidate);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /* ---------- navigation ---------- */
 A.go = el => {
   const r = el.dataset.r;
@@ -320,6 +342,165 @@ IN.knowledgeField = el => {
 BLUR.knowledgeField = el => {
   IN.knowledgeField(el);
   render();
+};
+
+/* ---------- shared bookmarks ---------- */
+A.newBookmark = () => {
+  S.ui.bookmarkEditing = null;
+  S.ui.bookmarkDraft = emptyBookmarkDraft(S.ui.bookmarkFolder !== 'all' && S.ui.bookmarkFolder !== 'root' ? S.ui.bookmarkFolder : '');
+  S.ui.bookmarkForm = true;
+  render();
+  requestAnimationFrame(() => document.getElementById('bookmark-url')?.focus());
+};
+A.closeBookmarkForm = () => {
+  S.ui.bookmarkForm = false;
+  S.ui.bookmarkEditing = null;
+  S.ui.bookmarkDraft = emptyBookmarkDraft();
+  render();
+};
+A.editBookmark = el => {
+  const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+  if (!link || S.ui.currentUser?.role === 'viewer') return;
+  S.ui.bookmarkEditing = link.id;
+  S.ui.bookmarkDraft = {
+    url: link.url || '',
+    title: link.title || '',
+    description: link.description || '',
+    folder: link.folder || '',
+    tags: (link.tags || []).join(', '),
+    importance: link.importance || 'medium',
+  };
+  S.ui.bookmarkForm = true;
+  render();
+  requestAnimationFrame(() => document.getElementById('bookmark-title')?.focus());
+};
+A.saveBookmark = () => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  const draft = S.ui.bookmarkDraft;
+  const parsed = normalizedBookmarkUrl(draft.url);
+  if (!parsed) {
+    toast('Enter a valid HTTP or HTTPS URL.', { kind: 'error' });
+    document.getElementById('bookmark-url')?.focus();
+    return;
+  }
+  const tags = [
+    ...new Set(
+      String(draft.tags || '')
+        .split(',')
+        .map(value => value.trim().toLowerCase().replace(/^#/, ''))
+        .filter(Boolean),
+    ),
+  ];
+  mutate(() => {
+    const { links } = bookmarkCollections();
+    const now = new Date().toISOString();
+    const values = {
+      url: parsed.toString(),
+      title: draft.title.trim() || parsed.hostname.replace(/^www\./, ''),
+      description: draft.description.trim(),
+      site_name: parsed.hostname.replace(/^www\./, ''),
+      preview_image: '',
+      favicon_url: '',
+      folder: draft.folder || '',
+      importance: IMPORTANCE_LEVELS.has(draft.importance) ? draft.importance : 'medium',
+      tags,
+      updated_at: now,
+    };
+    const existing = links.find(item => item.id === S.ui.bookmarkEditing);
+    if (existing) Object.assign(existing, values);
+    else
+      links.unshift({
+        id: uid('ln'),
+        ...values,
+        is_archived: false,
+        is_read: false,
+        health_status: 'unknown',
+        created_at: now,
+      });
+    S.ui.bookmarkForm = false;
+    S.ui.bookmarkEditing = null;
+    S.ui.bookmarkDraft = emptyBookmarkDraft();
+    S.ui.bookmarkScope = 'active';
+  });
+};
+A.newBookmarkFolder = () => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  openModal({
+    type: 'prompt',
+    title: 'New bookmark folder',
+    label: 'Folder name',
+    value: '',
+    run: value => {
+      const name = value.trim();
+      if (!name) return;
+      mutate(() => {
+        const { folders } = bookmarkCollections();
+        const existing = folders.find(folder => folder.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          S.ui.bookmarkFolder = existing.id;
+          return;
+        }
+        const palette = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+        const folder = { id: uid('lf'), name, parent_id: null, color: palette[folders.length % palette.length], created_at: new Date().toISOString() };
+        folders.push(folder);
+        S.ui.bookmarkFolder = folder.id;
+      });
+    },
+  });
+};
+A.toggleBookmarkRead = el => {
+  mutate(() => {
+    const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+    if (link) {
+      link.is_read = !link.is_read;
+      link.updated_at = new Date().toISOString();
+    }
+  });
+};
+A.toggleBookmarkArchive = el => {
+  mutate(() => {
+    const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+    if (link) {
+      link.is_archived = !link.is_archived;
+      link.updated_at = new Date().toISOString();
+    }
+  });
+};
+A.copyBookmark = el => {
+  const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+  if (link) copy(link.url, 'Link copied');
+};
+A.deleteBookmark = el => {
+  const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+  if (!link) return;
+  confirmDlg({
+    title: 'Delete bookmark?',
+    body: `<b>${esc(link.title)}</b> will be permanently removed from shared bookmarks.`,
+    ok: 'Delete bookmark',
+    danger: true,
+    run: () =>
+      mutate(() => {
+        D().links = bookmarkCollections().links.filter(item => item.id !== link.id);
+      }),
+  });
+};
+IN.bookmarkQuery = el => {
+  S.ui.bookmarkQuery = el.value;
+  render();
+  requestAnimationFrame(() => {
+    const input = document.querySelector('[data-in="bookmarkQuery"]');
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  });
+};
+IN.bookmarkFolder = el => {
+  S.ui.bookmarkFolder = el.value;
+  render();
+};
+IN.bookmarkDraft = el => {
+  S.ui.bookmarkDraft[el.dataset.field] = el.value;
 };
 A.openMnav = () => {
   S.ui.mnav = true;

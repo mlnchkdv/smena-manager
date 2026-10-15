@@ -100,6 +100,37 @@ const RU = {
   'Delete note?': 'Удалить заметку?',
   'Delete note': 'Удалить заметку',
   'will be removed from the shared knowledge base.': 'будет удалена из общей базы знаний.',
+  Bookmarks: 'Закладки',
+  'Go to Bookmarks': 'Перейти к закладкам',
+  'Add bookmark': 'Добавить закладку',
+  'New bookmark': 'Новая закладка',
+  'Edit bookmark': 'Изменить закладку',
+  'Bookmark title': 'Название закладки',
+  'Resource title': 'Название ресурса',
+  'Keep an important team resource in the shared workspace.': 'Сохраните важный ресурс в общем рабочем пространстве.',
+  'Shared links, references, and useful resources for the team.': 'Общие ссылки, справочные материалы и полезные ресурсы команды.',
+  'Why this resource is useful': 'Чем полезен этот ресурс',
+  Importance: 'Важность',
+  Critical: 'Критическая',
+  'design, research, tools': 'дизайн, исследования, инструменты',
+  'New bookmark folder': 'Новая папка закладок',
+  'Search bookmarks': 'Поиск по закладкам',
+  'Search bookmarks, tags, and URLs': 'Поиск по закладкам, тегам и адресам',
+  'Bookmark status': 'Статус закладок',
+  'Bookmark summary': 'Сводка по закладкам',
+  'Mark bookmark as unread': 'Отметить закладку непрочитанной',
+  'Mark bookmark as read': 'Отметить закладку прочитанной',
+  'Archive bookmark': 'Архивировать закладку',
+  'Restore bookmark': 'Восстановить закладку',
+  'Delete bookmark': 'Удалить закладку',
+  'Delete bookmark?': 'Удалить закладку?',
+  'will be permanently removed from shared bookmarks.': 'будет навсегда удалена из общих закладок.',
+  'Enter a valid HTTP or HTTPS URL.': 'Введите корректный адрес HTTP или HTTPS.',
+  'No archived bookmarks': 'Архивных закладок нет',
+  'No bookmarks found': 'Закладки не найдены',
+  'Try changing the search or folder filter.': 'Измените запрос или фильтр по папке.',
+  'An editor can add the first shared bookmark.': 'Участник с правом редактирования может добавить первую общую закладку.',
+  'Add the first useful resource for your team.': 'Добавьте первый полезный ресурс для команды.',
 
   // Shared actions and states
   Add: 'Добавить',
@@ -176,6 +207,9 @@ const RU = {
   Low: 'Низкий',
   Active: 'Активные',
   Archived: 'В архиве',
+  active: 'активных',
+  unread: 'непрочитанных',
+  folders: 'папок',
   Invited: 'Приглашён',
   Current: 'Текущий',
   Paid: 'Оплачен',
@@ -980,6 +1014,15 @@ const PATTERNS = [
       const count = Number(value);
       const word =
         count % 10 === 1 && count % 100 !== 11 ? 'заметка' : [2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100) ? 'заметки' : 'заметок';
+      return `${count} ${word}`;
+    },
+  ],
+  [/^(\d+) active$/u, 'Активных: $1'],
+  [
+    /^(\d+) folders?$/u,
+    (_match, value) => {
+      const count = Number(value);
+      const word = count % 10 === 1 && count % 100 !== 11 ? 'папка' : [2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100) ? 'папки' : 'папок';
       return `${count} ${word}`;
     },
   ],

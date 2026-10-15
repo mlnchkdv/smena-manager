@@ -34,6 +34,8 @@ test('workspace snapshots increment their revision and persist', async () => {
   assert.equal(initial.revision, 0);
   assert.deepEqual(initial.knowledgeNotes, []);
   assert.deepEqual(initial.knowledgeFolders, []);
+  assert.deepEqual(initial.links, []);
+  assert.deepEqual(initial.linkFolders, []);
 
   const updated = await replaceWorkspaceDatabase(
     {
@@ -41,6 +43,8 @@ test('workspace snapshots increment their revision and persist', async () => {
       tasks: [{ id: 'task-1' }],
       knowledgeFolders: [{ id: 'kf1', name: 'Регламенты' }],
       knowledgeNotes: [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }],
+      linkFolders: [{ id: 'lf1', name: 'Инструменты' }],
+      links: [{ id: 'ln1', title: 'Smena', url: 'https://example.com', folder: 'lf1' }],
     },
     initial.revision,
   );
@@ -54,6 +58,8 @@ test('workspace snapshots increment their revision and persist', async () => {
   assert.deepEqual(restored.tasks, [{ id: 'task-1' }]);
   assert.deepEqual(restored.knowledgeFolders, [{ id: 'kf1', name: 'Регламенты' }]);
   assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
+  assert.deepEqual(restored.linkFolders, [{ id: 'lf1', name: 'Инструменты' }]);
+  assert.deepEqual(restored.links, [{ id: 'ln1', title: 'Smena', url: 'https://example.com', folder: 'lf1' }]);
 });
 
 test('stale workspace revisions are rejected', async () => {

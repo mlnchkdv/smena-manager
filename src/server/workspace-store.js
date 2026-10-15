@@ -25,6 +25,8 @@ function createEmptyDatabase() {
     comments: [],
     knowledgeNotes: [],
     knowledgeFolders: [],
+    links: [],
+    linkFolders: [],
     files: [],
     activity: [],
     notifications: [],

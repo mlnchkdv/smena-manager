@@ -511,6 +511,8 @@ export function seed() {
     comments,
     knowledgeNotes: [],
     knowledgeFolders: [],
+    links: [],
+    linkFolders: [],
     activity,
     notifs,
     files,
