@@ -148,6 +148,19 @@ const RU = {
   'Try changing the search or folder filter.': 'Измените запрос или фильтр по папке.',
   'An editor can add the first shared bookmark.': 'Участник с правом редактирования может добавить первую общую закладку.',
   'Add the first useful resource for your team.': 'Добавьте первый полезный ресурс для команды.',
+  'Data transfer': 'Перенос данных',
+  'Move knowledge and bookmarks between KMS Brain and Smena Manager without a separate database.':
+    'Переносите базу знаний и закладки между KMS Brain и Smena Manager без отдельной базы данных.',
+  'Portable workspace data': 'Переносимые данные рабочего пространства',
+  'The JSON file includes knowledge notes, their folders, bookmarks, and bookmark folders. Existing items are kept; duplicate titles and URLs are skipped during import.':
+    'JSON-файл содержит заметки базы знаний, их папки, закладки и папки закладок. Существующие материалы сохраняются, а дубли заголовков и адресов пропускаются.',
+  'Export JSON': 'Экспортировать JSON',
+  'Import JSON': 'Импортировать JSON',
+  'Included data': 'Состав данных',
+  'KMS compatible': 'Совместимо с KMS',
+  'The import file must be smaller than 10 MB.': 'Файл импорта должен быть меньше 10 МБ.',
+  'The import file could not be read.': 'Не удалось прочитать файл импорта.',
+  'Import file must contain a JSON object or an array of notes.': 'Файл импорта должен содержать JSON-объект или массив заметок.',
 
   // Shared actions and states
   Add: 'Добавить',
@@ -1005,6 +1018,13 @@ const TEMPLATE_TEXT_RU = {
 
 export const templateText = value => (isRussian() ? TEMPLATE_TEXT_RU[value] || value : value);
 
+const pluralRu = (value, one, few, many) => {
+  const count = Number(value);
+  if (count % 10 === 1 && count % 100 !== 11) return `${count} ${one}`;
+  if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) return `${count} ${few}`;
+  return `${count} ${many}`;
+};
+
 const PATTERNS = [
   [/^Good morning, (.+)$/u, 'Доброе утро, $1'],
   [/^Good afternoon, (.+)$/u, 'Добрый день, $1'],
@@ -1025,24 +1045,9 @@ const PATTERNS = [
   [/^(\d+) members?$/u, '$1 участников'],
   [/^(\d+) tasks?$/u, '$1 задач'],
   [/^(\d+) projects?$/u, '$1 проектов'],
-  [
-    /^(\d+) notes?$/u,
-    (_match, value) => {
-      const count = Number(value);
-      const word =
-        count % 10 === 1 && count % 100 !== 11 ? 'заметка' : [2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100) ? 'заметки' : 'заметок';
-      return `${count} ${word}`;
-    },
-  ],
+  [/^(\d+) notes?$/u, (_match, value) => pluralRu(value, 'заметка', 'заметки', 'заметок')],
   [/^(\d+) active$/u, 'Активных: $1'],
-  [
-    /^(\d+) folders?$/u,
-    (_match, value) => {
-      const count = Number(value);
-      const word = count % 10 === 1 && count % 100 !== 11 ? 'папка' : [2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100) ? 'папки' : 'папок';
-      return `${count} ${word}`;
-    },
-  ],
+  [/^(\d+) folders?$/u, (_match, value) => pluralRu(value, 'папка', 'папки', 'папок')],
   [/^(\d+) active · (\d+) completed$/u, '$1 активных · $2 завершено'],
   [/^(\d+) completed$/u, '$1 завершено'],
   [/^Assigned · (\d+)$/u, 'Назначено · $1'],
@@ -1051,6 +1056,19 @@ const PATTERNS = [
   [/^(\d+) pending invite$/u, 'Ожидают приглашения: $1'],
   [/^Sort: (.+)$/u, (_match, value) => `Сортировка: ${RU[value] || value}`],
   [/^View all results for “(.+)”$/u, 'Все результаты по запросу «$1»'],
+  [/^Exported (\d+) notes and (\d+) bookmarks\.$/u, 'Экспортировано заметок: $1, закладок: $2.'],
+  [
+    /^Imported (\d+) notes, (\d+) bookmarks, and (\d+) folders\. Skipped (\d+) duplicates\.$/u,
+    'Импортировано заметок: $1, закладок: $2, папок: $3. Пропущено дублей: $4.',
+  ],
+  [
+    /^(\d+) notes · (\d+) folders$/u,
+    (_match, notes, folders) => `${pluralRu(notes, 'заметка', 'заметки', 'заметок')} · ${pluralRu(folders, 'папка', 'папки', 'папок')}`,
+  ],
+  [
+    /^(\d+) bookmarks · (\d+) folders$/u,
+    (_match, bookmarks, folders) => `${pluralRu(bookmarks, 'закладка', 'закладки', 'закладок')} · ${pluralRu(folders, 'папка', 'папки', 'папок')}`,
+  ],
   [/^Group: (.+)$/u, (_match, value) => `Группа: ${RU[value] || value}`],
   [/^Status: (.+)$/u, (_match, value) => `Статус: ${RU[value] || value}`],
   [/^Priority: (.+)$/u, (_match, value) => `Приоритет: ${RU[value] || value}`],

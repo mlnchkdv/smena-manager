@@ -17,6 +17,7 @@ import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace } from '../core/bo
 import { clearSession, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
+import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 
 export const A = {},
   IN = {},
@@ -225,6 +226,43 @@ A.set = el => {
   S.ui[k] = v;
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;
   render();
+};
+A.exportPortableWorkspace = () => {
+  if (S.ui.currentUser?.role !== 'admin') return;
+  const payload = buildPortableWorkspace(D());
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = href;
+  anchor.download = `smena-manager-portable-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(href);
+  S.ui.migrationStatus = `Exported ${payload.notes.length} notes and ${payload.links.length} bookmarks.`;
+  render();
+};
+IN.importPortableWorkspace = async el => {
+  const file = el.files?.[0];
+  if (!file || S.ui.currentUser?.role !== 'admin') return;
+  try {
+    if (file.size > 10 * 1024 * 1024) throw new Error('The import file must be smaller than 10 MB.');
+    const payload = JSON.parse(await file.text());
+    const result = mergePortableWorkspace(D(), payload, { idFactory: uid });
+    mutate(() => {
+      D().knowledgeNotes = result.data.knowledgeNotes;
+      D().knowledgeFolders = result.data.knowledgeFolders;
+      D().links = result.data.links;
+      D().linkFolders = result.data.linkFolders;
+      S.ui.migrationStatus = `Imported ${result.counts.notes} notes, ${result.counts.links} bookmarks, and ${result.counts.knowledgeFolders + result.counts.linkFolders} folders. Skipped ${result.counts.skipped} duplicates.`;
+    });
+  } catch (error) {
+    S.ui.migrationStatus = error instanceof Error ? error.message : 'The import file could not be read.';
+    toast(S.ui.migrationStatus, { kind: 'error', ms: 6000 });
+    render();
+  } finally {
+    el.value = '';
+  }
 };
 A.toggleSide = () => {
   S.ui.collapsed = !S.ui.collapsed;

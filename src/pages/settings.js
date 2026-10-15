@@ -19,6 +19,7 @@ export const SET_NAV = [
       ['appearance', 'Appearance', 'palette'],
       ['language', 'Language', 'languages'],
       ['datetime', 'Date & time', 'clock'],
+      ['data-transfer', 'Data transfer', 'database-backup'],
     ],
   ],
   [
@@ -64,7 +65,7 @@ export const SET_NAV = [
     ],
   ],
 ];
-const ADMIN_SETTINGS = new Set(['workspace', 'members', 'teams', 'permissions', 'plan', 'payment', 'invoices']);
+const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions', 'plan', 'payment', 'invoices']);
 export function srow(t, d, ctl) {
   return `<div class="srow"><div><div class="t">${t}</div>${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
 }
@@ -221,6 +222,18 @@ export function settingsBody(sec, title) {
             P.timeFmt || '12',
           ),
         )
+      );
+    case 'data-transfer':
+      return (
+        H('Move knowledge and bookmarks between KMS Brain and Smena Manager without a separate database.') +
+        `<div class="sblock" style="margin-top:0"><h2>Portable workspace data</h2><p class="lead" style="font-size:13px;margin-bottom:16px">The JSON file includes knowledge notes, their folders, bookmarks, and bookmark folders. Existing items are kept; duplicate titles and URLs are skipped during import.</p>
+        <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-secondary" data-a="exportPortableWorkspace">${ic('download', 14)}Export JSON</button><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Import JSON<input type="file" accept="application/json,.json" hidden data-in="importPortableWorkspace"></label></div>
+        ${S.ui.migrationStatus ? `<div class="callout info" role="status" style="margin-top:16px">${ic('info', 15)}<span>${esc(S.ui.migrationStatus)}</span></div>` : ''}
+        </div>
+        <div class="sblock"><h2>Included data</h2>
+          ${srow('Knowledge base', `${d.knowledgeNotes?.length || 0} notes · ${d.knowledgeFolders?.length || 0} folders`, `<span class="badge">${ic('library-big', 12)}KMS compatible</span>`)}
+          ${srow('Bookmarks', `${d.links?.length || 0} bookmarks · ${d.linkFolders?.length || 0} folders`, `<span class="badge">${ic('bookmark', 12)}KMS compatible</span>`)}
+        </div>`
       );
     case 'members':
       return (

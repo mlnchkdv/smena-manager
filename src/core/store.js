@@ -98,6 +98,7 @@ export const S = {
     bookmarkForm: false,
     bookmarkEditing: null,
     bookmarkDraft: { url: '', title: '', description: '', folder: '', tags: '', importance: 'medium' },
+    migrationStatus: '',
     collapsedCols: {},
     errors: {},
     drafts: {},
