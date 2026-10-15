@@ -16,8 +16,9 @@ function extensionOf(filename) {
 export function getFileUploadPolicy(env = process.env) {
   const configured = Number(env.SHARED_FILE_MAX_BYTES);
   const fallback = env.VERCEL ? 4 * MB : 100 * MB;
+  const requested = Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
   return {
-    maxFileSizeBytes: Number.isSafeInteger(configured) && configured > 0 ? configured : fallback,
+    maxFileSizeBytes: env.VERCEL ? Math.min(requested, 4 * MB) : requested,
     maxBatchFiles: 10,
     blockedExtensions: [...BLOCKED_EXTENSIONS],
   };

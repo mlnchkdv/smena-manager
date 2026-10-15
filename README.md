@@ -40,7 +40,7 @@ revisions so a stale browser cannot silently replace newer team data.
 - `GET /api/auth/me` returns the signed-in profile.
 - `GET /api/storage/status` initializes the workspace database and reports its storage state after authentication.
 - `GET /api/workspace` returns the current versioned JSON snapshot.
-- `PUT /api/workspace` replaces the snapshot for editors and administrators when its revision still matches.
+- `PUT /api/workspace` validates and updates the snapshot for editors and administrators when its revision still matches. Omitted top-level collections are preserved.
 - Local development stores the JSON database in `.data/smena-manager-data.json`.
 - Production stores one versioned `smena-manager-data.json` file in Google Drive.
 - Redis stores no workspace content; it is used only as a short distributed write lock between
@@ -92,8 +92,10 @@ The current storage model deliberately avoids PostgreSQL and suits a small team.
 the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become
 very frequent, or the product needs record-level querying. Project and task uploads are stored in the
 dedicated Drive `uploads` folder while their names, ownership and Drive IDs remain in the JSON database.
-Vercel request limits still apply; the default per-file limit is 4 MB on Vercel and 100 MB locally and
-can be lowered with `SHARED_FILE_MAX_BYTES`.
+The synchronized JSON snapshot is capped at 4 MiB so it remains below the Vercel Function request limit;
+oversized knowledge imports are rejected before local data changes. The default per-file upload limit is
+4 MiB on Vercel and 100 MiB locally. `SHARED_FILE_MAX_BYTES` can lower either limit, but cannot raise the
+Vercel limit above 4 MiB.
 
 ## Project structure
 
@@ -114,7 +116,7 @@ src/
     pages/              settings, auth & onboarding
   core/                 utilities, constants, icons, store (state + lookups), theme
   server/               Express API, sessions, Google Drive storage, Redis coordination
-  shared/               access rules used by both browser and server
+  shared/               access rules, schema validation and transport limits used by browser and server
   data/seed.js          demo workspace data
   ui/                   shared render helpers, toasts, the select dropdown
   shell/                render loop and router, sidebar/topbar layout, skeletons, view engine
