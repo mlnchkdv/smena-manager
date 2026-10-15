@@ -66,6 +66,7 @@ window.addEventListener('smena:sync-status', event => {
   if (status === 'saved') {
     const wasOffline = S.ui.offline;
     S.ui.offline = false;
+    S.ui.syncTooLarge = false;
     S.ui.workspaceRevision = revision;
     if (wasOffline) {
       render();
@@ -92,6 +93,11 @@ window.addEventListener('smena:sync-status', event => {
     render();
   } else if (status === 'forbidden') {
     toast('You do not have permission to save workspace changes.', { kind: 'err' });
+  } else if (status === 'too_large') {
+    S.ui.offline = false;
+    S.ui.syncTooLarge = true;
+    render();
+    toast('The workspace is too large to sync. Reduce large knowledge notes and try again.', { kind: 'err', ms: 12_000 });
   }
 });
 

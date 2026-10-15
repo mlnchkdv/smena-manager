@@ -8,6 +8,7 @@ import {
   replaceWorkspaceDatabase,
   resetWorkspaceStore,
   RevisionConflictError,
+  WorkspaceSizeError,
   WorkspacePermissionError,
 } from '../../src/server/workspace-store.js';
 
@@ -97,4 +98,21 @@ test('a client-specific current member never replaces the shared canonical membe
   const updated = await replaceWorkspaceDatabase({ ...prepared, me: 'm2', tasks: [{ id: 'task-2' }] }, 1, { role: 'editor' });
   assert.equal(updated.me, 'm1');
   assert.deepEqual(updated.tasks, [{ id: 'task-2' }]);
+});
+
+test('oversized workspace snapshots are rejected before persistence', async () => {
+  const initial = await getWorkspaceDatabase();
+
+  await assert.rejects(
+    () => replaceWorkspaceDatabase({ ...initial, knowledgeNotes: [{ id: 'large', formatted_markdown: 'x'.repeat(4 * 1024 * 1024) }] }, 0),
+    error => {
+      assert.ok(error instanceof WorkspaceSizeError);
+      assert.equal(error.code, 'WORKSPACE_TOO_LARGE');
+      assert.equal(error.statusCode, 413);
+      assert.ok(error.actualBytes > error.maxBytes);
+      return true;
+    },
+  );
+
+  assert.equal((await getWorkspaceDatabase()).revision, 0);
 });

@@ -20,6 +20,7 @@ import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
+import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 
 export const A = {},
   IN = {},
@@ -247,6 +248,14 @@ IN.importPortableWorkspace = async el => {
     if (file.size > 10 * 1024 * 1024) throw new Error('The import file must be smaller than 10 MB.');
     const payload = JSON.parse(await file.text());
     const result = mergePortableWorkspace(D(), payload, { idFactory: uid });
+    const candidate = {
+      ...D(),
+      knowledgeNotes: result.data.knowledgeNotes,
+      knowledgeFolders: result.data.knowledgeFolders,
+      links: result.data.links,
+      linkFolders: result.data.linkFolders,
+    };
+    if (!workspaceFitsTransport(candidate, S.ui.workspaceRevision)) throw new Error('Imported data would exceed the 4 MB workspace sync limit.');
     mutate(() => {
       D().knowledgeNotes = result.data.knowledgeNotes;
       D().knowledgeFolders = result.data.knowledgeFolders;
@@ -298,7 +307,7 @@ IN.importKnowledgeMarkdown = async el => {
   const files = [...(el.files || [])];
   if (!files.length || S.ui.currentUser?.role === 'viewer') return;
   try {
-    if (files.some(file => file.size > 5 * 1024 * 1024)) throw new Error('Each Markdown file must be smaller than 5 MB.');
+    if (files.some(file => file.size > WORKSPACE_TRANSPORT_MAX_BYTES)) throw new Error('Each Markdown file must be smaller than 4 MB.');
     const imported = [];
     let skipped = 0;
     const existingTitles = new Set(
@@ -322,6 +331,8 @@ IN.importKnowledgeMarkdown = async el => {
       existingTitles.add(titleKey);
       imported.push(note);
     }
+    const candidate = { ...D(), knowledgeNotes: [...imported, ...knowledgeCollections().notes] };
+    if (!workspaceFitsTransport(candidate, S.ui.workspaceRevision)) throw new Error('Imported data would exceed the 4 MB workspace sync limit.');
     mutate(() => {
       knowledgeCollections().notes.unshift(...imported);
       if (imported[0]) S.ui.knowledgeActive = imported[0].id;

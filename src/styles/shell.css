@@ -444,6 +444,23 @@ h3.sub {
   border-color: var(--divider);
 }
 
+@media (max-width: 480px) {
+  .size-limit-bar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .size-limit-bar > span:not(.sp) {
+    flex: 1 1 calc(100% - 26px);
+    min-width: 0;
+  }
+  .size-limit-bar .sp {
+    display: none;
+  }
+  .size-limit-bar .btn {
+    margin-left: 23px;
+  }
+}
+
 .role-viewer
   :is(
     [data-a='newTask'],

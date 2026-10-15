@@ -1,3 +1,5 @@
+import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
+
 const SESSION_KEY = 'smena.session.v1';
 let memorySessionToken = '';
 
@@ -85,6 +87,13 @@ export async function getWorkspace() {
 }
 
 export async function putWorkspace(data, revision) {
+  const actualBytes = workspaceTransportBytes(data, revision);
+  if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
+    throw new ApiError('Workspace data exceeds the 4 MB synchronization limit.', 413, 'WORKSPACE_TOO_LARGE', {
+      maxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
+      actualBytes,
+    });
+  }
   const result = await request(
     '/api/workspace',
     {

@@ -85,8 +85,15 @@ const RU = {
   'New folder': 'Новая папка',
   'New knowledge folder': 'Новая папка базы знаний',
   'Import Markdown': 'Импортировать Markdown',
-  'Each Markdown file must be smaller than 5 MB.': 'Каждый Markdown-файл должен быть меньше 5 МБ.',
+  'Each Markdown file must be smaller than 4 MB.': 'Каждый Markdown-файл должен быть меньше 4 МБ.',
   'Markdown files could not be imported.': 'Не удалось импортировать Markdown-файлы.',
+  'Imported data would exceed the 4 MB workspace sync limit.': 'После импорта рабочее пространство превысит лимит синхронизации 4 МБ.',
+  'Workspace sync limit reached.': 'Достигнут лимит синхронизации.',
+  'Reduce large knowledge notes below 4 MB, then make another change to retry.':
+    'Уменьшите объём крупных заметок базы знаний до 4 МБ, затем внесите ещё одно изменение для повторной попытки.',
+  'Open knowledge base': 'Открыть базу знаний',
+  'The workspace is too large to sync. Reduce large knowledge notes and try again.':
+    'Рабочее пространство слишком велико для синхронизации. Уменьшите крупные заметки базы знаний и повторите попытку.',
   'Folder name': 'Название папки',
   'Search knowledge base': 'Поиск по базе знаний',
   'Search notes, tags, and content': 'Поиск по заметкам, тегам и тексту',

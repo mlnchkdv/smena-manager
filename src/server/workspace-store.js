@@ -2,6 +2,7 @@ import { getStorageProvider } from './storage/index.js';
 import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { adminFieldsChanged } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
+import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -117,6 +118,17 @@ export class WorkspacePermissionError extends Error {
   }
 }
 
+export class WorkspaceSizeError extends Error {
+  constructor(actualBytes) {
+    super('Workspace data exceeds the 4 MB synchronization limit.');
+    this.name = 'WorkspaceSizeError';
+    this.statusCode = 413;
+    this.code = 'WORKSPACE_TOO_LARGE';
+    this.maxBytes = WORKSPACE_TRANSPORT_MAX_BYTES;
+    this.actualBytes = actualBytes;
+  }
+}
+
 async function mutateInsideLock(mutator, expectedRevision, role) {
   const current = await initWorkspaceStore();
   if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
@@ -137,6 +149,8 @@ async function mutateInsideLock(mutator, expectedRevision, role) {
     createdAt: current.createdAt,
     updatedAt: now,
   });
+  const transportBytes = workspaceTransportBytes(next, next.revision);
+  if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
   await getStorageProvider().saveDatabase(next);
   database = next;
   lastLoadedAt = Date.now();

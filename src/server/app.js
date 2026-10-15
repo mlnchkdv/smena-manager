@@ -3,11 +3,12 @@ import { requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
 import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { fileRouter } from './file-routes.js';
+import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 
 export const app = express();
 
 app.disable('x-powered-by');
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: WORKSPACE_TRANSPORT_MAX_BYTES }));
 app.use((_request, response, next) => {
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -67,8 +68,10 @@ app.use((error, _request, response, next) => {
   const status = error.statusCode || (error instanceof TypeError ? 400 : 503);
   const body = {
     error: status === 503 ? 'Workspace storage is unavailable.' : error.message,
-    code: error.code || (status === 400 ? 'INVALID_REQUEST' : 'STORAGE_UNAVAILABLE'),
+    code: error.code || (status === 400 ? 'INVALID_REQUEST' : status === 413 ? 'PAYLOAD_TOO_LARGE' : 'STORAGE_UNAVAILABLE'),
   };
   if (error instanceof RevisionConflictError) body.currentRevision = error.currentRevision;
+  if (Number.isSafeInteger(error.maxBytes)) body.maxBytes = error.maxBytes;
+  if (Number.isSafeInteger(error.actualBytes)) body.actualBytes = error.actualBytes;
   response.status(status).json(body);
 });

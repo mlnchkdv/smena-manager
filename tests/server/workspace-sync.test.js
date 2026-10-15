@@ -84,3 +84,34 @@ test('workspace sync keeps a failed write for an explicit retry', async () => {
   assert.equal(sync.state().hasPending, false);
   assert.deepEqual(statuses, ['syncing', 'offline', 'syncing', 'saved']);
 });
+
+test('workspace sync does not retry an oversized snapshot forever', async () => {
+  let attempt = 0;
+  let scheduled = false;
+  const statuses = [];
+  const sync = createWorkspaceSync({
+    writeWorkspace: async (data, revision) => {
+      attempt += 1;
+      if (attempt === 1) throw Object.assign(new Error('too large'), { status: 413, code: 'WORKSPACE_TOO_LARGE' });
+      return { ...data, revision: revision + 1 };
+    },
+    notify: event => statuses.push(event.status),
+    schedule: () => {
+      scheduled = true;
+      return 1;
+    },
+    cancel: () => {},
+  });
+
+  sync.configure(2, 'editor');
+  await sync.queue({ notes: ['oversized'] });
+
+  assert.equal(sync.state().enabled, true);
+  assert.equal(sync.state().hasPending, false);
+  assert.equal(scheduled, false);
+  assert.deepEqual(statuses, ['syncing', 'too_large']);
+
+  await sync.queue({ notes: [] });
+  assert.equal(sync.state().revision, 3);
+  assert.deepEqual(statuses, ['syncing', 'too_large', 'syncing', 'saved']);
+});
