@@ -3,6 +3,7 @@ import { $, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { S, save } from '../core/store.js';
 import { render } from '../shell/render.js';
+import { translateElement } from '../core/i18n.js';
 
 export function toast(msg, opt = {}) {
   const host = $('#toasts');
@@ -12,6 +13,7 @@ export function toast(msg, opt = {}) {
   el.setAttribute('role', 'status');
   const icon = opt.kind === 'err' ? ic('circle-alert', 15, 'bad') : opt.kind === 'info' ? ic('info', 15) : ic('circle-check', 15, 'ok');
   el.innerHTML = `${icon}<span class="grow">${esc(msg)}</span>${opt.action ? `<button class="ta">${esc(opt.action)}</button>` : ''}<button class="ibtn ibtn-xs" aria-label="Dismiss" style="color:inherit;opacity:.6">${ic('x', 13)}</button>`;
+  translateElement(el);
   const kill = () => {
     el.classList.add('out');
     setTimeout(() => el.remove(), 160);

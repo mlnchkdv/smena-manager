@@ -11,6 +11,7 @@ import { tlAfter } from '../views/timeline.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
+import { t as tr, translateApp } from '../core/i18n.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -108,11 +109,11 @@ export function tryFocus(key) {
 export function pageTitle() {
   const u = S.ui;
   if (u.auth) return 'Gr8r Studio';
-  let t = ROUTE_NAMES[u.route] || 'Not found';
-  if (u.route === 'project' && proj(u.params.id)) t = `${(PTABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1]} · ${proj(u.params.id).name}`;
-  if (u.route === 'member' && mem(u.params.id)) t = mem(u.params.id).name;
-  if (u.route === 'team' && team(u.params.id)) t = team(u.params.id).name;
-  return `${t} · ${D().ws.name}`;
+  let title = ROUTE_NAMES[u.route] || 'Not found';
+  if (u.route === 'project' && proj(u.params.id)) title = `${tr((PTABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1])} · ${proj(u.params.id).name}`;
+  if (u.route === 'member' && mem(u.params.id)) title = mem(u.params.id).name;
+  if (u.route === 'team' && team(u.params.id)) title = team(u.params.id).name;
+  return `${tr(title)} · ${D().ws.name}`;
 }
 /* Anything clickable is keyboard-reachable: non-native [data-a] controls get a role and a tab stop. */
 export function makeFocusable() {
@@ -152,6 +153,7 @@ export function render() {
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
   $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
   $('#layer').innerHTML = renderLayer();
+  translateApp();
   makeFocusable();
   keep.forEach(([k, t, l]) => {
     const el = document.querySelector(`[data-keep="${CSS.escape(k)}"]`);

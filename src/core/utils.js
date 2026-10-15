@@ -37,14 +37,45 @@ export const addD = (d, n) => {
 };
 export const dOff = n => iso(addD(TODAY, n));
 export const diffD = (a, b) => Math.round((sod(a) - sod(b)) / DAY);
-export const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-export const MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-export const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-export const WDL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DATE_WORDS = {
+  en: {
+    mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    monLong: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    monGen: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    wdLong: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  },
+  ru: {
+    mon: ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+    monLong: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+    monGen: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+    wd: ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'],
+    wdLong: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+  },
+};
+export const MON = [...DATE_WORDS.en.mon];
+export const MONL = [...DATE_WORDS.en.monLong];
+export const WD = [...DATE_WORDS.en.wd];
+export const WDL = [...DATE_WORDS.en.wdLong];
+let dateLocale = 'en-US';
 /* Set from preferences on every render (core/theme.js), so utils never depends on the store. */
 export let dateFormat = 'MMM d';
 export function setDateFormat(f) {
   dateFormat = f || 'MMM d';
+}
+export function setDateLocale(locale) {
+  dateLocale = locale || 'en-US';
+  const words = dateLocale === 'ru-RU' ? DATE_WORDS.ru : DATE_WORDS.en;
+  MON.splice(0, MON.length, ...words.mon);
+  MONL.splice(0, MONL.length, ...words.monLong);
+  WD.splice(0, WD.length, ...words.wd);
+  WDL.splice(0, WDL.length, ...words.wdLong);
+}
+export function fmtFullDate(value) {
+  const d = typeof value === 'string' ? parse(value) : value;
+  if (!d) return '';
+  if (dateLocale === 'ru-RU') return `${WDL[d.getDay()]}, ${d.getDate()} ${DATE_WORDS.ru.monGen[d.getMonth()]}`;
+  return `${WDL[d.getDay()]}, ${MONL[d.getMonth()]} ${d.getDate()}`;
 }
 export function fmtDate(s, long) {
   const d = typeof s === 'string' ? parse(s) : s;
@@ -53,32 +84,36 @@ export function fmtDate(s, long) {
   if (fmt === 'd/M') return `${d.getDate()}/${d.getMonth() + 1}${long ? '/' + d.getFullYear() : ''}`;
   if (fmt === 'M/d') return `${d.getMonth() + 1}/${d.getDate()}${long ? '/' + d.getFullYear() : ''}`;
   if (fmt === 'yyyy-MM-dd') return iso(d);
+  if (dateLocale === 'ru-RU') {
+    const year = long || d.getFullYear() !== TODAY.getFullYear() ? ` ${d.getFullYear()} г.` : '';
+    return `${d.getDate()} ${DATE_WORDS.ru.monGen[d.getMonth()]}${year}`;
+  }
   return `${MON[d.getMonth()]} ${d.getDate()}${long || d.getFullYear() !== TODAY.getFullYear() ? ', ' + d.getFullYear() : ''}`;
 }
 export function relDate(s) {
   if (!s) return '';
   const n = diffD(parse(s), TODAY);
-  if (n === 0) return 'Today';
-  if (n === 1) return 'Tomorrow';
-  if (n === -1) return 'Yesterday';
+  if (n === 0) return dateLocale === 'ru-RU' ? 'Сегодня' : 'Today';
+  if (n === 1) return dateLocale === 'ru-RU' ? 'Завтра' : 'Tomorrow';
+  if (n === -1) return dateLocale === 'ru-RU' ? 'Вчера' : 'Yesterday';
   if (n > 1 && n < 7) return WD[parse(s).getDay()];
   return fmtDate(s);
 }
 export function ago(ts) {
   const m = Math.round((Date.now() - ts) / 6e4);
-  if (m < 1) return 'just now';
-  if (m < 60) return m + 'm ago';
+  if (m < 1) return dateLocale === 'ru-RU' ? 'только что' : 'just now';
+  if (m < 60) return dateLocale === 'ru-RU' ? m + ' мин назад' : m + 'm ago';
   const h = Math.round(m / 60);
-  if (h < 24) return h + 'h ago';
+  if (h < 24) return dateLocale === 'ru-RU' ? h + ' ч назад' : h + 'h ago';
   const d = Math.round(h / 24);
-  if (d < 7) return d + 'd ago';
+  if (d < 7) return dateLocale === 'ru-RU' ? d + ' дн. назад' : d + 'd ago';
   return fmtDate(iso(new Date(ts)));
 }
 export const minsAgo = m => Date.now() - m * 6e4;
 export function dayBucket(ts) {
   const n = diffD(new Date(ts), TODAY);
-  if (n === 0) return 'Today';
-  if (n === -1) return 'Yesterday';
-  if (n > -7) return 'This week';
-  return 'Earlier';
+  if (n === 0) return dateLocale === 'ru-RU' ? 'Сегодня' : 'Today';
+  if (n === -1) return dateLocale === 'ru-RU' ? 'Вчера' : 'Yesterday';
+  if (n > -7) return dateLocale === 'ru-RU' ? 'На этой неделе' : 'This week';
+  return dateLocale === 'ru-RU' ? 'Ранее' : 'Earlier';
 }

@@ -8,6 +8,7 @@ import { av, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
+import { LANGUAGES } from '../core/i18n.js';
 
 export const SET_NAV = [
   [
@@ -153,11 +154,7 @@ export function settingsBody(sec, title) {
     case 'language':
       return (
         H('Language and regional formats.') +
-        srow(
-          'Language',
-          'The language used throughout the interface.',
-          sel('lang', ['English (US)', 'English (UK)', 'Deutsch', 'Español', 'Français', '日本語'], P.lang),
-        ) +
+        srow('Language', 'The language used throughout the interface.', sel('lang', LANGUAGES, P.lang)) +
         srow('Spellcheck', 'Check spelling in descriptions and comments.', tog('spell', P.spell !== false))
       );
     case 'datetime':

@@ -8,6 +8,7 @@ import './core/icons.js';
 import './core/constants.js';
 import './data/seed.js';
 import './core/store.js';
+import './core/i18n.js';
 import './ui/helpers.js';
 import './core/theme.js';
 import './ui/toast.js';
@@ -59,7 +60,6 @@ import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 
 (function init() {
-  document.documentElement.lang = 'en';
   if (!document.getElementById('sr-live')) {
     const l = document.createElement('div');
     l.id = 'sr-live';

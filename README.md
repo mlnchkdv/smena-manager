@@ -3,6 +3,9 @@
 A calm, structured project management workspace: home dashboard, inbox, my tasks, projects with
 board / list / table / calendar / timeline / files views, members, teams, activity and settings.
 
+The interface supports English and Russian. Change the language in **Settings → Language**;
+the preference is saved locally and also updates localized dates and accessibility labels.
+
 Built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There is no
 UI framework and no runtime dependency.
 

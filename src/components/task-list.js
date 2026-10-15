@@ -7,6 +7,7 @@ import { PR, ST } from '../core/constants.js';
 import { D, S, commentsOf, isOver, mem, pColor, proj, task } from '../core/store.js';
 import { av, dueHtml, empty, lbl, prIcon, prPill, stIcon, stPill } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
+import { activityExtra, inProject, t as tr } from '../core/i18n.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
@@ -131,7 +132,7 @@ export function actHtml(a, opt = {}) {
     : p
       ? `<span class="obj" data-a="go" data-r="project" data-id="${p.id}">${esc(p.name)}</span>`
       : '';
-  return `<div class="fitem">${av(a.by, 'sm')}<div class="grow"><b>${esc(m?.id === D().me ? 'You' : m?.name || 'Someone')}</b> <span class="muted">${esc(a.verb)}</span> ${obj} ${a.extra ? `<span class="muted">${esc(a.extra)}</span>` : ''}${opt.proj && p && t ? ` <span class="faint">in ${esc(p.name)}</span>` : ''}</div><time>${ago(a.at)}</time></div>`;
+  return `<div class="fitem">${av(a.by, 'sm')}<div class="grow"><b>${esc(m?.id === D().me ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(tr(a.verb))}</span> ${obj} ${a.extra ? `<span class="muted">${esc(activityExtra(a.extra, a.verb))}</span>` : ''}${opt.proj && p && t ? ` <span class="faint">${esc(inProject(p.name))}</span>` : ''}</div><time>${ago(a.at)}</time></div>`;
 }
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);
