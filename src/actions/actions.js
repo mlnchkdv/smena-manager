@@ -18,6 +18,7 @@ import { clearSession, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspa
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
+import { extractWikiLinks } from '../shared/knowledge-links.js';
 
 export const A = {},
   IN = {},
@@ -171,10 +172,6 @@ function knowledgeCollections() {
   if (!Array.isArray(D().knowledgeNotes)) D().knowledgeNotes = [];
   if (!Array.isArray(D().knowledgeFolders)) D().knowledgeFolders = [];
   return { notes: D().knowledgeNotes, folders: D().knowledgeFolders };
-}
-
-function noteWikiLinks(markdown) {
-  return [...String(markdown || '').matchAll(/\[\[([^\]]+)\]\]/g)].map(match => match[1].trim()).filter(Boolean);
 }
 
 const IMPORTANCE_LEVELS = new Set(['low', 'medium', 'high', 'critical']);
@@ -377,7 +374,7 @@ IN.knowledgeField = el => {
       ),
     ];
   else note[field] = el.value || (field === 'folderId' ? null : '');
-  if (field === 'formatted_markdown') note.wikilinks = noteWikiLinks(note.formatted_markdown);
+  if (field === 'formatted_markdown') note.wikilinks = extractWikiLinks(note.formatted_markdown);
   note.updatedAt = new Date().toISOString();
   note.updatedBy = D().me;
   save();

@@ -169,6 +169,106 @@
   line-height: 1.65;
   resize: vertical;
 }
+.knowledge-relations {
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.knowledge-relations > h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.knowledge-relations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.knowledge-relations-group {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+}
+.knowledge-relations-group h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.knowledge-relations-group h3 span {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-3);
+  text-align: center;
+  font-size: var(--fs-2xs);
+}
+.knowledge-relations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.knowledge-relations-list > p {
+  margin: 4px 0;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-relation {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  text-align: left;
+  font-size: var(--fs-sm);
+}
+button.knowledge-relation:hover {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.knowledge-relation > .i:last-child {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--text-4);
+}
+.knowledge-relation-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.knowledge-relation.is-missing {
+  color: var(--text-3);
+}
+.knowledge-relation.is-missing .knowledge-relation-icon {
+  background: var(--surface);
+  color: var(--text-4);
+}
+.knowledge-relation .badge {
+  flex-shrink: 0;
+  margin-left: auto;
+}
 @media (max-width: 900px) {
   .knowledge-shell {
     grid-template-columns: 270px minmax(0, 1fr);
@@ -208,6 +308,9 @@
     padding: 24px 16px 96px;
   }
   .knowledge-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .knowledge-relations-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .knowledge-body {

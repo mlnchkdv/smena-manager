@@ -2,6 +2,7 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, mem } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
+import { knowledgeRelations } from '../shared/knowledge-links.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
@@ -34,7 +35,31 @@ function noteItem(note, active, folder, readOnly) {
   </div>`;
 }
 
-function noteEditor(note, folders, readOnly) {
+function relationItem(note, title, missing = false) {
+  const content = `<span class="knowledge-relation-icon">${ic(missing ? 'circle-help' : 'file-text', 14)}</span><span class="trunc">${esc(title)}</span>${missing ? '<span class="badge">Not found</span>' : ic('arrow-up-right', 13)}`;
+  return missing
+    ? `<div class="knowledge-relation is-missing">${content}</div>`
+    : `<button class="knowledge-relation" data-a="openKnowledgeNote" data-id="${esc(note.id)}">${content}</button>`;
+}
+
+function noteRelations(note, notes) {
+  const { outgoing, backlinks } = knowledgeRelations(notes, note);
+  return `<section class="knowledge-relations" aria-label="Note connections">
+    <h2>${ic('link-2', 16)}Connections</h2>
+    <div class="knowledge-relations-grid">
+      <div class="knowledge-relations-group">
+        <h3>Outgoing links <span>${outgoing.length}</span></h3>
+        <div class="knowledge-relations-list">${outgoing.length ? outgoing.map(item => relationItem(item.note, item.title, !item.note)).join('') : '<p>No outgoing links yet.</p>'}</div>
+      </div>
+      <div class="knowledge-relations-group">
+        <h3>Backlinks <span>${backlinks.length}</span></h3>
+        <div class="knowledge-relations-list">${backlinks.length ? backlinks.map(item => relationItem(item, item.title)).join('') : '<p>No backlinks yet.</p>'}</div>
+      </div>
+    </div>
+  </section>`;
+}
+
+function noteEditor(note, folders, notes, readOnly) {
   const disabled = readOnly ? 'disabled' : '';
   const categories = [...new Set([...DEFAULT_CATEGORIES, note.category].filter(Boolean))];
   return `<section class="knowledge-editor" aria-label="Note editor">
@@ -53,6 +78,7 @@ function noteEditor(note, folders, readOnly) {
     <div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
     <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div>
     <div class="field knowledge-body-field"><label class="label" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span></div>
+    ${noteRelations(note, notes)}
   </section>`;
 }
 
@@ -95,7 +121,7 @@ export function pageKnowledge() {
       </div>
     </aside>
     <div class="knowledge-main">
-      ${active ? noteEditor(active, folders, readOnly) : empty('library-big', 'No notes yet', readOnly ? 'An editor can add the first note to this workspace.' : 'Create the first note for your team knowledge base.', readOnly ? '' : `<button class="btn btn-primary" data-a="newKnowledgeNote">${ic('plus', 14)}Create note</button>`, '', 1)}
+      ${active ? noteEditor(active, folders, notes, readOnly) : empty('library-big', 'No notes yet', readOnly ? 'An editor can add the first note to this workspace.' : 'Create the first note for your team knowledge base.', readOnly ? '' : `<button class="btn btn-primary" data-a="newKnowledgeNote">${ic('plus', 14)}Create note</button>`, '', 1)}
     </div>
   </div>`;
 }

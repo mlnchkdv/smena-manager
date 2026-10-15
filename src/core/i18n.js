@@ -110,6 +110,12 @@ const RU = {
   'Write the note in Markdown. Use [[Note name]] to link related material.':
     'Пишите заметку в Markdown. Используйте [[Название заметки]], чтобы связать материалы.',
   'Markdown and [[wiki links]] are stored as plain text and remain portable.': 'Markdown и [[вики-ссылки]] хранятся как обычный текст и подходят для переноса.',
+  'Note connections': 'Связи заметки',
+  Connections: 'Связи',
+  'Outgoing links': 'Исходящие ссылки',
+  Backlinks: 'Обратные ссылки',
+  'No outgoing links yet.': 'Исходящих ссылок пока нет.',
+  'No backlinks yet.': 'Обратных ссылок пока нет.',
   Processes: 'Процессы',
   Regulations: 'Регламенты',
   'Delete note?': 'Удалить заметку?',
