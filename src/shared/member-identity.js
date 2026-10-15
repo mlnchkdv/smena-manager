@@ -13,17 +13,29 @@ export function bindInitialAdministrator(database, profile) {
   const data = structuredClone(database);
   const members = Array.isArray(data.members) ? data.members : [];
   let member = memberForProfile(data, profile);
-  if (!member) {
+  if (!member && profile.role === 'admin') {
     const seedMember = members.find(item => item.id === data.me) || members[0];
     member = seedMember && !seedMember.authProfileId ? seedMember : null;
   }
   if (!member) {
-    member = { id: profile.id, name: profile.name, email: profile.email, role: 'Owner', c: '#5A67D8', status: 'active' };
+    const workspaceRole = profile.role === 'admin' ? 'Owner' : profile.role === 'editor' ? 'Member' : 'Guest';
+    member = {
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      title: profile.title || '',
+      team: profile.team || 'product',
+      role: workspaceRole,
+      c: '#5A67D8',
+      status: 'active',
+    };
     data.members = [...members, member];
   }
   member.authProfileId = profile.id;
   if (profile.name) member.name = profile.name;
   if (profile.email) member.email = profile.email;
+  if (profile.title) member.title = profile.title;
+  if (profile.team) member.team = profile.team;
   data.me = member.id;
   return data;
 }

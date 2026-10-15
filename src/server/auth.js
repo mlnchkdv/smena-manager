@@ -29,6 +29,8 @@ function normalizeProfile(profile) {
     email: String(profile.email || '')
       .trim()
       .toLowerCase(),
+    title: String(profile.title || '').trim(),
+    team: String(profile.team || '').trim(),
     role,
     active: profile.active !== false,
   };
@@ -54,6 +56,8 @@ function safeProfile(profile) {
     id: profile.id,
     name: profile.name,
     email: profile.email,
+    title: profile.title,
+    team: profile.team,
     role: profile.role,
     active: profile.active,
   };

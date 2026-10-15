@@ -21,6 +21,10 @@ export function applyWorkspaceSnapshot(snapshot) {
   }
   const member = memberForProfile(data, S.ui.currentUser);
   if (!member) throw new Error('Your access profile is not linked to a workspace member.');
+  if (S.ui.currentUser?.name) member.name = S.ui.currentUser.name;
+  if (S.ui.currentUser?.email) member.email = S.ui.currentUser.email;
+  if (S.ui.currentUser?.title) member.title = S.ui.currentUser.title;
+  if (S.ui.currentUser?.team) member.team = S.ui.currentUser.team;
   data.me = member.id;
   S.data = data;
   S.ui.workspaceRevision = Number(snapshot.revision || 0);
@@ -34,9 +38,12 @@ async function loadWorkspaceFor(user) {
     if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
     S.data = bindInitialAdministrator(S.data, user);
     snapshot = await putWorkspace(S.data, Number(snapshot.revision || 0));
-  } else if (!memberForProfile(workspacePayload(snapshot), user) && user.role === 'admin') {
+  } else if (!memberForProfile(workspacePayload(snapshot), user)) {
     const migrated = bindInitialAdministrator(workspacePayload(snapshot), user);
-    snapshot = S.ui.authConfig?.workspaceWritesEnabled ? await putWorkspace(migrated, Number(snapshot.revision || 0)) : { ...snapshot, ...migrated };
+    snapshot =
+      user.role === 'admin' && S.ui.authConfig?.workspaceWritesEnabled
+        ? await putWorkspace(migrated, Number(snapshot.revision || 0))
+        : { ...snapshot, ...migrated };
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot);
