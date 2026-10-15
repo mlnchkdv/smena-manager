@@ -32,7 +32,10 @@ through `api/index.js`; local development starts the same API alongside Vite and
 requests to it.
 
 - `GET /api/health` checks the API runtime.
-- `GET /api/storage/status` initializes the workspace database and reports its storage state.
+- `GET /api/auth/config` reports whether deployment credentials are complete.
+- `POST /api/auth/validate` exchanges a team Access ID for a signed seven-day session.
+- `GET /api/auth/me` returns the signed-in profile.
+- `GET /api/storage/status` initializes the workspace database and reports its storage state after authentication.
 - Local development stores the JSON database in `.data/smena-manager-data.json`.
 - Vercel requires Google Drive credentials and never falls back to its ephemeral filesystem.
 
@@ -40,6 +43,10 @@ Copy `.env.example` to `.env` for local configuration. OAuth2 credentials can us
 personal or Workspace account. A service account must also receive `GOOGLE_DRIVE_FOLDER_ID` for a
 folder or Shared Drive that has been shared with it. Secrets belong in Vercel Environment Variables
 and must not be committed.
+
+Team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For local development, copy
+`access-ids.example.json` to `.data/access-ids.json` and replace the example credentials. Access IDs
+are passwords; never commit real values. Production also requires a stable `SESSION_SECRET`.
 
 ## Project structure
 

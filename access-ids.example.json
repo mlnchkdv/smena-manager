@@ -1,0 +1,10 @@
+[
+  {
+    "id": "user-1",
+    "name": "Team administrator",
+    "email": "admin@example.com",
+    "role": "admin",
+    "accessId": "replace-with-a-long-random-secret",
+    "active": true
+  }
+]

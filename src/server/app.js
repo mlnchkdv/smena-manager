@@ -1,4 +1,6 @@
 import express from 'express';
+import { requireAuth } from './auth.js';
+import { authRouter } from './auth-routes.js';
 import { getWorkspaceStatus } from './workspace-store.js';
 
 export const app = express();
@@ -19,6 +21,13 @@ app.get('/api/health', (_request, response) => {
     runtime: process.env.VERCEL ? 'vercel' : 'node',
     timestamp: new Date().toISOString(),
   });
+});
+
+app.use('/api/auth', authRouter);
+app.use('/api', requireAuth);
+
+app.get('/api/auth/me', (request, response) => {
+  response.json({ user: request.user });
 });
 
 app.get('/api/storage/status', async (_request, response, next) => {

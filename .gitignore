@@ -7,3 +7,5 @@ __MACOSX/
 .env*
 !.env.example
 .data/
+access-ids*.json
+!access-ids.example.json
