@@ -1,7 +1,8 @@
-# Gr8r Studio
+# Smena Manager
 
-A calm, structured project management workspace: home dashboard, inbox, my tasks, projects with
-board / list / table / calendar / timeline / files views, members, teams, activity and settings.
+A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
+files, members, teams, activity and settings. The original Gr8r interface is being adapted into the
+Smena team's own workspace and prepared for later KMS modules such as knowledge, files and bookmarks.
 
 The interface supports English and Russian. Change the language in **Settings → Language**;
 the preference is saved locally and also updates localized dates and accessibility labels.
@@ -21,15 +22,17 @@ npm run dev       # frontend on :5173 and local API on :3001
 npm run build     # production build in dist/
 npm run preview   # serve the production build locally
 npm run test:server
+npm run check:deploy # validate production variables without printing secrets
 npm run lint      # ESLint
 npm run format    # Prettier
 ```
 
 ## Server and storage
 
-The browser UI is being migrated from local-only state to an Express API. Vercel serves the API
-through `api/index.js`; local development starts the same API alongside Vite and proxies `/api`
-requests to it.
+The browser UI uses an Express API. Vercel serves it through `api/index.js`; local development starts
+the same API alongside Vite and proxies `/api` requests to it. Authentication uses team Access IDs
+and signed seven-day sessions. The client keeps a local cache, serializes writes and uses optimistic
+revisions so a stale browser cannot silently replace newer team data.
 
 - `GET /api/health` checks the API runtime.
 - `GET /api/auth/config` reports whether deployment credentials are complete.
@@ -39,7 +42,11 @@ requests to it.
 - `GET /api/workspace` returns the current versioned JSON snapshot.
 - `PUT /api/workspace` replaces the snapshot for editors and administrators when its revision still matches.
 - Local development stores the JSON database in `.data/smena-manager-data.json`.
-- Vercel requires Google Drive credentials and never falls back to its ephemeral filesystem.
+- Production stores one versioned `smena-manager-data.json` file in Google Drive.
+- Redis stores no workspace content; it is used only as a short distributed write lock between
+  concurrent Vercel Functions.
+- The browser's `localStorage` is an offline cache, not the shared source of truth.
+- Vercel never falls back to its ephemeral filesystem.
 
 Copy `.env.example` to `.env` for local configuration. OAuth2 credentials can use a dedicated
 personal or Workspace account. A service account must also receive `GOOGLE_DRIVE_FOLDER_ID` for a
@@ -51,6 +58,38 @@ Team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For local develo
 are passwords; never commit real values. Production also requires a stable `SESSION_SECRET`.
 Workspace writes on Vercel additionally require `REDIS_URL`; the API reloads the Drive snapshot while
 holding a distributed lock and rejects stale revisions instead of overwriting another member's work.
+
+Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
+projects/tasks/files but not membership or workspace settings, and `viewer` is read-only. Only an
+administrator can initialize an empty production database on the first sign-in.
+
+## Vercel production setup
+
+1. Create a long random `SESSION_SECRET` (at least 32 characters).
+2. Add `ACCESS_IDS_JSON` as a JSON array. Use a unique random Access ID of at least 16 characters for
+   every person and include at least one `admin`. Start from `access-ids.example.json`, but never
+   commit real IDs.
+3. Configure Google Drive using one of these options:
+   - OAuth2: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. The application will
+     create its `Smena-Manager-Storage` folder in that account if necessary.
+   - Service account: `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_PRIVATE_KEY`, or the full
+     `GOOGLE_SERVICE_ACCOUNT_KEY` JSON. Create a Drive folder, share it with the service account and
+     set `GOOGLE_DRIVE_FOLDER_ID`.
+4. Add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash). It is
+   required because separate Functions can write concurrently.
+5. Add the variables to every Vercel environment that should work (Production and, if desired,
+   Preview), then redeploy. Run `npm run check:deploy` against an equivalent local `.env` before the
+   deployment.
+6. Open `/api/auth/config`. `deploymentReady` must be `true` and `configurationIssues` empty. Sign in
+   with the administrator Access ID; the first sign-in creates the Drive database from the current
+   workspace seed. Afterwards, copy the created Drive file ID into the optional
+   `GOOGLE_DRIVE_DATABASE_FILE_ID` variable to reduce lookup requests.
+
+The current storage model deliberately avoids PostgreSQL and suits a small team. Each change writes
+the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become
+very frequent, or the product needs record-level querying. Binary files are not yet uploaded by this
+stage: the existing Files section stores metadata; a later stage can add a dedicated Drive file tree
+while keeping references in the JSON database.
 
 ## Project structure
 
@@ -70,6 +109,8 @@ src/
     views/              list, board, table, calendar, timeline, projects & files
     pages/              settings, auth & onboarding
   core/                 utilities, constants, icons, store (state + lookups), theme
+  server/               Express API, sessions, Google Drive storage, Redis coordination
+  shared/               access rules used by both browser and server
   data/seed.js          demo workspace data
   ui/                   shared render helpers, toasts, the select dropdown
   shell/                render loop and router, sidebar/topbar layout, skeletons, view engine
@@ -79,6 +120,7 @@ src/
   overlays/             task drawer, modals, popovers, context menu, command palette
   features/             teams, subtasks, archive (rendering)
   actions/              user actions, event wiring, keyboard shortcuts, drag and drop
+scripts/                 production configuration checks
 ```
 
 ### Layers
@@ -105,9 +147,9 @@ Dependencies point downward:
 
 ## Continuous integration
 
-Every push and pull request runs lint, the format check and a production build
+Every push and pull request runs lint, the format check, server tests and a production build
 (`.github/workflows/ci.yml`).
 
 ## Deploy
 
-`vercel.json` builds with Vite and serves `dist/`.
+`vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.

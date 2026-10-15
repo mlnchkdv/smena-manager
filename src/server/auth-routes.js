@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { hasSharedRedis } from './redis.js';
+import { inspectDeploymentConfig } from './deployment-config.js';
 
 const attempts = new Map();
 const WINDOW_MS = 15 * 60 * 1000;
@@ -27,23 +28,24 @@ function rateLimit(request, response, next) {
 export const authRouter = Router();
 
 authRouter.get('/config', (_request, response) => {
+  let profiles = [];
   let profileCount = 0;
   let configurationError = null;
   try {
-    profileCount = getAccessProfiles().length;
-  } catch {
-    configurationError = 'ACCESS_IDS_INVALID';
+    profiles = getAccessProfiles().filter(profile => profile.active);
+    profileCount = profiles.length;
+  } catch (error) {
+    configurationError = error.message;
   }
-  const issues = [];
-  if (!process.env.SESSION_SECRET && process.env.VERCEL) issues.push('SESSION_SECRET');
-  if (!profileCount) issues.push(configurationError || 'ACCESS_IDS');
-  if (!hasGoogleDriveCredentials() && process.env.VERCEL) issues.push('GOOGLE_DRIVE_CREDENTIALS');
-  if (!hasSharedRedis() && process.env.VERCEL) issues.push('REDIS_URL');
+  const deployment = process.env.VERCEL ? inspectDeploymentConfig({ profiles, profileError: configurationError }) : null;
+  const issues = deployment?.issues.map(issue => issue.key) || (profileCount ? [] : [configurationError ? 'ACCESS_IDS_INVALID' : 'ACCESS_IDS']);
   response.json({
     accessIdEnabled: profileCount > 0,
     googleAuthEnabled: false,
     deploymentReady: issues.length === 0,
     configurationIssues: issues,
+    configurationWarnings: deployment?.warnings.map(warning => warning.key) || [],
+    googleCredentialMode: deployment?.credentialMode || (hasGoogleDriveCredentials() ? 'configured' : null),
     workspaceWritesEnabled: !process.env.VERCEL || hasSharedRedis(),
   });
 });

@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:server": "node --test tests/server/*.test.js",
+    "check:deploy": "node scripts/check-deployment-config.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
