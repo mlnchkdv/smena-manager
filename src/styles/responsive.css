@@ -305,6 +305,15 @@
   }
 }
 @media (max-width: 360px) {
+  .set-nav {
+    padding-inline: 8px;
+  }
+  .set-nav .sitem {
+    padding-inline: 8px;
+  }
+  .set-nav .sitem > svg {
+    display: none;
+  }
   .panel-h .seg {
     width: 100%;
   }

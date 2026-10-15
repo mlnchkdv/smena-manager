@@ -206,6 +206,8 @@ export function afterRender() {
   selectMenu.close();
   enhanceSelects();
   placePop();
+  const activeSetting = document.querySelector('.set-nav .sitem.on');
+  if (activeSetting && matchMedia('(max-width: 900px)').matches) activeSetting.scrollIntoView({ block: 'nearest', inline: 'center' });
   $$('textarea[data-autosize]').forEach(autosize);
   const pal = $('#pal-in');
   if (pal && document.activeElement !== pal && !S.ui.pop) pal.focus();

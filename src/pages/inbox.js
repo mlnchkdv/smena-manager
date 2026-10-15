@@ -5,6 +5,7 @@ import { D, S, commentsOf, mem, pColor, proj, task } from '../core/store.js';
 import { av, empty, fmtComment } from '../ui/helpers.js';
 import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-list.js';
 import { commentHtml } from '../overlays/drawer.js';
+import { t as tr } from '../core/i18n.js';
 
 export function pageInbox() {
   const cats = [
@@ -42,9 +43,9 @@ export function notifText(n) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
   const who = n.by ? `<b style="font-weight:600">${esc(mem(n.by)?.name)}</b>` : '';
-  if (!n.by && p && !t) return `<b style="font-weight:600">${esc(n.text)}</b>`;
-  if (!n.by && t) return `<b style="font-weight:600">${esc(t.title)}</b> <span class="muted">${esc(n.text)}</span>`;
-  return `${who} <span class="muted">${esc(n.text)}</span> ${t ? `<b style="font-weight:500">${esc(t.title)}</b>` : ''}`;
+  if (!n.by && p && !t) return `<b style="font-weight:600">${esc(tr(n.text))}</b>`;
+  if (!n.by && t) return `<b style="font-weight:600">${esc(t.title)}</b> <span class="muted">${esc(tr(n.text))}</span>`;
+  return `${who} <span class="muted">${esc(tr(n.text))}</span> ${t ? `<b style="font-weight:500">${esc(t.title)}</b>` : ''}`;
 }
 export function notifIcon(n) {
   if (n.by) return av(n.by, 'md', false);
