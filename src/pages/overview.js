@@ -30,7 +30,7 @@ export function pageOverview() {
     </div>
     <div class="grid2">
       <section class="panel"><div class="panel-h"><h2>Portfolio</h2></div>
-        <div style="overflow-x:auto"><table class="perm-t" style="min-width:600px"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Lead</th><th style="text-align:left">Status</th><th style="text-align:left;width:22%">Progress</th><th>Open</th><th>Overdue</th><th style="text-align:left">Due</th></tr></thead><tbody>
+        <div style="overflow-x:auto"><table class="perm-t" style="min-width:600px"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Lead</th><th style="text-align:left">Status</th><th style="text-align:left;width:22%">Progress</th><th>Open tasks</th><th>Overdue</th><th style="text-align:left">Due</th></tr></thead><tbody>
         ${ps
           .map(p => {
             const ts = tasksOf(p.id);

@@ -283,6 +283,17 @@
   .panel-h h2 {
     white-space: nowrap;
   }
+  .seg {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .seg::-webkit-scrollbar {
+    display: none;
+  }
+  .seg button {
+    flex-shrink: 0;
+  }
   .topbar .ibtn,
   .topbar .btn,
   .topsearch {

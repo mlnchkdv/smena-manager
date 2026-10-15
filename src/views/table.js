@@ -7,16 +7,16 @@ import { groupTasks, viewOf } from '../shell/view-engine.js';
 
 export const TCOLS = [
   ['title', 'Task', 314],
-  ['status', 'Status', 132],
-  ['priority', 'Priority', 112],
-  ['assignee', 'Assignee', 156],
-  ['due', 'Due date', 112],
-  ['start', 'Start date', 112],
-  ['labels', 'Labels', 180],
+  ['status', 'Status', 140],
+  ['priority', 'Priority', 124],
+  ['assignee', 'Assignee', 166],
+  ['due', 'Due date', 132],
+  ['start', 'Start date', 124],
+  ['labels', 'Labels', 190],
   ['deps', 'Dependencies', 150],
-  ['estimate', 'Estimate', 92],
+  ['estimate', 'Estimate', 100],
   ['created', 'Created', 112],
-  ['project', 'Project', 156],
+  ['project', 'Project', 166],
 ];
 export function tcell(t, c) {
   const ed = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === c;

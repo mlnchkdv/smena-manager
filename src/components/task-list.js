@@ -11,10 +11,10 @@ import { activityExtra, inProject, t as tr } from '../core/i18n.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
-  status: ['Status', '126px'],
+  status: ['Status', '140px'],
   assignee: ['Assignee', '150px'],
   priority: ['Priority', '108px'],
-  due: ['Due date', '104px'],
+  due: ['Due date', '132px'],
   labels: ['Labels', '168px'],
   project: ['Project', '160px'],
 };
