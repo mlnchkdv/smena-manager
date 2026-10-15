@@ -36,7 +36,7 @@ async function loadWorkspaceFor(user) {
     snapshot = await putWorkspace(S.data, Number(snapshot.revision || 0));
   } else if (!memberForProfile(workspacePayload(snapshot), user) && user.role === 'admin') {
     const migrated = bindInitialAdministrator(workspacePayload(snapshot), user);
-    snapshot = await putWorkspace(migrated, Number(snapshot.revision || 0));
+    snapshot = S.ui.authConfig?.workspaceWritesEnabled ? await putWorkspace(migrated, Number(snapshot.revision || 0)) : { ...snapshot, ...migrated };
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot);
