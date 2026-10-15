@@ -21,6 +21,24 @@ test('workspace sync advances revisions after successful writes', async () => {
   assert.deepEqual(statuses, ['syncing', 'saved']);
 });
 
+test('workspace sync skips data that is identical to the loaded snapshot', async () => {
+  let writes = 0;
+  const data = { tasks: [{ id: 't1' }] };
+  const sync = createWorkspaceSync({
+    writeWorkspace: async () => {
+      writes += 1;
+      return { ...data, revision: 6 };
+    },
+    notify: () => {},
+  });
+
+  sync.configure(5, 'editor', data);
+  await sync.queue(structuredClone(data));
+
+  assert.equal(writes, 0);
+  assert.equal(sync.state().revision, 5);
+});
+
 test('workspace sync stops instead of overwriting a revision conflict', async () => {
   const statuses = [];
   const sync = createWorkspaceSync({

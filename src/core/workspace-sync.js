@@ -16,12 +16,18 @@ export function createWorkspaceSync(options = {}) {
   let activePromise = null;
   let retryTimer = null;
   let retryDelay = 1_000;
+  let confirmedHash = null;
+  let pendingHash = null;
+  let activeHash = null;
 
-  function configure(nextRevision, role) {
+  function configure(nextRevision, role, data) {
     revision = Number(nextRevision || 0);
     enabled = role === 'admin' || role === 'editor';
     pending = null;
     retryDelay = 1_000;
+    confirmedHash = data ? JSON.stringify(data) : null;
+    pendingHash = null;
+    activeHash = null;
     if (retryTimer) cancel(retryTimer);
     retryTimer = null;
   }
@@ -29,6 +35,8 @@ export function createWorkspaceSync(options = {}) {
   function disable() {
     enabled = false;
     pending = null;
+    pendingHash = null;
+    activeHash = null;
     if (retryTimer) cancel(retryTimer);
     retryTimer = null;
   }
@@ -46,12 +54,16 @@ export function createWorkspaceSync(options = {}) {
     if (activePromise) return activePromise;
     if (!enabled || !pending || retryTimer) return Promise.resolve();
     const data = pending;
+    const dataHash = pendingHash;
     pending = null;
+    pendingHash = null;
+    activeHash = dataHash;
     notify({ status: 'syncing', revision });
     activePromise = (async () => {
       try {
         const snapshot = await writeWorkspace(data, revision);
         revision = Number(snapshot.revision);
+        confirmedHash = dataHash;
         retryDelay = 1_000;
         notify({ status: 'saved', revision });
       } catch (error) {
@@ -65,11 +77,15 @@ export function createWorkspaceSync(options = {}) {
           enabled = false;
           notify({ status: 'forbidden', error });
         } else {
-          if (!pending) pending = data;
+          if (!pending) {
+            pending = data;
+            pendingHash = dataHash;
+          }
           notify({ status: 'offline', error });
           scheduleRetry();
         }
       } finally {
+        activeHash = null;
         activePromise = null;
         if (enabled && pending && !retryTimer) queueMicrotask(() => void flush());
       }
@@ -79,7 +95,10 @@ export function createWorkspaceSync(options = {}) {
 
   function queue(data) {
     if (!enabled) return Promise.resolve();
+    const dataHash = JSON.stringify(data);
+    if (dataHash === confirmedHash || dataHash === pendingHash || dataHash === activeHash) return activePromise || Promise.resolve();
     pending = structuredClone(data);
+    pendingHash = dataHash;
     return flush();
   }
 
@@ -98,7 +117,7 @@ export function createWorkspaceSync(options = {}) {
 
 const workspaceSync = createWorkspaceSync();
 
-export const configureWorkspaceSync = (revision, role) => workspaceSync.configure(revision, role);
+export const configureWorkspaceSync = (revision, role, data) => workspaceSync.configure(revision, role, data);
 export const disableWorkspaceSync = () => workspaceSync.disable();
 export const queueWorkspaceSync = data => workspaceSync.queue(data);
 export const retryWorkspaceSync = () => workspaceSync.retry();

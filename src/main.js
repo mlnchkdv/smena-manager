@@ -95,6 +95,12 @@ window.addEventListener('smena:sync-status', event => {
   }
 });
 
+window.addEventListener('smena:permission-denied', event => {
+  const viewer = event.detail?.role === 'viewer';
+  render();
+  toast(viewer ? 'You have view-only access to this workspace.' : 'Only an administrator can change this setting.', { kind: 'err' });
+});
+
 (async function init() {
   if (!document.getElementById('sr-live')) {
     const l = document.createElement('div');

@@ -1,7 +1,7 @@
 /* ---------- toasts ---------- */
 import { $, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { save } from '../core/store.js';
+import { S, save } from '../core/store.js';
 import { render } from '../shell/render.js';
 import { translateElement } from '../core/i18n.js';
 
@@ -29,6 +29,10 @@ export function toast(msg, opt = {}) {
 }
 export function mutate(fn, label) {
   void label;
+  if (S.ui.currentUser?.role === 'viewer') {
+    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['*'], role: 'viewer' } }));
+    return false;
+  }
   fn();
   save();
   render();

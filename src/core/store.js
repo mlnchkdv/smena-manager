@@ -3,6 +3,7 @@ import { TODAY, diffD, iso, parse, uid } from './utils.js';
 import { PCOLORS, TEAMS_SEED } from './constants.js';
 import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
+import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 
 export const STORE_KEY = 'gr8r.v2';
 export const DEFAULT_PREFS = {
@@ -45,6 +46,7 @@ export const S = {
     authIssue: '',
     currentUser: null,
     workspaceRevision: null,
+    workspaceBaseline: null,
     authStep: 'login',
     onb: 0,
     onbData: { use: 'product', team: 'kanban', size: '2-10', ws: '', proj: 'Website Launch', tmpl: 'web', invites: '' },
@@ -89,7 +91,21 @@ export const S = {
   },
 };
 export let _saveT;
+export function setWorkspaceBaseline(data) {
+  S.ui.workspaceBaseline = structuredClone(data);
+}
+
+function guardWorkspaceData() {
+  const result = restoreUnauthorizedChanges(S.ui.workspaceBaseline, S.data, S.ui.currentUser?.role);
+  if (!result.denied) return;
+  S.data = result.data;
+  if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: result.fields, role: S.ui.currentUser?.role } }));
+  }
+}
+
 export function save() {
+  guardWorkspaceData();
   clearTimeout(_saveT);
   _saveT = setTimeout(() => {
     try {

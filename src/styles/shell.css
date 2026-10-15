@@ -437,3 +437,24 @@ h3.sub {
 .offline-bar .i {
   color: var(--amber);
 }
+
+.readonly-bar {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border-color: var(--divider);
+}
+
+.role-viewer
+  :is(
+    [data-a='newTask'],
+    [data-a='newProject'],
+    [data-a='invite'],
+    [data-a='startComposer'],
+    [data-a='editTask'],
+    [data-a='editProject'],
+    [data-a='bulkSet'],
+    [data-a='bulkDelete'],
+    [data-a='uploadFiles']
+  ) {
+  display: none !important;
+}

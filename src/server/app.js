@@ -48,7 +48,7 @@ app.get('/api/workspace', async (_request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    const data = await replaceWorkspaceDatabase(request.body?.data, request.body?.revision);
+    const data = await replaceWorkspaceDatabase(request.body?.data, request.body?.revision, { role: request.user.role });
     response.json({ data });
   } catch (error) {
     next(error);

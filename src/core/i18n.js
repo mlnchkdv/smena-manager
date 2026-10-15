@@ -801,6 +801,13 @@ const RU = {
   Reload: 'Перезагрузить',
   'Your session has expired. Sign in again.': 'Срок действия сессии истёк. Войдите снова.',
   'You do not have permission to save workspace changes.': 'У вас нет прав для сохранения изменений рабочего пространства.',
+  'View-only access.': 'Доступ только для просмотра.',
+  'Ask an administrator for editing permissions.': 'Запросите у администратора права на редактирование.',
+  'You have view-only access to this workspace.': 'У вас есть только право просмотра этого рабочего пространства.',
+  'Only an administrator can change this setting.': 'Изменить эту настройку может только администратор.',
+  'Administrator access required': 'Требуется доступ администратора',
+  'Only administrators can manage workspace settings, members, and billing.':
+    'Только администраторы могут управлять настройками рабочего пространства, участниками и оплатой.',
   'Failed to load': 'Не удалось загрузить',
   'Something went wrong': 'Что-то пошло не так',
   'Page not found': 'Страница не найдена',

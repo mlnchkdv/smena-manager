@@ -1,5 +1,6 @@
 import { getStorageProvider } from './storage/index.js';
 import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
+import { adminFieldsChanged } from '../shared/workspace-permissions.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -101,9 +102,23 @@ export class RevisionConflictError extends Error {
   }
 }
 
-async function replaceInsideLock(nextData, expectedRevision) {
+export class WorkspacePermissionError extends Error {
+  constructor(fields) {
+    super('Only an administrator can change workspace settings or membership.');
+    this.name = 'WorkspacePermissionError';
+    this.statusCode = 403;
+    this.code = 'ADMIN_REQUIRED';
+    this.fields = fields;
+  }
+}
+
+async function replaceInsideLock(nextData, expectedRevision, role) {
   const current = await initWorkspaceStore();
   if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+  if (role === 'editor') {
+    const fields = adminFieldsChanged(current, nextData);
+    if (fields.length) throw new WorkspacePermissionError(fields);
+  }
   const now = new Date().toISOString();
   const next = normalizeDatabase({
     ...nextData,
@@ -118,7 +133,7 @@ async function replaceInsideLock(nextData, expectedRevision) {
   return clone(next);
 }
 
-export async function replaceWorkspaceDatabase(nextData, expectedRevision) {
+export async function replaceWorkspaceDatabase(nextData, expectedRevision, options = {}) {
   if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
     throw new TypeError('Workspace data must be a JSON object.');
   }
@@ -132,11 +147,11 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision) {
     }
     return withRedisLock('smena:workspace:write:v1', async () => {
       await reloadWorkspaceStore();
-      return replaceInsideLock(nextData, expectedRevision);
+      return replaceInsideLock(nextData, expectedRevision, options.role || 'admin');
     });
   }
 
-  const result = localWriteQueue.then(() => replaceInsideLock(nextData, expectedRevision));
+  const result = localWriteQueue.then(() => replaceInsideLock(nextData, expectedRevision, options.role || 'admin'));
   localWriteQueue = result.catch(() => undefined);
   return result;
 }

@@ -3,7 +3,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { resetStorageProvider } from '../../src/server/storage/index.js';
-import { getWorkspaceDatabase, replaceWorkspaceDatabase, resetWorkspaceStore, RevisionConflictError } from '../../src/server/workspace-store.js';
+import {
+  getWorkspaceDatabase,
+  replaceWorkspaceDatabase,
+  resetWorkspaceStore,
+  RevisionConflictError,
+  WorkspacePermissionError,
+} from '../../src/server/workspace-store.js';
 
 const originalDatabasePath = process.env.DATABASE_PATH;
 const testDirectory = path.join(process.cwd(), '.data', 'tests', `workspace-${process.pid}`);
@@ -47,6 +53,21 @@ test('stale workspace revisions are rejected', async () => {
     error => {
       assert.ok(error instanceof RevisionConflictError);
       assert.equal(error.currentRevision, 1);
+      return true;
+    },
+  );
+});
+
+test('editors can change tasks but cannot change administrator fields', async () => {
+  const initial = await getWorkspaceDatabase();
+  const withTask = await replaceWorkspaceDatabase({ ...initial, tasks: [{ id: 'task-1' }] }, 0, { role: 'editor' });
+  assert.equal(withTask.revision, 1);
+
+  await assert.rejects(
+    () => replaceWorkspaceDatabase({ ...withTask, members: [{ id: 'member-1' }] }, 1, { role: 'editor' }),
+    error => {
+      assert.ok(error instanceof WorkspacePermissionError);
+      assert.deepEqual(error.fields, ['members']);
       return true;
     },
   );

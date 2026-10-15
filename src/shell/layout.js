@@ -27,12 +27,14 @@ import { pageArchive } from '../features/archive.js';
 
 export function renderShell() {
   const u = S.ui;
-  return `<button class="skip" data-a="skipToContent">Skip to content</button><div class="shell ${u.collapsed ? 'collapsed' : ''} ${u.mnav ? 'mnav' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}">
+  const role = u.currentUser?.role || 'viewer';
+  return `<button class="skip" data-a="skipToContent">Skip to content</button><div class="shell role-${role} ${u.collapsed ? 'collapsed' : ''} ${u.mnav ? 'mnav' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}">
     ${renderSidebar()}
     ${u.mnav ? '<div class="side-scrim" data-a="closeMnav"></div>' : ''}
     <main class="main" id="main">
       ${renderTopbar()}
       ${u.offline ? `<div class="offline-bar" role="alert">${ic('wifi-off', 15)}<span><b>You're offline.</b> Changes are saved locally and will sync when your connection is back.</span><span class="sp"></span><button class="btn btn-sm btn-secondary" data-a="retryOnline">Try again</button></div>` : ''}
+      ${role === 'viewer' ? `<div class="offline-bar readonly-bar" role="status">${ic('eye', 15)}<span><b>View-only access.</b> Ask an administrator for editing permissions.</span></div>` : ''}
       <div class="content ${u.fx.route ? 'fx-route' : ''}" id="main-content" tabindex="-1" data-keep="c:${u.route}:${u.params.id || ''}:${u.params.tab || ''}:${u.params.sec || ''}">${u.loading ? skeleton() : renderPage()}</div>
     </main>
     ${renderBottomNav()}

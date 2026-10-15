@@ -63,6 +63,7 @@ export const SET_NAV = [
     ],
   ],
 ];
+const ADMIN_SETTINGS = new Set(['workspace', 'members', 'teams', 'permissions', 'plan', 'payment', 'invoices']);
 export function srow(t, d, ctl) {
   return `<div class="srow"><div><div class="t">${t}</div>${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
 }
@@ -77,10 +78,14 @@ export const sel = (k, opts, v) =>
     .join('')}</select>`;
 export function pageSettings() {
   const sec = S.ui.params.sec || S.ui.settings || 'appearance';
+  const isAdmin = S.ui.currentUser?.role === 'admin';
+  const navigation = SET_NAV.map(([group, items]) => [group, isAdmin ? items : items.filter(([key]) => !ADMIN_SETTINGS.has(key))]).filter(
+    ([, items]) => items.length,
+  );
   const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'Appearance'];
   return `<div class="set">
-    <nav class="set-nav" aria-label="Settings">${SET_NAV.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
-    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${settingsBody(sec, title[1])}</div></div>
+    <nav class="set-nav" aria-label="Settings">${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
+    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${!isAdmin && ADMIN_SETTINGS.has(sec) ? `<div class="empty-state"><div class="glyph">${ic('lock', 20)}</div><h3 class="es-h">Administrator access required</h3><p>Only administrators can manage workspace settings, members, and billing.</p></div>` : settingsBody(sec, title[1])}</div></div>
   </div>`;
 }
 export function settingsBody(sec, title) {

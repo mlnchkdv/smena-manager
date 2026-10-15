@@ -1,5 +1,5 @@
 import { clearSession, getAuthConfig, getCurrentUser, getSessionToken, getWorkspace, loginWithAccessId, putWorkspace } from './api.js';
-import { S } from './store.js';
+import { S, setWorkspaceBaseline } from './store.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import { configureWorkspaceSync } from './workspace-sync.js';
 
@@ -10,13 +10,14 @@ function applyWorkspace(snapshot) {
   }
   S.data = data;
   S.ui.workspaceRevision = Number(snapshot.revision || 0);
-  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role);
+  setWorkspaceBaseline(data);
+  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data);
 }
 
 async function loadWorkspaceFor(user) {
   let snapshot = await getWorkspace();
   if (isEmptyWorkspace(snapshot)) {
-    if (!['admin', 'editor'].includes(user.role)) throw new Error('The workspace has not been initialized yet.');
+    if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
     snapshot = await putWorkspace(S.data, Number(snapshot.revision || 0));
   }
   S.ui.currentUser = user;
