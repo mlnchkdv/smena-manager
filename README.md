@@ -36,6 +36,8 @@ requests to it.
 - `POST /api/auth/validate` exchanges a team Access ID for a signed seven-day session.
 - `GET /api/auth/me` returns the signed-in profile.
 - `GET /api/storage/status` initializes the workspace database and reports its storage state after authentication.
+- `GET /api/workspace` returns the current versioned JSON snapshot.
+- `PUT /api/workspace` replaces the snapshot for editors and administrators when its revision still matches.
 - Local development stores the JSON database in `.data/smena-manager-data.json`.
 - Vercel requires Google Drive credentials and never falls back to its ephemeral filesystem.
 
@@ -47,6 +49,8 @@ and must not be committed.
 Team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For local development, copy
 `access-ids.example.json` to `.data/access-ids.json` and replace the example credentials. Access IDs
 are passwords; never commit real values. Production also requires a stable `SESSION_SECRET`.
+Workspace writes on Vercel additionally require `REDIS_URL`; the API reloads the Drive snapshot while
+holding a distributed lock and rejects stale revisions instead of overwriting another member's work.
 
 ## Project structure
 

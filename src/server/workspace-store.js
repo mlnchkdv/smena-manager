@@ -1,9 +1,13 @@
 import { getStorageProvider } from './storage/index.js';
+import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
 let database = null;
 let initializationPromise = null;
+let reloadPromise = null;
+let localWriteQueue = Promise.resolve();
+let lastLoadedAt = 0;
 
 function createEmptyDatabase() {
   const now = new Date().toISOString();
@@ -36,6 +40,10 @@ function normalizeDatabase(value) {
   return { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
 }
 
+function clone(value) {
+  return structuredClone(value);
+}
+
 export async function initWorkspaceStore() {
   if (database) return database;
   if (initializationPromise) return initializationPromise;
@@ -46,6 +54,7 @@ export async function initWorkspaceStore() {
     const stored = await storage.loadDatabase();
     database = stored ? normalizeDatabase(stored) : createEmptyDatabase();
     if (!stored) await storage.saveDatabase(database);
+    lastLoadedAt = Date.now();
     return database;
   })();
 
@@ -54,6 +63,82 @@ export async function initWorkspaceStore() {
   } finally {
     initializationPromise = null;
   }
+}
+
+export async function reloadWorkspaceStore(options = {}) {
+  const maxAgeMs = Math.max(0, Number(options.maxAgeMs || 0));
+  if (database && maxAgeMs && Date.now() - lastLoadedAt <= maxAgeMs) return database;
+  if (reloadPromise) return reloadPromise;
+  reloadPromise = (async () => {
+    const storage = getStorageProvider();
+    await storage.init();
+    const stored = await storage.loadDatabase();
+    if (!stored) throw new Error('The configured storage does not contain a workspace database.');
+    database = normalizeDatabase(stored);
+    lastLoadedAt = Date.now();
+    return database;
+  })();
+  try {
+    return await reloadPromise;
+  } finally {
+    reloadPromise = null;
+  }
+}
+
+export async function getWorkspaceDatabase() {
+  if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2_000 });
+  else await initWorkspaceStore();
+  return clone(database);
+}
+
+export class RevisionConflictError extends Error {
+  constructor(currentRevision) {
+    super('The workspace changed after it was loaded. Refresh and retry.');
+    this.name = 'RevisionConflictError';
+    this.statusCode = 409;
+    this.code = 'REVISION_CONFLICT';
+    this.currentRevision = currentRevision;
+  }
+}
+
+async function replaceInsideLock(nextData, expectedRevision) {
+  const current = await initWorkspaceStore();
+  if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+  const now = new Date().toISOString();
+  const next = normalizeDatabase({
+    ...nextData,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    revision: current.revision + 1,
+    createdAt: current.createdAt,
+    updatedAt: now,
+  });
+  await getStorageProvider().saveDatabase(next);
+  database = next;
+  lastLoadedAt = Date.now();
+  return clone(next);
+}
+
+export async function replaceWorkspaceDatabase(nextData, expectedRevision) {
+  if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
+    throw new TypeError('Workspace data must be a JSON object.');
+  }
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    throw new TypeError('A non-negative expected revision is required.');
+  }
+
+  if (process.env.VERCEL) {
+    if (!hasSharedRedis()) {
+      throw new WorkspaceCoordinationError('REDIS_URL is required for workspace writes on Vercel.');
+    }
+    return withRedisLock('smena:workspace:write:v1', async () => {
+      await reloadWorkspaceStore();
+      return replaceInsideLock(nextData, expectedRevision);
+    });
+  }
+
+  const result = localWriteQueue.then(() => replaceInsideLock(nextData, expectedRevision));
+  localWriteQueue = result.catch(() => undefined);
+  return result;
 }
 
 export async function getWorkspaceStatus() {
@@ -70,4 +155,7 @@ export async function getWorkspaceStatus() {
 export function resetWorkspaceStore() {
   database = null;
   initializationPromise = null;
+  reloadPromise = null;
+  localWriteQueue = Promise.resolve();
+  lastLoadedAt = 0;
 }

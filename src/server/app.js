@@ -1,7 +1,7 @@
 import express from 'express';
-import { requireAuth } from './auth.js';
+import { requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
-import { getWorkspaceStatus } from './workspace-store.js';
+import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 
 export const app = express();
 
@@ -38,6 +38,23 @@ app.get('/api/storage/status', async (_request, response, next) => {
   }
 });
 
+app.get('/api/workspace', async (_request, response, next) => {
+  try {
+    response.json({ data: await getWorkspaceDatabase() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    const data = await replaceWorkspaceDatabase(request.body?.data, request.body?.revision);
+    response.json({ data });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api', (_request, response) => {
   response.status(404).json({ error: 'API route not found.' });
 });
@@ -45,8 +62,11 @@ app.use('/api', (_request, response) => {
 app.use((error, _request, response, next) => {
   void next;
   console.error('[API]', error);
-  response.status(503).json({
-    error: 'Storage is unavailable.',
-    code: 'STORAGE_UNAVAILABLE',
-  });
+  const status = error.statusCode || (error instanceof TypeError ? 400 : 503);
+  const body = {
+    error: status === 503 ? 'Workspace storage is unavailable.' : error.message,
+    code: error.code || (status === 400 ? 'INVALID_REQUEST' : 'STORAGE_UNAVAILABLE'),
+  };
+  if (error instanceof RevisionConflictError) body.currentRevision = error.currentRevision;
+  response.status(status).json(body);
 });

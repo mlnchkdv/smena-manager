@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
+import { hasSharedRedis } from './redis.js';
 
 const attempts = new Map();
 const WINDOW_MS = 15 * 60 * 1000;
@@ -37,11 +38,13 @@ authRouter.get('/config', (_request, response) => {
   if (!process.env.SESSION_SECRET && process.env.VERCEL) issues.push('SESSION_SECRET');
   if (!profileCount) issues.push(configurationError || 'ACCESS_IDS');
   if (!hasGoogleDriveCredentials() && process.env.VERCEL) issues.push('GOOGLE_DRIVE_CREDENTIALS');
+  if (!hasSharedRedis() && process.env.VERCEL) issues.push('REDIS_URL');
   response.json({
     accessIdEnabled: profileCount > 0,
     googleAuthEnabled: false,
     deploymentReady: issues.length === 0,
     configurationIssues: issues,
+    workspaceWritesEnabled: !process.env.VERCEL || hasSharedRedis(),
   });
 });
 
