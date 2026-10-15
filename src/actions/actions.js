@@ -19,6 +19,7 @@ import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
+import { parseMarkdownNote } from '../shared/markdown-import.js';
 
 export const A = {},
   IN = {},
@@ -292,6 +293,47 @@ A.newKnowledgeNote = () => {
     S.ui.knowledgeActive = note.id;
     S.ui.knowledgeQuery = '';
   });
+};
+IN.importKnowledgeMarkdown = async el => {
+  const files = [...(el.files || [])];
+  if (!files.length || S.ui.currentUser?.role === 'viewer') return;
+  try {
+    if (files.some(file => file.size > 5 * 1024 * 1024)) throw new Error('Each Markdown file must be smaller than 5 MB.');
+    const imported = [];
+    let skipped = 0;
+    const existingTitles = new Set(
+      knowledgeCollections().notes.map(note =>
+        String(note.title || '')
+          .trim()
+          .toLocaleLowerCase('ru-RU'),
+      ),
+    );
+    for (const file of files) {
+      const note = parseMarkdownNote(file.name, await file.text(), {
+        idFactory: uid,
+        memberId: D().me,
+        folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
+      });
+      const titleKey = note.title.toLocaleLowerCase('ru-RU');
+      if (existingTitles.has(titleKey)) {
+        skipped += 1;
+        continue;
+      }
+      existingTitles.add(titleKey);
+      imported.push(note);
+    }
+    mutate(() => {
+      knowledgeCollections().notes.unshift(...imported);
+      if (imported[0]) S.ui.knowledgeActive = imported[0].id;
+      S.ui.knowledgeImportStatus = `Imported ${imported.length} Markdown notes. Skipped ${skipped} duplicates.`;
+    });
+  } catch (error) {
+    S.ui.knowledgeImportStatus = error instanceof Error ? error.message : 'Markdown files could not be imported.';
+    toast(S.ui.knowledgeImportStatus, { kind: 'error', ms: 6000 });
+    render();
+  } finally {
+    el.value = '';
+  }
 };
 A.openKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;

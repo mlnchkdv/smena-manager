@@ -84,6 +84,9 @@ const RU = {
   'Create note': 'Создать заметку',
   'New folder': 'Новая папка',
   'New knowledge folder': 'Новая папка базы знаний',
+  'Import Markdown': 'Импортировать Markdown',
+  'Each Markdown file must be smaller than 5 MB.': 'Каждый Markdown-файл должен быть меньше 5 МБ.',
+  'Markdown files could not be imported.': 'Не удалось импортировать Markdown-файлы.',
   'Folder name': 'Название папки',
   'Search knowledge base': 'Поиск по базе знаний',
   'Search notes, tags, and content': 'Поиск по заметкам, тегам и тексту',
@@ -1063,6 +1066,7 @@ const PATTERNS = [
   [/^Sort: (.+)$/u, (_match, value) => `Сортировка: ${RU[value] || value}`],
   [/^View all results for “(.+)”$/u, 'Все результаты по запросу «$1»'],
   [/^Exported (\d+) notes and (\d+) bookmarks\.$/u, 'Экспортировано заметок: $1, закладок: $2.'],
+  [/^Imported (\d+) Markdown notes\. Skipped (\d+) duplicates\.$/u, 'Импортировано заметок Markdown: $1. Пропущено дублей: $2.'],
   [
     /^Imported (\d+) notes, (\d+) bookmarks, and (\d+) folders\. Skipped (\d+) duplicates\.$/u,
     'Импортировано заметок: $1, закладок: $2, папок: $3. Пропущено дублей: $4.',

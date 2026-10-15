@@ -31,6 +31,14 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
+.knowledge-import-status {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+}
 .knowledge-list {
   flex: 1;
   min-height: 0;

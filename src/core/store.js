@@ -92,6 +92,7 @@ export const S = {
     knowledgeQuery: '',
     knowledgeFolder: 'all',
     knowledgeActive: null,
+    knowledgeImportStatus: '',
     bookmarkQuery: '',
     bookmarkFolder: 'all',
     bookmarkScope: 'active',

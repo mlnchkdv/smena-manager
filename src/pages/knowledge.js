@@ -99,9 +99,10 @@ export function pageKnowledge() {
   return `<div class="knowledge-shell">
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">
-        <div class="row"><div class="grow"><h1>Knowledge base</h1><p>${notes.length} notes</p></div>${readOnly ? '' : `<button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div>
+        <div class="row"><div class="grow"><h1>Knowledge base</h1><p>${notes.length} notes</p></div>${readOnly ? '' : `<label class="ibtn" aria-label="Import Markdown" data-tip="Import Markdown" style="cursor:pointer">${ic('file-up', 16)}<input type="file" accept=".md,.markdown,text/markdown,text/plain" multiple hidden data-in="importKnowledgeMarkdown"></label><button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div>
         <div class="inwrap">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search notes, tags, and content" aria-label="Search knowledge base"></div>
         <label class="sr" for="knowledge-folder-filter">Filter by folder</label><select class="select" id="knowledge-folder-filter" data-in="knowledgeFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''}>${esc(folder.name)}</option>`).join('')}</select>
+        ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}
       </div>
       <div class="knowledge-list" data-keep="knowledge-list">
         ${
