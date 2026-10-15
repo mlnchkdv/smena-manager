@@ -13,16 +13,33 @@ UI framework and no runtime dependency.
 
 ## Getting started
 
-Requires Node.js 18 or newer (`.nvmrc` pins 22).
+Requires Node.js 22 (`.nvmrc` pins the same major version).
 
 ```bash
 npm install
-npm run dev       # http://localhost:5173 with hot reload
+npm run dev       # frontend on :5173 and local API on :3001
 npm run build     # production build in dist/
 npm run preview   # serve the production build locally
+npm run test:server
 npm run lint      # ESLint
 npm run format    # Prettier
 ```
+
+## Server and storage
+
+The browser UI is being migrated from local-only state to an Express API. Vercel serves the API
+through `api/index.js`; local development starts the same API alongside Vite and proxies `/api`
+requests to it.
+
+- `GET /api/health` checks the API runtime.
+- `GET /api/storage/status` initializes the workspace database and reports its storage state.
+- Local development stores the JSON database in `.data/smena-manager-data.json`.
+- Vercel requires Google Drive credentials and never falls back to its ephemeral filesystem.
+
+Copy `.env.example` to `.env` for local configuration. OAuth2 credentials can use a dedicated
+personal or Workspace account. A service account must also receive `GOOGLE_DRIVE_FOLDER_ID` for a
+folder or Shared Drive that has been shared with it. Secrets belong in Vercel Environment Variables
+and must not be committed.
 
 ## Project structure
 

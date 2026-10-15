@@ -49,5 +49,10 @@ function lucideSubset() {
 
 export default defineConfig({
   plugins: [lucideSubset()],
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': 'http://127.0.0.1:3001',
+    },
+  },
 });
