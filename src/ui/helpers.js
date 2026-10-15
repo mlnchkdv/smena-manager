@@ -86,7 +86,7 @@ export function fileType(name) {
   if (e === 'fig') return 'fig';
   if (e === 'pdf') return 'pdf';
   if (['zip', 'rar', '7z'].includes(e)) return 'zip';
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic'].includes(e)) return 'img';
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'heic'].includes(e)) return 'img';
   if (['xlsx', 'xls', 'csv', 'numbers'].includes(e)) return 'sheet';
   if (['doc', 'docx', 'txt', 'md', 'pages', 'rtf'].includes(e)) return 'doc';
   if (['js', 'ts', 'json', 'html', 'css', 'py'].includes(e)) return 'code';

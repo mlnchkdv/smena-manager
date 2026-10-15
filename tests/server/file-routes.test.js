@@ -69,6 +69,9 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
   assert.equal(contentResponse.status, 206);
   assert.equal(contentResponse.headers.get('content-range'), 'bytes 2-5/10');
+  assert.match(contentResponse.headers.get('content-disposition'), /^attachment;/);
+  assert.equal(contentResponse.headers.get('content-security-policy'), "sandbox; default-src 'none'");
+  assert.equal(contentResponse.headers.get('cross-origin-resource-policy'), 'same-origin');
   assert.equal(await contentResponse.text(), '2345');
 
   const deletedResponse = await fetch(`${origin}/api/files/${uploaded.file.id}`, {
