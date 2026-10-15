@@ -9,3 +9,8 @@ __MACOSX/
 .data/
 access-ids*.json
 !access-ids.example.json
+
+.vercel/
+.env*
+!.env.example
+.playwright-cli/
