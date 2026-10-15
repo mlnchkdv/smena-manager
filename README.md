@@ -84,6 +84,8 @@ administrator can initialize an empty production database on the first sign-in.
    with the administrator Access ID; the first sign-in creates the Drive database from the current
    workspace seed. Afterwards, copy the created Drive file ID into the optional
    `GOOGLE_DRIVE_DATABASE_FILE_ID` variable to reduce lookup requests.
+   The uploads folder is created alongside it; its optional ID can be saved as
+   `GOOGLE_DRIVE_UPLOADS_FOLDER_ID` for the same reason.
 
 The current storage model deliberately avoids PostgreSQL and suits a small team. Each change writes
 the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become

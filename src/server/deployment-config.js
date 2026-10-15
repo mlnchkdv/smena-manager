@@ -50,6 +50,9 @@ export function inspectDeploymentConfig(options = {}) {
   if (!value(env, 'GOOGLE_DRIVE_DATABASE_FILE_ID')) {
     warnings.push({ key: 'GOOGLE_DRIVE_DATABASE_FILE_ID', message: 'Optional: set the created database file ID to reduce Drive lookup requests.' });
   }
+  if (!value(env, 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID')) {
+    warnings.push({ key: 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID', message: 'Optional: set the created uploads folder ID to reduce Drive lookup requests.' });
+  }
 
   return {
     ready: issues.length === 0,

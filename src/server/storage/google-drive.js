@@ -1,9 +1,11 @@
 import { drive } from '@googleapis/drive';
 import { JWT, OAuth2Client } from 'google-auth-library';
+import fs from 'node:fs';
 import { Readable } from 'node:stream';
 
 const DATABASE_NAME = 'smena-manager-data.json';
 const ROOT_FOLDER_NAME = 'Smena-Manager-Storage';
+const UPLOADS_FOLDER_NAME = 'uploads';
 
 function escapeDriveQuery(value) {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -14,6 +16,7 @@ export class GoogleDriveStorageProvider {
   client = null;
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
+  uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
   credentialType = null;
   initialized = false;
   lastSyncAt = null;
@@ -65,9 +68,10 @@ export class GoogleDriveStorageProvider {
     this.initialized = true;
   }
 
-  async getOrCreateRootFolder() {
+  async getOrCreateFolder(name, parentId = null) {
+    const parentQuery = parentId ? ` and '${escapeDriveQuery(parentId)}' in parents` : '';
     const result = await this.client.files.list({
-      q: `name = '${ROOT_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      q: `name = '${escapeDriveQuery(name)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false${parentQuery}`,
       fields: 'files(id)',
       spaces: 'drive',
       pageSize: 1,
@@ -78,13 +82,24 @@ export class GoogleDriveStorageProvider {
 
     const created = await this.client.files.create({
       requestBody: {
-        name: ROOT_FOLDER_NAME,
+        name,
         mimeType: 'application/vnd.google-apps.folder',
+        parents: parentId ? [parentId] : undefined,
       },
       fields: 'id',
       supportsAllDrives: true,
     });
     return created.data.id;
+  }
+
+  async getOrCreateRootFolder() {
+    return this.getOrCreateFolder(ROOT_FOLDER_NAME);
+  }
+
+  async ensureUploadsFolder() {
+    await this.init();
+    if (!this.uploadsFolderId) this.uploadsFolderId = await this.getOrCreateFolder(UPLOADS_FOLDER_NAME, this.rootFolderId);
+    return this.uploadsFolderId;
   }
 
   async findDatabaseFile() {
@@ -136,6 +151,93 @@ export class GoogleDriveStorageProvider {
     this.lastSyncAt = new Date().toISOString();
   }
 
+  async uploadFile(filename, source, mimeType = 'application/octet-stream') {
+    await this.init();
+    const folderId = await this.ensureUploadsFolder();
+    const isBuffer = Buffer.isBuffer(source);
+    const body = isBuffer ? Readable.from(source) : source?.path ? fs.createReadStream(source.path) : null;
+    if (!body) throw new TypeError('Upload source must be a Buffer or a file path.');
+    const uploaded = await this.client.files.create({
+      requestBody: { name: filename, parents: [folderId] },
+      media: { mimeType, body },
+      fields: 'id,name,size,mimeType,webViewLink',
+      supportsAllDrives: true,
+    });
+    return {
+      fileId: uploaded.data.id,
+      filename: uploaded.data.name || filename,
+      size: Number(uploaded.data.size) || (isBuffer ? source.length : Number(source.size) || 0),
+      mimeType: uploaded.data.mimeType || mimeType,
+      webViewLink: uploaded.data.webViewLink || undefined,
+    };
+  }
+
+  async findUpload(filename) {
+    const folderId = await this.ensureUploadsFolder();
+    const result = await this.client.files.list({
+      q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(folderId)}' in parents and trashed = false`,
+      fields: 'files(id,name,size,mimeType,trashed)',
+      spaces: 'drive',
+      pageSize: 1,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    return result.data.files?.[0] || null;
+  }
+
+  async getUploadMetadata(filename, fileId) {
+    await this.init();
+    if (!fileId) return this.findUpload(filename);
+    try {
+      const result = await this.client.files.get({ fileId, fields: 'id,name,size,mimeType,trashed', supportsAllDrives: true });
+      return result.data.trashed ? null : result.data;
+    } catch (error) {
+      if (error?.code === 404 || error?.response?.status === 404) return null;
+      throw error;
+    }
+  }
+
+  async fileExists(filename, fileId) {
+    return Boolean(await this.getUploadMetadata(filename, fileId));
+  }
+
+  async openDownloadStream(filename, fileId, range) {
+    const metadata = await this.getUploadMetadata(filename, fileId);
+    if (!metadata?.id) return null;
+    const size = Number(metadata.size) || 0;
+    const start = Math.max(0, Number(range?.start || 0));
+    const end = size ? Math.min(size - 1, Number(range?.end ?? size - 1)) : Number(range?.end ?? Number.MAX_SAFE_INTEGER);
+    if (size && (start > end || start >= size)) return null;
+    const response = await this.client.files.get(
+      { fileId: metadata.id, alt: 'media', supportsAllDrives: true },
+      { responseType: 'stream', headers: range ? { Range: `bytes=${start}-${end}` } : undefined },
+    );
+    const responseSize = Number(response.headers['content-length']) || 0;
+    return {
+      stream: response.data,
+      mimeType: metadata.mimeType || 'application/octet-stream',
+      size: size || responseSize,
+      start,
+      end: size ? end : start + Math.max(0, responseSize - 1),
+    };
+  }
+
+  async downloadFile(filename, fileId) {
+    const result = await this.openDownloadStream(filename, fileId);
+    if (!result) return null;
+    const chunks = [];
+    for await (const chunk of result.stream) chunks.push(chunk);
+    const buffer = Buffer.concat(chunks);
+    return { buffer, mimeType: result.mimeType, size: buffer.length };
+  }
+
+  async deleteFile(filename, fileId) {
+    const metadata = await this.getUploadMetadata(filename, fileId);
+    if (!metadata?.id) return false;
+    await this.client.files.delete({ fileId: metadata.id, supportsAllDrives: true });
+    return true;
+  }
+
   async getStatus() {
     await this.init();
     return {
@@ -144,6 +246,8 @@ export class GoogleDriveStorageProvider {
       persistent: true,
       credentialType: this.credentialType,
       databaseReady: Boolean(await this.findDatabaseFile()),
+      uploadsFolderId: this.uploadsFolderId,
+      uploadsReady: Boolean(this.uploadsFolderId),
       lastSyncAt: this.lastSyncAt,
     };
   }
