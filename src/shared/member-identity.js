@@ -11,10 +11,15 @@ export function memberForProfile(database, profile) {
 
 export function bindInitialAdministrator(database, profile) {
   const data = structuredClone(database);
-  let member = memberForProfile(data, profile) || data.members?.find(item => item.id === data.me) || data.members?.[0];
+  const members = Array.isArray(data.members) ? data.members : [];
+  let member = memberForProfile(data, profile);
+  if (!member) {
+    const seedMember = members.find(item => item.id === data.me) || members[0];
+    member = seedMember && !seedMember.authProfileId ? seedMember : null;
+  }
   if (!member) {
     member = { id: profile.id, name: profile.name, email: profile.email, role: 'Owner', c: '#5A67D8', status: 'active' };
-    data.members = [member];
+    data.members = [...members, member];
   }
   member.authProfileId = profile.id;
   if (profile.name) member.name = profile.name;

@@ -19,3 +19,22 @@ test('member lookup falls back to profile ID and normalized email', () => {
   assert.equal(memberForProfile(database, { id: 'member-id' })?.id, 'member-id');
   assert.equal(memberForProfile(database, { id: 'other', email: 'user@example.test' })?.id, 'member-id');
 });
+
+test('additional administrator gets a member without replacing an existing identity binding', () => {
+  const database = {
+    me: 'm1',
+    members: [{ id: 'm1', name: 'Первый администратор', email: 'first@example.test', authProfileId: 'admin-first' }],
+    tasks: [{ assignee: 'm1' }],
+  };
+  const profile = { id: 'admin-second', name: 'Второй администратор', email: 'second@example.test', role: 'admin' };
+  const bound = bindInitialAdministrator(database, profile);
+
+  assert.equal(bound.members.length, 2);
+  assert.equal(bound.members[0].authProfileId, 'admin-first');
+  assert.equal(bound.members[0].email, 'first@example.test');
+  assert.equal(bound.members[1].authProfileId, 'admin-second');
+  assert.equal(bound.members[1].email, 'second@example.test');
+  assert.equal(bound.me, 'admin-second');
+  assert.equal(bound.tasks[0].assignee, 'm1');
+  assert.equal(memberForProfile(bound, profile)?.id, 'admin-second');
+});
