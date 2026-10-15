@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSession, findProfileByAccessId, getAccessProfiles, verifySession } from '../../src/server/auth.js';
+import { createSession, findProfileByAccessId, findProfileByEmail, getAccessProfiles, verifySession } from '../../src/server/auth.js';
 
 const originalProfiles = process.env.ACCESS_IDS_JSON;
 const originalSecret = process.env.SESSION_SECRET;
@@ -30,6 +30,7 @@ test('access profiles are normalized and access IDs are not exposed by sessions'
   const profiles = getAccessProfiles();
   assert.equal(profiles.length, 1);
   assert.equal(findProfileByAccessId('test-access-id')?.id, 'member-1');
+  assert.equal(findProfileByEmail(' MEMBER@EXAMPLE.COM ')?.id, 'member-1');
 
   const result = verifySession(createSession(profiles[0]));
   assert.equal(result.profile?.id, 'member-1');

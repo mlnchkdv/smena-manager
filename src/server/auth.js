@@ -70,6 +70,14 @@ export function findProfileByAccessId(accessId) {
   return getAccessProfiles().find(profile => profile.active && safeEqual(profile.accessId, accessId.trim())) || null;
 }
 
+export function findProfileByEmail(email, profiles = getAccessProfiles()) {
+  const normalizedEmail = String(email || '')
+    .trim()
+    .toLowerCase();
+  if (!normalizedEmail) return null;
+  return profiles.find(profile => profile.active && profile.email === normalizedEmail) || null;
+}
+
 export function createSession(profile, options = {}) {
   const issuedAt = options.issuedAt || Date.now();
   const expiresAt = options.expiresAt || issuedAt + SESSION_DURATION_MS;

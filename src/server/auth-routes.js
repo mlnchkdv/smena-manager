@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
+import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthenticationError } from './google-auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { hasSharedRedis } from './redis.js';
 import { inspectDeploymentConfig } from './deployment-config.js';
@@ -26,7 +27,7 @@ function rateLimit(request, response, next) {
 
 export const authRouter = Router();
 
-authRouter.get('/config', (_request, response) => {
+authRouter.get('/config', (request, response) => {
   let profiles = [];
   let profileCount = 0;
   let configurationError = null;
@@ -38,15 +39,32 @@ authRouter.get('/config', (_request, response) => {
   }
   const deployment = process.env.VERCEL ? inspectDeploymentConfig({ profiles, profileError: configurationError }) : null;
   const issues = deployment?.issues.map(issue => issue.key) || (profileCount ? [] : [configurationError ? 'ACCESS_IDS_INVALID' : 'ACCESS_IDS']);
+  const google = getGoogleAuthConfiguration({ profiles, hostname: request.hostname });
   response.json({
     accessIdEnabled: profileCount > 0,
-    googleAuthEnabled: false,
+    googleClientId: google.clientId,
+    googleAuthEnabled: google.enabled,
     deploymentReady: issues.length === 0,
     configurationIssues: issues,
     configurationWarnings: deployment?.warnings.map(warning => warning.key) || [],
     googleCredentialMode: deployment?.credentialMode || (hasGoogleDriveCredentials() ? 'configured' : null),
     workspaceWritesEnabled: !process.env.VERCEL || hasSharedRedis(),
   });
+});
+
+authRouter.post('/google', rateLimit, async (request, response) => {
+  try {
+    const profile = await authenticateGoogleCredential(request.body?.credential);
+    loginRateLimiter.recordSuccess(request.loginRateLimitKey);
+    response.json({ valid: true, token: createSession(profile), user: publicProfile(profile) });
+  } catch (error) {
+    loginRateLimiter.recordFailure(request.loginRateLimitKey);
+    if (error instanceof GoogleAuthenticationError) {
+      response.status(error.status).json({ valid: false, error: error.message, code: error.code });
+      return;
+    }
+    response.status(500).json({ valid: false, error: 'Google authentication failed.', code: 'GOOGLE_AUTH_FAILED' });
+  }
 });
 
 authRouter.post('/validate', rateLimit, (request, response) => {
