@@ -7,14 +7,14 @@ import { PR, ST } from '../core/constants.js';
 import { D, S, commentsOf, isOver, mem, pColor, proj, task } from '../core/store.js';
 import { av, dueHtml, empty, lbl, prIcon, prPill, stIcon, stPill } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
-import { activityExtra, inProject, t as tr } from '../core/i18n.js';
+import { activityExtra, inProject, isRussian, t as tr } from '../core/i18n.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
   status: ['Status', '140px'],
   assignee: ['Assignee', '150px'],
   priority: ['Priority', '108px'],
-  due: ['Due date', '132px'],
+  due: ['Due date', '148px'],
   labels: ['Labels', '168px'],
   project: ['Project', '160px'],
 };
@@ -32,7 +32,8 @@ export function cellDue(t) {
   return `<button class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}" aria-label="Due date">${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
 }
 export function cellLabels(t) {
-  return `<button class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" aria-label="Labels" style="gap:4px;overflow:hidden">${t.labels.length ? t.labels.slice(0, 2).map(lbl).join('') + (t.labels.length > 2 ? `<span class="faint" style="font-size:11px">+${t.labels.length - 2}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
+  const shown = isRussian() ? 1 : 2;
+  return `<button class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" aria-label="Labels" style="gap:4px;overflow:hidden">${t.labels.length ? t.labels.slice(0, shown).map(lbl).join('') + (t.labels.length > shown ? `<span class="faint" style="font-size:11px">+${t.labels.length - shown}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
 }
 export function cellProject(t) {
   const p = proj(t.project);

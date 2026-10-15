@@ -304,6 +304,18 @@
     top: 8px;
   }
 }
+@media (max-width: 360px) {
+  .panel-h .seg {
+    width: 100%;
+  }
+  .panel-h .seg button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding-inline: 5px;
+    gap: 3px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion='full']) {
     --reduce: 1;
