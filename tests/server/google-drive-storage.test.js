@@ -39,3 +39,27 @@ test('Google Drive storage keeps uploads separate and supports ranged streams', 
   assert.equal(await provider.deleteFile('asset.txt', 'drive-file'), true);
   assert.equal(calls.at(-1).options.fileId, 'drive-file');
 });
+
+test('Google Drive database updates use the ETag loaded with the current revision', async () => {
+  const calls = [];
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.databaseFileId = 'database-file';
+  provider.client = {
+    files: {
+      get: async () => ({ data: JSON.stringify({ revision: 4 }), headers: { etag: 'etag-4' } }),
+      update: async (options, requestOptions) => {
+        calls.push({ options, requestOptions });
+        return { headers: { etag: 'etag-5' } };
+      },
+    },
+  };
+
+  assert.deepEqual(await provider.loadDatabase(), { revision: 4 });
+  await provider.saveDatabase({ revision: 5 });
+
+  assert.equal(calls[0].options.fileId, 'database-file');
+  assert.equal(calls[0].requestOptions.headers['If-Match'], 'etag-4');
+  assert.equal(provider.databaseEtag, 'etag-5');
+});

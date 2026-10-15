@@ -1,5 +1,6 @@
 import { getStorageProvider } from './storage/index.js';
 import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
+import { directDriveWritesEnabled } from './deployment-config.js';
 import { adminFieldsChanged } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
@@ -162,7 +163,19 @@ async function mutateInsideLock(mutator, expectedRevision, role) {
   });
   const transportBytes = workspaceTransportBytes(next, next.revision);
   if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
-  await getStorageProvider().saveDatabase(next);
+  const storage = getStorageProvider();
+  try {
+    await storage.saveDatabase(next);
+  } catch (error) {
+    const status = Number(error?.response?.status || error?.code);
+    if (status !== 412) throw error;
+    const latest = await storage.loadDatabase().catch(() => null);
+    if (latest) {
+      database = normalizeDatabase(latest);
+      lastLoadedAt = Date.now();
+    }
+    throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
+  }
   database = next;
   lastLoadedAt = Date.now();
   return clone(next);
@@ -175,13 +188,21 @@ export async function mutateWorkspaceDatabase(mutator, expectedRevision, options
   }
 
   if (process.env.VERCEL) {
-    if (!hasSharedRedis()) {
-      throw new WorkspaceCoordinationError('REDIS_URL is required for workspace writes on Vercel.');
+    if (hasSharedRedis()) {
+      return withRedisLock('smena:workspace:write:v1', async () => {
+        await reloadWorkspaceStore();
+        return mutateInsideLock(mutator, expectedRevision, options.role || 'admin');
+      });
     }
-    return withRedisLock('smena:workspace:write:v1', async () => {
+    if (!directDriveWritesEnabled()) {
+      throw new WorkspaceCoordinationError('Workspace writes are not enabled for this deployment.');
+    }
+    const result = localWriteQueue.then(async () => {
       await reloadWorkspaceStore();
       return mutateInsideLock(mutator, expectedRevision, options.role || 'admin');
     });
+    localWriteQueue = result.catch(() => undefined);
+    return result;
   }
 
   const result = localWriteQueue.then(() => mutateInsideLock(mutator, expectedRevision, options.role || 'admin'));

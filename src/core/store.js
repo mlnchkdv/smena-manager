@@ -68,6 +68,7 @@ export const S = {
     palette: null,
     loading: false,
     offline: false,
+    syncUnavailable: false,
     syncTooLarge: false,
     syncInvalid: false,
     sel: new Set(),

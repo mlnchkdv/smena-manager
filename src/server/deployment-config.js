@@ -21,6 +21,14 @@ export function googleCredentialMode(env = process.env) {
   return null;
 }
 
+export function directDriveWritesEnabled(env = process.env) {
+  return value(env, 'WORKSPACE_WRITE_MODE').toLowerCase() === 'drive';
+}
+
+export function workspaceWritesEnabled(env = process.env) {
+  return !value(env, 'VERCEL') || Boolean(value(env, 'REDIS_URL')) || (directDriveWritesEnabled(env) && Boolean(googleCredentialMode(env)));
+}
+
 export function inspectDeploymentConfig(options = {}) {
   const env = options.env || process.env;
   const profiles = options.profiles || [];
@@ -46,7 +54,11 @@ export function inspectDeploymentConfig(options = {}) {
   if (credentialMode === 'service-account' && !value(env, 'GOOGLE_DRIVE_FOLDER_ID')) {
     issues.push({ key: 'GOOGLE_DRIVE_FOLDER_ID', message: 'A shared Drive folder is required for a service account.' });
   }
-  if (!value(env, 'REDIS_URL')) issues.push({ key: 'REDIS_URL', message: 'A shared Redis connection is required for safe writes on Vercel.' });
+  if (!value(env, 'REDIS_URL') && !directDriveWritesEnabled(env)) {
+    issues.push({ key: 'WORKSPACE_WRITE_MODE', message: 'Configure Redis or explicitly enable direct Google Drive writes.' });
+  } else if (!value(env, 'REDIS_URL')) {
+    warnings.push({ key: 'DRIVE_WRITE_CONCURRENCY', message: 'Direct Drive writes use revision and ETag conflict protection instead of a shared lock.' });
+  }
   if (!value(env, 'GOOGLE_DRIVE_DATABASE_FILE_ID')) {
     warnings.push({ key: 'GOOGLE_DRIVE_DATABASE_FILE_ID', message: 'Optional: set the created database file ID to reduce Drive lookup requests.' });
   }

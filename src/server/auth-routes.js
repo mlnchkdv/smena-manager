@@ -2,8 +2,7 @@ import { Router } from 'express';
 import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
 import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthenticationError } from './google-auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
-import { hasSharedRedis } from './redis.js';
-import { inspectDeploymentConfig } from './deployment-config.js';
+import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-config.js';
 import { createLoginRateLimiter } from './login-rate-limit.js';
 
 const loginRateLimiter = createLoginRateLimiter();
@@ -48,7 +47,7 @@ authRouter.get('/config', (request, response) => {
     configurationIssues: issues,
     configurationWarnings: deployment?.warnings.map(warning => warning.key) || [],
     googleCredentialMode: deployment?.credentialMode || (hasGoogleDriveCredentials() ? 'configured' : null),
-    workspaceWritesEnabled: !process.env.VERCEL || hasSharedRedis(),
+    workspaceWritesEnabled: workspaceWritesEnabled(),
   });
 });
 

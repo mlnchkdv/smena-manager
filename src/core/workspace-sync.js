@@ -81,12 +81,19 @@ export function createWorkspaceSync(options = {}) {
         } else if (error.status === 400 || error.code === 'WORKSPACE_INVALID') {
           enabled = false;
           notify({ status: 'invalid', error });
-        } else {
+        } else if (!error.status || error.code === 'NETWORK_ERROR') {
           if (!pending) {
             pending = data;
             pendingHash = dataHash;
           }
           notify({ status: 'offline', error });
+          scheduleRetry();
+        } else {
+          if (!pending) {
+            pending = data;
+            pendingHash = dataHash;
+          }
+          notify({ status: 'unavailable', error });
           scheduleRetry();
         }
       } finally {

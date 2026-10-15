@@ -14,6 +14,8 @@ import {
 import { WorkspaceValidationError } from '../../src/shared/workspace-schema.js';
 
 const originalDatabasePath = process.env.DATABASE_PATH;
+const originalVercel = process.env.VERCEL;
+const originalWriteMode = process.env.WORKSPACE_WRITE_MODE;
 const testDirectory = path.join(process.cwd(), '.data', 'tests', `workspace-${process.pid}`);
 
 test.beforeEach(async () => {
@@ -21,6 +23,7 @@ test.beforeEach(async () => {
   process.env.DATABASE_PATH = path.join(testDirectory, 'workspace.json');
   delete process.env.VERCEL;
   delete process.env.REDIS_URL;
+  delete process.env.WORKSPACE_WRITE_MODE;
   resetStorageProvider();
   resetWorkspaceStore();
 });
@@ -29,6 +32,10 @@ test.after(async () => {
   await fs.promises.rm(testDirectory, { recursive: true, force: true });
   if (originalDatabasePath === undefined) delete process.env.DATABASE_PATH;
   else process.env.DATABASE_PATH = originalDatabasePath;
+  if (originalVercel === undefined) delete process.env.VERCEL;
+  else process.env.VERCEL = originalVercel;
+  if (originalWriteMode === undefined) delete process.env.WORKSPACE_WRITE_MODE;
+  else process.env.WORKSPACE_WRITE_MODE = originalWriteMode;
 });
 
 test('workspace snapshots increment their revision and persist', async () => {
@@ -62,6 +69,17 @@ test('workspace snapshots increment their revision and persist', async () => {
   assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
   assert.deepEqual(restored.linkFolders, [{ id: 'lf1', name: 'Инструменты' }]);
   assert.deepEqual(restored.links, [{ id: 'ln1', title: 'Smena', url: 'https://example.com', folder: 'lf1' }]);
+});
+
+test('explicit Drive mode permits revision-checked writes on Vercel without Redis', async () => {
+  const initial = await getWorkspaceDatabase();
+  process.env.VERCEL = '1';
+  process.env.WORKSPACE_WRITE_MODE = 'drive';
+
+  const updated = await replaceWorkspaceDatabase({ ...initial, tasks: [{ id: 'direct-drive-task' }] }, initial.revision);
+
+  assert.equal(updated.revision, 1);
+  assert.deepEqual(updated.tasks, [{ id: 'direct-drive-task' }]);
 });
 
 test('stale workspace revisions are rejected', async () => {

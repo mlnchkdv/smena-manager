@@ -66,6 +66,7 @@ window.addEventListener('smena:sync-status', event => {
   if (status === 'saved') {
     const wasOffline = S.ui.offline;
     S.ui.offline = false;
+    S.ui.syncUnavailable = false;
     S.ui.syncTooLarge = false;
     S.ui.syncInvalid = false;
     S.ui.workspaceRevision = revision;
@@ -74,12 +75,21 @@ window.addEventListener('smena:sync-status', event => {
       toast('Reconnected. All changes are synced.');
     }
   } else if (status === 'offline') {
+    S.ui.syncUnavailable = false;
     if (!S.ui.offline) {
       S.ui.offline = true;
       render();
     }
+  } else if (status === 'unavailable') {
+    S.ui.offline = false;
+    if (!S.ui.syncUnavailable) {
+      S.ui.syncUnavailable = true;
+      render();
+      toast('The sync service is temporarily unavailable. Your changes are queued for retry.', { kind: 'err', ms: 12_000 });
+    }
   } else if (status === 'conflict') {
     S.ui.offline = false;
+    S.ui.syncUnavailable = false;
     S.ui.syncConflict = true;
     toast('The workspace changed elsewhere. Reload to use the latest version.', {
       kind: 'err',

@@ -113,6 +113,10 @@ const RU = {
   'The workspace is too large to sync. Reduce large knowledge notes and try again.':
     'Рабочее пространство слишком велико для синхронизации. Уменьшите крупные заметки базы знаний и повторите попытку.',
   'Changes were not synced.': 'Изменения не синхронизированы.',
+  'Sync is temporarily unavailable.': 'Синхронизация временно недоступна.',
+  'Changes are queued and will retry automatically.': 'Изменения поставлены в очередь и будут отправлены автоматически.',
+  'The sync service is temporarily unavailable. Your changes are queued for retry.':
+    'Сервис синхронизации временно недоступен. Изменения поставлены в очередь для повторной отправки.',
   'The workspace data has an invalid structure.': 'Структура данных рабочего пространства повреждена.',
   'Reload saved version': 'Загрузить сохранённую версию',
   'Changes could not be synced because the workspace data is invalid. Reload the latest saved version.':

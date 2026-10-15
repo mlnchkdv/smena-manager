@@ -6,6 +6,7 @@ import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles } from '../shared/member-identity.js';
+import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 
 export const app = express();
 
@@ -52,7 +53,12 @@ app.get('/api/workspace', async (_request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    const data = await replaceWorkspaceDatabase(request.body?.data, request.body?.revision, { role: request.user.role });
+    let nextData = request.body?.data;
+    if (request.user.role === 'editor') {
+      const stored = await getWorkspaceDatabase();
+      nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role).data;
+    }
+    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role });
     response.json({ data });
   } catch (error) {
     next(error);

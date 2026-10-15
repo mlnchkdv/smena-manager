@@ -85,6 +85,24 @@ test('workspace sync keeps a failed write for an explicit retry', async () => {
   assert.deepEqual(statuses, ['syncing', 'offline', 'syncing', 'saved']);
 });
 
+test('workspace sync distinguishes a server outage from an offline browser', async () => {
+  const statuses = [];
+  const sync = createWorkspaceSync({
+    writeWorkspace: async () => {
+      throw Object.assign(new Error('unavailable'), { status: 503, code: 'STORAGE_UNAVAILABLE' });
+    },
+    notify: event => statuses.push(event.status),
+    schedule: () => 1,
+    cancel: () => {},
+  });
+
+  sync.configure(1, 'admin');
+  await sync.queue({ tasks: [{ id: 'queued' }] });
+
+  assert.equal(sync.state().hasPending, true);
+  assert.deepEqual(statuses, ['syncing', 'unavailable']);
+});
+
 test('workspace sync does not retry an oversized snapshot forever', async () => {
   let attempt = 0;
   let scheduled = false;

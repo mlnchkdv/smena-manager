@@ -16,6 +16,7 @@ export class GoogleDriveStorageProvider {
   client = null;
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
+  databaseEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
   credentialType = null;
   initialized = false;
@@ -121,6 +122,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    this.databaseEtag = response.headers?.etag || null;
     this.lastSyncAt = new Date().toISOString();
     return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
   }
@@ -134,7 +136,9 @@ export class GoogleDriveStorageProvider {
     };
 
     if (fileId) {
-      await this.client.files.update({ fileId, media, supportsAllDrives: true });
+      const requestOptions = this.databaseEtag ? { headers: { 'If-Match': this.databaseEtag } } : undefined;
+      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      this.databaseEtag = updated.headers?.etag || null;
     } else {
       const created = await this.client.files.create({
         requestBody: {
@@ -147,6 +151,7 @@ export class GoogleDriveStorageProvider {
         supportsAllDrives: true,
       });
       this.databaseFileId = created.data.id;
+      this.databaseEtag = created.headers?.etag || null;
     }
     this.lastSyncAt = new Date().toISOString();
   }
