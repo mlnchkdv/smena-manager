@@ -30,12 +30,15 @@ npm run format    # Prettier
 ## Server and storage
 
 The browser UI uses an Express API. Vercel serves it through `api/index.js`; local development starts
-the same API alongside Vite and proxies `/api` requests to it. Authentication uses team Access IDs
-and signed seven-day sessions. The client keeps a local cache, serializes writes and uses optimistic
-revisions so a stale browser cannot silently replace newer team data.
+the same API alongside Vite and proxies `/api` requests to it. Authentication supports Google Sign-In
+for whitelisted team emails and Access IDs as a fallback; both issue signed seven-day sessions. The
+client keeps a local cache, serializes writes and uses optimistic revisions so a stale browser cannot
+silently replace newer team data.
 
 - `GET /api/health` checks the API runtime.
 - `GET /api/auth/config` reports whether deployment credentials are complete.
+- `POST /api/auth/google` verifies a Google Identity Services ID token and matches its confirmed email
+  to an active team profile.
 - `POST /api/auth/validate` exchanges a team Access ID for a signed seven-day session.
 - `GET /api/auth/me` returns the signed-in profile.
 - `GET /api/storage/status` initializes the workspace database and reports its storage state after authentication.
@@ -67,23 +70,30 @@ administrator can initialize an empty production database on the first sign-in.
 
 1. Create a long random `SESSION_SECRET` (at least 32 characters).
 2. Add `ACCESS_IDS_JSON` as a JSON array. Use a unique random Access ID of at least 16 characters for
-   every person and include at least one `admin`. Start from `access-ids.example.json`, but never
-   commit real IDs. A profile is linked to its workspace member by `authProfileId`, matching `id`, or
-   matching email. The first administrator is linked automatically when the database is created.
+   every person, include the Google email each person will use and include at least one `admin`. Start
+   from `access-ids.example.json`, but never commit real IDs. Google Sign-In is a whitelist: a verified
+   Google email must match an active profile exactly. A profile is linked to its workspace member by
+   `authProfileId`, matching `id`, or matching email. The first administrator is linked automatically
+   when the database is created.
 3. Configure Google Drive using one of these options:
    - OAuth2: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. The application will
      create its `Smena-Manager-Storage` folder in that account if necessary.
    - Service account: `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_PRIVATE_KEY`, or the full
      `GOOGLE_SERVICE_ACCOUNT_KEY` JSON. Create a Drive folder, share it with the service account and
      set `GOOGLE_DRIVE_FOLDER_ID`.
-4. Add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash). It is
+4. In Google Cloud Console, configure `GOOGLE_CLIENT_ID` as a **Web application** OAuth client and add
+   `https://smena-manager.vercel.app` to **Authorized JavaScript origins**. The popup flow does not need
+   a production redirect URI. If local Google login is required, also add the exact Vite origin and set
+   `GOOGLE_LOCALHOST_ENABLED=true` locally.
+5. Add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash). It is
    required because separate Functions can write concurrently.
-5. Add the variables to every Vercel environment that should work (Production and, if desired,
+6. Add the variables to every Vercel environment that should work (Production and, if desired,
    Preview), then redeploy. Run `npm run check:deploy` against an equivalent local `.env` before the
    deployment.
-6. Open `/api/auth/config`. `deploymentReady` must be `true` and `configurationIssues` empty. Sign in
-   with the administrator Access ID; the first sign-in creates the Drive database from the current
-   workspace seed. Afterwards, copy the created Drive file ID into the optional
+7. Open `/api/auth/config`. `deploymentReady` and `googleAuthEnabled` must both be `true`, while
+   `configurationIssues` must be empty. Sign in with the administrator Google account or Access ID;
+   the first sign-in creates the Drive database from the current workspace seed. Afterwards, copy the
+   created Drive file ID into the optional
    `GOOGLE_DRIVE_DATABASE_FILE_ID` variable to reduce lookup requests.
    The uploads folder is created alongside it; its optional ID can be saved as
    `GOOGLE_DRIVE_UPLOADS_FOLDER_ID` for the same reason.
