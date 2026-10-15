@@ -47,6 +47,7 @@ export const S = {
     currentUser: null,
     workspaceRevision: null,
     workspaceBaseline: null,
+    filePolicy: null,
     authStep: 'login',
     onb: 0,
     onbData: { use: 'product', team: 'kanban', size: '2-10', ws: '', proj: 'Website Launch', tmpl: 'web', invites: '' },

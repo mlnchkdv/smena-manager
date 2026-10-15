@@ -72,3 +72,11 @@ test('editors can change tasks but cannot change administrator fields', async ()
     },
   );
 });
+
+test('a client-specific current member never replaces the shared canonical member', async () => {
+  const initial = await getWorkspaceDatabase();
+  const prepared = await replaceWorkspaceDatabase({ ...initial, me: 'm1', members: [{ id: 'm1' }, { id: 'm2' }], tasks: [] }, 0, { role: 'admin' });
+  const updated = await replaceWorkspaceDatabase({ ...prepared, me: 'm2', tasks: [{ id: 'task-2' }] }, 1, { role: 'editor' });
+  assert.equal(updated.me, 'm1');
+  assert.deepEqual(updated.tasks, [{ id: 'task-2' }]);
+});

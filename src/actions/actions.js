@@ -13,8 +13,8 @@ import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
-import { authenticateAndLoadWorkspace } from '../core/bootstrap.js';
-import { clearSession } from '../core/api.js';
+import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace } from '../core/bootstrap.js';
+import { clearSession, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 
 export const A = {},
@@ -800,43 +800,68 @@ A.previewFile = el => {
   S.ui.pop = null;
   if (f) openModal({ type: 'filePreview', file: f, tid: f.task });
 };
-export function handleFiles(files, ctx) {
+export async function handleFiles(files, ctx) {
   if (!files || !files.length) return;
   if (S.ui.offline) {
     toast("Upload failed — you're offline.", { kind: 'err', action: 'Try again', onAction: () => {} });
     return;
   }
+  if (S.ui.currentUser?.role === 'viewer') {
+    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['files'], role: 'viewer' } }));
+    return;
+  }
   S.ui.uploads = S.ui.uploads || [];
-  [...files].forEach(file => {
+  for (const file of [...files]) {
+    if (S.ui.filePolicy?.maxFileSizeBytes && file.size > S.ui.filePolicy.maxFileSizeBytes) {
+      toast(`File is too large. Maximum size: ${fsize(S.ui.filePolicy.maxFileSizeBytes)}.`, { kind: 'err' });
+      continue;
+    }
     const up = { id: uid('u'), name: file.name, size: fsize(file.size), project: ctx.project, task: ctx.task, pct: 0 };
     S.ui.uploads.push(up);
-    const iv = setInterval(() => {
-      up.pct = Math.min(100, up.pct + 9 + Math.round(Math.random() * 22));
-      const bar = document.getElementById('upbar-' + up.id),
-        pc = document.getElementById('upct-' + up.id);
-      if (bar) bar.style.setProperty('--p', up.pct / 100);
-      if (pc) pc.textContent = up.pct + '%';
-      if (up.pct >= 100) {
-        clearInterval(iv);
-        S.ui.uploads = S.ui.uploads.filter(x => x !== up);
-        const rec = { id: uid('f'), name: up.name, type: fileType(up.name), size: up.size, by: D().me, at: Date.now() };
-        D().files.unshift({ ...rec, project: up.project, task: up.task || null });
-        if (up.task) {
-          const t = task(up.task);
-          t.attachments.push(rec);
-          logAct('added a file to', t, up.name);
-        }
-        save();
-        render();
-        toast(`Uploaded ${up.name}`);
-      }
-    }, 220);
-  });
-  render();
+    render();
+    try {
+      await retryWorkspaceSync();
+      const result = await uploadWorkspaceFile(file, { revision: S.ui.workspaceRevision, project: ctx.project, task: ctx.task }, progress => {
+        up.pct = progress;
+        const bar = document.getElementById('upbar-' + up.id),
+          pc = document.getElementById('upct-' + up.id);
+        if (bar) bar.style.setProperty('--p', up.pct / 100);
+        if (pc) pc.textContent = up.pct + '%';
+      });
+      applyWorkspaceSnapshot(result.data);
+      save();
+      S.ui.uploads = S.ui.uploads.filter(item => item !== up);
+      render();
+      toast(`Uploaded ${up.name}`);
+    } catch (error) {
+      S.ui.uploads = S.ui.uploads.filter(item => item !== up);
+      render();
+      toast(error.message || `Upload failed: ${up.name}`, { kind: 'err', ms: 6000 });
+    }
+  }
 }
 IN.uploadFiles = el => {
-  handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
+  void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
   el.value = '';
+};
+
+A.downloadStoredFile = async el => {
+  const file = D().files.find(item => item.id === el.dataset.id);
+  if (!file?.storageName) return toast('This legacy file has no stored content.', { kind: 'err' });
+  el.classList.add('is-loading');
+  try {
+    const { blob } = await downloadWorkspaceFile(file.id, true);
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = file.name;
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  } catch (error) {
+    toast(error.message || 'Unable to download the file.', { kind: 'err' });
+  } finally {
+    el.classList.remove('is-loading');
+  }
 };
 
 /* comments */
@@ -1647,7 +1672,20 @@ A.delFile = el => {
     body: `<b>${esc(f.name)}</b> will be removed from the project${f.task ? ' and its task' : ''}.`,
     ok: 'Delete file',
     danger: true,
-    run: () => {
+    run: async () => {
+      if (f.storageName) {
+        try {
+          await retryWorkspaceSync();
+          const result = await deleteWorkspaceFile(f.id, S.ui.workspaceRevision);
+          applyWorkspaceSnapshot(result.data);
+          save();
+          render();
+          toast(`Deleted ${f.name}`);
+        } catch (error) {
+          toast(error.message || 'Unable to delete the file.', { kind: 'err' });
+        }
+        return;
+      }
       const snap = snapshot();
       if (
         mutate(() => {

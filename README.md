@@ -68,7 +68,8 @@ administrator can initialize an empty production database on the first sign-in.
 1. Create a long random `SESSION_SECRET` (at least 32 characters).
 2. Add `ACCESS_IDS_JSON` as a JSON array. Use a unique random Access ID of at least 16 characters for
    every person and include at least one `admin`. Start from `access-ids.example.json`, but never
-   commit real IDs.
+   commit real IDs. A profile is linked to its workspace member by `authProfileId`, matching `id`, or
+   matching email. The first administrator is linked automatically when the database is created.
 3. Configure Google Drive using one of these options:
    - OAuth2: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. The application will
      create its `Smena-Manager-Storage` folder in that account if necessary.
@@ -89,9 +90,10 @@ administrator can initialize an empty production database on the first sign-in.
 
 The current storage model deliberately avoids PostgreSQL and suits a small team. Each change writes
 the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become
-very frequent, or the product needs record-level querying. Binary files are not yet uploaded by this
-stage: the existing Files section stores metadata; a later stage can add a dedicated Drive file tree
-while keeping references in the JSON database.
+very frequent, or the product needs record-level querying. Project and task uploads are stored in the
+dedicated Drive `uploads` folder while their names, ownership and Drive IDs remain in the JSON database.
+Vercel request limits still apply; the default per-file limit is 4 MB on Vercel and 100 MB locally and
+can be lowered with `SHARED_FILE_MAX_BYTES`.
 
 ## Project structure
 

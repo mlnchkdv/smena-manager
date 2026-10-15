@@ -458,3 +458,7 @@ h3.sub {
   ) {
   display: none !important;
 }
+
+.role-viewer label:has([data-in='uploadFiles']) {
+  display: none !important;
+}

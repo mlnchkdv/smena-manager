@@ -2,6 +2,7 @@ import express from 'express';
 import { requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
 import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import { fileRouter } from './file-routes.js';
 
 export const app = express();
 
@@ -25,6 +26,7 @@ app.get('/api/health', (_request, response) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api', requireAuth);
+app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });

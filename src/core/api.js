@@ -95,3 +95,69 @@ export async function putWorkspace(data, revision) {
   );
   return result.data;
 }
+
+export async function getFileUploadPolicy() {
+  return request('/api/files/policy', {}, true);
+}
+
+export function uploadWorkspaceFile(file, metadata, onProgress) {
+  return new Promise((resolve, reject) => {
+    const token = getSessionToken();
+    if (!token) {
+      reject(new ApiError('Authentication required.', 401, 'AUTH_REQUIRED'));
+      return;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    form.append('revision', String(metadata.revision));
+    form.append('project', metadata.project || '');
+    if (metadata.task) form.append('task', metadata.task);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/files/upload');
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.responseType = 'json';
+    xhr.upload.onprogress = event => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onerror = () => reject(new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR'));
+    xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
+    xhr.onload = () => {
+      const body = xhr.response || {};
+      if (xhr.status >= 200 && xhr.status < 300) resolve(body);
+      else {
+        if (xhr.status === 401) clearSession();
+        reject(new ApiError(body.error || `Upload failed (${xhr.status}).`, xhr.status, body.code || 'UPLOAD_FAILED', body));
+      }
+    };
+    xhr.send(form);
+  });
+}
+
+export async function downloadWorkspaceFile(id, download = false) {
+  const token = getSessionToken();
+  if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
+  let response;
+  try {
+    response = await fetch(`/api/files/${encodeURIComponent(id)}/content${download ? '?download=1' : ''}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (error) {
+    throw new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR', { cause: error });
+  }
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.error || 'Unable to open the file.', response.status, body.code || 'FILE_ERROR', body);
+  }
+  return { blob: await response.blob(), disposition: response.headers.get('content-disposition') || '' };
+}
+
+export async function deleteWorkspaceFile(id, revision) {
+  return request(
+    `/api/files/${encodeURIComponent(id)}`,
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ revision }),
+    },
+    true,
+  );
+}

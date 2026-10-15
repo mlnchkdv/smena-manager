@@ -72,11 +72,12 @@ export function ctxMenu(p) {
     );
   }
   if (p.ctx === 'file') {
+    const file = D().files.find(item => item.id === p.id);
     return (
       I('previewFile', 'eye', 'Preview') +
       I('renameFile', 'pencil', 'Rename') +
       I('copyLink', 'link', 'Copy link') +
-      I('dupFile', 'copy', 'Duplicate') +
+      (file?.storageName ? I('downloadStoredFile', 'download', 'Download') : I('dupFile', 'copy', 'Duplicate')) +
       sep +
       I('delFile', 'trash-2', 'Delete', 'danger')
     );

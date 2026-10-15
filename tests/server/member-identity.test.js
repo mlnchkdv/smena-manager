@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { bindInitialAdministrator, memberForProfile } from '../../src/shared/member-identity.js';
+
+test('initial administrator is bound to the seed member without changing references', () => {
+  const database = { me: 'm1', members: [{ id: 'm1', name: 'Demo', email: 'demo@example.test' }], tasks: [{ assignee: 'm1' }] };
+  const profile = { id: 'admin-profile', name: 'Анна', email: 'anna@example.test', role: 'admin' };
+  const bound = bindInitialAdministrator(database, profile);
+
+  assert.equal(bound.me, 'm1');
+  assert.equal(bound.members[0].authProfileId, 'admin-profile');
+  assert.equal(bound.members[0].name, 'Анна');
+  assert.equal(bound.tasks[0].assignee, 'm1');
+  assert.equal(memberForProfile(bound, profile)?.id, 'm1');
+});
+
+test('member lookup falls back to profile ID and normalized email', () => {
+  const database = { members: [{ id: 'member-id', email: 'USER@EXAMPLE.TEST' }] };
+  assert.equal(memberForProfile(database, { id: 'member-id' })?.id, 'member-id');
+  assert.equal(memberForProfile(database, { id: 'other', email: 'user@example.test' })?.id, 'member-id');
+});

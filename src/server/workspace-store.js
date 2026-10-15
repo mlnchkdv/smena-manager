@@ -112,9 +112,14 @@ export class WorkspacePermissionError extends Error {
   }
 }
 
-async function replaceInsideLock(nextData, expectedRevision, role) {
+async function mutateInsideLock(mutator, expectedRevision, role) {
   const current = await initWorkspaceStore();
   if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+  const nextData = await mutator(clone(current));
+  if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
+    throw new TypeError('Workspace mutation must return a JSON object.');
+  }
+  if (current.me) nextData.me = current.me;
   if (role === 'editor') {
     const fields = adminFieldsChanged(current, nextData);
     if (fields.length) throw new WorkspacePermissionError(fields);
@@ -133,10 +138,8 @@ async function replaceInsideLock(nextData, expectedRevision, role) {
   return clone(next);
 }
 
-export async function replaceWorkspaceDatabase(nextData, expectedRevision, options = {}) {
-  if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
-    throw new TypeError('Workspace data must be a JSON object.');
-  }
+export async function mutateWorkspaceDatabase(mutator, expectedRevision, options = {}) {
+  if (typeof mutator !== 'function') throw new TypeError('A workspace mutation function is required.');
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
     throw new TypeError('A non-negative expected revision is required.');
   }
@@ -147,13 +150,20 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
     }
     return withRedisLock('smena:workspace:write:v1', async () => {
       await reloadWorkspaceStore();
-      return replaceInsideLock(nextData, expectedRevision, options.role || 'admin');
+      return mutateInsideLock(mutator, expectedRevision, options.role || 'admin');
     });
   }
 
-  const result = localWriteQueue.then(() => replaceInsideLock(nextData, expectedRevision, options.role || 'admin'));
+  const result = localWriteQueue.then(() => mutateInsideLock(mutator, expectedRevision, options.role || 'admin'));
   localWriteQueue = result.catch(() => undefined);
   return result;
+}
+
+export async function replaceWorkspaceDatabase(nextData, expectedRevision, options = {}) {
+  if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
+    throw new TypeError('Workspace data must be a JSON object.');
+  }
+  return mutateWorkspaceDatabase(() => nextData, expectedRevision, options);
 }
 
 export async function getWorkspaceStatus() {
