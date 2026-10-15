@@ -39,6 +39,11 @@ export const S = {
   ui: {
     fx: {},
     auth: null,
+    authBusy: false,
+    authConfig: null,
+    authIssue: '',
+    currentUser: null,
+    workspaceRevision: null,
     authStep: 'login',
     onb: 0,
     onbData: { use: 'product', team: 'kanban', size: '2-10', ws: '', proj: 'Website Launch', tmpl: 'web', invites: '' },

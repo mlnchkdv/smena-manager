@@ -58,8 +58,9 @@ import './actions/archive.js';
 import { S, D } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
+import { restoreSessionAndWorkspace } from './core/bootstrap.js';
 
-(function init() {
+(async function init() {
   if (!document.getElementById('sr-live')) {
     const l = document.createElement('div');
     l.id = 'sr-live';
@@ -68,10 +69,20 @@ import { ROUTE_NAMES, render, go } from './shell/render.js';
     document.body.appendChild(l);
   }
   const h = (location.hash || '').slice(1);
-  const authRoutes = ['login', 'signup', 'forgot', 'reset', 'verify', 'onboarding'];
-  if (authRoutes.includes(h)) S.ui.auth = h;
-  else if (h && ROUTE_NAMES[h]) S.ui.route = h;
+  if (h && ROUTE_NAMES[h]) S.ui.route = h;
   else S.ui.route = S.prefs.home || 'home';
+  S.ui.auth = 'login';
+  S.ui.authBusy = true;
+  render();
+  try {
+    const user = await restoreSessionAndWorkspace();
+    S.ui.authBusy = false;
+    S.ui.auth = user ? null : 'login';
+  } catch (error) {
+    S.ui.authBusy = false;
+    S.ui.auth = 'login';
+    S.ui.authIssue = error.status === 401 ? '' : error.message || 'Unable to connect to the workspace server.';
+  }
   render();
 })();
 

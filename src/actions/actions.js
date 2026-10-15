@@ -13,6 +13,7 @@ import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
+import { authenticateAndLoadWorkspace } from '../core/bootstrap.js';
 
 export const A = {},
   IN = {},
@@ -2065,10 +2066,11 @@ A.auth = el => {
   setTimeout(() => $('.auth input')?.focus(), 20);
 };
 A.toggleShowPw = () => {
-  const v = $('#l-pw')?.value;
+  const fieldId = S.ui.auth === 'login' ? '#l-access' : '#l-pw';
+  const v = $(fieldId)?.value;
   S.ui.showPw = !S.ui.showPw;
   render();
-  const i = $('#l-pw');
+  const i = $(fieldId);
   if (i) {
     i.value = v;
     i.focus();
@@ -2081,21 +2083,28 @@ export function enterApp(msg) {
   go(S.prefs.home || 'home');
   toast(msg);
 }
-A.doLogin = () => {
+A.doLogin = async () => {
   const e = (S.ui.errors = {});
-  const em = $('#l-email').value.trim(),
-    pw = $('#l-pw').value;
-  S.ui.af.email = em;
-  if (!em) e.email = 'Enter your email address';
-  else if (!EMAIL_RE.test(em)) e.email = 'Enter a valid email, like name@company.com';
-  if (!pw) e.pw = 'Enter your password';
+  const accessId = $('#l-access')?.value.trim() || '';
+  if (!accessId) e.access = 'Enter your Access ID';
   if (Object.keys(e).length) {
     render();
-    (e.email ? $('#l-email') : $('#l-pw'))?.focus();
-    if (!e.email) $('#l-pw').value = pw;
+    $('#l-access')?.focus();
     return;
   }
-  loadingBtn('login-btn', 750, () => enterApp(`Signed in as ${em}`));
+  S.ui.authBusy = true;
+  S.ui.authIssue = '';
+  render();
+  try {
+    const user = await authenticateAndLoadWorkspace(accessId);
+    S.ui.authBusy = false;
+    enterApp(`Signed in as ${user.name}`);
+  } catch (error) {
+    S.ui.authBusy = false;
+    S.ui.errors = { login: error.status === 401 ? 'Invalid Access ID.' : error.message || 'Unable to sign in.' };
+    render();
+    $('#l-access')?.focus();
+  }
 };
 A.socialAuth = el => {
   el.classList.add('is-loading');
