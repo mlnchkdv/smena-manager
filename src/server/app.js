@@ -1,10 +1,11 @@
 import express from 'express';
-import { requireAuth, requireRole } from './auth.js';
+import { getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
 import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
+import { bindAccessProfiles } from '../shared/member-identity.js';
 
 export const app = express();
 
@@ -42,7 +43,8 @@ app.get('/api/storage/status', async (_request, response, next) => {
 
 app.get('/api/workspace', async (_request, response, next) => {
   try {
-    response.json({ data: await getWorkspaceDatabase() });
+    const database = await getWorkspaceDatabase();
+    response.json({ data: bindAccessProfiles(database, getAccessProfiles()) });
   } catch (error) {
     next(error);
   }

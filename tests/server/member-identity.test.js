@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bindInitialAdministrator, memberForProfile } from '../../src/shared/member-identity.js';
+import { bindAccessProfiles, bindInitialAdministrator, memberForProfile } from '../../src/shared/member-identity.js';
 
 test('initial administrator is bound to the seed member without changing references', () => {
   const database = { me: 'm1', members: [{ id: 'm1', name: 'Demo', email: 'demo@example.test' }], tasks: [{ assignee: 'm1' }] };
@@ -66,4 +66,26 @@ test('editor is appended as a member without taking over an unbound seed member'
   assert.equal(bound.members[1].role, 'Member');
   assert.equal(bound.members[1].title, 'Creative Director');
   assert.equal(bound.me, 'editor-alex');
+});
+
+test('all active access profiles are visible without changing the stored current member', () => {
+  const database = {
+    me: 'm1',
+    members: [{ id: 'm1', name: 'Danila', email: 'danila@example.test', authProfileId: 'admin-danila' }],
+  };
+  const profiles = [
+    { id: 'admin-danila', name: 'Danila', email: 'danila@example.test', title: 'CTO', role: 'admin', active: true },
+    { id: 'editor-alex', name: 'Alex', email: 'alex@example.test', title: 'Creative Director', role: 'editor', active: true },
+    { id: 'disabled', name: 'Disabled', email: 'disabled@example.test', role: 'viewer', active: false },
+  ];
+  const bound = bindAccessProfiles(database, profiles);
+
+  assert.equal(bound.me, 'm1');
+  assert.equal(bound.members.length, 2);
+  assert.equal(bound.members[0].title, 'CTO');
+  assert.equal(bound.members[1].id, 'editor-alex');
+  assert.equal(
+    bound.members.some(member => member.id === 'disabled'),
+    false,
+  );
 });

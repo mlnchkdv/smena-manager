@@ -39,3 +39,12 @@ export function bindInitialAdministrator(database, profile) {
   data.me = member.id;
   return data;
 }
+
+export function bindAccessProfiles(database, profiles) {
+  const originalMemberId = database?.me;
+  const data = (profiles || [])
+    .filter(profile => profile?.active !== false)
+    .reduce((workspace, profile) => bindInitialAdministrator(workspace, profile), database);
+  data.me = originalMemberId;
+  return data;
+}
