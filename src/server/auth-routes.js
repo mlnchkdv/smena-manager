@@ -3,25 +3,24 @@ import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile 
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { hasSharedRedis } from './redis.js';
 import { inspectDeploymentConfig } from './deployment-config.js';
+import { createLoginRateLimiter } from './login-rate-limit.js';
 
-const attempts = new Map();
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 20;
+const loginRateLimiter = createLoginRateLimiter();
+
+function rateLimitKey(request) {
+  const forwarded = process.env.VERCEL ? request.get('x-forwarded-for')?.split(',', 1)[0].trim() : '';
+  return forwarded || request.socket.remoteAddress || request.ip || 'unknown';
+}
 
 function rateLimit(request, response, next) {
-  const key = request.ip || request.socket.remoteAddress || 'unknown';
-  const now = Date.now();
-  const record = attempts.get(key);
-  if (!record || record.resetAt <= now) {
-    attempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    next();
+  const key = rateLimitKey(request);
+  const result = loginRateLimiter.check(key);
+  if (!result.allowed) {
+    response.setHeader('Retry-After', String(Math.ceil(result.retryAfterMs / 1000)));
+    response.status(429).json({ error: 'Too many login attempts. Try again later.', code: 'LOGIN_RATE_LIMITED' });
     return;
   }
-  if (record.count >= MAX_ATTEMPTS) {
-    response.status(429).json({ error: 'Too many login attempts. Try again later.' });
-    return;
-  }
-  record.count += 1;
+  request.loginRateLimitKey = key;
   next();
 }
 
@@ -54,8 +53,10 @@ authRouter.post('/validate', rateLimit, (request, response) => {
   const accessId = typeof request.body?.accessId === 'string' ? request.body.accessId.trim() : '';
   const profile = findProfileByAccessId(accessId);
   if (!profile) {
+    loginRateLimiter.recordFailure(request.loginRateLimitKey);
     response.status(401).json({ valid: false, error: 'Invalid access ID.' });
     return;
   }
+  loginRateLimiter.recordSuccess(request.loginRateLimitKey);
   response.json({ valid: true, token: createSession(profile), user: publicProfile(profile) });
 });

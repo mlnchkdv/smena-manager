@@ -92,6 +92,8 @@ const RU = {
   'Reduce large knowledge notes below 4 MB, then make another change to retry.':
     'Уменьшите объём крупных заметок базы знаний до 4 МБ, затем внесите ещё одно изменение для повторной попытки.',
   'Open knowledge base': 'Открыть базу знаний',
+  'Invalid access ID.': 'Неверный идентификатор доступа.',
+  'Too many login attempts. Try again later.': 'Слишком много попыток входа. Повторите позже.',
   'The workspace is too large to sync. Reduce large knowledge notes and try again.':
     'Рабочее пространство слишком велико для синхронизации. Уменьшите крупные заметки базы знаний и повторите попытку.',
   'Folder name': 'Название папки',
