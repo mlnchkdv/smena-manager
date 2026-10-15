@@ -4,15 +4,14 @@ import { authRouter } from './auth-routes.js';
 import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
+import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 
 export const app = express();
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: WORKSPACE_TRANSPORT_MAX_BYTES }));
 app.use((_request, response, next) => {
-  response.setHeader('X-Content-Type-Options', 'nosniff');
-  response.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  for (const [name, value] of Object.entries(HTTP_SECURITY_HEADERS)) response.setHeader(name, value);
   next();
 });
 
