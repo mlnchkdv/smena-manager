@@ -128,4 +128,4 @@ window.addEventListener('smena:permission-denied', event => {
 })();
 
 // Dev-only handle for debugging and screenshot tooling; stripped from production builds.
-if (import.meta.env.DEV) window.__gr8r = { S, D, A, go, render };
+if (import.meta.env.DEV) window.__smena = { S, D, A, go, render };

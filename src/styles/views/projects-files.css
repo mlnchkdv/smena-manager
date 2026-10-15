@@ -186,6 +186,9 @@
 }
 
 /* files */
+.files-toolbar {
+  flex-shrink: 0;
+}
 .fgrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

@@ -4,8 +4,10 @@ import { PCOLORS, TEAMS_SEED } from './constants.js';
 import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
+import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 
-export const STORE_KEY = 'gr8r.v2';
+export const STORE_KEY = 'smena.v1';
+export const LEGACY_STORE_KEYS = ['gr8r.v2'];
 export const DEFAULT_PREFS = {
   theme: 'system',
   accent: 'indigo',
@@ -13,8 +15,8 @@ export const DEFAULT_PREFS = {
   density: 'comfortable',
   weekStart: 1,
   dateFmt: 'MMM d',
-  lang: 'English (US)',
-  tz: '(GMT-07:00) Pacific Time',
+  lang: 'Русский',
+  tz: '(GMT+04:00) Saratov',
   motion: 'system',
   home: 'home',
   openTasks: 'drawer',
@@ -23,10 +25,11 @@ export const DEFAULT_PREFS = {
 };
 export function load() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) {
+    for (const key of [STORE_KEY, ...LEGACY_STORE_KEYS]) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
       const j = JSON.parse(raw);
-      if (j && j.data && j.data.tasks) return j;
+      if (j && j.data && j.data.tasks) return { ...j, data: migrateLegacyWorkspaceBrand(j.data) };
     }
   } catch {
     /* storage blocked or corrupt: start from seed data */

@@ -1,8 +1,8 @@
 # Smena Manager
 
 A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
-files, members, teams, activity and settings. The original Gr8r interface is being adapted into the
-Smena team's own workspace and prepared for later KMS modules such as knowledge, files and bookmarks.
+files, members, teams, activity and settings. The interface is being adapted into the Smena team's
+own workspace and prepared for later KMS modules such as knowledge, files and bookmarks.
 
 The interface supports English and Russian. Change the language in **Settings → Language**;
 the preference is saved locally and also updates localized dates and accessibility labels.
@@ -10,7 +10,7 @@ the preference is saved locally and also updates localized dates and accessibili
 Built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There is no
 UI framework and no runtime dependency.
 
-![Gr8r Studio home dashboard](docs/preview.png)
+![Smena Manager home dashboard](docs/preview.png)
 
 ## Getting started
 

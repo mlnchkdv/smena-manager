@@ -1,8 +1,8 @@
 {
-  "name": "gr8r-studio",
+  "name": "smena-manager",
   "version": "1.0.0",
   "private": true,
-  "description": "Gr8r Studio: a calm, structured project management workspace.",
+  "description": "Smena Manager: a shared task and knowledge workspace for the team.",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm:dev:client\" \"npm:dev:server\"",

@@ -11,7 +11,8 @@ import { tlAfter } from '../views/timeline.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
-import { t as tr, translateApp } from '../core/i18n.js';
+import { isRussian, t as tr, translateApp } from '../core/i18n.js';
+import { PRODUCT_NAME } from '../shared/product.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -108,7 +109,7 @@ export function tryFocus(key) {
 }
 export function pageTitle() {
   const u = S.ui;
-  if (u.auth) return 'Gr8r Studio';
+  if (u.auth) return PRODUCT_NAME;
   let title = ROUTE_NAMES[u.route] || 'Not found';
   if (u.route === 'project' && proj(u.params.id)) title = `${tr((PTABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1])} · ${proj(u.params.id).name}`;
   if (u.route === 'member' && mem(u.params.id)) title = mem(u.params.id).name;
@@ -125,6 +126,7 @@ export function makeFocusable() {
 }
 export function render() {
   applyPrefs();
+  document.documentElement.lang = isRussian() ? 'ru' : 'en';
   const prevOv = render._ov || {};
   const ov = { pop: !!S.ui.pop, modals: S.ui.modals.length, drawer: S.ui.drawer, pal: !!S.ui.palette, sub: !!S.ui.subOpen };
   // Entrances animate only on the render where the surface first appears.

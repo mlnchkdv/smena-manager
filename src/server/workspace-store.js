@@ -1,6 +1,7 @@
 import { getStorageProvider } from './storage/index.js';
 import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { adminFieldsChanged } from '../shared/workspace-permissions.js';
+import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -38,7 +39,7 @@ function normalizeDatabase(value) {
   if (version > CURRENT_SCHEMA_VERSION) {
     throw new Error(`Workspace schema ${version} is newer than supported schema ${CURRENT_SCHEMA_VERSION}.`);
   }
-  return { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
+  return migrateLegacyWorkspaceBrand({ ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION });
 }
 
 function clone(value) {

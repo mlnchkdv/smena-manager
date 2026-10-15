@@ -13,7 +13,7 @@ export function filesHtml(pid) {
   fs.sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'type' ? a.type.localeCompare(b.type) : b.at - a.at));
   const ups = (u.uploads || []).filter(x => x.project === pid);
   const view = u.fileView;
-  return `<div class="toolbar">
+  return `<div class="toolbar files-toolbar">
       <div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="file-q" data-in="fileQ" placeholder="Search files" value="${esc(u.fileQ || '')}" aria-label="Search files"></div>
       <select class="select" style="height:26px;width:auto;font-size:12px" data-in="fileType" aria-label="Filter by type"><option value="all">All types</option>${Object.entries(
         FT,

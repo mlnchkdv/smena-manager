@@ -273,6 +273,25 @@
   color: var(--text-3);
   cursor: not-allowed;
 }
+.workspace-url {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+}
+.workspace-url .input {
+  min-width: 0;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.workspace-url-prefix {
+  width: auto;
+  display: flex;
+  align-items: center;
+  background: var(--surface-2);
+  border-right: 0;
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+  color: var(--text-2);
+  white-space: nowrap;
+}
 .select {
   appearance: none;
   padding-right: 28px;
