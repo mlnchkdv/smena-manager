@@ -169,6 +169,26 @@ export function paletteItems() {
         .slice(0, lim)
         .map(c => ({ html: av(c.by, 'sm', false), name: c.text, sub: 'on ' + task(c.task).title, run: () => A.openTask({ dataset: { id: c.task } }) })),
     });
+  if (sc === 'all' || sc === 'knowledge')
+    groups.push({
+      name: 'Knowledge base',
+      items: r.knowledge.slice(0, lim).map(note => ({
+        icon: 'file-text',
+        name: note.title || 'Untitled note',
+        sub: note.summary || note.category || 'Knowledge base',
+        run: () => A.goKnowledgeNote({ dataset: { id: note.id } }),
+      })),
+    });
+  if (sc === 'all' || sc === 'bookmarks')
+    groups.push({
+      name: 'Bookmarks',
+      items: r.bookmarks.slice(0, lim).map(link => ({
+        icon: 'bookmark',
+        name: link.title || link.url,
+        sub: link.site_name || link.url,
+        run: () => A.goBookmark({ dataset: { id: link.id } }),
+      })),
+    });
   const out = groups.filter(g => g.items.length);
   out.push({
     name: '',
@@ -196,7 +216,8 @@ export function paletteHtml() {
   pl._flat = flat;
   pl.hl = clamp(pl.hl, 0, Math.max(flat.length - 1, 0));
   let idx = 0;
-  const ph = pl.mode === 'search' ? 'Search tasks, projects, people, files, comments…' : pl.mode === 'ws' ? 'Find a workspace…' : 'Type a command or search…';
+  const ph =
+    pl.mode === 'search' ? 'Search tasks, projects, knowledge, bookmarks, and files…' : pl.mode === 'ws' ? 'Find a workspace…' : 'Type a command or search…';
   return `<div class="palette" role="dialog" aria-modal="true" aria-label="Command menu">
     <div class="pal-in">${ic(pl.mode === 'search' ? 'search' : 'command', 17)}${pl.mode !== 'cmd' ? `<span class="badge" style="flex-shrink:0">${pl.mode === 'search' ? 'Search' : 'Workspace'}</span>` : ''}<input id="pal-in" data-in="palQ" value="${esc(pl.q)}" placeholder="${ph}" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" aria-activedescendant="pi-${pl.hl}"><kbd>Esc</kbd></div>
     ${
@@ -208,6 +229,8 @@ export function paletteHtml() {
             ['people', 'People', 'users'],
             ['files', 'Files', 'paperclip'],
             ['comments', 'Comments', 'message-square'],
+            ['knowledge', 'Knowledge base', 'library-big'],
+            ['bookmarks', 'Bookmarks', 'bookmark'],
           ]
             .map(([k, n, i]) => `<button role="tab" class="${pl.scope === k ? 'on' : ''}" data-a="palScope" data-v="${k}">${ic(i, 12)}${n}</button>`)
             .join('')}</div>`

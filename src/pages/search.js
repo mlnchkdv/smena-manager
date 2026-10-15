@@ -6,7 +6,7 @@ import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 
 export function searchAll(q) {
   q = (q || '').trim().toLowerCase();
-  if (!q) return { tasks: [], projects: [], people: [], files: [], comments: [] };
+  if (!q) return { tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [] };
   const has = s => (s || '').toLowerCase().includes(q);
   return {
     tasks: allTasks()
@@ -16,6 +16,8 @@ export function searchAll(q) {
     people: D().members.filter(m => has(m.name) || has(m.email) || has(m.title)),
     files: D().files.filter(f => has(f.name) && canSee(proj(f.project))),
     comments: D().comments.filter(c => has(c.text) && task(c.task) && canSee(proj(task(c.task).project))),
+    knowledge: (D().knowledgeNotes || []).filter(note => has([note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' '))),
+    bookmarks: (D().links || []).filter(link => has([link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' '))),
   };
 }
 export function pageSearch() {
@@ -29,6 +31,8 @@ export function pageSearch() {
     ['people', 'People'],
     ['files', 'Files'],
     ['comments', 'Comments'],
+    ['knowledge', 'Knowledge base'],
+    ['bookmarks', 'Bookmarks'],
   ];
   const total = Object.values(r).reduce((a, b) => a + b.length, 0);
   const sec = (k, title, html) =>
@@ -36,7 +40,7 @@ export function pageSearch() {
       ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px">${title} · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
       : '';
   return `<div class="page" style="max-width:860px">
-    <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, people, files, and comments" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
+    <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
     <div class="tabs" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
     ${
       !q
@@ -92,6 +96,31 @@ export function pageSearch() {
                   c =>
                     `<div class="mini" style="align-items:flex-start;padding-top:10px;padding-bottom:10px" data-a="openTask" data-id="${c.task}">${av(c.by, 'sm')}<div class="grow" style="min-width:0"><div style="font-size:12px" class="muted"><b style="color:var(--text);font-weight:500">${esc(mem(c.by).name)}</b> on ${esc(task(c.task).title)} · ${ago(c.at)}</div><div style="font-size:13px">${hl(c.text, q)}</div></div></div>`,
                 )
+                .join(''),
+            ) +
+            sec(
+              'knowledge',
+              'Knowledge base',
+              r.knowledge
+                .map(
+                  note =>
+                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt">${hl(note.title || 'Untitled note', q)} <span class="faint" style="font-size:12px">— ${hl((note.summary || note.formatted_markdown || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(note.category || 'General')}</span></div>`,
+                )
+                .join(''),
+            ) +
+            sec(
+              'bookmarks',
+              'Bookmarks',
+              r.bookmarks
+                .map(link => {
+                  let host = link.site_name || '';
+                  try {
+                    host ||= new URL(link.url).hostname.replace(/^www\./, '');
+                  } catch {
+                    host ||= link.url;
+                  }
+                  return `<div class="mini" data-a="goBookmark" data-id="${link.id}">${ic('bookmark', 15)}<span class="tt">${hl(link.title || host, q)} <span class="faint" style="font-size:12px">— ${hl((link.description || link.url || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(host)}</span></div>`;
+                })
                 .join(''),
             )
           : `<div class="panel">${empty('search-x', 'No results found', `Nothing matches “${q}”. Check the spelling or try a broader term.`, `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`

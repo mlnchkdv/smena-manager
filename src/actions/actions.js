@@ -262,6 +262,12 @@ A.openKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
   render();
 };
+A.goKnowledgeNote = el => {
+  S.ui.knowledgeActive = el.dataset.id;
+  S.ui.knowledgeQuery = '';
+  S.ui.knowledgeFolder = 'all';
+  go('knowledge');
+};
 A.toggleKnowledgeFavorite = el => {
   mutate(() => {
     const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
@@ -469,6 +475,14 @@ A.toggleBookmarkArchive = el => {
 A.copyBookmark = el => {
   const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
   if (link) copy(link.url, 'Link copied');
+};
+A.goBookmark = el => {
+  const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
+  if (!link) return;
+  S.ui.bookmarkQuery = link.title || link.url;
+  S.ui.bookmarkFolder = 'all';
+  S.ui.bookmarkScope = link.is_archived ? 'archived' : 'active';
+  go('bookmarks');
 };
 A.deleteBookmark = el => {
   const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
