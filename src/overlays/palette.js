@@ -31,6 +31,7 @@ export function commands() {
     { id: 'c-projs', name: 'Go to Projects', icon: 'folder-kanban', kbd: 'G P', run: () => go('projects') },
     { id: 'c-cal', name: 'Go to Calendar', icon: 'calendar', kbd: 'G C', run: () => go('calendar') },
     { id: 'c-tl', name: 'Go to Timeline', icon: 'chart-gantt', run: () => go('timeline') },
+    { id: 'c-knowledge', name: 'Go to Knowledge base', icon: 'library-big', run: () => go('knowledge') },
     { id: 'c-mem', name: 'Go to Members', icon: 'users', run: () => go('members') },
     { id: 'c-set', name: 'Open settings', icon: 'settings', kbd: 'G S', run: () => go('settings') },
     { id: 'c-app', name: 'Appearance settings', icon: 'palette', run: () => go('settings', { sec: 'appearance' }) },

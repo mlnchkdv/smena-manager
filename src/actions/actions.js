@@ -166,6 +166,16 @@ export function projectFromKey(key) {
   return null;
 }
 
+function knowledgeCollections() {
+  if (!Array.isArray(D().knowledgeNotes)) D().knowledgeNotes = [];
+  if (!Array.isArray(D().knowledgeFolders)) D().knowledgeFolders = [];
+  return { notes: D().knowledgeNotes, folders: D().knowledgeFolders };
+}
+
+function noteWikiLinks(markdown) {
+  return [...String(markdown || '').matchAll(/\[\[([^\]]+)\]\]/g)].map(match => match[1].trim()).filter(Boolean);
+}
+
 /* ---------- navigation ---------- */
 A.go = el => {
   const r = el.dataset.r;
@@ -197,6 +207,118 @@ A.set = el => {
 A.toggleSide = () => {
   S.ui.collapsed = !S.ui.collapsed;
   save();
+  render();
+};
+
+/* ---------- knowledge base ---------- */
+A.newKnowledgeNote = () => {
+  mutate(() => {
+    const { notes } = knowledgeCollections();
+    const now = new Date().toISOString();
+    const note = {
+      id: uid('kn'),
+      title: `Новая заметка ${notes.length + 1}`,
+      category: 'General',
+      summary: '',
+      extracted_skills: [],
+      tags: [],
+      wikilinks: [],
+      formatted_markdown: '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.',
+      folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
+      favorite: false,
+      createdBy: D().me,
+      updatedBy: D().me,
+      createdAt: now,
+      updatedAt: now,
+    };
+    notes.unshift(note);
+    S.ui.knowledgeActive = note.id;
+    S.ui.knowledgeQuery = '';
+  });
+};
+A.openKnowledgeNote = el => {
+  S.ui.knowledgeActive = el.dataset.id;
+  render();
+};
+A.toggleKnowledgeFavorite = el => {
+  mutate(() => {
+    const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
+    if (note) note.favorite = !note.favorite;
+  });
+};
+A.newKnowledgeFolder = () => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  openModal({
+    type: 'prompt',
+    title: 'New knowledge folder',
+    label: 'Folder name',
+    value: '',
+    run: value => {
+      const name = value.trim();
+      if (!name) return;
+      mutate(() => {
+        const { folders } = knowledgeCollections();
+        if (folders.some(folder => folder.name.toLowerCase() === name.toLowerCase())) return;
+        const folder = { id: uid('kf'), name, parentId: null, createdAt: new Date().toISOString() };
+        folders.push(folder);
+        S.ui.knowledgeFolder = folder.id;
+      });
+    },
+  });
+};
+A.deleteKnowledgeNote = el => {
+  const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
+  if (!note) return;
+  confirmDlg({
+    title: 'Delete note?',
+    body: `<b>${esc(note.title)}</b> will be removed from the shared knowledge base.`,
+    ok: 'Delete note',
+    danger: true,
+    run: () =>
+      mutate(() => {
+        D().knowledgeNotes = knowledgeCollections().notes.filter(item => item.id !== note.id);
+        S.ui.knowledgeActive = D().knowledgeNotes[0]?.id || null;
+      }),
+  });
+};
+IN.knowledgeQuery = el => {
+  S.ui.knowledgeQuery = el.value;
+  render();
+  requestAnimationFrame(() => {
+    const input = document.querySelector('[data-in="knowledgeQuery"]');
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  });
+};
+IN.knowledgeFolder = el => {
+  S.ui.knowledgeFolder = el.value;
+  render();
+};
+IN.knowledgeField = el => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
+  if (!note) return;
+  const field = el.dataset.field;
+  if (field === 'tags')
+    note.tags = [
+      ...new Set(
+        el.value
+          .split(',')
+          .map(value => value.trim())
+          .filter(Boolean),
+      ),
+    ];
+  else note[field] = el.value || (field === 'folderId' ? null : '');
+  if (field === 'formatted_markdown') note.wikilinks = noteWikiLinks(note.formatted_markdown);
+  note.updatedAt = new Date().toISOString();
+  note.updatedBy = D().me;
+  save();
+  if (el.matches('select')) render();
+};
+BLUR.knowledgeField = el => {
+  IN.knowledgeField(el);
   render();
 };
 A.openMnav = () => {

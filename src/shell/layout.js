@@ -24,6 +24,7 @@ import { pageWsTimeline } from '../views/timeline.js';
 import { pageSettings } from '../pages/settings.js';
 import { pageStates, pageSystem } from '../pages/design-system.js';
 import { pageArchive } from '../features/archive.js';
+import { pageKnowledge } from '../pages/knowledge.js';
 
 export function renderShell() {
   const u = S.ui;
@@ -61,6 +62,7 @@ export function renderPage() {
       teams: pageTeams,
       team: pageTeam,
       activity: pageActivity,
+      knowledge: pageKnowledge,
       settings: pageSettings,
       system: pageSystem,
       states: pageStates,
@@ -110,6 +112,7 @@ export function renderSidebar() {
         ${sItem('tasks', 'Tasks', 'list-checks')}
         ${sItem('calendar', 'Calendar', 'calendar')}
         ${sItem('timeline', 'Timeline', 'chart-gantt')}
+        ${sItem('knowledge', 'Knowledge base', 'library-big', { ct: d.knowledgeNotes?.length || '' })}
         ${sItem('members', 'Members', 'users')}
         ${sItem('activity', 'Activity', 'activity')}
       </div>

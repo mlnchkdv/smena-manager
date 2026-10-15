@@ -32,8 +32,18 @@ test.after(async () => {
 test('workspace snapshots increment their revision and persist', async () => {
   const initial = await getWorkspaceDatabase();
   assert.equal(initial.revision, 0);
+  assert.deepEqual(initial.knowledgeNotes, []);
+  assert.deepEqual(initial.knowledgeFolders, []);
 
-  const updated = await replaceWorkspaceDatabase({ ...initial, tasks: [{ id: 'task-1' }] }, initial.revision);
+  const updated = await replaceWorkspaceDatabase(
+    {
+      ...initial,
+      tasks: [{ id: 'task-1' }],
+      knowledgeFolders: [{ id: 'kf1', name: 'Регламенты' }],
+      knowledgeNotes: [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }],
+    },
+    initial.revision,
+  );
   assert.equal(updated.revision, 1);
   assert.deepEqual(updated.tasks, [{ id: 'task-1' }]);
 
@@ -42,6 +52,8 @@ test('workspace snapshots increment their revision and persist', async () => {
   const restored = await getWorkspaceDatabase();
   assert.equal(restored.revision, 1);
   assert.deepEqual(restored.tasks, [{ id: 'task-1' }]);
+  assert.deepEqual(restored.knowledgeFolders, [{ id: 'kf1', name: 'Регламенты' }]);
+  assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
 });
 
 test('stale workspace revisions are rejected', async () => {

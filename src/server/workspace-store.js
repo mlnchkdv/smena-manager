@@ -23,6 +23,8 @@ function createEmptyDatabase() {
     projects: [],
     tasks: [],
     comments: [],
+    knowledgeNotes: [],
+    knowledgeFolders: [],
     files: [],
     activity: [],
     notifications: [],

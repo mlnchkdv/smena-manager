@@ -509,6 +509,8 @@ export function seed() {
     projects,
     tasks: T,
     comments,
+    knowledgeNotes: [],
+    knowledgeFolders: [],
     activity,
     notifs,
     files,
