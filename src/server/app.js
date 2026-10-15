@@ -7,6 +7,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles } from '../shared/member-identity.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
+import { emptyWorkspace } from '../shared/empty-workspace.js';
 
 export const app = express();
 
@@ -59,6 +60,17 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
       nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role).data;
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role });
+    response.json({ data });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
+  try {
+    const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(await getWorkspaceDatabase(), getAccessProfiles())), request.body?.revision, {
+      role: request.user.role,
+    });
     response.json({ data });
   } catch (error) {
     next(error);

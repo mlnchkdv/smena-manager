@@ -14,7 +14,7 @@ import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
 import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace } from '../core/bootstrap.js';
-import { clearSession, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
+import { clearSession, deleteAllWorkspaces, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
@@ -2365,13 +2365,19 @@ A.delWorkspace = () =>
     ok: 'Delete workspace',
     danger: true,
     typeName: D().ws.name,
-    run: () => {
-      S.data = seed();
-      S.views = {};
-      save();
-      S.ui.auth = 'login';
-      render();
-      toast('Workspace deleted. Demo data was restored for this prototype.', { kind: 'info', ms: 5000 });
+    run: async () => {
+      try {
+        const snapshot = await deleteAllWorkspaces(S.ui.workspaceRevision);
+        applyWorkspaceSnapshot(snapshot);
+        S.views = {};
+        S.ui.auth = 'onboarding';
+        S.ui.onb = 1;
+        S.ui.onbData = { ...S.ui.onbData, ws: '', url: '', proj: '', invites: '', urlTouched: false, projTouched: false };
+        render();
+        toast('Workspace deleted. Create a new workspace to continue.', { kind: 'info', ms: 5000 });
+      } catch (error) {
+        toast(error.message || 'The workspace could not be deleted.', { kind: 'err', ms: 8000 });
+      }
     },
   });
 A.avColor = el => {

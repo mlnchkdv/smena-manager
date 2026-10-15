@@ -114,6 +114,18 @@ export async function putWorkspace(data, revision) {
   return result.data;
 }
 
+export async function deleteAllWorkspaces(revision) {
+  const result = await request(
+    '/api/workspace',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ revision }),
+    },
+    true,
+  );
+  return result.data;
+}
+
 export async function getFileUploadPolicy() {
   return request('/api/files/policy', {}, true);
 }
