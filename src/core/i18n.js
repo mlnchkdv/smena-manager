@@ -112,6 +112,11 @@ const RU = {
   'Run command': 'Выполнить команду',
   'The workspace is too large to sync. Reduce large knowledge notes and try again.':
     'Рабочее пространство слишком велико для синхронизации. Уменьшите крупные заметки базы знаний и повторите попытку.',
+  'Changes were not synced.': 'Изменения не синхронизированы.',
+  'The workspace data has an invalid structure.': 'Структура данных рабочего пространства повреждена.',
+  'Reload saved version': 'Загрузить сохранённую версию',
+  'Changes could not be synced because the workspace data is invalid. Reload the latest saved version.':
+    'Не удалось синхронизировать изменения из-за повреждённой структуры данных. Загрузите последнюю сохранённую версию.',
   'Folder name': 'Название папки',
   'Search knowledge base': 'Поиск по базе знаний',
   'Search notes, tags, and content': 'Поиск по заметкам, тегам и тексту',

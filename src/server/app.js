@@ -72,5 +72,6 @@ app.use((error, _request, response, next) => {
   if (error instanceof RevisionConflictError) body.currentRevision = error.currentRevision;
   if (Number.isSafeInteger(error.maxBytes)) body.maxBytes = error.maxBytes;
   if (Number.isSafeInteger(error.actualBytes)) body.actualBytes = error.actualBytes;
+  if (Array.isArray(error.fields)) body.fields = error.fields;
   response.status(status).json(body);
 });

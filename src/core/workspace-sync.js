@@ -78,6 +78,9 @@ export function createWorkspaceSync(options = {}) {
           notify({ status: 'forbidden', error });
         } else if (error.status === 413 || error.code === 'WORKSPACE_TOO_LARGE') {
           notify({ status: 'too_large', error });
+        } else if (error.status === 400 || error.code === 'WORKSPACE_INVALID') {
+          enabled = false;
+          notify({ status: 'invalid', error });
         } else {
           if (!pending) {
             pending = data;

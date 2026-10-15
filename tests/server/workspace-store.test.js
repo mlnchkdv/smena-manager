@@ -11,6 +11,7 @@ import {
   WorkspaceSizeError,
   WorkspacePermissionError,
 } from '../../src/server/workspace-store.js';
+import { WorkspaceValidationError } from '../../src/shared/workspace-schema.js';
 
 const originalDatabasePath = process.env.DATABASE_PATH;
 const testDirectory = path.join(process.cwd(), '.data', 'tests', `workspace-${process.pid}`);
@@ -114,5 +115,27 @@ test('oversized workspace snapshots are rejected before persistence', async () =
     },
   );
 
+  assert.equal((await getWorkspaceDatabase()).revision, 0);
+});
+
+test('partial workspace updates preserve collections omitted by the client', async () => {
+  const initial = await getWorkspaceDatabase();
+  const prepared = await replaceWorkspaceDatabase({ ...initial, comments: [{ id: 'comment-1' }], tasks: [{ id: 'task-1' }] }, 0);
+  const updated = await replaceWorkspaceDatabase({ tasks: [{ id: 'task-2' }] }, prepared.revision);
+  assert.deepEqual(updated.tasks, [{ id: 'task-2' }]);
+  assert.deepEqual(updated.comments, [{ id: 'comment-1' }]);
+});
+
+test('malformed workspace collections are rejected without changing persisted data', async () => {
+  const initial = await getWorkspaceDatabase();
+  await assert.rejects(
+    () => replaceWorkspaceDatabase({ ...initial, tasks: 'not-an-array' }, 0),
+    error => {
+      assert.ok(error instanceof WorkspaceValidationError);
+      assert.equal(error.code, 'WORKSPACE_INVALID');
+      assert.deepEqual(error.fields, ['tasks']);
+      return true;
+    },
+  );
   assert.equal((await getWorkspaceDatabase()).revision, 0);
 });

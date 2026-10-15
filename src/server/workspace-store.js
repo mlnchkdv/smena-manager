@@ -3,6 +3,7 @@ import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './red
 import { adminFieldsChanged } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
+import { validateWorkspaceData } from '../shared/workspace-schema.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -20,6 +21,8 @@ function createEmptyDatabase() {
     createdAt: now,
     updatedAt: now,
     workspace: { name: 'Smena Manager' },
+    workspaces: [],
+    me: null,
     members: [],
     projects: [],
     tasks: [],
@@ -30,9 +33,15 @@ function createEmptyDatabase() {
     linkFolders: [],
     files: [],
     activity: [],
-    notifications: [],
+    notifs: [],
     events: [],
+    projOrder: [],
     savedViews: [],
+    recentSearches: [],
+    sessions: [],
+    invoices: [],
+    tfa: false,
+    notifPrefs: {},
   };
 }
 
@@ -44,7 +53,9 @@ function normalizeDatabase(value) {
   if (version > CURRENT_SCHEMA_VERSION) {
     throw new Error(`Workspace schema ${version} is newer than supported schema ${CURRENT_SCHEMA_VERSION}.`);
   }
-  return migrateLegacyWorkspaceBrand({ ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION });
+  const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
+  if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
+  return validateWorkspaceData(migrateLegacyWorkspaceBrand(normalized));
 }
 
 function clone(value) {
@@ -182,7 +193,7 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
   if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
     throw new TypeError('Workspace data must be a JSON object.');
   }
-  return mutateWorkspaceDatabase(() => nextData, expectedRevision, options);
+  return mutateWorkspaceDatabase(current => ({ ...current, ...nextData }), expectedRevision, options);
 }
 
 export async function getWorkspaceStatus() {

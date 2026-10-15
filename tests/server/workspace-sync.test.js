@@ -115,3 +115,20 @@ test('workspace sync does not retry an oversized snapshot forever', async () => 
   assert.equal(sync.state().revision, 3);
   assert.deepEqual(statuses, ['syncing', 'too_large', 'syncing', 'saved']);
 });
+
+test('workspace sync stops retrying structurally invalid data', async () => {
+  const events = [];
+  let writes = 0;
+  const sync = createWorkspaceSync({
+    writeWorkspace: async () => {
+      writes += 1;
+      throw Object.assign(new Error('Invalid workspace.'), { status: 400, code: 'WORKSPACE_INVALID' });
+    },
+    notify: event => events.push(event.status),
+  });
+  sync.configure(1, 'editor', { tasks: [] });
+  await sync.queue({ tasks: 'invalid' });
+  assert.equal(writes, 1);
+  assert.equal(sync.state().enabled, false);
+  assert.deepEqual(events, ['syncing', 'invalid']);
+});

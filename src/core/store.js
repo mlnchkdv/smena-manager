@@ -69,6 +69,7 @@ export const S = {
     loading: false,
     offline: false,
     syncTooLarge: false,
+    syncInvalid: false,
     sel: new Set(),
     composer: null,
     editCell: null,

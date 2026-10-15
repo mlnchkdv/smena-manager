@@ -67,6 +67,7 @@ window.addEventListener('smena:sync-status', event => {
     const wasOffline = S.ui.offline;
     S.ui.offline = false;
     S.ui.syncTooLarge = false;
+    S.ui.syncInvalid = false;
     S.ui.workspaceRevision = revision;
     if (wasOffline) {
       render();
@@ -98,6 +99,11 @@ window.addEventListener('smena:sync-status', event => {
     S.ui.syncTooLarge = true;
     render();
     toast('The workspace is too large to sync. Reduce large knowledge notes and try again.', { kind: 'err', ms: 12_000 });
+  } else if (status === 'invalid') {
+    S.ui.offline = false;
+    S.ui.syncInvalid = true;
+    render();
+    toast('Changes could not be synced because the workspace data is invalid. Reload the latest saved version.', { kind: 'err', ms: 12_000 });
   }
 });
 
