@@ -13,7 +13,7 @@ import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
-import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace } from '../core/bootstrap.js';
+import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace } from '../core/bootstrap.js';
 import { clearSession, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
@@ -2549,6 +2549,28 @@ A.doLogin = async () => {
     S.ui.errors = { login: error.status === 401 ? 'Invalid Access ID.' : error.message || 'Unable to sign in.' };
     render();
     $('#l-access')?.focus();
+  }
+};
+A.doGoogleLogin = async credential => {
+  if (!credential || S.ui.authBusy) return;
+  S.ui.authBusy = true;
+  S.ui.authIssue = '';
+  S.ui.errors = {};
+  render();
+  try {
+    const user = await authenticateWithGoogleAndLoadWorkspace(credential);
+    S.ui.authBusy = false;
+    enterApp(`Signed in as ${user.name}`);
+  } catch (error) {
+    S.ui.authBusy = false;
+    const messages = {
+      GOOGLE_TOKEN_INVALID: 'The Google sign-in expired. Please try again.',
+      GOOGLE_EMAIL_UNVERIFIED: 'The Google account email is not verified.',
+      GOOGLE_ACCESS_DENIED: 'This Google account does not have access to the workspace.',
+      GOOGLE_NOT_CONFIGURED: 'Google sign-in is not configured for this workspace.',
+    };
+    S.ui.errors = { login: messages[error.code] || error.message || 'Unable to sign in with Google.' };
+    render();
   }
 };
 A.socialAuth = el => {

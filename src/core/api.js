@@ -76,6 +76,15 @@ export async function loginWithAccessId(accessId) {
   return result.user;
 }
 
+export async function loginWithGoogle(credential) {
+  const result = await request('/api/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  });
+  setSessionToken(result.token);
+  return result.user;
+}
+
 export async function getCurrentUser() {
   const result = await request('/api/auth/me', {}, true);
   return result.user;

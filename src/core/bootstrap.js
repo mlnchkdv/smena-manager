@@ -1,4 +1,14 @@
-import { clearSession, getAuthConfig, getCurrentUser, getFileUploadPolicy, getSessionToken, getWorkspace, loginWithAccessId, putWorkspace } from './api.js';
+import {
+  clearSession,
+  getAuthConfig,
+  getCurrentUser,
+  getFileUploadPolicy,
+  getSessionToken,
+  getWorkspace,
+  loginWithAccessId,
+  loginWithGoogle,
+  putWorkspace,
+} from './api.js';
 import { S, setWorkspaceBaseline } from './store.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import { configureWorkspaceSync } from './workspace-sync.js';
@@ -49,6 +59,16 @@ export async function restoreSessionAndWorkspace() {
 
 export async function authenticateAndLoadWorkspace(accessId) {
   const user = await loginWithAccessId(accessId);
+  try {
+    return await loadWorkspaceFor(user);
+  } catch (error) {
+    clearSession();
+    throw error;
+  }
+}
+
+export async function authenticateWithGoogleAndLoadWorkspace(credential) {
+  const user = await loginWithGoogle(credential);
   try {
     return await loadWorkspaceFor(user);
   } catch (error) {

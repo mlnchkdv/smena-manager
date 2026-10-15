@@ -13,6 +13,7 @@ import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
 import { isRussian, t as tr, translateApp } from '../core/i18n.js';
 import { PRODUCT_NAME } from '../shared/product.js';
+import { mountGoogleSignIn } from '../core/google-signin.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -212,6 +213,7 @@ export function afterRender() {
   const pal = $('#pal-in');
   if (pal && document.activeElement !== pal && !S.ui.pop) pal.focus();
   if ((S.ui.route === 'project' && S.ui.params.tab === 'timeline') || S.ui.route === 'timeline') tlAfter();
+  void mountGoogleSignIn();
 }
 /* Headline numbers count up once when a dashboard is entered. */
 export function countUp() {

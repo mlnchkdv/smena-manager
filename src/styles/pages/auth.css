@@ -72,6 +72,31 @@
   justify-content: center;
   gap: 10px;
 }
+.google-signin-wrap,
+#google-signin {
+  width: 100%;
+  min-height: 40px;
+}
+.google-signin-wrap {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+.google-signin-wrap.is-busy {
+  opacity: 0.55;
+  pointer-events: none;
+}
+#google-signin > div,
+#google-signin iframe {
+  max-width: 100% !important;
+}
+.google-signin-error {
+  display: block;
+  padding: 9px 12px;
+  color: var(--danger);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
 .glyph-g,
 .glyph-m,
 .glyph-a {

@@ -113,6 +113,10 @@ window.addEventListener('smena:permission-denied', event => {
   toast(viewer ? 'You have view-only access to this workspace.' : 'Only an administrator can change this setting.', { kind: 'err' });
 });
 
+window.addEventListener('smena:google-credential', event => {
+  void A.doGoogleLogin(event.detail?.credential);
+});
+
 (async function init() {
   if (!document.getElementById('sr-live')) {
     const l = document.createElement('div');
