@@ -795,7 +795,12 @@ const RU = {
 
   // Feedback, empty and error states
   "You're offline.": 'Нет подключения к интернету.',
-  "Changes won't be saved until your connection is back.": 'Изменения сохранятся после восстановления подключения.',
+  'Changes are saved locally and will sync when your connection is back.': 'Изменения сохранены локально и синхронизируются после восстановления подключения.',
+  'The workspace changed elsewhere. Reload to use the latest version.':
+    'Рабочее пространство изменилось в другом окне. Перезагрузите страницу, чтобы получить последнюю версию.',
+  Reload: 'Перезагрузить',
+  'Your session has expired. Sign in again.': 'Срок действия сессии истёк. Войдите снова.',
+  'You do not have permission to save workspace changes.': 'У вас нет прав для сохранения изменений рабочего пространства.',
   'Failed to load': 'Не удалось загрузить',
   'Something went wrong': 'Что-то пошло не так',
   'Page not found': 'Страница не найдена',

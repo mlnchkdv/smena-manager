@@ -59,6 +59,41 @@ import { S, D } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { restoreSessionAndWorkspace } from './core/bootstrap.js';
+import { toast } from './ui/toast.js';
+
+window.addEventListener('smena:sync-status', event => {
+  const { status, revision } = event.detail;
+  if (status === 'saved') {
+    const wasOffline = S.ui.offline;
+    S.ui.offline = false;
+    S.ui.workspaceRevision = revision;
+    if (wasOffline) {
+      render();
+      toast('Reconnected. All changes are synced.');
+    }
+  } else if (status === 'offline') {
+    if (!S.ui.offline) {
+      S.ui.offline = true;
+      render();
+    }
+  } else if (status === 'conflict') {
+    S.ui.offline = false;
+    S.ui.syncConflict = true;
+    toast('The workspace changed elsewhere. Reload to use the latest version.', {
+      kind: 'err',
+      ms: 12_000,
+      action: 'Reload',
+      onAction: () => location.reload(),
+    });
+  } else if (status === 'unauthorized') {
+    S.ui.currentUser = null;
+    S.ui.auth = 'login';
+    S.ui.errors = { login: 'Your session has expired. Sign in again.' };
+    render();
+  } else if (status === 'forbidden') {
+    toast('You do not have permission to save workspace changes.', { kind: 'err' });
+  }
+});
 
 (async function init() {
   if (!document.getElementById('sr-live')) {

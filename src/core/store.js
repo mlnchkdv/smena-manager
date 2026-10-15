@@ -2,6 +2,7 @@
 import { TODAY, diffD, iso, parse, uid } from './utils.js';
 import { PCOLORS, TEAMS_SEED } from './constants.js';
 import { seed } from '../data/seed.js';
+import { queueWorkspaceSync } from './workspace-sync.js';
 
 export const STORE_KEY = 'gr8r.v2';
 export const DEFAULT_PREFS = {
@@ -96,6 +97,7 @@ export function save() {
     } catch {
       /* storage full or blocked: keep working in memory */
     }
+    void queueWorkspaceSync(S.data);
   }, 150);
 }
 

@@ -1,7 +1,7 @@
 /* ---------- toasts ---------- */
 import { $, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, save } from '../core/store.js';
+import { save } from '../core/store.js';
 import { render } from '../shell/render.js';
 import { translateElement } from '../core/i18n.js';
 
@@ -27,12 +27,8 @@ export function toast(msg, opt = {}) {
   host.appendChild(el);
   setTimeout(kill, opt.ms || 4200);
 }
-/* guarded mutation: simulates offline failures for the "Failed to save" state */
 export function mutate(fn, label) {
-  if (S.ui.offline) {
-    toast("Your changes couldn't be saved. You're offline.", { kind: 'err', action: 'Try again', onAction: () => mutate(fn, label) });
-    return false;
-  }
+  void label;
   fn();
   save();
   render();

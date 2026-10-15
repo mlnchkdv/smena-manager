@@ -14,6 +14,8 @@ import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
 import { authenticateAndLoadWorkspace } from '../core/bootstrap.js';
+import { clearSession } from '../core/api.js';
+import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 
 export const A = {},
   IN = {},
@@ -1755,6 +1757,9 @@ A.newWorkspace = () => {
   render();
 };
 A.signOut = () => {
+  clearSession();
+  disableWorkspaceSync();
+  S.ui.currentUser = null;
   S.ui.pop = null;
   S.ui.palette = null;
   S.ui.drawer = null;
@@ -1782,11 +1787,7 @@ A.toggleOffline = () => {
 };
 A.retryOnline = el => {
   el.classList.add('is-loading');
-  setTimeout(() => {
-    S.ui.offline = false;
-    render();
-    toast('Reconnected. All changes are synced.');
-  }, 700);
+  void retryWorkspaceSync();
 };
 A.resetDemo = () => {
   S.ui.pop = null;
