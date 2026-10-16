@@ -126,7 +126,7 @@
   border: 1px solid var(--border);
 }
 .drawer.full.enter {
-  animation: modalIn 0.26s var(--ease) both;
+  animation: drawerFullIn 0.26s var(--ease) both;
 }
 .drawer-scrim {
   position: fixed;
@@ -148,6 +148,16 @@
   to {
     transform: none;
     opacity: 1;
+  }
+}
+@keyframes drawerFullIn {
+  from {
+    opacity: 0;
+    transform: translateX(50%) translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(50%);
   }
 }
 .drawer-h {

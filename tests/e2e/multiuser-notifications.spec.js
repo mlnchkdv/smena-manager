@@ -101,6 +101,14 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await waitForSaved(editor);
   await expect(mobileAssignee).toContainText('E2E Редактор');
 
+  await editor.setViewportSize({ width: 1440, height: 900 });
+  await editor.locator('.drawer [data-a="toggleDrawerFull"]').click();
+  const fullDrawer = editor.locator('.drawer.full');
+  await expect(fullDrawer).toBeVisible();
+  await editor.waitForTimeout(350);
+  const drawerBox = await fullDrawer.boundingBox();
+  expect(Math.abs((drawerBox?.x || 0) + (drawerBox?.width || 0) / 2 - 720)).toBeLessThanOrEqual(1);
+
   for (const [route, heading] of [
     ['inbox', 'Inbox'],
     ['mytasks', 'My Tasks'],
