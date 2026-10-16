@@ -11,6 +11,7 @@ import { SHORTCUTS } from '../overlays/modals.js';
 import { LANGUAGES } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { strengthMeter } from '../ui/strength-meter.js';
+import { browserNotificationState } from '../core/browser-notifications.js';
 
 export const SET_NAV = [
   [
@@ -37,6 +38,7 @@ export const SET_NAV = [
     [
       ['notif-mentions', 'Mentions', 'at-sign'],
       ['notif-assign', 'Task assignments', 'user-check'],
+      ['notif-push', 'Browser notifications', 'monitor-smartphone'],
     ],
   ],
   [
@@ -270,14 +272,22 @@ export function settingsBody(sec, title) {
         srow('Comments', 'On tasks you created or are assigned.', tog('email_comment', np.email_comment, 'np')) +
         srow('Daily digest', 'A summary of what changed, every weekday at 8:00.', tog('email_digest', np.email_digest, 'np'))
       );
-    case 'notif-push':
+    case 'notif-push': {
+      const permission = browserNotificationState();
+      const state = {
+        granted: ['Browser notifications are allowed.', 'ok'],
+        denied: ['Browser notifications are blocked. Allow them in your browser site settings.', 'danger'],
+        default: ['Turn on a notification type below to allow browser alerts.', 'info'],
+        unsupported: ['This browser does not support system notifications.', 'danger'],
+      }[permission];
       return (
-        H('Notifications on desktop and mobile.') +
+        H(`Show system alerts while ${PRODUCT_NAME} is open.`) +
+        `<div class="alert ${state[1]}" style="margin-bottom:14px">${ic(permission === 'granted' ? 'circle-check' : permission === 'default' ? 'bell-ring' : 'circle-alert', 16)}<span>${state[0]}</span></div>` +
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
-        srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +
-        srow('Due date reminders', 'One day before a task is due.', tog('push_due', np.push_due, 'np'))
+        srow('Comments', '', tog('push_comment', np.push_comment, 'np'))
       );
+    }
     case 'notif-mentions':
       return (
         H('Decide which mentions reach you.') +

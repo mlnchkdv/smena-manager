@@ -52,6 +52,7 @@ import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, t as tr, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { mentionNotificationTargets } from '../shared/notification-model.js';
+import { requestBrowserNotificationPermission } from '../core/browser-notifications.js';
 
 export const A = {},
   IN = {},
@@ -2498,9 +2499,24 @@ IN.prefToggle = el => {
   S.prefs[el.dataset.k] = el.checked;
   save();
 };
-IN.npToggle = el => {
+IN.npToggle = async el => {
+  if (el.checked && el.dataset.k.startsWith('push_')) {
+    const permission = await requestBrowserNotificationPermission();
+    if (permission !== 'granted') {
+      el.checked = false;
+      render();
+      toast(
+        permission === 'unsupported'
+          ? 'This browser does not support system notifications.'
+          : 'Browser notifications are blocked. Allow them in your browser site settings.',
+        { kind: 'err', ms: 6000 },
+      );
+      return;
+    }
+  }
   if (!setMyNotificationPreference(el.dataset.k, el.checked)) return;
   save();
+  render();
   toast('Notification preferences saved', { ms: 1500 });
 };
 IN.prefSel = el => {

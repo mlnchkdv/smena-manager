@@ -12,6 +12,10 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
   assign_status: true,
   assign_over: true,
   comment_assigned: true,
+  push_mention: false,
+  push_assign: false,
+  push_comment: false,
+  push_due: false,
 });
 
 const preferenceForType = {

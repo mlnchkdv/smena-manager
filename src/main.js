@@ -53,12 +53,14 @@ import './features/archive.js';
 import './actions/teams.js';
 import './actions/subtasks.js';
 import './actions/archive.js';
-import { S, D, setWorkspaceBaseline } from './core/store.js';
+import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
 import { resolveAppLocation } from './shared/app-location.js';
+import { deliverBrowserNotification } from './core/browser-notifications.js';
+import { t as tr } from './core/i18n.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -240,12 +242,31 @@ window.addEventListener('popstate', () => {
 
 let workspaceRefreshPromise = null;
 async function refreshVisibleWorkspace(showNotice = false) {
-  if (document.hidden || S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return;
+  if (S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return;
+  const previousNotifications = new Set(myNotifications().map(notification => notification.id));
   workspaceRefreshPromise = refreshWorkspaceFromServer()
     .then(result => {
       if (result.status === 'updated') {
+        const freshNotifications = myNotifications().filter(notification => !previousNotifications.has(notification.id));
         render();
-        if (showNotice) toast('Загружены свежие изменения команды.', { kind: 'info', ms: 2600 });
+        if (freshNotifications.length && (document.hidden || !document.hasFocus())) {
+          freshNotifications.slice(0, 3).forEach(notification =>
+            deliverBrowserNotification(notification, D(), myNotificationPreferences(), {
+              translate: tr,
+              onOpen: () => {
+                window.focus();
+                go('notifications');
+              },
+            }),
+          );
+        } else if (freshNotifications.length) {
+          toast(freshNotifications.length === 1 ? 'Получено новое уведомление.' : `Получено новых уведомлений: ${freshNotifications.length}.`, {
+            kind: 'info',
+            ms: 4000,
+            action: 'Открыть',
+            onAction: () => go('notifications'),
+          });
+        } else if (showNotice) toast('Загружены свежие изменения команды.', { kind: 'info', ms: 2600 });
       }
     })
     .catch(error => {
