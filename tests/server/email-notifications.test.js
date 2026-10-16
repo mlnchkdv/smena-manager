@@ -61,6 +61,7 @@ test('email delivery prefers a dedicated Gmail token while reusing the OAuth cli
 });
 
 const workspace = {
+  ws: { url: 'smena-team' },
   members: [
     { id: 'actor', name: 'Alex', email: 'alex@example.com', status: 'active' },
     { id: 'member', name: 'Полина', email: 'polina@example.com', status: 'active' },
@@ -87,6 +88,7 @@ test('notification email content supports Russian and English', () => {
   assert.match(english.subject, /mentioned you/u);
   assert.match(russian.subject, /упомянул/u);
   assert.match(russian.text, /Здравствуйте, Полина/u);
+  assert.match(russian.text, /https:\/\/smena-manager\.vercel\.app\/smena-team\/notifications/u);
 });
 
 test('raw Gmail messages encode Unicode and reject header injection', () => {
@@ -113,6 +115,7 @@ test('weekday digest is idempotent per member and reports task deadlines in both
   );
   assert.match(dailyDigestMessage(workspace, plan.recipients[0], plan.today, 'ru').text, /Просрочено: 1/u);
   assert.match(dailyDigestMessage(workspace, plan.recipients[0], plan.today, 'en').text, /Due today: 1/u);
+  assert.match(dailyDigestMessage(workspace, plan.recipients[0], plan.today, 'en').text, /\/smena-team\/mytasks/u);
 
   const sent = structuredClone(workspace);
   sent.notifPrefs.member.emailDigestLastDate = '2026-10-16';

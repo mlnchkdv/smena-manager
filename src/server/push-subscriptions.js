@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import webpush from 'web-push';
 import { getStorageProvider } from './storage/index.js';
 import { notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
+import { notificationPath } from '../shared/notification-links.js';
 
 let mutationQueue = Promise.resolve();
 
@@ -109,11 +110,12 @@ export function pushMessagePayload(notification, data, locale = 'en') {
   const title = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action || 'Smena Manager';
   return {
     title,
-    body: notification.snippet || task?.title || (locale === 'ru' ? 'Откройте уведомления, чтобы узнать подробности.' : 'Open notifications to see the details.'),
+    body:
+      notification.snippet || task?.title || (locale === 'ru' ? 'Откройте уведомления, чтобы узнать подробности.' : 'Open notifications to see the details.'),
     icon: '/favicon.svg',
     badge: '/favicon.svg',
     tag: `smena-notification-${notification.id}`,
-    url: '/notifications',
+    url: notificationPath(data),
   };
 }
 

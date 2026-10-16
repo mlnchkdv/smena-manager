@@ -1,5 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import { emailPreferenceForNotification, notificationPreferencesForMember } from '../shared/notification-model.js';
+import { notificationUrl } from '../shared/notification-links.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 
 const ACTIONS = {
@@ -123,7 +124,7 @@ export function emailNotificationMessage(notification, data, locale = configured
   return {
     to: member?.email || '',
     subject: `[Smena Manager] ${subject}`,
-    text: `${greeting}\n\n${subject}\n${notification.snippet || task?.title || ''}\n\n${open}: https://smena-manager.vercel.app/notifications`,
+    text: `${greeting}\n\n${subject}\n${notification.snippet || task?.title || ''}\n\n${open}: ${notificationUrl(data)}`,
   };
 }
 
@@ -182,7 +183,7 @@ export function dailyDigestMessage(data, member, today, locale = configuredLocal
   return {
     to: member.email,
     subject: locale === 'ru' ? `[Smena Manager] Сводка за ${today}` : `[Smena Manager] Daily digest for ${today}`,
-    text: `${locale === 'ru' ? `Здравствуйте, ${member.name}!` : `Hello, ${member.name}!`}\n\n${lines.join('\n')}\n\nhttps://smena-manager.vercel.app/mytasks`,
+    text: `${locale === 'ru' ? `Здравствуйте, ${member.name}!` : `Hello, ${member.name}!`}\n\n${lines.join('\n')}\n\n${notificationUrl(data, 'mytasks')}`,
   };
 }
 
