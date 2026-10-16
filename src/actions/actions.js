@@ -4,7 +4,24 @@
 import { $, $$, TODAY, addD, dOff, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
 import { seed } from '../data/seed.js';
-import { D, DEFAULT_PREFS, S, allTasks, canSee, commentsOf, logAct, me, mem, proj, save, task, tasksOf, visibleProjects } from '../core/store.js';
+import {
+  D,
+  DEFAULT_PREFS,
+  S,
+  allTasks,
+  canSee,
+  commentsOf,
+  logAct,
+  me,
+  mem,
+  myNotification,
+  myNotifications,
+  proj,
+  save,
+  task,
+  tasksOf,
+  visibleProjects,
+} from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -2210,21 +2227,24 @@ A.delFile = el => {
 
 /* inbox & notifications */
 A.selNotif = el => {
-  const n = D().notifs.find(x => x.id === el.dataset.id);
+  const n = myNotification(el.dataset.id);
+  if (!n) return;
   n.read = true;
   S.ui.inboxSel = n.id;
   save();
   render();
 };
 A.toggleRead = el => {
-  const n = D().notifs.find(x => x.id === el.dataset.id);
+  const n = myNotification(el.dataset.id);
+  if (!n) return;
   n.read = !n.read;
   save();
   render();
 };
 A.markAllRead = () => {
-  const n = D().notifs.filter(x => !x.read).length;
-  D().notifs.forEach(x => (x.read = true));
+  const notifications = myNotifications();
+  const n = notifications.filter(x => !x.read).length;
+  notifications.forEach(x => (x.read = true));
   save();
   render();
   if (n) toast("You're all caught up.");
@@ -2234,7 +2254,8 @@ A.toggleUnreadOnly = () => {
   render();
 };
 A.openNotif = el => {
-  const n = D().notifs.find(x => x.id === el.dataset.id);
+  const n = myNotification(el.dataset.id);
+  if (!n) return;
   n.read = true;
   save();
   if (n.task) A.openTask({ dataset: { id: n.task } });

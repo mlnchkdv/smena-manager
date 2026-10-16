@@ -5,6 +5,7 @@ import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
+import { migrateNotificationRecipients, notificationForMember, notificationsForMember } from '../shared/notification-model.js';
 
 export const STORE_KEY = 'smena.v1';
 export const LEGACY_STORE_KEYS = ['gr8r.v2'];
@@ -29,7 +30,7 @@ export function load() {
       const raw = localStorage.getItem(key);
       if (!raw) continue;
       const j = JSON.parse(raw);
-      if (j && j.data && j.data.tasks) return { ...j, data: migrateLegacyWorkspaceBrand(j.data) };
+      if (j && j.data && j.data.tasks) return { ...j, data: migrateNotificationRecipients(migrateLegacyWorkspaceBrand(j.data)) };
     }
   } catch {
     /* storage blocked or corrupt: start from seed data */
@@ -38,7 +39,7 @@ export function load() {
 }
 export const saved = load();
 export const S = {
-  data: saved?.data || seed(),
+  data: saved?.data || migrateNotificationRecipients(seed()),
   prefs: Object.assign({}, DEFAULT_PREFS, saved?.prefs || {}),
   views: saved?.views || {},
   ui: {
@@ -156,6 +157,8 @@ export const tasksOf = pid => D().tasks.filter(t => t.project === pid && !t.arch
 export const allTasks = () => D().tasks.filter(t => !t.archived && canSee(proj(t.project)));
 export const isOver = t => t.due && t.status !== 'done' && diffD(parse(t.due), TODAY) < 0;
 export const commentsOf = tid => D().comments.filter(c => c.task === tid);
+export const myNotifications = () => notificationsForMember(D(), D().me);
+export const myNotification = id => notificationForMember(D(), id, D().me);
 export function progressOf(pid) {
   const ts = tasksOf(pid);
   if (!ts.length) return 0;

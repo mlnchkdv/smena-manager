@@ -3,6 +3,7 @@ import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './red
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { adminFieldsChanged } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
+import { migrateNotificationRecipients } from '../shared/notification-model.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { validateWorkspaceData } from '../shared/workspace-schema.js';
 
@@ -57,7 +58,7 @@ function normalizeDatabase(value) {
   }
   const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
-  return validateWorkspaceData(migrateLegacyWorkspaceBrand(normalized));
+  return validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized)));
 }
 
 function clone(value) {
