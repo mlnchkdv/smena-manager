@@ -35,7 +35,6 @@ export function bindInitialAdministrator(database, profile) {
   if (profile.name) member.name = profile.name;
   if (profile.email) member.email = profile.email;
   if (profile.title) member.title = profile.title;
-  if (profile.team) member.team = profile.team;
   data.me = member.id;
   return data;
 }

@@ -89,3 +89,34 @@ test('all active access profiles are visible without changing the stored current
     false,
   );
 });
+
+test('configured access profiles do not overwrite saved team assignments', () => {
+  const database = {
+    me: 'm1',
+    members: [
+      {
+        id: 'm1',
+        name: 'Danila',
+        email: 'danila@example.test',
+        authProfileId: 'admin-danila',
+        team: 'creative',
+      },
+      {
+        id: 'm2',
+        name: 'Alex',
+        email: 'alex@example.test',
+        authProfileId: 'editor-alex',
+        team: '',
+      },
+    ],
+  };
+  const profiles = [
+    { id: 'admin-danila', name: 'Danila', email: 'danila@example.test', team: 'management', role: 'admin', active: true },
+    { id: 'editor-alex', name: 'Alex', email: 'alex@example.test', team: 'design', role: 'editor', active: true },
+  ];
+
+  const bound = bindAccessProfiles(database, profiles);
+
+  assert.equal(bound.members.find(member => member.id === 'm1').team, 'creative');
+  assert.equal(bound.members.find(member => member.id === 'm2').team, '');
+});
