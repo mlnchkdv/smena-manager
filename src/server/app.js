@@ -27,7 +27,7 @@ import {
   removePushSubscription,
   upsertPushSubscription,
 } from './push-subscriptions.js';
-import { deliverEmailNotifications, runDailyEmailDigest } from './email-notifications.js';
+import { deliverEmailNotifications, emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 
@@ -58,6 +58,14 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     });
     const cleanup = await runNotificationCleanup();
     response.json({ status: 'ok', reminders, digest, cleanup });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/cron/status', requireCronSecret, async (_request, response, next) => {
+  try {
+    response.json({ status: 'ok', email: await emailAuthorizationStatus(), push: publicPushConfig() });
   } catch (error) {
     next(error);
   }

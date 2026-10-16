@@ -4,8 +4,27 @@ import {
   createDailyDigestPlan,
   createRawEmail,
   dailyDigestMessage,
+  emailAuthorizationStatus,
   emailNotificationMessage,
 } from '../../src/server/email-notifications.js';
+
+test('email authorization status is disabled without credentials', async () => {
+  const previous = {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+  };
+  delete process.env.GOOGLE_CLIENT_ID;
+  delete process.env.GOOGLE_CLIENT_SECRET;
+  delete process.env.GOOGLE_REFRESH_TOKEN;
+  assert.deepEqual(await emailAuthorizationStatus(), { configured: false, authorized: false });
+  if (previous.clientId === undefined) delete process.env.GOOGLE_CLIENT_ID;
+  else process.env.GOOGLE_CLIENT_ID = previous.clientId;
+  if (previous.clientSecret === undefined) delete process.env.GOOGLE_CLIENT_SECRET;
+  else process.env.GOOGLE_CLIENT_SECRET = previous.clientSecret;
+  if (previous.refreshToken === undefined) delete process.env.GOOGLE_REFRESH_TOKEN;
+  else process.env.GOOGLE_REFRESH_TOKEN = previous.refreshToken;
+});
 
 const workspace = {
   members: [

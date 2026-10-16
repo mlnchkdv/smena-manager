@@ -35,6 +35,25 @@ export function emailDeliveryConfig() {
   return { enabled: Boolean(clientId && clientSecret && refreshToken && from), clientId, clientSecret, refreshToken, from };
 }
 
+export async function emailAuthorizationStatus() {
+  const config = emailDeliveryConfig();
+  if (!config.enabled) return { configured: false, authorized: false };
+  try {
+    const auth = new OAuth2Client(config.clientId, config.clientSecret);
+    auth.setCredentials({ refresh_token: config.refreshToken });
+    const result = await auth.getAccessToken();
+    if (!result?.token) return { configured: true, authorized: false };
+    const info = await auth.getTokenInfo(result.token);
+    const scopes = new Set(info.scopes || []);
+    return {
+      configured: true,
+      authorized: scopes.has('https://www.googleapis.com/auth/gmail.send') || scopes.has('https://mail.google.com/'),
+    };
+  } catch {
+    return { configured: true, authorized: false };
+  }
+}
+
 function encodeHeader(value) {
   return `=?UTF-8?B?${Buffer.from(String(value)).toString('base64')}?=`;
 }
