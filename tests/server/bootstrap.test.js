@@ -23,6 +23,19 @@ test('workspace payload removes server metadata and keeps application data', () 
 
 test('only a pristine server workspace is treated as empty', () => {
   assert.equal(isEmptyWorkspace({ revision: 0, members: [], projects: [], tasks: [], comments: [] }), true);
-  assert.equal(isEmptyWorkspace({ revision: 1, members: [], projects: [], tasks: [], comments: [] }), false);
+  assert.equal(
+    isEmptyWorkspace({
+      revision: 1,
+      ws: { name: '' },
+      members: [{ id: 'admin', authProfileId: 'admin' }],
+      workspaces: [],
+      projects: [],
+      tasks: [],
+      comments: [],
+    }),
+    true,
+  );
+  assert.equal(isEmptyWorkspace({ revision: 1, ws: { name: '' }, members: [{ id: 'legacy' }], projects: [], tasks: [], comments: [] }), false);
   assert.equal(isEmptyWorkspace({ revision: 0, ws: { name: 'Команда' }, projects: [], tasks: [] }), false);
+  assert.equal(isEmptyWorkspace({ revision: 1, ws: { name: '' }, members: [], projects: [{ id: 'p1' }], tasks: [] }), false);
 });

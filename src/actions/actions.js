@@ -2529,6 +2529,14 @@ A.toggleShowPw = () => {
 };
 export const EMAIL_RE = /^\S+@\S+\.\S+$/;
 export function enterApp(msg) {
+  if (S.ui.needsOnboarding) {
+    S.ui.auth = 'onboarding';
+    S.ui.onb = 1;
+    S.ui.errors = {};
+    render();
+    toast(msg);
+    return;
+  }
   S.ui.auth = null;
   S.ui.errors = {};
   go(S.prefs.home || 'home');
@@ -2769,6 +2777,7 @@ A.onbFinish = () => {
         }),
       );
   });
+  S.ui.needsOnboarding = false;
   S.ui.auth = null;
   go('project', { id: p.id, tab: S.prefs.defaultTab });
   toast(`Welcome to ${D().ws.name}`);

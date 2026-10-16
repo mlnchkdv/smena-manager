@@ -13,6 +13,7 @@ import { S, setWorkspaceBaseline } from './store.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import { configureWorkspaceSync } from './workspace-sync.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
+import { emptyWorkspace } from '../shared/empty-workspace.js';
 
 export function applyWorkspaceSnapshot(snapshot) {
   const data = workspacePayload(snapshot);
@@ -36,14 +37,18 @@ async function loadWorkspaceFor(user) {
   let snapshot = await getWorkspace();
   if (isEmptyWorkspace(snapshot)) {
     if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
-    S.data = bindInitialAdministrator(S.data, user);
-    snapshot = await putWorkspace(S.data, Number(snapshot.revision || 0));
+    const initialData = bindInitialAdministrator(emptyWorkspace(workspacePayload(snapshot)), user);
+    snapshot = { ...snapshot, ...initialData };
+    S.ui.needsOnboarding = true;
   } else if (!memberForProfile(workspacePayload(snapshot), user)) {
     const migrated = bindInitialAdministrator(workspacePayload(snapshot), user);
     snapshot =
       user.role === 'admin' && S.ui.authConfig?.workspaceWritesEnabled
         ? await putWorkspace(migrated, Number(snapshot.revision || 0))
         : { ...snapshot, ...migrated };
+    S.ui.needsOnboarding = false;
+  } else {
+    S.ui.needsOnboarding = false;
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot);

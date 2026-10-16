@@ -47,6 +47,7 @@ export const S = {
     authBusy: false,
     authConfig: null,
     authIssue: '',
+    needsOnboarding: false,
     currentUser: null,
     workspaceRevision: null,
     workspaceBaseline: null,

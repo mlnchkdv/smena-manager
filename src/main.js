@@ -144,7 +144,8 @@ window.addEventListener('smena:google-credential', event => {
   try {
     const user = await restoreSessionAndWorkspace();
     S.ui.authBusy = false;
-    S.ui.auth = user ? null : 'login';
+    S.ui.auth = user ? (S.ui.needsOnboarding ? 'onboarding' : null) : 'login';
+    if (S.ui.needsOnboarding) S.ui.onb = 1;
   } catch (error) {
     S.ui.authBusy = false;
     S.ui.auth = 'login';
