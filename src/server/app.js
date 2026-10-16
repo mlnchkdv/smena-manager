@@ -27,6 +27,7 @@ import {
   removePushSubscription,
   upsertPushSubscription,
 } from './push-subscriptions.js';
+import { deliverEmailNotifications, runDailyEmailDigest } from './email-notifications.js';
 
 export const app = express();
 
@@ -48,7 +49,12 @@ app.get('/api/health', (_request, response) => {
 
 app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
   try {
-    response.json({ status: 'ok', ...(await runDueReminderSweep()) });
+    const reminders = await runDueReminderSweep();
+    const digest = await runDailyEmailDigest().catch(error => {
+      console.error('[Email digest]', error.providerReason || error.message);
+      return { delivered: 0, error: 'delivery_failed' };
+    });
+    response.json({ status: 'ok', reminders, digest });
   } catch (error) {
     next(error);
   }
@@ -185,7 +191,10 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
-    await deliverPushNotifications(data, createdNotifications);
+    await Promise.allSettled([
+      deliverPushNotifications(data, createdNotifications),
+      deliverEmailNotifications(data, createdNotifications),
+    ]);
     response.json({ data });
   } catch (error) {
     next(error);

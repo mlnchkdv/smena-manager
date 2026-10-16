@@ -270,6 +270,7 @@ export function settingsBody(sec, title) {
         srow('Mentions', 'When someone @mentions you.', tog('email_mention', np.email_mention, 'np')) +
         srow('Assignments', 'When a task is assigned to you.', tog('email_assign', np.email_assign, 'np')) +
         srow('Comments', 'On tasks you created or are assigned.', tog('email_comment', np.email_comment, 'np')) +
+        srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('email_due', np.email_due, 'np')) +
         srow('Daily digest', 'A summary of what changed, every weekday at 8:00.', tog('email_digest', np.email_digest, 'np'))
       );
     case 'notif-push': {

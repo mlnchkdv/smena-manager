@@ -12,6 +12,11 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
   assign_status: true,
   assign_over: true,
   comment_assigned: true,
+  email_mention: false,
+  email_assign: false,
+  email_comment: false,
+  email_due: false,
+  email_digest: false,
   push_mention: false,
   push_assign: false,
   push_comment: false,
@@ -34,6 +39,17 @@ const pushPreferenceForType = Object.freeze({
 
 export function pushPreferenceForNotification(notification) {
   return pushPreferenceForType[notification?.type] || null;
+}
+
+const emailPreferenceForType = Object.freeze({
+  mention: 'email_mention',
+  assign: 'email_assign',
+  comment: 'email_comment',
+  due: 'email_due',
+});
+
+export function emailPreferenceForNotification(notification) {
+  return emailPreferenceForType[notification?.type] || null;
 }
 
 function preferenceForNotification(notification) {

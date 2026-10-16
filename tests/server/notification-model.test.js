@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   addWorkspaceNotification,
+  emailPreferenceForNotification,
   mentionNotificationTargets,
   migrateNotificationRecipients,
   mentionedMemberIds,
@@ -12,6 +13,7 @@ import {
   notificationsForMember,
   reconcileWorkspaceNotifications,
   setNotificationPreference,
+  pushPreferenceForNotification,
 } from '../../src/shared/notification-model.js';
 
 const workspace = () => ({
@@ -155,6 +157,13 @@ test('notification preferences are migrated and applied per recipient', () => {
     null,
   );
   assert.equal(setNotificationPreference(migrated, 'editor', 'unknown_preference', false), false);
+});
+
+test('delivery channels map notification types to independent preferences', () => {
+  assert.equal(pushPreferenceForNotification({ type: 'due' }), 'push_due');
+  assert.equal(emailPreferenceForNotification({ type: 'due' }), 'email_due');
+  assert.equal(emailPreferenceForNotification({ type: 'mention' }), 'email_mention');
+  assert.equal(emailPreferenceForNotification({ type: 'update' }), null);
 });
 
 test('server reconciliation rejects forged notifications and creates trusted task events', () => {

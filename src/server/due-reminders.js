@@ -1,6 +1,7 @@
 import { addWorkspaceNotification } from '../shared/notification-model.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { deliverPushNotifications } from './push-subscriptions.js';
+import { deliverEmailNotifications } from './email-notifications.js';
 
 const DEFAULT_TIME_ZONE = 'Europe/Saratov';
 
@@ -68,7 +69,7 @@ export async function runDueReminderSweep(options = {}) {
     if (!result.created.length) return { created: 0, revision: current.revision, today: result.today };
     try {
       const saved = await replaceWorkspaceDatabase(result.data, current.revision, { role: 'admin' });
-      await deliverPushNotifications(saved, result.created);
+      await Promise.allSettled([deliverPushNotifications(saved, result.created), deliverEmailNotifications(saved, result.created)]);
       return { created: result.created.length, revision: saved.revision, today: result.today };
     } catch (error) {
       if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;

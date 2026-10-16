@@ -1097,6 +1097,7 @@ const CONTROL_LABELS = {
   email_mention: 'Письма об упоминаниях',
   email_assign: 'Письма о назначениях',
   email_comment: 'Письма о комментариях',
+  email_due: 'Письма о сроках',
   email_digest: 'Ежедневная сводка по эл. почте',
   push_mention: 'Уведомления об упоминаниях',
   push_assign: 'Уведомления о назначениях',
