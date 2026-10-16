@@ -19,6 +19,7 @@ import {
   notify,
   proj,
   save,
+  setMyNotificationPreference,
   task,
   tasksOf,
   visibleProjects,
@@ -2488,7 +2489,7 @@ IN.prefToggle = el => {
   save();
 };
 IN.npToggle = el => {
-  D().notifPrefs[el.dataset.k] = el.checked;
+  if (!setMyNotificationPreference(el.dataset.k, el.checked)) return;
   save();
   toast('Notification preferences saved', { ms: 1500 });
 };

@@ -5,7 +5,14 @@ import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
-import { addWorkspaceNotification, migrateNotificationRecipients, notificationForMember, notificationsForMember } from '../shared/notification-model.js';
+import {
+  addWorkspaceNotification,
+  migrateNotificationRecipients,
+  notificationForMember,
+  notificationPreferencesForMember,
+  notificationsForMember,
+  setNotificationPreference,
+} from '../shared/notification-model.js';
 
 export const STORE_KEY = 'smena.v1';
 export const LEGACY_STORE_KEYS = ['gr8r.v2'];
@@ -119,7 +126,7 @@ export function setWorkspaceBaseline(data) {
 }
 
 function guardWorkspaceData() {
-  const result = restoreUnauthorizedChanges(S.ui.workspaceBaseline, S.data, S.ui.currentUser?.role);
+  const result = restoreUnauthorizedChanges(S.ui.workspaceBaseline, S.data, S.ui.currentUser?.role, D().me);
   if (!result.denied) return;
   S.data = result.data;
   if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') {
@@ -159,6 +166,8 @@ export const isOver = t => t.due && t.status !== 'done' && diffD(parse(t.due), T
 export const commentsOf = tid => D().comments.filter(c => c.task === tid);
 export const myNotifications = () => notificationsForMember(D(), D().me);
 export const myNotification = id => notificationForMember(D(), id, D().me);
+export const myNotificationPreferences = () => notificationPreferencesForMember(D(), D().me);
+export const setMyNotificationPreference = (key, value) => setNotificationPreference(D(), D().me, key, value);
 export const notify = (recipient, type, details = {}) =>
   addWorkspaceNotification(D(), {
     id: uid('n'),

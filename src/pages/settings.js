@@ -3,7 +3,7 @@
    ===================================================================== */
 import { dOff, esc, fmtDate } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
-import { D, S, me } from '../core/store.js';
+import { D, S, me, myNotificationPreferences } from '../core/store.js';
 import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
@@ -78,7 +78,7 @@ export function pageSettings() {
 export function settingsBody(sec, title) {
   const P = S.prefs;
   const d = D();
-  const np = d.notifPrefs;
+  const np = myNotificationPreferences();
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
   switch (sec) {
     case 'workspace':
@@ -290,6 +290,7 @@ export function settingsBody(sec, title) {
         H('Updates about tasks assigned to you.') +
         srow("When I'm assigned a task", '', tog('assign_self', np.assign_self, 'np')) +
         srow('When my task changes status', '', tog('assign_status', np.assign_status !== false, 'np')) +
+        srow('When someone comments on my task', '', tog('comment_assigned', np.comment_assigned !== false, 'np')) +
         srow('When my task is overdue', '', tog('assign_over', np.assign_over !== false, 'np'))
       );
     case 'profile': {

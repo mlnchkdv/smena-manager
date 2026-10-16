@@ -101,8 +101,15 @@ test('editors can change tasks but cannot change administrator fields', async ()
   const withTask = await replaceWorkspaceDatabase({ ...initial, tasks: [{ id: 'task-1' }] }, 0, { role: 'editor' });
   assert.equal(withTask.revision, 1);
 
+  const withPreferences = await replaceWorkspaceDatabase({ ...withTask, notifPrefs: { m1: { assign_self: false } } }, 1, {
+    role: 'editor',
+    actorMemberId: 'm1',
+  });
+  assert.equal(withPreferences.revision, 2);
+  assert.equal(withPreferences.notifPrefs.m1.assign_self, false);
+
   await assert.rejects(
-    () => replaceWorkspaceDatabase({ ...withTask, members: [{ id: 'member-1' }] }, 1, { role: 'editor' }),
+    () => replaceWorkspaceDatabase({ ...withPreferences, members: [{ id: 'member-1' }] }, 2, { role: 'editor', actorMemberId: 'm1' }),
     error => {
       assert.ok(error instanceof WorkspacePermissionError);
       assert.deepEqual(error.fields, ['members']);

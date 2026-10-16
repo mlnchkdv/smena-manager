@@ -1,7 +1,7 @@
 import { getStorageProvider } from './storage/index.js';
 import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
-import { adminFieldsChanged } from '../shared/workspace-permissions.js';
+import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { migrateNotificationRecipients } from '../shared/notification-model.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
@@ -164,17 +164,18 @@ export class WorkspaceSizeError extends Error {
   }
 }
 
-async function mutateInsideLock(mutator, expectedRevision, role) {
+async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   const current = await initWorkspaceStore();
   if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
-  const nextData = await mutator(clone(current));
+  let nextData = await mutator(clone(current));
   if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
     throw new TypeError('Workspace mutation must return a JSON object.');
   }
   if (current.me) nextData.me = current.me;
-  if (role === 'editor') {
-    const fields = adminFieldsChanged(current, nextData);
-    if (fields.length) throw new WorkspacePermissionError(fields);
+  if (options.role === 'editor') {
+    const result = restoreUnauthorizedChanges(current, nextData, options.role, options.actorMemberId);
+    if (result.denied) throw new WorkspacePermissionError(result.fields);
+    nextData = result.data;
   }
   const now = new Date().toISOString();
   const next = normalizeDatabase({
@@ -214,7 +215,7 @@ export async function mutateWorkspaceDatabase(mutator, expectedRevision, options
     if (hasSharedRedis()) {
       return withRedisLock('smena:workspace:write:v1', async () => {
         await reloadWorkspaceStore();
-        return mutateInsideLock(mutator, expectedRevision, options.role || 'admin');
+        return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' });
       });
     }
     if (!directDriveWritesEnabled()) {
@@ -222,13 +223,13 @@ export async function mutateWorkspaceDatabase(mutator, expectedRevision, options
     }
     const result = localWriteQueue.then(async () => {
       await reloadWorkspaceStore();
-      return mutateInsideLock(mutator, expectedRevision, options.role || 'admin');
+      return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' });
     });
     localWriteQueue = result.catch(() => undefined);
     return result;
   }
 
-  const result = localWriteQueue.then(() => mutateInsideLock(mutator, expectedRevision, options.role || 'admin'));
+  const result = localWriteQueue.then(() => mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' }));
   localWriteQueue = result.catch(() => undefined);
   return result;
 }

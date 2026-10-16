@@ -23,7 +23,7 @@ export function pageNotifications() {
         .map(([k, n]) => `<button class="${f === k ? 'on' : ''}" data-a="set" data-k="notifFilter" data-v="${k}">${n}</button>`)
         .join('')}</div>
       <button class="btn btn-secondary" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>
-      <button class="ibtn" data-a="go" data-r="settings" data-sec="notif-email" data-tip="Notification preferences" aria-label="Notification preferences">${ic('settings-2', 16)}</button></div></div>
+      <button class="ibtn" data-a="go" data-r="settings" data-sec="notif-mentions" data-tip="Notification preferences" aria-label="Notification preferences">${ic('settings-2', 16)}</button></div></div>
     ${
       ns.length
         ? Object.entries(buckets)

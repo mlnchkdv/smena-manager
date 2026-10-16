@@ -5,7 +5,9 @@ import {
   migrateNotificationRecipients,
   mentionedMemberIds,
   notificationForMember,
+  notificationPreferencesForMember,
   notificationsForMember,
+  setNotificationPreference,
 } from '../../src/shared/notification-model.js';
 
 const workspace = () => ({
@@ -71,4 +73,26 @@ test('mentions resolve full member names without partial matches', () => {
 
   assert.deepEqual(mentionedMemberIds('Проверь, пожалуйста, @Alex Alyoshin. Затем @Polina Grischenko!', members), ['alex', 'polina']);
   assert.deepEqual(mentionedMemberIds('Это не упоминание @Alex', members), []);
+});
+
+test('notification preferences are migrated and applied per recipient', () => {
+  const source = workspace();
+  source.notifPrefs = { assign_self: false, mention_all: true };
+  const migrated = migrateNotificationRecipients(source);
+
+  assert.equal(notificationPreferencesForMember(migrated, 'owner').assign_self, false);
+  assert.equal(notificationPreferencesForMember(migrated, 'editor').assign_self, true);
+  assert.equal(
+    addWorkspaceNotification(migrated, {
+      id: 'disabled-assignment',
+      recipient: 'owner',
+      by: 'editor',
+      type: 'assign',
+    }),
+    null,
+  );
+
+  assert.equal(setNotificationPreference(migrated, 'editor', 'mention_all', false), true);
+  assert.equal(notificationPreferencesForMember(migrated, 'editor').mention_all, false);
+  assert.equal(setNotificationPreference(migrated, 'editor', 'unknown_preference', false), false);
 });

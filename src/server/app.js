@@ -14,7 +14,7 @@ import {
 import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
-import { bindAccessProfiles } from '../shared/member-identity.js';
+import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
@@ -122,11 +122,13 @@ app.get('/api/workspace', async (_request, response, next) => {
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     let nextData = request.body?.data;
+    let actorMemberId = null;
     if (request.user.role === 'editor') {
       const stored = await getWorkspaceDatabase();
-      nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role).data;
+      actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
+      nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
     }
-    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role });
+    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
     response.json({ data });
   } catch (error) {
     next(error);
