@@ -84,6 +84,23 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   }
 
   await editor.setViewportSize({ width: 390, height: 844 });
+  await editor.goto('/e2e-team/mytasks');
+  await editor.getByText(taskTitle, { exact: true }).first().click();
+  const mobileAssignee = editor.locator('.drawer [data-pop="assignee"]');
+  await mobileAssignee.click();
+  const assigneeMenu = editor.locator('.pop[data-pop-type="assignee"]');
+  await expect(assigneeMenu).toBeVisible();
+  const menuBox = await assigneeMenu.boundingBox();
+  expect(menuBox?.x).toBeGreaterThanOrEqual(8);
+  expect((menuBox?.x || 0) + (menuBox?.width || 0)).toBeLessThanOrEqual(382);
+  await assigneeMenu.getByText('Unassigned', { exact: true }).click();
+  await waitForSaved(editor);
+  await expect(mobileAssignee).toContainText('Unassigned');
+  await mobileAssignee.click();
+  await assigneeMenu.getByText('E2E Редактор (you)', { exact: true }).click();
+  await waitForSaved(editor);
+  await expect(mobileAssignee).toContainText('E2E Редактор');
+
   for (const [route, heading] of [
     ['inbox', 'Inbox'],
     ['mytasks', 'My Tasks'],

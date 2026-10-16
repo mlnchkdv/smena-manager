@@ -36,7 +36,8 @@ export function openPop(el, extra = {}) {
   render();
   setTimeout(() => {
     const q = $('.pop input[data-pop-q]');
-    if (q) {
+    const touchLayout = matchMedia('(pointer: coarse)').matches || innerWidth <= 640;
+    if (q && !touchLayout) {
       q.focus();
       return;
     }
@@ -48,12 +49,26 @@ export function placePop() {
   const el = $('.pop.floating');
   const p = S.ui.pop;
   if (!el || !p) return;
+  const vv = window.visualViewport;
+  const viewport = {
+    left: vv?.offsetLeft || 0,
+    top: vv?.offsetTop || 0,
+    width: vv?.width || innerWidth,
+    height: vv?.height || innerHeight,
+  };
+  el.style.maxHeight = `${Math.max(120, Math.min(420, viewport.height - 16))}px`;
   const w = el.offsetWidth,
     h = el.offsetHeight;
   let x = p.x,
     y = p.y;
-  if (x + w > innerWidth - 8) x = Math.max(8, (p.right ? p.x : p.x + (p.w || 0)) - w);
-  if (y + h > innerHeight - 8) y = Math.max(8, (p.top != null ? p.top - 4 : p.y) - h);
+  const minX = viewport.left + 8,
+    maxX = viewport.left + viewport.width - 8,
+    minY = viewport.top + 8,
+    maxY = viewport.top + viewport.height - 8;
+  if (x + w > maxX) x = Math.max(minX, (p.right ? p.x : p.x + (p.w || 0)) - w);
+  if (y + h > maxY) y = Math.max(minY, (p.top != null ? p.top - 4 : p.y) - h);
+  x = Math.max(minX, Math.min(x, maxX - w));
+  y = Math.max(minY, Math.min(y, maxY - h));
   el.style.left = x + 'px';
   el.style.top = y + 'px';
 }
@@ -369,7 +384,7 @@ export function popHtml(p) {
       break;
   }
   if (!inner) return '';
-  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root>${inner}</div>`;
+  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
 }
 export function filterBuilder(p) {
   const v = viewOf(p.key);

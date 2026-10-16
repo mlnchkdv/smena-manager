@@ -4,6 +4,7 @@
 import { $$ } from '../core/utils.js';
 import { S } from '../core/store.js';
 import { render } from '../shell/render.js';
+import { placePop } from '../overlays/popovers.js';
 import { A, BLUR, DBL, IN } from './actions.js';
 
 document.addEventListener(
@@ -82,12 +83,12 @@ document.addEventListener('mouseover', e => {
   $$('.pi.hl').forEach(x => x.classList.remove('hl'));
   el.classList.add('hl');
 });
-addEventListener('resize', () => {
-  if (S.ui.pop) {
-    S.ui.pop = null;
-    render();
-  }
-});
+const repositionPop = () => {
+  if (S.ui.pop) requestAnimationFrame(placePop);
+};
+addEventListener('resize', repositionPop);
+window.visualViewport?.addEventListener('resize', repositionPop);
+window.visualViewport?.addEventListener('scroll', repositionPop);
 try {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (S.prefs.theme === 'system') render();
