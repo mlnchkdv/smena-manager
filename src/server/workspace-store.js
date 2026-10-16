@@ -273,6 +273,8 @@ export async function getWorkspaceStatus() {
     schemaVersion: data.schemaVersion,
     revision: data.revision,
     updatedAt: data.updatedAt,
+    workspaceBytes: workspaceTransportBytes(data, data.revision),
+    workspaceMaxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
   };
 }
 

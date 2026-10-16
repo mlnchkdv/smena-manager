@@ -9,6 +9,7 @@ import { FIELDS, viewOf } from '../shell/view-engine.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../views/calendar.js';
 import { ctxMenu } from './context-menu.js';
+import { locale } from '../core/i18n.js';
 
 export function openPop(el, extra = {}) {
   const r = el.getBoundingClientRect();
@@ -105,12 +106,90 @@ export function miniCal(p, val) {
       })
       .join('')}</div></div>`;
 }
+
+function formatSystemBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return '—';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let amount = bytes;
+  let unit = 0;
+  while (amount >= 1024 && unit < units.length - 1) {
+    amount /= 1024;
+    unit += 1;
+  }
+  const digits = amount >= 100 || unit === 0 ? 0 : amount >= 10 ? 1 : 2;
+  return `${new Intl.NumberFormat(locale(), { maximumFractionDigits: digits }).format(amount)} ${units[unit]}`;
+}
+
+function systemStatusHtml() {
+  const status = S.ui.systemStatus;
+  const storage = status?.storage;
+  const state = S.ui.syncConflict
+    ? 'conflict'
+    : S.ui.offline
+      ? 'offline'
+      : S.ui.syncUnavailable
+        ? 'unavailable'
+        : S.ui.syncTooLarge
+          ? 'too_large'
+          : S.ui.syncInvalid
+            ? 'invalid'
+            : S.ui.systemSyncing
+              ? 'syncing'
+              : S.ui.syncState || 'saved';
+  const stateLabel = {
+    syncing: 'Synchronization in progress',
+    saved: 'All changes are synchronized',
+    offline: 'No internet connection',
+    unavailable: 'Synchronization service is unavailable',
+    conflict: 'Changes need your attention',
+    too_large: 'Workspace synchronization limit exceeded',
+    invalid: 'Workspace data could not be synchronized',
+  }[state];
+  const provider = storage?.provider === 'google-drive' ? 'Google Drive' : storage?.provider === 'local' ? 'Local storage' : 'Checking…';
+  const used = storage?.usageBytes ?? status?.workspaceBytes;
+  const limit = storage?.quotaBytes ?? status?.workspaceMaxBytes;
+  const usage = used == null ? '—' : limit ? `${formatSystemBytes(used)} / ${formatSystemBytes(limit)}` : formatSystemBytes(used);
+  const lastSyncValue = S.ui.lastSyncedAt || storage?.lastSyncAt || status?.updatedAt;
+  const lastSync = lastSyncValue ? new Date(lastSyncValue).toLocaleString(locale()) : 'Never';
+  const description =
+    storage?.provider === 'google-drive'
+      ? 'Connected to Google Drive. Workspace data and files are synchronized with the configured drive.'
+      : storage?.provider === 'local'
+        ? 'Local storage is active. Data is stored on the application server.'
+        : 'Checking the storage connection and synchronization status.';
+  const loading = S.ui.systemStatusLoading && !status;
+
+  return `<section class="system-status" aria-labelledby="system-status-title">
+    <div class="system-status-head">
+      <div>
+        <h2 id="system-status-title">System status</h2>
+        <p>Connection and data integrity</p>
+        <div class="system-current" data-state="${state}"><span class="system-health-dot" aria-hidden="true"></span><span>${stateLabel}</span></div>
+      </div>
+    </div>
+    <dl class="system-status-grid" aria-busy="${loading}">
+      <div><dt>Team updates</dt><dd>Every 15 seconds</dd></div>
+      <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
+      <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
+      <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
+    </dl>
+    ${S.ui.systemStatusError ? `<div class="system-status-error" role="alert">${ic('triangle-alert', 15)}<span>${esc(S.ui.systemStatusError)}</span></div>` : `<p class="system-status-note">${description}</p>`}
+    <div class="system-status-actions"><button class="btn btn-primary system-sync-button${S.ui.systemSyncing ? ' is-loading' : ''}" data-a="syncSystemNow" ${S.ui.systemSyncing ? 'disabled' : ''}>${ic('refresh-cw', 14)}<span>Synchronize now</span></button></div>
+  </section>`;
+}
+
 export function popHtml(p) {
   let inner = '',
     cls = '',
     style = '';
   const t = ['status', 'priority', 'assignee', 'labels', 'date', 'project', 'deps', 'recur', 'estimate'].includes(p.type) ? tgt(p) : null;
   switch (p.type) {
+    case 'systemStatus':
+      inner = systemStatusHtml();
+      cls = 'system-status-pop';
+      style = 'width:352px';
+      break;
     case 'create':
       inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newTeam">${ic('users', 15)}Team</button><div class="msep"></div><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}`;
       style = 'width:220px';
@@ -384,7 +463,9 @@ export function popHtml(p) {
       break;
   }
   if (!inner) return '';
-  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
+  const role = p.type === 'systemStatus' ? 'dialog' : 'menu';
+  const label = p.type === 'systemStatus' ? ' aria-label="System status"' : '';
+  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="${role}"${label} style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
 }
 export function filterBuilder(p) {
   const v = viewOf(p.key);

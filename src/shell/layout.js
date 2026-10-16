@@ -22,6 +22,7 @@ import { pageProject } from '../pages/project.js';
 import { pageWsCalendar } from '../views/calendar.js';
 import { pageWsTimeline } from '../views/timeline.js';
 import { pageArchive } from '../features/archive.js';
+import { isRussian, locale, t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -237,21 +238,23 @@ export function renderTopbar() {
             ? 'invalid'
             : S.ui.syncState || 'saved';
   const sync = {
-    syncing: ['loader', 'Сохранение…'],
-    saved: ['cloud-check', 'Сохранено'],
-    offline: ['wifi-off', 'Нет сети'],
-    unavailable: ['cloud-alert', 'Сервис недоступен'],
-    conflict: ['git-merge', 'Конфликт'],
-    too_large: ['database-zap', 'Превышен лимит'],
-    invalid: ['triangle-alert', 'Ошибка данных'],
+    syncing: ['loader', 'Saving…'],
+    saved: ['cloud-check', 'Saved'],
+    offline: ['wifi-off', 'Offline'],
+    unavailable: ['cloud-alert', 'Service unavailable'],
+    conflict: ['git-merge', 'Conflict'],
+    too_large: ['database-zap', 'Limit exceeded'],
+    invalid: ['triangle-alert', 'Data error'],
   }[state];
-  const syncTitle = state === 'saved' && S.ui.lastSyncedAt ? `Последняя синхронизация: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString('ru-RU')}` : sync[1];
+  const syncTitle =
+    state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString(locale())}` : tr(sync[1]);
+  const statusOpen = S.ui.pop?.type === 'systemStatus';
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" style="display:none" id="mnav-btn">${ic('menu', 17)}</button>
     <style>@media(max-width:900px){#mnav-btn{display:inline-flex!important}}</style>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
-    <span class="sync-indicator" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}">${ic(sync[0], 13)}<span class="sync-label">${sync[1]}</span></span>
+    <button class="sync-indicator system-trigger" id="sync-indicator" data-state="${state}" data-a="pop" data-pop="systemStatus" title="${esc(syncTitle)}" aria-label="System status" aria-haspopup="dialog" aria-expanded="${statusOpen}"><span class="system-state-dot" aria-hidden="true"></span><span class="system-trigger-label">${isRussian() ? 'Система' : 'System'}</span>${ic('chevron-down', 12, 'system-trigger-chevron')}<span class="sync-label sr">${sync[1]}</span></button>
     <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>

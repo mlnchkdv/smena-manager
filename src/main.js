@@ -96,18 +96,21 @@ function updateSyncIndicator(status) {
   const indicator = document.getElementById('sync-indicator');
   if (!indicator) return;
   const labels = {
-    syncing: 'Сохранение…',
-    saved: 'Сохранено',
-    offline: 'Нет сети',
-    unavailable: 'Сервис недоступен',
-    conflict: 'Конфликт',
-    too_large: 'Превышен лимит',
-    invalid: 'Ошибка данных',
+    syncing: 'Saving…',
+    saved: 'Saved',
+    offline: 'Offline',
+    unavailable: 'Service unavailable',
+    conflict: 'Conflict',
+    too_large: 'Limit exceeded',
+    invalid: 'Data error',
   };
   indicator.dataset.state = status;
   const label = indicator.querySelector('.sync-label');
-  if (label) label.textContent = labels[status] || labels.saved;
-  if (status === 'saved') indicator.title = `Последняя синхронизация: ${new Date(S.ui.lastSyncedAt || Date.now()).toLocaleTimeString('ru-RU')}`;
+  if (label) label.textContent = tr(labels[status] || labels.saved);
+  indicator.title =
+    status === 'saved'
+      ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt || Date.now()).toLocaleTimeString(S.prefs.lang === 'Русский' ? 'ru-RU' : S.prefs.lang === 'English (UK)' ? 'en-GB' : 'en-US')}`
+      : tr(labels[status] || labels.saved);
 }
 
 async function handleWorkspaceConflict() {

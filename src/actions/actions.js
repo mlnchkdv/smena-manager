@@ -39,6 +39,7 @@ import {
   createWorkspaceBackup,
   deleteAllWorkspaces,
   downloadWorkspaceFile,
+  getStorageStatus,
   getWorkspaceBackups,
   restoreWorkspaceBackup,
   uploadWorkspaceFile,
@@ -59,6 +60,19 @@ export const A = {},
   KEY = {},
   DBL = {},
   BLUR = {};
+
+async function refreshSystemStatus() {
+  S.ui.systemStatusLoading = true;
+  S.ui.systemStatusError = '';
+  try {
+    S.ui.systemStatus = await getStorageStatus();
+  } catch (error) {
+    S.ui.systemStatusError = error.message || 'Unable to load system status.';
+  } finally {
+    S.ui.systemStatusLoading = false;
+    if (S.ui.pop?.type === 'systemStatus') render();
+  }
+}
 
 /* ---------- task mutations ---------- */
 export function nextKey(p) {
@@ -753,6 +767,32 @@ A.pop = el => {
     return;
   }
   openPop(el);
+  if (d.pop === 'systemStatus') void refreshSystemStatus();
+};
+
+A.syncSystemNow = async () => {
+  if (S.ui.systemSyncing) return;
+  S.ui.systemSyncing = true;
+  render();
+  try {
+    await queueWorkspaceSync(D());
+    await retryWorkspaceSync();
+    const result = await refreshWorkspaceFromServer();
+    if (result.status === 'current' || result.status === 'updated') {
+      S.ui.offline = false;
+      S.ui.syncUnavailable = false;
+      S.ui.syncState = 'saved';
+      S.ui.lastSyncedAt = Date.now();
+    }
+    await refreshSystemStatus();
+    toast(result.status === 'updated' ? 'Team updates loaded.' : 'Synchronization complete.', { kind: 'ok' });
+  } catch (error) {
+    S.ui.systemStatusError = error.message || 'Synchronization failed.';
+    toast(S.ui.systemStatusError, { kind: 'err', ms: 8000 });
+  } finally {
+    S.ui.systemSyncing = false;
+    if (S.ui.pop?.type === 'systemStatus') render();
+  }
 };
 A.ctxBtn = el => {
   const r = el.getBoundingClientRect();

@@ -3,6 +3,38 @@ import { Readable } from 'node:stream';
 import test from 'node:test';
 import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
 
+test('Google Drive status includes account storage quota when available', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.uploadsFolderId = 'uploads-folder';
+  provider.databaseFileId = 'database-file';
+  provider.client = {
+    about: {
+      get: async options => {
+        assert.equal(options.fields, 'storageQuota');
+        return {
+          data: {
+            storageQuota: {
+              usage: '139100000',
+              limit: '5000000000000',
+              usageInDrive: '120000000',
+              usageInDriveTrash: '1000000',
+            },
+          },
+        };
+      },
+    },
+  };
+
+  const status = await provider.getStatus();
+  assert.equal(status.databaseReady, true);
+  assert.equal(status.usageBytes, 139100000);
+  assert.equal(status.quotaBytes, 5000000000000);
+  assert.equal(status.driveUsageBytes, 120000000);
+  assert.equal(status.trashUsageBytes, 1000000);
+});
+
 test('Google Drive storage keeps uploads separate and supports ranged streams', async () => {
   const calls = [];
   const provider = new GoogleDriveStorageProvider();

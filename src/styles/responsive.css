@@ -316,6 +316,16 @@
   .palette {
     top: 8px;
   }
+  .system-status {
+    padding: 0;
+  }
+  .system-status-grid {
+    padding-inline: 10px;
+  }
+  .system-status-grid > div {
+    grid-template-columns: minmax(0, 1fr) minmax(105px, auto);
+    gap: 10px;
+  }
 }
 @media (max-width: 360px) {
   .set-nav {

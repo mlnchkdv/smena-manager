@@ -477,6 +477,17 @@ export class GoogleDriveStorageProvider {
 
   async getStatus() {
     await this.init();
+    let storageQuota = null;
+    try {
+      const response = await this.client.about.get({ fields: 'storageQuota' });
+      storageQuota = response.data?.storageQuota || null;
+    } catch {
+      // Shared drives and restricted service accounts may not expose account quota.
+    }
+    const numericQuota = value => {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= 0 ? number : null;
+    };
     return {
       provider: this.name,
       connected: true,
@@ -486,6 +497,10 @@ export class GoogleDriveStorageProvider {
       uploadsFolderId: this.uploadsFolderId,
       uploadsReady: Boolean(this.uploadsFolderId),
       lastSyncAt: this.lastSyncAt,
+      usageBytes: numericQuota(storageQuota?.usage),
+      quotaBytes: numericQuota(storageQuota?.limit),
+      driveUsageBytes: numericQuota(storageQuota?.usageInDrive),
+      trashUsageBytes: numericQuota(storageQuota?.usageInDriveTrash),
     };
   }
 }

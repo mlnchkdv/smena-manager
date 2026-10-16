@@ -99,6 +99,10 @@ export async function getWorkspaceRevision() {
   return request('/api/workspace/revision', {}, true);
 }
 
+export async function getStorageStatus() {
+  return request('/api/storage/status', {}, true);
+}
+
 export async function getPushConfig() {
   return request('/api/push/config', {}, true);
 }
