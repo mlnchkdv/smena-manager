@@ -8,6 +8,7 @@ import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { searchAll } from '../pages/search.js';
+import { t as tr } from '../core/i18n.js';
 import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
 
@@ -195,7 +196,7 @@ export function paletteItems() {
     items: [
       {
         icon: 'search',
-        name: `View all results for “${q}”`,
+        name: tr(`View all results for “${q}”`),
         run: () => {
           S.ui.searchQ = q;
           S.ui.searchCat = sc;

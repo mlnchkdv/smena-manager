@@ -39,6 +39,10 @@ const RU = {
   'Knowledge base': 'База знаний',
   Settings: 'Настройки',
   Archive: 'Архив',
+  Image: 'Изображение',
+  Spreadsheet: 'Таблица',
+  Document: 'Документ',
+  Code: 'Код',
   More: 'Ещё',
   New: 'Создать',
   Workspace: 'Рабочее пространство',
@@ -510,6 +514,7 @@ const RU = {
   Task: 'Задача',
   'Task name': 'Название задачи',
   'Add a description… (optional)': 'Добавьте описание… (необязательно)',
+  'Add a description…': 'Добавьте описание…',
   'Add a subtask and press Enter': 'Добавьте подзадачу и нажмите Enter',
   Attachments: 'Вложения',
   'Attach files': 'Прикрепить файлы',
@@ -552,7 +557,8 @@ const RU = {
   'Search files': 'Искать файлы',
   'All types': 'Все типы',
   'Filter by type': 'Фильтр по типу',
-  'Uploaded by': 'Загрузил',
+  'Uploaded by': 'Загрузил(а):',
+  'Attached to': 'Прикреплён к',
   Size: 'Размер',
   'grid view': 'Плитка',
   'list view': 'Список',
@@ -609,6 +615,7 @@ const RU = {
   'Archived work is hidden everywhere else. Restore it any time, or delete it for good.':
     'Архивные материалы скрыты в других разделах. Их можно восстановить или удалить навсегда.',
   'No unread notifications in this category.': 'В этой категории нет непрочитанных уведомлений.',
+  "No unread notifications. We'll let you know when something needs you.": 'Непрочитанных уведомлений нет. Мы сообщим, когда потребуется ваше внимание.',
   'New mentions, assignments, and comments will show up here.': 'Здесь появятся новые упоминания, назначения и комментарии.',
   'Mark as read': 'Отметить прочитанным',
   'Mark as unread': 'Отметить непрочитанным',
@@ -1300,7 +1307,7 @@ export function activityExtra(value, verb) {
 
 export const inProject = name => (isRussian() ? `в проекте «${name}»` : `in ${name}`);
 
-const ATTRIBUTES = ['aria-label', 'title', 'placeholder', 'data-tip', 'data-msg'];
+const ATTRIBUTES = ['aria-label', 'title', 'placeholder', 'data-tip', 'data-msg', 'data-ph'];
 
 /** Translate user-interface text in a rendered subtree without changing data values. */
 export function translateElement(root) {
