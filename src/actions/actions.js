@@ -14,8 +14,17 @@ import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
 import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace, refreshWorkspaceFromServer } from '../core/bootstrap.js';
-import { clearSession, deleteAllWorkspaces, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
-import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
+import {
+  clearSession,
+  createWorkspaceBackup,
+  deleteAllWorkspaces,
+  deleteWorkspaceFile,
+  downloadWorkspaceFile,
+  getWorkspaceBackups,
+  restoreWorkspaceBackup,
+  uploadWorkspaceFile,
+} from '../core/api.js';
+import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
@@ -243,6 +252,56 @@ A.exportPortableWorkspace = () => {
   URL.revokeObjectURL(href);
   S.ui.migrationStatus = `Exported ${payload.notes.length} notes and ${payload.links.length} bookmarks.`;
   render();
+};
+A.loadWorkspaceBackups = async () => {
+  if (S.ui.currentUser?.role !== 'admin' || S.ui.backupsLoading) return;
+  S.ui.backupsLoading = true;
+  render();
+  try {
+    S.ui.backups = await getWorkspaceBackups();
+  } catch (error) {
+    toast(error.message || 'Не удалось загрузить резервные копии.', { kind: 'err' });
+  } finally {
+    S.ui.backupsLoading = false;
+    render();
+  }
+};
+A.createWorkspaceBackup = async el => {
+  if (S.ui.currentUser?.role !== 'admin') return;
+  el?.classList?.add('is-loading');
+  try {
+    await queueWorkspaceSync(S.data);
+    await createWorkspaceBackup('Ручная копия');
+    S.ui.backups = await getWorkspaceBackups();
+    render();
+    toast('Резервная копия сохранена в Google Drive.');
+  } catch (error) {
+    render();
+    toast(error.message || 'Не удалось создать резервную копию.', { kind: 'err', ms: 8000 });
+  }
+};
+A.restoreWorkspaceBackup = el => {
+  const id = el.dataset.id;
+  const backup = (S.ui.backups || []).find(item => item.id === id);
+  if (!backup || S.ui.currentUser?.role !== 'admin') return;
+  confirmDlg({
+    title: 'Восстановить резервную копию?',
+    body: `Текущее состояние будет сначала сохранено отдельной копией, затем данные будут возвращены к версии от <b>${new Date(backup.createdAt).toLocaleString('ru-RU')}</b>.`,
+    ok: 'Восстановить',
+    icon: 'history',
+    run: async () => {
+      try {
+        const snapshot = await restoreWorkspaceBackup(id, S.ui.workspaceRevision);
+        applyWorkspaceSnapshot(snapshot);
+        S.ui.modals = [];
+        render();
+        toast('Рабочее пространство восстановлено из резервной копии.');
+        void A.loadWorkspaceBackups();
+      } catch (error) {
+        toast(error.message || 'Не удалось восстановить резервную копию.', { kind: 'err', ms: 8000 });
+      }
+    },
+  });
 };
 IN.importPortableWorkspace = async el => {
   const file = el.files?.[0];

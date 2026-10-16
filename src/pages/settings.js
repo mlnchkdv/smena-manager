@@ -4,7 +4,7 @@
 import { dOff, esc, fmtDate } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me } from '../core/store.js';
-import { av, pIcon } from '../ui/helpers.js';
+import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
@@ -209,8 +209,11 @@ export function settingsBody(sec, title) {
       );
     case 'data-transfer':
       return (
-        H('Move knowledge and bookmarks between KMS Brain and Smena Manager without a separate database.') +
-        `<div class="sblock" style="margin-top:0"><h2>Portable workspace data</h2><p class="lead" style="font-size:13px;margin-bottom:16px">The JSON file includes knowledge notes, their folders, bookmarks, and bookmark folders. Existing items are kept; duplicate titles and URLs are skipped during import.</p>
+        H('Резервные копии всего пространства и перенос данных KMS Brain.') +
+        `<div class="sblock" style="margin-top:0"><div class="row" style="gap:8px;flex-wrap:wrap"><div class="grow"><h2 style="margin-bottom:4px">Резервные копии</h2><p class="lead" style="font-size:13px;margin:0">Копии хранятся отдельно от рабочей базы в Google Drive. Перед восстановлением текущая версия сохраняется автоматически.</p></div><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Обновить</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Создать копию</button></div>
+        ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Загрузка…</div>` : Array.isArray(S.ui.backups) ? S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backup.label || 'Резервная копия'), `${new Date(backup.createdAt).toLocaleString('ru-RU')} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Восстановить</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">Резервных копий пока нет.</p>' : '<p class="faint" style="padding:16px 0 0">Нажмите «Обновить», чтобы показать доступные копии.</p>'}
+        </div>
+        <div class="sblock"><h2>Перенос данных KMS Brain</h2><p class="lead" style="font-size:13px;margin-bottom:16px">JSON-файл включает заметки базы знаний, папки и закладки. Существующие элементы сохраняются, дубликаты пропускаются.</p>
         <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-secondary" data-a="exportPortableWorkspace">${ic('download', 14)}Export JSON</button><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Import JSON<input type="file" accept="application/json,.json" hidden data-in="importPortableWorkspace"></label></div>
         ${S.ui.migrationStatus ? `<div class="callout info" role="status" style="margin-top:16px">${ic('info', 15)}<span>${esc(S.ui.migrationStatus)}</span></div>` : ''}
         </div>

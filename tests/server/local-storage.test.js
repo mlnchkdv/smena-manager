@@ -48,6 +48,23 @@ test('local storage saves and restores the workspace database atomically', async
   assert.equal((await provider.getStatus()).provider, 'local');
 });
 
+test('local storage creates and loads named database backups', async t => {
+  const testRoot = path.join(process.cwd(), '.data', 'tests');
+  await fs.promises.mkdir(testRoot, { recursive: true });
+  const directory = await fs.promises.mkdtemp(path.join(testRoot, 'local-backups-'));
+  t.after(() => fs.promises.rm(directory, { recursive: true, force: true }));
+  const provider = new LocalStorageProvider(path.join(directory, 'workspace.json'));
+  const database = { schemaVersion: 1, revision: 7, tasks: [{ id: 't1' }] };
+
+  const created = await provider.createDatabaseBackup(database, 'Перед импортом');
+  const backups = await provider.listDatabaseBackups();
+
+  assert.equal(backups[0].id, created.id);
+  assert.equal(backups[0].label, 'Перед импортом');
+  assert.deepEqual(await provider.loadDatabaseBackup(created.id), database);
+  await assert.rejects(() => provider.loadDatabaseBackup('../escape.json'), /Invalid backup ID/);
+});
+
 test('local storage uploads, streams byte ranges, and deletes files', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');
   await fs.promises.mkdir(testRoot, { recursive: true });

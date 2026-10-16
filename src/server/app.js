@@ -1,7 +1,15 @@
 import express from 'express';
 import { getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
-import { getWorkspaceDatabase, getWorkspaceStatus, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import {
+  createWorkspaceBackup,
+  getWorkspaceDatabase,
+  getWorkspaceStatus,
+  listWorkspaceBackups,
+  replaceWorkspaceDatabase,
+  restoreWorkspaceBackup,
+  RevisionConflictError,
+} from './workspace-store.js';
 import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
@@ -43,6 +51,30 @@ app.get('/api/storage/status', async (_request, response, next) => {
   }
 });
 
+app.get('/api/backups', requireRole('admin'), async (_request, response, next) => {
+  try {
+    response.json({ backups: await listWorkspaceBackups() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/backups', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.status(201).json({ backup: await createWorkspaceBackup(request.body?.label) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/backups/:id/restore', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.json({ data: await restoreWorkspaceBackup(request.params.id, request.body?.revision) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/workspace', async (_request, response, next) => {
   try {
     const database = await getWorkspaceDatabase();
@@ -68,6 +100,7 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
+    await createWorkspaceBackup('Перед удалением рабочего пространства');
     const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(await getWorkspaceDatabase(), getAccessProfiles())), request.body?.revision, {
       role: request.user.role,
     });

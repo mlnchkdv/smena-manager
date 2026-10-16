@@ -110,6 +110,27 @@ export async function getWorkspaceDatabase() {
   return clone(database);
 }
 
+export async function createWorkspaceBackup(label = '') {
+  const current = await getWorkspaceDatabase();
+  const storage = getStorageProvider();
+  if (typeof storage.createDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
+  return storage.createDatabaseBackup(current, label);
+}
+
+export async function listWorkspaceBackups() {
+  const storage = getStorageProvider();
+  if (typeof storage.listDatabaseBackups !== 'function') return [];
+  return storage.listDatabaseBackups();
+}
+
+export async function restoreWorkspaceBackup(id, expectedRevision) {
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
+  const backup = await storage.loadDatabaseBackup(id);
+  await createWorkspaceBackup('Перед восстановлением');
+  return replaceWorkspaceDatabase(backup, expectedRevision, { role: 'admin' });
+}
+
 export class RevisionConflictError extends Error {
   constructor(currentRevision) {
     super('The workspace changed after it was loaded. Refresh and retry.');

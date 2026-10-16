@@ -63,3 +63,50 @@ test('Google Drive database updates use the ETag loaded with the current revisio
   assert.equal(calls[0].requestOptions.headers['If-Match'], 'etag-4');
   assert.equal(provider.databaseEtag, 'etag-5');
 });
+
+test('Google Drive backups stay in the dedicated folder and can be restored', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.backupsFolderId = 'backups-folder';
+  let createdRequest;
+  provider.client = {
+    files: {
+      create: async options => {
+        createdRequest = options;
+        return {
+          data: {
+            id: 'backup-1',
+            createdTime: '2026-10-16T12:00:00.000Z',
+            size: '120',
+            appProperties: { smenaBackup: 'true', label: 'Ручная копия' },
+          },
+        };
+      },
+      list: async () => ({
+        data: {
+          files: [
+            {
+              id: 'backup-1',
+              createdTime: '2026-10-16T12:00:00.000Z',
+              size: '120',
+              appProperties: { smenaBackup: 'true', label: 'Ручная копия' },
+            },
+          ],
+        },
+      }),
+      get: async options => {
+        if (options.alt === 'media') {
+          return { data: JSON.stringify({ data: { schemaVersion: 1, revision: 3, tasks: [] } }) };
+        }
+        return { data: { id: 'backup-1', parents: ['backups-folder'], trashed: false, appProperties: { smenaBackup: 'true' } } };
+      },
+    },
+  };
+
+  const created = await provider.createDatabaseBackup({ schemaVersion: 1, revision: 3, tasks: [] }, 'Ручная копия');
+  assert.equal(created.id, 'backup-1');
+  assert.deepEqual(createdRequest.requestBody.parents, ['backups-folder']);
+  assert.equal((await provider.listDatabaseBackups())[0].label, 'Ручная копия');
+  assert.deepEqual(await provider.loadDatabaseBackup('backup-1'), { schemaVersion: 1, revision: 3, tasks: [] });
+});

@@ -191,3 +191,22 @@ export async function deleteWorkspaceFile(id, revision) {
     true,
   );
 }
+
+export async function getWorkspaceBackups() {
+  const result = await request('/api/backups', {}, true);
+  return result.backups || [];
+}
+
+export async function createWorkspaceBackup(label = '') {
+  const result = await request('/api/backups', { method: 'POST', body: JSON.stringify({ label }) }, true);
+  return result.backup;
+}
+
+export async function restoreWorkspaceBackup(id, revision) {
+  const result = await request(
+    `/api/backups/${encodeURIComponent(id)}/restore`,
+    { method: 'POST', body: JSON.stringify({ revision }) },
+    true,
+  );
+  return result.data;
+}

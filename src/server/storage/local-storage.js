@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -23,11 +24,13 @@ export class LocalStorageProvider {
   constructor(databasePath = process.env.DATABASE_PATH || path.join(process.cwd(), '.data', 'smena-manager-data.json')) {
     this.databasePath = path.resolve(databasePath);
     this.uploadsPath = path.resolve(process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
+    this.backupsPath = path.resolve(process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
   }
 
   async init() {
     await fs.promises.mkdir(path.dirname(this.databasePath), { recursive: true });
     await fs.promises.mkdir(this.uploadsPath, { recursive: true });
+    await fs.promises.mkdir(this.backupsPath, { recursive: true });
   }
 
   async loadDatabase() {
@@ -49,6 +52,42 @@ export class LocalStorageProvider {
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }
+  }
+
+  backupPath(id) {
+    const safeName = path.basename(String(id || ''));
+    if (!safeName || safeName !== id || !safeName.endsWith('.json')) throw new Error('Invalid backup ID.');
+    return path.join(this.backupsPath, safeName);
+  }
+
+  async createDatabaseBackup(data, label = '') {
+    await this.init();
+    const createdAt = new Date().toISOString();
+    const id = `${createdAt.replace(/[:.]/g, '-')}-${crypto.randomUUID()}.json`;
+    await fs.promises.writeFile(this.backupPath(id), JSON.stringify({ createdAt, label: String(label || ''), data }, null, 2), 'utf8');
+    return { id, createdAt, label: String(label || ''), size: Buffer.byteLength(JSON.stringify(data)) };
+  }
+
+  async listDatabaseBackups() {
+    await this.init();
+    const entries = await fs.promises.readdir(this.backupsPath, { withFileTypes: true });
+    const backups = [];
+    for (const entry of entries.filter(item => item.isFile() && item.name.endsWith('.json'))) {
+      try {
+        const raw = await fs.promises.readFile(this.backupPath(entry.name), 'utf8');
+        const stored = JSON.parse(raw);
+        backups.push({ id: entry.name, createdAt: stored.createdAt, label: stored.label || '', size: Buffer.byteLength(raw) });
+      } catch {
+        /* Ignore incomplete or manually edited backup files. */
+      }
+    }
+    return backups.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 50);
+  }
+
+  async loadDatabaseBackup(id) {
+    const stored = JSON.parse(await fs.promises.readFile(this.backupPath(id), 'utf8'));
+    if (!stored?.data || typeof stored.data !== 'object') throw new Error('Backup data is invalid.');
+    return stored.data;
   }
 
   filePath(filename) {
