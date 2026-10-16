@@ -4,6 +4,33 @@ import path from 'node:path';
 import test from 'node:test';
 import { LocalStorageProvider } from '../../src/server/storage/local-storage.js';
 
+test('local storage retries transient Windows rename errors', async t => {
+  if (process.platform !== 'win32') {
+    t.skip('Windows-specific filesystem behavior');
+    return;
+  }
+  const directory = path.join(process.cwd(), '.data', 'tests', `local-storage-retry-${process.pid}`);
+  const databasePath = path.join(directory, 'workspace.json');
+  await fs.promises.rm(directory, { recursive: true, force: true });
+  const provider = new LocalStorageProvider(databasePath);
+  const originalRename = fs.promises.rename;
+  let attempts = 0;
+  fs.promises.rename = async (...args) => {
+    attempts += 1;
+    if (attempts === 1) throw Object.assign(new Error('temporarily locked'), { code: 'EPERM' });
+    return originalRename(...args);
+  };
+  t.after(async () => {
+    fs.promises.rename = originalRename;
+    await fs.promises.rm(directory, { recursive: true, force: true });
+  });
+
+  await provider.saveDatabase({ revision: 1 });
+
+  assert.equal(attempts, 2);
+  assert.deepEqual(await provider.loadDatabase(), { revision: 1 });
+});
+
 test('local storage saves and restores the workspace database atomically', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');
   await fs.promises.mkdir(testRoot, { recursive: true });

@@ -1,6 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+const WINDOWS_RENAME_RETRIES = 4;
+const WINDOWS_RENAME_DELAY_MS = 25;
+
+async function renameWithRetry(source, destination) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await fs.promises.rename(source, destination);
+      return;
+    } catch (error) {
+      const retryable = process.platform === 'win32' && ['EACCES', 'EBUSY', 'EPERM'].includes(error?.code);
+      if (!retryable || attempt >= WINDOWS_RENAME_RETRIES) throw error;
+      await new Promise(resolve => setTimeout(resolve, WINDOWS_RENAME_DELAY_MS * 2 ** attempt));
+    }
+  }
+}
+
 export class LocalStorageProvider {
   name = 'local';
 
@@ -29,7 +45,7 @@ export class LocalStorageProvider {
     const temporaryPath = `${this.databasePath}.${process.pid}.${Date.now()}.tmp`;
     try {
       await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), 'utf8');
-      await fs.promises.rename(temporaryPath, this.databasePath);
+      await renameWithRetry(temporaryPath, this.databasePath);
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }
