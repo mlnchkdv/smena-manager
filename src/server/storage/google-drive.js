@@ -15,6 +15,8 @@ function escapeDriveQuery(value) {
 export class GoogleDriveStorageProvider {
   name = 'google-drive';
   client = null;
+  authClient = null;
+  fetch = globalThis.fetch;
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
   databaseEtag = null;
@@ -61,7 +63,8 @@ export class GoogleDriveStorageProvider {
 
   async init() {
     if (this.initialized) return;
-    this.client = drive({ version: 'v3', auth: this.createAuthClient() });
+    this.authClient = this.createAuthClient();
+    this.client = drive({ version: 'v3', auth: this.authClient });
     if (!this.rootFolderId) this.rootFolderId = await this.getOrCreateRootFolder();
     await this.client.files.get({
       fileId: this.rootFolderId,
@@ -236,6 +239,74 @@ export class GoogleDriveStorageProvider {
       size: Number(uploaded.data.size) || (isBuffer ? source.length : Number(source.size) || 0),
       mimeType: uploaded.data.mimeType || mimeType,
       webViewLink: uploaded.data.webViewLink || undefined,
+    };
+  }
+
+  async createResumableUpload(filename, size, mimeType = 'application/octet-stream', marker) {
+    const folderId = await this.ensureUploadsFolder();
+    const accessTokenResult = await this.authClient.getAccessToken();
+    const accessToken = typeof accessTokenResult === 'string' ? accessTokenResult : accessTokenResult?.token;
+    if (!accessToken) throw new Error('Google Drive did not issue an upload access token.');
+    const uploadUrl = new URL('https://www.googleapis.com/upload/drive/v3/files');
+    uploadUrl.searchParams.set('uploadType', 'resumable');
+    uploadUrl.searchParams.set('supportsAllDrives', 'true');
+    uploadUrl.searchParams.set('fields', 'id,name,size,mimeType,parents,trashed,appProperties');
+    const result = await this.fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json; charset=UTF-8',
+        'X-Upload-Content-Type': mimeType,
+        'X-Upload-Content-Length': String(size),
+      },
+      body: JSON.stringify({
+        name: filename,
+        parents: [folderId],
+        mimeType,
+        appProperties: { smenaUpload: marker },
+      }),
+    });
+    const sessionUrl = result.headers.get('location');
+    if (!result.ok || !sessionUrl) throw new Error(`Google Drive could not create an upload session (${result.status}).`);
+    return { uploadUrl: sessionUrl, filename };
+  }
+
+  async verifyResumableUpload(filename, size, marker, fileId = '') {
+    const folderId = await this.ensureUploadsFolder();
+    let metadata;
+    if (fileId) {
+      const result = await this.client.files.get({
+        fileId,
+        fields: 'id,name,size,mimeType,parents,trashed,appProperties',
+        supportsAllDrives: true,
+      });
+      metadata = result.data;
+    } else {
+      const result = await this.client.files.list({
+        q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(folderId)}' in parents and trashed = false and appProperties has { key='smenaUpload' and value='${escapeDriveQuery(marker)}' }`,
+        fields: 'files(id,name,size,mimeType,parents,trashed,appProperties)',
+        spaces: 'drive',
+        pageSize: 1,
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+      });
+      metadata = result.data.files?.[0];
+    }
+    if (
+      !metadata?.id ||
+      metadata.trashed ||
+      metadata.name !== filename ||
+      Number(metadata.size) !== size ||
+      !metadata.parents?.includes(folderId) ||
+      metadata.appProperties?.smenaUpload !== marker
+    ) {
+      return null;
+    }
+    return {
+      fileId: metadata.id,
+      filename: metadata.name,
+      size: Number(metadata.size),
+      mimeType: metadata.mimeType || 'application/octet-stream',
     };
   }
 

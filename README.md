@@ -108,9 +108,11 @@ the complete JSON snapshot, so it should be reconsidered when the database becom
 very frequent, or the product needs record-level querying. Project and task uploads are stored in the
 dedicated Drive `uploads` folder while their names, ownership and Drive IDs remain in the JSON database.
 The synchronized JSON snapshot is capped at 4 MiB so it remains below the Vercel Function request limit;
-oversized knowledge imports are rejected before local data changes. The default per-file upload limit is
-4 MiB on Vercel and 100 MiB locally. `SHARED_FILE_MAX_BYTES` can lower either limit, but cannot raise the
-Vercel limit above 4 MiB.
+oversized knowledge imports are rejected before local data changes. Files default to a 100 MiB limit.
+On Vercel, the server creates a short-lived signed Google Drive resumable session and the browser uploads
+8 MiB chunks directly to Drive; the server verifies the resulting file before registering it in the
+workspace. This keeps file bodies outside the Vercel Function request limit. `SHARED_FILE_MAX_BYTES` can
+lower or raise the application limit if the team needs a different policy.
 
 ## Project structure
 

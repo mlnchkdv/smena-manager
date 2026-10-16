@@ -1312,13 +1312,22 @@ export async function handleFiles(files, ctx) {
     render();
     try {
       await retryWorkspaceSync();
-      const result = await uploadWorkspaceFile(file, { revision: S.ui.workspaceRevision, project: ctx.project, task: ctx.task }, progress => {
-        up.pct = progress;
-        const bar = document.getElementById('upbar-' + up.id),
-          pc = document.getElementById('upct-' + up.id);
-        if (bar) bar.style.setProperty('--p', up.pct / 100);
-        if (pc) pc.textContent = up.pct + '%';
-      });
+      const result = await uploadWorkspaceFile(
+        file,
+        {
+          revision: S.ui.workspaceRevision,
+          project: ctx.project,
+          task: ctx.task,
+          direct: S.ui.filePolicy?.directUploadEnabled === true,
+        },
+        progress => {
+          up.pct = progress;
+          const bar = document.getElementById('upbar-' + up.id),
+            pc = document.getElementById('upct-' + up.id);
+          if (bar) bar.style.setProperty('--p', up.pct / 100);
+          if (pc) pc.textContent = up.pct + '%';
+        },
+      );
       applyWorkspaceSnapshot(result.data);
       save();
       S.ui.uploads = S.ui.uploads.filter(item => item !== up);

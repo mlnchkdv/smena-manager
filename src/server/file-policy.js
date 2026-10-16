@@ -15,24 +15,26 @@ function extensionOf(filename) {
 
 export function getFileUploadPolicy(env = process.env) {
   const configured = Number(env.SHARED_FILE_MAX_BYTES);
-  const fallback = env.VERCEL ? 4 * MB : 100 * MB;
+  const fallback = 100 * MB;
   const requested = Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
   return {
-    maxFileSizeBytes: env.VERCEL ? Math.min(requested, 4 * MB) : requested,
+    maxFileSizeBytes: requested,
+    proxyMaxFileSizeBytes: env.VERCEL ? Math.min(requested, 4 * MB) : requested,
     maxBatchFiles: 10,
     blockedExtensions: [...BLOCKED_EXTENSIONS],
   };
 }
 
-export function validateFileUpload(file, env = process.env) {
+export function validateFileUpload(file, env = process.env, options = {}) {
   const name = String(file?.originalname || '').trim();
   const mimeType = String(file?.mimetype || 'application/octet-stream');
   const size = Number(file?.size || 0);
   const extension = extensionOf(name);
   const policy = getFileUploadPolicy(env);
+  const maxFileSizeBytes = options.proxy ? policy.proxyMaxFileSizeBytes : policy.maxFileSizeBytes;
   if (!name || name.includes('\0')) throw new TypeError('Invalid file name.');
   if (!Number.isSafeInteger(size) || size <= 0) throw new TypeError('Empty files cannot be uploaded.');
-  if (size > policy.maxFileSizeBytes) throw new TypeError(`File exceeds the ${policy.maxFileSizeBytes} byte limit.`);
+  if (size > maxFileSizeBytes) throw new TypeError(`File exceeds the ${maxFileSizeBytes} byte limit.`);
   if (BLOCKED_EXTENSIONS.has(extension)) throw new TypeError(`Files with .${extension} extension are not allowed.`);
   if (/application\/(x-msdownload|x-dosexec)/i.test(mimeType)) throw new TypeError('Executable files are not allowed.');
   return { name, mimeType, size, extension };

@@ -3,10 +3,16 @@ import test from 'node:test';
 import { filePresentationType, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload } from '../../src/server/file-policy.js';
 
 test('file policy adapts its default limit to Vercel and blocks executable files', () => {
-  assert.equal(getFileUploadPolicy({ VERCEL: '1' }).maxFileSizeBytes, 4 * 1024 * 1024);
-  assert.equal(getFileUploadPolicy({ VERCEL: '1', SHARED_FILE_MAX_BYTES: String(10 * 1024 * 1024) }).maxFileSizeBytes, 4 * 1024 * 1024);
+  assert.equal(getFileUploadPolicy({ VERCEL: '1' }).maxFileSizeBytes, 100 * 1024 * 1024);
+  assert.equal(getFileUploadPolicy({ VERCEL: '1' }).proxyMaxFileSizeBytes, 4 * 1024 * 1024);
+  assert.equal(getFileUploadPolicy({ VERCEL: '1', SHARED_FILE_MAX_BYTES: String(10 * 1024 * 1024) }).maxFileSizeBytes, 10 * 1024 * 1024);
+  assert.equal(getFileUploadPolicy({ VERCEL: '1', SHARED_FILE_MAX_BYTES: String(10 * 1024 * 1024) }).proxyMaxFileSizeBytes, 4 * 1024 * 1024);
   assert.equal(getFileUploadPolicy({ VERCEL: '1', SHARED_FILE_MAX_BYTES: String(2 * 1024 * 1024) }).maxFileSizeBytes, 2 * 1024 * 1024);
   assert.equal(getFileUploadPolicy({}).maxFileSizeBytes, 100 * 1024 * 1024);
+  assert.throws(
+    () => validateFileUpload({ originalname: 'large.bin', mimetype: 'application/octet-stream', size: 5 * 1024 * 1024 }, { VERCEL: '1' }, { proxy: true }),
+    /byte limit/,
+  );
   assert.throws(() => validateFileUpload({ originalname: 'payload.exe', mimetype: 'application/octet-stream', size: 10 }, {}), /not allowed/);
   assert.throws(() => validateFileUpload({ originalname: 'empty.txt', mimetype: 'text/plain', size: 0 }, {}), /Empty files/);
 });

@@ -130,7 +130,7 @@ export async function getFileUploadPolicy() {
   return request('/api/files/policy', {}, true);
 }
 
-export function uploadWorkspaceFile(file, metadata, onProgress) {
+function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   return new Promise((resolve, reject) => {
     const token = getSessionToken();
     if (!token) {
@@ -161,6 +161,72 @@ export function uploadWorkspaceFile(file, metadata, onProgress) {
     };
     xhr.send(form);
   });
+}
+
+function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress) {
+  return new Promise((resolve, reject) => {
+    let start = 0;
+    const sendNext = () => {
+      const end = Math.min(start + chunkSizeBytes, file.size);
+      const chunk = file.slice(start, end);
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+      xhr.setRequestHeader('Content-Range', `bytes ${start}-${end - 1}/${file.size}`);
+      xhr.responseType = 'json';
+      xhr.upload.onprogress = event => {
+        if (event.lengthComputable) onProgress?.(Math.round(((start + event.loaded) / file.size) * 100));
+      };
+      xhr.onerror = () => reject(new ApiError('Google Drive is unavailable.', 0, 'DIRECT_UPLOAD_NETWORK_ERROR'));
+      xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
+      xhr.onload = () => {
+        if (xhr.status === 308) {
+          const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
+          start = accepted ? Number(accepted[1]) + 1 : end;
+          sendNext();
+          return;
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress?.(100);
+          resolve(xhr.response || {});
+          return;
+        }
+        reject(new ApiError(`Google Drive rejected the upload (${xhr.status}).`, xhr.status, 'DIRECT_UPLOAD_FAILED'));
+      };
+      xhr.send(chunk);
+    };
+    sendNext();
+  });
+}
+
+async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
+  const session = await request(
+    '/api/files/upload-session',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        name: file.name,
+        size: file.size,
+        mimeType: file.type || 'application/octet-stream',
+        project: metadata.project || '',
+        task: metadata.task || '',
+      }),
+    },
+    true,
+  );
+  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress);
+  return request(
+    '/api/files/upload-complete',
+    {
+      method: 'POST',
+      body: JSON.stringify({ ticket: session.ticket, fileId: uploaded.id || '' }),
+    },
+    true,
+  );
+}
+
+export function uploadWorkspaceFile(file, metadata, onProgress) {
+  return metadata.direct ? uploadWorkspaceFileDirect(file, metadata, onProgress) : uploadWorkspaceFileThroughApi(file, metadata, onProgress);
 }
 
 export async function downloadWorkspaceFile(id, download = false) {

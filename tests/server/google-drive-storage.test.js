@@ -40,6 +40,54 @@ test('Google Drive storage keeps uploads separate and supports ranged streams', 
   assert.equal(calls.at(-1).options.fileId, 'drive-file');
 });
 
+test('Google Drive creates and verifies a scoped resumable upload session', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.uploadsFolderId = 'uploads-folder';
+  provider.authClient = { getAccessToken: async () => ({ token: 'drive-token' }) };
+  let initiated;
+  provider.fetch = async (url, options) => {
+    initiated = { url: String(url), options };
+    return { ok: true, status: 200, headers: new Headers({ location: 'https://www.googleapis.com/upload/session-1' }) };
+  };
+  provider.client = {
+    files: {
+      list: async options => ({
+        data: {
+          files: [
+            {
+              id: 'drive-file',
+              name: 'stored.pdf',
+              size: '5242880',
+              mimeType: 'application/pdf',
+              parents: ['uploads-folder'],
+              trashed: false,
+              appProperties: { smenaUpload: 'marker-1' },
+            },
+          ],
+        },
+        options,
+      }),
+    },
+  };
+
+  const session = await provider.createResumableUpload('stored.pdf', 5 * 1024 * 1024, 'application/pdf', 'marker-1');
+  assert.equal(session.uploadUrl, 'https://www.googleapis.com/upload/session-1');
+  assert.match(initiated.url, /uploadType=resumable/);
+  assert.equal(initiated.options.headers.Authorization, 'Bearer drive-token');
+  assert.deepEqual(JSON.parse(initiated.options.body).parents, ['uploads-folder']);
+
+  const verified = await provider.verifyResumableUpload('stored.pdf', 5 * 1024 * 1024, 'marker-1');
+  assert.deepEqual(verified, {
+    fileId: 'drive-file',
+    filename: 'stored.pdf',
+    size: 5 * 1024 * 1024,
+    mimeType: 'application/pdf',
+  });
+  assert.equal(await provider.verifyResumableUpload('stored.pdf', 5 * 1024 * 1024, 'wrong-marker'), null);
+});
+
 test('Google Drive database updates use the ETag loaded with the current revision', async () => {
   const calls = [];
   const provider = new GoogleDriveStorageProvider();

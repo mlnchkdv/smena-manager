@@ -8,17 +8,19 @@ import multer from 'multer';
 import { requireRole } from './auth.js';
 import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload } from './file-policy.js';
 import { getStorageProvider } from './storage/index.js';
-import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { memberForProfile } from '../shared/member-identity.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
+const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
 fs.mkdirSync(temporaryDirectory, { recursive: true });
 const upload = multer({
   storage: multer.diskStorage({
     destination: (_request, _file, callback) => callback(null, temporaryDirectory),
     filename: (_request, _file, callback) => callback(null, `${Date.now()}-${crypto.randomBytes(12).toString('hex')}.upload`),
   }),
-  limits: { fileSize: getFileUploadPolicy().maxFileSizeBytes, files: 1, fields: 10 },
+  limits: { fileSize: getFileUploadPolicy().proxyMaxFileSizeBytes, files: 1, fields: 10 },
 });
 
 function expectedRevision(value) {
@@ -38,6 +40,45 @@ function storageFilename(originalName) {
 
 function memberIdFor(database, user) {
   return memberForProfile(database, user)?.id || database.me || user.id;
+}
+
+function assertFileTarget(database, user, projectId, taskId) {
+  const project = database.projects?.find(item => item.id === projectId);
+  if (!project) throw new TypeError('Unknown project.');
+  const memberId = memberIdFor(database, user);
+  if (project.private && user.role !== 'admin' && !project.members?.includes(memberId)) {
+    throw Object.assign(new Error('You do not have access to this project.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
+  }
+  if (taskId && !database.tasks?.some(task => task.id === taskId && task.project === projectId)) throw new TypeError('Unknown task.');
+}
+
+function appendFileRecord(database, user, metadata, stored, projectId, taskId) {
+  assertFileTarget(database, user, projectId, taskId);
+  const existing = database.files?.find(item => item.storageFileId === stored.fileId);
+  if (existing) return existing;
+  const fileRecord = {
+    id: `file-${crypto.randomUUID()}`,
+    project: projectId,
+    task: taskId,
+    name: metadata.name,
+    type: filePresentationType(metadata.name),
+    size: formatFileSize(metadata.size),
+    bytes: metadata.size,
+    mimeType: metadata.mimeType,
+    storageName: stored.filename,
+    storageFileId: stored.fileId,
+    ownerId: user.id,
+    by: memberIdFor(database, user),
+    at: Date.now(),
+  };
+  database.files = Array.isArray(database.files) ? database.files : [];
+  database.files.unshift(fileRecord);
+  if (taskId) {
+    const task = database.tasks.find(item => item.id === taskId);
+    task.attachments = Array.isArray(task.attachments) ? task.attachments : [];
+    task.attachments.push(fileRecord);
+  }
+  return fileRecord;
 }
 
 function parseRange(value, size) {
@@ -60,7 +101,11 @@ function contentDisposition(filename, attachment) {
 
 export const fileRouter = Router();
 
-fileRouter.get('/policy', (_request, response) => response.json(getFileUploadPolicy()));
+fileRouter.get('/policy', (_request, response) => {
+  const policy = getFileUploadPolicy();
+  const storage = getStorageProvider();
+  response.json({ ...policy, directUploadEnabled: typeof storage.createResumableUpload === 'function' });
+});
 
 const receiveSingleFile = (request, response, next) => {
   upload.single('file')(request, response, error => {
@@ -76,7 +121,7 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
   let stored = null;
   try {
     if (!request.file) throw new TypeError('No file was uploaded.');
-    const metadata = validateFileUpload(request.file);
+    const metadata = validateFileUpload(request.file, process.env, { proxy: true });
     const revision = expectedRevision(request.body?.revision);
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;
@@ -85,30 +130,7 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     let fileRecord;
     const data = await mutateWorkspaceDatabase(
       database => {
-        if (!database.projects?.some(project => project.id === projectId)) throw new TypeError('Unknown project.');
-        if (taskId && !database.tasks?.some(task => task.id === taskId && task.project === projectId)) throw new TypeError('Unknown task.');
-        fileRecord = {
-          id: `file-${crypto.randomUUID()}`,
-          project: projectId,
-          task: taskId,
-          name: metadata.name,
-          type: filePresentationType(metadata.name),
-          size: formatFileSize(metadata.size),
-          bytes: metadata.size,
-          mimeType: metadata.mimeType,
-          storageName: stored.filename,
-          storageFileId: stored.fileId,
-          ownerId: request.user.id,
-          by: memberIdFor(database, request.user),
-          at: Date.now(),
-        };
-        database.files = Array.isArray(database.files) ? database.files : [];
-        database.files.unshift(fileRecord);
-        if (taskId) {
-          const task = database.tasks.find(item => item.id === taskId);
-          task.attachments = Array.isArray(task.attachments) ? task.attachments : [];
-          task.attachments.push(fileRecord);
-        }
+        fileRecord = appendFileRecord(database, request.user, metadata, stored, projectId, taskId);
         return database;
       },
       revision,
@@ -123,6 +145,95 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     next(error);
   } finally {
     if (temporaryPath) await fs.promises.unlink(temporaryPath).catch(() => undefined);
+  }
+});
+
+fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    const metadata = validateFileUpload({
+      originalname: request.body?.name,
+      mimetype: request.body?.mimeType,
+      size: request.body?.size,
+    });
+    const projectId = String(request.body?.project || '').trim();
+    const taskId = String(request.body?.task || '').trim() || null;
+    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId);
+    const storage = getStorageProvider();
+    if (typeof storage.createResumableUpload !== 'function') {
+      throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
+        statusCode: 409,
+        code: 'DIRECT_UPLOAD_UNAVAILABLE',
+      });
+    }
+    const filename = storageFilename(metadata.name);
+    const marker = crypto.randomUUID();
+    const session = await storage.createResumableUpload(filename, metadata.size, metadata.mimeType, marker);
+    const ticket = createUploadTicket({
+      profileId: request.user.id,
+      projectId,
+      taskId,
+      name: metadata.name,
+      size: metadata.size,
+      mimeType: metadata.mimeType,
+      filename,
+      marker,
+    });
+    response.setHeader('Cache-Control', 'no-store');
+    response.status(201).json({ uploadUrl: session.uploadUrl, ticket, chunkSizeBytes: DIRECT_UPLOAD_CHUNK_BYTES });
+  } catch (error) {
+    next(error);
+  }
+});
+
+fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (request, response, next) => {
+  let stored = null;
+  try {
+    const ticket = verifyUploadTicket(request.body?.ticket);
+    if (ticket.profileId !== request.user.id) {
+      throw Object.assign(new Error('This upload belongs to another account.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
+    }
+    const storage = getStorageProvider();
+    if (typeof storage.verifyResumableUpload !== 'function') {
+      throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
+        statusCode: 409,
+        code: 'DIRECT_UPLOAD_UNAVAILABLE',
+      });
+    }
+    stored = await storage.verifyResumableUpload(ticket.filename, ticket.size, ticket.marker, String(request.body?.fileId || '').trim());
+    if (!stored) {
+      throw Object.assign(new Error('The uploaded Google Drive file could not be verified.'), {
+        statusCode: 400,
+        code: 'UPLOAD_VERIFICATION_FAILED',
+      });
+    }
+    const metadata = { name: ticket.name, size: ticket.size, mimeType: ticket.mimeType };
+    let fileRecord;
+    let data;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const current = await getWorkspaceDatabase();
+      const existing = current.files?.find(item => item.storageFileId === stored.fileId);
+      if (existing) {
+        fileRecord = existing;
+        data = current;
+        break;
+      }
+      try {
+        data = await mutateWorkspaceDatabase(
+          database => {
+            fileRecord = appendFileRecord(database, request.user, metadata, stored, ticket.projectId, ticket.taskId);
+            return database;
+          },
+          current.revision,
+          { role: request.user.role },
+        );
+        break;
+      } catch (error) {
+        if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
+      }
+    }
+    response.status(201).json({ file: fileRecord, data });
+  } catch (error) {
+    next(error);
   }
 });
 
