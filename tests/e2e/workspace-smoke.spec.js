@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+test.setTimeout(120_000);
+
 async function finishOnboarding(page) {
   await page.locator('#o-ws, .shell').first().waitFor({ state: 'visible' });
   if (
@@ -45,6 +47,26 @@ test('Russian workspace remains usable and responsive across breakpoints', async
   await page.goto(`/e2e-team/task/${encodeURIComponent(taskKey)}`);
   await expect(page.locator('.drawer')).toContainText('Сквозная проверка сохранения');
 
+  const routes = [
+    ['', 'Главная'],
+    ['inbox', 'Входящие'],
+    ['mytasks', 'Мои задачи'],
+    ['favorites', 'Избранное'],
+    ['notifications', 'Уведомления'],
+    ['search', 'Поиск'],
+    ['overview', 'Обзор'],
+    ['projects', 'Проекты'],
+    ['tasks', 'Задачи'],
+    ['calendar', 'Календарь'],
+    ['timeline', 'Хронология'],
+    ['members', 'Участники'],
+    ['teams', 'Команды'],
+    ['activity', 'Активность'],
+    ['knowledge', 'База знаний'],
+    ['bookmarks', 'Закладки'],
+    ['settings', 'Настройки'],
+    ['archive', 'Архив'],
+  ];
   const viewports = [
     { name: 'desktop', width: 1440, height: 900 },
     { name: 'tablet', width: 834, height: 1112 },
@@ -52,10 +74,13 @@ test('Russian workspace remains usable and responsive across breakpoints', async
   ];
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto('/e2e-team/tasks');
-    await expect(page.locator('#main-content')).toBeVisible();
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow, `${viewport.name} has horizontal page overflow`).toBeLessThanOrEqual(2);
-    await expect(page.locator('body')).not.toContainText('Something went wrong');
+    for (const [route, heading] of routes) {
+      await page.goto(`/e2e-team${route ? `/${route}` : ''}`);
+      await expect(page.locator('#main-content')).toBeVisible();
+      await expect(page.locator('.crumbs .cur')).toHaveText(heading);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${viewport.name}/${route || 'home'} has horizontal page overflow`).toBeLessThanOrEqual(2);
+      await expect(page.locator('body')).not.toContainText('Something went wrong');
+    }
   }
 });
