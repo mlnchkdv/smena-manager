@@ -17,8 +17,10 @@ export function createWorkspaceSync(options = {}) {
   let retryTimer = null;
   let retryDelay = 1_000;
   let confirmedHash = null;
+  let confirmedData = null;
   let pendingHash = null;
   let activeHash = null;
+  let conflict = null;
 
   function configure(nextRevision, role, data) {
     revision = Number(nextRevision || 0);
@@ -26,8 +28,10 @@ export function createWorkspaceSync(options = {}) {
     pending = null;
     retryDelay = 1_000;
     confirmedHash = data ? JSON.stringify(data) : null;
+    confirmedData = data ? structuredClone(data) : null;
     pendingHash = null;
     activeHash = null;
+    conflict = null;
     if (retryTimer) cancel(retryTimer);
     retryTimer = null;
   }
@@ -37,6 +41,7 @@ export function createWorkspaceSync(options = {}) {
     pending = null;
     pendingHash = null;
     activeHash = null;
+    conflict = null;
     if (retryTimer) cancel(retryTimer);
     retryTimer = null;
   }
@@ -64,11 +69,21 @@ export function createWorkspaceSync(options = {}) {
         const snapshot = await writeWorkspace(data, revision);
         revision = Number(snapshot.revision);
         confirmedHash = dataHash;
+        confirmedData = structuredClone(data);
         retryDelay = 1_000;
-        notify({ status: 'saved', revision });
+        notify({ status: 'saved', revision, data: structuredClone(data) });
       } catch (error) {
         if (error.status === 409 || error.code === 'REVISION_CONFLICT') {
           enabled = false;
+          const latestLocal = pending || data;
+          conflict = {
+            base: confirmedData ? structuredClone(confirmedData) : null,
+            local: structuredClone(latestLocal),
+            revision,
+            currentRevision: Number(error.currentRevision || revision),
+          };
+          pending = null;
+          pendingHash = null;
           notify({ status: 'conflict', revision, currentRevision: error.currentRevision, error });
         } else if (error.status === 401) {
           enabled = false;
@@ -121,10 +136,18 @@ export function createWorkspaceSync(options = {}) {
   }
 
   function state() {
-    return { enabled, revision, hasPending: !!pending, retryDelay };
+    return { enabled, revision, hasPending: !!pending, hasActive: !!activePromise, hasConflict: !!conflict, retryDelay };
   }
 
-  return { configure, disable, queue, retry, state };
+  function isClean(data) {
+    return !pending && !activePromise && !conflict && confirmedHash !== null && JSON.stringify(data) === confirmedHash;
+  }
+
+  function getConflict() {
+    return conflict ? structuredClone(conflict) : null;
+  }
+
+  return { configure, disable, queue, retry, state, isClean, getConflict };
 }
 
 const workspaceSync = createWorkspaceSync();
@@ -134,3 +157,5 @@ export const disableWorkspaceSync = () => workspaceSync.disable();
 export const queueWorkspaceSync = data => workspaceSync.queue(data);
 export const retryWorkspaceSync = () => workspaceSync.retry();
 export const workspaceSyncState = () => workspaceSync.state();
+export const workspaceSyncIsClean = data => workspaceSync.isClean(data);
+export const workspaceSyncConflict = () => workspaceSync.getConflict();

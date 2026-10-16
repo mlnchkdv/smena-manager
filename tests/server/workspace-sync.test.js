@@ -52,8 +52,26 @@ test('workspace sync stops instead of overwriting a revision conflict', async ()
   await sync.queue({ tasks: [] });
 
   assert.equal(sync.state().enabled, false);
+  assert.equal(sync.state().hasConflict, true);
+  assert.deepEqual(sync.getConflict().local, { tasks: [] });
   assert.equal(statuses.at(-1).status, 'conflict');
   assert.equal(statuses.at(-1).currentRevision, 8);
+});
+
+test('workspace sync reports when the current data is safe to refresh', async () => {
+  const data = { tasks: [{ id: 't1', title: 'Original' }] };
+  const sync = createWorkspaceSync({
+    writeWorkspace: async (next, revision) => ({ ...next, revision: revision + 1 }),
+    notify: () => {},
+  });
+
+  sync.configure(1, 'editor', data);
+  assert.equal(sync.isClean(structuredClone(data)), true);
+  assert.equal(sync.isClean({ tasks: [{ id: 't1', title: 'Changed' }] }), false);
+
+  const changed = { tasks: [{ id: 't1', title: 'Changed' }] };
+  await sync.queue(changed);
+  assert.equal(sync.isClean(changed), true);
 });
 
 test('workspace sync keeps a failed write for an explicit retry', async () => {

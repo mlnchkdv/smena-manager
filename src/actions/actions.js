@@ -13,7 +13,7 @@ import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import { strengthMeter } from '../pages/settings.js';
-import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace } from '../core/bootstrap.js';
+import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace, refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { clearSession, deleteAllWorkspaces, deleteWorkspaceFile, downloadWorkspaceFile, uploadWorkspaceFile } from '../core/api.js';
 import { disableWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
@@ -2232,8 +2232,19 @@ A.toggleOffline = () => {
   toast(S.ui.offline ? 'Offline mode on — edits will fail to save' : 'Back online', { kind: S.ui.offline ? 'err' : 'ok' });
 };
 A.retryOnline = el => {
-  el.classList.add('is-loading');
+  el?.classList?.add('is-loading');
   void retryWorkspaceSync();
+};
+A.reloadWorkspaceVersion = async el => {
+  el?.classList?.add('is-loading');
+  try {
+    const result = await refreshWorkspaceFromServer({ force: true });
+    S.ui.syncConflict = false;
+    render();
+    toast(result.status === 'updated' ? 'Загружена актуальная серверная версия.' : 'У вас уже актуальная версия.', { kind: 'info' });
+  } catch (error) {
+    toast(error.message || 'Не удалось загрузить серверную версию.', { kind: 'err', ms: 8000 });
+  }
 };
 A.resetDemo = () => {
   S.ui.pop = null;

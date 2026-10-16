@@ -55,21 +55,57 @@ import './features/archive.js';
 import './actions/teams.js';
 import './actions/subtasks.js';
 import './actions/archive.js';
-import { S, D } from './core/store.js';
+import { S, D, setWorkspaceBaseline } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
-import { restoreSessionAndWorkspace } from './core/bootstrap.js';
+import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
 
+let conflictRecoveryPromise = null;
+
+async function handleWorkspaceConflict() {
+  if (conflictRecoveryPromise) return conflictRecoveryPromise;
+  conflictRecoveryPromise = recoverWorkspaceConflict()
+    .then(result => {
+      if (result.status === 'merged') {
+        S.ui.syncConflict = false;
+        render();
+        toast('Изменения из двух сессий безопасно объединены.');
+      } else if (result.status === 'manual') {
+        S.ui.syncConflict = true;
+        render();
+        toast('Одни и те же данные изменены в двух сессиях. Ваш вариант сохранён как резервная копия в этом браузере.', {
+          kind: 'err',
+          ms: 15_000,
+          action: 'Загрузить серверную версию',
+          onAction: () => void A.reloadWorkspaceVersion(),
+        });
+      }
+      return result;
+    })
+    .catch(error => {
+      S.ui.syncConflict = true;
+      render();
+      toast(error.message || 'Не удалось разрешить конфликт синхронизации.', { kind: 'err', ms: 12_000 });
+      return { status: 'error', error };
+    })
+    .finally(() => {
+      conflictRecoveryPromise = null;
+    });
+  return conflictRecoveryPromise;
+}
+
 window.addEventListener('smena:sync-status', event => {
-  const { status, revision } = event.detail;
+  const { status, revision, data } = event.detail;
   if (status === 'saved') {
     const wasOffline = S.ui.offline;
     S.ui.offline = false;
     S.ui.syncUnavailable = false;
     S.ui.syncTooLarge = false;
     S.ui.syncInvalid = false;
+    S.ui.syncConflict = false;
     S.ui.workspaceRevision = revision;
+    if (data) setWorkspaceBaseline(data);
     if (wasOffline) {
       render();
       toast('Reconnected. All changes are synced.');
@@ -91,12 +127,9 @@ window.addEventListener('smena:sync-status', event => {
     S.ui.offline = false;
     S.ui.syncUnavailable = false;
     S.ui.syncConflict = true;
-    toast('The workspace changed elsewhere. Reload to use the latest version.', {
-      kind: 'err',
-      ms: 12_000,
-      action: 'Reload',
-      onAction: () => location.reload(),
-    });
+    render();
+    toast('Рабочее пространство изменилось в другой сессии. Пытаемся безопасно объединить правки…', { kind: 'info', ms: 6000 });
+    void handleWorkspaceConflict();
   } else if (status === 'unauthorized') {
     S.ui.currentUser = null;
     S.ui.auth = 'login';
@@ -153,6 +186,39 @@ window.addEventListener('smena:google-credential', event => {
   }
   render();
 })();
+
+let workspaceRefreshPromise = null;
+async function refreshVisibleWorkspace(showNotice = false) {
+  if (document.hidden || S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return;
+  workspaceRefreshPromise = refreshWorkspaceFromServer()
+    .then(result => {
+      if (result.status === 'updated') {
+        render();
+        if (showNotice) toast('Загружены свежие изменения команды.', { kind: 'info', ms: 2600 });
+      }
+    })
+    .catch(error => {
+      if (error.status === 401) return;
+      if (!S.ui.offline) {
+        S.ui.offline = !error.status;
+        S.ui.syncUnavailable = !!error.status;
+        render();
+      }
+    })
+    .finally(() => {
+      workspaceRefreshPromise = null;
+    });
+}
+
+setInterval(() => void refreshVisibleWorkspace(false), 15_000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void refreshVisibleWorkspace(true);
+});
+window.addEventListener('focus', () => void refreshVisibleWorkspace(true));
+window.addEventListener('online', () => {
+  void A.retryOnline();
+  void refreshVisibleWorkspace(true);
+});
 
 // Dev-only handle for debugging and screenshot tooling; stripped from production builds.
 if (import.meta.env.DEV) window.__smena = { S, D, A, go, render };
