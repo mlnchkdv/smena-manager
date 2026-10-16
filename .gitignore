@@ -14,3 +14,5 @@ access-ids*.json
 .env*
 !.env.example
 .playwright-cli/
+playwright-report/
+test-results/

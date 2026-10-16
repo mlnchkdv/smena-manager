@@ -11,7 +11,12 @@ export function workspaceMemberProfile(member) {
   const email = String(member?.email || '')
     .trim()
     .toLowerCase();
-  const role = ROLE_MAP.get(String(member?.role || 'member').trim().toLowerCase()) || 'viewer';
+  const role =
+    ROLE_MAP.get(
+      String(member?.role || 'member')
+        .trim()
+        .toLowerCase(),
+    ) || 'viewer';
   if (!member?.id || !email || member.status === 'deactivated' || member.status === 'removed') return null;
   return {
     id: `workspace:${member.id}`,

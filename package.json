@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:server": "node --test tests/server/*.test.js",
+    "test:e2e": "playwright test",
     "check:deploy": "node scripts/check-deployment-config.js",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.5",
     "globals": "^15.15.0",

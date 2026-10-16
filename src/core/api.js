@@ -203,19 +203,11 @@ export async function createWorkspaceBackup(label = '') {
 }
 
 export async function restoreWorkspaceBackup(id, revision) {
-  const result = await request(
-    `/api/backups/${encodeURIComponent(id)}/restore`,
-    { method: 'POST', body: JSON.stringify({ revision }) },
-    true,
-  );
+  const result = await request(`/api/backups/${encodeURIComponent(id)}/restore`, { method: 'POST', body: JSON.stringify({ revision }) }, true);
   return result.data;
 }
 
 export async function purgeWorkspaceTrash(id, revision) {
-  const result = await request(
-    `/api/trash/${encodeURIComponent(id)}`,
-    { method: 'DELETE', body: JSON.stringify({ revision }) },
-    true,
-  );
+  const result = await request(`/api/trash/${encodeURIComponent(id)}`, { method: 'DELETE', body: JSON.stringify({ revision }) }, true);
   return result;
 }
