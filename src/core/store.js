@@ -51,6 +51,7 @@ export const S = {
     currentUser: null,
     workspaceRevision: null,
     workspaceBaseline: null,
+    locationReady: false,
     filePolicy: null,
     authStep: 'login',
     onb: 0,

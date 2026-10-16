@@ -23,6 +23,7 @@ import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText } from '../core/i18n.js';
+import { resolveAppLocation } from '../shared/app-location.js';
 
 export const A = {},
   IN = {},
@@ -863,13 +864,14 @@ A.copyLink = el => {
   S.ui.pop = null;
   render();
   const d = el.dataset;
+  const linkedFile = d.fid || (d.id && D().files.some(file => file.id === d.id) ? d.id : '');
   const path =
     d.id && task(d.id)
       ? `task/${task(d.id).key}`
       : d.pid
         ? `project/${proj(d.pid).key.toLowerCase()}`
-        : d.fid
-          ? `file/${d.fid}`
+        : linkedFile
+          ? `file/${linkedFile}`
           : d.id && proj(d.id)
             ? `project/${proj(d.id).key.toLowerCase()}`
             : '';
@@ -2549,7 +2551,17 @@ export function enterApp(msg) {
   }
   S.ui.auth = null;
   S.ui.errors = {};
-  go(S.prefs.home || 'home');
+  const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');
+  S.ui.locationReady = true;
+  go(target.route, target.params, { fromPopstate: true });
+  if (target.drawer) {
+    S.ui.drawer = target.drawer;
+    render();
+  }
+  if (target.file) {
+    const file = D().files.find(item => item.id === target.file);
+    if (file) openModal({ type: 'filePreview', file, tid: file.task });
+  }
   toast(msg);
 }
 A.doLogin = async () => {
@@ -2784,6 +2796,7 @@ A.onbFinish = () => {
   });
   S.ui.needsOnboarding = false;
   S.ui.auth = null;
+  S.ui.locationReady = true;
   go('project', { id: p.id, tab: S.prefs.defaultTab });
   toast(`Welcome to ${D().ws.name}`);
 };

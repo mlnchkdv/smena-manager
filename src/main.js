@@ -60,6 +60,7 @@ import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
+import { resolveAppLocation } from './shared/app-location.js';
 
 let conflictRecoveryPromise = null;
 
@@ -160,6 +161,25 @@ window.addEventListener('smena:google-credential', event => {
   void A.doGoogleLogin(event.detail?.credential);
 });
 
+function applyBrowserLocation() {
+  if (!S.ui.currentUser) return;
+  const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');
+  S.ui.route = target.route;
+  S.ui.params = target.params;
+  S.ui.drawer = target.drawer || null;
+  S.ui.modals = [];
+  if (target.file) {
+    const file = D().files.find(item => item.id === target.file);
+    if (file) S.ui.modals.push({ type: 'filePreview', file, tid: file.task });
+  }
+  S.ui.locationReady = true;
+}
+
+window.addEventListener('popstate', () => {
+  applyBrowserLocation();
+  render();
+});
+
 (async function init() {
   if (!document.getElementById('sr-live')) {
     const l = document.createElement('div');
@@ -179,6 +199,7 @@ window.addEventListener('smena:google-credential', event => {
     S.ui.authBusy = false;
     S.ui.auth = user ? (S.ui.needsOnboarding ? 'onboarding' : null) : 'login';
     if (S.ui.needsOnboarding) S.ui.onb = 1;
+    if (user && !S.ui.needsOnboarding) applyBrowserLocation();
   } catch (error) {
     S.ui.authBusy = false;
     S.ui.auth = 'login';

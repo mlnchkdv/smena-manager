@@ -14,6 +14,7 @@ import { renderAuth } from '../pages/auth.js';
 import { isRussian, t as tr, translateApp } from '../core/i18n.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
+import { appLocationPath } from '../shared/app-location.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -77,10 +78,18 @@ export function go(route, params = {}, opt = {}) {
   // Pages render instantly; motion (not a fake wait) carries the transition.
   clearTimeout(go._t);
   S.ui.loading = false;
+  if (!same && !opt.fromPopstate) syncBrowserLocation({ push: !opt.back });
   if (!same) fxSet(opt.tab ? { tab: true, tabs: true } : { route: true, tabs: true });
   render();
   const c = $('.content');
   if (c && !same) c.scrollTop = 0;
+}
+
+export function syncBrowserLocation(options = {}) {
+  if (!S.ui.locationReady || S.ui.auth || typeof window === 'undefined') return;
+  const path = appLocationPath(D(), S.ui);
+  if (`${location.pathname}${location.search}` === path && !location.hash) return;
+  window.history[options.push ? 'pushState' : 'replaceState']({ smena: true }, '', path);
 }
 
 /* One-shot motion flags: read by templates during the next render, then cleared, so full re-renders never replay them. */
@@ -202,6 +211,7 @@ export function render() {
     if (live && !S.ui.loading) live.textContent = title.split(' · ').slice(0, -1).join(', ');
   }
   afterRender();
+  syncBrowserLocation();
 }
 export function afterRender() {
   selectMenu.close();
