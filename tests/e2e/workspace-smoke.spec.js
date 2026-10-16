@@ -50,6 +50,7 @@ async function openTrash(page) {
 test('Russian workspace remains usable and responsive across breakpoints', async ({ page }) => {
   await signIn(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+  const untranslatedByRoute = [];
 
   await page.locator('button[data-a="newTask"]:visible').first().click();
   await page.locator('#f-title').fill('Сквозная проверка сохранения');
@@ -133,8 +134,25 @@ test('Russian workspace remains usable and responsive across breakpoints', async
         return [...new Set([...duplicates.map(id => `duplicate-id:${id}`), ...unnamed.map(value => `unnamed:${value}`)])];
       });
       expect(accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
+      if (viewport.name === 'desktop') {
+        const untranslated = await page.evaluate(() => {
+          const allowed =
+            /Smena Manager|E2E|CtrlK|https?|URL|JSON|KMS|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b(?:MB|GB|PDF|CSV|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/iu;
+          const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+          return [
+            ...new Set(
+              [...document.querySelectorAll('body *')]
+                .filter(element => visible(element) && !element.children.length)
+                .map(element => element.textContent?.replace(/\s+/g, ' ').trim() || '')
+                .filter(text => /[A-Za-z]{3}/u.test(text) && !allowed.test(text)),
+            ),
+          ];
+        });
+        if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
+      }
     }
   }
+  expect(untranslatedByRoute, 'visible Russian routes contain untranslated English UI text').toEqual([]);
 });
 
 test('shared content, files, settings, and backups persist through core workflows', async ({ page }) => {
