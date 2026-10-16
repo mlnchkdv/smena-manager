@@ -5,6 +5,7 @@ import test from 'node:test';
 import { resetStorageProvider } from '../../src/server/storage/index.js';
 import {
   getWorkspaceDatabase,
+  getWorkspaceRevisionStatus,
   replaceWorkspaceDatabase,
   resetWorkspaceStore,
   RevisionConflictError,
@@ -69,6 +70,13 @@ test('workspace snapshots increment their revision and persist', async () => {
   assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
   assert.deepEqual(restored.linkFolders, [{ id: 'lf1', name: 'Инструменты' }]);
   assert.deepEqual(restored.links, [{ id: 'ln1', title: 'Smena', url: 'https://example.com', folder: 'lf1' }]);
+});
+
+test('workspace revision status returns synchronization metadata without changing data', async () => {
+  const initial = await getWorkspaceDatabase();
+  const status = await getWorkspaceRevisionStatus();
+  assert.equal(status.revision, initial.revision);
+  assert.equal(status.updatedAt, initial.updatedAt);
 });
 
 test('explicit Drive mode permits revision-checked writes on Vercel without Redis', async () => {

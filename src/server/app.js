@@ -4,6 +4,7 @@ import { authRouter } from './auth-routes.js';
 import {
   createWorkspaceBackup,
   getWorkspaceDatabase,
+  getWorkspaceRevisionStatus,
   getWorkspaceStatus,
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
@@ -114,6 +115,14 @@ app.get('/api/workspace', async (_request, response, next) => {
   try {
     const database = await getWorkspaceDatabase();
     response.json({ data: bindAccessProfiles(database, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/workspace/revision', async (_request, response, next) => {
+  try {
+    response.json(await getWorkspaceRevisionStatus());
   } catch (error) {
     next(error);
   }

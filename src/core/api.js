@@ -95,6 +95,10 @@ export async function getWorkspace() {
   return result.data;
 }
 
+export async function getWorkspaceRevision() {
+  return request('/api/workspace/revision', {}, true);
+}
+
 export async function putWorkspace(data, revision) {
   const actualBytes = workspaceTransportBytes(data, revision);
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {

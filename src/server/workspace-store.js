@@ -112,6 +112,24 @@ export async function getWorkspaceDatabase() {
   return clone(database);
 }
 
+export async function getWorkspaceRevisionStatus() {
+  const storage = getStorageProvider();
+  await storage.init();
+  if (typeof storage.getDatabaseVersion === 'function') {
+    const version = await storage.getDatabaseVersion();
+    if (Number.isSafeInteger(version?.revision) && version.revision >= 0) {
+      return { revision: version.revision, updatedAt: version.updatedAt || null };
+    }
+    const current = await reloadWorkspaceStore();
+    if (typeof storage.setDatabaseRevisionMetadata === 'function') {
+      await storage.setDatabaseRevisionMetadata(current.revision);
+    }
+    return { revision: current.revision, updatedAt: current.updatedAt };
+  }
+  const current = await initWorkspaceStore();
+  return { revision: current.revision, updatedAt: current.updatedAt };
+}
+
 export async function createWorkspaceBackup(label = '') {
   const current = await getWorkspaceDatabase();
   const storage = getStorageProvider();

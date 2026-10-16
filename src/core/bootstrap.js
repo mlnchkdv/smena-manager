@@ -5,6 +5,7 @@ import {
   getFileUploadPolicy,
   getSessionToken,
   getWorkspace,
+  getWorkspaceRevision,
   loginWithAccessId,
   loginWithGoogle,
   putWorkspace,
@@ -99,6 +100,10 @@ export async function refreshWorkspaceFromServer(options = {}) {
   const force = options.force === true;
   if (!force && !workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
   const startingRevision = S.ui.workspaceRevision;
+  if (!force) {
+    const remote = await getWorkspaceRevision();
+    if (Number(remote.revision) === Number(startingRevision || 0)) return { status: 'current' };
+  }
   const snapshot = await getWorkspace();
   if (!force && (!workspaceSyncIsClean(S.data) || S.ui.workspaceRevision !== startingRevision)) return { status: 'local_changes' };
   if (Number(snapshot.revision || 0) === Number(S.ui.workspaceRevision || 0)) return { status: 'current' };

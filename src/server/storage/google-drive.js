@@ -138,6 +138,41 @@ export class GoogleDriveStorageProvider {
     return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
   }
 
+  async getDatabaseVersion() {
+    await this.init();
+    const fileId = await this.findDatabaseFile();
+    if (!fileId) return null;
+    const response = await this.client.files.get({
+      fileId,
+      fields: 'id,modifiedTime,version,appProperties',
+      supportsAllDrives: true,
+    });
+    this.databaseEtag = response.headers?.etag || this.databaseEtag;
+    const revision = Number(response.data.appProperties?.smenaRevision);
+    return {
+      revision: Number.isSafeInteger(revision) && revision >= 0 ? revision : null,
+      updatedAt: response.data.modifiedTime || null,
+      version: response.data.version || null,
+    };
+  }
+
+  async setDatabaseRevisionMetadata(revision) {
+    await this.init();
+    const fileId = await this.findDatabaseFile();
+    if (!fileId) return;
+    const requestOptions = this.databaseEtag ? { headers: { 'If-Match': this.databaseEtag } } : undefined;
+    const updated = await this.client.files.update(
+      {
+        fileId,
+        requestBody: { appProperties: { smenaRevision: String(revision) } },
+        fields: 'id,modifiedTime,version,appProperties',
+        supportsAllDrives: true,
+      },
+      requestOptions,
+    );
+    this.databaseEtag = updated.headers?.etag || null;
+  }
+
   async saveDatabase(data) {
     await this.init();
     const fileId = await this.findDatabaseFile();
@@ -148,7 +183,15 @@ export class GoogleDriveStorageProvider {
 
     if (fileId) {
       const requestOptions = this.databaseEtag ? { headers: { 'If-Match': this.databaseEtag } } : undefined;
-      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      const updated = await this.client.files.update(
+        {
+          fileId,
+          requestBody: { appProperties: { smenaRevision: String(data.revision) } },
+          media,
+          supportsAllDrives: true,
+        },
+        requestOptions,
+      );
       this.databaseEtag = updated.headers?.etag || null;
     } else {
       const created = await this.client.files.create({
@@ -156,6 +199,7 @@ export class GoogleDriveStorageProvider {
           name: DATABASE_NAME,
           parents: [this.rootFolderId],
           mimeType: 'application/json',
+          appProperties: { smenaRevision: String(data.revision) },
         },
         media,
         fields: 'id',

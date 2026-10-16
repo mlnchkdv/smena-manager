@@ -108,8 +108,42 @@ test('Google Drive database updates use the ETag loaded with the current revisio
   await provider.saveDatabase({ revision: 5 });
 
   assert.equal(calls[0].options.fileId, 'database-file');
+  assert.equal(calls[0].options.requestBody.appProperties.smenaRevision, '5');
   assert.equal(calls[0].requestOptions.headers['If-Match'], 'etag-4');
   assert.equal(provider.databaseEtag, 'etag-5');
+});
+
+test('Google Drive reads the database revision from file metadata without downloading JSON', async () => {
+  const calls = [];
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.databaseFileId = 'database-file';
+  provider.client = {
+    files: {
+      get: async options => {
+        calls.push(options);
+        return {
+          data: {
+            id: 'database-file',
+            modifiedTime: '2026-10-16T08:00:00.000Z',
+            version: '12',
+            appProperties: { smenaRevision: '7' },
+          },
+          headers: { etag: 'etag-7' },
+        };
+      },
+    },
+  };
+
+  assert.deepEqual(await provider.getDatabaseVersion(), {
+    revision: 7,
+    updatedAt: '2026-10-16T08:00:00.000Z',
+    version: '12',
+  });
+  assert.equal(calls[0].alt, undefined);
+  assert.match(calls[0].fields, /appProperties/);
+  assert.equal(provider.databaseEtag, 'etag-7');
 });
 
 test('Google Drive backups stay in the dedicated folder and can be restored', async () => {
