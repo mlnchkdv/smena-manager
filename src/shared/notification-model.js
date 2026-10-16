@@ -29,3 +29,32 @@ export function notificationsForMember(data, memberId = data?.me) {
 export function notificationForMember(data, notificationId, memberId = data?.me) {
   return notificationsForMember(data, memberId).find(notification => notification.id === notificationId) || null;
 }
+
+export function addWorkspaceNotification(data, notification) {
+  const recipient = notification?.recipient;
+  const actor = notification?.by || data?.me;
+  if (!recipient || recipient === actor || !Array.isArray(data?.notifs)) return null;
+  if (Array.isArray(data?.members) && !data.members.some(member => member.id === recipient)) return null;
+
+  const created = {
+    ...notification,
+    recipient,
+    by: actor || null,
+    at: notification.at || Date.now(),
+    read: false,
+  };
+  data.notifs.unshift(created);
+  return created;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function mentionedMemberIds(text, members = []) {
+  const source = String(text || '');
+  return members
+    .filter(member => member?.id && member?.name)
+    .filter(member => new RegExp(`(^|\\s)@${escapeRegExp(member.name)}(?=$|[\\s.,!?;:)])`, 'iu').test(source))
+    .map(member => member.id);
+}

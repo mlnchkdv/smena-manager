@@ -5,7 +5,7 @@ import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
-import { migrateNotificationRecipients, notificationForMember, notificationsForMember } from '../shared/notification-model.js';
+import { addWorkspaceNotification, migrateNotificationRecipients, notificationForMember, notificationsForMember } from '../shared/notification-model.js';
 
 export const STORE_KEY = 'smena.v1';
 export const LEGACY_STORE_KEYS = ['gr8r.v2'];
@@ -159,6 +159,15 @@ export const isOver = t => t.due && t.status !== 'done' && diffD(parse(t.due), T
 export const commentsOf = tid => D().comments.filter(c => c.task === tid);
 export const myNotifications = () => notificationsForMember(D(), D().me);
 export const myNotification = id => notificationForMember(D(), id, D().me);
+export const notify = (recipient, type, details = {}) =>
+  addWorkspaceNotification(D(), {
+    id: uid('n'),
+    recipient,
+    type,
+    by: D().me,
+    at: Date.now(),
+    ...details,
+  });
 export function progressOf(pid) {
   const ts = tasksOf(pid);
   if (!ts.length) return 0;

@@ -16,6 +16,7 @@ import {
   mem,
   myNotification,
   myNotifications,
+  notify,
   proj,
   save,
   task,
@@ -47,8 +48,9 @@ import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { isRussian, templateText } from '../core/i18n.js';
+import { isRussian, t as tr, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
+import { mentionedMemberIds } from '../shared/notification-model.js';
 
 export const A = {},
   IN = {},
@@ -93,6 +95,11 @@ export function createTask(f) {
   D().tasks.push(t);
   fxSet({ added: t.id });
   logAct('created', t);
+  notify(t.assignee, 'assign', {
+    task: t.id,
+    text: 'assigned you',
+    snippet: t.due ? `Срок: ${fmtDate(t.due)}` : 'Новая задача',
+  });
   return t;
 }
 export const RECUR_DAYS = { Daily: 1, Weekly: 7, 'Every 2 weeks': 14, Monthly: 30 };
@@ -110,6 +117,11 @@ export function applyPatch(t, patch) {
         logAct('completed', t);
         fxSet({ done: t.id });
       } else logAct('moved', t, `from ${ST[old].name} to ${ST[nv].name}`);
+      notify(t.assignee, 'update', {
+        task: t.id,
+        text: nv === 'done' ? 'completed' : `moved to ${ST[nv].name}`,
+        snippet: `${tr(ST[old].name)} → ${tr(ST[nv].name)}`,
+      });
       if (nv === 'done' && t.recur && t.due) {
         const nd = iso(addD(parse(t.due), RECUR_DAYS[t.recur] || 7));
         const n = createTask({
@@ -126,8 +138,14 @@ export function applyPatch(t, patch) {
         delete n.prevStatus;
         msgs.push(`Next “${t.title}” scheduled for ${fmtDate(nd)}`);
       }
-    } else if (k === 'assignee') logAct('assigned', t, nv ? `to ${mem(nv)?.name}` : '(unassigned)');
-    else if (k === 'priority') logAct('changed priority of', t, `to ${PR[nv].name}`);
+    } else if (k === 'assignee') {
+      logAct('assigned', t, nv ? `to ${mem(nv)?.name}` : '(unassigned)');
+      notify(nv, 'assign', {
+        task: t.id,
+        text: 'assigned you',
+        snippet: t.due ? `Срок: ${fmtDate(t.due)}` : 'Новая задача',
+      });
+    } else if (k === 'priority') logAct('changed priority of', t, `to ${PR[nv].name}`);
     else if (k === 'due') logAct('changed due date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
     else if (k === 'start') logAct('changed start date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
     else if (k === 'project') {
@@ -1429,6 +1447,21 @@ A.postComment = el => {
     mutate(() => {
       D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, re: {} });
       logAct('commented on', t);
+      const mentioned = new Set(mentionedMemberIds(txt, D().members).filter(memberId => memberId !== D().me));
+      mentioned.forEach(recipient =>
+        notify(recipient, 'mention', {
+          task: t.id,
+          text: 'mentioned you in',
+          snippet: txt,
+        }),
+      );
+      if (t.assignee && t.assignee !== D().me && !mentioned.has(t.assignee)) {
+        notify(t.assignee, 'comment', {
+          task: t.id,
+          text: 'commented on',
+          snippet: txt,
+        });
+      }
       S.ui.drafts[id] = '';
       S.ui.mention = null;
       S.ui.drawerTab = 'comments';
