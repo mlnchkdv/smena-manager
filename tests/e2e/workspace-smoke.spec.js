@@ -78,9 +78,43 @@ test('Russian workspace remains usable and responsive across breakpoints', async
       await page.goto(`/e2e-team${route ? `/${route}` : ''}`);
       await expect(page.locator('#main-content')).toBeVisible();
       await expect(page.locator('.crumbs .cur')).toHaveText(heading);
+      await expect(page.locator('#main-content [aria-busy="true"]')).toHaveCount(0);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${viewport.name}/${route || 'home'} has horizontal page overflow`).toBeLessThanOrEqual(2);
       await expect(page.locator('body')).not.toContainText('Something went wrong');
+      const accessibilityIssues = await page.evaluate(() => {
+        const visible = element => Boolean(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+        const accessibleName = element => {
+          const labelledBy = element.getAttribute('aria-labelledby');
+          const labelledText = labelledBy
+            ? labelledBy
+                .split(/\s+/)
+                .map(id => document.getElementById(id)?.textContent || '')
+                .join(' ')
+            : '';
+          const label = element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`)?.textContent : '';
+          return [
+            element.getAttribute('aria-label'),
+            labelledText,
+            label,
+            element.closest('label')?.textContent,
+            element.title,
+            element.placeholder,
+            element.textContent,
+          ]
+            .join(' ')
+            .trim();
+        };
+        const duplicates = [...document.querySelectorAll('[id]')].map(element => element.id).filter((id, index, ids) => id && ids.indexOf(id) !== index);
+        const unnamed = [...document.querySelectorAll('button, [role="button"], input:not([type="hidden"]), select, textarea')]
+          .filter(element => visible(element) && !accessibleName(element))
+          .map(
+            element =>
+              `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${element.className ? `.${String(element.className).trim().replace(/\s+/g, '.')}` : ''}`,
+          );
+        return [...new Set([...duplicates.map(id => `duplicate-id:${id}`), ...unnamed.map(value => `unnamed:${value}`)])];
+      });
+      expect(accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
     }
   }
 });
