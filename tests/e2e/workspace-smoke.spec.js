@@ -47,6 +47,26 @@ async function openTrash(page) {
   await page.locator('[data-a="set"][data-k="archTab"][data-v="trash"]').click();
 }
 
+async function visibleUntranslatedUi(page) {
+  return page.evaluate(() => {
+    const allowed =
+      /Smena Manager|E2E|CtrlK|https?|URL|JSON|KMS|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
+    const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
+    return [
+      ...new Set(
+        [...document.querySelectorAll('body *')]
+          .filter(element => visible(element) && !element.children.length)
+          .map(element => element.textContent?.replace(/\s+/g, ' ').trim() || '')
+          .filter(text => /[A-Za-z]{3}/u.test(text.replace(allowed, ''))),
+      ),
+    ];
+  });
+}
+
+async function expectRussianUi(page, context) {
+  expect(await visibleUntranslatedUi(page), `${context} contains untranslated English UI text`).toEqual([]);
+}
+
 test('Russian workspace remains usable and responsive across breakpoints', async ({ page }) => {
   await signIn(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
@@ -135,19 +155,7 @@ test('Russian workspace remains usable and responsive across breakpoints', async
       });
       expect(accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
       if (viewport.name === 'desktop') {
-        const untranslated = await page.evaluate(() => {
-          const allowed =
-            /Smena Manager|E2E|CtrlK|https?|URL|JSON|KMS|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b(?:MB|GB|PDF|CSV|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/iu;
-          const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
-          return [
-            ...new Set(
-              [...document.querySelectorAll('body *')]
-                .filter(element => visible(element) && !element.children.length)
-                .map(element => element.textContent?.replace(/\s+/g, ' ').trim() || '')
-                .filter(text => /[A-Za-z]{3}/u.test(text) && !allowed.test(text)),
-            ),
-          ];
-        });
+        const untranslated = await visibleUntranslatedUi(page);
         if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
       }
     }
@@ -165,10 +173,12 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('#knowledge-title').fill(noteTitle);
   await page.locator('#knowledge-summary').fill('Проверка сохранения общей базы знаний');
   await page.locator('#knowledge-body').fill('Содержимое заметки сохраняется между сеансами.');
+  await expectRussianUi(page, 'knowledge editor');
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('#knowledge-title')).toHaveValue(noteTitle);
   await page.locator('[data-a="deleteKnowledgeNote"]').click();
+  await expectRussianUi(page, 'knowledge delete confirmation');
   await confirmDialog(page);
   await waitForSaved(page);
   await openTrash(page);
@@ -185,12 +195,14 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('#bookmark-url').fill('https://example.com/team-guide');
   await page.locator('#bookmark-title').fill(bookmarkTitle);
   await page.locator('#bookmark-description').fill('Проверка общей коллекции ссылок');
+  await expectRussianUi(page, 'bookmark editor');
   await page.locator('[data-a="saveBookmark"]').click();
   await waitForSaved(page);
   await page.reload();
   const bookmarkCard = page.locator('.bookmark-card', { hasText: bookmarkTitle });
   await expect(bookmarkCard).toBeVisible();
   await bookmarkCard.locator('[data-a="deleteBookmark"]').click();
+  await expectRussianUi(page, 'bookmark delete confirmation');
   await confirmDialog(page);
   await waitForSaved(page);
   await openTrash(page);
@@ -219,7 +231,9 @@ test('shared content, files, settings, and backups persist through core workflow
   const fileCard = page.locator('.fcard', { hasText: fileName });
   await expect(fileCard).toBeVisible();
   await fileCard.locator('[data-a="ctxBtn"]').click();
+  await expectRussianUi(page, 'file context menu');
   await page.locator('[data-a="delFile"]:visible').click();
+  await expectRussianUi(page, 'file delete confirmation');
   await confirmDialog(page);
   await waitForSaved(page);
   await openTrash(page);
@@ -229,6 +243,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await waitForSaved(page);
 
   await page.goto('/e2e-team/settings/workspace');
+  await expectRussianUi(page, 'workspace settings');
   await page.locator('#ws-name').fill('E2E Команда — сохранено');
   await page.locator('#ws-save').click();
   await waitForSaved(page);
@@ -239,6 +254,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await waitForSaved(page);
 
   await page.goto('/e2e-team/settings/data-transfer');
+  await expectRussianUi(page, 'data transfer settings');
   await page.locator('[data-a="createWorkspaceBackup"]').click();
   await expect(page.locator('.toast')).toContainText('Резервная копия сохранена.', { timeout: 15_000 });
   await expect(page.getByText('Ручная копия', { exact: true }).first()).toBeVisible();
