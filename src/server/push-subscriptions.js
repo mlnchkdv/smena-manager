@@ -1,10 +1,13 @@
 import crypto from 'node:crypto';
+import net from 'node:net';
 import webpush from 'web-push';
 import { getStorageProvider } from './storage/index.js';
 import { notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
 import { notificationPath } from '../shared/notification-links.js';
 
 let mutationQueue = Promise.resolve();
+const DAY_MS = 24 * 60 * 60 * 1000;
+const BASE64URL = /^[A-Za-z0-9_-]+$/u;
 
 function pushConfig() {
   const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
@@ -28,10 +31,65 @@ export function normalizePushSubscription(value) {
   } catch {
     throw new TypeError('A valid push subscription endpoint is required.');
   }
-  if (url.protocol !== 'https:' || endpoint.length > 2048 || !p256dh || !auth || p256dh.length > 256 || auth.length > 128) {
+  const expirationTime = value.expirationTime == null ? null : Number(value.expirationTime);
+  if (
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    endpoint.length > 2048 ||
+    !publicEndpointHost(url.hostname) ||
+    !validBrowserKey(p256dh, 65, 0x04) ||
+    !validBrowserKey(auth, 16) ||
+    (expirationTime !== null && (!Number.isFinite(expirationTime) || expirationTime <= 0))
+  ) {
     throw new TypeError('The push subscription is invalid.');
   }
-  return { endpoint, expirationTime: value.expirationTime || null, keys: { p256dh, auth } };
+  return { endpoint, expirationTime, keys: { p256dh, auth } };
+}
+
+function validBrowserKey(value, expectedBytes, firstByte) {
+  if (!BASE64URL.test(value)) return false;
+  const decoded = Buffer.from(value, 'base64url');
+  return decoded.length === expectedBytes && (firstByte === undefined || decoded[0] === firstByte);
+}
+
+function publicEndpointHost(value) {
+  const hostname = String(value || '')
+    .replace(/^\[|\]$/gu, '')
+    .toLowerCase();
+  if (!hostname || hostname === 'localhost' || hostname.endsWith('.localhost') || (!hostname.includes('.') && !net.isIP(hostname))) return false;
+  const version = net.isIP(hostname);
+  if (version === 4) {
+    const [a, b] = hostname.split('.').map(Number);
+    return !(
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      a >= 224
+    );
+  }
+  if (version === 6) return !['::', '::1'].includes(hostname) && !/^f[cd]/u.test(hostname) && !/^fe[89ab]/u.test(hostname);
+  return true;
+}
+
+export function prunePushSubscriptions(items, options = {}) {
+  const now = Number(options.now || Date.now());
+  const cutoff = now - Number(options.maxAgeDays ?? 180) * DAY_MS;
+  const kept = [];
+  const removedIds = [];
+  for (const item of Array.isArray(items) ? items : []) {
+    const expiration = Number(item?.subscription?.expirationTime || 0);
+    const touched = Date.parse(item?.updatedAt || item?.createdAt || '');
+    const expired = expiration > 0 && expiration <= now;
+    const abandoned = Number.isFinite(touched) && touched < cutoff;
+    if (!item?.id || expired || abandoned) removedIds.push(item?.id);
+    else kept.push(item);
+  }
+  return { items: kept, removedIds: removedIds.filter(Boolean) };
 }
 
 function subscriptionId(endpoint) {
@@ -72,14 +130,27 @@ export async function upsertPushSubscription(memberId, profileId, value, options
     updatedAt: now,
   };
   await mutateSubscriptions(items => {
+    items = prunePushSubscriptions(items).items;
     const existing = items.find(item => item.id === record.id);
     if (existing) record.createdAt = existing.createdAt || now;
     const others = items.filter(item => item.id !== record.id);
-    const memberItems = others.filter(item => item.memberId === memberId);
+    const memberItems = others
+      .filter(item => item.memberId === memberId)
+      .sort((a, b) => Date.parse(a.updatedAt || a.createdAt || 0) - Date.parse(b.updatedAt || b.createdAt || 0));
     const oldestIds = new Set(memberItems.slice(0, Math.max(0, memberItems.length - 9)).map(item => item.id));
     return [...others.filter(item => !oldestIds.has(item.id)), record].slice(-500);
   });
   return { id: record.id };
+}
+
+export async function cleanupPushSubscriptions(options = {}) {
+  const storage = getStorageProvider();
+  const current = typeof storage.loadPushSubscriptions === 'function' ? await storage.loadPushSubscriptions() : [];
+  const result = prunePushSubscriptions(current, options);
+  if (!result.removedIds.length) return { removed: 0 };
+  const stale = new Set(result.removedIds);
+  await mutateSubscriptions(items => items.filter(item => !stale.has(item.id)));
+  return { removed: stale.size };
 }
 
 export async function removePushSubscription(memberId, endpoint) {
@@ -123,9 +194,11 @@ export async function deliverPushNotifications(data, notifications = []) {
   const config = pushConfig();
   if (!config.enabled || !notifications.length) return { delivered: 0, removed: 0 };
   const storage = getStorageProvider();
-  const subscriptions = await storage.loadPushSubscriptions();
+  const storedSubscriptions = await storage.loadPushSubscriptions();
+  const pruned = prunePushSubscriptions(storedSubscriptions);
+  const subscriptions = pruned.items;
   webpush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
-  const stale = new Set();
+  const stale = new Set(pruned.removedIds);
   let delivered = 0;
 
   await Promise.all(

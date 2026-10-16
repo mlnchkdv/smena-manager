@@ -21,12 +21,7 @@ import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
 import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
-import {
-  deliverPushNotifications,
-  publicPushConfig,
-  removePushSubscription,
-  upsertPushSubscription,
-} from './push-subscriptions.js';
+import { cleanupPushSubscriptions, deliverPushNotifications, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
 import { deliverEmailNotifications, emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
@@ -57,7 +52,8 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       return { delivered: 0, error: 'delivery_failed' };
     });
     const cleanup = await runNotificationCleanup();
-    response.json({ status: 'ok', reminders, digest, cleanup });
+    const pushCleanup = await cleanupPushSubscriptions();
+    response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup });
   } catch (error) {
     next(error);
   }
@@ -228,10 +224,7 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
-    await Promise.allSettled([
-      deliverPushNotifications(data, createdNotifications),
-      deliverEmailNotifications(data, createdNotifications),
-    ]);
+    await Promise.allSettled([deliverPushNotifications(data, createdNotifications), deliverEmailNotifications(data, createdNotifications)]);
     response.json({ data });
   } catch (error) {
     next(error);
