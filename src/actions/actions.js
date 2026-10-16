@@ -273,7 +273,7 @@ A.createWorkspaceBackup = async el => {
     await createWorkspaceBackup('Ручная копия');
     S.ui.backups = await getWorkspaceBackups();
     render();
-    toast('Резервная копия сохранена в Google Drive.');
+    toast('Резервная копия сохранена.');
   } catch (error) {
     render();
     toast(error.message || 'Не удалось создать резервную копию.', { kind: 'err', ms: 8000 });
