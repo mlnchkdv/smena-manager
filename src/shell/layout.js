@@ -200,11 +200,33 @@ export function crumbs() {
   return out.join('<span class="sep">/</span>');
 }
 export function renderTopbar() {
+  const state = S.ui.syncConflict
+    ? 'conflict'
+    : S.ui.offline
+      ? 'offline'
+      : S.ui.syncUnavailable
+        ? 'unavailable'
+        : S.ui.syncTooLarge
+          ? 'too_large'
+          : S.ui.syncInvalid
+            ? 'invalid'
+            : S.ui.syncState || 'saved';
+  const sync = {
+    syncing: ['loader', 'Сохранение…'],
+    saved: ['cloud-check', 'Сохранено'],
+    offline: ['wifi-off', 'Нет сети'],
+    unavailable: ['cloud-alert', 'Сервис недоступен'],
+    conflict: ['git-merge', 'Конфликт'],
+    too_large: ['database-zap', 'Превышен лимит'],
+    invalid: ['triangle-alert', 'Ошибка данных'],
+  }[state];
+  const syncTitle = state === 'saved' && S.ui.lastSyncedAt ? `Последняя синхронизация: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString('ru-RU')}` : sync[1];
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" style="display:none" id="mnav-btn">${ic('menu', 17)}</button>
     <style>@media(max-width:900px){#mnav-btn{display:inline-flex!important}}</style>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
+    <span class="sync-indicator" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}">${ic(sync[0], 13)}<span class="sync-label">${sync[1]}</span></span>
     <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${D().notifs.some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>

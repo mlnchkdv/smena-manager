@@ -32,6 +32,8 @@ export function applyWorkspaceSnapshot(snapshot) {
   data.me = member.id;
   S.data = data;
   S.ui.workspaceRevision = Number(snapshot.revision || 0);
+  S.ui.syncState = 'saved';
+  S.ui.lastSyncedAt = Date.now();
   setWorkspaceBaseline(data);
   configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data);
 }

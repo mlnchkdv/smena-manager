@@ -35,6 +35,7 @@ test('Russian workspace remains usable and responsive across breakpoints', async
   await page.locator('#f-title').fill('Сквозная проверка сохранения');
   await page.locator('#f-submit').click();
   await expect(page.getByText('Сквозная проверка сохранения', { exact: true }).first()).toBeVisible();
+  await expect(page.locator('#sync-indicator')).toContainText('Сохранено');
 
   await page.reload();
   await expect(page.locator('.shell')).toBeVisible();

@@ -64,6 +64,25 @@ import { resolveAppLocation } from './shared/app-location.js';
 
 let conflictRecoveryPromise = null;
 
+function updateSyncIndicator(status) {
+  S.ui.syncState = status;
+  const indicator = document.getElementById('sync-indicator');
+  if (!indicator) return;
+  const labels = {
+    syncing: 'Сохранение…',
+    saved: 'Сохранено',
+    offline: 'Нет сети',
+    unavailable: 'Сервис недоступен',
+    conflict: 'Конфликт',
+    too_large: 'Превышен лимит',
+    invalid: 'Ошибка данных',
+  };
+  indicator.dataset.state = status;
+  const label = indicator.querySelector('.sync-label');
+  if (label) label.textContent = labels[status] || labels.saved;
+  if (status === 'saved') indicator.title = `Последняя синхронизация: ${new Date(S.ui.lastSyncedAt || Date.now()).toLocaleTimeString('ru-RU')}`;
+}
+
 async function handleWorkspaceConflict() {
   if (conflictRecoveryPromise) return conflictRecoveryPromise;
   conflictRecoveryPromise = recoverWorkspaceConflict()
@@ -98,7 +117,9 @@ async function handleWorkspaceConflict() {
 
 window.addEventListener('smena:sync-status', event => {
   const { status, revision, data } = event.detail;
-  if (status === 'saved') {
+  if (status === 'syncing') {
+    updateSyncIndicator('syncing');
+  } else if (status === 'saved') {
     const wasOffline = S.ui.offline;
     S.ui.offline = false;
     S.ui.syncUnavailable = false;
@@ -106,18 +127,22 @@ window.addEventListener('smena:sync-status', event => {
     S.ui.syncInvalid = false;
     S.ui.syncConflict = false;
     S.ui.workspaceRevision = revision;
+    S.ui.lastSyncedAt = Date.now();
+    updateSyncIndicator('saved');
     if (data) setWorkspaceBaseline(data);
     if (wasOffline) {
       render();
       toast('Reconnected. All changes are synced.');
     }
   } else if (status === 'offline') {
+    updateSyncIndicator('offline');
     S.ui.syncUnavailable = false;
     if (!S.ui.offline) {
       S.ui.offline = true;
       render();
     }
   } else if (status === 'unavailable') {
+    updateSyncIndicator('unavailable');
     S.ui.offline = false;
     if (!S.ui.syncUnavailable) {
       S.ui.syncUnavailable = true;
@@ -125,6 +150,7 @@ window.addEventListener('smena:sync-status', event => {
       toast('The sync service is temporarily unavailable. Your changes are queued for retry.', { kind: 'err', ms: 12_000 });
     }
   } else if (status === 'conflict') {
+    updateSyncIndicator('conflict');
     S.ui.offline = false;
     S.ui.syncUnavailable = false;
     S.ui.syncConflict = true;
@@ -139,11 +165,13 @@ window.addEventListener('smena:sync-status', event => {
   } else if (status === 'forbidden') {
     toast('You do not have permission to save workspace changes.', { kind: 'err' });
   } else if (status === 'too_large') {
+    updateSyncIndicator('too_large');
     S.ui.offline = false;
     S.ui.syncTooLarge = true;
     render();
     toast('The workspace is too large to sync. Reduce large knowledge notes and try again.', { kind: 'err', ms: 12_000 });
   } else if (status === 'invalid') {
+    updateSyncIndicator('invalid');
     S.ui.offline = false;
     S.ui.syncInvalid = true;
     render();
