@@ -18,7 +18,6 @@ import {
   clearSession,
   createWorkspaceBackup,
   deleteAllWorkspaces,
-  deleteWorkspaceFile,
   downloadWorkspaceFile,
   getWorkspaceBackups,
   restoreWorkspaceBackup,
@@ -449,11 +448,12 @@ A.deleteKnowledgeNote = el => {
   if (!note) return;
   confirmDlg({
     title: 'Delete note?',
-    body: `<b>${esc(note.title)}</b> will be removed from the shared knowledge base.`,
-    ok: 'Delete note',
+    body: `<b>${esc(note.title)}</b> будет перемещена в корзину.`,
+    ok: 'В корзину',
     danger: true,
     run: () =>
       mutate(() => {
+        moveToTrash('note', note.title, { note: structuredClone(note) });
         D().knowledgeNotes = knowledgeCollections().notes.filter(item => item.id !== note.id);
         S.ui.knowledgeActive = D().knowledgeNotes[0]?.id || null;
       }),
@@ -639,11 +639,12 @@ A.deleteBookmark = el => {
   if (!link) return;
   confirmDlg({
     title: 'Delete bookmark?',
-    body: `<b>${esc(link.title)}</b> will be permanently removed from shared bookmarks.`,
-    ok: 'Delete bookmark',
+    body: `<b>${esc(link.title)}</b> будет перемещена в корзину.`,
+    ok: 'В корзину',
     danger: true,
     run: () =>
       mutate(() => {
+        moveToTrash('bookmark', link.title, { link: structuredClone(link) });
         D().links = bookmarkCollections().links.filter(item => item.id !== link.id);
       }),
   });
@@ -968,11 +969,28 @@ A.archiveTask = el => {
   });
   toast(`Archived “${t.title}”`, { action: 'Undo', onAction: () => restore(snap) });
 };
-export function deleteTasks(ids) {
+export function moveToTrash(kind, name, data) {
+  D().trash = D().trash || [];
+  D().trash.unshift({ id: uid('trash'), kind, name, deletedAt: Date.now(), deletedBy: D().me, data });
+}
+export function deleteTasks(ids, toTrash = true) {
   const set = new Set(ids);
+  if (toTrash) {
+    D()
+      .tasks.filter(t => set.has(t.id))
+      .forEach(t => {
+        const comments = D().comments.filter(comment => comment.task === t.id);
+        const files = D().files.filter(file => file.task === t.id);
+        const dependentTaskIds = D()
+          .tasks.filter(candidate => (candidate.deps || []).includes(t.id))
+          .map(candidate => candidate.id);
+        moveToTrash('task', t.title, { task: structuredClone(t), comments: structuredClone(comments), files: structuredClone(files), dependentTaskIds });
+      });
+  }
   D().tasks = D().tasks.filter(t => !set.has(t.id));
   D().tasks.forEach(t => (t.deps = t.deps.filter(d => !set.has(d))));
   D().comments = D().comments.filter(c => !set.has(c.task));
+  D().files = D().files.filter(file => !set.has(file.task));
   if (set.has(S.ui.drawer)) S.ui.drawer = null;
   ids.forEach(i => S.ui.sel.delete(i));
 }
@@ -982,13 +1000,13 @@ A.delTask = el => {
   if (!t) return;
   const run = () => {
     const snap = snapshot();
-    if (mutate(() => deleteTasks([t.id]))) toast(`Deleted “${t.title}”`, { action: 'Undo', onAction: () => restore(snap) });
+    if (mutate(() => deleteTasks([t.id]))) toast(`«${t.title}» перемещена в корзину`, { action: 'Отменить', onAction: () => restore(snap) });
   };
   if (S.prefs.confirmDel === false && !el.dataset.demo) return run();
   confirmDlg({
     title: 'Delete task?',
-    body: `<b>${esc(t.title)}</b>${t.subtasks.length ? `, its ${t.subtasks.length} subtasks,` : ''} and ${commentsOf(t.id).length} comment${commentsOf(t.id).length === 1 ? '' : 's'} will be permanently deleted.`,
-    ok: 'Delete task',
+    body: `<b>${esc(t.title)}</b>${t.subtasks.length ? `, its ${t.subtasks.length} subtasks,` : ''} and ${commentsOf(t.id).length} comment${commentsOf(t.id).length === 1 ? '' : 's'} will be moved to the trash.`,
+    ok: 'Move to trash',
     danger: true,
     run,
   });
@@ -1881,26 +1899,33 @@ A.delProject = el => {
   const n = tasksOf(p.id).length;
   confirmDlg({
     title: `Delete ${p.name}?`,
-    body: `This permanently deletes the project and its <b>${n} task${n === 1 ? '' : 's'}</b>, files, and comments for everyone. This can't be undone.`,
-    ok: 'Delete project',
+    body: `The project and its <b>${n} task${n === 1 ? '' : 's'}</b>, files, and comments will be moved to the trash.`,
+    ok: 'Move to trash',
     danger: true,
     typeName: p.name,
     run: () => {
       const snap = snapshot();
       if (
         mutate(() => {
-          const ids = tasksOf(p.id).map(t => t.id);
-          D()
-            .tasks.filter(t => t.project === p.id)
-            .forEach(t => ids.push(t.id));
-          deleteTasks(ids);
+          const projectTasks = D().tasks.filter(t => t.project === p.id);
+          const ids = projectTasks.map(t => t.id);
+          const comments = D().comments.filter(comment => ids.includes(comment.task));
+          const files = D().files.filter(file => file.project === p.id);
+          moveToTrash('project', p.name, {
+            project: structuredClone(p),
+            tasks: structuredClone(projectTasks),
+            comments: structuredClone(comments),
+            files: structuredClone(files),
+            orderIndex: D().projOrder.indexOf(p.id),
+          });
+          deleteTasks(ids, false);
           D().projects = D().projects.filter(x => x !== p);
           D().projOrder = D().projOrder.filter(x => x !== p.id);
           D().files = D().files.filter(f => f.project !== p.id);
         })
       ) {
         if (S.ui.route === 'project' && S.ui.params.id === p.id) go('projects');
-        toast(`Deleted ${p.name}`, { action: 'Undo', onAction: () => restore(snap) });
+        toast(`${p.name} перемещён в корзину`, { action: 'Отменить', onAction: () => restore(snap) });
       }
     },
   });
@@ -2159,28 +2184,17 @@ A.delFile = el => {
     body: `<b>${esc(f.name)}</b> will be removed from the project${f.task ? ' and its task' : ''}.`,
     ok: 'Delete file',
     danger: true,
-    run: async () => {
-      if (f.storageName) {
-        try {
-          await retryWorkspaceSync();
-          const result = await deleteWorkspaceFile(f.id, S.ui.workspaceRevision);
-          applyWorkspaceSnapshot(result.data);
-          save();
-          render();
-          toast(`Deleted ${f.name}`);
-        } catch (error) {
-          toast(error.message || 'Unable to delete the file.', { kind: 'err' });
-        }
-        return;
-      }
+    run: () => {
       const snap = snapshot();
       if (
         mutate(() => {
+          const attachment = f.task && task(f.task) ? task(f.task).attachments.find(item => item.id === f.id || item.name === f.name) : null;
+          moveToTrash('file', f.name, { file: structuredClone(f), attachment: attachment ? structuredClone(attachment) : null });
           D().files = D().files.filter(x => x !== f);
-          if (f.task && task(f.task)) task(f.task).attachments = task(f.task).attachments.filter(a => a.name !== f.name);
+          if (f.task && task(f.task)) task(f.task).attachments = task(f.task).attachments.filter(a => a.id !== f.id && a.name !== f.name);
         })
       )
-        toast(`Deleted ${f.name}`, { action: 'Undo', onAction: () => restore(snap) });
+        toast(`${f.name} moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
     },
   });
 };

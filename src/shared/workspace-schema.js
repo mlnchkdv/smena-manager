@@ -15,6 +15,7 @@ const OBJECT_ARRAY_FIELDS = [
   'savedViews',
   'sessions',
   'invoices',
+  'trash',
 ];
 const STRING_ARRAY_FIELDS = ['projOrder', 'recentSearches'];
 const OBJECT_FIELDS = ['workspace', 'ws', 'notifPrefs'];

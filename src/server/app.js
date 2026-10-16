@@ -6,6 +6,7 @@ import {
   getWorkspaceDatabase,
   getWorkspaceStatus,
   listWorkspaceBackups,
+  mutateWorkspaceDatabase,
   replaceWorkspaceDatabase,
   restoreWorkspaceBackup,
   RevisionConflictError,
@@ -16,6 +17,7 @@ import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles } from '../shared/member-identity.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
+import { getStorageProvider } from './storage/index.js';
 
 export const app = express();
 
@@ -70,6 +72,39 @@ app.post('/api/backups', requireRole('admin'), async (request, response, next) =
 app.post('/api/backups/:id/restore', requireRole('admin'), async (request, response, next) => {
   try {
     response.json({ data: await restoreWorkspaceBackup(request.params.id, request.body?.revision) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    const revision = Number(request.body?.revision);
+    if (!Number.isInteger(revision) || revision < 0) throw new TypeError('A valid workspace revision is required.');
+    let removed;
+    const data = await mutateWorkspaceDatabase(
+      database => {
+        removed = (database.trash || []).find(item => item.id === request.params.id);
+        if (!removed) throw Object.assign(new Error('Trash item not found.'), { statusCode: 404, code: 'TRASH_NOT_FOUND' });
+        database.trash = database.trash.filter(item => item.id !== removed.id);
+        return database;
+      },
+      revision,
+      { role: request.user.role },
+    );
+    const storedFiles = [removed.data?.file, ...(removed.data?.files || [])].filter(file => file?.storageName);
+    let cleanupPending = false;
+    await Promise.all(
+      storedFiles.map(file =>
+        getStorageProvider()
+          .deleteFile(file.storageName, file.storageFileId)
+          .catch(error => {
+            cleanupPending = true;
+            console.error('[Trash] Stored file cleanup failed:', error);
+          }),
+      ),
+    );
+    response.json({ data, cleanupPending });
   } catch (error) {
     next(error);
   }

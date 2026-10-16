@@ -41,6 +41,7 @@ function createEmptyDatabase() {
     recentSearches: [],
     sessions: [],
     invoices: [],
+    trash: [],
     tfa: false,
     notifPrefs: {},
   };

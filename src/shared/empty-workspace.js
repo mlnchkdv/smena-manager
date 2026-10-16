@@ -17,6 +17,7 @@ const EMPTY_COLLECTIONS = [
   'sessions',
   'invoices',
   'teams',
+  'trash',
 ];
 
 export function emptyWorkspace(database) {

@@ -11,10 +11,16 @@ export function pageArchive() {
     .tasks.filter(t => t.archived && canSee(proj(t.project)) && !proj(t.project)?.archived)
     .sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
   const ps = D().projects.filter(p => p.archived);
+  const trash = [...(D().trash || [])].sort((a, b) => Number(b.deletedAt || 0) - Number(a.deletedAt || 0));
   const row = (lead, title, sub, when, restoreAct, delAct, id) =>
     `<div class="mini" style="min-height:52px;cursor:default;gap:12px">${lead}<div class="grow" style="min-width:0"><div class="trunc" style="font-weight:500">${title}</div><div class="faint trunc" style="font-size:12px">${sub}</div></div><span class="faint hide-m" style="font-size:12px;white-space:nowrap">${when}</span><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${id}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${id}" data-tip="Delete permanently" aria-label="Delete permanently" style="color:var(--red)">${ic('trash-2', 15)}</button></div>`;
+  const trashNames = { task: 'Задача', project: 'Проект', note: 'Заметка', bookmark: 'Закладка', file: 'Файл' };
   const body =
-    tab === 'tasks'
+    tab === 'trash'
+      ? trash.length
+        ? `<div class="panel" style="overflow:hidden">${trash.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), esc(item.name), trashNames[item.kind] || 'Элемент', item.deletedAt ? 'Удалено ' + ago(item.deletedAt) : 'Удалено', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
+        : `<div class="panel">${empty('trash-2', 'Корзина пуста', 'Удалённые задачи, проекты, заметки, закладки и файлы появятся здесь.', '')}</div>`
+      : tab === 'tasks'
       ? ts.length
         ? `<div class="panel" style="overflow:hidden">${ts
             .map(t => {
@@ -39,6 +45,7 @@ export function pageArchive() {
     <div class="tabs" style="margin-bottom:14px" role="tablist" aria-label="Archive">${[
       ['tasks', 'Tasks', ts.length],
       ['projects', 'Projects', ps.length],
+      ['trash', 'Корзина', trash.length],
     ]
       .map(
         ([k, n, c]) =>

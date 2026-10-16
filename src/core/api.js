@@ -210,3 +210,12 @@ export async function restoreWorkspaceBackup(id, revision) {
   );
   return result.data;
 }
+
+export async function purgeWorkspaceTrash(id, revision) {
+  const result = await request(
+    `/api/trash/${encodeURIComponent(id)}`,
+    { method: 'DELETE', body: JSON.stringify({ revision }) },
+    true,
+  );
+  return result;
+}
