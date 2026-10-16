@@ -6,6 +6,7 @@ test('browser notification categories use independent personal preferences', () 
   assert.equal(browserNotificationPreferenceKey({ type: 'mention' }), 'push_mention');
   assert.equal(browserNotificationPreferenceKey({ type: 'assign' }), 'push_assign');
   assert.equal(browserNotificationPreferenceKey({ type: 'comment' }), 'push_comment');
+  assert.equal(browserNotificationPreferenceKey({ type: 'due' }), 'push_due');
   assert.equal(browserNotificationPreferenceKey({ type: 'update' }), null);
 
   assert.equal(canDeliverBrowserNotification({ type: 'mention' }, { push_mention: true }, 'granted'), true);

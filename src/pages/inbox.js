@@ -13,6 +13,7 @@ export function pageInbox() {
     ['mention', 'Mentions'],
     ['assign', 'Assignments'],
     ['comment', 'Comments'],
+    ['due', 'Due dates'],
     ['update', 'Updates'],
   ];
   const cat = S.ui.inboxCat;
@@ -49,13 +50,13 @@ export function notifText(n) {
 }
 export function notifIcon(n) {
   if (n.by) return av(n.by, 'md', false);
-  const i = n.type === 'update' && n.project ? 'triangle-alert' : 'clock';
+  const i = n.type === 'due' ? 'clock-alert' : n.type === 'update' && n.project ? 'triangle-alert' : 'clock';
   return `<span class="av md" style="--c:${n.project ? 'var(--red)' : 'var(--amber)'}">${ic(i, 13)}</span>`;
 }
 export function inboxItem(n, on) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-  const typeIc = { mention: 'at-sign', assign: 'user-plus', comment: 'message-square', update: 'refresh-cw' }[n.type];
+  const typeIc = { mention: 'at-sign', assign: 'user-plus', comment: 'message-square', due: 'clock-alert', update: 'refresh-cw' }[n.type];
   return `<div class="row" style="align-items:flex-start;gap:10px;padding:12px var(--gutter);border-bottom:1px solid var(--divider);cursor:pointer;position:relative;${on ? 'background:var(--surface-2);' : ''}" data-a="selNotif" data-id="${n.id}" role="button" tabindex="0">
     ${!n.read ? '<span style="position:absolute;left:6px;top:22px;width:6px;height:6px;border-radius:50%;background:var(--accent)" aria-label="Unread"></span>' : ''}
     ${notifIcon(n)}

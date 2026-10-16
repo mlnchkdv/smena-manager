@@ -2,6 +2,7 @@ const PREFERENCE_BY_TYPE = Object.freeze({
   mention: 'push_mention',
   assign: 'push_assign',
   comment: 'push_comment',
+  due: 'push_due',
 });
 
 export function browserNotificationState() {

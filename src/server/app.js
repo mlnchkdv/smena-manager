@@ -19,6 +19,8 @@ import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
+import { requireCronSecret } from './cron-auth.js';
+import { runDueReminderSweep } from './due-reminders.js';
 
 export const app = express();
 
@@ -36,6 +38,14 @@ app.get('/api/health', (_request, response) => {
     runtime: process.env.VERCEL ? 'vercel' : 'node',
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
+  try {
+    response.json({ status: 'ok', ...(await runDueReminderSweep()) });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use('/api/auth', authRouter);
