@@ -59,6 +59,7 @@ const RU = {
   navigate: 'перемещение',
   select: 'выбрать',
   'search mode': 'режим поиска',
+  'Search mode': 'Режим поиска',
   'back to commands': 'к командам',
   'Tasks assigned to me': 'Задачи, назначенные мне',
   'High priority in Website Redesign': 'Высокий приоритет в Website Redesign',
@@ -73,6 +74,7 @@ const RU = {
   'Expand sidebar': 'Развернуть боковую панель',
   'Toggle sub-pages': 'Показать или скрыть подразделы',
   'Project options': 'Параметры проекта',
+  'Project status': 'Статус проекта',
   'New project': 'Новый проект',
   'New team': 'Новая команда',
   'Account menu': 'Меню аккаунта',
@@ -103,6 +105,8 @@ const RU = {
   'is due today': 'срок — сегодня',
   'No archived projects. Archived projects are hidden from the sidebar but keep all their tasks.':
     'Архивных проектов нет. Проекты в архиве скрыты из боковой панели, но все их задачи сохраняются.',
+  "You're all caught up.": 'Всё просмотрено.',
+  'Show all': 'Показать все',
   'View projects & tasks': 'Просмотр проектов и задач',
   'Workspace settings': 'Настройки рабочего пространства',
   'Toggle sidebar': 'Показать или скрыть боковую панель',
@@ -1067,6 +1071,40 @@ const TEMPLATE_TEXT_RU = {
   'Spec, build, ship': 'Спецификация, разработка и выпуск',
   'Personal Project': 'Личный проект',
   'Plan your own goals': 'Планируйте личные цели',
+  'Website Launch': 'Запуск сайта',
+  'Define problem statement': 'Сформулировать проблему',
+  'User research plan': 'План исследования пользователей',
+  'Write PRD': 'Подготовить требования к продукту',
+  'Design exploration': 'Проработать варианты дизайна',
+  'Build MVP': 'Разработать MVP',
+  'Beta launch': 'Запустить бета-версию',
+  'Sitemap & information architecture': 'Карта сайта и информационная архитектура',
+  Wireframes: 'Вайрфреймы',
+  'Visual design': 'Визуальный дизайн',
+  'Build page templates': 'Разработать шаблоны страниц',
+  'Content migration': 'Перенести контент',
+  'QA & launch': 'Тестирование и запуск',
+  'Campaign brief': 'Бриф кампании',
+  'Audience research': 'Исследование аудитории',
+  'Creative assets': 'Креативные материалы',
+  'Channel plan': 'План каналов',
+  'Launch campaign': 'Запустить кампанию',
+  'Performance report': 'Отчёт о результатах',
+  'Discovery workshop': 'Вводный воркшоп',
+  Moodboard: 'Мудборд',
+  'Concept directions': 'Концептуальные направления',
+  Refinement: 'Доработка',
+  'Developer handoff': 'Передача в разработку',
+  'Technical spec': 'Техническая спецификация',
+  'Set up repo & CI': 'Настроить репозиторий и CI',
+  'Implement core API': 'Реализовать основное API',
+  'Write tests': 'Написать тесты',
+  'Code review': 'Провести ревью кода',
+  'Deploy to staging': 'Развернуть на тестовом окружении',
+  'Brain dump ideas': 'Собрать идеи',
+  'Pick top 3 priorities': 'Выбрать три главных приоритета',
+  'Schedule focus time': 'Запланировать время для фокусной работы',
+  'Weekly review': 'Еженедельный обзор',
 };
 
 export const templateText = value => (isRussian() ? TEMPLATE_TEXT_RU[value] || value : value);
@@ -1079,6 +1117,8 @@ const pluralRu = (value, one, few, many) => {
 };
 
 const PATTERNS = [
+  [/^Workspace “(.+)”$/u, 'Пространство «$1»'],
+  [/^Project “(.+)”$/u, 'Проект «$1»'],
   [/^Good morning, (.+)$/u, 'Доброе утро, $1'],
   [/^Good afternoon, (.+)$/u, 'Добрый день, $1'],
   [/^Good evening, (.+)$/u, 'Добрый вечер, $1'],
@@ -1194,7 +1234,7 @@ export function t(value) {
   const text = match?.[2] || raw;
   const tail = match?.[3] || '';
   if (!text) return raw;
-  let translated = RU[text];
+  let translated = RU[text] || TEMPLATE_TEXT_RU[text];
   if (!translated) {
     for (const [pattern, replacement] of PATTERNS) {
       if (pattern.test(text)) {

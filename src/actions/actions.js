@@ -21,6 +21,8 @@ import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portab
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
+import { workspaceSlug } from '../shared/workspace-slug.js';
+import { isRussian, templateText } from '../core/i18n.js';
 
 export const A = {},
   IN = {},
@@ -1714,7 +1716,7 @@ export function createProject(f, tmplId) {
   (tm?.tasks || []).forEach((title, i) =>
     createTask({
       project: p.id,
-      title,
+      title: templateText(title),
       status: i === 0 ? 'todo' : 'backlog',
       assignee: i === 0 ? D().me : null,
       priority: i === 0 ? 'high' : 'medium',
@@ -2187,7 +2189,7 @@ A.setSearch = el => {
 A.switchWs = el => {
   const w = D().workspaces.find(x => x.id === el.dataset.v);
   S.ui.pop = null;
-  D().ws = { name: w.name, url: w.name.toLowerCase().replace(/[^a-z0-9]+/g, ''), c: w.c, brand: !!w.brand };
+  D().ws = { name: w.name, url: workspaceSlug(w.name) || 'workspace', c: w.c, brand: !!w.brand };
   save();
   go('home');
   toast(`Switched to ${w.name}`);
@@ -2337,10 +2339,7 @@ A.wsColor = el => {
 };
 A.saveWorkspace = () => {
   const n = $('#ws-name').value.trim();
-  const u = $('#ws-url')
-    .value.trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, '-');
+  const u = workspaceSlug($('#ws-url').value);
   if (!n) {
     toast("Workspace name can't be empty", { kind: 'err' });
     return;
@@ -2682,17 +2681,12 @@ A.onbSet = el => {
 IN.onbWs = el => {
   const o = S.ui.onbData;
   o.ws = el.value;
-  if (!o.urlTouched)
-    o.url = el.value
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+  if (!o.urlTouched) o.url = workspaceSlug(el.value);
   if (S.ui.errors.ws && el.value.trim()) S.ui.errors.ws = null;
   render();
 };
 IN.onbUrl = el => {
-  S.ui.onbData.url = el.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+  S.ui.onbData.url = workspaceSlug(el.value);
   S.ui.onbData.urlTouched = true;
   render();
 };
@@ -2750,12 +2744,12 @@ A.onbFinish = () => {
     const tm = TEMPLATES.find(t => t.id === o.tmpl) || TEMPLATES[2];
     p = createProject(
       {
-        name: o.proj.trim() || tm.name,
+        name: (o.projTouched ? o.proj : templateText(o.proj)).trim() || templateText(tm.name),
         icon: tm.icon === 'file' ? 'folder' : tm.icon,
         color: 'indigo',
         team: me().team,
         lead: D().me,
-        desc: `Created during setup from the ${tm.name} template.`,
+        desc: isRussian() ? `Создан во время настройки по шаблону «${templateText(tm.name)}».` : `Created during setup from the ${tm.name} template.`,
       },
       tm.id,
     );

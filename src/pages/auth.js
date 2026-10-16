@@ -117,7 +117,7 @@ export function renderOnboarding() {
       .join('')}</div>
     <div class="field"><span class="label">Team size</span><div class="seg" style="width:fit-content">${['Just me', '2-10', '11-50', '51-200', '200+'].map(s => `<button class="${o.size === s ? 'on' : ''}" data-a="onbSet" data-k="size" data-v="${s}">${s}</button>`).join('')}</div></div>${nav()}`;
   if (st === 3)
-    body = `<h1>Create your first project</h1><p class="sub">Start from a template or a blank project.</p><div class="field"><label class="label" for="o-proj">Project name</label><input class="input input-lg" id="o-proj" data-in="onbProj" value="${esc(o.proj)}" autofocus></div><div class="tmpls" role="radiogroup">${TEMPLATES.filter(
+    body = `<h1>Create your first project</h1><p class="sub">Start from a template or a blank project.</p><div class="field"><label class="label" for="o-proj">Project name</label><input class="input input-lg" id="o-proj" data-in="onbProj" value="${esc(o.projTouched ? o.proj : templateText(o.proj))}" autofocus></div><div class="tmpls" role="radiogroup">${TEMPLATES.filter(
       t => t.id !== 'blank',
     )
       .map(t => opt('tmpl', t.id, t.icon, templateText(t.name), t.tasks.length + ' starter tasks'))
@@ -131,7 +131,7 @@ export function renderOnboarding() {
       ['building-2', `Workspace “${esc(o.ws || 'My Workspace')}”`, productHost() + '/' + esc(o.url || 'workspace')],
       [
         TEMPLATES.find(t => t.id === o.tmpl)?.icon || 'folder',
-        `Project “${esc(o.proj)}”`,
+        `Project “${esc(o.projTouched ? o.proj : templateText(o.proj))}”`,
         `${TEMPLATES.find(t => t.id === o.tmpl)?.tasks.length || 0} starter tasks · ${{ kanban: 'Board', list: 'List', timeline: 'Timeline', table: 'Table' }[o.team]} view`,
       ],
       [
