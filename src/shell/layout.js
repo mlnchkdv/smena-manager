@@ -21,11 +21,35 @@ import { page404, stateFailed } from '../pages/errors.js';
 import { pageProject } from '../pages/project.js';
 import { pageWsCalendar } from '../views/calendar.js';
 import { pageWsTimeline } from '../views/timeline.js';
-import { pageSettings } from '../pages/settings.js';
-import { pageStates, pageSystem } from '../pages/design-system.js';
 import { pageArchive } from '../features/archive.js';
-import { pageKnowledge } from '../pages/knowledge.js';
-import { pageBookmarks } from '../pages/bookmarks.js';
+
+const lazyPages = new Map();
+const lazyPagePromises = new Map();
+const lazyPageLoaders = {
+  knowledge: () => import('../pages/knowledge.js').then(module => module.pageKnowledge),
+  bookmarks: () => import('../pages/bookmarks.js').then(module => module.pageBookmarks),
+  settings: () => import('../pages/settings.js').then(module => module.pageSettings),
+  system: () => import('../pages/design-system.js').then(module => module.pageSystem),
+  states: () => import('../pages/design-system.js').then(module => module.pageStates),
+};
+
+function lazyPage(route) {
+  if (lazyPages.has(route)) return lazyPages.get(route)();
+  if (!lazyPagePromises.has(route)) {
+    const promise = lazyPageLoaders[route]()
+      .then(page => {
+        lazyPages.set(route, page);
+        window.dispatchEvent(new CustomEvent('smena:page-module-ready', { detail: { route } }));
+      })
+      .catch(error => {
+        console.error(`[Pages] Unable to load ${route}:`, error);
+        lazyPages.set(route, stateFailed);
+        window.dispatchEvent(new CustomEvent('smena:page-module-ready', { detail: { route } }));
+      });
+    lazyPagePromises.set(route, promise);
+  }
+  return skeleton();
+}
 
 export function renderShell() {
   const u = S.ui;
@@ -67,11 +91,11 @@ export function renderPage() {
       teams: pageTeams,
       team: pageTeam,
       activity: pageActivity,
-      knowledge: pageKnowledge,
-      bookmarks: pageBookmarks,
-      settings: pageSettings,
-      system: pageSystem,
-      states: pageStates,
+      knowledge: () => lazyPage('knowledge'),
+      bookmarks: () => lazyPage('bookmarks'),
+      settings: () => lazyPage('settings'),
+      system: () => lazyPage('system'),
+      states: () => lazyPage('states'),
       archive: pageArchive,
     };
     return (P[r] || page404)();

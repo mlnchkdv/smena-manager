@@ -4,7 +4,7 @@ import { LOGO, ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { effectiveDark } from '../core/theme.js';
 import { TEMPLATES } from '../overlays/modals.js';
-import { strengthMeter } from './settings.js';
+import { strengthMeter } from '../ui/strength-meter.js';
 import { templateText } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 

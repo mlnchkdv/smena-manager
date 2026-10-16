@@ -42,9 +42,7 @@ import './overlays/modals.js';
 import './overlays/popovers.js';
 import './overlays/context-menu.js';
 import './overlays/palette.js';
-import './pages/settings.js';
 import './pages/auth.js';
-import './pages/design-system.js';
 import './actions/actions.js';
 import './actions/events.js';
 import './actions/keyboard.js';
@@ -61,6 +59,10 @@ import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
 import { resolveAppLocation } from './shared/app-location.js';
+
+window.addEventListener('smena:page-module-ready', event => {
+  if (event.detail?.route === S.ui.route) render();
+});
 
 let conflictRecoveryPromise = null;
 
