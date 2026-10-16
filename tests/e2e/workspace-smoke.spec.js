@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 test.setTimeout(120_000);
 
 async function finishOnboarding(page) {
-  await page.locator('#o-ws, .shell').first().waitFor({ state: 'visible' });
+  const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
+  await outcome.waitFor({ state: 'visible' });
+  if ((await outcome.getAttribute('role')) === 'alert') throw new Error(`Sign in failed: ${(await outcome.textContent())?.trim()}`);
   if (
     !(await page
       .locator('#o-ws')
@@ -27,6 +29,22 @@ async function signIn(page) {
   await page.locator('#login-btn').click();
   await finishOnboarding(page);
   await expect(page.locator('.shell')).toBeVisible();
+}
+
+async function waitForSaved(page) {
+  // Workspace writes are coalesced for 150 ms, while a few form actions finish
+  // their button feedback before committing (up to 600 ms).
+  await page.waitForTimeout(650);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15_000 });
+}
+
+async function confirmDialog(page) {
+  await page.locator('[data-a="confirmOk"]:visible').last().click();
+}
+
+async function openTrash(page) {
+  await page.goto('/e2e-team/archive');
+  await page.locator('[data-a="set"][data-k="archTab"][data-v="trash"]').click();
 }
 
 test('Russian workspace remains usable and responsive across breakpoints', async ({ page }) => {
@@ -117,4 +135,93 @@ test('Russian workspace remains usable and responsive across breakpoints', async
       expect(accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
     }
   }
+});
+
+test('shared content, files, settings, and backups persist through core workflows', async ({ page }) => {
+  await signIn(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  const noteTitle = 'Регламент сквозной проверки';
+  await page.goto('/e2e-team/knowledge');
+  await page.locator('[data-a="newKnowledgeNote"]').first().click();
+  await page.locator('#knowledge-title').fill(noteTitle);
+  await page.locator('#knowledge-summary').fill('Проверка сохранения общей базы знаний');
+  await page.locator('#knowledge-body').fill('Содержимое заметки сохраняется между сеансами.');
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('#knowledge-title')).toHaveValue(noteTitle);
+  await page.locator('[data-a="deleteKnowledgeNote"]').click();
+  await confirmDialog(page);
+  await waitForSaved(page);
+  await openTrash(page);
+  const noteTrashRow = page.locator('.mini', { hasText: noteTitle });
+  await expect(noteTrashRow).toBeVisible();
+  await noteTrashRow.locator('[data-a="restoreTrash"]').click();
+  await waitForSaved(page);
+  await page.goto('/e2e-team/knowledge');
+  await expect(page.getByText(noteTitle, { exact: true }).first()).toBeVisible();
+
+  const bookmarkTitle = 'Справочник для команды';
+  await page.goto('/e2e-team/bookmarks');
+  await page.locator('[data-a="newBookmark"]').first().click();
+  await page.locator('#bookmark-url').fill('https://example.com/team-guide');
+  await page.locator('#bookmark-title').fill(bookmarkTitle);
+  await page.locator('#bookmark-description').fill('Проверка общей коллекции ссылок');
+  await page.locator('[data-a="saveBookmark"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  const bookmarkCard = page.locator('.bookmark-card', { hasText: bookmarkTitle });
+  await expect(bookmarkCard).toBeVisible();
+  await bookmarkCard.locator('[data-a="deleteBookmark"]').click();
+  await confirmDialog(page);
+  await waitForSaved(page);
+  await openTrash(page);
+  const bookmarkTrashRow = page.locator('.mini', { hasText: bookmarkTitle });
+  await expect(bookmarkTrashRow).toBeVisible();
+  await bookmarkTrashRow.locator('[data-a="restoreTrash"]').click();
+  await waitForSaved(page);
+  await page.goto('/e2e-team/bookmarks');
+  await expect(page.getByText(bookmarkTitle, { exact: true })).toBeVisible();
+
+  const fileName = 'e2e-team-note.txt';
+  await page.goto('/e2e-team/projects');
+  await page.locator('[data-a="go"][data-r="project"][aria-label="Проверка интерфейса"]').click();
+  await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
+  await page
+    .locator('input[data-in="uploadFiles"]')
+    .first()
+    .setInputFiles({
+      name: fileName,
+      mimeType: 'text/plain',
+      buffer: Buffer.from('Файл для сквозной проверки общего хранилища.', 'utf8'),
+    });
+  await expect(page.getByText(fileName, { exact: true })).toBeVisible({ timeout: 15_000 });
+  await waitForSaved(page);
+  await page.reload();
+  const fileCard = page.locator('.fcard', { hasText: fileName });
+  await expect(fileCard).toBeVisible();
+  await fileCard.locator('[data-a="ctxBtn"]').click();
+  await page.locator('[data-a="delFile"]:visible').click();
+  await confirmDialog(page);
+  await waitForSaved(page);
+  await openTrash(page);
+  const fileTrashRow = page.locator('.mini', { hasText: fileName });
+  await expect(fileTrashRow).toBeVisible();
+  await fileTrashRow.locator('[data-a="restoreTrash"]').click();
+  await waitForSaved(page);
+
+  await page.goto('/e2e-team/settings/workspace');
+  await page.locator('#ws-name').fill('E2E Команда — сохранено');
+  await page.locator('#ws-save').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('#ws-name')).toHaveValue('E2E Команда — сохранено');
+  await page.locator('#ws-name').fill('E2E Команда');
+  await page.locator('#ws-save').click();
+  await waitForSaved(page);
+
+  await page.goto('/e2e-team/settings/data-transfer');
+  await page.locator('[data-a="createWorkspaceBackup"]').click();
+  await expect(page.locator('.toast')).toContainText('Резервная копия сохранена.', { timeout: 15_000 });
+  await expect(page.getByText('Ручная копия', { exact: true }).first()).toBeVisible();
 });

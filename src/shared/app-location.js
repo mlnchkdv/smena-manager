@@ -45,6 +45,7 @@ export function parseAppLocation(pathname, hash = '') {
 export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') {
   const parsed = parseAppLocation(pathname, hash);
   const route = parsed.kind === 'home' && !parsed.slug ? defaultRoute : parsed.kind;
+  if (route === 'settings') return { route, params: parsed.key ? { sec: parsed.key } : {} };
   if (SIMPLE_ROUTES.has(route)) return { route, params: {} };
 
   if (route === 'project') {
@@ -87,6 +88,7 @@ export function appLocationPath(data, ui) {
   }
   if (ui.route === 'member' && ui.params.id) return `/${slug}/member/${encode(ui.params.id)}`;
   if (ui.route === 'team' && ui.params.id) return `/${slug}/team/${encode(ui.params.id)}`;
+  if (ui.route === 'settings') return `/${slug}/settings${ui.params.sec ? `/${encode(ui.params.sec)}` : ''}`;
   if (ui.route === 'home') return `/${slug}`;
   if (SIMPLE_ROUTES.has(ui.route)) return `/${slug}/${ui.route}`;
   return `/${slug}`;

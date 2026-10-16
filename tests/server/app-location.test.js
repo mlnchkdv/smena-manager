@@ -28,6 +28,7 @@ test('app locations resolve copied project, task, and file links', () => {
 test('app locations support regular routes and legacy hash links', () => {
   assert.deepEqual(parseAppLocation('/', '#notifications'), { kind: 'notifications', slug: '' });
   assert.deepEqual(resolveAppLocation('/smena/settings', '', data), { route: 'settings', params: {} });
+  assert.deepEqual(resolveAppLocation('/smena/settings/data-transfer', '', data), { route: 'settings', params: { sec: 'data-transfer' } });
   assert.deepEqual(resolveAppLocation('/', '#notifications', data), { route: 'notifications', params: {} });
 });
 
@@ -37,6 +38,10 @@ test('unknown entities open the not-found page', () => {
 
 test('current workspace state produces canonical URLs', () => {
   assert.equal(appLocationPath(data, { route: 'home', params: {}, drawer: null, modals: [] }), '/smena');
+  assert.equal(
+    appLocationPath(data, { route: 'settings', params: { sec: 'workspace' }, drawer: null, modals: [] }),
+    '/smena/settings/workspace',
+  );
   assert.equal(appLocationPath(data, { route: 'project', params: { id: 'p1', tab: 'calendar' }, drawer: null, modals: [] }), '/smena/project/web/calendar');
   assert.equal(appLocationPath(data, { route: 'project', params: { id: 'p1' }, drawer: 't1', modals: [] }), '/smena/task/WEB-12');
   assert.equal(

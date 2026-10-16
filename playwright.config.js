@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const runId = `${process.pid}-${Date.now()}`;
+
 const accessProfiles = JSON.stringify([
   {
     id: 'e2e-admin',
@@ -20,7 +22,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'line',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:5173',
     locale: 'ru-RU',
     timezoneId: 'Europe/Saratov',
     trace: 'retain-on-failure',
@@ -30,14 +32,14 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: 'http://127.0.0.1:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
       PORT: '3001',
-      DATABASE_PATH: `.data/e2e/workspace-${process.pid}.json`,
-      UPLOADS_PATH: `.data/e2e/uploads-${process.pid}`,
-      BACKUPS_PATH: `.data/e2e/backups-${process.pid}`,
+      DATABASE_PATH: `.data/e2e/workspace-${runId}.json`,
+      UPLOADS_PATH: `.data/e2e/uploads-${runId}`,
+      BACKUPS_PATH: `.data/e2e/backups-${runId}`,
       ACCESS_IDS_JSON: accessProfiles,
       ACCESS_ID_LOGIN_ENABLED: 'true',
       SESSION_SECRET: 'e2e-session-secret-that-is-at-least-32-characters',
