@@ -81,6 +81,8 @@ export function addWorkspaceNotification(data, notification) {
   const actor = notification?.by || data?.me;
   if (!recipient || recipient === actor || !Array.isArray(data?.notifs)) return null;
   if (Array.isArray(data?.members) && !data.members.some(member => member.id === recipient)) return null;
+  const existing = notification?.id && data.notifs.find(item => item?.id === notification.id);
+  if (existing) return existing;
   const preference = preferenceForNotification(notification);
   if (preference && notificationPreferencesForMember(data, recipient)[preference] === false) return null;
 
@@ -134,4 +136,125 @@ export function mentionNotificationTargets(text, data = {}) {
     members.forEach(member => targets.push({ recipient: member.id, scope: 'workspace' }));
   }
   return targets;
+}
+
+const STATUS_LABELS = Object.freeze({
+  backlog: 'Backlog',
+  todo: 'To do',
+  progress: 'In progress',
+  review: 'Review',
+  done: 'Done',
+});
+
+function serverNotificationId(revision, kind, sourceId, recipient) {
+  return `n-${revision}-${kind}-${sourceId}-${recipient}`;
+}
+
+function preserveNotificationReadState(current, candidate, actorMemberId) {
+  const requested = new Map((candidate.notifs || []).filter(item => item?.id).map(item => [item.id, item]));
+  return (current.notifs || []).map(notification => {
+    const update = requested.get(notification.id);
+    if (!update || notificationRecipient(notification, current) !== actorMemberId) return structuredClone(notification);
+    return { ...structuredClone(notification), read: Boolean(update.read) };
+  });
+}
+
+function createServerNotification(data, details, context) {
+  return addWorkspaceNotification(data, {
+    ...details,
+    id: serverNotificationId(context.revision, details.type, context.sourceId, details.recipient),
+    by: context.actorMemberId,
+    at: context.at,
+  });
+}
+
+export function reconcileWorkspaceNotifications(current, candidate, options = {}) {
+  const actorMemberId = options.actorMemberId;
+  if (!actorMemberId) return candidate;
+  const revision = Number(options.revision || Number(current?.revision || 0) + 1);
+  const now = Number(options.now || Date.now());
+  const data = structuredClone(candidate);
+  data.notifs = preserveNotificationReadState(current, data, actorMemberId);
+
+  const currentTasks = new Map((current.tasks || []).filter(item => item?.id).map(item => [item.id, item]));
+  const currentComments = new Set((current.comments || []).filter(item => item?.id).map(item => item.id));
+  data.comments = (data.comments || []).map(comment =>
+    currentComments.has(comment?.id) ? comment : { ...comment, by: actorMemberId, at: Number(comment?.at) || now },
+  );
+
+  for (const task of data.tasks || []) {
+    if (!task?.id) continue;
+    const previous = currentTasks.get(task.id);
+    if (task.assignee && (!previous || previous.assignee !== task.assignee)) {
+      createServerNotification(
+        data,
+        {
+          recipient: task.assignee,
+          type: 'assign',
+          task: task.id,
+          text: 'assigned you',
+          snippet: task.title || 'New task',
+        },
+        { actorMemberId, revision, sourceId: task.id, at: now },
+      );
+    }
+    if (previous && previous.status !== task.status && task.assignee) {
+      createServerNotification(
+        data,
+        {
+          recipient: task.assignee,
+          type: 'update',
+          task: task.id,
+          text: task.status === 'done' ? 'completed' : `moved to ${STATUS_LABELS[task.status] || task.status}`,
+          snippet: `${STATUS_LABELS[previous.status] || previous.status} → ${STATUS_LABELS[task.status] || task.status}`,
+        },
+        { actorMemberId, revision, sourceId: task.id, at: now },
+      );
+    }
+  }
+
+  const tasks = new Map((data.tasks || []).filter(item => item?.id).map(item => [item.id, item]));
+  for (const comment of data.comments || []) {
+    if (!comment?.id || currentComments.has(comment.id) || comment.by !== actorMemberId) continue;
+    const task = tasks.get(comment.task);
+    if (!task) continue;
+    const notified = new Set();
+    const mentionText = {
+      direct: 'mentioned you in',
+      team: 'mentioned your team in',
+      workspace: 'mentioned everyone in',
+    };
+    for (const target of mentionNotificationTargets(comment.text, data)) {
+      if (target.recipient === actorMemberId || notified.has(target.recipient)) continue;
+      const created = createServerNotification(
+        data,
+        {
+          recipient: target.recipient,
+          type: 'mention',
+          task: task.id,
+          text: mentionText[target.scope],
+          snippet: comment.text,
+          scope: target.scope,
+          ...(target.team ? { team: target.team } : {}),
+        },
+        { actorMemberId, revision, sourceId: comment.id, at: Number(comment.at) || now },
+      );
+      if (created) notified.add(target.recipient);
+    }
+    if (task.assignee && task.assignee !== actorMemberId && !notified.has(task.assignee)) {
+      createServerNotification(
+        data,
+        {
+          recipient: task.assignee,
+          type: 'comment',
+          task: task.id,
+          text: 'commented on',
+          snippet: comment.text,
+        },
+        { actorMemberId, revision, sourceId: comment.id, at: Number(comment.at) || now },
+      );
+    }
+  }
+
+  return data;
 }

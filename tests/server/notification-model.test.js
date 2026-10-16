@@ -10,6 +10,7 @@ import {
   notificationForMember,
   notificationPreferencesForMember,
   notificationsForMember,
+  reconcileWorkspaceNotifications,
   setNotificationPreference,
 } from '../../src/shared/notification-model.js';
 
@@ -70,6 +71,8 @@ test('new notifications require another valid workspace member as recipient', ()
   assert.equal(created?.recipient, 'editor');
   assert.equal(created?.read, false);
   assert.equal(data.notifs[0].id, 'new-notification');
+  assert.equal(addWorkspaceNotification(data, { ...created, text: 'duplicate' }), created);
+  assert.equal(data.notifs.filter(item => item.id === 'new-notification').length, 1);
   assert.equal(addWorkspaceNotification(data, { id: 'self', recipient: 'owner', by: 'owner' }), null);
   assert.equal(addWorkspaceNotification(data, { id: 'unknown', recipient: 'missing', by: 'owner' }), null);
 });
@@ -152,4 +155,48 @@ test('notification preferences are migrated and applied per recipient', () => {
     null,
   );
   assert.equal(setNotificationPreference(migrated, 'editor', 'unknown_preference', false), false);
+});
+
+test('server reconciliation rejects forged notifications and creates trusted task events', () => {
+  const current = workspace();
+  current.revision = 4;
+  current.tasks = [{ id: 'task-1', title: 'Макет', assignee: 'editor', status: 'todo' }];
+  current.comments = [];
+  current.notifs = [
+    { id: 'for-owner', recipient: 'owner', by: 'editor', type: 'mention', text: 'original', read: false },
+    { id: 'for-editor', recipient: 'editor', by: 'owner', type: 'assign', text: 'assigned you', read: false },
+  ];
+  const candidate = structuredClone(current);
+  candidate.tasks[0].status = 'review';
+  candidate.tasks.push({ id: 'task-2', title: 'Новая задача', assignee: 'designer', status: 'todo' });
+  candidate.comments.push({ id: 'comment-1', task: 'task-1', by: 'owner', text: '@все Проверьте макет', at: 123 });
+  candidate.notifs = [
+    { ...candidate.notifs[0], text: 'forged', read: true },
+    { ...candidate.notifs[1], text: 'forged', read: true },
+    { id: 'injected', recipient: 'designer', by: 'editor', type: 'mention', text: 'forged', read: false },
+  ];
+
+  const result = reconcileWorkspaceNotifications(current, candidate, { actorMemberId: 'editor', revision: 5, now: 456 });
+
+  assert.equal(result.comments[0].by, 'editor');
+  assert.equal(
+    result.notifs.some(item => item.id === 'injected'),
+    false,
+  );
+  assert.deepEqual(
+    result.notifs.find(item => item.id === 'for-owner'),
+    current.notifs[0],
+  );
+  assert.equal(result.notifs.find(item => item.id === 'for-editor').read, true);
+  assert.equal(result.notifs.find(item => item.id === 'for-editor').text, 'assigned you');
+  assert.ok(result.notifs.some(item => item.id === 'n-5-assign-task-2-designer' && item.by === 'editor'));
+  assert.ok(result.notifs.some(item => item.id === 'n-5-mention-comment-1-owner' && item.scope === 'workspace'));
+  assert.ok(result.notifs.some(item => item.id === 'n-5-mention-comment-1-designer' && item.scope === 'workspace'));
+  assert.equal(
+    result.notifs.some(item => item.id === 'n-5-update-task-1-editor'),
+    false,
+  );
+
+  const repeated = reconcileWorkspaceNotifications(result, structuredClone(result), { actorMemberId: 'editor', revision: 6, now: 789 });
+  assert.deepEqual(repeated.notifs, result.notifs);
 });

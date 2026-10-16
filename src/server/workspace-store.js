@@ -3,7 +3,7 @@ import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './red
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
-import { migrateNotificationRecipients } from '../shared/notification-model.js';
+import { migrateNotificationRecipients, reconcileWorkspaceNotifications } from '../shared/notification-model.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { validateWorkspaceData } from '../shared/workspace-schema.js';
 
@@ -176,6 +176,12 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     const result = restoreUnauthorizedChanges(current, nextData, options.role, options.actorMemberId);
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
+  }
+  if (options.actorMemberId) {
+    nextData = reconcileWorkspaceNotifications(current, nextData, {
+      actorMemberId: options.actorMemberId,
+      revision: current.revision + 1,
+    });
   }
   const now = new Date().toISOString();
   const next = normalizeDatabase({

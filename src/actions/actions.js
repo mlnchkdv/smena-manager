@@ -16,7 +16,6 @@ import {
   mem,
   myNotification,
   myNotifications,
-  notify,
   proj,
   save,
   setMyNotificationPreference,
@@ -49,9 +48,8 @@ import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { isRussian, t as tr, templateText } from '../core/i18n.js';
+import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
-import { mentionNotificationTargets } from '../shared/notification-model.js';
 import { requestBrowserNotificationPermission } from '../core/browser-notifications.js';
 
 export const A = {},
@@ -97,11 +95,6 @@ export function createTask(f) {
   D().tasks.push(t);
   fxSet({ added: t.id });
   logAct('created', t);
-  notify(t.assignee, 'assign', {
-    task: t.id,
-    text: 'assigned you',
-    snippet: t.due ? `Срок: ${fmtDate(t.due)}` : 'Новая задача',
-  });
   return t;
 }
 export const RECUR_DAYS = { Daily: 1, Weekly: 7, 'Every 2 weeks': 14, Monthly: 30 };
@@ -119,11 +112,6 @@ export function applyPatch(t, patch) {
         logAct('completed', t);
         fxSet({ done: t.id });
       } else logAct('moved', t, `from ${ST[old].name} to ${ST[nv].name}`);
-      notify(t.assignee, 'update', {
-        task: t.id,
-        text: nv === 'done' ? 'completed' : `moved to ${ST[nv].name}`,
-        snippet: `${tr(ST[old].name)} → ${tr(ST[nv].name)}`,
-      });
       if (nv === 'done' && t.recur && t.due) {
         const nd = iso(addD(parse(t.due), RECUR_DAYS[t.recur] || 7));
         const n = createTask({
@@ -142,11 +130,6 @@ export function applyPatch(t, patch) {
       }
     } else if (k === 'assignee') {
       logAct('assigned', t, nv ? `to ${mem(nv)?.name}` : '(unassigned)');
-      notify(nv, 'assign', {
-        task: t.id,
-        text: 'assigned you',
-        snippet: t.due ? `Срок: ${fmtDate(t.due)}` : 'Новая задача',
-      });
     } else if (k === 'priority') logAct('changed priority of', t, `to ${PR[nv].name}`);
     else if (k === 'due') logAct('changed due date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
     else if (k === 'start') logAct('changed start date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
@@ -1449,31 +1432,6 @@ A.postComment = el => {
     mutate(() => {
       D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, re: {} });
       logAct('commented on', t);
-      const notified = new Set();
-      const mentionText = {
-        direct: 'mentioned you in',
-        team: 'mentioned your team in',
-        workspace: 'mentioned everyone in',
-      };
-      mentionNotificationTargets(txt, D()).forEach(({ recipient, scope, team }) => {
-        if (recipient === D().me || notified.has(recipient)) return;
-        const created = notify(recipient, 'mention', {
-          task: t.id,
-          text: mentionText[scope],
-          snippet: txt,
-          scope,
-          ...(team ? { team } : {}),
-        });
-        if (created) notified.add(recipient);
-      });
-      if (t.assignee && t.assignee !== D().me && !notified.has(t.assignee)) {
-        const created = notify(t.assignee, 'comment', {
-          task: t.id,
-          text: 'commented on',
-          snippet: txt,
-        });
-        if (created) notified.add(t.assignee);
-      }
       S.ui.drafts[id] = '';
       S.ui.mention = null;
       S.ui.drawerTab = 'comments';

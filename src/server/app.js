@@ -122,10 +122,9 @@ app.get('/api/workspace', async (_request, response, next) => {
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     let nextData = request.body?.data;
-    let actorMemberId = null;
+    const stored = await getWorkspaceDatabase();
+    const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
     if (request.user.role === 'editor') {
-      const stored = await getWorkspaceDatabase();
-      actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
       nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
