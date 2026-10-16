@@ -410,6 +410,8 @@ const RU = {
   'No tasks': 'Нет задач',
   'No tasks here': 'Здесь пока нет задач',
   'No assignee': 'Без исполнителя',
+  '(unassigned)': '(исполнитель снят)',
+  '(cleared)': '(очищено)',
   'All projects': 'Все проекты',
   'All members': 'Все участники',
   'All activity': 'Вся активность',
