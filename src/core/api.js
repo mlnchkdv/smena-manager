@@ -125,6 +125,17 @@ export async function deletePushSubscription(endpoint) {
   );
 }
 
+export async function clearReadNotifications(revision) {
+  return request(
+    '/api/notifications/read',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ revision }),
+    },
+    true,
+  );
+}
+
 export async function putWorkspace(data, revision) {
   const actualBytes = workspaceTransportBytes(data, revision);
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {

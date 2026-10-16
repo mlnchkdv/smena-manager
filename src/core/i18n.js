@@ -419,6 +419,10 @@ const RU = {
   Assignments: 'Назначения',
   Updates: 'Обновления',
   'Mark all as read': 'Отметить все прочитанными',
+  'Clear read': 'Очистить прочитанные',
+  'Read notifications cleared': 'Прочитанные уведомления удалены',
+  'No read notifications to clear': 'Нет прочитанных уведомлений для удаления',
+  'Unable to clear read notifications.': 'Не удалось удалить прочитанные уведомления.',
   Previous: 'Назад',
   Everyone: 'Все участники',
 

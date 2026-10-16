@@ -35,6 +35,7 @@ import { strengthMeter } from '../ui/strength-meter.js';
 import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace, refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import {
   clearSession,
+  clearReadNotifications,
   createWorkspaceBackup,
   deleteAllWorkspaces,
   downloadWorkspaceFile,
@@ -2252,6 +2253,16 @@ A.markAllRead = () => {
   save();
   render();
   if (n) toast("You're all caught up.");
+};
+A.clearReadNotifications = async () => {
+  try {
+    const result = await clearReadNotifications(S.ui.workspaceRevision);
+    applyWorkspaceSnapshot(result.data);
+    render();
+    toast(result.removed ? 'Read notifications cleared' : 'No read notifications to clear', { ms: 1800 });
+  } catch (error) {
+    toast(error.message || 'Unable to clear read notifications.', { kind: 'err', ms: 5000 });
+  }
 };
 A.toggleUnreadOnly = () => {
   S.ui.inboxUnread = !S.ui.inboxUnread;

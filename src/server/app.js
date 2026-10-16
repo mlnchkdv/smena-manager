@@ -28,6 +28,8 @@ import {
   upsertPushSubscription,
 } from './push-subscriptions.js';
 import { deliverEmailNotifications, runDailyEmailDigest } from './email-notifications.js';
+import { runNotificationCleanup } from './notification-cleanup.js';
+import { notificationRecipient } from '../shared/notification-model.js';
 
 export const app = express();
 
@@ -54,7 +56,8 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       console.error('[Email digest]', error.providerReason || error.message);
       return { delivered: 0, error: 'delivery_failed' };
     });
-    response.json({ status: 'ok', reminders, digest });
+    const cleanup = await runNotificationCleanup();
+    response.json({ status: 'ok', reminders, digest, cleanup });
   } catch (error) {
     next(error);
   }
@@ -101,6 +104,32 @@ app.delete('/api/push/subscriptions', async (request, response, next) => {
 app.get('/api/storage/status', async (_request, response, next) => {
   try {
     response.json(await getWorkspaceStatus());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/notifications/read', async (request, response, next) => {
+  try {
+    const revision = Number(request.body?.revision);
+    if (!Number.isInteger(revision) || revision < 0) throw new TypeError('A valid workspace revision is required.');
+    const stored = await getWorkspaceDatabase();
+    const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
+    if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
+    let removed = 0;
+    const data = await mutateWorkspaceDatabase(
+      database => {
+        database.notifs = (database.notifs || []).filter(notification => {
+          const shouldRemove = notification.read && notificationRecipient(notification, database) === member.id;
+          if (shouldRemove) removed += 1;
+          return !shouldRemove;
+        });
+        return database;
+      },
+      revision,
+      { role: 'admin' },
+    );
+    response.json({ data, removed });
   } catch (error) {
     next(error);
   }

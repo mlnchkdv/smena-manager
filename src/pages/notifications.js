@@ -11,6 +11,7 @@ export function pageNotifications() {
     .slice()
     .sort((a, b) => b.at - a.at);
   const unread = ns.filter(n => !n.read).length;
+  const read = ns.length - unread;
   if (f === 'unread') ns = ns.filter(n => !n.read);
   const buckets = {};
   ns.forEach(n => (buckets[dayBucket(n.at)] ||= []).push(n));
@@ -23,6 +24,7 @@ export function pageNotifications() {
         .map(([k, n]) => `<button class="${f === k ? 'on' : ''}" data-a="set" data-k="notifFilter" data-v="${k}">${n}</button>`)
         .join('')}</div>
       <button class="btn btn-secondary" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>
+      <button class="btn btn-secondary" data-a="clearReadNotifications" ${read ? '' : 'disabled'}>${ic('trash-2', 14)}Clear read</button>
       <button class="ibtn" data-a="go" data-r="settings" data-sec="notif-mentions" data-tip="Notification preferences" aria-label="Notification preferences">${ic('settings-2', 16)}</button></div></div>
     ${
       ns.length
