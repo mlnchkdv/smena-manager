@@ -488,7 +488,7 @@ const RU = {
   'Project settings': 'Настройки проекта',
   'Add member': 'Добавить участника',
   'Save view': 'Сохранить представление',
-  About: 'О проекте',
+  About: 'О продукте',
   'Coming up': 'Ближайшие задачи',
   'View list': 'Открыть список',
   Milestones: 'Этапы',

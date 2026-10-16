@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Политика конфиденциальности Smena Manager и описание использования данных Google." />
+    <title>Политика конфиденциальности — Smena Manager</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/legal.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-inner">
+        <a class="brand" href="/">Smena Manager</a>
+        <nav aria-label="Справочная навигация">
+          <a href="/about.html">О продукте</a>
+          <a href="/terms.html">Условия</a>
+          <a href="/privacy.html" aria-current="page">Конфиденциальность</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <p class="meta">Дата вступления в силу: 17 октября 2026 года</p>
+      <h1>Политика конфиденциальности</h1>
+      <p class="lead">Эта политика объясняет, какие данные обрабатывает Smena Manager, зачем они нужны и как пользователь может управлять ими.</p>
+
+      <h2>1. Какие данные обрабатываются</h2>
+      <ul>
+        <li>данные профиля разрешённого участника: имя, подтверждённый адрес электронной почты, роль и команда;</li>
+        <li>рабочие данные: проекты, задачи, комментарии, знания, закладки, файлы, настройки и журнал действий;</li>
+        <li>технические данные: сессия входа, версия синхронизации, push-подписка браузера и диагностические ошибки;</li>
+        <li>настройки доставки уведомлений по электронной почте и в браузере.</li>
+      </ul>
+
+      <h2>2. Данные Google</h2>
+      <p>
+        Google Sign-In передаёт приложению идентификатор, имя и подтверждённый email, чтобы сопоставить пользователя с разрешённым профилем. Рабочая база и
+        загруженные командой файлы хранятся в Google Drive аккаунта владельца рабочего пространства.
+      </p>
+      <p>
+        Для почтовых уведомлений Smena Manager запрашивает минимальную область доступа
+        <code>https://www.googleapis.com/auth/gmail.send</code>. Она используется только для отправки уведомлений о назначениях, комментариях, упоминаниях,
+        сроках и выбранных пользователем сводках. Приложение не читает, не изменяет и не удаляет существующие письма, контакты или настройки Gmail.
+      </p>
+      <div class="notice">
+        Использование и передача информации, полученной через Google API, соответствует
+        <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, включая требования Limited Use.
+      </div>
+
+      <h2>3. Цели обработки</h2>
+      <p>
+        Данные используются для аутентификации, совместной работы в задачах и проектах, синхронизации файлов, доставки выбранных уведомлений, обеспечения
+        безопасности, резервного копирования и восстановления работы сервиса.
+      </p>
+
+      <h2>4. Хранение и защита</h2>
+      <p>
+        Рабочие данные и вложения хранятся в выделенной папке Google Drive. OAuth refresh-токены и ключи доставки хранятся как серверные секреты и не передаются
+        в браузер. Сессии подписываются, изменения версионируются, а права администратора, редактора и наблюдателя проверяются на сервере.
+      </p>
+
+      <h2>5. Передача третьим сторонам</h2>
+      <p>
+        Smena Manager не продаёт пользовательские данные и не использует их для рекламы. Данные передаются только поставщикам инфраструктуры, необходимым для
+        работы функций: Google (вход, Drive и Gmail), Vercel (хостинг) и push-сервису выбранного браузера. Доступ других участников ограничен их ролью и
+        составом рабочего пространства.
+      </p>
+
+      <h2>6. Срок хранения и удаление</h2>
+      <p>
+        Рабочие данные хранятся, пока используется пространство, либо до удаления администратором. Пользователь может отозвать доступ Google в настройках своего
+        Google Account и отключить email/push-уведомления в Smena Manager. Для удаления профиля или связанных данных обратитесь по адресу ниже.
+      </p>
+
+      <h2>7. Контакты и изменения политики</h2>
+      <p>
+        Вопросы, запрос на доступ или удаление данных: <a href="mailto:avdeevandry1999@gmail.com">avdeevandry1999@gmail.com</a>. При существенном изменении
+        способов использования данных политика будет обновлена до применения новых целей обработки.
+      </p>
+
+      <details class="translation" lang="en">
+        <summary>English version</summary>
+        <h2>1. Data we process</h2>
+        <p>
+          Smena Manager processes approved members' names, verified email addresses, roles and teams; workspace projects, tasks, comments, knowledge, bookmarks,
+          files, settings and activity; signed session and synchronization data; browser push subscriptions; and each member's notification preferences.
+        </p>
+        <h2>2. Google user data</h2>
+        <p>
+          Google Sign-In supplies an identifier, name and verified email address to match a person to an approved profile. Workspace data and team uploads are
+          stored in the workspace owner's Google Drive account.
+        </p>
+        <p>
+          For email notifications, Smena Manager requests only <code>https://www.googleapis.com/auth/gmail.send</code>. It is used to send assignment, comment,
+          mention, deadline and optional digest notifications selected by users. The application does not read, change or delete existing email, contacts or
+          Gmail settings.
+        </p>
+        <div class="notice">
+          Use and transfer of information received from Google APIs adheres to the
+          <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use
+          requirements.
+        </div>
+        <h2>3. Purpose, storage and security</h2>
+        <p>
+          Data is used for authentication, team collaboration, file synchronization, selected notifications, security, backup and recovery. Workspace content is
+          stored in a dedicated Drive folder. OAuth refresh tokens and delivery keys are server-side secrets and are never sent to the browser. Sessions are
+          signed, updates are versioned, and roles are enforced by the server.
+        </p>
+        <h2>4. Sharing</h2>
+        <p>
+          We do not sell user data or use it for advertising. Data is shared only with infrastructure providers needed for these functions: Google for identity,
+          Drive and Gmail; Vercel for hosting; and the push service of the selected browser. Other team members' access is limited by workspace membership and
+          role.
+        </p>
+        <h2>5. Retention, control and contact</h2>
+        <p>
+          Workspace data is retained while the workspace is in use or until an administrator deletes it. Users may disable email and push notifications, revoke
+          Google access in their Google Account, or request profile and related data deletion by contacting
+          <a href="mailto:avdeevandry1999@gmail.com">avdeevandry1999@gmail.com</a>. Material changes to Google data use will be disclosed before the new use
+          begins.
+        </p>
+      </details>
+    </main>
+    <footer class="foot"><span>© 2026 Smena Manager</span><a href="/about.html">О продукте</a><a href="/terms.html">Условия</a></footer>
+  </body>
+</html>
