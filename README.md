@@ -103,6 +103,24 @@ administrator can initialize an empty production database on the first sign-in.
    The uploads folder is created alongside it; its optional ID can be saved as
    `GOOGLE_DRIVE_UPLOADS_FOLDER_ID` for the same reason.
 
+### Separate Gmail consent for email notifications
+
+Email delivery uses a dedicated refresh token so granting or revoking Gmail access cannot replace the
+token that stores workspace data in Drive. Enable the Gmail API in the same Google Cloud project, add
+`https://www.googleapis.com/auth/gmail.send` to the OAuth consent screen and add
+`http://127.0.0.1:53682/oauth2/callback` to the web client's authorized redirect URIs. For an External
+app in Testing, add `avdeevandry1999@gmail.com` as a test user; note that Google expires Testing grants
+after seven days, so a durable production sender should use the appropriate Production/verification
+status for the project.
+
+With `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `EMAIL_FROM` available in the local environment,
+run `npm run setup:gmail`. The helper opens Google's consent page, requests only identity plus
+`gmail.send`, verifies that the confirmed account matches `EMAIL_FROM`, and saves the refresh token to
+the ignored `.data/gmail-oauth.env` file. Copy that value to the Vercel secret
+`GMAIL_OAUTH_REFRESH_TOKEN` for Production (and the desired Preview/Development environments), then
+redeploy. A separate OAuth client can instead be supplied through `GMAIL_OAUTH_CLIENT_ID` and
+`GMAIL_OAUTH_CLIENT_SECRET`.
+
 The current storage model deliberately avoids PostgreSQL and suits a small team. Each change writes
 the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become
 very frequent, or the product needs record-level querying. Project and task uploads are stored in the

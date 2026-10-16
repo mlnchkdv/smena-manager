@@ -65,6 +65,12 @@ export function inspectDeploymentConfig(options = {}) {
   if (!value(env, 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID')) {
     warnings.push({ key: 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID', message: 'Optional: set the created uploads folder ID to reduce Drive lookup requests.' });
   }
+  if (value(env, 'EMAIL_FROM') && !value(env, 'GMAIL_OAUTH_REFRESH_TOKEN')) {
+    warnings.push({
+      key: 'GMAIL_OAUTH_REFRESH_TOKEN',
+      message: 'Authorize a dedicated Gmail refresh token so email delivery does not depend on the Google Drive token.',
+    });
+  }
 
   return {
     ready: issues.length === 0,

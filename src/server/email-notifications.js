@@ -24,15 +24,27 @@ const ACTIONS = {
 };
 
 function configuredLocale(value = process.env.NOTIFICATION_LOCALE) {
-  return String(value || 'ru').toLowerCase().startsWith('ru') ? 'ru' : 'en';
+  return String(value || 'ru')
+    .toLowerCase()
+    .startsWith('ru')
+    ? 'ru'
+    : 'en';
 }
 
 export function emailDeliveryConfig() {
-  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN?.trim();
+  const dedicatedRefreshToken = process.env.GMAIL_OAUTH_REFRESH_TOKEN?.trim();
+  const clientId = process.env.GMAIL_OAUTH_CLIENT_ID?.trim() || process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GMAIL_OAUTH_CLIENT_SECRET?.trim() || process.env.GOOGLE_CLIENT_SECRET?.trim();
+  const refreshToken = dedicatedRefreshToken || process.env.GOOGLE_REFRESH_TOKEN?.trim();
   const from = process.env.EMAIL_FROM?.trim() || 'avdeevandry1999@gmail.com';
-  return { enabled: Boolean(clientId && clientSecret && refreshToken && from), clientId, clientSecret, refreshToken, from };
+  return {
+    enabled: Boolean(clientId && clientSecret && refreshToken && from),
+    credentialMode: dedicatedRefreshToken ? 'dedicated' : 'shared',
+    clientId,
+    clientSecret,
+    refreshToken,
+    from,
+  };
 }
 
 export async function emailAuthorizationStatus() {
@@ -48,6 +60,7 @@ export async function emailAuthorizationStatus() {
     return {
       configured: true,
       authorized: scopes.has('https://www.googleapis.com/auth/gmail.send') || scopes.has('https://mail.google.com/'),
+      credentialMode: config.credentialMode,
     };
   } catch {
     return { configured: true, authorized: false };
@@ -200,10 +213,7 @@ export async function runDailyEmailDigest(options = {}) {
           notifPrefs: {
             ...latest.notifPrefs,
             ...Object.fromEntries(
-              deliveredMembers.map(memberId => [
-                memberId,
-                { ...notificationPreferencesForMember(latest, memberId), emailDigestLastDate: plan.today },
-              ]),
+              deliveredMembers.map(memberId => [memberId, { ...notificationPreferencesForMember(latest, memberId), emailDigestLastDate: plan.today }]),
             ),
           },
         },
