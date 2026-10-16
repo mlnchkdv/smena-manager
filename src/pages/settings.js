@@ -34,8 +34,6 @@ export const SET_NAV = [
   [
     'Notifications',
     [
-      ['notif-email', 'Email', 'mail'],
-      ['notif-push', 'Push', 'smartphone'],
       ['notif-mentions', 'Mentions', 'at-sign'],
       ['notif-assign', 'Task assignments', 'user-check'],
     ],
@@ -48,24 +46,8 @@ export const SET_NAV = [
       ['shortcuts', 'Keyboard shortcuts', 'keyboard'],
     ],
   ],
-  [
-    'Security',
-    [
-      ['password', 'Password', 'key-round'],
-      ['sessions', 'Sessions', 'monitor-smartphone'],
-      ['2fa', 'Two-factor authentication', 'shield-check'],
-    ],
-  ],
-  [
-    'Billing',
-    [
-      ['plan', 'Plan', 'gem'],
-      ['payment', 'Payment', 'credit-card'],
-      ['invoices', 'Invoices', 'receipt'],
-    ],
-  ],
 ];
-const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions', 'plan', 'payment', 'invoices']);
+const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions']);
 export function srow(t, d, ctl) {
   return `<div class="srow"><div><div class="t">${t}</div>${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
 }
@@ -79,11 +61,13 @@ export const sel = (k, opts, v) =>
     })
     .join('')}</select>`;
 export function pageSettings() {
-  const sec = S.ui.params.sec || S.ui.settings || 'appearance';
   const isAdmin = S.ui.currentUser?.role === 'admin';
   const navigation = SET_NAV.map(([group, items]) => [group, isAdmin ? items : items.filter(([key]) => !ADMIN_SETTINGS.has(key))]).filter(
     ([, items]) => items.length,
   );
+  const requestedSection = S.ui.params.sec || S.ui.settings || 'appearance';
+  const availableSections = new Set(navigation.flatMap(([, items]) => items.map(([key]) => key)));
+  const sec = availableSections.has(requestedSection) ? requestedSection : 'appearance';
   const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'Appearance'];
   return `<div class="set">
     <nav class="set-nav" aria-label="Settings">${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
@@ -238,7 +222,7 @@ export function settingsBody(sec, title) {
     case 'members':
       return (
         H(`${d.members.length} people have access to ${esc(d.ws.name)}.`) +
-        `<div class="row" style="margin-bottom:12px"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary" data-a="go" data-r="members">Open member directory</button></div>
+        `<div class="row" style="margin-bottom:12px"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}Add access</button><button class="btn btn-secondary" data-a="go" data-r="members">Open member directory</button></div>
       <div class="panel" style="overflow:hidden">${d.members.map(m => `<div class="mini" style="min-height:52px;cursor:default" data-ctx="member" data-id="${m.id}">${av(m.id, 'md', false)}<div class="grow"><div style="font-weight:500">${esc(m.name)}</div><div class="faint" style="font-size:12px">${esc(m.email)}</div></div>${m.status === 'invited' ? '<span class="badge amber">Invited</span>' : ''}${m.role === 'Owner' ? `<span class="pillbtn">${ic('crown', 13)}Owner</span>` : `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>`}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="Options">${ic('ellipsis', 14)}</button></div>`).join('')}</div>`
       );
     case 'teams':

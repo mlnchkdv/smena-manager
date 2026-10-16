@@ -1,7 +1,7 @@
 /* ---------------- CONTEXT MENUS ---------------- */
 import { ic } from '../core/icons.js';
 import { ST } from '../core/constants.js';
-import { D, mem, proj, task, visibleProjects } from '../core/store.js';
+import { D, S, mem, proj, task, visibleProjects } from '../core/store.js';
 
 export function ctxMenu(p) {
   const I = (act, icon, label, extra = '', r = '') =>
@@ -58,14 +58,14 @@ export function ctxMenu(p) {
   if (p.ctx === 'member') {
     const m = mem(p.id);
     if (!m) return '';
-    const canRm = m.role !== 'Owner' && m.id !== D().me;
+    const canRm = S.ui.currentUser?.role === 'admin' && m.role !== 'Owner' && m.id !== D().me;
     return (
       I('viewProfile', 'user', 'View profile') +
       I('assignToMember', 'plus', 'Assign a task') +
       I('copyEmail', 'mail', 'Copy email') +
       (canRm
         ? I('ctxRole', 'shield', 'Change role…') +
-          (m.status === 'invited' ? I('resendInvite', 'send', 'Resend invite') : '') +
+          (m.status === 'invited' ? I('resendInvite', 'link', 'Copy sign-in link') : '') +
           sep +
           I('removeMember', 'user-minus', 'Remove from workspace', 'danger')
         : '')

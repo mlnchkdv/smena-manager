@@ -54,3 +54,21 @@ test('tampered and expired sessions are rejected', () => {
   const expired = createSession(profile, { issuedAt: 1, expiresAt: 2 });
   assert.equal(verifySession(expired).error, 'Session expired.');
 });
+
+test('signed workspace-member sessions retain the Google profile', () => {
+  const profile = {
+    id: 'workspace:m2',
+    name: 'Invited Member',
+    email: 'invited@example.com',
+    title: 'Designer',
+    team: 'design',
+    role: 'editor',
+    active: true,
+    source: 'workspace',
+  };
+  const result = verifySession(createSession(profile));
+  assert.equal(result.dynamic, true);
+  assert.equal(result.profile.email, 'invited@example.com');
+  assert.equal(result.profile.role, 'editor');
+  assert.equal('accessId' in result.profile, false);
+});

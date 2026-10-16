@@ -97,7 +97,7 @@ export function popHtml(p) {
   const t = ['status', 'priority', 'assignee', 'labels', 'date', 'project', 'deps', 'recur', 'estimate'].includes(p.type) ? tgt(p) : null;
   switch (p.type) {
     case 'create':
-      inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button><button class="mi" data-a="newTeam">${ic('users', 15)}Team</button><div class="msep"></div><button class="mi" data-a="invite">${ic('user-plus', 15)}Invite member</button>`;
+      inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newTeam">${ic('users', 15)}Team</button><div class="msep"></div><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}`;
       style = 'width:220px';
       break;
     case 'subassignee': {
@@ -222,7 +222,7 @@ export function popHtml(p) {
         )
         .join(
           '',
-        )}<div class="msep"></div><button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Invite members</button><div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
+        )}<div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
       style = 'width:260px';
       break;
     case 'user':
@@ -242,8 +242,7 @@ export function popHtml(p) {
       style = 'width:260px';
       break;
     case 'help':
-      inner = `<div class="mh">Help & resources</div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="openPalette">${ic('command', 15)}Command menu<span class="r"><kbd>${MOD}K</kbd></span></button><button class="mi" data-a="go" data-r="system">${ic('component', 15)}Design system</button><button class="mi" data-a="go" data-r="states">${ic('layers', 15)}System states</button>
-      <div class="msep"></div><div class="mh">Prototype</div><button class="mi" data-a="startOnboarding">${ic('sparkles', 15)}Replay onboarding</button><button class="mi" data-a="toggleOffline">${ic(S.ui.offline ? 'wifi' : 'wifi-off', 15)}${S.ui.offline ? 'Go back online' : 'Simulate offline'}</button><button class="mi" data-a="go" data-r="nowhere">${ic('file-question', 15)}Open a broken link</button><button class="mi" data-a="resetDemo">${ic('rotate-ccw', 15)}Reset demo data</button>`;
+      inner = `<div class="mh">Помощь</div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Горячие клавиши<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="openPalette">${ic('command', 15)}Меню команд<span class="r"><kbd>${MOD}K</kbd></span></button><div class="msep"></div><div class="mh">${esc(D().ws.name)}</div><div class="muted" style="padding:6px 12px 10px;font-size:12px;line-height:1.45">Вход выполняется через разрешённый Google-аккаунт. По вопросам доступа обратитесь к администратору пространства.</div>`;
       style = 'width:260px';
       break;
     case 'sort': {

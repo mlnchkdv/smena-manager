@@ -4,6 +4,8 @@ import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthent
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-config.js';
 import { createLoginRateLimiter } from './login-rate-limit.js';
+import { getWorkspaceDatabase } from './workspace-store.js';
+import { mergeAccessProfiles } from '../shared/workspace-access.js';
 
 const loginRateLimiter = createLoginRateLimiter();
 
@@ -26,17 +28,20 @@ function rateLimit(request, response, next) {
 
 export const authRouter = Router();
 
-authRouter.get('/config', (request, response) => {
+authRouter.get('/config', async (request, response) => {
   let profiles = [];
   let profileCount = 0;
+  let configuredProfiles = [];
   let configurationError = null;
   try {
-    profiles = getAccessProfiles().filter(profile => profile.active);
-    profileCount = profiles.length;
+    configuredProfiles = getAccessProfiles().filter(profile => profile.active);
+    const database = await getWorkspaceDatabase().catch(() => null);
+    profiles = mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
+    profileCount = configuredProfiles.length;
   } catch (error) {
     configurationError = error.message;
   }
-  const deployment = process.env.VERCEL ? inspectDeploymentConfig({ profiles, profileError: configurationError }) : null;
+  const deployment = process.env.VERCEL ? inspectDeploymentConfig({ profiles: configuredProfiles, profileError: configurationError }) : null;
   const issues = deployment?.issues.map(issue => issue.key) || (profileCount ? [] : [configurationError ? 'ACCESS_IDS_INVALID' : 'ACCESS_IDS']);
   const google = getGoogleAuthConfiguration({ profiles, hostname: request.hostname });
   response.json({
@@ -53,7 +58,8 @@ authRouter.get('/config', (request, response) => {
 
 authRouter.post('/google', rateLimit, async (request, response) => {
   try {
-    const profile = await authenticateGoogleCredential(request.body?.credential);
+    const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase());
+    const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
     response.json({ valid: true, token: createSession(profile), user: publicProfile(profile) });
   } catch (error) {

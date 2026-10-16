@@ -723,6 +723,10 @@ A.popPick = el => {
     return;
   }
   if (p.type === 'role') {
+    if (S.ui.currentUser?.role !== 'admin') {
+      window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['members'], role: S.ui.currentUser?.role } }));
+      return;
+    }
     const m = mem(p.id);
     mutate(() => {
       m.role = v;
@@ -1933,19 +1937,24 @@ IN.shareAccess = el => {
   });
 };
 A.invite = () => {
+  if (S.ui.currentUser?.role !== 'admin') {
+    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['members'], role: S.ui.currentUser?.role } }));
+    return;
+  }
   S.ui.inviteDraft = '';
   S.ui.errors = {};
   S.ui.pop = null;
   openModal({ type: 'invite' });
 };
 A.submitInvite = () => {
+  if (S.ui.currentUser?.role !== 'admin') return;
   const raw = $('#inv-emails').value;
   S.ui.inviteDraft = raw;
   const role = $('#inv-role').value;
   const team = $('#inv-team').value;
   const list = raw
     .split(/[\s,;]+/)
-    .map(s => s.trim())
+    .map(s => s.trim().toLowerCase())
     .filter(Boolean);
   const bad = list.filter(e => !/^\S+@\S+\.\S+$/.test(e));
   if (!list.length) {
@@ -1962,7 +1971,7 @@ A.submitInvite = () => {
     if (
       !mutate(() =>
         list.forEach(e => {
-          if (!D().members.some(m => m.email === e))
+          if (!D().members.some(m => String(m.email || '').toLowerCase() === e))
             D().members.push({
               id: uid('m'),
               name: e
@@ -1974,7 +1983,7 @@ A.submitInvite = () => {
               team,
               title: role,
               c: '#6B7280',
-              status: 'invited',
+              status: 'active',
               last: null,
               tz: '—',
             });
@@ -1985,14 +1994,19 @@ A.submitInvite = () => {
     S.ui.modals.pop();
     S.ui.errors = {};
     render();
-    toast(`${list.length} invitation${list.length > 1 ? 's' : ''} sent`);
+    toast(`Доступ добавлен: ${list.length}. Отправьте участникам ссылку на сайт.`, {
+      action: 'Скопировать ссылку',
+      onAction: () => copy(location.origin, 'Ссылка на вход скопирована'),
+      ms: 8000,
+    });
   });
 };
-A.copyInviteLink = () => copy(workspaceHref('join', `${D().ws.url}-7f3k2`), 'Invite link copied');
+A.copyInviteLink = () => copy(location.origin, 'Ссылка на вход скопирована');
 A.resendInvite = el => {
+  const email = mem(el.dataset.id)?.email;
   S.ui.pop = null;
   render();
-  toast(`Invite resent to ${mem(el.dataset.id).email}`);
+  copy(location.origin, `Ссылка для ${email} скопирована. Отправьте её участнику вручную.`);
 };
 A.viewProfile = el => go('member', { id: el.dataset.id });
 A.assignToMember = el => {
@@ -2000,6 +2014,10 @@ A.assignToMember = el => {
   A.newTask({ dataset: { assignee: el.dataset.id } });
 };
 A.removeMember = el => {
+  if (S.ui.currentUser?.role !== 'admin') {
+    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['members'], role: S.ui.currentUser?.role } }));
+    return;
+  }
   const m = mem(el.dataset.id);
   S.ui.pop = null;
   const n = allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length;
@@ -2788,7 +2806,7 @@ A.onbFinish = () => {
           team: me().team,
           title: 'Member',
           c: '#6B7280',
-          status: 'invited',
+          status: 'active',
           last: null,
           tz: '—',
         }),

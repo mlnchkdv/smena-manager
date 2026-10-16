@@ -1,6 +1,8 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { getWorkspaceDatabase } from './workspace-store.js';
+import { workspaceAccessProfiles } from '../shared/workspace-access.js';
 
 const SESSION_PREFIX = 'smena_sess_';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,6 +91,7 @@ export function createSession(profile, options = {}) {
     version: 1,
     sessionId: crypto.randomUUID(),
     userId: profile.id,
+    profile: profile.source === 'workspace' ? safeProfile(profile) : undefined,
     issuedAt,
     expiresAt,
   });
@@ -118,8 +121,18 @@ export function verifySession(token) {
   }
   if (payload.expiresAt <= Date.now()) return { error: 'Session expired.' };
   const profile = getAccessProfiles().find(item => item.id === payload.userId && item.active);
-  if (!profile) return { error: 'Account is unavailable.' };
-  return { profile, sessionId: payload.sessionId, expiresAt: payload.expiresAt };
+  if (profile) return { profile, sessionId: payload.sessionId, expiresAt: payload.expiresAt, dynamic: false };
+  const embedded = payload.profile;
+  if (
+    embedded?.id === payload.userId &&
+    String(embedded.id).startsWith('workspace:') &&
+    embedded.email &&
+    validRoles.has(embedded.role) &&
+    embedded.active !== false
+  ) {
+    return { profile: embedded, sessionId: payload.sessionId, expiresAt: payload.expiresAt, dynamic: true };
+  }
+  return { error: 'Account is unavailable.' };
 }
 
 function requestToken(request) {
@@ -128,15 +141,28 @@ function requestToken(request) {
   return String(request.get('x-session-token') || '').trim();
 }
 
-export function requireAuth(request, response, next) {
+export async function requireAuth(request, response, next) {
   const result = verifySession(requestToken(request));
   if (!result.profile) {
     response.status(401).json({ error: result.error || 'Authentication required.' });
     return;
   }
-  request.user = safeProfile(result.profile);
-  request.sessionId = result.sessionId;
-  next();
+  try {
+    let profile = result.profile;
+    if (result.dynamic) {
+      const profiles = workspaceAccessProfiles(await getWorkspaceDatabase());
+      profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
+      if (!profile) {
+        response.status(401).json({ error: 'Account is unavailable.' });
+        return;
+      }
+    }
+    request.user = safeProfile(profile);
+    request.sessionId = result.sessionId;
+    next();
+  } catch (error) {
+    next(error);
+  }
 }
 
 export function requireRole(...roles) {
