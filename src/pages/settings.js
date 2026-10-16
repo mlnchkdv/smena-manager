@@ -275,15 +275,24 @@ export function settingsBody(sec, title) {
       );
     case 'notif-push': {
       const permission = browserNotificationState();
+      const pushState = permission === 'granted' ? S.ui.pushState : permission;
       const state = {
-        granted: ['Browser notifications are allowed.', 'ok'],
+        ready: ['Browser notifications are connected to this device.', 'ok'],
+        idle: ['Browser notifications are allowed. Turn on the types you need below.', 'info'],
+        checking: ['Checking the browser notification connection…', 'info'],
+        unavailable: ['Background notifications are not configured on the server yet.', 'danger'],
+        error: ['The browser notification connection needs attention.', 'danger'],
+        granted: ['Browser notifications are allowed. Reconnect this device to finish setup.', 'info'],
         denied: ['Browser notifications are blocked. Allow them in your browser site settings.', 'danger'],
         default: ['Turn on a notification type below to allow browser alerts.', 'info'],
         unsupported: ['This browser does not support system notifications.', 'danger'],
-      }[permission];
+      }[pushState] || ['The browser notification status is unavailable.', 'danger'];
+      const retry = ['error', 'granted'].includes(pushState)
+        ? `<button class="btn btn-secondary btn-sm" data-a="retryPush">${ic('refresh-cw', 13)}Reconnect</button>`
+        : '';
       return (
         H(`Receive system alerts even when ${PRODUCT_NAME} is closed.`) +
-        `<div class="alert ${state[1]}" style="margin-bottom:14px">${ic(permission === 'granted' ? 'circle-check' : permission === 'default' ? 'bell-ring' : 'circle-alert', 16)}<span>${state[0]}</span></div>` +
+        `<div class="alert ${state[1]}" style="margin-bottom:14px">${ic(pushState === 'ready' ? 'circle-check' : ['default', 'idle', 'checking'].includes(pushState) ? 'bell-ring' : 'circle-alert', 16)}<span class="grow">${state[0]}</span>${retry}</div>` +
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
         srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +

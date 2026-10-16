@@ -27,3 +27,11 @@ self.addEventListener('notificationclick', event => {
     }),
   );
 });
+
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      clients.forEach(client => client.postMessage({ type: 'smena:push-subscription-change' }));
+    }),
+  );
+});

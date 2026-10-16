@@ -8,7 +8,7 @@ export function notificationPath(data, route = 'notifications') {
   return `/${slug}/${page || 'notifications'}`;
 }
 
-export function notificationUrl(data, route = 'notifications', origin = process.env.APP_ORIGIN || DEFAULT_ORIGIN) {
+export function notificationUrl(data, route = 'notifications', origin = globalThis.process?.env?.APP_ORIGIN || DEFAULT_ORIGIN) {
   let base;
   try {
     base = new URL(origin);

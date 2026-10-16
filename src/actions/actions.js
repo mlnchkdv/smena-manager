@@ -52,7 +52,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
-import { disableWebPush, enableWebPush } from '../core/push-subscriptions.js';
+import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
 
 export const A = {},
   IN = {},
@@ -2473,8 +2473,10 @@ IN.npToggle = async el => {
   if (el.checked && el.dataset.k.startsWith('push_')) {
     try {
       await enableWebPush();
+      S.ui.pushState = 'ready';
     } catch (error) {
       el.checked = false;
+      S.ui.pushState = error.code === 'PUSH_DISABLED' ? 'unavailable' : error.code === 'PUSH_BLOCKED' ? 'denied' : 'error';
       render();
       toast(error.message || 'Background notifications could not be enabled.', { kind: 'err', ms: 6000 });
       return;
@@ -2486,10 +2488,24 @@ IN.npToggle = async el => {
     const preferences = myNotificationPreferences();
     if (!['push_mention', 'push_assign', 'push_comment', 'push_due'].some(key => preferences[key])) {
       await disableWebPush().catch(() => undefined);
+      S.ui.pushState = 'idle';
     }
   }
   render();
   toast('Notification preferences saved', { ms: 1500 });
+};
+A.retryPush = async () => {
+  S.ui.pushState = 'checking';
+  render();
+  try {
+    S.ui.pushState = await syncWebPushSubscription(myNotificationPreferences());
+    render();
+    if (S.ui.pushState === 'ready') toast('Browser notifications are connected.', { ms: 2200 });
+  } catch (error) {
+    S.ui.pushState = 'error';
+    render();
+    toast(error.message || 'Background notifications could not be connected.', { kind: 'err', ms: 6000 });
+  }
 };
 IN.prefSel = el => {
   const k = el.dataset.k;

@@ -773,6 +773,16 @@ const RU = {
   'Show system alerts while Smena Manager is open.': 'Показывать системные уведомления, пока Smena Manager открыт.',
   'Receive system alerts even when Smena Manager is closed.': 'Получать системные уведомления, даже когда Smena Manager закрыт.',
   'Browser notifications are allowed.': 'Уведомления браузера разрешены.',
+  'Browser notifications are connected to this device.': 'Уведомления браузера подключены на этом устройстве.',
+  'Browser notifications are allowed. Turn on the types you need below.': 'Уведомления браузера разрешены. Включите нужные типы ниже.',
+  'Checking the browser notification connection…': 'Проверяем подключение уведомлений браузера…',
+  'Background notifications are not configured on the server yet.': 'Фоновые уведомления пока не настроены на сервере.',
+  'The browser notification connection needs attention.': 'Подключение уведомлений браузера требует внимания.',
+  'Browser notifications are allowed. Reconnect this device to finish setup.':
+    'Уведомления браузера разрешены. Переподключите это устройство, чтобы завершить настройку.',
+  'The browser notification status is unavailable.': 'Статус уведомлений браузера недоступен.',
+  Reconnect: 'Переподключить',
+  'Browser notifications are connected.': 'Уведомления браузера подключены.',
   'Browser notifications are blocked. Allow them in your browser site settings.':
     'Уведомления браузера заблокированы. Разрешите их в настройках сайта в браузере.',
   'Turn on a notification type below to allow browser alerts.': 'Включите нужный тип ниже, чтобы разрешить системные уведомления.',

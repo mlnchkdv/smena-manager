@@ -61,12 +61,35 @@ import { toast } from './ui/toast.js';
 import { resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
+import { syncWebPushSubscription } from './core/push-subscriptions.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
 });
 
 let conflictRecoveryPromise = null;
+let pushSyncPromise = null;
+
+async function refreshWebPushSubscription() {
+  if (S.ui.auth || !S.ui.currentUser || pushSyncPromise) return pushSyncPromise;
+  S.ui.pushState = 'checking';
+  pushSyncPromise = syncWebPushSubscription(myNotificationPreferences())
+    .then(state => {
+      S.ui.pushState = state;
+      if (S.ui.route === 'settings' && S.ui.params.sec === 'notif-push') render();
+      return state;
+    })
+    .catch(error => {
+      S.ui.pushState = 'error';
+      console.error('[Push] Subscription synchronization failed:', error);
+      if (S.ui.route === 'settings' && S.ui.params.sec === 'notif-push') render();
+      return 'error';
+    })
+    .finally(() => {
+      pushSyncPromise = null;
+    });
+  return pushSyncPromise;
+}
 
 function updateSyncIndicator(status) {
   S.ui.syncState = status;
@@ -226,8 +249,9 @@ window.addEventListener('popstate', () => {
   S.ui.auth = 'login';
   S.ui.authBusy = true;
   render();
+  let user = null;
   try {
-    const user = await restoreSessionAndWorkspace();
+    user = await restoreSessionAndWorkspace();
     S.ui.authBusy = false;
     S.ui.auth = user ? (S.ui.needsOnboarding ? 'onboarding' : null) : 'login';
     if (S.ui.needsOnboarding) S.ui.onb = 1;
@@ -238,6 +262,7 @@ window.addEventListener('popstate', () => {
     S.ui.authIssue = error.status === 401 ? '' : error.message || 'Unable to connect to the workspace server.';
   }
   render();
+  if (user && !S.ui.needsOnboarding) void refreshWebPushSubscription();
 })();
 
 let workspaceRefreshPromise = null;
@@ -290,6 +315,10 @@ window.addEventListener('focus', () => void refreshVisibleWorkspace(true));
 window.addEventListener('online', () => {
   void A.retryOnline();
   void refreshVisibleWorkspace(true);
+  void refreshWebPushSubscription();
+});
+navigator.serviceWorker?.addEventListener('message', event => {
+  if (event.data?.type === 'smena:push-subscription-change') void refreshWebPushSubscription();
 });
 
 // Dev-only handle for debugging and screenshot tooling; stripped from production builds.

@@ -55,6 +55,7 @@ export const S = {
     authBusy: false,
     authConfig: null,
     authIssue: '',
+    pushState: 'checking',
     needsOnboarding: false,
     currentUser: null,
     workspaceRevision: null,
