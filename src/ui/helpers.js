@@ -65,11 +65,22 @@ export function hl(text, q) {
   return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
 }
 export function fmtComment(txt) {
-  let h = esc(txt);
-  D().members.forEach(m => {
-    h = h.split('@' + esc(m.name)).join(`<span class="mention">@${esc(m.name)}</span>`);
-  });
-  return h;
+  const source = String(txt || '');
+  const names = [...D().members.map(member => member.name), ...(D().teams || []).map(team => team.name), 'workspace', 'пространство', 'все']
+    .filter(Boolean)
+    .filter((value, index, items) => items.findIndex(item => item.toLocaleLowerCase() === value.toLocaleLowerCase()) === index)
+    .sort((a, b) => b.length - a.length);
+  if (!names.length) return esc(source);
+
+  const escapedNames = names.map(value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const matcher = new RegExp(`(^|[\\s([{])@(${escapedNames.join('|')})(?=$|[\\s.,!?;:)\\]}…])`, 'giu');
+  let html = '';
+  let lastIndex = 0;
+  for (const match of source.matchAll(matcher)) {
+    html += esc(source.slice(lastIndex, match.index)) + esc(match[1]) + `<span class="mention">@${esc(match[2])}</span>`;
+    lastIndex = match.index + match[0].length;
+  }
+  return html + esc(source.slice(lastIndex));
 }
 export const FT = {
   fig: { c: '#8662C9', i: 'pen-tool', n: 'Figma' },

@@ -3,7 +3,7 @@
    ===================================================================== */
 import { MOD, TODAY, ago, diffD, esc, fmtDate, parse, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, commentsOf, isOver, mem, pColor, proj, task } from '../core/store.js';
+import { D, S, commentsOf, isOver, mem, pColor, proj, task, teamsList } from '../core/store.js';
 import { FT, av, filePrev, fileType, fmtComment, lbl, progBar } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { cellAssignee, cellDue, cellPrio, cellProject, cellStatus } from '../components/task-list.js';
@@ -11,7 +11,7 @@ import { modalHtml } from './modals.js';
 import { popHtml } from './popovers.js';
 import { paletteHtml } from './palette.js';
 import { subtaskHtml } from '../features/subtasks.js';
-import { activityExtra, t as tr } from '../core/i18n.js';
+import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 
 export function renderLayer() {
   const u = S.ui;
@@ -37,13 +37,19 @@ export function drawerHtml(t) {
   const tab = u.drawerTab;
   const prop = (icon, label, val) => `<dt>${ic(icon, 14)}${label}</dt><dd>${val}</dd>`;
   const ups = (u.uploads || []).filter(x => x.task === t.id);
+  const mentionQuery = u.mention && u.mention.tid === t.id ? u.mention.q.trim().toLocaleLowerCase() : null;
   const ment =
-    u.mention && u.mention.tid === t.id
-      ? D()
-          .members.filter(
-            m => m.name.toLowerCase().startsWith(u.mention.q.toLowerCase()) || m.name.split(' ')[1]?.toLowerCase().startsWith(u.mention.q.toLowerCase()),
-          )
-          .slice(0, 5)
+    mentionQuery !== null
+      ? [
+          { id: 'workspace', name: isRussian() ? 'все' : 'workspace', title: 'Entire workspace', icon: 'building-2', kind: 'group' },
+          ...teamsList().map(item => ({ id: item.id, name: item.name, title: 'Team', icon: item.icon, kind: 'group' })),
+          ...D().members.map(item => ({ ...item, kind: 'member' })),
+        ]
+          .filter(item => {
+            const name = item.name.toLocaleLowerCase();
+            return !mentionQuery || name.startsWith(mentionQuery) || name.split(' ').some(part => part.startsWith(mentionQuery));
+          })
+          .slice(0, 7)
       : [];
   const sub = u.subOpen && u.subOpen.tid === t.id ? t.subtasks.find(s => s.id === u.subOpen.sid) : null;
   return `<aside class="drawer ${u.drawerFull ? 'full' : ''} ${u.fx.drawer ? 'enter' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}" role="dialog" aria-modal="${u.drawerFull}" aria-labelledby="d-h" tabindex="-1">
@@ -119,7 +125,7 @@ export function drawerHtml(t) {
           <div class="row" style="align-items:flex-start;gap:10px;margin-top:8px">${av(D().me, 'md', false)}<div class="grow" style="position:relative">
             <div class="cbox"><textarea id="d-cmt" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Leave a comment… type @ to mention" aria-label="Comment" rows="2" data-autosize>${esc(u.drafts[t.id] || '')}</textarea>
             <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><label class="ibtn ibtn-xs" data-tip="Attach file" style="cursor:pointer">${ic('paperclip', 14)}<input type="file" multiple hidden data-in="uploadFiles" data-task="${t.id}" data-project="${t.project}"></label><span class="sp"></span><span class="faint hide-m" style="font-size:11px">${MOD}+Enter</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Comment</button></div></div>
-            ${ment.length ? `<div class="pop" style="position:absolute;top:auto;bottom:calc(100% + 4px);left:0">${ment.map(m => `<button class="mi" data-a="pickMention" data-id="${t.id}" data-name="${esc(m.name)}">${av(m.id, 'sm', false)}${esc(m.name)}<span class="r">${esc(m.title)}</span></button>`).join('')}</div>` : ''}
+            ${ment.length ? `<div class="pop" style="position:absolute;top:auto;bottom:calc(100% + 4px);left:0">${ment.map(m => `<button class="mi" data-a="pickMention" data-id="${t.id}" data-name="${esc(m.name)}">${m.kind === 'member' ? av(m.id, 'sm', false) : `<span class="av sm" style="--c:var(--accent)">${ic(m.icon, 12)}</span>`}${esc(m.name)}<span class="r">${esc(m.title)}</span></button>`).join('')}</div>` : ''}
           </div></div>`
             : `
           <div style="padding-top:4px">${acts.map(a => `<div class="act-line"><span class="ico">${av(a.by, 'sm', false)}</span><span class="grow"><b>${esc(mem(a.by)?.id === D().me ? tr('You') : mem(a.by)?.name)}</b> ${esc(tr(a.verb.replace(/ of$/, '')))}${a.extra ? ' ' + esc(activityExtra(a.extra, a.verb)) : ''}</span><time class="faint" style="font-size:11.5px">${ago(a.at)}</time></div>`).join('')}

@@ -139,6 +139,9 @@ const RU = {
   Online: 'В сети',
   'created project': 'создал(а) проект',
   'mentioned you in': 'упомянул(а) вас в',
+  'mentioned your team in': 'упомянул(а) вашу команду в',
+  'mentioned everyone in': 'упомянул(а) всех в',
+  'Entire workspace': 'Всё рабочее пространство',
   'assigned you': 'назначил(а) вам задачу',
   'is due today': 'срок — сегодня',
   'No archived projects. Archived projects are hidden from the sidebar but keep all their tasks.':

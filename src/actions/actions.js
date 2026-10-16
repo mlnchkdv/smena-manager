@@ -51,7 +51,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, t as tr, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
-import { mentionedMemberIds } from '../shared/notification-model.js';
+import { mentionNotificationTargets } from '../shared/notification-model.js';
 
 export const A = {},
   IN = {},
@@ -1405,7 +1405,7 @@ IN.draft = el => {
   const id = el.dataset.id;
   S.ui.drafts[id] = el.value;
   const before = el.value.slice(0, el.selectionStart);
-  const m = before.match(/(?:^|\s)@([A-Za-z]*)$/);
+  const m = before.match(/(?:^|\s)@([^@\n]*)$/u);
   const prev = JSON.stringify(S.ui.mention);
   S.ui.mention = m ? { tid: id, q: m[1] } : null;
   if (prev !== JSON.stringify(S.ui.mention)) render();
@@ -1414,7 +1414,7 @@ IN.draft = el => {
 A.pickMention = el => {
   const id = el.dataset.id;
   const d = S.ui.drafts[id] || '';
-  S.ui.drafts[id] = d.replace(/@([A-Za-z]*)$/, '@' + el.dataset.name + ' ');
+  S.ui.drafts[id] = d.replace(/@([^@\n]*)$/u, '@' + el.dataset.name + ' ');
   S.ui.mention = null;
   render();
   const ta = $('#d-cmt');
@@ -1448,20 +1448,30 @@ A.postComment = el => {
     mutate(() => {
       D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, re: {} });
       logAct('commented on', t);
-      const mentioned = new Set(mentionedMemberIds(txt, D().members).filter(memberId => memberId !== D().me));
-      mentioned.forEach(recipient =>
-        notify(recipient, 'mention', {
+      const notified = new Set();
+      const mentionText = {
+        direct: 'mentioned you in',
+        team: 'mentioned your team in',
+        workspace: 'mentioned everyone in',
+      };
+      mentionNotificationTargets(txt, D()).forEach(({ recipient, scope, team }) => {
+        if (recipient === D().me || notified.has(recipient)) return;
+        const created = notify(recipient, 'mention', {
           task: t.id,
-          text: 'mentioned you in',
+          text: mentionText[scope],
           snippet: txt,
-        }),
-      );
-      if (t.assignee && t.assignee !== D().me && !mentioned.has(t.assignee)) {
-        notify(t.assignee, 'comment', {
+          scope,
+          ...(team ? { team } : {}),
+        });
+        if (created) notified.add(recipient);
+      });
+      if (t.assignee && t.assignee !== D().me && !notified.has(t.assignee)) {
+        const created = notify(t.assignee, 'comment', {
           task: t.id,
           text: 'commented on',
           snippet: txt,
         });
+        if (created) notified.add(t.assignee);
       }
       S.ui.drafts[id] = '';
       S.ui.mention = null;

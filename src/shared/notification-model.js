@@ -7,7 +7,7 @@ function primaryRecipient(data) {
 export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
   mention_all: true,
   mention_team: true,
-  mention_ws: false,
+  mention_ws: true,
   assign_self: true,
   assign_status: true,
   assign_over: true,
@@ -15,11 +15,19 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
 });
 
 const preferenceForType = {
-  mention: 'mention_all',
   assign: 'assign_self',
   comment: 'comment_assigned',
   update: 'assign_status',
 };
+
+function preferenceForNotification(notification) {
+  if (notification?.type === 'mention') {
+    if (notification.scope === 'team') return 'mention_team';
+    if (notification.scope === 'workspace') return 'mention_ws';
+    return 'mention_all';
+  }
+  return preferenceForType[notification?.type];
+}
 
 export function notificationRecipient(notification, data) {
   return notification?.recipient || notification?.recipientId || primaryRecipient(data);
@@ -69,7 +77,7 @@ export function addWorkspaceNotification(data, notification) {
   const actor = notification?.by || data?.me;
   if (!recipient || recipient === actor || !Array.isArray(data?.notifs)) return null;
   if (Array.isArray(data?.members) && !data.members.some(member => member.id === recipient)) return null;
-  const preference = preferenceForType[notification.type];
+  const preference = preferenceForNotification(notification);
   if (preference && notificationPreferencesForMember(data, recipient)[preference] === false) return null;
 
   const created = {
@@ -87,10 +95,39 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function containsMention(text, value) {
+  if (!value) return false;
+  return new RegExp(`(^|[\\s([{])@${escapeRegExp(value)}(?=$|[\\s.,!?;:)\\]}…])`, 'iu').test(String(text || ''));
+}
+
 export function mentionedMemberIds(text, members = []) {
-  const source = String(text || '');
   return members
     .filter(member => member?.id && member?.name)
-    .filter(member => new RegExp(`(^|\\s)@${escapeRegExp(member.name)}(?=$|[\\s.,!?;:)])`, 'iu').test(source))
+    .filter(member => containsMention(text, member.name))
     .map(member => member.id);
+}
+
+export function mentionedTeamIds(text, teams = []) {
+  return teams
+    .filter(team => team?.id && team?.name)
+    .filter(team => containsMention(text, team.name))
+    .map(team => team.id);
+}
+
+export function mentionsWorkspace(text) {
+  return ['workspace', 'пространство', 'все'].some(alias => containsMention(text, alias));
+}
+
+export function mentionNotificationTargets(text, data = {}) {
+  const members = Array.isArray(data.members) ? data.members.filter(member => member?.id && member.status !== 'deactivated') : [];
+  const targets = mentionedMemberIds(text, members).map(recipient => ({ recipient, scope: 'direct' }));
+
+  mentionedTeamIds(text, Array.isArray(data.teams) ? data.teams : []).forEach(teamId => {
+    members.filter(member => member.team === teamId).forEach(member => targets.push({ recipient: member.id, scope: 'team', team: teamId }));
+  });
+
+  if (mentionsWorkspace(text)) {
+    members.forEach(member => targets.push({ recipient: member.id, scope: 'workspace' }));
+  }
+  return targets;
 }
