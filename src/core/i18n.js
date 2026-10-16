@@ -75,6 +75,27 @@ const RU = {
   'Toggle sub-pages': 'Показать или скрыть подразделы',
   'Project options': 'Параметры проекта',
   'Project status': 'Статус проекта',
+  'Toggle full page': 'Переключить полноэкранный режим',
+  'Add labels': 'Добавить метки',
+  'Add estimate': 'Добавить оценку',
+  Formatting: 'Форматирование',
+  Bold: 'Полужирный',
+  Italic: 'Курсив',
+  'Bulleted list': 'Маркированный список',
+  'Numbered list': 'Нумерованный список',
+  Heading: 'Заголовок',
+  Link: 'Ссылка',
+  'No comments yet. Start the conversation.': 'Комментариев пока нет. Начните обсуждение.',
+  'Leave a comment… type @ to mention': 'Оставьте комментарий… используйте @ для упоминания',
+  Comment: 'Комментарий',
+  Mention: 'Упомянуть',
+  'Mention someone': 'Упомянуть участника',
+  'Attach file': 'Прикрепить файл',
+  'Delete comment': 'Удалить комментарий',
+  'Add reaction': 'Добавить реакцию',
+  'Reply… use @ to mention': 'Ответьте… используйте @ для упоминания',
+  Reply: 'Ответить',
+  'Enter to send': 'Enter — отправить',
   'New project': 'Новый проект',
   'New team': 'Новая команда',
   'Account menu': 'Меню аккаунта',
@@ -996,6 +1017,13 @@ const RU = {
   Someone: 'Кто-то',
   moved: 'переместил(а)',
   completed: 'завершил(а)',
+  reopened: 'возобновил(а)',
+  renamed: 'переименовал(а)',
+  'changed due date of': 'изменил(а) срок',
+  'changed start date of': 'изменил(а) дату начала',
+  'updated labels on': 'изменил(а) метки',
+  'set repeat on': 'изменил(а) повтор',
+  estimated: 'изменил(а) оценку',
   'commented on': 'оставил(а) комментарий к',
   'changed priority of': 'изменил(а) приоритет',
   'added a file to': 'добавил(а) файл к',
@@ -1117,6 +1145,8 @@ const pluralRu = (value, one, few, many) => {
 };
 
 const PATTERNS = [
+  [/^Task: (.+)$/u, 'Задача: $1'],
+  [/^Subtask: (.+)$/u, 'Подзадача: $1'],
   [/^Workspace “(.+)”$/u, 'Пространство «$1»'],
   [/^Project “(.+)”$/u, 'Проект «$1»'],
   [/^Good morning, (.+)$/u, 'Доброе утро, $1'],
@@ -1250,10 +1280,12 @@ export function activityExtra(value, verb) {
   if (!isRussian() || !value) return value;
   const match = String(value).match(/^to (.+)$/u);
   if (!match) return t(value);
-  const target = RU[match[1]] || match[1];
+  const rawTarget = RU[match[1]] || match[1];
+  const target = rawTarget.replace(/^[“"]|[”"]$/gu, '');
   if (verb === 'moved') return `в статус «${target}»`;
   if (verb === 'changed priority of') return `на «${target}»`;
   if (verb === 'assigned') return `исполнителю ${target}`;
+  if (verb === 'renamed') return `в «${target}»`;
   return `в «${target}»`;
 }
 
