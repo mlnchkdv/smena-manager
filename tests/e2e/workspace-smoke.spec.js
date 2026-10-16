@@ -50,7 +50,7 @@ async function openTrash(page) {
 async function visibleUntranslatedUi(page) {
   return page.evaluate(() => {
     const allowed =
-      /Smena Manager|E2E|CtrlK|https?|URL|JSON|KMS|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
+      /Smena Manager|KMS Brain|E2E|CtrlK|https?|URL|JSON|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
     const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     return [
       ...new Set(

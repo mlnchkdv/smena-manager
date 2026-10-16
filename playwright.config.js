@@ -13,6 +13,16 @@ const accessProfiles = JSON.stringify([
     accessId: 'e2e-access-id-2026-secure',
     active: true,
   },
+  {
+    id: 'e2e-editor',
+    name: 'E2E Редактор',
+    email: 'editor@example.test',
+    title: 'Редактор',
+    team: 'product',
+    role: 'editor',
+    accessId: 'e2e-editor-access-id-2026-secure',
+    active: true,
+  },
 ]);
 
 export default defineConfig({
