@@ -99,6 +99,32 @@ export async function getWorkspaceRevision() {
   return request('/api/workspace/revision', {}, true);
 }
 
+export async function getPushConfig() {
+  return request('/api/push/config', {}, true);
+}
+
+export async function savePushSubscription(subscription, locale) {
+  return request(
+    '/api/push/subscriptions',
+    {
+      method: 'POST',
+      body: JSON.stringify({ subscription, locale }),
+    },
+    true,
+  );
+}
+
+export async function deletePushSubscription(endpoint) {
+  return request(
+    '/api/push/subscriptions',
+    {
+      method: 'DELETE',
+      body: JSON.stringify({ endpoint }),
+    },
+    true,
+  );
+}
+
 export async function putWorkspace(data, revision) {
   const actualBytes = workspaceTransportBytes(data, revision);
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {

@@ -146,6 +146,34 @@ test('Google Drive reads the database revision from file metadata without downlo
   assert.equal(provider.databaseEtag, 'etag-7');
 });
 
+test('Google Drive stores push subscriptions in a private sibling JSON file', async () => {
+  const calls = [];
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.client = {
+    files: {
+      list: async options => {
+        calls.push({ type: 'list', options });
+        return { data: { files: [] } };
+      },
+      create: async options => {
+        calls.push({ type: 'create', options });
+        return { data: { id: 'push-file' }, headers: { etag: 'push-etag' } };
+      },
+    },
+  };
+
+  assert.deepEqual(await provider.loadPushSubscriptions(), []);
+  await provider.savePushSubscriptions([{ id: 'browser-1' }]);
+
+  const created = calls.find(call => call.type === 'create').options;
+  assert.equal(created.requestBody.name, 'smena-manager-push-subscriptions.json');
+  assert.equal(created.requestBody.appProperties.smenaPrivate, 'push-subscriptions');
+  assert.deepEqual(created.requestBody.parents, ['root-folder']);
+  assert.equal(provider.pushSubscriptionsFileId, 'push-file');
+});
+
 test('Google Drive backups stay in the dedicated folder and can be restored', async () => {
   const provider = new GoogleDriveStorageProvider();
   provider.initialized = true;

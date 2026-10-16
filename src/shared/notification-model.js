@@ -25,6 +25,17 @@ const preferenceForType = {
   update: 'assign_status',
 };
 
+const pushPreferenceForType = Object.freeze({
+  mention: 'push_mention',
+  assign: 'push_assign',
+  comment: 'push_comment',
+  due: 'push_due',
+});
+
+export function pushPreferenceForNotification(notification) {
+  return pushPreferenceForType[notification?.type] || null;
+}
+
 function preferenceForNotification(notification) {
   if (notification?.type === 'mention') {
     if (notification.scope === 'team') return 'mention_team';

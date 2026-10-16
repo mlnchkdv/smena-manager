@@ -15,6 +15,7 @@ import {
   me,
   mem,
   myNotification,
+  myNotificationPreferences,
   myNotifications,
   proj,
   save,
@@ -50,7 +51,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
-import { requestBrowserNotificationPermission } from '../core/browser-notifications.js';
+import { disableWebPush, enableWebPush } from '../core/push-subscriptions.js';
 
 export const A = {},
   IN = {},
@@ -2459,21 +2460,23 @@ IN.prefToggle = el => {
 };
 IN.npToggle = async el => {
   if (el.checked && el.dataset.k.startsWith('push_')) {
-    const permission = await requestBrowserNotificationPermission();
-    if (permission !== 'granted') {
+    try {
+      await enableWebPush();
+    } catch (error) {
       el.checked = false;
       render();
-      toast(
-        permission === 'unsupported'
-          ? 'This browser does not support system notifications.'
-          : 'Browser notifications are blocked. Allow them in your browser site settings.',
-        { kind: 'err', ms: 6000 },
-      );
+      toast(error.message || 'Background notifications could not be enabled.', { kind: 'err', ms: 6000 });
       return;
     }
   }
   if (!setMyNotificationPreference(el.dataset.k, el.checked)) return;
   save();
+  if (!el.checked && el.dataset.k.startsWith('push_')) {
+    const preferences = myNotificationPreferences();
+    if (!['push_mention', 'push_assign', 'push_comment', 'push_due'].some(key => preferences[key])) {
+      await disableWebPush().catch(() => undefined);
+    }
+  }
   render();
   toast('Notification preferences saved', { ms: 1500 });
 };

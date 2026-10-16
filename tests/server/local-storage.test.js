@@ -65,6 +65,20 @@ test('local storage creates and loads named database backups', async t => {
   await assert.rejects(() => provider.loadDatabaseBackup('../escape.json'), /Invalid backup ID/);
 });
 
+test('local storage keeps push subscriptions outside the shared workspace database', async t => {
+  const testRoot = path.join(process.cwd(), '.data', 'tests');
+  await fs.promises.mkdir(testRoot, { recursive: true });
+  const directory = await fs.promises.mkdtemp(path.join(testRoot, 'local-push-'));
+  t.after(() => fs.promises.rm(directory, { recursive: true, force: true }));
+  const provider = new LocalStorageProvider(path.join(directory, 'workspace.json'));
+  const subscriptions = [{ id: 'browser-1', memberId: 'member-1', subscription: { endpoint: 'https://push.example/1' } }];
+
+  assert.deepEqual(await provider.loadPushSubscriptions(), []);
+  await provider.savePushSubscriptions(subscriptions);
+  assert.deepEqual(await provider.loadPushSubscriptions(), subscriptions);
+  assert.equal((await provider.loadDatabase())?.pushSubscriptions, undefined);
+});
+
 test('local storage uploads, streams byte ranges, and deletes files', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');
   await fs.promises.mkdir(testRoot, { recursive: true });

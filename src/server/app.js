@@ -21,6 +21,12 @@ import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
 import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
+import {
+  deliverPushNotifications,
+  publicPushConfig,
+  removePushSubscription,
+  upsertPushSubscription,
+} from './push-subscriptions.js';
 
 export const app = express();
 
@@ -54,6 +60,36 @@ app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });
+});
+
+app.get('/api/push/config', (_request, response) => {
+  response.json(publicPushConfig());
+});
+
+app.post('/api/push/subscriptions', async (request, response, next) => {
+  try {
+    const stored = await getWorkspaceDatabase();
+    const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
+    if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
+    const result = await upsertPushSubscription(member.id, request.user.id, request.body?.subscription, {
+      locale: request.body?.locale,
+      userAgent: request.get('user-agent'),
+    });
+    response.status(201).json({ subscription: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/push/subscriptions', async (request, response, next) => {
+  try {
+    const stored = await getWorkspaceDatabase();
+    const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
+    if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
+    response.json({ removed: await removePushSubscription(member.id, request.body?.endpoint) });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/storage/status', async (_request, response, next) => {
@@ -142,11 +178,14 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
   try {
     let nextData = request.body?.data;
     const stored = await getWorkspaceDatabase();
+    const knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
     const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
     if (request.user.role === 'editor') {
       nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
+    const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
+    await deliverPushNotifications(data, createdNotifications);
     response.json({ data });
   } catch (error) {
     next(error);

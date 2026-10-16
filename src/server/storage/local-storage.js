@@ -23,6 +23,7 @@ export class LocalStorageProvider {
 
   constructor(databasePath = process.env.DATABASE_PATH || path.join(process.cwd(), '.data', 'smena-manager-data.json')) {
     this.databasePath = path.resolve(databasePath);
+    this.pushSubscriptionsPath = path.resolve(path.join(path.dirname(this.databasePath), 'push-subscriptions.json'));
     this.uploadsPath = path.resolve(process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
     this.backupsPath = path.resolve(process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
   }
@@ -49,6 +50,28 @@ export class LocalStorageProvider {
     try {
       await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), 'utf8');
       await renameWithRetry(temporaryPath, this.databasePath);
+    } finally {
+      await fs.promises.unlink(temporaryPath).catch(() => undefined);
+    }
+  }
+
+  async loadPushSubscriptions() {
+    try {
+      const value = await fs.promises.readFile(this.pushSubscriptionsPath, 'utf8');
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      if (error?.code === 'ENOENT') return [];
+      throw error;
+    }
+  }
+
+  async savePushSubscriptions(subscriptions) {
+    await this.init();
+    const temporaryPath = `${this.pushSubscriptionsPath}.${process.pid}.${Date.now()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(subscriptions, null, 2), 'utf8');
+      await renameWithRetry(temporaryPath, this.pushSubscriptionsPath);
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }

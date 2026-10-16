@@ -7,6 +7,7 @@ const DATABASE_NAME = 'smena-manager-data.json';
 const ROOT_FOLDER_NAME = 'Smena-Manager-Storage';
 const UPLOADS_FOLDER_NAME = 'uploads';
 const BACKUPS_FOLDER_NAME = 'backups';
+const PUSH_SUBSCRIPTIONS_NAME = 'smena-manager-push-subscriptions.json';
 
 function escapeDriveQuery(value) {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -20,6 +21,8 @@ export class GoogleDriveStorageProvider {
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
   databaseEtag = null;
+  pushSubscriptionsFileId = null;
+  pushSubscriptionsEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
   backupsFolderId = null;
   credentialType = null;
@@ -209,6 +212,58 @@ export class GoogleDriveStorageProvider {
       this.databaseEtag = created.headers?.etag || null;
     }
     this.lastSyncAt = new Date().toISOString();
+  }
+
+  async findPushSubscriptionsFile() {
+    if (this.pushSubscriptionsFileId) return this.pushSubscriptionsFileId;
+    const result = await this.client.files.list({
+      q: `name = '${PUSH_SUBSCRIPTIONS_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
+      fields: 'files(id)',
+      spaces: 'drive',
+      pageSize: 1,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    this.pushSubscriptionsFileId = result.data.files?.[0]?.id || null;
+    return this.pushSubscriptionsFileId;
+  }
+
+  async loadPushSubscriptions() {
+    await this.init();
+    const fileId = await this.findPushSubscriptionsFile();
+    if (!fileId) return [];
+    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    this.pushSubscriptionsEtag = response.headers?.etag || null;
+    const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  async savePushSubscriptions(subscriptions) {
+    await this.init();
+    const fileId = await this.findPushSubscriptionsFile();
+    const media = {
+      mimeType: 'application/json',
+      body: Readable.from([JSON.stringify(subscriptions, null, 2)]),
+    };
+    if (fileId) {
+      const requestOptions = this.pushSubscriptionsEtag ? { headers: { 'If-Match': this.pushSubscriptionsEtag } } : undefined;
+      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      this.pushSubscriptionsEtag = updated.headers?.etag || null;
+      return;
+    }
+    const created = await this.client.files.create({
+      requestBody: {
+        name: PUSH_SUBSCRIPTIONS_NAME,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaPrivate: 'push-subscriptions' },
+      },
+      media,
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+    this.pushSubscriptionsFileId = created.data.id;
+    this.pushSubscriptionsEtag = created.headers?.etag || null;
   }
 
   async createDatabaseBackup(data, label = '') {

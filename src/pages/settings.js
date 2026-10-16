@@ -281,11 +281,12 @@ export function settingsBody(sec, title) {
         unsupported: ['This browser does not support system notifications.', 'danger'],
       }[permission];
       return (
-        H(`Show system alerts while ${PRODUCT_NAME} is open.`) +
+        H(`Receive system alerts even when ${PRODUCT_NAME} is closed.`) +
         `<div class="alert ${state[1]}" style="margin-bottom:14px">${ic(permission === 'granted' ? 'circle-check' : permission === 'default' ? 'bell-ring' : 'circle-alert', 16)}<span>${state[0]}</span></div>` +
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
-        srow('Comments', '', tog('push_comment', np.push_comment, 'np'))
+        srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +
+        srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np'))
       );
     }
     case 'notif-mentions':

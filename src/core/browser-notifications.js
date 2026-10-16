@@ -1,9 +1,4 @@
-const PREFERENCE_BY_TYPE = Object.freeze({
-  mention: 'push_mention',
-  assign: 'push_assign',
-  comment: 'push_comment',
-  due: 'push_due',
-});
+import { pushPreferenceForNotification } from '../shared/notification-model.js';
 
 export function browserNotificationState() {
   if (typeof Notification === 'undefined') return 'unsupported';
@@ -17,7 +12,7 @@ export async function requestBrowserNotificationPermission() {
 }
 
 export function browserNotificationPreferenceKey(notification) {
-  return PREFERENCE_BY_TYPE[notification?.type] || null;
+  return pushPreferenceForNotification(notification);
 }
 
 export function canDeliverBrowserNotification(notification, preferences, permission = browserNotificationState()) {
