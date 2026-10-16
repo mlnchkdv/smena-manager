@@ -39,6 +39,7 @@ export default defineConfig({
       UPLOADS_PATH: `.data/e2e/uploads-${process.pid}`,
       BACKUPS_PATH: `.data/e2e/backups-${process.pid}`,
       ACCESS_IDS_JSON: accessProfiles,
+      ACCESS_ID_LOGIN_ENABLED: 'true',
       SESSION_SECRET: 'e2e-session-secret-that-is-at-least-32-characters',
     },
   },

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createSession, findProfileByAccessId, findProfileByEmail, getAccessProfiles, publicProfile, verifySession } from '../../src/server/auth.js';
+import {
+  accessIdLoginEnabled,
+  createSession,
+  findProfileByAccessId,
+  findProfileByEmail,
+  getAccessProfiles,
+  publicProfile,
+  verifySession,
+} from '../../src/server/auth.js';
 
 const originalProfiles = process.env.ACCESS_IDS_JSON;
 const originalSecret = process.env.SESSION_SECRET;
@@ -71,4 +79,11 @@ test('signed workspace-member sessions retain the Google profile', () => {
   assert.equal(result.profile.email, 'invited@example.com');
   assert.equal(result.profile.role, 'editor');
   assert.equal('accessId' in result.profile, false);
+});
+
+test('Access ID login defaults to local-only and supports an explicit emergency override', () => {
+  assert.equal(accessIdLoginEnabled({}), true);
+  assert.equal(accessIdLoginEnabled({ VERCEL: '1' }), false);
+  assert.equal(accessIdLoginEnabled({ VERCEL: '1', ACCESS_ID_LOGIN_ENABLED: 'true' }), true);
+  assert.equal(accessIdLoginEnabled({ ACCESS_ID_LOGIN_ENABLED: 'false' }), false);
 });

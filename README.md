@@ -30,8 +30,8 @@ npm run format    # Prettier
 ## Server and storage
 
 The browser UI uses an Express API. Vercel serves it through `api/index.js`; local development starts
-the same API alongside Vite and proxies `/api` requests to it. Authentication supports Google Sign-In
-for whitelisted team emails and Access IDs as a fallback; both issue signed seven-day sessions. The
+the same API alongside Vite and proxies `/api` requests to it. Authentication uses Google Sign-In
+for whitelisted team emails. Local development can also use Access IDs; both issue signed seven-day sessions. The
 client keeps a local cache, serializes writes and uses optimistic revisions so a stale browser cannot
 silently replace newer team data.
 
@@ -39,7 +39,7 @@ silently replace newer team data.
 - `GET /api/auth/config` reports whether deployment credentials are complete.
 - `POST /api/auth/google` verifies a Google Identity Services ID token and matches its confirmed email
   to an active team profile.
-- `POST /api/auth/validate` exchanges a team Access ID for a signed seven-day session.
+- `POST /api/auth/validate` exchanges a team Access ID for a signed seven-day session when the fallback is enabled.
 - `GET /api/auth/me` returns the signed-in profile.
 - `GET /api/storage/status` initializes the workspace database and reports its storage state after authentication.
 - `GET /api/workspace` returns the current versioned JSON snapshot.
@@ -56,9 +56,11 @@ personal or Workspace account. A service account must also receive `GOOGLE_DRIVE
 folder or Shared Drive that has been shared with it. Secrets belong in Vercel Environment Variables
 and must not be committed.
 
-Team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For local development, copy
+Bootstrap team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For local development, copy
 `access-ids.example.json` to `.data/access-ids.json` and replace the example credentials. Access IDs
-are passwords; never commit real values. Production also requires a stable `SESSION_SECRET`.
+are passwords; never commit real values. Their login form is enabled locally and disabled on Vercel by
+default. Set `ACCESS_ID_LOGIN_ENABLED=true` only when a temporary production recovery channel is
+required. Production also requires a stable `SESSION_SECRET`.
 Workspace writes on Vercel can use `REDIS_URL` for a distributed lock, or
 `WORKSPACE_WRITE_MODE=drive` for direct Drive persistence with revision and ETag conflict protection.
 The direct mode suits a small team without a separate database; Redis remains preferable for high
@@ -71,8 +73,9 @@ administrator can initialize an empty production database on the first sign-in.
 ## Vercel production setup
 
 1. Create a long random `SESSION_SECRET` (at least 32 characters).
-2. Add `ACCESS_IDS_JSON` as a JSON array. Use a unique random Access ID of at least 16 characters for
-   every person, include the Google email each person will use and include at least one `admin`. Start
+2. Add `ACCESS_IDS_JSON` as a JSON array. Include the Google email each bootstrap profile will use and
+   include at least one `admin`. If emergency Access ID login will be enabled, use a unique random ID of
+   at least 16 characters for every person. Start
    from `access-ids.example.json`, but never commit real IDs. Google Sign-In is a whitelist: a verified
    Google email must match an active profile exactly. A profile is linked to its workspace member by
    `authProfileId`, matching `id`, or matching email. The first administrator is linked automatically
@@ -93,7 +96,7 @@ administrator can initialize an empty production database on the first sign-in.
    Preview), then redeploy. Run `npm run check:deploy` against an equivalent local `.env` before the
    deployment.
 7. Open `/api/auth/config`. `deploymentReady` and `googleAuthEnabled` must both be `true`, while
-   `configurationIssues` must be empty. Sign in with the administrator Google account or Access ID;
+   `configurationIssues` must be empty. Sign in with the administrator Google account;
    the first sign-in creates the Drive database from the current workspace seed. Afterwards, copy the
    created Drive file ID into the optional
    `GOOGLE_DRIVE_DATABASE_FILE_ID` variable to reduce lookup requests.

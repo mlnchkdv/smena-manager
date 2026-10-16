@@ -9,6 +9,14 @@ const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 const ephemeralSecret = crypto.randomBytes(32).toString('hex');
 const validRoles = new Set(['admin', 'editor', 'viewer']);
 
+export function accessIdLoginEnabled(environment = process.env) {
+  const configured = String(environment.ACCESS_ID_LOGIN_ENABLED || '')
+    .trim()
+    .toLowerCase();
+  if (configured) return ['1', 'true', 'yes', 'on'].includes(configured);
+  return !environment.VERCEL;
+}
+
 function sessionSecret() {
   const value = process.env.SESSION_SECRET?.trim();
   if (value) return value;

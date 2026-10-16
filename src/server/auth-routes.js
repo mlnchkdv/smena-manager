@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
+import { accessIdLoginEnabled, createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
 import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthenticationError } from './google-auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-config.js';
@@ -26,6 +26,18 @@ function rateLimit(request, response, next) {
   next();
 }
 
+function requireAccessIdLogin(_request, response, next) {
+  if (!accessIdLoginEnabled()) {
+    response.status(404).json({
+      valid: false,
+      error: 'Access ID sign-in is disabled. Use Google.',
+      code: 'ACCESS_ID_DISABLED',
+    });
+    return;
+  }
+  next();
+}
+
 export const authRouter = Router();
 
 authRouter.get('/config', async (request, response) => {
@@ -45,7 +57,7 @@ authRouter.get('/config', async (request, response) => {
   const issues = deployment?.issues.map(issue => issue.key) || (profileCount ? [] : [configurationError ? 'ACCESS_IDS_INVALID' : 'ACCESS_IDS']);
   const google = getGoogleAuthConfiguration({ profiles, hostname: request.hostname });
   response.json({
-    accessIdEnabled: profileCount > 0,
+    accessIdEnabled: profileCount > 0 && accessIdLoginEnabled(),
     googleClientId: google.clientId,
     googleAuthEnabled: google.enabled,
     deploymentReady: issues.length === 0,
@@ -72,7 +84,7 @@ authRouter.post('/google', rateLimit, async (request, response) => {
   }
 });
 
-authRouter.post('/validate', rateLimit, (request, response) => {
+authRouter.post('/validate', requireAccessIdLogin, rateLimit, (request, response) => {
   const accessId = typeof request.body?.accessId === 'string' ? request.body.accessId.trim() : '';
   const profile = findProfileByAccessId(accessId);
   if (!profile) {
