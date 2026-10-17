@@ -36,6 +36,7 @@ export function projectWorkspace(database, user) {
   });
   data.sessions = [];
   data.invoices = [];
+  for (const key of Object.keys(data)) if (key.startsWith('_')) delete data[key];
   return data;
 }
 
@@ -65,6 +66,11 @@ export function validateClientFiles(current, candidate, role, memberId) {
 export function mergeClientWorkspace(current, incoming, role, memberId) {
   if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new TypeError('Workspace data must be an object.');
   const candidate = { ...current, ...structuredClone(incoming) };
+  for (const key of Object.keys(candidate)) {
+    if (!key.startsWith('_')) continue;
+    if (Object.hasOwn(current, key)) candidate[key] = structuredClone(current[key]);
+    else delete candidate[key];
+  }
   const visible = projectWorkspace(current, { id: memberId, role });
   const projects = new Map((current.projects || []).map(project => [project.id, project]));
   const proposed = new Map((candidate.projects || []).map(project => [project.id, project]));

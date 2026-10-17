@@ -23,7 +23,7 @@ import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
 import { cleanupPushSubscriptions, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
 import { emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
-import { deliverWorkspaceNotifications, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
+import { deliverWorkspaceNotifications, retryNotificationOutbox, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
@@ -58,6 +58,7 @@ app.get('/api/health', (_request, response) => {
 app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
   try {
     const reminders = await runDueReminderSweep();
+    const outbox = await retryNotificationOutbox();
     const digest = await runDailyEmailDigest().catch(error => {
       console.error('[Email digest]', error.providerReason || error.message);
       return { delivered: 0, error: 'delivery_failed' };
@@ -76,7 +77,7 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       const issues = [digest.error && 'Email digest delivery failed', backup.error && 'Automatic backup failed'].filter(Boolean);
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => console.error('[System alert]', error.message));
     }
-    response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup, backup });
+    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, backup });
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     await notifyAdministratorsAboutSystemIssue(['Daily automation failed']).catch(() => undefined);
@@ -325,7 +326,13 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId, client: true });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
-    await deliverWorkspaceNotifications(data, createdNotifications, { source: 'workspace' });
+    // The events were persisted with the task. A provider outage must not turn
+    // a successful task write into an HTTP failure or lose delivery work.
+    if (createdNotifications.length) {
+      await deliverWorkspaceNotifications(data, createdNotifications, { source: 'workspace' }).catch(error =>
+        console.error('[Outbox] Deferred retry:', error.code || error.name),
+      );
+    }
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {
     next(error);

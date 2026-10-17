@@ -24,6 +24,7 @@ function nextDate(date) {
 function reminderKind(due, today) {
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(due)) return null;
   if (due === nextDate(today)) return 'tomorrow';
+  if (due === today) return 'today';
   if (due < today) return 'overdue';
   return null;
 }
@@ -33,21 +34,28 @@ export function createDueReminders(value, options = {}) {
   if (!Array.isArray(data.notifs)) data.notifs = [];
   const today = options.today || dateInTimeZone(options.now ? new Date(options.now) : new Date(), options.timeZone);
   const now = Number(options.now || Date.now());
-  const activeMembers = new Set((data.members || []).filter(member => member?.id && member.status !== 'deactivated').map(member => member.id));
+  const activeMembers = new Set(
+    (data.members || []).filter(member => member?.id && !['deactivated', 'removed'].includes(member.status)).map(member => member.id),
+  );
+  const archivedProjects = new Set((data.projects || []).filter(project => project.archived).map(project => project.id));
+  const existing = new Set(data.notifs.map(item => item.id));
   const created = [];
 
   for (const task of data.tasks || []) {
-    if (!task?.id || !task.assignee || !activeMembers.has(task.assignee) || task.status === 'done') continue;
+    if (!task?.id || task.archived || archivedProjects.has(task.project) || !task.assignee || !activeMembers.has(task.assignee) || task.status === 'done')
+      continue;
     const due = String(task.due || '').slice(0, 10);
     const kind = reminderKind(due, today);
     if (!kind) continue;
+    const id = `n-due-${kind}-${due}-${task.id}-${task.assignee}`;
+    if (existing.has(id)) continue;
     const notification = addWorkspaceNotification(data, {
-      id: `n-due-${kind}-${due}-${task.id}-${task.assignee}`,
+      id,
       recipient: task.assignee,
       by: null,
       type: 'due',
       task: task.id,
-      text: kind === 'tomorrow' ? 'is due tomorrow' : 'is overdue',
+      text: kind === 'tomorrow' ? 'is due tomorrow' : kind === 'today' ? 'is due today' : 'is overdue',
       snippet: task.title || 'Task deadline',
       due,
       reminder: kind,

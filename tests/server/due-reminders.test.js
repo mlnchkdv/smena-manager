@@ -21,6 +21,20 @@ function workspace() {
   };
 }
 
+test('today deadlines notify once, while archived tasks and removed members never notify', () => {
+  const data = workspace();
+  data.tasks.push({ id: 'today', assignee: 'member', status: 'todo', due: '2026-10-16' });
+  data.tasks[0].archived = true;
+  data.members.find(member => member.id === 'disabled').status = 'removed';
+  const first = createDueReminders(data, { today: '2026-10-16', now: 1000 });
+  assert.deepEqual(
+    first.created.map(item => item.task),
+    ['late', 'today'],
+  );
+  const second = createDueReminders(first.data, { today: '2026-10-16', now: 1000 });
+  assert.equal(second.created.length, 0);
+});
+
 test('due reminder sweep creates one trusted reminder per relevant task', () => {
   const first = createDueReminders(workspace(), { today: '2026-10-16', now: 1000 });
   assert.equal(first.created.length, 2);

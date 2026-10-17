@@ -13,6 +13,7 @@ import { mergeClientWorkspace } from './workspace-policy.js';
 import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
+import { enqueueNotificationEvents } from './notification-outbox.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -231,6 +232,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     });
   }
   const now = new Date().toISOString();
+  nextData._notificationOutbox = options.outboxWorker ? nextData._notificationOutbox : enqueueNotificationEvents(current, nextData);
   const next = normalizeDatabase({
     ...nextData,
     schemaVersion: CURRENT_SCHEMA_VERSION,

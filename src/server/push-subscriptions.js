@@ -163,6 +163,7 @@ const RU_ACTIONS = {
   'mentioned your team in': 'упомянул(а) вашу команду',
   'mentioned everyone in': 'упомянул(а) всех',
   'is due tomorrow': 'срок завтра',
+  'is due today': 'срок сегодня',
   'is overdue': 'срок просрочен',
 };
 

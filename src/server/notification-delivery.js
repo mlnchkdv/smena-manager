@@ -2,6 +2,8 @@ import { getStorageProvider } from './storage/index.js';
 import { deliverEmailNotifications, emailAuthorizationStatus } from './email-notifications.js';
 import { deliverPushNotifications, pushDeliveryStatus } from './push-subscriptions.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
+import { drainNotificationOutbox } from './notification-outbox.js';
+import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
 let mutationQueue = Promise.resolve();
@@ -82,6 +84,13 @@ export async function recordNotificationCronRun(details, options = {}) {
 }
 
 export async function deliverWorkspaceNotifications(data, notifications = [], options = {}) {
+  if (data._notificationOutbox) {
+    return drainNotificationOutbox({
+      load: getWorkspaceDatabase,
+      mutate: (change, revision) => mutateWorkspaceDatabase(change, revision, { role: 'admin', outboxWorker: true }),
+      send: { email: deliverEmailNotifications, push: deliverPushNotifications },
+    });
+  }
   const [push, email] = await Promise.all([
     deliverPushNotifications(data, notifications).catch(() => ({ ...EMPTY_CHANNEL, failed: notifications.length })),
     deliverEmailNotifications(data, notifications, options).catch(() => ({ ...EMPTY_CHANNEL, failed: notifications.length })),
@@ -92,6 +101,10 @@ export async function deliverWorkspaceNotifications(data, notifications = [], op
     });
   }
   return { push, email };
+}
+
+export async function retryNotificationOutbox() {
+  return deliverWorkspaceNotifications(await getWorkspaceDatabase());
 }
 
 export async function notificationDeliveryStatus() {
