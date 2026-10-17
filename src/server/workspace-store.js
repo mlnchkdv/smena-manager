@@ -5,9 +5,9 @@ import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { migrateNotificationRecipients, reconcileWorkspaceNotifications } from '../shared/notification-model.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
-import { validateWorkspaceData } from '../shared/workspace-schema.js';
-import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
-import { getWorkspaceDocument, replaceWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
+import { validateWorkspaceData, validateDocumentInput } from '../shared/workspace-schema.js';
+import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { getWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
 import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
 import { mergeClientWorkspace } from './workspace-policy.js';
 import { sanitizeWorkspaceContent } from './content-security.js';
@@ -15,7 +15,7 @@ import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 let database = null;
 let initializationPromise = null;
@@ -76,6 +76,23 @@ function clone(value) {
   return copyStorageVersion(value, structuredClone(value));
 }
 
+async function loadAggregate(storage, stored) {
+  const value = normalizeDatabase(stored || createEmptyDatabase());
+  if (value._aggregateVersion === 1) return value;
+  value._documentRevisions = {};
+  for (const name of DOCUMENT_NAMES) {
+    const legacy = await storage.loadDocument(name);
+    if (legacy) Object.assign(value, validateDocumentInput(name, workspaceDocumentData(name, legacy)));
+    value._documentRevisions[name] = {
+      revision: Number(legacy?.revision || 0),
+      createdAt: legacy?.createdAt || value.createdAt,
+      updatedAt: legacy?.updatedAt || value.updatedAt,
+    };
+  }
+  value._aggregateVersion = 1;
+  return value;
+}
+
 export async function initWorkspaceStore() {
   if (database) return database;
   if (initializationPromise) return initializationPromise;
@@ -84,7 +101,7 @@ export async function initWorkspaceStore() {
     const storage = getStorageProvider();
     await storage.init();
     const stored = await storage.loadDatabase();
-    database = stored ? normalizeDatabase(stored) : createEmptyDatabase();
+    database = await loadAggregate(storage, stored);
     if (!stored) await storage.saveDatabase(database);
     lastLoadedAt = Date.now();
     return database;
@@ -106,7 +123,7 @@ export async function reloadWorkspaceStore(options = {}) {
     await storage.init();
     const stored = await storage.loadDatabase();
     if (!stored) throw new Error('The configured storage does not contain a workspace database.');
-    database = normalizeDatabase(stored);
+    database = await loadAggregate(storage, stored);
     lastLoadedAt = Date.now();
     return database;
   })();
@@ -143,10 +160,9 @@ export async function getWorkspaceRevisionStatus() {
 
 export async function createWorkspaceBackup(label = '') {
   const current = await getWorkspaceDatabase();
-  const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name, current)])));
   const storage = getStorageProvider();
   if (typeof storage.createDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
-  return storage.createDatabaseBackup(mergeWorkspaceDocuments(current, documentSnapshots), label);
+  return storage.createDatabaseBackup(current, label);
 }
 
 export async function listWorkspaceBackups() {
@@ -165,17 +181,11 @@ export async function restoreWorkspaceBackup(id, expectedRevision) {
   const storage = getStorageProvider();
   if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
   const backup = await storage.loadDatabaseBackup(id);
-  await createWorkspaceBackup('Before restore');
   const current = await getWorkspaceDatabase();
-  for (const name of DOCUMENT_NAMES) {
-    const document = await getWorkspaceDocument(name, current);
-    await replaceWorkspaceDocument(name, workspaceDocumentData(name, backup), document.revision, { legacyData: current });
-  }
-  return replaceWorkspaceDatabase(
-    { ...workspaceCoreData(backup), ...Object.fromEntries(DOCUMENT_NAMES.flatMap(name => Object.keys(workspaceDocumentData(name)).map(field => [field, []]))) },
-    expectedRevision,
-    { role: 'admin' },
-  );
+  if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+  const normalizedBackup = normalizeDatabase(backup);
+  await createWorkspaceBackup('Before restore');
+  return replaceWorkspaceDatabase(normalizedBackup, expectedRevision, { role: 'admin', replaceDocuments: true });
 }
 
 export class RevisionConflictError extends Error {
@@ -232,7 +242,16 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     });
   }
   const now = new Date().toISOString();
-  nextData._notificationOutbox = options.outboxWorker ? nextData._notificationOutbox : enqueueNotificationEvents(current, nextData);
+  if (options.replaceDocuments) {
+    nextData._notificationOutbox = [];
+    nextData._aggregateVersion = 1;
+    nextData._documentRevisions = Object.fromEntries(
+      DOCUMENT_NAMES.map(name => [
+        name,
+        { revision: Number(current._documentRevisions?.[name]?.revision || 0) + 1, createdAt: current.createdAt, updatedAt: now },
+      ]),
+    );
+  } else nextData._notificationOutbox = options.outboxWorker ? nextData._notificationOutbox : enqueueNotificationEvents(current, nextData);
   const next = normalizeDatabase({
     ...nextData,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -240,8 +259,12 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     createdAt: current.createdAt,
     updatedAt: now,
   });
-  const transportBytes = workspaceTransportBytes(next, next.revision);
+  const transportBytes = workspaceTransportBytes(workspaceCoreData(next), next.revision);
   if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
+  for (const name of DOCUMENT_NAMES) {
+    const bytes = workspaceTransportBytes(workspaceDocumentData(name, next), Number(next._documentRevisions?.[name]?.revision || 0));
+    if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);
+  }
   const storage = getStorageProvider();
   await options.coordination?.assertOwnership?.();
   try {

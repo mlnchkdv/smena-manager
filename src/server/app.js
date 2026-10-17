@@ -26,7 +26,7 @@ import { emailAuthorizationStatus, runDailyEmailDigest } from './email-notificat
 import { deliverWorkspaceNotifications, retryNotificationOutbox, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
-import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { DOCUMENT_NAMES, workspaceCoreData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
@@ -99,7 +99,7 @@ app.use('/api', (request, response, next) => {
   const send = response.json.bind(response);
   response.json = body => {
     if (body?.data && Array.isArray(body.data.projects) && Array.isArray(body.data.tasks)) {
-      body = { ...body, data: projectWorkspace(bindAccessProfiles(body.data, getAccessProfiles()), request.user) };
+      body = { ...body, data: projectWorkspace(workspaceCoreData(bindAccessProfiles(body.data, getAccessProfiles())), request.user) };
     }
     return send(body);
   };
@@ -314,10 +314,7 @@ app.get('/api/workspace/revision', async (_request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    let nextData = {
-      ...workspaceCoreData(request.body?.data),
-      ...Object.fromEntries(['knowledgeNotes', 'knowledgeFolders', 'links', 'linkFolders'].map(field => [field, []])),
-    };
+    let nextData = workspaceCoreData(request.body?.data);
     const stored = await getWorkspaceDatabase();
     const knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
     const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
@@ -364,14 +361,12 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
+    const current = await getWorkspaceDatabase();
+    if (current.revision !== request.body?.revision) throw new RevisionConflictError(current.revision);
     await createWorkspaceBackup('Before workspace deletion');
-    const legacy = await getWorkspaceDatabase();
-    for (const name of DOCUMENT_NAMES) {
-      const document = await getWorkspaceDocument(name, legacy);
-      await replaceWorkspaceDocument(name, workspaceDocumentData(name), document.revision, { legacyData: legacy });
-    }
-    const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(await getWorkspaceDatabase(), getAccessProfiles())), request.body?.revision, {
+    const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())), request.body?.revision, {
       role: request.user.role,
+      replaceDocuments: true,
     });
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {

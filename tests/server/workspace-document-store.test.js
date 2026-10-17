@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { resetStorageProvider } from '../../src/server/storage/index.js';
+import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
+import { resetWorkspaceStore } from '../../src/server/workspace-store.js';
 import {
   getWorkspaceDocument,
   replaceWorkspaceDocument,
@@ -20,6 +21,7 @@ test.beforeEach(async () => {
   delete process.env.REDIS_URL;
   resetStorageProvider();
   resetWorkspaceDocumentStore();
+  resetWorkspaceStore();
 });
 
 test.after(async () => {
@@ -28,15 +30,18 @@ test.after(async () => {
   else process.env.DATABASE_PATH = originalDatabasePath;
 });
 
-test('legacy knowledge and bookmarks migrate into independent documents', async () => {
-  const knowledge = await getWorkspaceDocument('knowledge', {
+test('legacy documents migrate into the aggregate while originals remain available for rollback', async () => {
+  const storage = getStorageProvider();
+  await storage.saveDocument('knowledge', {
     knowledgeNotes: [{ id: 'note-1', title: 'Регламент' }],
     knowledgeFolders: [{ id: 'folder-1', name: 'Процессы' }],
   });
-  const bookmarks = await getWorkspaceDocument('bookmarks', {
+  await storage.saveDocument('bookmarks', {
     links: [{ id: 'link-1', title: 'Справочник' }],
     linkFolders: [],
   });
+  const knowledge = await getWorkspaceDocument('knowledge');
+  const bookmarks = await getWorkspaceDocument('bookmarks');
 
   assert.equal(knowledge.revision, 0);
   assert.equal(bookmarks.revision, 0);
@@ -58,6 +63,7 @@ test('document revisions persist independently and reject stale writes', async (
 
   resetStorageProvider();
   resetWorkspaceDocumentStore();
+  resetWorkspaceStore();
   const restored = await getWorkspaceDocument('knowledge');
   assert.equal(restored.revision, 1);
   assert.equal(restored.knowledgeNotes[0].title, 'Онбординг');

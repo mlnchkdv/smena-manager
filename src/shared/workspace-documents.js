@@ -7,7 +7,7 @@ export const DOCUMENT_NAMES = Object.freeze(Object.keys(WORKSPACE_DOCUMENTS));
 export const DOCUMENT_FIELDS = Object.freeze(Object.values(WORKSPACE_DOCUMENTS).flat());
 
 export function workspaceCoreData(data = {}) {
-  return Object.fromEntries(Object.entries(data).filter(([key]) => !DOCUMENT_FIELDS.includes(key)));
+  return Object.fromEntries(Object.entries(data).filter(([key]) => !DOCUMENT_FIELDS.includes(key) && !key.startsWith('_')));
 }
 
 export function workspaceDocumentData(name, data = {}) {
