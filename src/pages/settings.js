@@ -8,7 +8,7 @@ import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
-import { LANGUAGES, locale } from '../core/i18n.js';
+import { LANGUAGES, locale, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 
@@ -68,6 +68,12 @@ function settingsTimestamp(value) {
   const date = new Date(value);
   if (!value || Number.isNaN(date.getTime())) return '—';
   return new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
+function backupDisplayLabel(value) {
+  const label = String(value || 'Backup');
+  const automaticPrefix = 'Automatic backup ';
+  return label.startsWith(automaticPrefix) ? `${tr('Automatic backup')} ${label.slice(automaticPrefix.length)}` : label;
 }
 
 function deliveryStatusPanel() {
@@ -263,8 +269,8 @@ export function settingsBody(sec, title) {
     case 'data-transfer':
       return (
         H('Full workspace backups and KMS Brain data transfer.') +
-        `<div class="sblock" style="margin-top:0"><div class="row" style="gap:8px;flex-wrap:wrap"><div class="grow"><h2 style="margin-bottom:4px">Backups</h2><p class="lead" style="font-size:13px;margin:0">Backups are stored separately from the workspace database in Google Drive. The current version is saved automatically before a restore.</p></div><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div>
-        ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backup.label || 'Backup'), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
+        `<div class="sblock" style="margin-top:0"><div class="row" style="gap:8px;flex-wrap:wrap"><div class="grow"><h2 style="margin-bottom:4px">Backups</h2><p class="lead" style="font-size:13px;margin:0">A backup is created daily in Google Drive. The latest 30 automatic copies are retained; manual copies are kept until you restore or remove them.</p></div><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div>
+        ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backupDisplayLabel(backup.label)), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
         </div>
         <div class="sblock"><h2>KMS Brain data transfer</h2><p class="lead" style="font-size:13px;margin-bottom:16px">The JSON file includes knowledge notes, folders, and bookmarks. Existing items are preserved and duplicates are skipped.</p>
         <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-secondary" data-a="exportPortableWorkspace">${ic('download', 14)}Export JSON</button><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Import JSON<input type="file" accept="application/json,.json" hidden data-in="importPortableWorkspace"></label></div>

@@ -666,6 +666,7 @@ const RU = {
     'Не удалось восстановить элемент: его родительский проект удалён или идентификатор уже занят.',
   'The trash item could not be deleted.': 'Не удалось очистить элемент корзины.',
   'Manual backup': 'Ручная копия',
+  'Automatic backup': 'Автоматическая копия',
   'Before restore': 'Перед восстановлением',
   'Before workspace deletion': 'Перед удалением рабочего пространства',
   'Unable to load backups.': 'Не удалось загрузить резервные копии.',
@@ -696,6 +697,8 @@ const RU = {
   Backups: 'Резервные копии',
   'Backups are stored separately from the workspace database in Google Drive. The current version is saved automatically before a restore.':
     'Копии хранятся отдельно от рабочей базы в Google Drive. Перед восстановлением текущая версия сохраняется автоматически.',
+  'A backup is created daily in Google Drive. The latest 30 automatic copies are retained; manual copies are kept until you restore or remove them.':
+    'Резервная копия ежедневно создаётся на Google Drive. Хранятся 30 последних автоматических копий; ручные копии хранятся до восстановления или удаления.',
   'Create backup': 'Создать копию',
   'Loading…': 'Загрузка…',
   Backup: 'Резервная копия',

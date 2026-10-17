@@ -267,6 +267,7 @@ test('Google Drive backups stay in the dedicated folder and can be restored', as
   provider.rootFolderId = 'root-folder';
   provider.backupsFolderId = 'backups-folder';
   let createdRequest;
+  let deletedRequest;
   provider.client = {
     files: {
       create: async options => {
@@ -298,6 +299,9 @@ test('Google Drive backups stay in the dedicated folder and can be restored', as
         }
         return { data: { id: 'backup-1', parents: ['backups-folder'], trashed: false, appProperties: { smenaBackup: 'true' } } };
       },
+      delete: async options => {
+        deletedRequest = options;
+      },
     },
   };
 
@@ -306,4 +310,6 @@ test('Google Drive backups stay in the dedicated folder and can be restored', as
   assert.deepEqual(createdRequest.requestBody.parents, ['backups-folder']);
   assert.equal((await provider.listDatabaseBackups())[0].label, 'Ручная копия');
   assert.deepEqual(await provider.loadDatabaseBackup('backup-1'), { schemaVersion: 1, revision: 3, tasks: [] });
+  await provider.deleteDatabaseBackup('backup-1');
+  assert.equal(deletedRequest.fileId, 'backup-1');
 });

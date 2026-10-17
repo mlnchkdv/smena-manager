@@ -63,6 +63,9 @@ test('local storage creates and loads named database backups', async t => {
   assert.equal(backups[0].label, 'Перед импортом');
   assert.deepEqual(await provider.loadDatabaseBackup(created.id), database);
   await assert.rejects(() => provider.loadDatabaseBackup('../escape.json'), /Invalid backup ID/);
+  await provider.deleteDatabaseBackup(created.id);
+  assert.deepEqual(await provider.listDatabaseBackups(), []);
+  await assert.rejects(() => provider.deleteDatabaseBackup('../escape.json'), /Invalid backup ID/);
 });
 
 test('local storage keeps push subscriptions outside the shared workspace database', async t => {

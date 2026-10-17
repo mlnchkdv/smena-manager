@@ -29,6 +29,7 @@ import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
+import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
 
 export const app = express();
 
@@ -57,10 +58,16 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     });
     const cleanup = await runNotificationCleanup();
     const pushCleanup = await cleanupPushSubscriptions();
-    await recordNotificationCronRun({ status: digest.error ? 'degraded' : 'ok', reminders, digest, cleanup, pushCleanup }).catch(error => {
-      console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
+    const backup = await runAutomaticWorkspaceBackup().catch(error => {
+      console.error('[Automatic backup]', error.message);
+      return { error: 'backup_failed' };
     });
-    response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup });
+    await recordNotificationCronRun({ status: digest.error || backup.error ? 'degraded' : 'ok', reminders, digest, cleanup, pushCleanup, backup }).catch(
+      error => {
+        console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
+      },
+    );
+    response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup, backup });
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     next(error);

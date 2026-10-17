@@ -469,7 +469,7 @@ export class GoogleDriveStorageProvider {
       q: `'${escapeDriveQuery(folderId)}' in parents and trashed = false and appProperties has { key='smenaBackup' and value='true' }`,
       fields: 'files(id,name,createdTime,size,appProperties)',
       spaces: 'drive',
-      pageSize: 50,
+      pageSize: 200,
       orderBy: 'createdTime desc',
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
@@ -492,6 +492,15 @@ export class GoogleDriveStorageProvider {
     const stored = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     if (!stored?.data || typeof stored.data !== 'object') throw new Error('Backup data is invalid.');
     return stored.data;
+  }
+
+  async deleteDatabaseBackup(id) {
+    const folderId = await this.ensureBackupsFolder();
+    const metadata = await this.client.files.get({ fileId: id, fields: 'id,parents,trashed,appProperties', supportsAllDrives: true });
+    if (metadata.data.trashed || !metadata.data.parents?.includes(folderId) || metadata.data.appProperties?.smenaBackup !== 'true') {
+      throw new Error('Backup is unavailable.');
+    }
+    await this.client.files.delete({ fileId: id, supportsAllDrives: true });
   }
 
   async uploadFile(filename, source, mimeType = 'application/octet-stream') {

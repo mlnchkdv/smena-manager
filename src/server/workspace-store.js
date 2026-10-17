@@ -147,6 +147,12 @@ export async function listWorkspaceBackups() {
   return storage.listDatabaseBackups();
 }
 
+export async function deleteWorkspaceBackup(id) {
+  const storage = getStorageProvider();
+  if (typeof storage.deleteDatabaseBackup !== 'function') throw new Error('Workspace backup deletion is not supported by the configured storage.');
+  return storage.deleteDatabaseBackup(id);
+}
+
 export async function restoreWorkspaceBackup(id, expectedRevision) {
   const storage = getStorageProvider();
   if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');

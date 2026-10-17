@@ -173,13 +173,18 @@ export class LocalStorageProvider {
         /* Ignore incomplete or manually edited backup files. */
       }
     }
-    return backups.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 50);
+    return backups.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 200);
   }
 
   async loadDatabaseBackup(id) {
     const stored = JSON.parse(await fs.promises.readFile(this.backupPath(id), 'utf8'));
     if (!stored?.data || typeof stored.data !== 'object') throw new Error('Backup data is invalid.');
     return stored.data;
+  }
+
+  async deleteDatabaseBackup(id) {
+    await this.init();
+    await fs.promises.unlink(this.backupPath(id));
   }
 
   filePath(filename) {
