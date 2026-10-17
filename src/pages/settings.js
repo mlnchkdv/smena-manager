@@ -63,6 +63,30 @@ export const sel = (k, opts, v) =>
       return `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${n}</option>`;
     })
     .join('')}</select>`;
+
+function deliveryStatusPanel() {
+  if (S.ui.currentUser?.role !== 'admin') return '';
+  const status = S.ui.notificationDeliveryStatus;
+  if (!status) {
+    return `<div class="sblock notification-delivery-card"><div class="row between"><div><h2>Delivery diagnostics</h2><p class="muted">Check server-side email and Web Push delivery.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery">${ic('refresh-cw', 13)}Check status</button></div></div>`;
+  }
+  const emailReady = status.channels?.email?.configured && status.channels?.email?.authorized;
+  const pushReady = status.channels?.push?.configured;
+  const lastCron = status.delivery?.lastCron;
+  const lastRun = status.delivery?.lastRun;
+  const stamp = value =>
+    value ? new Intl.DateTimeFormat(S.prefs.lang === 'Русский' ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+  const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${label}</span>`;
+  return `<div class="sblock notification-delivery-card">
+    <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div>
+    <div class="notification-delivery-grid">
+      <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
+      <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
+      <div><span class="label">Last automatic run</span><b>${stamp(lastCron?.at)}</b><p class="hint">${lastCron?.status === 'degraded' ? 'Completed with delivery errors' : lastCron ? 'Completed successfully' : 'No run recorded yet'}</p></div>
+      <div><span class="label">Latest delivery</span><b>${stamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>
+    </div>
+  </div>`;
+}
 export function pageSettings() {
   const isAdmin = S.ui.currentUser?.role === 'admin';
   const navigation = SET_NAV.map(([group, items]) => [group, isAdmin ? items : items.filter(([key]) => !ADMIN_SETTINGS.has(key))]).filter(
@@ -296,7 +320,8 @@ export function settingsBody(sec, title) {
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
         srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +
-        srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np'))
+        srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
+        deliveryStatusPanel()
       );
     }
     case 'notif-mentions':

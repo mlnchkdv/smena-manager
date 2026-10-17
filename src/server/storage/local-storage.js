@@ -24,6 +24,7 @@ export class LocalStorageProvider {
   constructor(databasePath = process.env.DATABASE_PATH || path.join(process.cwd(), '.data', 'smena-manager-data.json')) {
     this.databasePath = path.resolve(databasePath);
     this.pushSubscriptionsPath = path.resolve(path.join(path.dirname(this.databasePath), 'push-subscriptions.json'));
+    this.notificationDeliveryPath = path.resolve(path.join(path.dirname(this.databasePath), 'notification-delivery-status.json'));
     this.uploadsPath = path.resolve(process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
     this.backupsPath = path.resolve(process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
   }
@@ -98,6 +99,26 @@ export class LocalStorageProvider {
     try {
       await fs.promises.writeFile(temporaryPath, JSON.stringify(subscriptions, null, 2), 'utf8');
       await renameWithRetry(temporaryPath, this.pushSubscriptionsPath);
+    } finally {
+      await fs.promises.unlink(temporaryPath).catch(() => undefined);
+    }
+  }
+
+  async loadNotificationDeliveryStatus() {
+    try {
+      return JSON.parse(await fs.promises.readFile(this.notificationDeliveryPath, 'utf8'));
+    } catch (error) {
+      if (error?.code === 'ENOENT') return null;
+      throw error;
+    }
+  }
+
+  async saveNotificationDeliveryStatus(status) {
+    await this.init();
+    const temporaryPath = `${this.notificationDeliveryPath}.${process.pid}.${Date.now()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(status, null, 2), 'utf8');
+      await renameWithRetry(temporaryPath, this.notificationDeliveryPath);
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }

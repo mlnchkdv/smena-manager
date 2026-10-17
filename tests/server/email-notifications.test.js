@@ -4,6 +4,7 @@ import {
   createDailyDigestPlan,
   createRawEmail,
   dailyDigestMessage,
+  deliverEmailNotifications,
   emailDeliveryConfig,
   emailAuthorizationStatus,
   emailNotificationMessage,
@@ -105,6 +106,41 @@ test('raw Gmail messages encode Unicode and reject header injection', () => {
     () => createRawEmail({ from: 'sender@example.com', to: 'member@example.com\r\nBcc: attacker@example.com', subject: 'x', text: 'x' }),
     /valid email/u,
   );
+});
+
+test('email delivery retries one transient provider failure', async () => {
+  const keys = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GMAIL_OAUTH_REFRESH_TOKEN', 'EMAIL_FROM'];
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  Object.assign(process.env, {
+    GOOGLE_CLIENT_ID: 'client',
+    GOOGLE_CLIENT_SECRET: 'secret',
+    GMAIL_OAUTH_REFRESH_TOKEN: 'refresh',
+    EMAIL_FROM: 'sender@example.com',
+  });
+  let calls = 0;
+  const data = structuredClone(workspace);
+  data.notifPrefs.member.email_mention = true;
+  const result = await deliverEmailNotifications(
+    data,
+    [{ id: 'retry-1', recipient: 'member', by: 'actor', task: 'task-1', type: 'mention', text: 'mentioned you in' }],
+    {
+      accessToken: 'token',
+      retryDelayMs: 0,
+      wait: async () => {},
+      send: async () => {
+        calls += 1;
+        if (calls === 1) throw Object.assign(new Error('temporary'), { statusCode: 503 });
+      },
+    },
+  );
+  assert.deepEqual(
+    { attempted: result.attempted, delivered: result.delivered, failed: result.failed, retried: result.retried },
+    { attempted: 1, delivered: 1, failed: 0, retried: 1 },
+  );
+  for (const key of keys) {
+    if (previous[key] === undefined) delete process.env[key];
+    else process.env[key] = previous[key];
+  }
 });
 
 test('weekday digest is idempotent per member and reports task deadlines in both languages', () => {

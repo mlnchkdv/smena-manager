@@ -39,6 +39,7 @@ import {
   deleteAllWorkspaces,
   downloadWorkspaceFile,
   getStorageStatus,
+  getNotificationDeliveryStatus,
   getWorkspaceBackups,
   restoreWorkspaceBackup,
   uploadWorkspaceFile,
@@ -2604,6 +2605,20 @@ A.retryPush = async () => {
     S.ui.pushState = 'error';
     render();
     toast(error.message || 'Background notifications could not be connected.', { kind: 'err', ms: 6000 });
+  }
+};
+A.refreshNotificationDelivery = async () => {
+  if (S.ui.currentUser?.role !== 'admin' || S.ui.notificationDeliveryLoading) return;
+  S.ui.notificationDeliveryLoading = true;
+  render();
+  try {
+    S.ui.notificationDeliveryStatus = await getNotificationDeliveryStatus();
+    toast('Notification delivery status updated.', { ms: 1800 });
+  } catch (error) {
+    toast(error.message || 'Unable to load notification delivery status.', { kind: 'err', ms: 6000 });
+  } finally {
+    S.ui.notificationDeliveryLoading = false;
+    render();
   }
 };
 IN.prefSel = el => {

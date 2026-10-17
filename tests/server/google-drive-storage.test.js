@@ -206,6 +206,34 @@ test('Google Drive stores push subscriptions in a private sibling JSON file', as
   assert.equal(provider.pushSubscriptionsFileId, 'push-file');
 });
 
+test('Google Drive stores notification delivery diagnostics as private metadata', async () => {
+  const calls = [];
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.client = {
+    files: {
+      list: async options => {
+        calls.push({ type: 'list', options });
+        return { data: { files: [] } };
+      },
+      create: async options => {
+        calls.push({ type: 'create', options });
+        return { data: { id: 'delivery-file' }, headers: { etag: 'delivery-etag' } };
+      },
+    },
+  };
+
+  assert.equal(await provider.loadNotificationDeliveryStatus(), null);
+  await provider.saveNotificationDeliveryStatus({ version: 1, updatedAt: '2026-10-17T12:00:00.000Z' });
+
+  const created = calls.find(call => call.type === 'create').options;
+  assert.equal(created.requestBody.name, 'smena-manager-notification-delivery.json');
+  assert.equal(created.requestBody.appProperties.smenaPrivate, 'notification-delivery');
+  assert.deepEqual(created.requestBody.parents, ['root-folder']);
+  assert.equal(provider.notificationDeliveryFileId, 'delivery-file');
+});
+
 test('Google Drive backups stay in the dedicated folder and can be restored', async () => {
   const provider = new GoogleDriveStorageProvider();
   provider.initialized = true;

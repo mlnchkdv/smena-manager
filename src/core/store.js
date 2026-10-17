@@ -56,6 +56,8 @@ export const S = {
     authConfig: null,
     authIssue: '',
     pushState: 'checking',
+    notificationDeliveryStatus: null,
+    notificationDeliveryLoading: false,
     needsOnboarding: false,
     currentUser: null,
     workspaceRevision: null,

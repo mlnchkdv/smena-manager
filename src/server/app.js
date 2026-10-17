@@ -21,8 +21,9 @@ import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
 import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
-import { cleanupPushSubscriptions, deliverPushNotifications, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
-import { deliverEmailNotifications, emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
+import { cleanupPushSubscriptions, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
+import { emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
+import { deliverWorkspaceNotifications, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
@@ -55,8 +56,12 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     });
     const cleanup = await runNotificationCleanup();
     const pushCleanup = await cleanupPushSubscriptions();
+    await recordNotificationCronRun({ status: digest.error ? 'degraded' : 'ok', reminders, digest, cleanup, pushCleanup }).catch(error => {
+      console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
+    });
     response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup });
   } catch (error) {
+    await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     next(error);
   }
 });
@@ -79,6 +84,14 @@ app.get('/api/auth/me', (request, response) => {
 
 app.get('/api/push/config', (_request, response) => {
   response.json(publicPushConfig());
+});
+
+app.get('/api/notifications/delivery-status', requireRole('admin'), async (_request, response, next) => {
+  try {
+    response.json(await notificationDeliveryStatus());
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post('/api/push/subscriptions', async (request, response, next) => {
@@ -238,7 +251,7 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     }
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
-    await Promise.allSettled([deliverPushNotifications(data, createdNotifications), deliverEmailNotifications(data, createdNotifications)]);
+    await deliverWorkspaceNotifications(data, createdNotifications, { source: 'workspace' });
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {
     next(error);

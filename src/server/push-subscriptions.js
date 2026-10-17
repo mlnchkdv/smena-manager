@@ -190,16 +190,34 @@ export function pushMessagePayload(notification, data, locale = 'en') {
   };
 }
 
-export async function deliverPushNotifications(data, notifications = []) {
+const transientStatus = status => !status || status === 408 || status === 425 || status === 429 || status >= 500;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function pushDeliveryStatus() {
+  const config = publicPushConfig();
+  if (!config.enabled) return { configured: false, subscriptions: 0 };
+  const storage = getStorageProvider();
+  const items = typeof storage.loadPushSubscriptions === 'function' ? await storage.loadPushSubscriptions() : [];
+  const pruned = prunePushSubscriptions(items);
+  return { configured: true, subscriptions: pruned.items.length, stale: pruned.removedIds.length };
+}
+
+export async function deliverPushNotifications(data, notifications = [], options = {}) {
   const config = pushConfig();
-  if (!config.enabled || !notifications.length) return { delivered: 0, removed: 0 };
+  if (!config.enabled || !notifications.length) {
+    return { configured: config.enabled, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
+  }
   const storage = getStorageProvider();
   const storedSubscriptions = await storage.loadPushSubscriptions();
   const pruned = prunePushSubscriptions(storedSubscriptions);
   const subscriptions = pruned.items;
   webpush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
   const stale = new Set(pruned.removedIds);
+  const sender = options.send || ((subscription, payload, settings) => webpush.sendNotification(subscription, payload, settings));
+  let attempted = 0;
   let delivered = 0;
+  let failed = 0;
+  let retried = 0;
 
   await Promise.all(
     notifications.map(async notification => {
@@ -208,15 +226,30 @@ export async function deliverPushNotifications(data, notifications = []) {
       const targets = subscriptions.filter(item => item.memberId === notification.recipient);
       await Promise.all(
         targets.map(async target => {
-          try {
-            await webpush.sendNotification(target.subscription, JSON.stringify(pushMessagePayload(notification, data, target.locale)), {
-              TTL: 60 * 60 * 24,
-              urgency: notification.type === 'due' ? 'high' : 'normal',
-            });
-            delivered += 1;
-          } catch (error) {
-            if ([404, 410].includes(Number(error?.statusCode))) stale.add(target.id);
-            else console.error('[Push] Delivery failed:', error?.message || error);
+          attempted += 1;
+          const payload = JSON.stringify(pushMessagePayload(notification, data, target.locale));
+          const settings = { TTL: 60 * 60 * 24, urgency: notification.type === 'due' ? 'high' : 'normal' };
+          for (let attempt = 0; attempt < 2; attempt += 1) {
+            try {
+              await sender(target.subscription, payload, settings);
+              delivered += 1;
+              return;
+            } catch (error) {
+              const status = Number(error?.statusCode || error?.status || 0);
+              if ([404, 410].includes(status)) {
+                stale.add(target.id);
+                failed += 1;
+                return;
+              }
+              if (attempt === 0 && transientStatus(status)) {
+                retried += 1;
+                await (options.wait || wait)(Number(options.retryDelayMs ?? 250));
+                continue;
+              }
+              failed += 1;
+              console.error('[Push] Delivery failed:', error?.message || error);
+              return;
+            }
           }
         }),
       );
@@ -224,5 +257,5 @@ export async function deliverPushNotifications(data, notifications = []) {
   );
 
   if (stale.size) await mutateSubscriptions(items => items.filter(item => !stale.has(item.id)));
-  return { delivered, removed: stale.size };
+  return { configured: true, attempted, delivered, failed, retried, removed: stale.size };
 }

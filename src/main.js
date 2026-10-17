@@ -64,7 +64,7 @@ import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { workspaceRefreshDelay } from './core/workspace-refresh.js';
-import { clearSession } from './core/api.js';
+import { clearSession, getNotificationDeliveryStatus } from './core/api.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -87,8 +87,11 @@ async function refreshWebPushSubscription() {
   if (S.ui.auth || !S.ui.currentUser || pushSyncPromise) return pushSyncPromise;
   S.ui.pushState = 'checking';
   pushSyncPromise = syncWebPushSubscription(myNotificationPreferences())
-    .then(state => {
+    .then(async state => {
       S.ui.pushState = state;
+      if (S.ui.currentUser?.role === 'admin') {
+        S.ui.notificationDeliveryStatus = await getNotificationDeliveryStatus().catch(() => S.ui.notificationDeliveryStatus);
+      }
       if (S.ui.route === 'settings' && S.ui.params.sec === 'notif-push') render();
       return state;
     })

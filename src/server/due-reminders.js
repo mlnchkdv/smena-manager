@@ -1,7 +1,6 @@
 import { addWorkspaceNotification } from '../shared/notification-model.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
-import { deliverPushNotifications } from './push-subscriptions.js';
-import { deliverEmailNotifications } from './email-notifications.js';
+import { deliverWorkspaceNotifications } from './notification-delivery.js';
 
 const DEFAULT_TIME_ZONE = 'Europe/Saratov';
 
@@ -34,9 +33,7 @@ export function createDueReminders(value, options = {}) {
   if (!Array.isArray(data.notifs)) data.notifs = [];
   const today = options.today || dateInTimeZone(options.now ? new Date(options.now) : new Date(), options.timeZone);
   const now = Number(options.now || Date.now());
-  const activeMembers = new Set(
-    (data.members || []).filter(member => member?.id && member.status !== 'deactivated').map(member => member.id),
-  );
+  const activeMembers = new Set((data.members || []).filter(member => member?.id && member.status !== 'deactivated').map(member => member.id));
   const created = [];
 
   for (const task of data.tasks || []) {
@@ -69,8 +66,8 @@ export async function runDueReminderSweep(options = {}) {
     if (!result.created.length) return { created: 0, revision: current.revision, today: result.today };
     try {
       const saved = await replaceWorkspaceDatabase(result.data, current.revision, { role: 'admin' });
-      await Promise.allSettled([deliverPushNotifications(saved, result.created), deliverEmailNotifications(saved, result.created)]);
-      return { created: result.created.length, revision: saved.revision, today: result.today };
+      const delivery = await deliverWorkspaceNotifications(saved, result.created, { source: 'cron-reminders' });
+      return { created: result.created.length, revision: saved.revision, today: result.today, delivery };
     } catch (error) {
       if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
     }

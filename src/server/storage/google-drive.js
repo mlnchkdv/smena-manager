@@ -8,6 +8,7 @@ const ROOT_FOLDER_NAME = 'Smena-Manager-Storage';
 const UPLOADS_FOLDER_NAME = 'uploads';
 const BACKUPS_FOLDER_NAME = 'backups';
 const PUSH_SUBSCRIPTIONS_NAME = 'smena-manager-push-subscriptions.json';
+const NOTIFICATION_DELIVERY_NAME = 'smena-manager-notification-delivery.json';
 const DOCUMENT_FILES = Object.freeze({
   knowledge: 'smena-manager-knowledge.json',
   bookmarks: 'smena-manager-bookmarks.json',
@@ -32,6 +33,8 @@ export class GoogleDriveStorageProvider {
   documentEtags = { knowledge: null, bookmarks: null };
   pushSubscriptionsFileId = null;
   pushSubscriptionsEtag = null;
+  notificationDeliveryFileId = null;
+  notificationDeliveryEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
   backupsFolderId = null;
   credentialType = null;
@@ -335,6 +338,54 @@ export class GoogleDriveStorageProvider {
     });
     this.pushSubscriptionsFileId = created.data.id;
     this.pushSubscriptionsEtag = created.headers?.etag || null;
+  }
+
+  async findNotificationDeliveryFile() {
+    if (this.notificationDeliveryFileId) return this.notificationDeliveryFileId;
+    const result = await this.client.files.list({
+      q: `name = '${NOTIFICATION_DELIVERY_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
+      fields: 'files(id)',
+      spaces: 'drive',
+      pageSize: 1,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    this.notificationDeliveryFileId = result.data.files?.[0]?.id || null;
+    return this.notificationDeliveryFileId;
+  }
+
+  async loadNotificationDeliveryStatus() {
+    await this.init();
+    const fileId = await this.findNotificationDeliveryFile();
+    if (!fileId) return null;
+    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    this.notificationDeliveryEtag = response.headers?.etag || null;
+    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+  }
+
+  async saveNotificationDeliveryStatus(status) {
+    await this.init();
+    const fileId = await this.findNotificationDeliveryFile();
+    const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(status, null, 2)]) };
+    if (fileId) {
+      const requestOptions = this.notificationDeliveryEtag ? { headers: { 'If-Match': this.notificationDeliveryEtag } } : undefined;
+      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      this.notificationDeliveryEtag = updated.headers?.etag || null;
+      return;
+    }
+    const created = await this.client.files.create({
+      requestBody: {
+        name: NOTIFICATION_DELIVERY_NAME,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaPrivate: 'notification-delivery' },
+      },
+      media,
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+    this.notificationDeliveryFileId = created.data.id;
+    this.notificationDeliveryEtag = created.headers?.etag || null;
   }
 
   async createDatabaseBackup(data, label = '') {

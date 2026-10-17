@@ -125,6 +125,10 @@ export async function getPushConfig() {
   return request('/api/push/config', {}, true);
 }
 
+export async function getNotificationDeliveryStatus() {
+  return request('/api/notifications/delivery-status', {}, true);
+}
+
 export async function savePushSubscription(subscription, locale) {
   return request(
     '/api/push/subscriptions',

@@ -23,6 +23,7 @@ const ACTIONS = {
     'is overdue': 'срок просрочен',
   },
 };
+let authorizationCache = null;
 
 function configuredLocale(value = process.env.NOTIFICATION_LOCALE) {
   return String(value || 'ru')
@@ -50,21 +51,35 @@ export function emailDeliveryConfig() {
 
 export async function emailAuthorizationStatus() {
   const config = emailDeliveryConfig();
-  if (!config.enabled) return { configured: false, authorized: false };
+  const cacheKey = config.enabled ? `${config.clientId}:${config.from}:${config.credentialMode}` : 'disabled';
+  if (authorizationCache?.key === cacheKey && authorizationCache.expiresAt > Date.now()) return authorizationCache.value;
+  if (!config.enabled) {
+    const value = { configured: false, authorized: false };
+    authorizationCache = { key: cacheKey, expiresAt: Date.now() + 5 * 60_000, value };
+    return value;
+  }
   try {
     const auth = new OAuth2Client(config.clientId, config.clientSecret);
     auth.setCredentials({ refresh_token: config.refreshToken });
     const result = await auth.getAccessToken();
-    if (!result?.token) return { configured: true, authorized: false };
+    if (!result?.token) {
+      const value = { configured: true, authorized: false };
+      authorizationCache = { key: cacheKey, expiresAt: Date.now() + 60_000, value };
+      return value;
+    }
     const info = await auth.getTokenInfo(result.token);
     const scopes = new Set(info.scopes || []);
-    return {
+    const value = {
       configured: true,
       authorized: scopes.has('https://www.googleapis.com/auth/gmail.send') || scopes.has('https://mail.google.com/'),
       credentialMode: config.credentialMode,
     };
+    authorizationCache = { key: cacheKey, expiresAt: Date.now() + 5 * 60_000, value };
+    return value;
   } catch {
-    return { configured: true, authorized: false };
+    const value = { configured: true, authorized: false };
+    authorizationCache = { key: cacheKey, expiresAt: Date.now() + 60_000, value };
+    return value;
   }
 }
 
@@ -113,6 +128,9 @@ async function sendGmail(accessToken, message) {
   return response.json();
 }
 
+const transientStatus = status => !status || status === 408 || status === 425 || status === 429 || status >= 500;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 export function emailNotificationMessage(notification, data, locale = configuredLocale()) {
   const member = data.members?.find(item => item.id === notification.recipient);
   const actor = notification.by ? data.members?.find(item => item.id === notification.by)?.name : '';
@@ -130,25 +148,44 @@ export function emailNotificationMessage(notification, data, locale = configured
 
 export async function deliverEmailNotifications(data, notifications = [], options = {}) {
   const config = emailDeliveryConfig();
-  if (!config.enabled || !notifications.length) return { delivered: 0 };
+  if (!config.enabled || !notifications.length) {
+    return { configured: config.enabled, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
+  }
   const deliveries = notifications.filter(notification => {
     const preference = emailPreferenceForNotification(notification);
     return preference && notificationPreferencesForMember(data, notification.recipient)[preference] === true;
   });
-  if (!deliveries.length) return { delivered: 0 };
-  const accessToken = await gmailAccessToken(config);
+  if (!deliveries.length) return { configured: true, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
+  const messages = deliveries.map(notification => emailNotificationMessage(notification, data, configuredLocale(options.locale))).filter(message => message.to);
+  let accessToken;
+  try {
+    accessToken = options.accessToken || (await gmailAccessToken(config));
+  } catch (error) {
+    console.error('[Email] Authorization failed:', error?.message || error);
+    return { configured: true, attempted: messages.length, delivered: 0, failed: messages.length, retried: 0, removed: 0 };
+  }
+  const sender = options.send || sendGmail;
   let delivered = 0;
-  for (const notification of deliveries) {
-    const message = emailNotificationMessage(notification, data, configuredLocale(options.locale));
-    if (!message.to) continue;
-    try {
-      await sendGmail(accessToken, { ...message, from: config.from });
-      delivered += 1;
-    } catch (error) {
-      console.error('[Email] Delivery failed:', error.providerReason || error.message);
+  let failed = 0;
+  let retried = 0;
+  for (const message of messages) {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await sender(accessToken, { ...message, from: config.from });
+        delivered += 1;
+        break;
+      } catch (error) {
+        if (attempt === 0 && transientStatus(Number(error?.statusCode || error?.status || 0))) {
+          retried += 1;
+          await (options.wait || wait)(Number(options.retryDelayMs ?? 250));
+          continue;
+        }
+        failed += 1;
+        console.error('[Email] Delivery failed:', error.providerReason || error.message);
+      }
     }
   }
-  return { delivered };
+  return { configured: true, attempted: messages.length, delivered, failed, retried, removed: 0 };
 }
 
 function dateInTimeZone(value, timeZone) {

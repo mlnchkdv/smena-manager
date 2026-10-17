@@ -79,6 +79,20 @@ test('local storage keeps push subscriptions outside the shared workspace databa
   assert.equal((await provider.loadDatabase())?.pushSubscriptions, undefined);
 });
 
+test('local storage persists notification delivery diagnostics outside workspace data', async t => {
+  const testRoot = path.join(process.cwd(), '.data', 'tests');
+  await fs.promises.mkdir(testRoot, { recursive: true });
+  const directory = await fs.promises.mkdtemp(path.join(testRoot, 'local-notification-status-'));
+  t.after(() => fs.promises.rm(directory, { recursive: true, force: true }));
+  const provider = new LocalStorageProvider(path.join(directory, 'workspace.json'));
+  const status = { version: 1, updatedAt: '2026-10-17T12:00:00.000Z', totals: { push: { delivered: 2 } } };
+
+  assert.equal(await provider.loadNotificationDeliveryStatus(), null);
+  await provider.saveNotificationDeliveryStatus(status);
+  assert.deepEqual(await provider.loadNotificationDeliveryStatus(), status);
+  assert.equal((await provider.loadDatabase())?.notificationDelivery, undefined);
+});
+
 test('local storage uploads, streams byte ranges, and deletes files', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');
   await fs.promises.mkdir(testRoot, { recursive: true });

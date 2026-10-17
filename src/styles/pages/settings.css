@@ -253,3 +253,50 @@
   height: 100%;
   background: var(--accent);
 }
+
+.notification-delivery-card {
+  margin-top: 20px;
+}
+.notification-delivery-head {
+  align-items: flex-start;
+  gap: 16px;
+}
+.notification-delivery-head p {
+  margin: 4px 0 0;
+}
+.notification-delivery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-md);
+  background: var(--divider);
+}
+.notification-delivery-grid > div {
+  min-width: 0;
+  padding: 14px;
+  background: var(--surface);
+}
+.notification-delivery-grid .label {
+  display: block;
+  margin-bottom: 8px;
+}
+.notification-delivery-grid b {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-sm);
+}
+.notification-delivery-grid .hint {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .notification-delivery-head {
+    flex-direction: column;
+  }
+  .notification-delivery-grid {
+    grid-template-columns: 1fr;
+  }
+}
