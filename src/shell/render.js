@@ -14,6 +14,7 @@ import { isRussian, t as tr, translateApp } from '../core/i18n.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
+import { disposeClosedPreviews } from '../core/file-preview.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -141,6 +142,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  disposeClosedPreviews();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';
   const prevOv = render._ov || {};

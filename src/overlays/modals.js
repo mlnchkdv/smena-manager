@@ -3,7 +3,8 @@ import { $$, MOD, TODAY, ago, diffD, esc, fmtDate, parse } from '../core/utils.j
 import { ic } from '../core/icons.js';
 import { PCOLORS, PICONS, PR, ST } from '../core/constants.js';
 import { D, S, mem, pColor, proj, task, teamsList } from '../core/store.js';
-import { FT, av, filePrev, lbl, prPill, stPill } from '../ui/helpers.js';
+import { FT, av, lbl, prPill, stPill } from '../ui/helpers.js';
+import { ensureFilePreview } from '../core/file-preview.js';
 import { focusKey, render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
 import { t as tr, templateText } from '../core/i18n.js';
@@ -344,10 +345,18 @@ export function shortcutsModal(H) {
   return `${H('Keyboard shortcuts')}<div class="modal-b" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row" style="height:30px;font-size:13px;border-bottom:1px solid var(--divider)"><span class="grow">${n}</span>${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</div>`).join('')}</div>`).join('')}</div>`;
 }
 export function filePreviewModal(m, H) {
+  ensureFilePreview(m, render);
   const f = m.file;
   const t = FT[f.type] || FT.other;
+  const preview = m.preview;
+  const content =
+    preview.kind === 'image'
+      ? `<img src="${esc(preview.url)}" alt="${esc(f.name)}" class="file-preview-image" translate="no">`
+      : preview.kind === 'text'
+        ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
+        : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
   return `${H(esc(f.name), `${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} ${esc(mem(f.by)?.name || tr('You'))} ${ago(f.at)}`)}
-  <div class="modal-b"><div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden">${filePrev(f).replace('class="fprev"', 'class="fprev" style="aspect-ratio:16/9"')}</div>
+  <div class="modal-b"><div class="file-preview-content">${content}</div>
   ${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}</div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-fid="${f.id}">${ic('link', 14)}Copy link</button>${f.storageName ? `<button class="btn btn-secondary" data-a="downloadStoredFile" data-id="${f.id}">${ic('download', 14)}Download</button>` : ''}<span class="sp"></span><button class="btn btn-primary" data-a="closeModal">Close</button></div>`;
 }

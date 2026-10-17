@@ -217,6 +217,7 @@ export async function getFileUploadPolicy() {
 
 function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   return new Promise((resolve, reject) => {
+    if (metadata.signal?.aborted) return reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
     const token = getSessionToken();
     if (!token) {
       reject(new ApiError('Authentication required.', 401, 'AUTH_REQUIRED'));
@@ -231,6 +232,11 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     xhr.open('POST', '/api/files/upload');
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.responseType = 'json';
+    xhr.timeout = 120000;
+    const abort = () => xhr.abort();
+    metadata.signal?.addEventListener('abort', abort, { once: true });
+    xhr.onloadend = () => metadata.signal?.removeEventListener('abort', abort);
+    xhr.ontimeout = () => reject(new ApiError('Upload timed out. Try again.', 0, 'UPLOAD_TIMEOUT'));
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
     };
@@ -248,10 +254,43 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   });
 }
 
-function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress) {
+function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) {
   return new Promise((resolve, reject) => {
     let start = 0;
+    let failures = 0;
+    const attachAbort = xhr => {
+      const abort = () => xhr.abort();
+      signal?.addEventListener('abort', abort, { once: true });
+      xhr.onloadend = () => signal?.removeEventListener('abort', abort);
+      xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
+      xhr.timeout = 120000;
+    };
+    const cancelled = () => {
+      if (!signal?.aborted) return false;
+      reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
+      return true;
+    };
+    const probe = () => {
+      if (cancelled()) return;
+      if (++failures > 3) return reject(new ApiError('Google Drive is unavailable. Try the upload again.', 0, 'DIRECT_UPLOAD_NETWORK_ERROR'));
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Range', `bytes */${file.size}`);
+      xhr.responseType = 'json';
+      attachAbort(xhr);
+      xhr.onerror = xhr.ontimeout = () => setTimeout(probe, 1000);
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) return resolve(xhr.response || {});
+        if (xhr.status !== 308) return reject(new ApiError(`Google Drive rejected the upload (${xhr.status}).`, xhr.status, 'DIRECT_UPLOAD_FAILED'));
+        const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
+        start = accepted ? Number(accepted[1]) + 1 : 0;
+        if (start < 0 || start >= file.size) return reject(new ApiError('Invalid upload progress.', 0, 'DIRECT_UPLOAD_FAILED'));
+        sendNext();
+      };
+      xhr.send();
+    };
     const sendNext = () => {
+      if (cancelled()) return;
       const end = Math.min(start + chunkSizeBytes, file.size);
       const chunk = file.slice(start, end);
       const xhr = new XMLHttpRequest();
@@ -259,15 +298,18 @@ function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress) {
       xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
       xhr.setRequestHeader('Content-Range', `bytes ${start}-${end - 1}/${file.size}`);
       xhr.responseType = 'json';
+      attachAbort(xhr);
       xhr.upload.onprogress = event => {
         if (event.lengthComputable) onProgress?.(Math.round(((start + event.loaded) / file.size) * 100));
       };
-      xhr.onerror = () => reject(new ApiError('Google Drive is unavailable.', 0, 'DIRECT_UPLOAD_NETWORK_ERROR'));
-      xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
+      xhr.onerror = xhr.ontimeout = probe;
       xhr.onload = () => {
         if (xhr.status === 308) {
           const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
-          start = accepted ? Number(accepted[1]) + 1 : end;
+          const next = accepted ? Number(accepted[1]) + 1 : 0;
+          if (next <= start || next >= file.size) return probe();
+          start = next;
+          failures = 0;
           sendNext();
           return;
         }
@@ -289,6 +331,7 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
     '/api/files/upload-session',
     {
       method: 'POST',
+      signal: metadata.signal,
       body: JSON.stringify({
         name: file.name,
         size: file.size,
@@ -299,11 +342,12 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
     },
     true,
   );
-  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress);
+  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress, metadata.signal);
   return request(
     '/api/files/upload-complete',
     {
       method: 'POST',
+      signal: metadata.signal,
       body: JSON.stringify({ ticket: session.ticket, fileId: uploaded.id || '' }),
     },
     true,
@@ -311,16 +355,17 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
 }
 
 export function uploadWorkspaceFile(file, metadata, onProgress) {
-  return metadata.direct ? uploadWorkspaceFileDirect(file, metadata, onProgress) : uploadWorkspaceFileThroughApi(file, metadata, onProgress);
+  return metadata.direct && file.size > 0 ? uploadWorkspaceFileDirect(file, metadata, onProgress) : uploadWorkspaceFileThroughApi(file, metadata, onProgress);
 }
 
-export async function downloadWorkspaceFile(id, download = false) {
+export async function downloadWorkspaceFile(id, download = false, options = {}) {
   const token = getSessionToken();
   if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
   let response;
   try {
     response = await fetch(`/api/files/${encodeURIComponent(id)}/content${download ? '?download=1' : ''}`, {
       headers: { Authorization: `Bearer ${token}` },
+      signal: options.signal,
     });
   } catch (error) {
     throw new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR', { cause: error });
@@ -329,7 +374,29 @@ export async function downloadWorkspaceFile(id, download = false) {
     const body = await response.json().catch(() => ({}));
     throw new ApiError(body.error || 'Unable to open the file.', response.status, body.code || 'FILE_ERROR', body);
   }
-  return { blob: await response.blob(), disposition: response.headers.get('content-disposition') || '' };
+  let blob;
+  if (options.maxBytes && response.body?.getReader) {
+    const reader = response.body.getReader();
+    const chunks = [];
+    let total = 0;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > options.maxBytes) {
+          await reader.cancel();
+          throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    blob = new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' });
+  } else blob = await response.blob();
+  if (options.maxBytes && blob.size > options.maxBytes) throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
+  return { blob, disposition: response.headers.get('content-disposition') || '' };
 }
 
 export async function deleteWorkspaceFile(id, revision) {

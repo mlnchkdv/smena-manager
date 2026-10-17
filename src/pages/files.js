@@ -55,7 +55,7 @@ function uploadsHtml() {
   return `<div class="workspace-file-uploads" aria-live="polite">${uploads
     .map(item => {
       const meta = fileMeta({ type: item.type });
-      return `<div class="upl"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><div class="grow min0"><div class="row"><span class="trunc" style="font-weight:500">${esc(item.name)}</span><span class="sp"></span><span class="faint num" id="upct-${item.id}">${item.pct}%</span></div><div class="prog" style="margin-top:6px"><i id="upbar-${item.id}" style="--p:${item.pct / 100}"></i></div></div></div>`;
+      return `<div class="upl"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><div class="grow min0"><div class="row"><span class="trunc" style="font-weight:500" translate="no">${esc(item.name)}</span><span class="sp"></span><span class="faint num" id="upct-${item.id}">${item.pct}%</span><button class="ibtn ibtn-xs" data-a="cancelUpload" data-id="${item.id}" aria-label="Cancel upload">${ic('x', 13)}</button></div><div class="prog" style="margin-top:6px"><i id="upbar-${item.id}" style="--p:${item.pct / 100}"></i></div></div></div>`;
     })
     .join('')}</div>`;
 }

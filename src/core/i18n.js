@@ -19,6 +19,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Cancel upload': 'Отменить загрузку',
+  'Upload timed out. Try again.': 'Время загрузки истекло. Повторите попытку.',
+  'Google Drive is unavailable. Try the upload again.': 'Google Диск недоступен. Повторите загрузку.',
+  'Loading preview…': 'Загрузка предпросмотра…',
+  'Preview is unavailable for this format or size. Download the file to open it.':
+    'Для этого формата или размера предпросмотр недоступен. Скачайте файл, чтобы открыть его.',
+  'This file is too large to preview. Download it instead.': 'Файл слишком большой для предпросмотра. Скачайте его.',
   'Local recovery storage is unavailable. Keep this tab open until changes are saved.':
     'Локальное восстановление недоступно. Не закрывайте вкладку до сохранения изменений.',
   'Unable to undo: the affected data has changed.': 'Нельзя отменить: затронутые данные уже изменились.',
@@ -1653,6 +1660,7 @@ export function translateElement(root) {
   if (!root || !isRussian()) return root;
   const elements = root.nodeType === Node.ELEMENT_NODE ? [root, ...root.querySelectorAll('*')] : [...root.querySelectorAll('*')];
   for (const el of elements) {
+    if (el.closest?.('[translate="no"]')) continue;
     for (const attr of ATTRIBUTES) {
       if (el.hasAttribute?.(attr)) {
         const value = el.getAttribute(attr);
@@ -1663,6 +1671,7 @@ export function translateElement(root) {
   }
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
+      if (node.parentElement?.closest('[translate="no"]')) return NodeFilter.FILTER_REJECT;
       const tag = node.parentElement?.tagName;
       return tag && !['SCRIPT', 'STYLE', 'TEXTAREA'].includes(tag) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     },

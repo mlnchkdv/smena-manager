@@ -1411,7 +1411,16 @@ export async function handleFiles(files, ctx) {
       toast(`File is too large. Maximum size: ${fsize(S.ui.filePolicy.maxFileSizeBytes)}.`, { kind: 'err' });
       continue;
     }
-    const up = { id: uid('u'), name: file.name, size: fsize(file.size), type: fileType(file.name), project: ctx.project, task: ctx.task, pct: 0 };
+    const up = {
+      id: uid('u'),
+      name: file.name,
+      size: fsize(file.size),
+      type: fileType(file.name),
+      project: ctx.project,
+      task: ctx.task,
+      pct: 0,
+      controller: new AbortController(),
+    };
     S.ui.uploads.push(up);
     render();
     try {
@@ -1424,6 +1433,7 @@ export async function handleFiles(files, ctx) {
           project: ctx.project,
           task: ctx.task,
           direct: S.ui.filePolicy?.directUploadEnabled === true,
+          signal: up.controller.signal,
         },
         progress => {
           up.pct = progress;
@@ -1448,6 +1458,9 @@ export async function handleFiles(files, ctx) {
 IN.uploadFiles = el => {
   void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
   el.value = '';
+};
+A.cancelUpload = el => {
+  S.ui.uploads?.find(item => item.id === el.dataset.id)?.controller?.abort();
 };
 
 A.downloadStoredFile = async el => {
