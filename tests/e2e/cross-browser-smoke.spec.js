@@ -1,0 +1,67 @@
+import { expect, test } from '@playwright/test';
+
+test.setTimeout(120_000);
+
+async function signIn(page) {
+  await page.goto('/');
+  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
+  await page.locator('#login-btn').click();
+  await page.locator('#o-ws:visible, .shell:visible').first().waitFor({ state: 'visible' });
+  if (
+    await page
+      .locator('#o-ws')
+      .isVisible()
+      .catch(() => false)
+  ) {
+    await page.locator('#o-ws').fill('E2E Команда');
+    await page.locator('#o-url').fill('e2e-team');
+    await page.locator('#onb-next').click();
+    await page.locator('#onb-next').click();
+    await page.locator('#o-proj').fill('Проверка интерфейса');
+    await page.locator('#onb-next').click();
+    await page.locator('[data-a="onbNext"][data-skip="1"]').click();
+    await page.locator('[data-a="onbFinish"]').click();
+  }
+  await expect(page.locator('.shell')).toBeVisible();
+}
+
+async function expectNoPageOverflow(page) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(2);
+}
+
+test('core task flow and responsive shell work across browser engines', async ({ page }) => {
+  await signIn(page);
+  await page.setViewportSize({ width: 1366, height: 850 });
+  await page.goto('/e2e-team');
+  await page.locator('button[data-a="newTask"]:visible').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  const box = await dialog.boundingBox();
+  expect(box).not.toBeNull();
+  expect(Math.abs(box.x + box.width / 2 - 1366 / 2)).toBeLessThanOrEqual(3);
+
+  await dialog.locator('[data-pop="assignee"]').click();
+  await expect(page.locator('.pop:visible')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await dialog.locator('#f-title').fill('Межбраузерная проверка');
+  await dialog.locator('#f-submit').click();
+  await expect(page.getByText('Межбраузерная проверка', { exact: true }).first()).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ['projects', 'inbox', 'settings/security']) {
+    await page.goto(`/e2e-team/${route}`);
+    await expect(page.locator('#main-content')).toBeVisible();
+    await expectNoPageOverflow(page);
+  }
+
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('English (US)', { force: true });
+  await page.waitForTimeout(700);
+  await page.goto('/e2e-team/projects');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
+  await expectNoPageOverflow(page);
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
+});

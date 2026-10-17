@@ -39,7 +39,11 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', testMatch: /cross-browser-smoke\.spec\.js/, use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', testMatch: /cross-browser-smoke\.spec\.js/, use: { ...devices['Desktop Safari'] } },
+  ],
   webServer: {
     command: 'npm run dev',
     url: 'http://127.0.0.1:5173',
