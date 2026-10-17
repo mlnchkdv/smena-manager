@@ -298,7 +298,7 @@ A.loadWorkspaceBackups = async () => {
   try {
     S.ui.backups = await getWorkspaceBackups();
   } catch (error) {
-    toast(error.message || 'Не удалось загрузить резервные копии.', { kind: 'err' });
+    toast(error.message || 'Unable to load backups.', { kind: 'err' });
   } finally {
     S.ui.backupsLoading = false;
     render();
@@ -309,13 +309,13 @@ A.createWorkspaceBackup = async el => {
   el?.classList?.add('is-loading');
   try {
     await queueWorkspaceSync(S.data);
-    await createWorkspaceBackup('Ручная копия');
+    await createWorkspaceBackup('Manual backup');
     S.ui.backups = await getWorkspaceBackups();
     render();
-    toast('Резервная копия сохранена.');
+    toast('Backup saved.');
   } catch (error) {
     render();
-    toast(error.message || 'Не удалось создать резервную копию.', { kind: 'err', ms: 8000 });
+    toast(error.message || 'Unable to create a backup.', { kind: 'err', ms: 8000 });
   }
 };
 A.restoreWorkspaceBackup = el => {
@@ -323,9 +323,9 @@ A.restoreWorkspaceBackup = el => {
   const backup = (S.ui.backups || []).find(item => item.id === id);
   if (!backup || S.ui.currentUser?.role !== 'admin') return;
   confirmDlg({
-    title: 'Восстановить резервную копию?',
-    body: `Текущее состояние будет сначала сохранено отдельной копией, затем данные будут возвращены к версии от <b>${new Date(backup.createdAt).toLocaleString('ru-RU')}</b>.`,
-    ok: 'Восстановить',
+    title: 'Restore backup?',
+    body: `The current state will first be saved as a separate backup, then the data will be restored to the version from ${new Date(backup.createdAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US')}.`,
+    ok: 'Restore',
     icon: 'history',
     run: async () => {
       try {
@@ -333,10 +333,10 @@ A.restoreWorkspaceBackup = el => {
         await refreshWorkspaceFromServer({ force: true });
         S.ui.modals = [];
         render();
-        toast('Рабочее пространство восстановлено из резервной копии.');
+        toast('Workspace restored from backup.');
         void A.loadWorkspaceBackups();
       } catch (error) {
-        toast(error.message || 'Не удалось восстановить резервную копию.', { kind: 'err', ms: 8000 });
+        toast(error.message || 'Unable to restore the backup.', { kind: 'err', ms: 8000 });
       }
     },
   });
@@ -388,13 +388,15 @@ A.newKnowledgeNote = () => {
     const now = new Date().toISOString();
     const note = {
       id: uid('kn'),
-      title: `Новая заметка ${notes.length + 1}`,
+      title: `${isRussian() ? 'Новая заметка' : 'New note'} ${notes.length + 1}`,
       category: 'General',
       summary: '',
       extracted_skills: [],
       tags: [],
       wikilinks: [],
-      formatted_markdown: '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.',
+      formatted_markdown: isRussian()
+        ? '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.'
+        : '# New note\n\nAdd team knowledge, guidelines, or working agreements here.',
       folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
       favorite: false,
       createdBy: D().me,
@@ -492,8 +494,8 @@ A.deleteKnowledgeNote = el => {
   if (!note) return;
   confirmDlg({
     title: 'Delete note?',
-    body: `<b>${esc(note.title)}</b> будет перемещена в корзину.`,
-    ok: 'В корзину',
+    body: `<b>${esc(note.title)}</b> will be moved to trash.`,
+    ok: 'Move to trash',
     danger: true,
     run: () =>
       mutate(() => {
@@ -683,8 +685,8 @@ A.deleteBookmark = el => {
   if (!link) return;
   confirmDlg({
     title: 'Delete bookmark?',
-    body: `<b>${esc(link.title)}</b> будет перемещена в корзину.`,
-    ok: 'В корзину',
+    body: `<b>${esc(link.title)}</b> will be moved to trash.`,
+    ok: 'Move to trash',
     danger: true,
     run: () =>
       mutate(() => {
@@ -1083,7 +1085,7 @@ A.delTask = el => {
   if (!t) return;
   const run = () => {
     const snap = snapshot();
-    if (mutate(() => deleteTasks([t.id]))) toast(`«${t.title}» перемещена в корзину`, { action: 'Отменить', onAction: () => restore(snap) });
+    if (mutate(() => deleteTasks([t.id]))) toast(`“${t.title}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
   };
   if (S.prefs.confirmDel === false && !el.dataset.demo) return run();
   confirmDlg({
@@ -2017,7 +2019,7 @@ A.delProject = el => {
         })
       ) {
         if (S.ui.route === 'project' && S.ui.params.id === p.id) go('projects');
-        toast(`${p.name} перемещён в корзину`, { action: 'Отменить', onAction: () => restore(snap) });
+        toast(`“${p.name}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
       }
     },
   });
@@ -2177,19 +2179,19 @@ A.submitInvite = () => {
     S.ui.modals.pop();
     S.ui.errors = {};
     render();
-    toast(`Доступ добавлен: ${list.length}. Отправьте участникам ссылку на сайт.`, {
-      action: 'Скопировать ссылку',
-      onAction: () => copy(location.origin, 'Ссылка на вход скопирована'),
+    toast(`Access added for ${list.length}. Send the site link to the team members.`, {
+      action: 'Copy link',
+      onAction: () => copy(location.origin, 'Sign-in link copied'),
       ms: 8000,
     });
   });
 };
-A.copyInviteLink = () => copy(location.origin, 'Ссылка на вход скопирована');
+A.copyInviteLink = () => copy(location.origin, 'Sign-in link copied');
 A.resendInvite = el => {
   const email = mem(el.dataset.id)?.email;
   S.ui.pop = null;
   render();
-  copy(location.origin, `Ссылка для ${email} скопирована. Отправьте её участнику вручную.`);
+  copy(location.origin, `Link copied for ${email}. Send it to the team member manually.`);
 };
 A.toggleMemberAccess = el => {
   if (S.ui.currentUser?.role !== 'admin') return;
@@ -2479,9 +2481,9 @@ A.reloadWorkspaceVersion = async el => {
     const result = await refreshWorkspaceFromServer({ force: true });
     S.ui.syncConflict = false;
     render();
-    toast(result.status === 'updated' ? 'Загружена актуальная серверная версия.' : 'У вас уже актуальная версия.', { kind: 'info' });
+    toast(result.status === 'updated' ? 'Latest server version loaded.' : 'You already have the latest version.', { kind: 'info' });
   } catch (error) {
-    toast(error.message || 'Не удалось загрузить серверную версию.', { kind: 'err', ms: 8000 });
+    toast(error.message || 'Unable to load the server version.', { kind: 'err', ms: 8000 });
   }
 };
 A.resetDemo = () => {

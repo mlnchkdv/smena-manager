@@ -47,9 +47,9 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       PORT: '3001',
-      DATABASE_PATH: `.data/e2e/workspace-${runId}.json`,
-      UPLOADS_PATH: `.data/e2e/uploads-${runId}`,
-      BACKUPS_PATH: `.data/e2e/backups-${runId}`,
+      DATABASE_PATH: `.data/e2e/${runId}/workspace.json`,
+      UPLOADS_PATH: `.data/e2e/${runId}/uploads`,
+      BACKUPS_PATH: `.data/e2e/${runId}/backups`,
       ACCESS_IDS_JSON: accessProfiles,
       ACCESS_ID_LOGIN_ENABLED: 'true',
       SESSION_SECRET: 'e2e-session-secret-that-is-at-least-32-characters',

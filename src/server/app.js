@@ -283,7 +283,7 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
-    await createWorkspaceBackup('Перед удалением рабочего пространства');
+    await createWorkspaceBackup('Before workspace deletion');
     const legacy = await getWorkspaceDatabase();
     for (const name of DOCUMENT_NAMES) {
       const document = await getWorkspaceDocument(name, legacy);

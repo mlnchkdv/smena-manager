@@ -123,7 +123,7 @@ export function renderOnboarding() {
       .map(t => opt('tmpl', t.id, t.icon, templateText(t.name), t.tasks.length + ' starter tasks'))
       .join('')}</div>${nav()}`;
   if (st === 4)
-    body = `<h1>Добавьте команду</h1><p class="sub">Укажите Google-аккаунты участников. Доступ будет добавлен сразу, а ссылку на сайт можно отправить им вручную.</p><div class="col" style="gap:8px">${[0, 1, 2].map(i => `<input class="input input-lg" id="o-inv-${i}" placeholder="teammate@company.com" type="email" value="${esc((o.invites || '').split(',')[i] || '')}" data-in="onbInv" data-i="${i}" aria-label="Email участника ${i + 1}">`).join('')}</div>${nav('Добавить доступ', true)}`;
+    body = `<h1>Add your team</h1><p class="sub">Enter team members' Google accounts. Access is added immediately, and you can send them the site link manually.</p><div class="col" style="gap:8px">${[0, 1, 2].map(i => `<input class="input input-lg" id="o-inv-${i}" placeholder="teammate@company.com" type="email" value="${esc((o.invites || '').split(',')[i] || '')}" data-in="onbInv" data-i="${i}" aria-label="Team member email ${i + 1}">`).join('')}</div>${nav('Add access', true)}`;
   if (st === 5) {
     const n = (o.invites || '').split(',').filter(x => x.includes('@')).length;
     body = `<div style="display:flex;justify-content:center"><span class="ftype ready-badge" style="--c:var(--green);width:48px;height:48px;border-radius:12px">${ic('circle-check', 22)}</span></div><h1>Your workspace is ready</h1><p class="sub">Here's what we set up for you.</p>

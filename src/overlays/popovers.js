@@ -332,7 +332,7 @@ export function popHtml(p) {
       style = 'width:320px';
       break;
     case 'help':
-      inner = `<div class="mh">Помощь</div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Горячие клавиши<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="openPalette">${ic('command', 15)}Меню команд<span class="r"><kbd>${MOD}K</kbd></span></button><div class="msep"></div><div class="mh">${esc(D().ws.name)}</div><div class="muted" style="padding:6px 12px 10px;font-size:12px;line-height:1.45">Вход выполняется через разрешённый Google-аккаунт. По вопросам доступа обратитесь к администратору пространства.</div>`;
+      inner = `<div class="mh">Help</div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="openPalette">${ic('command', 15)}Command menu<span class="r"><kbd>${MOD}K</kbd></span></button><div class="msep"></div><div class="mh">${esc(D().ws.name)}</div><div class="muted" style="padding:6px 12px 10px;font-size:12px;line-height:1.45">Sign in with an approved Google Account. Contact a workspace administrator if you need access.</div>`;
       style = 'width:260px';
       break;
     case 'sort': {

@@ -76,17 +76,17 @@ A.restoreTrash = el => {
   const changed = mutate(() => {
     restored = restoreTrash(item);
   });
-  if (changed && restored) toast(`«${item.name}» восстановлено.`);
-  else if (changed) toast('Не удалось восстановить элемент: его родительский проект удалён или идентификатор уже занят.', { kind: 'err', ms: 7000 });
+  if (changed && restored) toast(`“${item.name}” restored.`);
+  else if (changed) toast('The item could not be restored because its parent project was deleted or its ID is already in use.', { kind: 'err', ms: 7000 });
 };
 
 A.purgeTrash = el => {
   const item = (D().trash || []).find(entry => entry.id === el.dataset.id);
   if (!item) return;
   confirmDlg({
-    title: 'Удалить безвозвратно?',
-    body: `<b>${esc(item.name)}</b> будет окончательно удалён${item.kind === 'file' || item.data?.files?.length ? ' вместе с файлами в Google Drive' : ''}.`,
-    ok: 'Удалить навсегда',
+    title: 'Delete permanently?',
+    body: `<b>${esc(item.name)}</b> will be permanently deleted${item.kind === 'file' || item.data?.files?.length ? ', including its files in Google Drive' : ''}.`,
+    ok: 'Delete permanently',
     danger: true,
     run: async () => {
       try {
@@ -94,9 +94,9 @@ A.purgeTrash = el => {
         const result = await purgeWorkspaceTrash(item.id, S.ui.workspaceRevision);
         applyWorkspaceSnapshot(result.data);
         render();
-        toast(`«${item.name}» удалено безвозвратно.`);
+        toast(`“${item.name}” permanently deleted.`);
       } catch (error) {
-        toast(error.message || 'Не удалось очистить элемент корзины.', { kind: 'err', ms: 8000 });
+        toast(error.message || 'The trash item could not be deleted.', { kind: 'err', ms: 8000 });
       }
     },
   });

@@ -151,7 +151,7 @@ export async function restoreWorkspaceBackup(id, expectedRevision) {
   const storage = getStorageProvider();
   if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
   const backup = await storage.loadDatabaseBackup(id);
-  await createWorkspaceBackup('Перед восстановлением');
+  await createWorkspaceBackup('Before restore');
   const current = await getWorkspaceDatabase();
   for (const name of DOCUMENT_NAMES) {
     const document = await getWorkspaceDocument(name, current);

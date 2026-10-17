@@ -216,16 +216,16 @@ export function shareModal(m, H) {
 }
 export function inviteModal(m, H) {
   const err = S.ui.errors.invite;
-  return `${H('Добавить доступ к ' + esc(D().ws.name), 'Укажите Google-аккаунты участников. После сохранения отправьте им ссылку на вход вручную.')}
+  return `${H('Add access to ' + esc(D().ws.name), "Enter team members' Google accounts. After saving, send them the sign-in link manually.")}
   <form class="modal-b" data-submit="submitInvite">
-    <div class="field"><label class="label" for="inv-emails">Адреса Google-аккаунтов</label><textarea class="textarea ${err ? 'is-error' : ''}" id="inv-emails" placeholder="name@company.com, another@company.com" rows="3" autofocus>${esc(S.ui.inviteDraft || '')}</textarea>${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : '<span class="hint">Несколько адресов можно разделить запятыми.</span>'}</div>
-    <div class="row" style="gap:12px"><div class="field grow"><label class="label" for="inv-role">Роль</label><select class="select" id="inv-role">${['Member', 'Admin', 'Guest'].map(r => `<option>${r}</option>`).join('')}</select></div>
-    <div class="field grow"><label class="label" for="inv-team">Команда</label><select class="select" id="inv-team">${teamsList()
+    <div class="field"><label class="label" for="inv-emails">Google account addresses</label><textarea class="textarea ${err ? 'is-error' : ''}" id="inv-emails" placeholder="name@company.com, another@company.com" rows="3" autofocus>${esc(S.ui.inviteDraft || '')}</textarea>${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : '<span class="hint">Separate multiple addresses with commas.</span>'}</div>
+    <div class="row" style="gap:12px"><div class="field grow"><label class="label" for="inv-role">Role</label><select class="select" id="inv-role">${['Member', 'Admin', 'Guest'].map(r => `<option>${r}</option>`).join('')}</select></div>
+    <div class="field grow"><label class="label" for="inv-team">Team</label><select class="select" id="inv-team">${teamsList()
       .map(t => `<option value="${t.id}">${t.name}</option>`)
       .join('')}</select></div></div>
-    <div class="alert info">${ic('info', 14)}<span>Доступ начнёт действовать сразу. Автоматическая отправка писем пока не подключена.</span></div>
+    <div class="alert info">${ic('info', 14)}<span>Access becomes active immediately. Automatic invitation emails are not connected yet.</span></div>
   </form>
-  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Отмена</button><button class="btn btn-primary" data-a="submitInvite" id="inv-submit">Добавить доступ</button></div>`;
+  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="submitInvite" id="inv-submit">Add access</button></div>`;
 }
 export function confirmModal(m) {
   const needs = m.typeName;

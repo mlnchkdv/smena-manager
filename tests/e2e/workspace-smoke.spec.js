@@ -50,7 +50,7 @@ async function openTrash(page) {
 async function visibleUntranslatedUi(page) {
   return page.evaluate(() => {
     const allowed =
-      /Smena Manager|KMS Brain|E2E|CtrlK|https?|URL|JSON|Markdown|Google(?: Drive)?|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
+      /Smena Manager|KMS Brain|E2E|CtrlK|Ctrl|Shift|Esc|Tab|GMT|Gmail|Web Push|Push|https?|URL|JSON|Markdown|Google(?: Drive)?|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
     const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     return [
       ...new Set(
@@ -104,11 +104,28 @@ test('Russian workspace remains usable and responsive across breakpoints', async
     ['knowledge', 'База знаний'],
     ['bookmarks', 'Закладки'],
     ['settings', 'Настройки'],
+    ['settings/workspace', 'Настройки'],
+    ['settings/appearance', 'Настройки'],
+    ['settings/language', 'Настройки'],
+    ['settings/datetime', 'Настройки'],
+    ['settings/data-transfer', 'Настройки'],
+    ['settings/members', 'Настройки'],
+    ['settings/teams', 'Настройки'],
+    ['settings/projects', 'Настройки'],
+    ['settings/permissions', 'Настройки'],
+    ['settings/notif-mentions', 'Настройки'],
+    ['settings/notif-assign', 'Настройки'],
+    ['settings/notif-push', 'Настройки'],
+    ['settings/profile', 'Настройки'],
+    ['settings/security', 'Настройки'],
+    ['settings/preferences', 'Настройки'],
+    ['settings/shortcuts', 'Настройки'],
     ['archive', 'Архив'],
   ];
   const viewports = [
     { name: 'desktop', width: 1440, height: 900 },
-    { name: 'tablet', width: 834, height: 1112 },
+    { name: 'tablet-wide', width: 1024, height: 900 },
+    { name: 'tablet', width: 768, height: 1024 },
     { name: 'mobile', width: 390, height: 844 },
   ];
   for (const viewport of viewports) {
@@ -272,6 +289,20 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/settings/security');
   await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Open Google security' })).toBeVisible();
+  await page.goto('/e2e-team/settings/data-transfer');
+  await expect(page.getByRole('heading', { name: 'Backups', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create backup' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'KMS Brain data transfer', exact: true })).toBeVisible();
+  await page.goto('/e2e-team/settings/members');
+  await page.locator('[data-a="invite"]').first().click();
+  await expect(page.getByRole('heading', { name: /Add access to E2E/u })).toBeVisible();
+  await expect(page.getByText('Google account addresses', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.goto('/e2e-team/archive');
+  await expect(page.getByRole('tab', { name: /Trash/u })).toBeVisible();
+  await page.locator('[data-a="pop"][data-pop="help"]').click();
+  await expect(page.locator('.pop')).toContainText('Keyboard shortcuts');
+  await expect(page.locator('.pop')).toContainText('Command menu');
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');

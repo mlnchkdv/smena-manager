@@ -142,14 +142,14 @@ async function handleWorkspaceConflict() {
       if (result.status === 'merged') {
         S.ui.syncConflict = false;
         render();
-        toast('Изменения из двух сессий безопасно объединены.');
+        toast('Changes from both sessions were safely merged.');
       } else if (result.status === 'manual') {
         S.ui.syncConflict = true;
         render();
-        toast('Одни и те же данные изменены в двух сессиях. Ваш вариант сохранён как резервная копия в этом браузере.', {
+        toast('The same data changed in two sessions. Your version was saved as a recovery copy in this browser.', {
           kind: 'err',
           ms: 15_000,
-          action: 'Загрузить серверную версию',
+          action: 'Load server version',
           onAction: () => void A.reloadWorkspaceVersion(),
         });
       }
@@ -158,7 +158,7 @@ async function handleWorkspaceConflict() {
     .catch(error => {
       S.ui.syncConflict = true;
       render();
-      toast(error.message || 'Не удалось разрешить конфликт синхронизации.', { kind: 'err', ms: 12_000 });
+      toast(error.message || 'Unable to resolve the synchronization conflict.', { kind: 'err', ms: 12_000 });
       return { status: 'error', error };
     })
     .finally(() => {
@@ -213,7 +213,7 @@ window.addEventListener('smena:sync-status', event => {
     S.ui.syncUnavailable = false;
     S.ui.syncConflict = true;
     render();
-    toast('Рабочее пространство изменилось в другой сессии. Пытаемся безопасно объединить правки…', { kind: 'info', ms: 6000 });
+    toast('The workspace changed in another session. Trying to merge changes safely…', { kind: 'info', ms: 6000 });
     void handleWorkspaceConflict();
   } else if (status === 'unauthorized') {
     S.ui.currentUser = null;
@@ -319,13 +319,13 @@ async function refreshVisibleWorkspace(showNotice = false) {
             }),
           );
         } else if (freshNotifications.length) {
-          toast(freshNotifications.length === 1 ? 'Получено новое уведомление.' : `Получено новых уведомлений: ${freshNotifications.length}.`, {
+          toast(freshNotifications.length === 1 ? 'New notification received.' : `${freshNotifications.length} new notifications received.`, {
             kind: 'info',
             ms: 4000,
-            action: 'Открыть',
+            action: 'Open',
             onAction: () => go('notifications'),
           });
-        } else if (showNotice) toast('Загружены свежие изменения команды.', { kind: 'info', ms: 2600 });
+        } else if (showNotice) toast('Latest team changes loaded.', { kind: 'info', ms: 2600 });
       }
     })
     .catch(error => {
