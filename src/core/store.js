@@ -6,6 +6,7 @@ import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { canReadProject } from '../shared/project-access.js';
+import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import {
   addWorkspaceNotification,
   migrateNotificationRecipients,
@@ -172,6 +173,7 @@ function guardWorkspaceData() {
 }
 
 export function save() {
+  migrateMilestoneIds(S.data);
   guardWorkspaceData();
   clearTimeout(_saveT);
   _saveT = setTimeout(() => {

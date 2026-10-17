@@ -19,6 +19,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Unable to undo: the affected data has changed.': 'Нельзя отменить: затронутые данные уже изменились.',
+  'This milestone was removed in another session.': 'Этот этап удалён в другой сессии.',
   // Navigation and common controls
   Home: 'Главная',
   Inbox: 'Входящие',

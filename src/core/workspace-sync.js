@@ -218,6 +218,9 @@ export function configureWorkspaceSync(revision, role, data, documentSnapshots =
     documentSyncs[name].configure(documentSnapshots[name]?.revision || 0, role, workspaceDocumentData(name, data));
   }
 }
+export function configureCoreWorkspaceSync(revision, role, data) {
+  workspaceSync.configure(revision, role, workspaceCoreData(data));
+}
 export function disableWorkspaceSync() {
   workspaceSync.disable();
   for (const sync of Object.values(documentSyncs)) sync.disable();

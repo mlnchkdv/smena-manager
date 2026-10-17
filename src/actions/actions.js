@@ -32,7 +32,13 @@ import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
-import { applyWorkspaceSnapshot, authenticateAndLoadWorkspace, authenticateWithGoogleAndLoadWorkspace, refreshWorkspaceFromServer } from '../core/bootstrap.js';
+import {
+  applyExternalCoreSnapshot,
+  applyWorkspaceSnapshot,
+  authenticateAndLoadWorkspace,
+  authenticateWithGoogleAndLoadWorkspace,
+  refreshWorkspaceFromServer,
+} from '../core/bootstrap.js';
 import {
   clearSession,
   clearReadNotifications,
@@ -63,6 +69,8 @@ import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shar
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
 import { hasEnabledPushPreferences } from '../shared/push-client.js';
 import { primaryTeamId } from '../shared/team-relations.js';
+import { captureUndo, undoCommand } from '../shared/undo.js';
+import { canEditProject } from '../shared/project-access.js';
 
 export const A = {},
   IN = {},
@@ -192,10 +200,12 @@ export function confirmDlg(o) {
   openModal({ type: 'confirm', ...o });
 }
 export function snapshot() {
-  return JSON.stringify(S.data);
+  return captureUndo(S.data);
 }
 export function restore(snap) {
-  S.data = JSON.parse(snap);
+  const result = undoCommand(snap, S.data);
+  if (result.conflicts.length) return toast('Unable to undo: the affected data has changed.', { kind: 'err' });
+  S.data = result.data;
   save();
   render();
 }
@@ -1406,6 +1416,7 @@ export async function handleFiles(files, ctx) {
     render();
     try {
       await retryWorkspaceSync();
+      const uploadBase = structuredClone(S.data);
       const result = await uploadWorkspaceFile(
         file,
         {
@@ -1422,7 +1433,7 @@ export async function handleFiles(files, ctx) {
           if (pc) pc.textContent = up.pct + '%';
         },
       );
-      applyWorkspaceSnapshot(result.data);
+      applyExternalCoreSnapshot(result.data, uploadBase);
       save();
       S.ui.uploads = S.ui.uploads.filter(item => item !== up);
       render();
@@ -1833,16 +1844,16 @@ A.clearProjFilters = () => {
   render();
 };
 
-function projectMilestone(projectId, index) {
+function projectMilestone(projectId, milestoneId) {
   const project = proj(projectId);
-  const milestoneIndex = Number(index);
-  if (!project || !Number.isInteger(milestoneIndex)) return { project: null, milestone: null, index: -1 };
+  if (!project || !milestoneId) return { project: null, milestone: null, index: -1 };
   project.milestones = Array.isArray(project.milestones) ? project.milestones : [];
+  const milestoneIndex = project.milestones.findIndex(item => item.id === milestoneId);
   return { project, milestone: project.milestones[milestoneIndex] || null, index: milestoneIndex };
 }
 
 function canManageMilestones(project) {
-  return Boolean(project && canSee(project) && S.ui.currentUser?.role !== 'viewer');
+  return canEditProject(project, D().me, S.ui.currentUser?.role || 'viewer');
 }
 
 function logProjectMilestone(project, verb, name = '') {
@@ -1871,7 +1882,7 @@ A.newMilestone = el => {
   openModal({ type: 'milestone', project: project.id, index: null });
 };
 A.editMilestone = el => {
-  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  const { project, milestone } = projectMilestone(el.dataset.project, el.dataset.mid);
   if (!canManageMilestones(project) || !milestone) return;
   S.ui.milestoneForm = {
     name: milestone.name || '',
@@ -1880,7 +1891,7 @@ A.editMilestone = el => {
     completed: Boolean(milestone.completed),
   };
   S.ui.errors = {};
-  openModal({ type: 'milestone', project: project.id, index });
+  openModal({ type: 'milestone', project: project.id, milestoneId: milestone.id });
 };
 IN.milestoneForm = el => {
   S.ui.milestoneForm[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
@@ -1904,7 +1915,9 @@ A.submitMilestone = () => {
     $(`#${S.ui.errors.milestoneName ? 'milestone-name' : 'milestone-date'}`)?.focus();
     return;
   }
-  const existing = modal.index == null ? null : project.milestones?.[modal.index];
+  const index = modal.milestoneId ? project.milestones?.findIndex(item => item.id === modal.milestoneId) : -1;
+  const existing = index >= 0 ? project.milestones[index] : null;
+  if (modal.milestoneId && !existing) return toast('This milestone was removed in another session.', { kind: 'err' });
   const milestone = {
     id: existing?.id || uid('ms'),
     name: form.name,
@@ -1916,7 +1929,7 @@ A.submitMilestone = () => {
   if (
     mutate(() => {
       project.milestones = Array.isArray(project.milestones) ? project.milestones : [];
-      if (existing) project.milestones[modal.index] = milestone;
+      if (existing) project.milestones[index] = milestone;
       else project.milestones.push(milestone);
       logProjectMilestone(project, existing ? 'updated milestone in' : 'added milestone to', milestone.name);
     })
@@ -1927,7 +1940,7 @@ A.submitMilestone = () => {
   }
 };
 A.toggleMilestone = el => {
-  const { project, milestone } = projectMilestone(el.dataset.project, el.dataset.index);
+  const { project, milestone } = projectMilestone(el.dataset.project, el.dataset.mid);
   if (!canManageMilestones(project) || !milestone) return;
   const completed = !milestone.completed;
   if (
@@ -1940,7 +1953,7 @@ A.toggleMilestone = el => {
     toast(completed ? 'Milestone completed' : 'Milestone reopened');
 };
 A.moveMilestone = el => {
-  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.mid);
   const direction = Number(el.dataset.direction);
   const destination = index + direction;
   if (!canManageMilestones(project) || !milestone || ![-1, 1].includes(direction) || !project.milestones[destination]) return;
@@ -1954,7 +1967,7 @@ A.moveMilestone = el => {
     toast('Milestone order updated');
 };
 A.deleteMilestone = el => {
-  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  const { project, milestone } = projectMilestone(el.dataset.project, el.dataset.mid);
   if (!canManageMilestones(project) || !milestone) return;
   confirmDlg({
     title: 'Delete milestone?',
@@ -1963,10 +1976,12 @@ A.deleteMilestone = el => {
     danger: true,
     icon: 'trash-2',
     run: () => {
+      const latest = projectMilestone(project.id, milestone.id);
+      if (!latest.milestone || !canManageMilestones(latest.project)) return;
       if (
         mutate(() => {
-          project.milestones.splice(index, 1);
-          logProjectMilestone(project, 'deleted milestone from', milestone.name);
+          latest.project.milestones.splice(latest.index, 1);
+          logProjectMilestone(latest.project, 'deleted milestone from', latest.milestone.name);
         })
       )
         toast('Milestone deleted');

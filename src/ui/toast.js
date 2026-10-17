@@ -4,6 +4,7 @@ import { ic } from '../core/icons.js';
 import { S, save } from '../core/store.js';
 import { render } from '../shell/render.js';
 import { translateElement } from '../core/i18n.js';
+import { completeUndo } from '../shared/undo.js';
 
 export function toast(msg, opt = {}) {
   const host = $('#toasts');
@@ -34,6 +35,7 @@ export function mutate(fn, label) {
     return false;
   }
   fn();
+  completeUndo(S.data);
   save();
   render();
   return true;

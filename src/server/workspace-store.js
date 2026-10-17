@@ -12,6 +12,7 @@ import { membershipAuditEntries, validateMembershipTransition } from '../shared/
 import { mergeClientWorkspace } from './workspace-policy.js';
 import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
+import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -64,7 +65,10 @@ function normalizeDatabase(value) {
   }
   const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
-  return copyStorageVersion(value, sanitizeWorkspaceContent(validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized)))));
+  return copyStorageVersion(
+    value,
+    sanitizeWorkspaceContent(validateWorkspaceData(migrateMilestoneIds(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))))),
+  );
 }
 
 function clone(value) {

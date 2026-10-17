@@ -14,13 +14,28 @@ import {
 } from './api.js';
 import { S, setWorkspaceBaseline } from './store.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
-import { configureWorkspaceSync, workspaceSyncConflict, workspaceSyncIsClean } from './workspace-sync.js';
+import { configureCoreWorkspaceSync, configureWorkspaceSync, workspaceSyncConflict, workspaceSyncIsClean } from './workspace-sync.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
-import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
+
+export function applyExternalCoreSnapshot(snapshot, base) {
+  const canonical = workspaceCoreData(workspacePayload(snapshot));
+  const member = memberForProfile(canonical, S.ui.currentUser);
+  if (member) canonical.me = member.id;
+  const merged = mergeWorkspaceData(workspaceCoreData(base), workspaceCoreData(S.data), canonical);
+  if (merged.conflicts.length) {
+    storeConflictRecovery(S.data, { conflicts: merged.conflicts, reason: 'external_write' });
+    throw new Error('The same data changed in two sessions. Your version was saved as a recovery copy in this browser.');
+  }
+  Object.assign(S.data, merged.data);
+  S.ui.workspaceRevision = Number(snapshot.revision);
+  configureCoreWorkspaceSync(snapshot.revision, S.ui.currentUser?.role, canonical);
+  setWorkspaceBaseline({ ...S.data, ...canonical });
+}
 
 export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   const resolvedDocuments = Object.fromEntries(

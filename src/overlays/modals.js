@@ -199,15 +199,15 @@ export function milestonesModal(m, H) {
                 .map((milestone, index) => {
                   const [state, label] = milestoneState(milestone);
                   return `<article class="milestone-manage-row ${milestone.completed ? 'is-complete' : ''}">
-                    <input type="checkbox" class="check round" ${milestone.completed ? 'checked' : ''} ${editable ? `data-a="toggleMilestone" data-project="${project.id}" data-index="${index}"` : 'disabled'} aria-label="${milestone.completed ? 'Reopen' : 'Mark'} ${esc(milestone.name)}${milestone.completed ? '' : ' complete'}">
-                    <button type="button" class="milestone-manage-main" ${editable ? `data-a="editMilestone" data-project="${project.id}" data-index="${index}"` : 'disabled'}>
+                    <input type="checkbox" class="check round" ${milestone.completed ? 'checked' : ''} ${editable ? `data-a="toggleMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}"` : 'disabled'} aria-label="${milestone.completed ? 'Reopen' : 'Mark'} ${esc(milestone.name)}${milestone.completed ? '' : ' complete'}">
+                    <button type="button" class="milestone-manage-main" ${editable ? `data-a="editMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}"` : 'disabled'}>
                       <span class="milestone-manage-title">${esc(milestone.name)}</span>
                       ${milestone.description ? `<span class="milestone-manage-description trunc">${esc(milestone.description)}</span>` : ''}
                       <span class="milestone-manage-meta"><time>${fmtDate(milestone.date, true)}</time><span class="milestone-state ${state}">${label}</span></span>
                     </button>
                     ${
                       editable
-                        ? `<div class="milestone-manage-actions"><button class="ibtn ibtn-xs" data-a="moveMilestone" data-project="${project.id}" data-index="${index}" data-direction="-1" aria-label="Move milestone up" ${index === 0 ? 'disabled' : ''}>${ic('arrow-up', 13)}</button><button class="ibtn ibtn-xs" data-a="moveMilestone" data-project="${project.id}" data-index="${index}" data-direction="1" aria-label="Move milestone down" ${index === milestones.length - 1 ? 'disabled' : ''}>${ic('arrow-down', 13)}</button><button class="ibtn ibtn-xs" data-a="editMilestone" data-project="${project.id}" data-index="${index}" aria-label="Edit milestone">${ic('pencil', 13)}</button><button class="ibtn ibtn-xs danger" data-a="deleteMilestone" data-project="${project.id}" data-index="${index}" aria-label="Delete milestone">${ic('trash-2', 13)}</button></div>`
+                        ? `<div class="milestone-manage-actions"><button class="ibtn ibtn-xs" data-a="moveMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}" data-direction="-1" aria-label="Move milestone up" ${index === 0 ? 'disabled' : ''}>${ic('arrow-up', 13)}</button><button class="ibtn ibtn-xs" data-a="moveMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}" data-direction="1" aria-label="Move milestone down" ${index === milestones.length - 1 ? 'disabled' : ''}>${ic('arrow-down', 13)}</button><button class="ibtn ibtn-xs" data-a="editMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}" aria-label="Edit milestone">${ic('pencil', 13)}</button><button class="ibtn ibtn-xs danger" data-a="deleteMilestone" data-project="${project.id}" data-mid="${esc(milestone.id)}" aria-label="Delete milestone">${ic('trash-2', 13)}</button></div>`
                         : ''
                     }
                   </article>`;
@@ -225,14 +225,14 @@ export function milestoneModal(m, H) {
   const form = S.ui.milestoneForm;
   const nameError = S.ui.errors.milestoneName;
   const dateError = S.ui.errors.milestoneDate;
-  return `${H(m.index == null ? 'New milestone' : 'Edit milestone', project ? `Project “${esc(project.name)}”` : '')}
+  return `${H(!m.milestoneId ? 'New milestone' : 'Edit milestone', project ? `Project “${esc(project.name)}”` : '')}
     <form class="modal-b" data-submit="submitMilestone">
       <div class="field"><label class="label" for="milestone-name">Milestone name</label><input class="input ${nameError ? 'is-error' : ''}" id="milestone-name" data-in="milestoneForm" data-f="name" value="${esc(form.name)}" placeholder="e.g. Public launch" autofocus aria-invalid="${!!nameError}">${nameError ? `<span class="err">${ic('circle-alert', 12)}${nameError}</span>` : ''}</div>
       <div class="field"><label class="label" for="milestone-description">Description</label><textarea class="textarea" id="milestone-description" data-in="milestoneForm" data-f="description" rows="3" placeholder="What should be achieved by this date?">${esc(form.description || '')}</textarea></div>
       <div class="field"><label class="label" for="milestone-date">Milestone date</label><input type="date" class="input ${dateError ? 'is-error' : ''}" id="milestone-date" data-in="milestoneForm" data-f="date" value="${esc(form.date || '')}" aria-invalid="${!!dateError}">${dateError ? `<span class="err">${ic('circle-alert', 12)}${dateError}</span>` : ''}</div>
       <label class="milestone-complete-toggle"><input type="checkbox" class="check round" id="milestone-completed" data-in="milestoneForm" data-f="completed" ${form.completed ? 'checked' : ''}><span><b>Completed</b><small>Mark this milestone as achieved.</small></span></label>
     </form>
-    <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="submitMilestone">${m.index == null ? 'Add milestone' : 'Save changes'}</button></div>`;
+    <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="submitMilestone">${!m.milestoneId ? 'Add milestone' : 'Save changes'}</button></div>`;
 }
 export const PERMS = ['Can view', 'Can comment', 'Can edit', 'Full access'];
 export function shareModal(m, H) {
