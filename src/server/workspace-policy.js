@@ -52,6 +52,12 @@ export function validateClientFiles(current, candidate, role, memberId) {
     if (!file?.storageName && !file?.storageFileId) return;
     const original = known.get(file.id) || trusted.find(item => item.storageFileId === file.storageFileId && item.storageName === file.storageName);
     if (!original || FILE_FIELDS.some(field => !same(file[field], original[field]))) throw permissionError('files');
+    if (role !== 'admin' && (original.id !== file.id || original.project !== file.project || original.task !== file.task)) {
+      const source =
+        current.projects?.find(project => project.id === original.project) ||
+        current.trash?.find(item => item.data?.project?.id === original.project)?.data.project;
+      if (!source || !canReadProject(source, memberId, role)) throw permissionError('files');
+    }
   };
   for (const file of protectedFiles(candidate)) verify(file);
   for (const task of candidate.tasks || []) for (const file of task.attachments || []) verify(file);
@@ -76,6 +82,7 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
   const proposed = new Map((candidate.projects || []).map(project => [project.id, project]));
   const readable = project => canReadProject(project, memberId, role);
   const editable = id => canEditProject(projects.get(id) || proposed.get(id), memberId, role);
+  const commentable = id => projectAccess(projects.get(id) || proposed.get(id), memberId, role) >= 2;
 
   if (role !== 'admin') {
     const guarded = restoreUnauthorizedChanges(current, candidate, role, memberId);
@@ -114,7 +121,8 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
       if (previous && same(previous, item)) continue;
       const target = entityProjectId(item, { ...current, tasks: candidate.tasks });
       const originalTarget = previous && entityProjectId(previous, current);
-      if (role !== 'admin' && ((!target && field !== 'activity') || (target && !editable(target)) || (originalTarget && !editable(originalTarget)))) {
+      const allowed = field === 'comments' ? commentable : editable;
+      if (role !== 'admin' && ((!target && field !== 'activity') || (target && !allowed(target)) || (originalTarget && !allowed(originalTarget)))) {
         throw permissionError(field);
       }
       if (role !== 'admin' && field === 'comments' && previous?.by !== memberId && previous && !same(previous.text, item.text)) throw permissionError(field);
@@ -122,7 +130,7 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
     for (const item of current[field] || []) {
       if (!requested.has(item.id) && exposed.has(item.id)) {
         const projectId = entityProjectId(item, current);
-        if (role !== 'admin' && projectId && !editable(projectId)) throw permissionError(field);
+        if (role !== 'admin' && projectId && !(field === 'comments' ? commentable(projectId) : editable(projectId))) throw permissionError(field);
         if (role !== 'admin' && field === 'comments' && item.by !== memberId) throw permissionError(field);
       }
     }

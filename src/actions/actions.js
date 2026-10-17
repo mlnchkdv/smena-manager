@@ -2005,6 +2005,10 @@ A.deleteMilestone = el => {
   });
 };
 A.newProject = () => {
+  if (S.ui.currentUser?.role === 'editor' && D().ws.permissions?.createProjects === false) {
+    toast('You do not have permission to save workspace changes.', { kind: 'err' });
+    return;
+  }
   const availableTeams = teamsList();
   const initialTeam = primaryTeamId(availableTeams, me().team);
   S.ui.pform = { name: '', desc: '', icon: 'folder', color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
@@ -2211,8 +2215,8 @@ A.delProject = el => {
   });
 };
 A.requestAccess = el => {
-  const p = proj(el.dataset.id);
-  toast(`Access requested. We'll notify you when ${mem(p?.lead)?.name || 'the owner'} responds.`);
+  void el;
+  toast('Ask a workspace administrator to add you to this project. No automatic request was sent.', { kind: 'info', ms: 8000 });
 };
 
 /* sharing & invites */
@@ -2258,6 +2262,10 @@ A.shareInvite = () => {
     toast(`Shared with ${ex.name}`);
     return;
   }
+  if (S.ui.currentUser?.role !== 'admin') {
+    toast('Only workspace administrators can add sign-in access.', { kind: 'err' });
+    return;
+  }
   if (!/^\S+@\S+\.\S+$/.test(v)) {
     toast('Enter a valid email address, like name@company.com', { kind: 'err' });
     return;
@@ -2275,7 +2283,7 @@ A.shareInvite = () => {
   });
   S.ui.shareQ = '';
   render();
-  toast(`Invitation sent to ${v}`);
+  toast(`Access added for ${v}. Share the project link directly.`, { ms: 8000 });
 };
 IN.sharePerm = el => {
   const p = proj(el.dataset.id);
@@ -2651,14 +2659,14 @@ A.setSearch = el => {
 
 /* workspace, account, prototype controls */
 A.switchWs = el => {
-  const w = D().workspaces.find(x => x.id === el.dataset.v);
+  void el;
   S.ui.pop = null;
-  D().ws = { name: w.name, url: workspaceSlug(w.name) || 'workspace', c: w.c, brand: !!w.brand };
-  save();
-  go('home');
-  toast(`Switched to ${w.name}`);
+  render();
+  toast('This deployment uses one shared workspace. Rename it in workspace settings.', { kind: 'info', ms: 8000 });
 };
 A.newWorkspace = () => {
+  if (D().ws?.name) return A.switchWs({});
+  if (S.ui.currentUser?.role !== 'admin') return;
   S.ui.pop = null;
   S.ui.auth = 'onboarding';
   S.ui.onb = 1;
@@ -2851,6 +2859,11 @@ IN.noop = () => {};
 /* settings */
 IN.prefToggle = el => {
   S.prefs[el.dataset.k] = el.checked;
+  save();
+};
+IN.workspacePermToggle = el => {
+  if (S.ui.currentUser?.role !== 'admin' || el.dataset.k !== 'createProjects') return;
+  D().ws.permissions = { ...D().ws.permissions, createProjects: el.checked };
   save();
 };
 IN.npToggle = async el => {

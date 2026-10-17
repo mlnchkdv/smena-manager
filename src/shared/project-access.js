@@ -6,7 +6,7 @@ export function projectAccess(project, memberId, role = 'editor') {
   const invited = project.lead === memberId || project.members?.includes(memberId);
   const privateProject = project.access ? project.access === 'private' : project.private === true;
   if (privateProject && !invited) return 0;
-  const level = invited && project.perms?.[memberId] ? LEVELS[project.perms[memberId]] || 1 : 3;
+  const level = project.lead === memberId ? 4 : invited && project.perms?.[memberId] ? LEVELS[project.perms[memberId]] || 1 : 3;
   return role === 'viewer' ? Math.min(level, 1) : level;
 }
 

@@ -43,6 +43,35 @@ test('workspace API projection hides private projects, related content and other
   assert.deepEqual(Object.keys(result.notifPrefs), ['editor']);
 });
 
+test('project comment permission permits comments but not task edits, and leads retain ACL control', () => {
+  const current = fixture();
+  current.projects[0].perms = { editor: 'Can comment' };
+  const candidate = projectWorkspace(current, { id: 'editor', role: 'editor' });
+  candidate.comments.push({ id: 'new', task: 'public-task', by: 'editor', text: 'Comment' });
+  assert.ok(mergeClientWorkspace(current, candidate, 'editor', 'editor').comments.some(comment => comment.id === 'new'));
+  candidate.tasks[0].title = 'Forbidden edit';
+  assert.throws(() => mergeClientWorkspace(current, candidate, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+  current.projects[0].lead = 'editor';
+  const lead = projectWorkspace(current, { id: 'editor', role: 'editor' });
+  lead.projects[0].members.push('owner');
+  assert.ok(
+    mergeClientWorkspace(current, lead, 'editor', 'editor')
+      .projects.find(project => project.id === 'open')
+      .members.includes('owner'),
+  );
+});
+
+test('a known private physical file cannot be aliased into a public project after access is lost', () => {
+  const current = fixture();
+  const privateFile = { id: 'private-file', project: 'secret', storageFileId: 'private-physical', storageName: 'private.txt', by: 'editor' };
+  current.files.push(privateFile);
+  const candidate = projectWorkspace(current, { id: 'editor', role: 'editor' });
+  candidate.tasks[0].title = 'Allowed public edit';
+  assert.ok(mergeClientWorkspace(current, candidate, 'editor', 'editor').files.some(file => file.id === privateFile.id));
+  candidate.files.push({ ...privateFile, id: 'new-alias', project: 'open' });
+  assert.throws(() => mergeClientWorkspace(current, candidate, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+});
+
 test('filtered updates preserve hidden records and reject forged edits', () => {
   const current = fixture();
   const candidate = projectWorkspace(current, { id: 'editor', role: 'editor' });

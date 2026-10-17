@@ -15,6 +15,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Only workspace administrators can add sign-in access.': 'Доступ ко входу добавляют только администраторы пространства.',
+  'Project links': 'Ссылки на проекты',
+  'Project links require sign-in. Anonymous public sharing is not enabled.': 'Для открытия ссылок требуется вход. Анонимный доступ не включён.',
+  'Ask a workspace administrator to add you to this project. No automatic request was sent.':
+    'Попросите администратора добавить вас в проект. Автоматический запрос не отправлялся.',
+  'This deployment uses one shared workspace. Rename it in workspace settings.':
+    'Этот сайт использует одно общее пространство. Его название можно изменить в настройках.',
   'Personal settings could not be synced. Keep this tab open and try again.':
     'Не удалось синхронизировать личные настройки. Не закрывайте вкладку и повторите попытку.',
   'Cancel upload': 'Отменить загрузку',
@@ -1458,6 +1465,7 @@ const pluralRu = (value, one, few, many) => {
 };
 
 const PATTERNS = [
+  [/^Access added for (.+)\. Share the project link directly\.$/u, 'Доступ добавлен для $1. Отправьте ссылку на проект напрямую.'],
   [
     /^(.+): (Owner|Admin|Administrator|Member|Guest|Viewer) → (Owner|Admin|Administrator|Member|Guest|Viewer)$/u,
     (_match, name, before, after) => `${name}: ${RU[before] || before} → ${RU[after] || after}`,

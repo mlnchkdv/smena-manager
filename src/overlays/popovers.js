@@ -289,14 +289,7 @@ export function popHtml(p) {
       break;
     }
     case 'ws':
-      inner = `<div class="mh">Workspaces</div>${D()
-        .workspaces.map(
-          w =>
-            `<button class="mi" data-a="switchWs" data-v="${w.id}">${wsLogo(w, 20)}<span class="grow">${esc(w.name)}</span><span class="faint" style="font-size:11px">${w.plan}</span>${w.name === D().ws.name ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
-        )
-        .join(
-          '',
-        )}<div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
+      inner = `<div class="mh">Workspace</div><div class="mi">${wsLogo(D().ws, 20)}<span class="grow" translate="no">${esc(D().ws.name)}</span><span class="ck">${ic('check', 14)}</span></div><div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
       style = 'width:260px';
       break;
     case 'user':
