@@ -230,6 +230,25 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.mini-task-open {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.project-card-link {
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .mini.done .tt {
   text-decoration: line-through;
   color: var(--text-3);

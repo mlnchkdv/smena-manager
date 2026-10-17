@@ -53,7 +53,7 @@ export function dueHtml(t, withIcon = true) {
   return `<span class="due ${cls}">${withIcon ? ic('calendar', 12) : ''}${relDate(t.due)}</span>`;
 }
 export function progBar(v, cls = '') {
-  return `<span class="prog ${cls}" role="progressbar" aria-valuenow="${v}" aria-valuemin="0" aria-valuemax="100"><i style="--p:${v / 100}"></i></span>`;
+  return `<span class="prog ${cls}" role="progressbar" aria-label="Progress: ${v}%" aria-valuenow="${v}" aria-valuemin="0" aria-valuemax="100"><i style="--p:${v / 100}"></i></span>`;
 }
 export function empty(icon, title, text, btn = '', cls = '', level = 2) {
   return `<div class="empty-state ${cls}"><div class="glyph">${ic(icon, 20)}</div><h${level} class="es-h">${esc(title)}</h${level}><p>${esc(text)}</p>${btn}</div>`;

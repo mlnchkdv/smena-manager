@@ -1,7 +1,7 @@
 /* ---------------- MODALS ---------------- */
 import { $$, MOD, ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { PCOLORS, PICONS } from '../core/constants.js';
+import { PCOLORS, PICONS, PR, ST } from '../core/constants.js';
 import { D, S, mem, pColor, proj, task, teamsList } from '../core/store.js';
 import { FT, av, filePrev, lbl, prPill, stPill } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
@@ -60,8 +60,9 @@ export function modalHtml(m) {
   }
   return '';
 }
-export function formChip(pop, html, label) {
-  return `<button class="pillbtn bordered" data-a="pop" data-pop="${pop}" data-id="__form" ${pop === 'date' ? `data-field="${label}"` : ''} aria-label="${esc(label)}">${html}</button>`;
+export function formChip(pop, html, label, selectedLabel = label) {
+  const accessibleName = selectedLabel == null ? '' : ` aria-label="${esc(tr(label))}: ${esc(selectedLabel)}"`;
+  return `<button class="pillbtn bordered" data-a="pop" data-pop="${pop}" data-id="__form" ${pop === 'date' ? `data-field="${label}"` : ''}${accessibleName}>${html}</button>`;
 }
 export function taskModal(m, H) {
   const f = S.ui.form;
@@ -72,12 +73,12 @@ export function taskModal(m, H) {
     <div class="field"><label class="sr" for="f-title">Task name</label><input class="input input-lg ${err ? 'is-error' : ''}" id="f-title" data-in="form" data-f="title" value="${esc(f.title)}" placeholder="Task name" autofocus aria-invalid="${!!err}" aria-describedby="f-title-err" style="font-size:15px;font-weight:500">${err ? `<span class="err" id="f-title-err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
     <div class="field"><label class="sr" for="f-desc">Description</label><textarea class="textarea" id="f-desc" data-in="form" data-f="desc" placeholder="Add a description… (optional)" rows="3">${esc(f.desc)}</textarea></div>
     <div class="row" style="flex-wrap:wrap;gap:6px">
-      ${formChip('project', `<span class="pdot" style="--c:${pColor(p)}"></span>${esc(p?.name || 'Project')}`, 'Project')}
-      ${formChip('status', stPill(f.status), 'Status')}
-      ${formChip('assignee', `${av(f.assignee, 'sm', false)}${esc(mem(f.assignee)?.name || 'Assignee')}`, 'Assignee')}
-      ${formChip('priority', prPill(f.priority), 'Priority')}
-      ${formChip('date', `${ic('calendar', 13)}${f.due ? 'Due ' + fmtDate(f.due) : 'Due date'}`, 'due')}
-      ${formChip('date', `${ic('calendar-arrow-up', 13)}${f.start ? 'Starts ' + fmtDate(f.start) : 'Start date'}`, 'start')}
+      ${formChip('project', `<span class="pdot" style="--c:${pColor(p)}"></span>${esc(p?.name || 'Project')}`, 'Project', p?.name || 'Project')}
+      ${formChip('status', stPill(f.status), 'Status', tr(ST[f.status]?.name || f.status))}
+      ${formChip('assignee', `<span class="sr">${esc(tr('Assignee'))}: </span><span aria-hidden="true">${av(f.assignee, 'sm', false)}</span>${esc(mem(f.assignee)?.name || 'Assignee')}`, 'Assignee', null)}
+      ${formChip('priority', prPill(f.priority), 'Priority', tr(PR[f.priority]?.name || f.priority))}
+      ${formChip('date', `${ic('calendar', 13)}${f.due ? 'Due ' + fmtDate(f.due) : 'Due date'}`, 'due', null)}
+      ${formChip('date', `${ic('calendar-arrow-up', 13)}${f.start ? 'Starts ' + fmtDate(f.start) : 'Start date'}`, 'start', null)}
       ${formChip('labels', f.labels.length ? f.labels.map(lbl).join('') : `${ic('tag', 13)}Labels`, 'Labels')}
       ${formChip('recur', `${ic('repeat', 13)}${f.recur || 'Repeat'}`, 'Repeat')}
     </div>

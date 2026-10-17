@@ -47,12 +47,12 @@ const lazyPageLoaders = {
 };
 
 function accountMenuLabel() {
-  return `${tr('Account menu')}. ${tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
+  return `${S.prefs.name}. ${tr('Account menu')}. ${tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
 }
 
 function accountAvatarStatus(memberId, size = '') {
   const state = systemConnectionState();
-  return `<span class="account-avatar-status ${size === 'md' ? 'account-avatar-status-md' : ''}" data-state="${state}">${av(memberId, size, false)}<span class="account-connection-badge" aria-hidden="true">${ic('wifi', 8)}</span></span>`;
+  return `<span class="account-avatar-status ${size === 'md' ? 'account-avatar-status-md' : ''}" data-state="${state}" aria-hidden="true">${av(memberId, size, false)}<span class="account-connection-badge">${ic('wifi', 8)}</span></span>`;
 }
 
 function lazyPage(route) {
@@ -143,7 +143,7 @@ export function renderSidebar() {
   return `<nav class="side" aria-label="Main">
     <div class="side-top">
       <div class="row" style="gap:2px">
-        <button class="ws grow" data-a="pop" data-pop="ws" aria-haspopup="menu" aria-label="Switch workspace">
+        <button class="ws grow" data-a="pop" data-pop="ws" aria-haspopup="menu" title="${esc(tr('Switch workspace'))}">
           ${wsLogo(d.ws, 22)}
           <span class="ws-name trunc">${esc(d.ws.name)}</span>
           <span class="chev-d faint">${ic('chevrons-up-down', 13)}</span>
@@ -213,7 +213,7 @@ export function renderSidebar() {
     <div class="side-bot">
       <button class="sitem" data-a="pop" data-pop="help" ${u.collapsed ? 'data-tip="Help" data-tip-pos="right"' : ''}>${ic('circle-help', 16)}<span>Help & resources</span></button>
       ${sItem('settings', 'Settings', 'settings')}
-      <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" aria-label="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
+      <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
     </div>
   </nav>`;
 }
@@ -257,10 +257,10 @@ export function renderTopbar() {
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
     <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label">${sync[1]}</span></span>
-    <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
+    <button class="topsearch" data-a="openPalette">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd" aria-hidden="true">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>
-    <button class="ibtn hide-m account-menu-button account-menu-trigger" data-a="pop" data-pop="user" aria-label="${esc(accountMenuLabel())}">${accountAvatarStatus(D().me, 'md')}</button>
+    <button class="ibtn hide-m account-menu-button account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}">${accountAvatarStatus(D().me, 'md')}<span class="sr">${esc(accountMenuLabel())}</span></button>
   </header>`;
 }
 export function renderBottomNav() {

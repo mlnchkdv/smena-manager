@@ -19,14 +19,14 @@ export const LCOLS = {
   project: ['Project', '160px'],
 };
 export function cellStatus(t) {
-  return `<button class="pillbtn" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="Status: ${ST[t.status].name}">${stPill(t.status)}</button>`;
+  return `<button class="pillbtn" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="${esc(tr('Status'))}: ${esc(tr(ST[t.status].name))}">${stPill(t.status)}</button>`;
 }
 export function cellAssignee(t) {
   const m = mem(t.assignee);
-  return `<button class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="Assignee">${av(t.assignee, 'sm', false)}<span class="trunc">${m ? esc(m.name) : 'Unassigned'}</span></button>`;
+  return `<button class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc">${m ? esc(m.name) : 'Unassigned'}</span></button>`;
 }
 export function cellPrio(t) {
-  return `<button class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="Priority">${prPill(t.priority)}</button>`;
+  return `<button class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
 }
 export function cellDue(t) {
   return `<button class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}" aria-label="Due date">${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
@@ -37,7 +37,7 @@ export function cellLabels(t) {
 }
 export function cellProject(t) {
   const p = proj(t.project);
-  return `<button class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="Project"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p?.name)}</span></button>`;
+  return `<button class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="${esc(tr('Project'))}: ${esc(p?.name || '')}"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p?.name)}</span></button>`;
 }
 export const CELL = { status: cellStatus, assignee: cellAssignee, priority: cellPrio, due: cellDue, labels: cellLabels, project: cellProject };
 
@@ -137,10 +137,10 @@ export function actHtml(a, opt = {}) {
 }
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);
-  return `<div class="mini ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-a="openTask" data-id="${t.id}" data-ctx="task" role="button" tabindex="0">
+  return `<div class="mini ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-id="${t.id}" data-ctx="task">
     <input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Complete ${esc(t.title)}">
     <span data-tip="${ST[t.status].name}">${stIcon(t.status)}</span>
-    <span class="tt">${esc(t.title)}</span>
+    <button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}">${esc(t.title)}</button>
     ${opt.noProj ? '' : `<span class="pj hide-m"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p.name)}</span></span>`}
     <span data-tip="${PR[t.priority].name} priority">${prIcon(t.priority)}</span>
     <span style="width:74px;text-align:right" class="hide-m">${dueHtml(t, false)}</span>
