@@ -20,6 +20,21 @@
 .home-project-meta-icon {
   display: none;
 }
+#mnav-btn {
+  display: none;
+}
+.inbox-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+.inbox-prev {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
 @media (max-width: 1100px) {
   .grid2 {
     grid-template-columns: minmax(0, 1fr);
@@ -33,6 +48,22 @@
   }
 }
 @media (max-width: 900px) {
+  #mnav-btn {
+    display: inline-flex;
+  }
+  .inbox-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inbox-prev {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 48;
+    background: var(--surface);
+  }
+  .inbox-grid.has-selection .inbox-prev {
+    display: flex;
+  }
   .shell,
   .shell.collapsed {
     grid-template-columns: minmax(0, 1fr);

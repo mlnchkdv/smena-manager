@@ -4,8 +4,20 @@ import test from 'node:test';
 import { CONTENT_SECURITY_POLICY, HTTP_SECURITY_HEADERS } from '../../src/shared/http-security.js';
 
 test('application security headers restrict active and privileged browser content', () => {
+  const directives = Object.fromEntries(
+    CONTENT_SECURITY_POLICY.split('; ').map(directive => {
+      const [name, ...values] = directive.split(' ');
+      return [name, values.join(' ')];
+    }),
+  );
   assert.match(CONTENT_SECURITY_POLICY, /object-src 'none'/);
   assert.match(CONTENT_SECURITY_POLICY, /script-src 'self'/);
+  assert.match(CONTENT_SECURITY_POLICY, /style-src 'self'/);
+  assert.match(CONTENT_SECURITY_POLICY, /style-src-elem 'self'/);
+  assert.match(CONTENT_SECURITY_POLICY, /style-src-attr 'unsafe-inline'/);
+  assert.doesNotMatch(directives['style-src'], /'unsafe-inline'/);
+  assert.doesNotMatch(directives['style-src-elem'], /'unsafe-inline'/);
+  assert.equal(directives['style-src-attr'], "'unsafe-inline'");
   assert.match(CONTENT_SECURITY_POLICY, /frame-ancestors 'self'/);
   assert.equal(HTTP_SECURITY_HEADERS['X-Content-Type-Options'], 'nosniff');
   assert.match(HTTP_SECURITY_HEADERS['Permissions-Policy'], /camera=\(\)/);
