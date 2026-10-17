@@ -108,6 +108,9 @@ function updateSyncIndicator(status) {
   document.querySelectorAll('.account-avatar-status').forEach(avatar => {
     avatar.dataset.state = status;
   });
+  document.querySelectorAll('.account-menu-trigger').forEach(trigger => {
+    trigger.setAttribute('aria-label', `${tr('Account menu')}. ${tr(labels[status] || labels.saved)}`);
+  });
   const label = indicator.querySelector('.sync-label');
   if (label) label.textContent = tr(labels[status] || labels.saved);
   indicator.title =

@@ -304,13 +304,19 @@ svg.logo {
   right: -5px;
   display: grid;
   place-items: center;
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
   border: 1.5px solid var(--surface);
   border-radius: 50%;
   background: var(--surface);
   color: var(--green);
   box-shadow: 0 0 0 1px var(--border);
+}
+.account-avatar-status-md .account-connection-badge {
+  top: -4px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
 }
 .account-avatar-status[data-state='syncing'] .account-connection-badge {
   color: var(--accent);

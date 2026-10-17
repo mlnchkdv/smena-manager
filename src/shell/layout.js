@@ -26,6 +26,15 @@ import { locale, t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
+const SYNC_PRESENTATION = {
+  syncing: ['loader', 'Saving…'],
+  saved: ['cloud-check', 'Saved'],
+  offline: ['wifi-off', 'Offline'],
+  unavailable: ['cloud-alert', 'Service unavailable'],
+  conflict: ['git-merge', 'Conflict'],
+  too_large: ['database-zap', 'Limit exceeded'],
+  invalid: ['triangle-alert', 'Data error'],
+};
 const lazyPageLoaders = {
   knowledge: () => import('../pages/knowledge.js').then(module => module.pageKnowledge),
   bookmarks: () => import('../pages/bookmarks.js').then(module => module.pageBookmarks),
@@ -33,6 +42,15 @@ const lazyPageLoaders = {
   system: () => import('../pages/design-system.js').then(module => module.pageSystem),
   states: () => import('../pages/design-system.js').then(module => module.pageStates),
 };
+
+function accountMenuLabel() {
+  return `${tr('Account menu')}. ${tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
+}
+
+function accountAvatarStatus(memberId, size = '') {
+  const state = systemConnectionState();
+  return `<span class="account-avatar-status ${size === 'md' ? 'account-avatar-status-md' : ''}" data-state="${state}">${av(memberId, size, false)}<span class="account-connection-badge" aria-hidden="true">${ic('wifi', 8)}</span></span>`;
+}
 
 function lazyPage(route) {
   if (lazyPages.has(route)) return lazyPages.get(route)();
@@ -192,7 +210,7 @@ export function renderSidebar() {
     <div class="side-bot">
       <button class="sitem" data-a="pop" data-pop="help" ${u.collapsed ? 'data-tip="Help" data-tip-pos="right"' : ''}>${ic('circle-help', 16)}<span>Help & resources</span></button>
       ${sItem('settings', 'Settings', 'settings')}
-      <button class="sitem" data-a="pop" data-pop="user" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${av(d.me, 'presence', false)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
+      <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" aria-label="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
     </div>
   </nav>`;
 }
@@ -227,15 +245,7 @@ export function crumbs() {
 }
 export function renderTopbar() {
   const state = systemConnectionState();
-  const sync = {
-    syncing: ['loader', 'Saving…'],
-    saved: ['cloud-check', 'Saved'],
-    offline: ['wifi-off', 'Offline'],
-    unavailable: ['cloud-alert', 'Service unavailable'],
-    conflict: ['git-merge', 'Conflict'],
-    too_large: ['database-zap', 'Limit exceeded'],
-    invalid: ['triangle-alert', 'Data error'],
-  }[state];
+  const sync = SYNC_PRESENTATION[state];
   const syncTitle =
     state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString(locale())}` : tr(sync[1]);
   return `<header class="topbar">
@@ -247,7 +257,7 @@ export function renderTopbar() {
     <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>
-    <button class="ibtn hide-m account-menu-button" data-a="pop" data-pop="user" aria-label="Account menu"><span class="account-avatar-status" data-state="${state}">${av(D().me, 'md', false)}<span class="account-connection-badge" aria-hidden="true">${ic('wifi', 8)}</span></span></button>
+    <button class="ibtn hide-m account-menu-button account-menu-trigger" data-a="pop" data-pop="user" aria-label="${esc(accountMenuLabel())}">${accountAvatarStatus(D().me, 'md')}</button>
   </header>`;
 }
 export function renderBottomNav() {
