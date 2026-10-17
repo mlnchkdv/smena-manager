@@ -50,7 +50,7 @@ async function openTrash(page) {
 async function visibleUntranslatedUi(page) {
   return page.evaluate(() => {
     const allowed =
-      /Smena Manager|KMS Brain|E2E|CtrlK|https?|URL|JSON|Markdown|Google Drive|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
+      /Smena Manager|KMS Brain|E2E|CtrlK|https?|URL|JSON|Markdown|Google(?: Drive)?|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
     const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     return [
       ...new Set(
@@ -258,4 +258,22 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('[data-a="createWorkspaceBackup"]').click();
   await expect(page.locator('.toast')).toContainText('Резервная копия сохранена.', { timeout: 15_000 });
   await expect(page.getByText('Ручная копия', { exact: true }).first()).toBeVisible();
+
+  await page.goto('/e2e-team/settings/security');
+  await expect(page.getByRole('heading', { name: 'Безопасность аккаунта', exact: true })).toBeVisible();
+  await expect(page.locator('input[type="password"]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Открыть настройки Google' })).toHaveAttribute('href', 'https://myaccount.google.com/security');
+  await expectRussianUi(page, 'account security settings');
+
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('English (US)', { force: true });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await waitForSaved(page);
+  await page.goto('/e2e-team/settings/security');
+  await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open Google security' })).toBeVisible();
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+  await waitForSaved(page);
 });
