@@ -49,6 +49,48 @@ export function validateWorkspaceData(value) {
   }
   if (value.me != null && typeof value.me !== 'string') invalid.push('me');
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
+  for (const field of OBJECT_ARRAY_FIELDS) {
+    if (!Array.isArray(value[field])) continue;
+    const ids = value[field].map(item => item?.id);
+    if (ids.some(id => typeof id !== 'string' || !id || id.length > 180) || new Set(ids).size !== ids.length) invalid.push(`${field}.id`);
+  }
+  const projectIds = new Set((Array.isArray(value.projects) ? value.projects : []).map(item => item?.id));
+  const taskIds = new Set((Array.isArray(value.tasks) ? value.tasks : []).map(item => item?.id));
+  const validDate = date => {
+    if (date == null || date === '') return true;
+    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return false;
+    const parsed = new Date(`${date}T00:00:00Z`);
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  };
+  for (const task of Array.isArray(value.tasks) ? value.tasks : []) {
+    if (!isObject(task)) continue;
+    if (task.project != null && !projectIds.has(task.project)) invalid.push('tasks.project');
+    if (task.status != null && !['backlog', 'todo', 'progress', 'review', 'done'].includes(task.status)) invalid.push('tasks.status');
+    for (const field of ['subtasks', 'attachments', 'deps', 'labels']) if (task[field] != null && !Array.isArray(task[field])) invalid.push(`tasks.${field}`);
+    if (!validDate(task.due) || !validDate(task.start)) invalid.push('tasks.date');
+    if (Array.isArray(task.deps) && task.deps.some(id => id === task.id || !taskIds.has(id))) invalid.push('tasks.deps');
+    if (task.title != null && (typeof task.title !== 'string' || task.title.length > 20_000)) invalid.push('tasks.title');
+    if (task.desc != null && typeof task.desc !== 'string') invalid.push('tasks.desc');
+  }
+  for (const project of Array.isArray(value.projects) ? value.projects : []) {
+    if (!isObject(project)) continue;
+    if (project.members != null && !Array.isArray(project.members)) invalid.push('projects.members');
+    if (project.milestones != null && (!Array.isArray(project.milestones) || project.milestones.some(item => !isObject(item) || !validDate(item.date))))
+      invalid.push('projects.milestones');
+  }
+  for (const comment of Array.isArray(value.comments) ? value.comments : []) {
+    if (comment?.task != null && !taskIds.has(comment.task)) invalid.push('comments.task');
+    if (comment?.text != null && typeof comment.text !== 'string') invalid.push('comments.text');
+  }
+  if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
+  return value;
+}
+
+export function validateDocumentInput(name, value) {
+  const fields = name === 'knowledge' ? ['knowledgeNotes', 'knowledgeFolders'] : name === 'bookmarks' ? ['links', 'linkFolders'] : [];
+  if (!fields.length || !isObject(value)) throw new WorkspaceValidationError([name]);
+  const invalid = fields.filter(field => !Array.isArray(value[field]) || value[field].some(item => !isObject(item) || typeof item.id !== 'string' || !item.id));
+  for (const field of fields) if (Array.isArray(value[field]) && new Set(value[field].map(item => item.id)).size !== value[field].length) invalid.push(field);
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
   return value;
 }

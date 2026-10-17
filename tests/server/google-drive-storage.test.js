@@ -50,7 +50,7 @@ test('Google Drive storage keeps uploads separate and supports ranged streams', 
       get: async (options, requestOptions) => {
         calls.push({ type: 'get', options, requestOptions });
         if (options.alt === 'media') return { data: Readable.from([Buffer.from('2345')]), headers: { 'content-length': '4' } };
-        return { data: { id: 'drive-file', name: 'asset.txt', size: '10', mimeType: 'text/plain', trashed: false } };
+        return { data: { id: 'drive-file', name: 'asset.txt', size: '10', mimeType: 'text/plain', trashed: false, parents: ['uploads-folder'] } };
       },
       delete: async options => {
         calls.push({ type: 'delete', options });

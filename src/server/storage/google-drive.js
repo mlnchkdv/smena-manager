@@ -609,8 +609,9 @@ export class GoogleDriveStorageProvider {
     await this.init();
     if (!fileId) return this.findUpload(filename);
     try {
-      const result = await this.client.files.get({ fileId, fields: 'id,name,size,mimeType,trashed', supportsAllDrives: true });
-      return result.data.trashed ? null : result.data;
+      const folderId = await this.ensureUploadsFolder();
+      const result = await this.client.files.get({ fileId, fields: 'id,name,size,mimeType,trashed,parents', supportsAllDrives: true });
+      return result.data.trashed || result.data.name !== filename || !result.data.parents?.includes(folderId) ? null : result.data;
     } catch (error) {
       if (error?.code === 404 || error?.response?.status === 404) return null;
       throw error;

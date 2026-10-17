@@ -1,3 +1,6 @@
+import { canReadProject } from './project-access.js';
+import { workspaceMemberRole } from './workspace-access.js';
+
 function primaryRecipient(data) {
   if (data?.me) return data.me;
   const members = Array.isArray(data?.members) ? data.members : [];
@@ -116,6 +119,11 @@ export function addWorkspaceNotification(data, notification) {
   const isExplicitSelfMention = notification?.type === 'mention' && notification?.scope === 'direct';
   if (!recipient || (actor && recipient === actor && !isExplicitSelfMention) || !Array.isArray(data?.notifs)) return null;
   if (Array.isArray(data?.members) && !data.members.some(member => member.id === recipient)) return null;
+  const recipientMember = data.members?.find(member => member.id === recipient);
+  if (recipientMember && ['deactivated', 'removed'].includes(recipientMember.status)) return null;
+  const relatedTask = notification.task && data.tasks?.find(task => task.id === notification.task);
+  const relatedProject = data.projects?.find(project => project.id === (notification.project || relatedTask?.project));
+  if (relatedProject && !canReadProject(relatedProject, recipient, workspaceMemberRole(recipientMember))) return null;
   const existing = notification?.id && data.notifs.find(item => item?.id === notification.id);
   if (existing) return existing;
   const preference = preferenceForNotification(notification);

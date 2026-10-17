@@ -9,6 +9,8 @@ import { validateWorkspaceData } from '../shared/workspace-schema.js';
 import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
 import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
+import { mergeClientWorkspace } from './workspace-policy.js';
+import { sanitizeWorkspaceContent } from './content-security.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -61,7 +63,7 @@ function normalizeDatabase(value) {
   }
   const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
-  return validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized)));
+  return sanitizeWorkspaceContent(validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))));
 }
 
 function clone(value) {
@@ -285,7 +287,11 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
   if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
     throw new TypeError('Workspace data must be a JSON object.');
   }
-  return mutateWorkspaceDatabase(current => ({ ...current, ...nextData }), expectedRevision, options);
+  return mutateWorkspaceDatabase(
+    current => (options.client ? mergeClientWorkspace(current, nextData, options.role, options.actorMemberId) : { ...current, ...nextData }),
+    expectedRevision,
+    options,
+  );
 }
 
 export async function getWorkspaceStatus() {

@@ -32,12 +32,16 @@ import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
 import { evaluateOperationalHealth } from './operational-health.js';
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
+import { permissionError, projectWorkspace } from './workspace-policy.js';
+import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
+import { validateDocumentInput } from '../shared/workspace-schema.js';
 
 export const app = express();
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: WORKSPACE_TRANSPORT_MAX_BYTES }));
 app.use((_request, response, next) => {
+  response.setHeader('Cache-Control', 'no-store');
   for (const [name, value] of Object.entries(HTTP_SECURITY_HEADERS)) response.setHeader(name, value);
   next();
 });
@@ -90,6 +94,16 @@ app.get('/api/cron/status', requireCronSecret, async (_request, response, next) 
 
 app.use('/api/auth', authRouter);
 app.use('/api', requireAuth);
+app.use('/api', (request, response, next) => {
+  const send = response.json.bind(response);
+  response.json = body => {
+    if (body?.data && Array.isArray(body.data.projects) && Array.isArray(body.data.tasks)) {
+      body = { ...body, data: projectWorkspace(bindAccessProfiles(body.data, getAccessProfiles()), request.user) };
+    }
+    return send(body);
+  };
+  next();
+});
 app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
@@ -241,6 +255,12 @@ app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, res
       database => {
         removed = (database.trash || []).find(item => item.id === request.params.id);
         if (!removed) throw Object.assign(new Error('Trash item not found.'), { statusCode: 404, code: 'TRASH_NOT_FOUND' });
+        const memberId = memberForProfile(database, request.user)?.id || request.user.id;
+        const project = trashProject(removed) || database.projects?.find(item => item.id === trashProjectId(removed));
+        if (request.user.role !== 'admin' && (project ? !canEditProject(project, memberId, request.user.role) : removed.deletedBy !== memberId))
+          throw permissionError('trash');
+        if (request.user.role !== 'admin' && [removed.data?.file, ...(removed.data?.files || [])].some(file => file?.by && file.by !== memberId))
+          throw permissionError('files');
         database.trash = database.trash.filter(item => item.id !== removed.id);
         return database;
       },
@@ -303,7 +323,7 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     if (request.user.role === 'editor') {
       nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
     }
-    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
+    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId, client: true });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
     await deliverWorkspaceNotifications(data, createdNotifications, { source: 'workspace' });
     response.json({ data: workspaceCoreData(data) });
@@ -326,7 +346,7 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
     const legacy = await getWorkspaceDatabase();
-    const data = await replaceWorkspaceDocument(request.params.name, workspaceDocumentData(request.params.name, request.body?.data), request.body?.revision, {
+    const data = await replaceWorkspaceDocument(request.params.name, validateDocumentInput(request.params.name, request.body?.data), request.body?.revision, {
       legacyData: legacy,
     });
     response.json({ data });

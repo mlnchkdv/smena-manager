@@ -2267,6 +2267,7 @@ IN.shareAccess = el => {
   const p = proj(el.dataset.id);
   mutate(() => {
     p.access = el.value;
+    p.private = el.value === 'private';
   });
 };
 A.invite = () => {

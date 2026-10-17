@@ -5,6 +5,7 @@ import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
+import { canReadProject } from '../shared/project-access.js';
 import {
   addWorkspaceNotification,
   migrateNotificationRecipients,
@@ -195,7 +196,7 @@ export const visibleProjects = () =>
     .projOrder.map(proj)
     .filter(Boolean)
     .filter(p => !p.archived);
-export const canSee = p => !p.private || p.members.includes(D().me);
+export const canSee = p => canReadProject(p, D().me, S.ui.currentUser?.role || 'editor');
 export const tasksOf = pid => D().tasks.filter(t => t.project === pid && !t.archived);
 export const allTasks = () => D().tasks.filter(t => !t.archived && canSee(proj(t.project)));
 export const isOver = t => t.due && t.status !== 'done' && diffD(parse(t.due), TODAY) < 0;

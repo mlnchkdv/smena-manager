@@ -11,6 +11,7 @@ import { getStorageProvider } from './storage/index.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { memberForProfile } from '../shared/member-identity.js';
+import { canEditProject, canReadProject } from '../shared/project-access.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -39,14 +40,14 @@ function storageFilename(originalName) {
 }
 
 function memberIdFor(database, user) {
-  return memberForProfile(database, user)?.id || database.me || user.id;
+  return memberForProfile(database, user)?.id || user.id;
 }
 
 function assertFileTarget(database, user, projectId, taskId) {
   const project = database.projects?.find(item => item.id === projectId);
   if (!project) throw new TypeError('Unknown project.');
   const memberId = memberIdFor(database, user);
-  if (project.private && user.role !== 'admin' && !project.members?.includes(memberId)) {
+  if (!canEditProject(project, memberId, user.role)) {
     throw Object.assign(new Error('You do not have access to this project.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
   }
   if (taskId && !database.tasks?.some(task => task.id === taskId && task.project === projectId)) throw new TypeError('Unknown task.');
@@ -126,6 +127,7 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;
     const filename = storageFilename(metadata.name);
+    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId);
     stored = await getStorageProvider().uploadFile(filename, { path: request.file.path, size: metadata.size }, metadata.mimeType);
     let fileRecord;
     const data = await mutateWorkspaceDatabase(
@@ -247,7 +249,7 @@ fileRouter.get('/:id/content', async (request, response, next) => {
     }
     const project = database.projects?.find(item => item.id === file.project);
     const memberId = memberIdFor(database, request.user);
-    if (project?.private && request.user.role !== 'admin' && !project.members?.includes(memberId)) {
+    if (!canReadProject(project, memberId, request.user.role)) {
       response.status(403).json({ error: 'You do not have access to this file.', code: 'FILE_FORBIDDEN' });
       return;
     }
@@ -288,6 +290,7 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
       database => {
         removed = database.files?.find(item => item.id === request.params.id);
         if (!removed) throw Object.assign(new Error('File not found.'), { statusCode: 404, code: 'FILE_NOT_FOUND' });
+        assertFileTarget(database, request.user, removed.project, removed.task);
         if (request.user.role !== 'admin' && removed.ownerId && removed.ownerId !== request.user.id) {
           throw Object.assign(new Error('Only the owner or an administrator can delete this file.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
         }
