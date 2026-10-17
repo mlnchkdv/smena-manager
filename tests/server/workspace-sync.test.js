@@ -4,6 +4,20 @@ import { createWorkspaceSync } from '../../src/core/workspace-sync.js';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('canonical responses cannot switch the current member to the shared file owner', async () => {
+  let saved;
+  const sync = createWorkspaceSync({
+    notify: event => {
+      if (event.status === 'saved') saved = event.data;
+    },
+    writeWorkspace: async () => ({ me: 'admin', tasks: [], revision: 2 }),
+  });
+  sync.configure(1, 'editor', { me: 'editor', tasks: [] });
+  await sync.queue({ me: 'editor', tasks: [], value: 'change' });
+  assert.equal(saved.me, 'editor');
+  assert.equal(sync.isClean({ me: 'editor', tasks: [] }), true);
+});
+
 test('returning A to B to A while B is saving persists the final A', async () => {
   let release;
   const writes = [];

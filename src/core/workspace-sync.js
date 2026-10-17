@@ -90,6 +90,9 @@ export function createWorkspaceSync(options = {}) {
         if (writeGeneration !== generation) return;
         revision = Number(snapshot.revision);
         const canonical = workspacePayload(snapshot);
+        // `me` identifies this browser's member, not the canonical member in
+        // the shared file. Applying it verbatim would switch the inbox owner.
+        if (Object.hasOwn(data, 'me')) canonical.me = data.me;
         confirmedHash = JSON.stringify(canonical);
         confirmedData = structuredClone(canonical);
         if (pending) {
