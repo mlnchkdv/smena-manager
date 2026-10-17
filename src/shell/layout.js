@@ -14,14 +14,11 @@ import { pageInbox } from '../pages/inbox.js';
 import { pageNotifications } from '../pages/notifications.js';
 import { pageFavorites } from '../pages/favorites.js';
 import { pageProjects } from '../pages/projects.js';
-import { pageMember, pageMembers, pageTeam, pageTeams } from '../pages/members.js';
-import { pageActivity } from '../pages/activity.js';
 import { pageSearch } from '../pages/search.js';
 import { page404, stateFailed } from '../pages/errors.js';
 import { pageProject } from '../pages/project.js';
 import { pageWsCalendar } from '../views/calendar.js';
 import { pageWsTimeline } from '../views/timeline.js';
-import { pageArchive } from '../features/archive.js';
 import { locale, t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
@@ -41,6 +38,12 @@ const lazyPageLoaders = {
   settings: () => import('../pages/settings.js').then(module => module.pageSettings),
   system: () => import('../pages/design-system.js').then(module => module.pageSystem),
   states: () => import('../pages/design-system.js').then(module => module.pageStates),
+  members: () => import('../pages/members.js').then(module => module.pageMembers),
+  member: () => import('../pages/members.js').then(module => module.pageMember),
+  teams: () => import('../pages/members.js').then(module => module.pageTeams),
+  team: () => import('../pages/members.js').then(module => module.pageTeam),
+  activity: () => import('../pages/activity.js').then(module => module.pageActivity),
+  archive: () => import('../features/archive.js').then(module => module.pageArchive),
 };
 
 function accountMenuLabel() {
@@ -105,17 +108,17 @@ export function renderPage() {
       tasks: pageTasks,
       calendar: pageWsCalendar,
       timeline: pageWsTimeline,
-      members: pageMembers,
-      member: pageMember,
-      teams: pageTeams,
-      team: pageTeam,
-      activity: pageActivity,
+      members: () => lazyPage('members'),
+      member: () => lazyPage('member'),
+      teams: () => lazyPage('teams'),
+      team: () => lazyPage('team'),
+      activity: () => lazyPage('activity'),
       knowledge: () => lazyPage('knowledge'),
       bookmarks: () => lazyPage('bookmarks'),
       settings: () => lazyPage('settings'),
       system: () => lazyPage('system'),
       states: () => lazyPage('states'),
-      archive: pageArchive,
+      archive: () => lazyPage('archive'),
     };
     return (P[r] || page404)();
   } catch (e) {
