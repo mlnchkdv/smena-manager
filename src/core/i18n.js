@@ -15,6 +15,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Independent recovery export': 'Независимая копия для восстановления',
+  'Includes workspace data and attachments up to 100 MB total. Store this confidential export outside Google Drive.':
+    'Включает данные пространства и вложения общим размером до 100 МБ. Храните эту конфиденциальную копию вне Google Диска.',
+  'Download recovery bundle': 'Скачать копию с вложениями',
   'Import preview': 'Предварительный просмотр импорта',
   'Notes:': 'Заметки:',
   'Bookmarks:': 'Закладки:',

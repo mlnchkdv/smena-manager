@@ -26,7 +26,7 @@ let reloadPromise = null;
 let localWriteQueue = Promise.resolve();
 let lastLoadedAt = 0;
 
-function createEmptyDatabase() {
+export function createEmptyDatabase() {
   const now = new Date().toISOString();
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,

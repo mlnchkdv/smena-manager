@@ -173,7 +173,7 @@ export class LocalStorageProvider {
         /* Ignore incomplete or manually edited backup files. */
       }
     }
-    return backups.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 200);
+    return backups.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   }
 
   async loadDatabaseBackup(id) {

@@ -31,8 +31,9 @@ npm run format    # Prettier
 
 The browser UI uses an Express API. Vercel serves it through `api/index.js`; local development starts
 the same API alongside Vite and proxies `/api` requests to it. Authentication uses Google Sign-In
-for whitelisted team emails. Local development can also use Access IDs; both issue signed seven-day sessions. The
-client keeps a local cache, serializes writes and uses optimistic revisions so a stale browser cannot
+for whitelisted team emails. Local development can also use Access IDs; both issue signed seven-day sessions.
+Browser sessions use HttpOnly cookies; the browser cache stores only a session marker. The
+client keeps owner-scoped recovery drafts, serializes writes and uses optimistic revisions so a stale browser cannot
 silently replace newer team data.
 
 - `GET /api/health` checks the API runtime.
@@ -67,15 +68,16 @@ The direct mode suits a small team without a separate database; Redis remains pr
 write concurrency. The account menu reports the active write-protection mode and whether the shared
 lock is reachable, without exposing connection credentials.
 
-The shared data is synchronized as three revisioned JSON documents instead of one growing payload:
-workspace core (members, projects, tasks and notifications), knowledge, and bookmarks. Each document
-has its own conflict protection and 4 MB transport budget. Existing monolithic data is copied into the
-two content documents automatically on first load; the next core save removes the legacy copies. Files
-remain separate Drive objects as before. Optional `GOOGLE_DRIVE_KNOWLEDGE_FILE_ID` and
-`GOOGLE_DRIVE_BOOKMARKS_FILE_ID` values avoid lookup requests after the new files are created.
+The API exposes three independently revisioned documents: workspace core, knowledge and bookmarks.
+Each has a 4 MiB transport budget. Storage schema 2 persists them together in one aggregate JSON
+with a single ETag-protected write, so restore, deletion and portable imports cannot partially replace
+the documents. Old separate content files are read during migration and retained as rollback sources;
+they are not the source of truth after the first aggregate write. Binary files remain separate Drive
+objects. This design favors consistency for a small team and does not reduce the bytes written per save.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
-projects/tasks/files but not membership or workspace settings, and `viewer` is read-only. Only an
+projects/tasks/files but not membership or workspace settings, and `viewer` cannot change shared content.
+All roles can save their own profile, preferences and notification read state through `/api/preferences`. Only an
 administrator can initialize an empty production database on the first sign-in.
 
 ## Vercel production setup
@@ -135,12 +137,56 @@ The current storage model deliberately avoids PostgreSQL and suits a small team.
 the complete JSON snapshot, so it should be reconsidered when the database becomes large, edits become
 very frequent, or the product needs record-level querying. Project and task uploads are stored in the
 dedicated Drive `uploads` folder while their names, ownership and Drive IDs remain in the JSON database.
-The synchronized JSON snapshot is capped at 4 MiB so it remains below the Vercel Function request limit;
+Each synchronized API document is capped at 4 MiB to stay below the Vercel Function request limit;
 oversized knowledge imports are rejected before local data changes. Files default to a 100 MiB limit.
 On Vercel, the server creates a short-lived signed Google Drive resumable session and the browser uploads
 8 MiB chunks directly to Drive; the server verifies the resulting file before registering it in the
 workspace. This keeps file bodies outside the Vercel Function request limit. `SHARED_FILE_MAX_BYTES` can
 lower or raise the application limit if the team needs a different policy.
+
+## Recovery and operations
+
+Settings → Data transfer provides an independent recovery download containing workspace data and
+binary attachments, including referenced trash entries. The streaming export deduplicates physical
+files and includes SHA-256 checksums for the data and each attachment. The current export limit is
+100 MiB of attachment content; export larger files separately. Treat the bundle as confidential team
+data and keep it outside the Google Drive account used by the application.
+
+Restore into a new empty local directory without Google credentials:
+
+```powershell
+node scripts/restore-recovery.js ./smena-recovery-YYYY-MM-DD.json ./.data/recovery-drill-YYYY-MM-DD
+```
+
+The command verifies checksums before writing, remaps storage references, preserves alias links and
+refuses to overwrite an existing database or non-empty target directory. It does not modify the live
+workspace. The resulting `workspace.json` and `uploads/` are self-contained. If recovery fails, preserve
+the target for diagnosis and use another empty directory for a retry. Do not point a running app at
+the drill until its Google storage credentials have been explicitly disabled and local database and
+upload paths configured.
+
+The automated recovery test removes its synthetic source storage before restoring projects, tasks,
+knowledge, bookmarks and an attachment with two references. Repeat a controlled drill with approved
+team files before treating this as a production recovery SLA. A working daily Drive backup targets
+up to 24 hours of data loss for an application failure. Loss of the entire Google account is covered
+only up to the most recent independent export. Set an export interval with the team; a two-hour
+recovery objective should be measured during the drill, not assumed.
+
+Physical attachment deletion is delayed for at least 30 days and then requires the absence of live,
+trash and retained-backup references. An unreadable backup prevents garbage collection. Manual
+backups retain their referenced files until those backups are removed.
+
+`GET /api/health` is public liveness. Administrator-only `GET /api/readiness` checks storage,
+coordination, automation and backup freshness. API failures include an `X-Request-ID` header and a
+`requestId` field for correlation. Provider logs contain error codes and statuses, not authorization
+headers, refresh tokens or request bodies. When Drive is unavailable, keep unsaved browser tabs
+open, avoid destructive retries, and check the request ID and readiness before restoring anything.
+
+The hosting account designated for Google resources is `avdeevandry1999@gmail.com`. Keep ownership
+and recovery access for Google, GitHub and Vercel available to the responsible administrator. Before
+production acceptance, check the Google consent publishing state and authorized scopes, the dedicated
+Gmail refresh token, domain and redirect configuration, real-device push delivery and an independent
+recovery drill. Rotate credentials through ignored local files and Vercel secrets, never Git.
 
 ## Project structure
 

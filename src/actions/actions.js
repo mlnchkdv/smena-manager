@@ -40,6 +40,7 @@ import {
 } from '../core/bootstrap.js';
 import {
   clearSession,
+  getSessionToken,
   savePersonalSettings,
   commitPortableImport,
   clearReadNotifications,
@@ -1469,6 +1470,13 @@ A.cancelUpload = el => {
 A.downloadStoredFile = async el => {
   const file = D().files.find(item => item.id === el.dataset.id);
   if (!file?.storageName) return toast('This legacy file has no stored content.', { kind: 'err' });
+  if (getSessionToken() === 'cookie') {
+    const anchor = document.createElement('a');
+    anchor.href = `/api/files/${encodeURIComponent(file.id)}/content?download=1`;
+    anchor.download = file.name;
+    anchor.click();
+    return;
+  }
   el.classList.add('is-loading');
   try {
     const { blob } = await downloadWorkspaceFile(file.id, true);

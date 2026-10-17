@@ -41,6 +41,7 @@ import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile } from './file-retention.js';
 import { setSessionCookie } from './session-cookie.js';
 import { applyPersonalSettings } from '../shared/personal-settings.js';
+import { writeRecoveryBundle } from './recovery-bundle.js';
 
 export const app = express();
 
@@ -290,6 +291,17 @@ app.get('/api/backups', requireRole('admin'), async (_request, response, next) =
   }
 });
 
+app.get('/api/recovery/export', requireRole('admin'), async (_request, response, next) => {
+  try {
+    const data = await getWorkspaceDatabase();
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.setHeader('Content-Disposition', `attachment; filename="smena-recovery-${new Date().toISOString().slice(0, 10)}.json"`);
+    await writeRecoveryBundle(data, getStorageProvider(), response);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post('/api/import/portable', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.json(await importPortableWorkspace(request.body?.payload, request.body?.revision, request.body?.conflictPolicy));
@@ -437,6 +449,7 @@ app.use('/api', (_request, response) => {
 app.use((error, request, response, next) => {
   void next;
   console.error('[API]', { requestId: request.requestId, durationMs: Date.now() - request.startedAt, ...safeProviderError(error) });
+  if (response.headersSent) return response.destroy();
   const status = error.statusCode || (error instanceof TypeError ? 400 : 503);
   const body = {
     requestId: request.requestId,
