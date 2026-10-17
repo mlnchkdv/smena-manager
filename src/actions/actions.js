@@ -22,6 +22,7 @@ import {
   setMyNotificationPreference,
   task,
   tasksOf,
+  teamsList,
   visibleProjects,
 } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
@@ -61,6 +62,7 @@ import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
 import { hasEnabledPushPreferences } from '../shared/push-client.js';
+import { primaryTeamId } from '../shared/team-relations.js';
 
 export const A = {},
   IN = {},
@@ -1831,7 +1833,9 @@ A.clearProjFilters = () => {
   render();
 };
 A.newProject = () => {
-  S.ui.pform = { name: '', desc: '', icon: 'folder', color: 'indigo', team: me().team, lead: D().me, due: dOff(30), tmpl: 'blank' };
+  const availableTeams = teamsList();
+  const initialTeam = primaryTeamId(availableTeams, me().team);
+  S.ui.pform = { name: '', desc: '', icon: 'folder', color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
   S.ui.errors = {};
   S.ui.pop = null;
   openModal({ type: 'project' });
@@ -1883,7 +1887,7 @@ export function createProject(f, tmplId) {
     icon: f.icon,
     color: f.color,
     status: 'planning',
-    team: f.team,
+    team: primaryTeamId(teamsList(), f.team),
     lead: f.lead,
     due: f.due || dOff(30),
     start: dOff(0),
@@ -1915,6 +1919,9 @@ A.submitProject = () => {
   const f = S.ui.pform;
   f.name = ($('#p-name')?.value || '').trim();
   f.desc = $('#p-desc')?.value || '';
+  f.team = $('#p-team')?.value || '';
+  f.lead = $('#p-lead')?.value || D().me;
+  f.due = $('#p-due')?.value || '';
   if (!f.name) {
     S.ui.errors.pname = 'Give the project a name';
     render();

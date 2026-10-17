@@ -184,6 +184,19 @@ test('shared content, files, settings, and backups persist through core workflow
   await signIn(page);
   await page.setViewportSize({ width: 1440, height: 900 });
 
+  await page.goto('/e2e-team/teams');
+  await page.locator('[data-a="newTeam"]:visible').first().click();
+  await page.locator('#tm-name').fill('Команда регрессии');
+  await page.locator('label.mi', { hasText: 'Тестовый администратор' }).locator('[data-a="tformMember"]').check();
+  await page.locator('label.mi', { hasText: 'Проверка интерфейса' }).locator('[data-a="tformProject"]').check();
+  await page.locator('[data-a="submitTeam"]').click();
+  await waitForSaved(page);
+  await expect(page.locator('.grid2').getByText('Тестовый администратор', { exact: true })).toBeVisible();
+  await expect(page.locator('.grid2 .stack > section.panel').first().getByText('Проверка интерфейса', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.locator('.grid2').getByText('Тестовый администратор', { exact: true })).toBeVisible();
+  await expect(page.locator('.grid2 .stack > section.panel').first().getByText('Проверка интерфейса', { exact: true })).toBeVisible();
+
   const noteTitle = 'Регламент сквозной проверки';
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-a="newKnowledgeNote"]').first().click();

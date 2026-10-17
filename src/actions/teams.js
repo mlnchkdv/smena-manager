@@ -3,17 +3,18 @@
    ===================================================================== */
 import { $, uid } from '../core/utils.js';
 import { PCOLORS } from '../core/constants.js';
-import { D, S, mem, team, teamsList } from '../core/store.js';
+import { D, S, team, teamsList } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { go, render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { A, IN, confirmDlg, restore, snapshot } from './actions.js';
+import { assignTeamRelations } from '../shared/team-relations.js';
 
 A.newTeam = () => {
   if (S.ui.currentUser?.role !== 'admin') return;
   S.ui.pop = null;
   S.ui.errors = {};
-  S.ui.tform = { name: '', desc: '', icon: 'users', color: 'teal', members: [] };
+  S.ui.tform = { name: '', desc: '', icon: 'users', color: 'teal', members: [], projects: [] };
   openModal({ type: 'team' });
 };
 A.editTeam = el => {
@@ -30,6 +31,9 @@ A.editTeam = el => {
     members: D()
       .members.filter(m => m.team === t.id)
       .map(m => m.id),
+    projects: D()
+      .projects.filter(project => project.team === t.id && !project.archived)
+      .map(project => project.id),
   };
   openModal({ type: 'team', edit: t.id });
 };
@@ -48,6 +52,12 @@ A.tformMember = el => {
   const l = S.ui.tform.members;
   const id = el.dataset.id;
   S.ui.tform.members = l.includes(id) ? l.filter(x => x !== id) : [...l, id];
+  render();
+};
+A.tformProject = el => {
+  const projects = S.ui.tform.projects || [];
+  const id = el.dataset.id;
+  S.ui.tform.projects = projects.includes(id) ? projects.filter(projectId => projectId !== id) : [...projects, id];
   render();
 };
 A.submitTeam = () => {
@@ -73,17 +83,11 @@ A.submitTeam = () => {
     if (m.edit) {
       t = team(m.edit);
       Object.assign(t, { name: f.name, desc: f.desc, icon: f.icon, c: PCOLORS[f.color] });
-      D().members.forEach(x => {
-        if (x.team === t.id && !f.members.includes(x.id)) x.team = '';
-      });
     } else {
       t = { id: uid('tm'), name: f.name, desc: f.desc || 'No description yet.', icon: f.icon, c: PCOLORS[f.color] };
       teamsList().push(t);
     }
-    f.members.forEach(id => {
-      const x = mem(id);
-      if (x) x.team = t.id;
-    });
+    assignTeamRelations(D(), t.id, f.members, f.projects || []);
   });
   if (!ok) return;
   S.ui.modals.pop();

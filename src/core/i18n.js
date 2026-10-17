@@ -156,6 +156,8 @@ const RU = {
   'e.g. Acquisition experiments and lifecycle email': 'например, Привлечение клиентов и коммуникации',
   'Everyone belongs to one primary team. Adding someone here moves them from their current team.':
     'У каждого участника есть одна основная команда. Добавление сюда перенесёт участника из текущей команды.',
+  'A project belongs to one primary team. Adding it here moves it from its current team.':
+    'У каждого проекта есть одна основная команда. Добавление сюда перенесёт проект из текущей команды.',
   'Account menu': 'Меню аккаунта',
   'Not found': 'Не найдено',
   'Design system': 'Дизайн-система',

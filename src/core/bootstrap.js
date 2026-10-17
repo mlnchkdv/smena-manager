@@ -35,7 +35,6 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   if (S.ui.currentUser?.name) member.name = S.ui.currentUser.name;
   if (S.ui.currentUser?.email) member.email = S.ui.currentUser.email;
   if (S.ui.currentUser?.title) member.title = S.ui.currentUser.title;
-  if (S.ui.currentUser?.team) member.team = S.ui.currentUser.team;
   data.me = member.id;
   S.data = data;
   S.ui.workspaceRevision = Number(snapshot.revision || 0);
