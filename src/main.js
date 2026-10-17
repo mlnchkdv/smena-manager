@@ -151,6 +151,11 @@ async function handleWorkspaceConflict() {
 
 window.addEventListener('smena:sync-status', event => {
   const { status, revision, scope } = event.detail;
+  if (status === 'recovery_unavailable') {
+    if (!S.ui.recoveryUnavailable) toast('Local recovery storage is unavailable. Keep this tab open until changes are saved.', { kind: 'err', ms: 12000 });
+    S.ui.recoveryUnavailable = true;
+    return;
+  }
   if (status === 'syncing') {
     updateSyncIndicator('syncing');
   } else if (status === 'saved') {

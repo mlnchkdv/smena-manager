@@ -19,6 +19,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Local recovery storage is unavailable. Keep this tab open until changes are saved.':
+    'Локальное восстановление недоступно. Не закрывайте вкладку до сохранения изменений.',
   'Unable to undo: the affected data has changed.': 'Нельзя отменить: затронутые данные уже изменились.',
   'This milestone was removed in another session.': 'Этот этап удалён в другой сессии.',
   // Navigation and common controls

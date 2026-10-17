@@ -12,7 +12,8 @@ import {
   putWorkspace,
   putWorkspaceDocument,
 } from './api.js';
-import { S, setWorkspaceBaseline } from './store.js';
+import { S, save, setWorkspaceBaseline } from './store.js';
+import { createDraftJournal, draftContext } from './offline-drafts.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import { configureCoreWorkspaceSync, configureWorkspaceSync, workspaceSyncConflict, workspaceSyncIsClean } from './workspace-sync.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
@@ -33,7 +34,7 @@ export function applyExternalCoreSnapshot(snapshot, base) {
   }
   Object.assign(S.data, merged.data);
   S.ui.workspaceRevision = Number(snapshot.revision);
-  configureCoreWorkspaceSync(snapshot.revision, S.ui.currentUser?.role, canonical);
+  configureCoreWorkspaceSync(snapshot.revision, S.ui.currentUser?.role, canonical, draftContext(S.ui.currentUser, S.data));
   setWorkspaceBaseline({ ...S.data, ...canonical });
 }
 
@@ -57,7 +58,7 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   S.ui.syncState = 'saved';
   S.ui.lastSyncedAt = Date.now();
   setWorkspaceBaseline(data);
-  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments);
+  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments, draftContext(S.ui.currentUser, data));
 }
 
 async function loadWorkspaceFor(user) {
@@ -80,6 +81,25 @@ async function loadWorkspaceFor(user) {
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
+  for (const scope of ['workspace', ...DOCUMENT_NAMES]) {
+    try {
+      const journal = createDraftJournal({ ...draftContext(user, S.data), scope });
+      const draft = await journal.read();
+      if (!draft?.base || !draft.local) continue;
+      const remote = scope === 'workspace' ? workspaceCoreData(S.data) : workspaceDocumentData(scope, S.data);
+      const recovered = mergeWorkspaceData(draft.base, draft.local, remote);
+      if (recovered.conflicts.length) {
+        storeConflictRecovery(draft.local, { scope, owner: user.id, conflicts: recovered.conflicts });
+        S.ui.syncConflict = true;
+      } else {
+        Object.assign(S.data, recovered.data);
+        save();
+      }
+    } catch (error) {
+      S.ui.recoveryUnavailable = true;
+      console.warn('[Recovery] Local draft could not be loaded:', error.name);
+    }
+  }
   S.ui.filePolicy = await getFileUploadPolicy().catch(() => null);
   if (user.name) S.prefs.name = user.name;
   return user;

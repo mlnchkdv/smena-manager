@@ -2,6 +2,7 @@ import { putWorkspace, putWorkspaceDocument } from './api.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { workspacePayload } from './workspace-snapshot.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
+import { createDraftJournal } from './offline-drafts.js';
 
 function browserNotify(detail) {
   if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return;
@@ -26,11 +27,13 @@ export function createWorkspaceSync(options = {}) {
   let conflict = null;
   let generation = 0;
   let lastError = null;
+  let journal = null;
 
-  function configure(nextRevision, role, data) {
+  function configure(nextRevision, role, data, context) {
     generation += 1;
     activePromise = null;
     lastError = null;
+    journal = context?.owner ? createDraftJournal(context) : null;
     revision = Number(nextRevision || 0);
     enabled = role === 'admin' || role === 'editor';
     pending = null;
@@ -71,6 +74,7 @@ export function createWorkspaceSync(options = {}) {
     if (!enabled || !pending || retryTimer) return Promise.resolve();
     const data = pending;
     const writeGeneration = generation;
+    const writeJournal = journal;
     const dataHash = pendingHash;
     pending = null;
     pendingHash = null;
@@ -78,6 +82,10 @@ export function createWorkspaceSync(options = {}) {
     notify({ status: 'syncing', revision });
     activePromise = (async () => {
       try {
+        if (writeJournal) {
+          await writeJournal.save({ base: confirmedData, local: pending || data, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
+          if (writeGeneration !== generation) return;
+        }
         const snapshot = await writeWorkspace(data, revision);
         if (writeGeneration !== generation) return;
         revision = Number(snapshot.revision);
@@ -98,6 +106,10 @@ export function createWorkspaceSync(options = {}) {
           pending = merged.data;
           pendingHash = JSON.stringify(pending);
           if (pendingHash === confirmedHash) pending = pendingHash = null;
+        }
+        if (writeJournal) {
+          if (pending) await writeJournal.save({ base: canonical, local: pending, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
+          else await writeJournal.acknowledge(data).catch(error => notify({ status: 'recovery_unavailable', error }));
         }
         lastError = null;
         retryDelay = 1_000;
@@ -172,11 +184,13 @@ export function createWorkspaceSync(options = {}) {
     const dataHash = JSON.stringify(data);
     if (dataHash === activeHash) {
       pending = pendingHash = null;
+      if (journal) void journal.save({ base: confirmedData, local: data, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
       return activePromise || Promise.resolve();
     }
     if (dataHash === pendingHash || (!activePromise && !pending && dataHash === confirmedHash)) return activePromise || Promise.resolve();
     pending = structuredClone(data);
     pendingHash = dataHash;
+    if (journal) void journal.save({ base: confirmedData, local: pending, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
     return flush();
   }
 
@@ -212,14 +226,14 @@ const documentSyncs = Object.fromEntries(
   ]),
 );
 
-export function configureWorkspaceSync(revision, role, data, documentSnapshots = {}) {
-  workspaceSync.configure(revision, role, workspaceCoreData(data));
+export function configureWorkspaceSync(revision, role, data, documentSnapshots = {}, context = {}) {
+  workspaceSync.configure(revision, role, workspaceCoreData(data), { ...context, scope: 'workspace' });
   for (const name of DOCUMENT_NAMES) {
-    documentSyncs[name].configure(documentSnapshots[name]?.revision || 0, role, workspaceDocumentData(name, data));
+    documentSyncs[name].configure(documentSnapshots[name]?.revision || 0, role, workspaceDocumentData(name, data), { ...context, scope: name });
   }
 }
-export function configureCoreWorkspaceSync(revision, role, data) {
-  workspaceSync.configure(revision, role, workspaceCoreData(data));
+export function configureCoreWorkspaceSync(revision, role, data, context = {}) {
+  workspaceSync.configure(revision, role, workspaceCoreData(data), { ...context, scope: 'workspace' });
 }
 export function disableWorkspaceSync() {
   workspaceSync.disable();
