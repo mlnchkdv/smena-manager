@@ -29,7 +29,7 @@ export function getSessionToken() {
 export function setSessionToken(token) {
   memorySessionToken = token || '';
   try {
-    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token);
+    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);
     else localStorage.removeItem(SESSION_STORAGE_KEY);
   } catch {
     /* The in-memory token keeps the active tab working. */
@@ -47,7 +47,7 @@ async function request(path, options = {}, authenticated = false) {
   if (authenticated) {
     const token = getSessionToken();
     if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
-    headers.set('Authorization', `Bearer ${token}`);
+    if (token !== 'cookie') headers.set('Authorization', `Bearer ${token}`);
   }
 
   let response;
@@ -73,7 +73,7 @@ export async function loginWithAccessId(accessId) {
     method: 'POST',
     body: JSON.stringify({ accessId }),
   });
-  setSessionToken(result.token);
+  setSessionToken('cookie');
   return result.user;
 }
 
@@ -82,13 +82,20 @@ export async function loginWithGoogle(credential) {
     method: 'POST',
     body: JSON.stringify({ credential }),
   });
-  setSessionToken(result.token);
+  setSessionToken('cookie');
   return result.user;
 }
 
 export async function getCurrentUser() {
   const result = await request('/api/auth/me', {}, true);
   return result.user;
+}
+
+export async function migrateLegacySessionCookie() {
+  const token = getSessionToken();
+  if (!token || token === 'cookie') return;
+  await request('/api/auth/cookie', { method: 'POST' }, true);
+  setSessionToken('cookie');
 }
 
 export async function getAuthSessions() {
@@ -230,7 +237,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     if (metadata.task) form.append('task', metadata.task);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.responseType = 'json';
     xhr.timeout = 120000;
     const abort = () => xhr.abort();
@@ -364,7 +371,7 @@ export async function downloadWorkspaceFile(id, download = false, options = {}) 
   let response;
   try {
     response = await fetch(`/api/files/${encodeURIComponent(id)}/content${download ? '?download=1' : ''}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token === 'cookie' ? {} : { Authorization: `Bearer ${token}` },
       signal: options.signal,
     });
   } catch (error) {

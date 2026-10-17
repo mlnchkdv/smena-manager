@@ -36,6 +36,7 @@ import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile } from './file-retention.js';
+import { setSessionCookie } from './session-cookie.js';
 
 export const app = express();
 
@@ -148,6 +149,7 @@ app.delete('/api/auth/sessions/:sessionId', async (request, response, next) => {
 app.delete('/api/auth/session', async (request, response, next) => {
   try {
     await revokeAuthSession(request.user.id, request.sessionId);
+    setSessionCookie(response, '');
     response.json({ revoked: 1 });
   } catch (error) {
     next(error);

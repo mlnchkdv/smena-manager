@@ -49,6 +49,11 @@ test('authenticated users can inspect and revoke their active sessions', async t
       body: JSON.stringify({ accessId: 'session-access-id' }),
     });
     assert.equal(response.status, 200);
+    const cookie = response.headers.get('set-cookie');
+    assert.match(cookie, /HttpOnly/u);
+    assert.match(cookie, /SameSite=Lax/u);
+    const cookieAccess = await fetch(`${origin}/api/auth/me`, { headers: { Cookie: cookie.split(';')[0] } });
+    assert.equal(cookieAccess.status, 200);
     return (await response.json()).token;
   };
   const authorize = token => ({ Authorization: `Bearer ${token}` });

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { sessionCookieToken } from './session-cookie.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWorkspaceDatabase } from './workspace-store.js';
@@ -167,8 +168,8 @@ export async function createTrackedSession(profile, request, authMethod) {
 
 function requestToken(request) {
   const authorization = request.get('authorization') || '';
-  if (authorization.toLowerCase().startsWith('bearer ')) return authorization.slice(7).trim();
-  return String(request.get('x-session-token') || '').trim();
+  if (authorization.toLowerCase().startsWith('bearer ') && authorization.slice(7).trim() !== 'cookie') return authorization.slice(7).trim();
+  return String(request.get('x-session-token') || '').trim() || sessionCookieToken(request);
 }
 
 export async function requireAuth(request, response, next) {

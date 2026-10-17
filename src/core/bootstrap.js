@@ -9,6 +9,7 @@ import {
   getWorkspaceRevision,
   loginWithAccessId,
   loginWithGoogle,
+  migrateLegacySessionCookie,
   putWorkspace,
   putWorkspaceDocument,
 } from './api.js';
@@ -116,6 +117,7 @@ export async function restoreSessionAndWorkspace() {
   S.ui.authConfig = await getAuthConfig();
   if (!getSessionToken()) return null;
   try {
+    await migrateLegacySessionCookie();
     const user = await getCurrentUser();
     return await loadWorkspaceFor(user);
   } catch (error) {

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { accessIdLoginEnabled, createTrackedSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
+import { accessIdLoginEnabled, createTrackedSession, findProfileByAccessId, getAccessProfiles, publicProfile, requireAuth, verifySession } from './auth.js';
+import { setSessionCookie } from './session-cookie.js';
 import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthenticationError } from './google-auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-config.js';
@@ -40,6 +41,14 @@ function requireAccessIdLogin(_request, response, next) {
 
 export const authRouter = Router();
 
+authRouter.post('/cookie', requireAuth, (request, response) => {
+  const token = String(request.get('authorization') || '').replace(/^Bearer\s+/iu, '');
+  const verified = verifySession(token);
+  if (!verified.profile) return response.status(401).json({ error: 'Invalid session.' });
+  setSessionCookie(response, token, verified.expiresAt);
+  response.json({ user: request.user });
+});
+
 authRouter.get('/config', async (request, response) => {
   let profiles = [];
   let profileCount = 0;
@@ -73,7 +82,9 @@ authRouter.post('/google', rateLimit, async (request, response) => {
     const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase());
     const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
-    response.json({ valid: true, token: await createTrackedSession(profile, request, 'google'), user: publicProfile(profile) });
+    const token = await createTrackedSession(profile, request, 'google');
+    setSessionCookie(response, token, verifySession(token).expiresAt);
+    response.json({ valid: true, token, user: publicProfile(profile) });
   } catch (error) {
     loginRateLimiter.recordFailure(request.loginRateLimitKey);
     if (error instanceof GoogleAuthenticationError) {
@@ -94,7 +105,9 @@ authRouter.post('/validate', requireAccessIdLogin, rateLimit, async (request, re
       return;
     }
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
-    response.json({ valid: true, token: await createTrackedSession(profile, request, 'access_id'), user: publicProfile(profile) });
+    const token = await createTrackedSession(profile, request, 'access_id');
+    setSessionCookie(response, token, verifySession(token).expiresAt);
+    response.json({ valid: true, token, user: publicProfile(profile) });
   } catch (error) {
     next(error);
   }
