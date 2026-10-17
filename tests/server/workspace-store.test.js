@@ -14,6 +14,7 @@ import {
   WorkspacePermissionError,
 } from '../../src/server/workspace-store.js';
 import { WorkspaceValidationError } from '../../src/shared/workspace-schema.js';
+import { WorkspaceMembershipError } from '../../src/shared/workspace-membership.js';
 
 const originalDatabasePath = process.env.DATABASE_PATH;
 const originalVercel = process.env.VERCEL;
@@ -83,6 +84,25 @@ test('workspace revision status returns synchronization metadata without changin
 test('workspace status reports local write coordination outside Vercel', async () => {
   const status = await getWorkspaceStatus();
   assert.deepEqual(status.coordination, { mode: 'local-queue', healthy: true, latencyMs: null });
+});
+
+test('workspace store blocks removal of the last active administrator', async () => {
+  const initial = await getWorkspaceDatabase();
+  const withAdmin = await replaceWorkspaceDatabase(
+    {
+      ...initial,
+      members: [{ id: 'admin-1', name: 'Admin', email: 'admin@example.test', role: 'Admin', status: 'active' }],
+    },
+    initial.revision,
+    { role: 'admin', actorMemberId: 'admin-1' },
+  );
+  await assert.rejects(
+    replaceWorkspaceDatabase({ ...withAdmin, members: [{ ...withAdmin.members[0], status: 'deactivated' }] }, withAdmin.revision, {
+      role: 'admin',
+      actorMemberId: 'admin-1',
+    }),
+    error => error instanceof WorkspaceMembershipError && error.code === 'LAST_ADMIN_REQUIRED',
+  );
 });
 
 test('explicit Drive mode permits revision-checked writes on Vercel without Redis', async () => {

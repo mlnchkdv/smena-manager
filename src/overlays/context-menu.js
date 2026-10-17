@@ -67,7 +67,13 @@ export function ctxMenu(p) {
         ? I('ctxRole', 'shield', 'Change role…') +
           (m.status === 'invited' ? I('resendInvite', 'link', 'Copy sign-in link') : '') +
           sep +
-          I('removeMember', 'user-minus', 'Remove from workspace', 'danger')
+          I(
+            'toggleMemberAccess',
+            m.status === 'deactivated' ? 'user-check' : 'user-x',
+            m.status === 'deactivated' ? 'Reactivate access' : 'Deactivate access',
+            m.status === 'deactivated' ? '' : 'danger',
+          ) +
+          (m.status === 'deactivated' || m.status === 'invited' ? I('removeMember', 'user-minus', 'Remove from workspace', 'danger') : '')
         : '')
     );
   }

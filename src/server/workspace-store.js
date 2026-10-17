@@ -8,6 +8,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../share
 import { validateWorkspaceData } from '../shared/workspace-schema.js';
 import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
+import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -207,6 +208,9 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  validateMembershipTransition(current, nextData);
+  const membershipActivity = membershipAuditEntries(current, nextData, options.actorMemberId, current.revision + 1);
+  if (membershipActivity.length) nextData.activity = [...membershipActivity, ...(nextData.activity || [])];
   if (options.actorMemberId) {
     nextData = reconcileWorkspaceNotifications(current, nextData, {
       actorMemberId: options.actorMemberId,

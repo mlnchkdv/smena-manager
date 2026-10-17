@@ -64,6 +64,7 @@ import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { workspaceRefreshDelay } from './core/workspace-refresh.js';
+import { clearSession } from './core/api.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -325,7 +326,14 @@ async function refreshVisibleWorkspace(showNotice = false) {
       }
     })
     .catch(error => {
-      if (error.status === 401) return;
+      if (error.status === 401) {
+        clearSession();
+        S.ui.currentUser = null;
+        S.ui.auth = 'login';
+        S.ui.errors = { login: error.message || 'Your session has expired. Sign in again.' };
+        render();
+        return;
+      }
       workspaceRefreshFailures += 1;
       if (!S.ui.offline) {
         S.ui.offline = !error.status;

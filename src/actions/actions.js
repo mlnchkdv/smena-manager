@@ -53,6 +53,7 @@ import { workspaceSlug } from '../shared/workspace-slug.js';
 import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
+import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
 
 export const A = {},
@@ -862,6 +863,13 @@ A.popPick = el => {
       return;
     }
     const m = mem(p.id);
+    if (!m || m.id === D().me || m.role === 'Owner') return;
+    if (isWorkspaceAdministrator(m) && v !== 'Admin' && activeWorkspaceAdministrators(D()).length <= 1) {
+      S.ui.pop = null;
+      render();
+      toast("Assign another administrator before changing the last administrator's role.", { kind: 'err', ms: 7000 });
+      return;
+    }
     mutate(() => {
       m.role = v;
     });
@@ -2138,7 +2146,14 @@ A.submitInvite = () => {
     if (
       !mutate(() =>
         list.forEach(e => {
-          if (!D().members.some(m => String(m.email || '').toLowerCase() === e))
+          const existing = D().members.find(m => String(m.email || '').toLowerCase() === e);
+          if (existing) {
+            if (existing.status === 'deactivated') {
+              existing.status = 'active';
+              existing.role = role;
+              existing.team = team;
+            }
+          } else
             D().members.push({
               id: uid('m'),
               name: e
@@ -2174,6 +2189,36 @@ A.resendInvite = el => {
   S.ui.pop = null;
   render();
   copy(location.origin, `Ссылка для ${email} скопирована. Отправьте её участнику вручную.`);
+};
+A.toggleMemberAccess = el => {
+  if (S.ui.currentUser?.role !== 'admin') return;
+  const m = mem(el.dataset.id);
+  if (!m || m.id === D().me || m.role === 'Owner') return;
+  S.ui.pop = null;
+  const reactivate = m.status === 'deactivated';
+  if (!reactivate && isWorkspaceAdministrator(m) && activeWorkspaceAdministrators(D()).length <= 1) {
+    render();
+    toast('The last administrator cannot be deactivated.', { kind: 'err', ms: 7000 });
+    return;
+  }
+  const run = () => {
+    if (
+      mutate(() => {
+        m.status = reactivate ? 'active' : 'deactivated';
+      })
+    )
+      toast(reactivate ? `Access restored for ${m.name}.` : `Access suspended for ${m.name}.`);
+  };
+  if (reactivate) run();
+  else
+    confirmDlg({
+      title: `Deactivate ${m.name}?`,
+      body: `${esc(m.name)} will not be able to sign in to the workspace until access is restored. Assigned tasks and history will be preserved.`,
+      ok: 'Deactivate',
+      danger: true,
+      icon: 'user-x',
+      run,
+    });
 };
 A.viewProfile = el => go('member', { id: el.dataset.id });
 A.assignToMember = el => {

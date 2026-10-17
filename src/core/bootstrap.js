@@ -105,6 +105,7 @@ export async function authenticateWithGoogleAndLoadWorkspace(credential) {
 
 export async function refreshWorkspaceFromServer(options = {}) {
   if (!S.ui.currentUser || !getSessionToken()) return { status: 'signed_out' };
+  S.ui.currentUser = await getCurrentUser();
   const force = options.force === true;
   if (!force && !workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
   const startingRevision = S.ui.workspaceRevision;

@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWorkspaceDatabase } from './workspace-store.js';
-import { workspaceAccessProfiles } from '../shared/workspace-access.js';
+import { workspaceAccessProfiles, workspaceMemberRole } from '../shared/workspace-access.js';
+import { memberForProfile } from '../shared/member-identity.js';
 
 const SESSION_PREFIX = 'smena_sess_';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -157,13 +158,21 @@ export async function requireAuth(request, response, next) {
   }
   try {
     let profile = result.profile;
+    const database = await getWorkspaceDatabase();
     if (result.dynamic) {
-      const profiles = workspaceAccessProfiles(await getWorkspaceDatabase());
+      const profiles = workspaceAccessProfiles(database);
       profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
       if (!profile) {
         response.status(401).json({ error: 'Account is unavailable.' });
         return;
       }
+    } else {
+      const member = memberForProfile(database, result.profile);
+      if (member && ['deactivated', 'removed'].includes(String(member.status || '').toLowerCase())) {
+        response.status(401).json({ error: 'Account is deactivated.' });
+        return;
+      }
+      if (member) profile = { ...profile, role: workspaceMemberRole(member) };
     }
     request.user = safeProfile(profile);
     request.sessionId = result.sessionId;

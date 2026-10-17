@@ -7,16 +7,21 @@ const ROLE_MAP = new Map([
   ['viewer', 'viewer'],
 ]);
 
-export function workspaceMemberProfile(member) {
-  const email = String(member?.email || '')
-    .trim()
-    .toLowerCase();
-  const role =
+export function workspaceMemberRole(member) {
+  return (
     ROLE_MAP.get(
       String(member?.role || 'member')
         .trim()
         .toLowerCase(),
-    ) || 'viewer';
+    ) || 'viewer'
+  );
+}
+
+export function workspaceMemberProfile(member) {
+  const email = String(member?.email || '')
+    .trim()
+    .toLowerCase();
+  const role = workspaceMemberRole(member);
   if (!member?.id || !email || member.status === 'deactivated' || member.status === 'removed') return null;
   return {
     id: `workspace:${member.id}`,

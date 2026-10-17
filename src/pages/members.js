@@ -40,10 +40,10 @@ export function pageMembers() {
         const ap = visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length;
         const ot = allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length;
         return `<tr data-ctx="member" data-id="${m.id}"><td style="padding-left:14px"><button class="row" data-a="go" data-r="member" data-id="${m.id}" style="gap:10px;text-align:left">${av(m.id, 'md', false)}<span class="col"><b style="font-weight:500">${esc(m.name)}${m.id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</b><span class="faint" style="font-size:12px">${esc(m.email)}</span></span></button></td>
-      <td style="text-align:left">${isAdmin && m.role !== 'Owner' ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${m.role}</span>`}</td>
+      <td style="text-align:left">${isAdmin && m.role !== 'Owner' && m.id !== D().me ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${m.role}</span>`}</td>
       <td style="text-align:left"><span class="row">${ic(TM[m.team].icon, 13)}${TM[m.team].name}</span></td><td class="num">${ap}</td><td class="num">${ot}</td>
       <td style="text-align:left" class="muted">${m.last == null ? '—' : m.last < 5 ? '<span style="color:var(--green)">Online</span>' : ago(minsAgo(m.last))}</td>
-      <td style="text-align:left">${m.status === 'invited' ? '<span class="badge amber"><span class="dot"></span>Invited</span>' : m.status === 'deactivated' ? '<span class="badge gray">Deactivated</span>' : '<span class="badge green"><span class="dot"></span>Active</span>'}</td>
+      <td style="text-align:left">${m.status === 'invited' ? '<span class="badge amber"><span class="dot"></span>Invited</span>' : m.status === 'deactivated' ? '<span class="badge gray">Access deactivated</span>' : '<span class="badge green"><span class="dot"></span>Access active</span>'}</td>
       <td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="Member options">${ic('ellipsis', 14)}</button></td></tr>`;
       })
       .join('')}

@@ -133,6 +133,31 @@ test('two users exchange assignment and mention notifications in Russian and Eng
     expect(overflow, `English mobile route ${route} has horizontal overflow`).toBeLessThanOrEqual(2);
   }
 
+  await admin.setViewportSize({ width: 1440, height: 900 });
+  await admin.goto('/e2e-team/members');
+  const editorRow = admin.locator('tr', { hasText: 'E2E Редактор' });
+  await editorRow.locator('[data-pop="role"]').click();
+  await admin.locator('.pop [data-a="popPick"][data-v="Guest"]').click();
+  await waitForSaved(admin);
+  await expect(editorRow.locator('[data-pop="role"]')).toContainText('Гость');
+  await editorRow.locator('[data-pop="role"]').click();
+  await admin.locator('.pop [data-a="popPick"][data-v="Member"]').click();
+  await waitForSaved(admin);
+  await expect(editorRow.locator('[data-pop="role"]')).toContainText('Участник');
+
+  await editorRow.locator('[data-a="ctxBtn"]').click();
+  await admin.getByRole('button', { name: 'Деактивировать доступ' }).click();
+  await admin.getByRole('button', { name: 'Деактивировать', exact: true }).click();
+  await waitForSaved(admin);
+  await expect(editor.locator('#login-btn')).toBeVisible({ timeout: 8_000 });
+  await expect(editorRow).toContainText('Доступ деактивирован');
+
+  await editorRow.locator('[data-a="ctxBtn"]').click();
+  await admin.getByRole('button', { name: 'Восстановить доступ' }).click();
+  await waitForSaved(admin);
+  await expect(editorRow).toContainText('Доступ активен');
+  await signIn(editor, 'e2e-editor-access-id-2026-secure');
+
   await adminContext.close();
   await editorContext.close();
 });
