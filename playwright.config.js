@@ -77,11 +77,11 @@ export default defineConfig({
       },
     },
     {
-      command: `npx vite --host 127.0.0.1 --port ${clientPort} --strictPort`,
+      command: `npx vite build --outDir .data/e2e/${runId}/dist && npx vite preview --outDir .data/e2e/${runId}/dist --host 127.0.0.1 --port ${clientPort} --strictPort`,
       url: `http://127.0.0.1:${clientPort}`,
       reuseExistingServer: false,
       timeout: 120_000,
-      env: { SMENA_API_PORT: String(apiPort) },
+      env: { SMENA_API_PORT: String(apiPort), SMENA_TEST_MODE: 'true' },
     },
   ],
 });

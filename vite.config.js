@@ -48,7 +48,17 @@ function lucideSubset() {
 }
 
 export default defineConfig({
-  plugins: [lucideSubset()],
+  plugins: [
+    lucideSubset(),
+    {
+      name: 'isolated-test-assets',
+      transformIndexHtml: html =>
+        process.env.SMENA_TEST_MODE === 'true' ? html.replace(/<link\b[^>]*href="https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>/gu, '') : html,
+    },
+  ],
+  preview: {
+    proxy: { '/api': `http://127.0.0.1:${process.env.SMENA_API_PORT || 3001}` },
+  },
   server: {
     host: '127.0.0.1',
     port: 5173,
