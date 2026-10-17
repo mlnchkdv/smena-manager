@@ -550,118 +550,126 @@
   color: var(--text-3);
   padding: 8px 8px 4px;
 }
-.system-status-pop {
-  width: min(352px, calc(100vw - 16px));
-  max-width: min(352px, calc(100vw - 16px));
-  padding: 4px;
-  overflow: hidden auto;
+.account-pop {
+  width: min(320px, calc(100vw - 16px)) !important;
+  max-width: min(320px, calc(100vw - 16px));
+  overflow-x: hidden;
 }
-.system-status {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
+.account-system {
+  --system-color: var(--green);
+  padding: 2px 4px;
 }
-.system-status-head {
-  display: flex;
-  align-items: flex-start;
-  padding: 10px 10px 9px;
-}
-.system-status-head > div {
-  min-width: 0;
-  flex: 1;
-}
-.system-status-head h2 {
-  margin: 0;
-  font-size: var(--fs);
-  font-weight: 600;
-  line-height: 1.3;
-}
-.system-status-head p {
-  margin: 3px 0 0;
-  color: var(--text-3);
-  font-size: var(--fs-xs);
-}
-.system-current {
-  display: flex;
+.account-system-summary {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 8px;
   align-items: center;
-  gap: 7px;
-  margin-top: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 5px 6px;
+  border-radius: var(--r-sm);
+  color: var(--text);
+  text-align: left;
+}
+.account-system-summary:hover,
+.account-system-summary[aria-expanded='true'] {
+  background: var(--surface-2);
+}
+.account-system-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-3);
   color: var(--text-2);
-  font-size: var(--fs-xs);
 }
 .system-health-dot {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid var(--surface-2);
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: none;
+  background: var(--system-color);
 }
-.system-current[data-state='syncing'] .system-health-dot {
-  background: var(--accent);
+.account-system[data-state='syncing'] {
+  --system-color: var(--accent);
+}
+.account-system[data-state='syncing'] .system-health-dot {
   animation: pulse 1.1s ease-in-out infinite;
 }
-.system-current:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid']) {
-  color: var(--red);
+.account-system:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid']) {
+  --system-color: var(--red);
 }
-.system-current:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid'])
-  .system-health-dot {
-  background: var(--red);
+.account-system-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
 }
-.system-status-grid {
+.account-system-copy b {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.account-system-copy span {
+  overflow: hidden;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-system-chevron {
+  color: var(--text-3);
+  transition: transform var(--dur);
+}
+.account-system-summary[aria-expanded='true'] .account-system-chevron {
+  transform: rotate(180deg);
+}
+.account-system-details {
+  margin: 2px 6px 6px 38px;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--divider);
+}
+.account-system-grid {
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0 10px;
-  border-top: 1px solid var(--divider);
-  border-bottom: 1px solid var(--divider);
+  padding: 0;
 }
-.system-status-grid > div {
+.account-system-grid > div {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
-  gap: 16px;
-  align-items: center;
-  min-height: 36px;
-  border-bottom: 1px solid var(--divider);
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 1.35fr);
+  gap: 10px;
+  padding: 3px 0;
+  align-items: start;
 }
-.system-status-grid > div:last-child {
-  border-bottom: 0;
-}
-.system-status-grid dt {
+.account-system-grid dt {
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
-.system-status-grid dd {
+.account-system-grid dd {
   margin: 0;
   color: var(--text);
-  font-family: var(--mono);
   font-size: var(--fs-xs);
   font-weight: 500;
   text-align: right;
+  overflow-wrap: anywhere;
 }
-.system-status-note,
-.system-status-error {
-  margin: 0;
-  padding: 10px;
-  border-bottom: 1px solid var(--divider);
-  border-radius: 0;
-  background: transparent;
-  color: var(--text-3);
-  font-size: var(--fs-xs);
-  line-height: 1.55;
-}
-.system-status-error {
+.account-system-error {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 6px;
   color: var(--red);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
 }
-.system-status-actions {
-  padding: 8px;
-}
-.system-sync-button {
+.account-system-sync {
   width: 100%;
-  min-height: 34px;
+  min-height: 30px;
+  margin-top: 8px;
   justify-content: center;
 }
 /* Filter builder uses the same insets as every other menu: 4px popover padding + 8px item padding. */

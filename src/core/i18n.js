@@ -729,6 +729,8 @@ const RU = {
   Personal: 'Личные',
   Preferences: 'Предпочтения',
   'Keyboard shortcuts': 'Горячие клавиши',
+  'View profile': 'Открыть профиль',
+  'Account settings': 'Настройки аккаунта',
   Security: 'Безопасность',
   Password: 'Пароль',
   Sessions: 'Сеансы',

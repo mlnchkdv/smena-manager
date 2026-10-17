@@ -105,6 +105,8 @@ function updateSyncIndicator(status) {
     invalid: 'Data error',
   };
   indicator.dataset.state = status;
+  const connectionIndicator = document.getElementById('connection-status-button');
+  if (connectionIndicator) connectionIndicator.dataset.state = status;
   const label = indicator.querySelector('.sync-label');
   if (label) label.textContent = tr(labels[status] || labels.saved);
   indicator.title =

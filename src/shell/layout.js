@@ -2,7 +2,7 @@
 import { MOD, TODAY, diffD, esc, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { D, S, allTasks, mem, myNotifications, pColor, proj, team, teamsList, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
 import { av } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
@@ -22,7 +22,7 @@ import { pageProject } from '../pages/project.js';
 import { pageWsCalendar } from '../views/calendar.js';
 import { pageWsTimeline } from '../views/timeline.js';
 import { pageArchive } from '../features/archive.js';
-import { isRussian, locale, t as tr } from '../core/i18n.js';
+import { locale, t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -69,6 +69,7 @@ export function renderShell() {
       <div class="content ${u.fx.route ? 'fx-route' : ''}" id="main-content" tabindex="-1" data-keep="c:${u.route}:${u.params.id || ''}:${u.params.tab || ''}:${u.params.sec || ''}">${u.loading ? skeleton() : renderPage()}</div>
     </main>
     ${renderBottomNav()}
+    ${renderConnectionIndicator()}
   </div>`;
 }
 export function renderPage() {
@@ -226,17 +227,7 @@ export function crumbs() {
   return out.join('<span class="sep">/</span>');
 }
 export function renderTopbar() {
-  const state = S.ui.syncConflict
-    ? 'conflict'
-    : S.ui.offline
-      ? 'offline'
-      : S.ui.syncUnavailable
-        ? 'unavailable'
-        : S.ui.syncTooLarge
-          ? 'too_large'
-          : S.ui.syncInvalid
-            ? 'invalid'
-            : S.ui.syncState || 'saved';
+  const state = systemConnectionState();
   const sync = {
     syncing: ['loader', 'Saving…'],
     saved: ['cloud-check', 'Saved'],
@@ -248,18 +239,22 @@ export function renderTopbar() {
   }[state];
   const syncTitle =
     state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString(locale())}` : tr(sync[1]);
-  const statusOpen = S.ui.pop?.type === 'systemStatus';
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" style="display:none" id="mnav-btn">${ic('menu', 17)}</button>
     <style>@media(max-width:900px){#mnav-btn{display:inline-flex!important}}</style>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
-    <button class="sync-indicator system-trigger" id="sync-indicator" data-state="${state}" data-a="pop" data-pop="systemStatus" title="${esc(syncTitle)}" aria-label="System status" aria-haspopup="dialog" aria-expanded="${statusOpen}"><span class="system-state-dot" aria-hidden="true"></span><span class="system-trigger-label">${isRussian() ? 'Система' : 'System'}</span>${ic('chevron-down', 12, 'system-trigger-chevron')}<span class="sync-label sr">${sync[1]}</span></button>
+    <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label">${sync[1]}</span></span>
     <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>
     <button class="ibtn hide-m" data-a="pop" data-pop="user" aria-label="Account menu" style="width:auto;padding:0 2px">${av(D().me, 'md', false)}</button>
   </header>`;
+}
+export function renderConnectionIndicator() {
+  const state = systemConnectionState();
+  const open = S.ui.pop?.type === 'user';
+  return `<button class="connection-indicator" id="connection-status-button" data-state="${state}" data-a="pop" data-pop="user" aria-label="System status" aria-haspopup="menu" aria-expanded="${open}">${ic('wifi', 16)}<span class="connection-indicator-dot" aria-hidden="true"></span></button>`;
 }
 export function renderBottomNav() {
   const r = S.ui.route;

@@ -2,7 +2,7 @@
 import { $, MOD, MONL, TODAY, WD, addD, dOff, diffD, esc, fmtDate, iso, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
-import { D, S, allTasks, canSee, me, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, canSee, me, mem, pColor, proj, systemConnectionState, task, visibleProjects } from '../core/store.js';
 import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { FIELDS, viewOf } from '../shell/view-engine.js';
@@ -57,7 +57,8 @@ export function placePop() {
     width: vv?.width || innerWidth,
     height: vv?.height || innerHeight,
   };
-  el.style.maxHeight = `${Math.max(120, Math.min(420, viewport.height - 16))}px`;
+  const heightCap = p.type === 'user' ? 560 : 420;
+  el.style.maxHeight = `${Math.max(120, Math.min(heightCap, viewport.height - 16))}px`;
   const w = el.offsetWidth,
     h = el.offsetHeight;
   let x = p.x,
@@ -121,22 +122,10 @@ function formatSystemBytes(value) {
   return `${new Intl.NumberFormat(locale(), { maximumFractionDigits: digits }).format(amount)} ${units[unit]}`;
 }
 
-function systemStatusHtml() {
+function accountSystemStatusHtml() {
   const status = S.ui.systemStatus;
   const storage = status?.storage;
-  const state = S.ui.syncConflict
-    ? 'conflict'
-    : S.ui.offline
-      ? 'offline'
-      : S.ui.syncUnavailable
-        ? 'unavailable'
-        : S.ui.syncTooLarge
-          ? 'too_large'
-          : S.ui.syncInvalid
-            ? 'invalid'
-            : S.ui.systemSyncing
-              ? 'syncing'
-              : S.ui.syncState || 'saved';
+  const state = systemConnectionState();
   const stateLabel = {
     syncing: 'Synchronization in progress',
     saved: 'All changes are synchronized',
@@ -152,30 +141,29 @@ function systemStatusHtml() {
   const usage = used == null ? '—' : limit ? `${formatSystemBytes(used)} / ${formatSystemBytes(limit)}` : formatSystemBytes(used);
   const lastSyncValue = S.ui.lastSyncedAt || storage?.lastSyncAt || status?.updatedAt;
   const lastSync = lastSyncValue ? new Date(lastSyncValue).toLocaleString(locale()) : 'Never';
-  const description =
-    storage?.provider === 'google-drive'
-      ? 'Connected to Google Drive. Workspace data and files are synchronized with the configured drive.'
-      : storage?.provider === 'local'
-        ? 'Local storage is active. Data is stored on the application server.'
-        : 'Checking the storage connection and synchronization status.';
   const loading = S.ui.systemStatusLoading && !status;
+  const expanded = S.ui.systemDetailsOpen;
 
-  return `<section class="system-status" aria-labelledby="system-status-title">
-    <div class="system-status-head">
-      <div>
-        <h2 id="system-status-title">System status</h2>
-        <p>Connection and data integrity</p>
-        <div class="system-current" data-state="${state}"><span class="system-health-dot" aria-hidden="true"></span><span>${stateLabel}</span></div>
-      </div>
-    </div>
-    <dl class="system-status-grid" aria-busy="${loading}">
-      <div><dt>Team updates</dt><dd>Every 15 seconds</dd></div>
-      <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
-      <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
-      <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
-    </dl>
-    ${S.ui.systemStatusError ? `<div class="system-status-error" role="alert">${ic('triangle-alert', 15)}<span>${esc(S.ui.systemStatusError)}</span></div>` : `<p class="system-status-note">${description}</p>`}
-    <div class="system-status-actions"><button class="btn btn-primary system-sync-button${S.ui.systemSyncing ? ' is-loading' : ''}" data-a="syncSystemNow" ${S.ui.systemSyncing ? 'disabled' : ''}>${ic('refresh-cw', 14)}<span>Synchronize now</span></button></div>
+  return `<section class="account-system" data-state="${state}">
+    <button class="account-system-summary" data-a="toggleSystemDetails" aria-expanded="${expanded}" aria-controls="account-system-details">
+      <span class="account-system-icon">${ic('wifi', 15)}<span class="system-health-dot" aria-hidden="true"></span></span>
+      <span class="account-system-copy"><b>System status</b><span>${stateLabel}</span></span>
+      ${ic('chevron-down', 14, 'account-system-chevron')}
+    </button>
+    ${
+      expanded
+        ? `<div class="account-system-details" id="account-system-details">
+      <dl class="account-system-grid" aria-busy="${loading}">
+        <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
+        <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
+        <div><dt>Team updates</dt><dd>Every 15 seconds</dd></div>
+        <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
+      </dl>
+      ${S.ui.systemStatusError ? `<div class="account-system-error" role="alert">${ic('triangle-alert', 14)}<span>${esc(S.ui.systemStatusError)}</span></div>` : ''}
+      <button class="btn btn-secondary btn-sm account-system-sync${S.ui.systemSyncing ? ' is-loading' : ''}" data-a="syncSystemNow" ${S.ui.systemSyncing ? 'disabled' : ''}>${ic('refresh-cw', 13)}<span>Synchronize now</span></button>
+    </div>`
+        : ''
+    }
   </section>`;
 }
 
@@ -185,11 +173,6 @@ export function popHtml(p) {
     style = '';
   const t = ['status', 'priority', 'assignee', 'labels', 'date', 'project', 'deps', 'recur', 'estimate'].includes(p.type) ? tgt(p) : null;
   switch (p.type) {
-    case 'systemStatus':
-      inner = systemStatusHtml();
-      cls = 'system-status-pop';
-      style = 'width:352px';
-      break;
     case 'create':
       inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newTeam">${ic('users', 15)}Team</button><div class="msep"></div><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}`;
       style = 'width:220px';
@@ -322,6 +305,7 @@ export function popHtml(p) {
     case 'user':
       inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600">${esc(S.prefs.name)}</div><div class="faint trunc" style="font-size:12px">${esc(me().email)}</div></div></div><div class="msep"></div>
       <button class="mi" data-a="go" data-r="member" data-id="${D().me}">${ic('user', 15)}View profile</button><button class="mi" data-a="go" data-r="settings" data-sec="profile">${ic('settings', 15)}Account settings</button>
+      <div class="msep"></div>${accountSystemStatusHtml()}
       <div class="msep"></div><div class="mh">Theme</div><div style="padding:2px 6px 6px"><div class="seg" style="width:100%">${[
         ['light', 'sun', 'Light'],
         ['dark', 'moon', 'Dark'],
@@ -333,7 +317,8 @@ export function popHtml(p) {
         )
         .join('')}</div></div>
       <div class="msep"></div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
-      style = 'width:260px';
+      cls = 'account-pop';
+      style = 'width:320px';
       break;
     case 'help':
       inner = `<div class="mh">Помощь</div><button class="mi" data-a="shortcuts">${ic('keyboard', 15)}Горячие клавиши<span class="r"><kbd>?</kbd></span></button><button class="mi" data-a="openPalette">${ic('command', 15)}Меню команд<span class="r"><kbd>${MOD}K</kbd></span></button><div class="msep"></div><div class="mh">${esc(D().ws.name)}</div><div class="muted" style="padding:6px 12px 10px;font-size:12px;line-height:1.45">Вход выполняется через разрешённый Google-аккаунт. По вопросам доступа обратитесь к администратору пространства.</div>`;
@@ -463,9 +448,7 @@ export function popHtml(p) {
       break;
   }
   if (!inner) return '';
-  const role = p.type === 'systemStatus' ? 'dialog' : 'menu';
-  const label = p.type === 'systemStatus' ? ' aria-label="System status"' : '';
-  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="${role}"${label} style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
+  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
 }
 export function filterBuilder(p) {
   const v = viewOf(p.key);

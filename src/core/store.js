@@ -66,6 +66,7 @@ export const S = {
     systemStatusLoading: false,
     systemStatusError: '',
     systemSyncing: false,
+    systemDetailsOpen: false,
     locationReady: false,
     filePolicy: null,
     authStep: 'login',
@@ -125,6 +126,22 @@ export const S = {
     drafts: {},
   },
 };
+
+export function systemConnectionState() {
+  return S.ui.syncConflict
+    ? 'conflict'
+    : S.ui.offline
+      ? 'offline'
+      : S.ui.syncUnavailable
+        ? 'unavailable'
+        : S.ui.syncTooLarge
+          ? 'too_large'
+          : S.ui.syncInvalid
+            ? 'invalid'
+            : S.ui.systemSyncing
+              ? 'syncing'
+              : S.ui.syncState || 'saved';
+}
 export let _saveT;
 export function setWorkspaceBaseline(data) {
   S.ui.workspaceBaseline = structuredClone(data);

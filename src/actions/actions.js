@@ -70,7 +70,7 @@ async function refreshSystemStatus() {
     S.ui.systemStatusError = error.message || 'Unable to load system status.';
   } finally {
     S.ui.systemStatusLoading = false;
-    if (S.ui.pop?.type === 'systemStatus') render();
+    if (S.ui.pop?.type === 'user') render();
   }
 }
 
@@ -767,7 +767,13 @@ A.pop = el => {
     return;
   }
   openPop(el);
-  if (d.pop === 'systemStatus') void refreshSystemStatus();
+  if (d.pop === 'user') void refreshSystemStatus();
+};
+
+A.toggleSystemDetails = () => {
+  S.ui.systemDetailsOpen = !S.ui.systemDetailsOpen;
+  render();
+  if (S.ui.systemDetailsOpen && !S.ui.systemStatus && !S.ui.systemStatusLoading) void refreshSystemStatus();
 };
 
 A.syncSystemNow = async () => {
@@ -791,7 +797,7 @@ A.syncSystemNow = async () => {
     toast(S.ui.systemStatusError, { kind: 'err', ms: 8000 });
   } finally {
     S.ui.systemSyncing = false;
-    if (S.ui.pop?.type === 'systemStatus') render();
+    if (S.ui.pop?.type === 'user') render();
   }
 };
 A.ctxBtn = el => {
