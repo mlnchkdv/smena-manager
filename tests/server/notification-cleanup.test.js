@@ -18,7 +18,10 @@ test('notification cleanup expires old read history but retains recent and unrea
   };
   const result = pruneWorkspaceNotifications(data, { now });
   assert.equal(result.removed, 2);
-  assert.deepEqual(result.data.notifs.map(item => item.id), ['recent-read', 'old-unread']);
+  assert.deepEqual(
+    result.data.notifs.map(item => item.id),
+    ['recent-read', 'old-unread'],
+  );
   assert.equal(data.notifs.length, 4);
 });
 

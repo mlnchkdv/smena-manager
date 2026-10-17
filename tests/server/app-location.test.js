@@ -38,10 +38,7 @@ test('unknown entities open the not-found page', () => {
 
 test('current workspace state produces canonical URLs', () => {
   assert.equal(appLocationPath(data, { route: 'home', params: {}, drawer: null, modals: [] }), '/smena');
-  assert.equal(
-    appLocationPath(data, { route: 'settings', params: { sec: 'workspace' }, drawer: null, modals: [] }),
-    '/smena/settings/workspace',
-  );
+  assert.equal(appLocationPath(data, { route: 'settings', params: { sec: 'workspace' }, drawer: null, modals: [] }), '/smena/settings/workspace');
   assert.equal(appLocationPath(data, { route: 'project', params: { id: 'p1', tab: 'calendar' }, drawer: null, modals: [] }), '/smena/project/web/calendar');
   assert.equal(appLocationPath(data, { route: 'project', params: { id: 'p1' }, drawer: 't1', modals: [] }), '/smena/task/WEB-12');
   assert.equal(
