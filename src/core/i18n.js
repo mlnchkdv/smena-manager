@@ -1004,6 +1004,7 @@ const RU = {
   'Unable to sign out other sessions.': 'Не удалось завершить остальные сеансы.',
   'will need to sign in again to access the workspace.': 'Потребуется снова войти для доступа к рабочему пространству.',
   'Session has been signed out.': 'Сеанс был завершён. Войдите снова.',
+  'You signed out in another tab.': 'В другой вкладке выполнен выход из аккаунта.',
   'Session not found.': 'Сеанс не найден.',
   'Add a second step when signing in.': 'Добавьте второй этап проверки при входе.',
   'Protect your account with a code from an authenticator app in addition to your password.':

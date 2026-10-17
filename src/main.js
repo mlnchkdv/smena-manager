@@ -52,9 +52,9 @@ import { resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
-import { workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
+import { disableWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { workspaceRefreshDelay } from './core/workspace-refresh.js';
-import { clearSession, getNotificationDeliveryStatus } from './core/api.js';
+import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -235,6 +235,25 @@ window.addEventListener('smena:permission-denied', event => {
 
 window.addEventListener('smena:google-credential', event => {
   void A.doGoogleLogin(event.detail?.credential);
+});
+
+window.addEventListener('storage', event => {
+  if (event.key !== SESSION_STORAGE_KEY) return;
+  if (!event.newValue) {
+    clearSession();
+    disableWorkspaceSync();
+    S.ui.currentUser = null;
+    S.ui.authSessions = null;
+    S.ui.pop = null;
+    S.ui.palette = null;
+    S.ui.drawer = null;
+    S.ui.modals = [];
+    S.ui.auth = 'login';
+    S.ui.errors = { login: 'You signed out in another tab.' };
+    render();
+  } else if (!S.ui.currentUser && S.ui.auth === 'login') {
+    location.reload();
+  }
 });
 
 function applyBrowserLocation() {

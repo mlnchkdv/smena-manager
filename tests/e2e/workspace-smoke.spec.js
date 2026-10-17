@@ -313,3 +313,21 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await waitForSaved(page);
 });
+
+test('signing out is synchronized across browser tabs', async ({ browser }) => {
+  const context = await browser.newContext({ locale: 'ru-RU', timezoneId: 'Europe/Saratov' });
+  const firstPage = await context.newPage();
+  await signIn(firstPage);
+
+  const secondPage = await context.newPage();
+  await secondPage.goto('/e2e-team');
+  await expect(secondPage.locator('.shell')).toBeVisible();
+
+  await firstPage.locator('.account-menu-trigger:visible').first().click();
+  await firstPage.locator('[data-a="signOut"]:visible').click();
+
+  await expect(firstPage.locator('#login-btn')).toBeVisible();
+  await expect(secondPage.locator('#login-btn')).toBeVisible();
+  await expect(secondPage.getByRole('alert')).toContainText(/You signed out in another tab|В другой вкладке выполнен выход/u);
+  await context.close();
+});

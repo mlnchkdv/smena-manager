@@ -1,7 +1,7 @@
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';
 
-const SESSION_KEY = 'smena.session.v1';
+export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
 
 export class ApiError extends Error {
@@ -16,7 +16,7 @@ export class ApiError extends Error {
 
 function readSessionToken() {
   try {
-    return localStorage.getItem(SESSION_KEY) || memorySessionToken;
+    return localStorage.getItem(SESSION_STORAGE_KEY) || memorySessionToken;
   } catch {
     return memorySessionToken;
   }
@@ -29,8 +29,8 @@ export function getSessionToken() {
 export function setSessionToken(token) {
   memorySessionToken = token || '';
   try {
-    if (token) localStorage.setItem(SESSION_KEY, token);
-    else localStorage.removeItem(SESSION_KEY);
+    if (token) localStorage.setItem(SESSION_STORAGE_KEY, token);
+    else localStorage.removeItem(SESSION_STORAGE_KEY);
   } catch {
     /* The in-memory token keeps the active tab working. */
   }
