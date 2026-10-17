@@ -678,6 +678,9 @@ const RU = {
   'The same data changed in two sessions. Your version was saved as a recovery copy in this browser.':
     'Одни и те же данные изменены в двух сессиях. Ваш вариант сохранён как резервная копия в этом браузере.',
   'Load server version': 'Загрузить серверную версию',
+  'Workspace synchronization conflict.': 'Конфликт синхронизации.',
+  'The local version is saved in this browser. You can load the latest server version.':
+    'Локальная версия сохранена в этом браузере. Можно загрузить последнюю версию с сервера.',
   'Unable to resolve the synchronization conflict.': 'Не удалось разрешить конфликт синхронизации.',
   'The workspace changed in another session. Trying to merge changes safely…':
     'Рабочее пространство изменилось в другой сессии. Пытаемся безопасно объединить правки…',
