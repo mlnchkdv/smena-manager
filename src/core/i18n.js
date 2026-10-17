@@ -1453,6 +1453,10 @@ const pluralRu = (value, one, few, many) => {
 };
 
 const PATTERNS = [
+  [
+    /^(.+): (Owner|Admin|Administrator|Member|Guest|Viewer) → (Owner|Admin|Administrator|Member|Guest|Viewer)$/u,
+    (_match, name, before, after) => `${name}: ${RU[before] || before} → ${RU[after] || after}`,
+  ],
   [/^· (\d+) selected$/u, '· выбрано: $1'],
   [/^Task: (.+)$/u, 'Задача: $1'],
   [/^Subtask: (.+)$/u, 'Подзадача: $1'],

@@ -70,9 +70,11 @@ test('due reminder messages remain English keys and render in Russian', async ()
   const { S } = await import('../../src/core/store.js');
   const previousLanguage = S.prefs.lang;
   S.prefs.lang = 'English (US)';
+  assert.equal(t('Alex: Guest → Member'), 'Alex: Guest → Member');
   assert.equal(t('is due tomorrow'), 'is due tomorrow');
   assert.equal(t('is overdue'), 'is overdue');
   S.prefs.lang = 'Русский';
+  assert.equal(t('Alex: Guest → Member'), 'Alex: Гость → Участник');
   assert.equal(t('is due tomorrow'), '— срок завтра');
   assert.equal(t('is overdue'), '— срок просрочен');
   S.prefs.lang = previousLanguage;

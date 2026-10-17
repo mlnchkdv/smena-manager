@@ -1,0 +1,63 @@
+{
+  "audit": "audit-and-improvement-plan-2026-10-18.md",
+  "updatedAt": "2026-10-18",
+  "implementationComplete": false,
+  "checks": {
+    "serverTests": "168 passed",
+    "lint": "passed",
+    "build": "passed",
+    "browsers": "8/9 passed before inbox identity fix; isolated multiuser retry passed; aggregate regression running"
+  },
+  "items": [
+    { "id": "A01", "status": "implemented", "evidence": "de9592f", "remaining": "Broader direct API role matrix" },
+    { "id": "A02", "status": "partial", "evidence": "de9592f", "remaining": "Independent file registry and lifecycle checks" },
+    { "id": "A03", "status": "partial", "evidence": "05325ac,409e92c", "remaining": "Cold-start duplicate file prevention; Drive integration fault tests" },
+    { "id": "A04", "status": "verification", "evidence": "tests/server/atomic-workspace.test.js", "remaining": "Browser aggregate regression and commit" },
+    { "id": "A05", "status": "implemented", "evidence": "05325ac" },
+    { "id": "A06", "status": "implemented", "evidence": "05325ac,83c03b1" },
+    { "id": "A07", "status": "partial", "evidence": "c88a0ec", "remaining": "Browser offline/reload/quota tests and conflict comparison UI" },
+    { "id": "A08", "status": "partial", "evidence": "05325ac", "remaining": "Scope-only conflict recovery without resetting other document queues" },
+    { "id": "A09", "status": "implemented", "evidence": "05325ac,3926be7", "remaining": "Concurrent milestone browser test" },
+    { "id": "A10", "status": "partial", "evidence": "de9592f", "remaining": "Dependency cycles, nested structures and folder references" },
+    { "id": "A11", "status": "implemented", "evidence": "3926be7" },
+    { "id": "A12", "status": "implemented", "evidence": "3926be7" },
+    { "id": "A13", "status": "implemented", "evidence": "de9592f" },
+    {
+      "id": "A14",
+      "status": "partial",
+      "evidence": "409e92c",
+      "remaining": "HTTP-only session transport, shared rate limiting, legacy token migration policy"
+    },
+    {
+      "id": "A15",
+      "status": "partial",
+      "evidence": "409e92c,b7c97cb",
+      "remaining": "Delivery queue diagnostics, worker scheduling and live controlled acceptance"
+    },
+    {
+      "id": "A16",
+      "status": "partial",
+      "evidence": "de9592f",
+      "remaining": "ID-based mentions, description events, update channel preferences and deep links"
+    },
+    {
+      "id": "A17",
+      "status": "partial",
+      "evidence": "b7c97cb",
+      "remaining": "Digest concurrent idempotence, cleanup reminder tombstones and cron failure status"
+    },
+    { "id": "A18", "status": "pending" },
+    { "id": "A19", "status": "pending" },
+    { "id": "A20", "status": "pending" },
+    { "id": "A21", "status": "pending" },
+    { "id": "A22", "status": "pending" },
+    { "id": "A23", "status": "pending" },
+    { "id": "A24", "status": "pending" },
+    { "id": "A25", "status": "pending" },
+    { "id": "A26", "status": "pending" },
+    { "id": "A27", "status": "partial", "evidence": "2dedce3", "remaining": "Full themes, keyboard and adaptive acceptance matrix" },
+    { "id": "A28", "status": "pending" },
+    { "id": "A29", "status": "pending" },
+    { "id": "A30", "status": "partial", "evidence": "2dedce3", "remaining": "Split oversized actions, complete regression and operational documentation" }
+  ]
+}
