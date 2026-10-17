@@ -65,12 +65,12 @@ export function pageHome() {
         </section>
         <section class="panel">
           <div class="panel-h"><h2>Project progress</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">All projects</button></div></div>
-          <div style="overflow-x:auto"><table class="perm-t" style="min-width:560px"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Status</th><th style="text-align:left;width:26%">Progress</th><th style="text-align:left">Due</th><th style="text-align:right;padding-right:14px">Team</th></tr></thead><tbody>
+          <div class="home-projects-wrap"><table class="perm-t home-projects-table"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Status</th><th style="text-align:left;width:26%">Progress</th><th style="text-align:left">Due</th><th style="text-align:right;padding-right:14px">Team</th></tr></thead><tbody>
           ${activeP
             .filter(canSee)
             .map(p => {
               const pr = progressOf(p.id);
-              return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></span></td><td style="text-align:left">${pStatus(p.status)}</td><td><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:right;padding-right:14px">${avStack(p.members, 3)}</td></tr>`;
+              return `<tr data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td class="home-project-name"><span class="row">${pIcon(p, '', 14)}<b style="font-weight:500">${esc(p.name)}</b></span></td><td class="home-project-status">${pStatus(p.status)}</td><td class="home-project-progress"><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td class="home-project-due num muted"><span class="home-project-meta-icon">${ic('calendar', 12)}</span>${fmtDate(p.due)}</td><td class="home-project-team">${avStack(p.members, 3)}</td></tr>`;
             })
             .join('')}
           </tbody></table></div>
