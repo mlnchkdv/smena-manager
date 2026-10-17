@@ -61,10 +61,11 @@ Bootstrap team profiles are supplied through `ACCESS_IDS_JSON` on Vercel. For lo
 are passwords; never commit real values. Their login form is enabled locally and disabled on Vercel by
 default. Set `ACCESS_ID_LOGIN_ENABLED=true` only when a temporary production recovery channel is
 required. Production also requires a stable `SESSION_SECRET`.
-Workspace writes on Vercel can use `REDIS_URL` for a distributed lock, or
+Workspace writes on Vercel can use `REDIS_URL` for a renewable distributed lock, or
 `WORKSPACE_WRITE_MODE=drive` for direct Drive persistence with revision and ETag conflict protection.
 The direct mode suits a small team without a separate database; Redis remains preferable for high
-write concurrency.
+write concurrency. The account menu reports the active write-protection mode and whether the shared
+lock is reachable, without exposing connection credentials.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
 projects/tasks/files but not membership or workspace settings, and `viewer` is read-only. Only an
@@ -90,8 +91,10 @@ administrator can initialize an empty production database on the first sign-in.
    `https://smena-manager.vercel.app` to **Authorized JavaScript origins**. The popup flow does not need
    a production redirect URI. If local Google login is required, also add the exact Vite origin and set
    `GOOGLE_LOCALHOST_ENABLED=true` locally.
-5. For a small team without a separate database, set `WORKSPACE_WRITE_MODE=drive`. For higher write
-   concurrency, add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash).
+5. For a small team without a separate database, set `WORKSPACE_WRITE_MODE=drive`. For concurrent
+   team editing, add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash).
+   Use a TLS `rediss://` URL in Production. Once connected, the account status panel must show
+   `Distributed lock`; `Lock unavailable` means writes should be investigated before team use.
 6. Add the variables to every Vercel environment that should work (Production and, if desired,
    Preview), then redeploy. Run `npm run check:deploy` against an equivalent local `.env` before the
    deployment.

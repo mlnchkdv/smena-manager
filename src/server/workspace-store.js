@@ -1,5 +1,5 @@
 import { getStorageProvider } from './storage/index.js';
-import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
+import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
@@ -212,6 +212,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   const transportBytes = workspaceTransportBytes(next, next.revision);
   if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
   const storage = getStorageProvider();
+  await options.coordination?.assertOwnership?.();
   try {
     await storage.saveDatabase(next);
   } catch (error) {
@@ -237,9 +238,9 @@ export async function mutateWorkspaceDatabase(mutator, expectedRevision, options
 
   if (process.env.VERCEL) {
     if (hasSharedRedis()) {
-      return withRedisLock('smena:workspace:write:v1', async () => {
+      return withRedisLock('smena:workspace:write:v1', async coordination => {
         await reloadWorkspaceStore();
-        return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' });
+        return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin', coordination });
       });
     }
     if (!directDriveWritesEnabled()) {
@@ -268,8 +269,15 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
 export async function getWorkspaceStatus() {
   const data = await initWorkspaceStore();
   const storage = getStorageProvider();
+  const redis = await getRedisHealth();
+  const coordination = redis.configured
+    ? { mode: 'redis-lock', healthy: redis.connected, latencyMs: redis.latencyMs }
+    : process.env.VERCEL
+      ? { mode: 'drive-etag', healthy: directDriveWritesEnabled(), latencyMs: null }
+      : { mode: 'local-queue', healthy: true, latencyMs: null };
   return {
     storage: await storage.getStatus(),
+    coordination,
     schemaVersion: data.schemaVersion,
     revision: data.revision,
     updatedAt: data.updatedAt,

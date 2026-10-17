@@ -143,6 +143,16 @@ function accountSystemStatusHtml() {
   const lastSync = lastSyncValue ? new Date(lastSyncValue).toLocaleString(locale()) : 'Never';
   const loading = S.ui.systemStatusLoading && !status;
   const expanded = S.ui.systemDetailsOpen;
+  const coordination = status?.coordination;
+  const writeProtection = coordination
+    ? coordination.mode === 'redis-lock'
+      ? coordination.healthy
+        ? 'Distributed lock'
+        : 'Lock unavailable'
+      : coordination.mode === 'drive-etag'
+        ? 'Revision protection'
+        : 'Local write queue'
+    : 'Checking…';
 
   return `<section class="account-system" data-state="${state}">
     <button class="account-system-summary" data-a="toggleSystemDetails" aria-expanded="${expanded}" aria-controls="account-system-details">
@@ -156,6 +166,7 @@ function accountSystemStatusHtml() {
       <dl class="account-system-grid" aria-busy="${loading}">
         <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
         <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
+        <div><dt>Write protection</dt><dd>${loading ? 'Checking…' : writeProtection}</dd></div>
         <div><dt>Team updates</dt><dd>Every 15 seconds</dd></div>
         <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
       </dl>

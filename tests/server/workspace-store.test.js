@@ -6,6 +6,7 @@ import { resetStorageProvider } from '../../src/server/storage/index.js';
 import {
   getWorkspaceDatabase,
   getWorkspaceRevisionStatus,
+  getWorkspaceStatus,
   replaceWorkspaceDatabase,
   resetWorkspaceStore,
   RevisionConflictError,
@@ -77,6 +78,11 @@ test('workspace revision status returns synchronization metadata without changin
   const status = await getWorkspaceRevisionStatus();
   assert.equal(status.revision, initial.revision);
   assert.equal(status.updatedAt, initial.updatedAt);
+});
+
+test('workspace status reports local write coordination outside Vercel', async () => {
+  const status = await getWorkspaceStatus();
+  assert.deepEqual(status.coordination, { mode: 'local-queue', healthy: true, latencyMs: null });
 });
 
 test('explicit Drive mode permits revision-checked writes on Vercel without Redis', async () => {
