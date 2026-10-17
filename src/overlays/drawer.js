@@ -37,20 +37,6 @@ export function drawerHtml(t) {
   const tab = u.drawerTab;
   const prop = (icon, label, val) => `<dt>${ic(icon, 14)}${label}</dt><dd>${val}</dd>`;
   const ups = (u.uploads || []).filter(x => x.task === t.id);
-  const mentionQuery = u.mention && u.mention.tid === t.id ? u.mention.q.trim().toLocaleLowerCase() : null;
-  const ment =
-    mentionQuery !== null
-      ? [
-          { id: 'workspace', name: isRussian() ? 'все' : 'workspace', title: 'Entire workspace', icon: 'building-2', kind: 'group' },
-          ...teamsList().map(item => ({ id: item.id, name: item.name, title: 'Team', icon: item.icon, kind: 'group' })),
-          ...D().members.map(item => ({ ...item, kind: 'member' })),
-        ]
-          .filter(item => {
-            const name = item.name.toLocaleLowerCase();
-            return !mentionQuery || name.startsWith(mentionQuery) || name.split(' ').some(part => part.startsWith(mentionQuery));
-          })
-          .slice(0, 7)
-      : [];
   const sub = u.subOpen && u.subOpen.tid === t.id ? t.subtasks.find(s => s.id === u.subOpen.sid) : null;
   return `<aside class="drawer ${u.drawerFull ? 'full' : ''} ${u.fx.drawer ? 'enter' : ''} ${u.fx.tabs ? 'fx-tabs' : ''}" role="dialog" aria-modal="${u.drawerFull}" aria-labelledby="d-h" tabindex="-1">
     <h2 class="sr" id="d-h">${sub ? 'Subtask: ' + esc(sub.title) : 'Task: ' + esc(t.title)}</h2>
@@ -125,7 +111,7 @@ export function drawerHtml(t) {
           <div class="row" style="align-items:flex-start;gap:10px;margin-top:8px">${av(D().me, 'md', false)}<div class="grow" style="position:relative">
             <div class="cbox"><textarea id="d-cmt" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Leave a comment… type @ to mention" aria-label="Comment" rows="2" data-autosize>${esc(u.drafts[t.id] || '')}</textarea>
             <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><label class="ibtn ibtn-xs" data-tip="Attach file" style="cursor:pointer">${ic('paperclip', 14)}<input type="file" multiple hidden data-in="uploadFiles" data-task="${t.id}" data-project="${t.project}"></label><span class="sp"></span><span class="faint hide-m" style="font-size:11px">${MOD}+Enter</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Comment</button></div></div>
-            ${ment.length ? `<div class="pop" style="position:absolute;top:auto;bottom:calc(100% + 4px);left:0">${ment.map(m => `<button class="mi" data-a="pickMention" data-id="${t.id}" data-name="${esc(m.name)}">${m.kind === 'member' ? av(m.id, 'sm', false) : `<span class="av sm" style="--c:var(--accent)">${ic(m.icon, 12)}</span>`}${esc(m.name)}<span class="r">${esc(m.title)}</span></button>`).join('')}</div>` : ''}
+            ${mentionPicker(t.id)}
           </div></div>`
             : `
           <div style="padding-top:4px">${acts.map(a => `<div class="act-line"><span class="ico">${av(a.by, 'sm', false)}</span><span class="grow"><b>${esc(mem(a.by)?.id === D().me ? tr('You') : mem(a.by)?.name)}</b> ${esc(tr(a.verb.replace(/ of$/, '')))}${a.extra ? ' ' + esc(activityExtra(a.extra, a.verb)) : ''}</span><time class="faint" style="font-size:11.5px">${ago(a.at)}</time></div>`).join('')}
@@ -135,6 +121,28 @@ export function drawerHtml(t) {
     }
     </div>
   </aside>`;
+}
+
+export function mentionPicker(taskId) {
+  const query = S.ui.mention && S.ui.mention.tid === taskId ? S.ui.mention.q.trim().toLocaleLowerCase() : null;
+  if (query === null) return '';
+  const matches = [
+    { id: 'workspace', name: isRussian() ? 'все' : 'workspace', title: 'Entire workspace', icon: 'building-2', kind: 'group' },
+    ...teamsList().map(item => ({ id: item.id, name: item.name, title: 'Team', icon: item.icon, kind: 'group' })),
+    ...D().members.map(item => ({ ...item, kind: 'member' })),
+  ]
+    .filter(item => {
+      const name = item.name.toLocaleLowerCase();
+      return !query || name.startsWith(query) || name.split(' ').some(part => part.startsWith(query));
+    })
+    .slice(0, 7);
+  if (!matches.length) return '';
+  return `<div class="pop mention-picker" style="position:absolute;top:auto;bottom:calc(100% + 4px);left:0">${matches
+    .map(
+      item =>
+        `<button class="mi" data-a="pickMention" data-id="${taskId}" data-name="${esc(item.name)}">${item.kind === 'member' ? av(item.id, 'sm', false) : `<span class="av sm" style="--c:var(--accent)">${ic(item.icon, 12)}</span>`}${esc(item.name)}<span class="r">${esc(item.title)}</span></button>`,
+    )
+    .join('')}</div>`;
 }
 export function commentHtml(c) {
   const m = mem(c.by);

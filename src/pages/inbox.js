@@ -4,7 +4,7 @@ import { ic } from '../core/icons.js';
 import { S, commentsOf, mem, myNotification, myNotifications, pColor, proj, task } from '../core/store.js';
 import { av, empty, fmtComment } from '../ui/helpers.js';
 import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-list.js';
-import { commentHtml } from '../overlays/drawer.js';
+import { commentHtml, mentionPicker } from '../overlays/drawer.js';
 import { t as tr } from '../core/i18n.js';
 
 export function pageInbox() {
@@ -71,8 +71,12 @@ export function inboxItem(n, on) {
 export function inboxPreview(n) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-  if (!t)
-    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert danger">${ic('triangle-alert', 16)}<div><b>${esc(n.text)}</b><div class="muted" style="margin-top:2px">${esc(n.snippet)}</div></div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview">Open project</button></div></div>`;
+  if (!t) {
+    const missing = n.task ? 'The related task is no longer available.' : p ? '' : 'The related project is no longer available.';
+    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert ${missing ? 'warn' : 'info'}">${ic(missing ? 'archive' : 'info', 16)}<div><b>${esc(missing || tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div>${p ? `<div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="project" data-id="${p.id}" data-tab="overview">Open project</button></div>` : ''}</div>`;
+  }
+  if (!p)
+    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic('archive', 16)}<div><b>The task's project is no longer available.</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div></div>`;
   const cs = commentsOf(t.id).slice(-4);
   return `<div class="row" style="height:46px;padding:0 16px;border-bottom:1px solid var(--border);gap:8px;flex-shrink:0">
       <button class="ibtn ibtn-sm" data-a="set" data-k="inboxSel" data-v="" aria-label="Back">${ic('arrow-left', 15)}</button>
@@ -83,7 +87,7 @@ export function inboxPreview(n) {
       <div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:18px">${cellStatus(t)}${cellAssignee(t)}${cellPrio(t)}${cellDue(t)}</div>
       <div class="eyebrow" style="margin-bottom:4px">Conversation</div>
       ${cs.length ? cs.map(commentHtml).join('') : `<p class="muted">${esc(n.snippet)}</p>`}
-      <div class="cbox" style="margin-top:10px"><textarea id="inbox-reply" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Reply… use @ to mention" aria-label="Reply">${esc(S.ui.drafts[t.id] || '')}</textarea>
-      <div class="row"><span class="faint" style="font-size:11.5px">${MOD}+Enter to send</span><span class="sp"></span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Reply</button></div></div>
+      <div style="margin-top:10px;position:relative"><div class="cbox"><textarea id="inbox-reply" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Reply… use @ to mention" aria-label="Reply">${esc(S.ui.drafts[t.id] || '')}</textarea>
+      <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><span class="sp"></span><span class="faint" style="font-size:11.5px">${MOD}+Enter to send</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Reply</button></div></div>${mentionPicker(t.id)}</div>
     </div>`;
 }

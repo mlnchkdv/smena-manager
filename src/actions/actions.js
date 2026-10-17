@@ -269,6 +269,7 @@ A.set = el => {
   let v = el.dataset.v;
   if (/Tab$|Cat$|Mode$|View$/.test(k)) fxSet({ tabs: true });
   if (k === 'inboxSel' && !v) v = null;
+  if (k === 'inboxCat') S.ui.inboxSel = null;
   S.ui[k] = v;
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;
   render();
@@ -1449,7 +1450,7 @@ A.pickMention = el => {
   S.ui.drafts[id] = d.replace(/@([^@\n]*)$/u, '@' + el.dataset.name + ' ');
   S.ui.mention = null;
   render();
-  const ta = $('#d-cmt');
+  const ta = $('#d-cmt, #inbox-reply');
   if (ta) {
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
@@ -1461,7 +1462,7 @@ A.insertAt = el => {
   S.ui.drafts[id] = d + (d && !d.endsWith(' ') ? ' @' : '@');
   S.ui.mention = { tid: id, q: '' };
   render();
-  const ta = $('#d-cmt');
+  const ta = $('#d-cmt, #inbox-reply');
   if (ta) {
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
@@ -2296,6 +2297,7 @@ A.markAllRead = () => {
   const notifications = myNotifications();
   const n = notifications.filter(x => !x.read).length;
   notifications.forEach(x => (x.read = true));
+  S.ui.inboxSel = null;
   save();
   render();
   if (n) toast("You're all caught up.");
@@ -2312,6 +2314,7 @@ A.clearReadNotifications = async () => {
 };
 A.toggleUnreadOnly = () => {
   S.ui.inboxUnread = !S.ui.inboxUnread;
+  S.ui.inboxSel = null;
   render();
 };
 A.openNotif = el => {

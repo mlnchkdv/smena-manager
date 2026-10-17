@@ -59,11 +59,19 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await editor.goto('/e2e-team/notifications');
   await expect(editor.locator('.nrow', { hasText: taskTitle })).toContainText('assigned you');
 
-  await editor.goto('/e2e-team/mytasks');
-  await editor.getByText(taskTitle, { exact: true }).first().click();
-  await editor.locator('.drawer textarea[data-in="draft"]').fill('@Тестовый администратор Проверьте результат.');
-  await editor.locator('.drawer [data-a="postComment"]').click();
+  await editor.goto('/e2e-team/inbox');
+  await editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle }).click();
+  await expect(editor.locator('.inbox-prev h2')).toHaveText(taskTitle);
+  await editor.locator('.inbox-prev [data-a="insertAt"]').click();
+  const inboxMentionPicker = editor.locator('.inbox-prev .mention-picker');
+  await expect(inboxMentionPicker).toBeVisible();
+  await inboxMentionPicker.locator('[data-name="Тестовый администратор"]').click();
+  await expect(editor.locator('#inbox-reply')).toHaveValue('@Тестовый администратор ');
+  await editor.locator('#inbox-reply').fill('@Тестовый администратор Проверьте результат.');
+  await editor.locator('.inbox-prev [data-a="postComment"]').click();
   await waitForSaved(editor);
+  await editor.locator('.inbox-tabs [data-v="assign"]').click();
+  await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 
   await admin.reload();
   await expect(admin.locator('.shell')).toBeVisible();
