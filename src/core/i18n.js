@@ -48,6 +48,7 @@ const RU = {
   'Local write queue': 'Локальная очередь записи',
   'Lock unavailable': 'Блокировка недоступна',
   'Every 15 seconds': 'Каждые 15 секунд',
+  'Every 5 seconds while active': 'Каждые 5 секунд при активной вкладке',
   Used: 'Использовано',
   'Last synchronized': 'Последняя синхронизация',
   'All changes are synchronized': 'Все изменения синхронизированы',

@@ -63,6 +63,7 @@ import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
+import { workspaceRefreshDelay } from './core/workspace-refresh.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -70,6 +71,16 @@ window.addEventListener('smena:page-module-ready', event => {
 
 let conflictRecoveryPromise = null;
 let pushSyncPromise = null;
+const refreshChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena:workspace:v2') : null;
+let refreshAnnouncementTimer = null;
+
+function announceWorkspaceChange() {
+  if (!refreshChannel) return;
+  clearTimeout(refreshAnnouncementTimer);
+  refreshAnnouncementTimer = setTimeout(() => {
+    refreshChannel.postMessage({ type: 'workspace-saved', at: Date.now() });
+  }, 80);
+}
 
 async function refreshWebPushSubscription() {
   if (S.ui.auth || !S.ui.currentUser || pushSyncPromise) return pushSyncPromise;
@@ -166,6 +177,7 @@ window.addEventListener('smena:sync-status', event => {
     if (scope && scope !== 'workspace') S.ui.documentRevisions[scope] = revision;
     else S.ui.workspaceRevision = revision;
     S.ui.lastSyncedAt = Date.now();
+    announceWorkspaceChange();
     queueMicrotask(() => {
       const syncState = workspaceSyncState();
       if (syncState.hasActive || syncState.hasPending) return updateSyncIndicator('syncing');
@@ -281,11 +293,14 @@ window.addEventListener('popstate', () => {
 })();
 
 let workspaceRefreshPromise = null;
+let workspaceRefreshTimer = null;
+let workspaceRefreshFailures = 0;
 async function refreshVisibleWorkspace(showNotice = false) {
-  if (S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return;
+  if (S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return workspaceRefreshPromise;
   const previousNotifications = new Set(myNotifications().map(notification => notification.id));
   workspaceRefreshPromise = refreshWorkspaceFromServer()
     .then(result => {
+      workspaceRefreshFailures = 0;
       if (result.status === 'updated') {
         const freshNotifications = myNotifications().filter(notification => !previousNotifications.has(notification.id));
         render();
@@ -311,6 +326,7 @@ async function refreshVisibleWorkspace(showNotice = false) {
     })
     .catch(error => {
       if (error.status === 401) return;
+      workspaceRefreshFailures += 1;
       if (!S.ui.offline) {
         S.ui.offline = !error.status;
         S.ui.syncUnavailable = !!error.status;
@@ -322,15 +338,35 @@ async function refreshVisibleWorkspace(showNotice = false) {
     });
 }
 
-setInterval(() => void refreshVisibleWorkspace(false), 15_000);
+function scheduleWorkspaceRefresh(delay = null) {
+  clearTimeout(workspaceRefreshTimer);
+  workspaceRefreshTimer = setTimeout(
+    async () => {
+      await refreshVisibleWorkspace(false);
+      scheduleWorkspaceRefresh();
+    },
+    delay ?? workspaceRefreshDelay({ hidden: document.hidden, offline: !navigator.onLine, failures: workspaceRefreshFailures }),
+  );
+}
+
+function refreshWorkspaceSoon(showNotice = false) {
+  clearTimeout(workspaceRefreshTimer);
+  void Promise.resolve(refreshVisibleWorkspace(showNotice)).finally(() => scheduleWorkspaceRefresh());
+}
+
+scheduleWorkspaceRefresh();
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) void refreshVisibleWorkspace(true);
+  if (!document.hidden) refreshWorkspaceSoon(true);
+  else scheduleWorkspaceRefresh();
 });
-window.addEventListener('focus', () => void refreshVisibleWorkspace(true));
+window.addEventListener('focus', () => refreshWorkspaceSoon(true));
 window.addEventListener('online', () => {
   void A.retryOnline();
-  void refreshVisibleWorkspace(true);
+  refreshWorkspaceSoon(true);
   void refreshWebPushSubscription();
+});
+refreshChannel?.addEventListener('message', event => {
+  if (event.data?.type === 'workspace-saved') refreshWorkspaceSoon(false);
 });
 navigator.serviceWorker?.addEventListener('message', event => {
   if (event.data?.type === 'smena:push-subscription-change') void refreshWebPushSubscription();

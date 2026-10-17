@@ -167,7 +167,7 @@ function accountSystemStatusHtml() {
         <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
         <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
         <div><dt>Write protection</dt><dd>${loading ? 'Checking…' : writeProtection}</dd></div>
-        <div><dt>Team updates</dt><dd>Every 15 seconds</dd></div>
+        <div><dt>Team updates</dt><dd>Every 5 seconds while active</dd></div>
         <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
       </dl>
       ${S.ui.systemStatusError ? `<div class="account-system-error" role="alert">${ic('triangle-alert', 14)}<span>${esc(S.ui.systemStatusError)}</span></div>` : ''}

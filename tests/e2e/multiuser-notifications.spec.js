@@ -6,7 +6,13 @@ async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
   await outcome.waitFor({ state: 'visible' });
   if ((await outcome.getAttribute('role')) === 'alert') throw new Error(`Sign in failed: ${(await outcome.textContent())?.trim()}`);
-  if (!(await page.locator('#o-ws').isVisible().catch(() => false))) return;
+  if (
+    !(await page
+      .locator('#o-ws')
+      .isVisible()
+      .catch(() => false))
+  )
+    return;
   await page.locator('#o-ws').fill('E2E Команда');
   await page.locator('#o-url').fill('e2e-team');
   await page.locator('#onb-next').click();
@@ -54,10 +60,8 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await admin.locator('#f-submit').click();
   await waitForSaved(admin);
 
-  await editor.reload();
-  await expect(editor.locator('.shell')).toBeVisible();
   await editor.goto('/e2e-team/notifications');
-  await expect(editor.locator('.nrow', { hasText: taskTitle })).toContainText('assigned you');
+  await expect(editor.locator('.nrow', { hasText: taskTitle })).toContainText('assigned you', { timeout: 8_000 });
 
   await editor.goto('/e2e-team/inbox');
   await editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle }).click();
@@ -73,11 +77,9 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await editor.locator('.inbox-tabs [data-v="assign"]').click();
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 
-  await admin.reload();
-  await expect(admin.locator('.shell')).toBeVisible();
   await admin.goto('/e2e-team/notifications');
   const mention = admin.locator('.nrow', { hasText: taskTitle });
-  await expect(mention).toContainText('упомянул');
+  await expect(mention).toContainText('упомянул', { timeout: 8_000 });
   await expect(mention).toContainText('Проверьте результат.');
 
   for (const [page, width, height] of [
