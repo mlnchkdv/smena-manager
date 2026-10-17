@@ -41,11 +41,12 @@ const accessProfiles = JSON.stringify([
 ]);
 
 export default defineConfig({
+  outputDir: `.data/e2e/${runId}/results`,
   testDir: './tests/e2e',
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'line',
+  reporter: process.env.CI ? [['line'], ['html', { open: 'never', outputFolder: `.data/e2e/${runId}/report` }]] : 'line',
   use: {
     baseURL: `http://127.0.0.1:${clientPort}`,
     locale: 'ru-RU',

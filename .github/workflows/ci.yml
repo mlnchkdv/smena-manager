@@ -26,6 +26,6 @@ jobs:
         with:
           name: playwright-report
           path: |
-            playwright-report/
-            test-results/
+            .data/e2e/**/report/
+            .data/e2e/**/results/
           if-no-files-found: ignore
