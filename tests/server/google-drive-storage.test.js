@@ -178,6 +178,33 @@ test('Google Drive reads the database revision from file metadata without downlo
   assert.equal(provider.databaseEtag, 'etag-7');
 });
 
+test('Google Drive stores authentication sessions in a private sibling JSON file', async () => {
+  const calls = [];
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root-folder';
+  provider.client = {
+    files: {
+      list: async () => ({ data: { files: [{ id: 'auth-sessions-file' }] } }),
+      get: async () => ({
+        data: JSON.stringify([{ id: 'session-1', userId: 'member-1' }]),
+        headers: { etag: 'etag-session-1' },
+      }),
+      update: async (options, requestOptions) => {
+        calls.push({ options, requestOptions });
+        return { headers: { etag: 'etag-session-2' } };
+      },
+    },
+  };
+
+  assert.deepEqual(await provider.loadAuthSessions(), [{ id: 'session-1', userId: 'member-1' }]);
+  await provider.saveAuthSessions([{ id: 'session-2', userId: 'member-1' }]);
+
+  assert.equal(calls[0].options.fileId, 'auth-sessions-file');
+  assert.equal(calls[0].requestOptions.headers['If-Match'], 'etag-session-1');
+  assert.equal(provider.authSessionsEtag, 'etag-session-2');
+});
+
 test('Google Drive stores push subscriptions in a private sibling JSON file', async () => {
   const calls = [];
   const provider = new GoogleDriveStorageProvider();

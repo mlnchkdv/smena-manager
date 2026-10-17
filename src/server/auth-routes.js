@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { accessIdLoginEnabled, createSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
+import { accessIdLoginEnabled, createTrackedSession, findProfileByAccessId, getAccessProfiles, publicProfile } from './auth.js';
 import { authenticateGoogleCredential, getGoogleAuthConfiguration, GoogleAuthenticationError } from './google-auth.js';
 import { hasGoogleDriveCredentials } from './storage/index.js';
 import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-config.js';
@@ -73,7 +73,7 @@ authRouter.post('/google', rateLimit, async (request, response) => {
     const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase());
     const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
-    response.json({ valid: true, token: createSession(profile), user: publicProfile(profile) });
+    response.json({ valid: true, token: await createTrackedSession(profile, request, 'google'), user: publicProfile(profile) });
   } catch (error) {
     loginRateLimiter.recordFailure(request.loginRateLimitKey);
     if (error instanceof GoogleAuthenticationError) {
@@ -84,14 +84,18 @@ authRouter.post('/google', rateLimit, async (request, response) => {
   }
 });
 
-authRouter.post('/validate', requireAccessIdLogin, rateLimit, (request, response) => {
-  const accessId = typeof request.body?.accessId === 'string' ? request.body.accessId.trim() : '';
-  const profile = findProfileByAccessId(accessId);
-  if (!profile) {
-    loginRateLimiter.recordFailure(request.loginRateLimitKey);
-    response.status(401).json({ valid: false, error: 'Invalid access ID.' });
-    return;
+authRouter.post('/validate', requireAccessIdLogin, rateLimit, async (request, response, next) => {
+  try {
+    const accessId = typeof request.body?.accessId === 'string' ? request.body.accessId.trim() : '';
+    const profile = findProfileByAccessId(accessId);
+    if (!profile) {
+      loginRateLimiter.recordFailure(request.loginRateLimitKey);
+      response.status(401).json({ valid: false, error: 'Invalid access ID.' });
+      return;
+    }
+    loginRateLimiter.recordSuccess(request.loginRateLimitKey);
+    response.json({ valid: true, token: await createTrackedSession(profile, request, 'access_id'), user: publicProfile(profile) });
+  } catch (error) {
+    next(error);
   }
-  loginRateLimiter.recordSuccess(request.loginRateLimitKey);
-  response.json({ valid: true, token: createSession(profile), user: publicProfile(profile) });
 });

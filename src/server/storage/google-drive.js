@@ -9,6 +9,7 @@ const UPLOADS_FOLDER_NAME = 'uploads';
 const BACKUPS_FOLDER_NAME = 'backups';
 const PUSH_SUBSCRIPTIONS_NAME = 'smena-manager-push-subscriptions.json';
 const NOTIFICATION_DELIVERY_NAME = 'smena-manager-notification-delivery.json';
+const AUTH_SESSIONS_NAME = 'smena-manager-auth-sessions.json';
 const DOCUMENT_FILES = Object.freeze({
   knowledge: 'smena-manager-knowledge.json',
   bookmarks: 'smena-manager-bookmarks.json',
@@ -35,6 +36,8 @@ export class GoogleDriveStorageProvider {
   pushSubscriptionsEtag = null;
   notificationDeliveryFileId = null;
   notificationDeliveryEtag = null;
+  authSessionsFileId = null;
+  authSessionsEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
   backupsFolderId = null;
   credentialType = null;
@@ -386,6 +389,55 @@ export class GoogleDriveStorageProvider {
     });
     this.notificationDeliveryFileId = created.data.id;
     this.notificationDeliveryEtag = created.headers?.etag || null;
+  }
+
+  async findAuthSessionsFile() {
+    if (this.authSessionsFileId) return this.authSessionsFileId;
+    const result = await this.client.files.list({
+      q: `name = '${AUTH_SESSIONS_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
+      fields: 'files(id)',
+      spaces: 'drive',
+      pageSize: 1,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    this.authSessionsFileId = result.data.files?.[0]?.id || null;
+    return this.authSessionsFileId;
+  }
+
+  async loadAuthSessions() {
+    await this.init();
+    const fileId = await this.findAuthSessionsFile();
+    if (!fileId) return [];
+    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    this.authSessionsEtag = response.headers?.etag || null;
+    const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  async saveAuthSessions(sessions) {
+    await this.init();
+    const fileId = await this.findAuthSessionsFile();
+    const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(sessions, null, 2)]) };
+    if (fileId) {
+      const requestOptions = this.authSessionsEtag ? { headers: { 'If-Match': this.authSessionsEtag } } : undefined;
+      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      this.authSessionsEtag = updated.headers?.etag || null;
+      return;
+    }
+    const created = await this.client.files.create({
+      requestBody: {
+        name: AUTH_SESSIONS_NAME,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaPrivate: 'auth-sessions' },
+      },
+      media,
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+    this.authSessionsFileId = created.data.id;
+    this.authSessionsEtag = created.headers?.etag || null;
   }
 
   async createDatabaseBackup(data, label = '') {

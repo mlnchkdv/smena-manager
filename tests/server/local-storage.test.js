@@ -93,6 +93,20 @@ test('local storage persists notification delivery diagnostics outside workspace
   assert.equal((await provider.loadDatabase())?.notificationDelivery, undefined);
 });
 
+test('local storage keeps authentication sessions outside workspace data', async t => {
+  const testRoot = path.join(process.cwd(), '.data', 'tests');
+  await fs.promises.mkdir(testRoot, { recursive: true });
+  const directory = await fs.promises.mkdtemp(path.join(testRoot, 'local-auth-sessions-'));
+  t.after(() => fs.promises.rm(directory, { recursive: true, force: true }));
+  const provider = new LocalStorageProvider(path.join(directory, 'workspace.json'));
+  const sessions = [{ id: 'session-1', userId: 'member-1', device: 'Windows · Chrome 141' }];
+
+  assert.deepEqual(await provider.loadAuthSessions(), []);
+  await provider.saveAuthSessions(sessions);
+  assert.deepEqual(await provider.loadAuthSessions(), sessions);
+  assert.equal((await provider.loadDatabase())?.authSessions, undefined);
+});
+
 test('local storage uploads, streams byte ranges, and deletes files', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');
   await fs.promises.mkdir(testRoot, { recursive: true });

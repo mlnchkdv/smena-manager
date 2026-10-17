@@ -28,6 +28,7 @@ import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
+import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 
 export const app = express();
 
@@ -80,6 +81,45 @@ app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });
+});
+
+app.get('/api/auth/sessions', async (request, response, next) => {
+  try {
+    response.json({ sessions: await listAuthSessions(request.user.id, request.sessionId) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/auth/sessions/others', async (request, response, next) => {
+  try {
+    const revoked = await revokeOtherAuthSessions(request.user.id, request.sessionId);
+    response.json({ revoked, sessions: await listAuthSessions(request.user.id, request.sessionId) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/auth/sessions/:sessionId', async (request, response, next) => {
+  try {
+    const revoked = await revokeAuthSession(request.user.id, request.params.sessionId);
+    if (!revoked) {
+      response.status(404).json({ error: 'Session not found.', code: 'SESSION_NOT_FOUND' });
+      return;
+    }
+    response.json({ revoked: 1, current: request.params.sessionId === request.sessionId });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/auth/session', async (request, response, next) => {
+  try {
+    await revokeAuthSession(request.user.id, request.sessionId);
+    response.json({ revoked: 1 });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/push/config', (_request, response) => {
