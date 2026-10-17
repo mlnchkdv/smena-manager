@@ -2,6 +2,33 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mergeWorkspaceData } from '../../src/shared/workspace-merge.js';
 
+test('local reordering survives an independent remote edit', () => {
+  const base = {
+    tasks: [
+      { id: 'a', title: 'A' },
+      { id: 'b', title: 'B' },
+      { id: 'c', title: 'C' },
+    ],
+  };
+  const local = { tasks: [base.tasks[2], base.tasks[0], base.tasks[1]] };
+  const remote = structuredClone(base);
+  remote.tasks[1].title = 'Updated';
+  const result = mergeWorkspaceData(base, local, remote);
+  assert.deepEqual(result.conflicts, []);
+  assert.deepEqual(
+    result.data.tasks.map(task => task.id),
+    ['c', 'a', 'b'],
+  );
+  assert.equal(result.data.tasks[2].title, 'Updated');
+});
+
+test('incompatible concurrent reorderings require explicit conflict resolution', () => {
+  const base = { tasks: ['a', 'b', 'c'].map(id => ({ id })) };
+  const local = { tasks: [base.tasks[1], base.tasks[0], base.tasks[2]] };
+  const remote = { tasks: [base.tasks[0], base.tasks[2], base.tasks[1]] };
+  assert.deepEqual(mergeWorkspaceData(base, local, remote).conflicts, ['tasks.$order']);
+});
+
 test('workspace merge keeps independent changes from two clients', () => {
   const base = {
     ws: { name: 'Smena', color: 'indigo' },

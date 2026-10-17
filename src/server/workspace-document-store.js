@@ -3,6 +3,7 @@ import { hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './red
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { DOCUMENT_NAMES, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 
 const documents = new Map();
 const initialization = new Map();
@@ -29,13 +30,13 @@ function normalizeDocument(name, value) {
       });
     }
   }
-  return {
+  return copyStorageVersion(value, {
     ...base,
     ...data,
     revision: Number.isSafeInteger(value?.revision) && value.revision >= 0 ? value.revision : 0,
     createdAt: value?.createdAt || base.createdAt,
     updatedAt: value?.updatedAt || base.updatedAt,
-  };
+  });
 }
 
 async function initializeDocument(name, legacyData = {}) {
@@ -71,7 +72,7 @@ export class WorkspaceDocumentConflictError extends Error {
 
 export async function getWorkspaceDocument(name, legacyData = {}) {
   const current = process.env.VERCEL ? null : documents.get(name);
-  if (current) return structuredClone(current);
+  if (current) return copyStorageVersion(current, structuredClone(current));
   if (process.env.VERCEL) {
     documents.delete(name);
     const storage = getStorageProvider();
@@ -80,10 +81,11 @@ export async function getWorkspaceDocument(name, legacyData = {}) {
     if (stored) {
       const normalized = normalizeDocument(name, stored);
       documents.set(name, normalized);
-      return structuredClone(normalized);
+      return copyStorageVersion(normalized, structuredClone(normalized));
     }
   }
-  return structuredClone(await initializeDocument(name, legacyData));
+  const initialized = await initializeDocument(name, legacyData);
+  return copyStorageVersion(initialized, structuredClone(initialized));
 }
 
 async function replaceInsideLock(name, nextData, expectedRevision, options = {}) {
@@ -107,7 +109,7 @@ async function replaceInsideLock(name, nextData, expectedRevision, options = {})
   await options.coordination?.assertOwnership?.();
   const storage = getStorageProvider();
   try {
-    await storage.saveDocument(name, next);
+    await storage.saveDocument(name, next, { expectedEtag: storageVersion(current) });
   } catch (error) {
     const status = Number(error?.response?.status || error?.code);
     if (status !== 412) throw error;

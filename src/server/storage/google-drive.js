@@ -2,6 +2,13 @@ import { drive } from '@googleapis/drive';
 import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
+import { rememberStorageVersion } from './version-token.js';
+
+function conditionalWriteOptions(options, fallback) {
+  const etag = Object.hasOwn(options, 'expectedEtag') ? options.expectedEtag : fallback;
+  if (!etag) throw Object.assign(new Error('Storage version is missing. Reload before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
+  return { headers: { 'If-Match': etag } };
+}
 
 const DATABASE_NAME = 'smena-manager-data.json';
 const ROOT_FOLDER_NAME = 'Smena-Manager-Storage';
@@ -153,7 +160,7 @@ export class GoogleDriveStorageProvider {
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.databaseEtag = response.headers?.etag || null;
     this.lastSyncAt = new Date().toISOString();
-    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.databaseEtag);
   }
 
   async getDatabaseVersion() {
@@ -165,7 +172,6 @@ export class GoogleDriveStorageProvider {
       fields: 'id,modifiedTime,version,appProperties',
       supportsAllDrives: true,
     });
-    this.databaseEtag = response.headers?.etag || this.databaseEtag;
     const revision = Number(response.data.appProperties?.smenaRevision);
     return {
       revision: Number.isSafeInteger(revision) && revision >= 0 ? revision : null,
@@ -191,7 +197,7 @@ export class GoogleDriveStorageProvider {
     this.databaseEtag = updated.headers?.etag || null;
   }
 
-  async saveDatabase(data) {
+  async saveDatabase(data, options = {}) {
     await this.init();
     const fileId = await this.findDatabaseFile();
     const media = {
@@ -200,7 +206,7 @@ export class GoogleDriveStorageProvider {
     };
 
     if (fileId) {
-      const requestOptions = this.databaseEtag ? { headers: { 'If-Match': this.databaseEtag } } : undefined;
+      const requestOptions = conditionalWriteOptions(options, this.databaseEtag);
       const updated = await this.client.files.update(
         {
           fileId,
@@ -227,6 +233,7 @@ export class GoogleDriveStorageProvider {
       this.databaseEtag = created.headers?.etag || null;
     }
     this.lastSyncAt = new Date().toISOString();
+    rememberStorageVersion(data, this.databaseEtag);
   }
 
   async findDocumentFile(name) {
@@ -252,17 +259,17 @@ export class GoogleDriveStorageProvider {
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.documentEtags[name] = response.headers?.etag || null;
     this.lastSyncAt = new Date().toISOString();
-    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.documentEtags[name]);
   }
 
-  async saveDocument(name, data) {
+  async saveDocument(name, data, options = {}) {
     await this.init();
     const filename = DOCUMENT_FILES[name];
     if (!filename) throw new Error('Invalid workspace document name.');
     const fileId = await this.findDocumentFile(name);
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(data, null, 2)]) };
     if (fileId) {
-      const requestOptions = this.documentEtags[name] ? { headers: { 'If-Match': this.documentEtags[name] } } : undefined;
+      const requestOptions = conditionalWriteOptions(options, this.documentEtags[name]);
       const updated = await this.client.files.update(
         {
           fileId,
@@ -289,6 +296,7 @@ export class GoogleDriveStorageProvider {
       this.documentEtags[name] = created.headers?.etag || null;
     }
     this.lastSyncAt = new Date().toISOString();
+    rememberStorageVersion(data, this.documentEtags[name]);
   }
 
   async findPushSubscriptionsFile() {

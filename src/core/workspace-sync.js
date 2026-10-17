@@ -1,5 +1,7 @@
 import { putWorkspace, putWorkspaceDocument } from './api.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { workspacePayload } from './workspace-snapshot.js';
+import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 
 function browserNotify(detail) {
   if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return;
@@ -22,8 +24,13 @@ export function createWorkspaceSync(options = {}) {
   let pendingHash = null;
   let activeHash = null;
   let conflict = null;
+  let generation = 0;
+  let lastError = null;
 
   function configure(nextRevision, role, data) {
+    generation += 1;
+    activePromise = null;
+    lastError = null;
     revision = Number(nextRevision || 0);
     enabled = role === 'admin' || role === 'editor';
     pending = null;
@@ -38,6 +45,9 @@ export function createWorkspaceSync(options = {}) {
   }
 
   function disable() {
+    generation += 1;
+    activePromise = null;
+    lastError = null;
     enabled = false;
     pending = null;
     pendingHash = null;
@@ -60,6 +70,7 @@ export function createWorkspaceSync(options = {}) {
     if (activePromise) return activePromise;
     if (!enabled || !pending || retryTimer) return Promise.resolve();
     const data = pending;
+    const writeGeneration = generation;
     const dataHash = pendingHash;
     pending = null;
     pendingHash = null;
@@ -68,12 +79,45 @@ export function createWorkspaceSync(options = {}) {
     activePromise = (async () => {
       try {
         const snapshot = await writeWorkspace(data, revision);
+        if (writeGeneration !== generation) return;
         revision = Number(snapshot.revision);
-        confirmedHash = dataHash;
-        confirmedData = structuredClone(data);
+        const canonical = workspacePayload(snapshot);
+        confirmedHash = JSON.stringify(canonical);
+        confirmedData = structuredClone(canonical);
+        if (pending) {
+          const merged = mergeWorkspaceData(data, pending, canonical);
+          if (merged.conflicts.length) {
+            enabled = false;
+            conflict = { base: structuredClone(data), local: structuredClone(pending), revision, currentRevision: revision };
+            pending = null;
+            pendingHash = null;
+            lastError = 'conflict';
+            notify({ status: 'conflict', revision, currentRevision: revision });
+            return;
+          }
+          pending = merged.data;
+          pendingHash = JSON.stringify(pending);
+          if (pendingHash === confirmedHash) pending = pendingHash = null;
+        }
+        lastError = null;
         retryDelay = 1_000;
-        notify({ status: 'saved', revision, data: structuredClone(data) });
+        notify({ status: 'saved', revision, data: structuredClone(canonical), sentData: structuredClone(data) });
       } catch (error) {
+        if (writeGeneration !== generation) return;
+        lastError =
+          error.status === 409 || error.code === 'REVISION_CONFLICT'
+            ? 'conflict'
+            : error.status === 401
+              ? 'unauthorized'
+              : error.status === 403
+                ? 'forbidden'
+                : error.status === 413
+                  ? 'too_large'
+                  : error.status === 400
+                    ? 'invalid'
+                    : !error.status || error.code === 'NETWORK_ERROR'
+                      ? 'offline'
+                      : 'unavailable';
         if (error.status === 409 || error.code === 'REVISION_CONFLICT') {
           enabled = false;
           const latestLocal = pending || data;
@@ -113,9 +157,11 @@ export function createWorkspaceSync(options = {}) {
           scheduleRetry();
         }
       } finally {
-        activeHash = null;
-        activePromise = null;
-        if (enabled && pending && !retryTimer) queueMicrotask(() => void flush());
+        if (writeGeneration === generation) {
+          activeHash = null;
+          activePromise = null;
+          if (enabled && pending && !retryTimer) queueMicrotask(() => void flush());
+        }
       }
     })();
     return activePromise;
@@ -124,7 +170,11 @@ export function createWorkspaceSync(options = {}) {
   function queue(data) {
     if (!enabled) return Promise.resolve();
     const dataHash = JSON.stringify(data);
-    if (dataHash === confirmedHash || dataHash === pendingHash || dataHash === activeHash) return activePromise || Promise.resolve();
+    if (dataHash === activeHash) {
+      pending = pendingHash = null;
+      return activePromise || Promise.resolve();
+    }
+    if (dataHash === pendingHash || (!activePromise && !pending && dataHash === confirmedHash)) return activePromise || Promise.resolve();
     pending = structuredClone(data);
     pendingHash = dataHash;
     return flush();
@@ -137,11 +187,11 @@ export function createWorkspaceSync(options = {}) {
   }
 
   function state() {
-    return { enabled, revision, hasPending: !!pending, hasActive: !!activePromise, hasConflict: !!conflict, retryDelay };
+    return { enabled, revision, hasPending: !!pending, hasActive: !!activePromise, hasConflict: !!conflict, lastError, retryDelay };
   }
 
   function isClean(data) {
-    return !pending && !activePromise && !conflict && confirmedHash !== null && JSON.stringify(data) === confirmedHash;
+    return !pending && !activePromise && !conflict && !lastError && confirmedHash !== null && JSON.stringify(data) === confirmedHash;
   }
 
   function getConflict() {
@@ -189,6 +239,9 @@ export function workspaceSyncState() {
     hasPending: core.hasPending || Object.values(shards).some(state => state.hasPending),
     hasActive: core.hasActive || Object.values(shards).some(state => state.hasActive),
     hasConflict: core.hasConflict || Object.values(shards).some(state => state.hasConflict),
+    errors: Object.fromEntries(
+      [['workspace', core], ...Object.entries(shards)].filter(([, state]) => state.lastError).map(([scope, state]) => [scope, state.lastError]),
+    ),
     documents: shards,
   };
 }

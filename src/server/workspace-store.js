@@ -11,6 +11,7 @@ import { getWorkspaceDocument, replaceWorkspaceDocument, resetWorkspaceDocumentS
 import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
 import { mergeClientWorkspace } from './workspace-policy.js';
 import { sanitizeWorkspaceContent } from './content-security.js';
+import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -63,11 +64,11 @@ function normalizeDatabase(value) {
   }
   const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
-  return sanitizeWorkspaceContent(validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))));
+  return copyStorageVersion(value, sanitizeWorkspaceContent(validateWorkspaceData(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized)))));
 }
 
 function clone(value) {
-  return structuredClone(value);
+  return copyStorageVersion(value, structuredClone(value));
 }
 
 export async function initWorkspaceStore() {
@@ -238,7 +239,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   const storage = getStorageProvider();
   await options.coordination?.assertOwnership?.();
   try {
-    await storage.saveDatabase(next);
+    await storage.saveDatabase(next, { expectedEtag: storageVersion(current) });
   } catch (error) {
     const status = Number(error?.response?.status || error?.code);
     if (status !== 412) throw error;

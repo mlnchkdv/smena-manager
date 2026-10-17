@@ -45,6 +45,8 @@ import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
+import { mergeWorkspaceData } from './shared/workspace-merge.js';
+import { workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -152,23 +154,32 @@ window.addEventListener('smena:sync-status', event => {
   if (status === 'syncing') {
     updateSyncIndicator('syncing');
   } else if (status === 'saved') {
+    const { data, sentData } = event.detail;
+    if (data && sentData) {
+      const local = scope && scope !== 'workspace' ? workspaceDocumentData(scope, S.data) : workspaceCoreData(S.data);
+      const merged = mergeWorkspaceData(sentData, local, data);
+      if (!merged.conflicts.length) Object.assign(S.data, merged.data);
+    }
     const wasOffline = S.ui.offline;
-    S.ui.offline = false;
-    S.ui.syncUnavailable = false;
-    S.ui.syncTooLarge = false;
-    S.ui.syncInvalid = false;
-    S.ui.syncConflict = false;
+    const errors = Object.values(workspaceSyncState().errors);
+    S.ui.offline = errors.includes('offline');
+    S.ui.syncUnavailable = errors.includes('unavailable');
+    S.ui.syncTooLarge = errors.includes('too_large');
+    S.ui.syncInvalid = errors.includes('invalid');
+    S.ui.syncConflict = errors.includes('conflict');
     if (scope && scope !== 'workspace') S.ui.documentRevisions[scope] = revision;
     else S.ui.workspaceRevision = revision;
     S.ui.lastSyncedAt = Date.now();
     announceWorkspaceChange();
     queueMicrotask(() => {
       const syncState = workspaceSyncState();
+      const error = Object.values(syncState.errors)[0];
+      if (error) return updateSyncIndicator(error);
       if (syncState.hasActive || syncState.hasPending) return updateSyncIndicator('syncing');
       updateSyncIndicator('saved');
       if (workspaceSyncIsClean(S.data)) setWorkspaceBaseline(S.data);
     });
-    if (wasOffline) {
+    if (wasOffline && !S.ui.offline && !errors.length) {
       render();
       toast('Reconnected. All changes are synced.');
     }

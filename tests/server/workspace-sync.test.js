@@ -2,6 +2,109 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createWorkspaceSync } from '../../src/core/workspace-sync.js';
 
+const tick = () => new Promise(resolve => setImmediate(resolve));
+
+test('returning A to B to A while B is saving persists the final A', async () => {
+  let release;
+  const writes = [];
+  const a = { tasks: [{ id: 't', title: 'A' }] };
+  const b = { tasks: [{ id: 't', title: 'B' }] };
+  const sync = createWorkspaceSync({
+    notify: () => {},
+    writeWorkspace: async (data, revision) => {
+      writes.push(structuredClone(data));
+      if (writes.length === 1)
+        await new Promise(resolve => {
+          release = resolve;
+        });
+      return { ...data, revision: revision + 1 };
+    },
+  });
+  sync.configure(1, 'editor', a);
+  const first = sync.queue(b);
+  void sync.queue(a);
+  release();
+  await first;
+  await tick();
+  assert.deepEqual(writes, [b, a]);
+  assert.equal(sync.isClean(a), true);
+});
+
+test('a return to the active value cancels an obsolete pending value', async () => {
+  let release;
+  const writes = [];
+  const sync = createWorkspaceSync({
+    notify: () => {},
+    writeWorkspace: async (data, revision) => {
+      writes.push(data);
+      await new Promise(resolve => {
+        release = resolve;
+      });
+      return { ...data, revision: revision + 1 };
+    },
+  });
+  sync.configure(1, 'editor', { value: 'A' });
+  const first = sync.queue({ value: 'B' });
+  void sync.queue({ value: 'C' });
+  void sync.queue({ value: 'B' });
+  release();
+  await first;
+  await tick();
+  assert.deepEqual(writes, [{ value: 'B' }]);
+});
+
+test('server canonical data is confirmed and pending edits are rebased onto it', async () => {
+  let release;
+  const events = [];
+  const writes = [];
+  const sync = createWorkspaceSync({
+    notify: event => events.push(event),
+    writeWorkspace: async (data, revision) => {
+      writes.push(structuredClone(data));
+      if (writes.length === 1)
+        await new Promise(resolve => {
+          release = resolve;
+        });
+      return { ...data, title: 'sanitized', serverOwned: 'trusted', revision: revision + 1 };
+    },
+  });
+  sync.configure(1, 'editor', { title: 'old', value: 0 });
+  const first = sync.queue({ title: 'unsafe', value: 1 });
+  void sync.queue({ title: 'unsafe', value: 2 });
+  release();
+  await first;
+  await tick();
+  assert.deepEqual(writes[1], { title: 'sanitized', value: 2, serverOwned: 'trusted' });
+  assert.equal(sync.isClean({ title: 'sanitized', value: 2, serverOwned: 'trusted' }), true);
+  assert.equal(events.find(event => event.status === 'saved').sentData.title, 'unsafe');
+});
+
+test('a late response from a previous session cannot replace the new session state', async () => {
+  let release;
+  const events = [];
+  const sync = createWorkspaceSync({
+    notify: event => events.push(event),
+    writeWorkspace: async data => {
+      await new Promise(resolve => {
+        release = resolve;
+      });
+      return { ...data, revision: 99 };
+    },
+  });
+  sync.configure(1, 'editor', { value: 'old' });
+  const old = sync.queue({ value: 'old change' });
+  sync.disable();
+  sync.configure(5, 'editor', { value: 'new session' });
+  release();
+  await old;
+  assert.equal(sync.state().revision, 5);
+  assert.equal(sync.isClean({ value: 'new session' }), true);
+  assert.equal(
+    events.some(event => event.status === 'saved'),
+    false,
+  );
+});
+
 test('workspace sync advances revisions after successful writes', async () => {
   const writes = [];
   const statuses = [];

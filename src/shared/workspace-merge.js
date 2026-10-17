@@ -21,7 +21,14 @@ function mergeEntityArray(base, local, remote, path, conflicts) {
   const baseMap = new Map(base.map(item => [item.id, item]));
   const localMap = new Map(local.map(item => [item.id, item]));
   const remoteMap = new Map(remote.map(item => [item.id, item]));
-  const ids = [...new Set([...remoteMap.keys(), ...localMap.keys(), ...baseMap.keys()])];
+  const common = base.map(item => item.id).filter(id => localMap.has(id) && remoteMap.has(id));
+  const order = collection => collection.map(item => item.id).filter(id => common.includes(id));
+  const localReordered = !equal(order(base), order(local));
+  const remoteReordered = !equal(order(base), order(remote));
+  if (localReordered && remoteReordered && !equal(order(local), order(remote))) conflicts.push(`${path}.$order`);
+  const primary = localReordered && !remoteReordered ? localMap : remoteMap;
+  const secondary = primary === localMap ? remoteMap : localMap;
+  const ids = [...new Set([...primary.keys(), ...secondary.keys(), ...baseMap.keys()])];
   const merged = [];
 
   for (const id of ids) {
@@ -45,6 +52,7 @@ function mergeObject(base, local, remote, path, conflicts) {
     ...Object.keys(remote === MISSING ? {} : remote),
   ]);
   for (const key of keys) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
     const value = mergeValue(
       base !== MISSING && Object.hasOwn(base, key) ? base[key] : MISSING,
       local !== MISSING && Object.hasOwn(local, key) ? local[key] : MISSING,

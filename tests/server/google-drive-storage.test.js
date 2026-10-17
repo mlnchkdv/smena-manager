@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import test from 'node:test';
 import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
+import { storageVersion } from '../../src/server/storage/version-token.js';
 
 test('Google Drive status includes account storage quota when available', async () => {
   const provider = new GoogleDriveStorageProvider();
@@ -175,7 +176,35 @@ test('Google Drive reads the database revision from file metadata without downlo
   });
   assert.equal(calls[0].alt, undefined);
   assert.match(calls[0].fields, /appProperties/);
-  assert.equal(provider.databaseEtag, 'etag-7');
+  assert.equal(provider.databaseEtag, null);
+});
+
+test('concurrent reads and metadata probes cannot upgrade a stale writer ETag', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.databaseFileId = 'database';
+  let revision = 4;
+  const writes = [];
+  provider.client = {
+    files: {
+      get: async options => ({
+        data: options.alt === 'media' ? JSON.stringify({ revision }) : { appProperties: { smenaRevision: String(revision) } },
+        headers: { etag: `etag-${revision}` },
+      }),
+      update: async (options, request) => {
+        writes.push(request.headers['If-Match']);
+        if (request.headers['If-Match'] !== `etag-${revision}`) throw Object.assign(new Error('Precondition failed'), { code: 412 });
+        return { headers: { etag: `etag-${++revision}` } };
+      },
+    },
+  };
+  const stale = await provider.loadDatabase();
+  revision = 5;
+  await provider.getDatabaseVersion();
+  await provider.loadDatabase();
+  await assert.rejects(provider.saveDatabase({ revision: 5 }, { expectedEtag: storageVersion(stale) }), { code: 412 });
+  assert.deepEqual(writes, ['etag-4']);
+  await assert.rejects(provider.saveDatabase({ revision: 6 }, { expectedEtag: null }), { code: 'STORAGE_VERSION_MISSING' });
 });
 
 test('Google Drive stores authentication sessions in a private sibling JSON file', async () => {
