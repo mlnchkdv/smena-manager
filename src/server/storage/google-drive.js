@@ -473,16 +473,23 @@ export class GoogleDriveStorageProvider {
 
   async listDatabaseBackups() {
     const folderId = await this.ensureBackupsFolder();
-    const result = await this.client.files.list({
-      q: `'${escapeDriveQuery(folderId)}' in parents and trashed = false and appProperties has { key='smenaBackup' and value='true' }`,
-      fields: 'files(id,name,createdTime,size,appProperties)',
-      spaces: 'drive',
-      pageSize: 200,
-      orderBy: 'createdTime desc',
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-    });
-    return (result.data.files || []).map(file => ({
+    const files = [];
+    let pageToken;
+    do {
+      const result = await this.client.files.list({
+        q: `'${escapeDriveQuery(folderId)}' in parents and trashed = false and appProperties has { key='smenaBackup' and value='true' }`,
+        fields: 'nextPageToken,files(id,name,createdTime,size,appProperties)',
+        pageToken,
+        spaces: 'drive',
+        pageSize: 200,
+        orderBy: 'createdTime desc',
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+      });
+      files.push(...(result.data.files || []));
+      pageToken = result.data.nextPageToken;
+    } while (pageToken);
+    return files.map(file => ({
       id: file.id,
       createdAt: file.createdTime,
       label: file.appProperties?.label || '',

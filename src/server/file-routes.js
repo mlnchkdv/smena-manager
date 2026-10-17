@@ -12,6 +12,7 @@ import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } 
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canEditProject, canReadProject } from '../shared/project-access.js';
+import { retainDetachedFile } from './file-retention.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -295,6 +296,7 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
           throw Object.assign(new Error('Only the owner or an administrator can delete this file.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
         }
         database.files = database.files.filter(item => item.id !== removed.id);
+        retainDetachedFile(database, removed);
         if (removed.task) {
           const task = database.tasks?.find(item => item.id === removed.task);
           if (task) task.attachments = (task.attachments || []).filter(item => item.id !== removed.id);
@@ -304,16 +306,7 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
       revision,
       { role: request.user.role },
     );
-    let cleanupPending = false;
-    if (removed.storageName) {
-      await getStorageProvider()
-        .deleteFile(removed.storageName, removed.storageFileId)
-        .catch(error => {
-          cleanupPending = true;
-          console.error('[Files] Stored file cleanup failed:', error);
-        });
-    }
-    response.json({ file: removed, data, cleanupPending });
+    response.json({ file: removed, data, cleanupPending: false, contentRetainedForBackups: Boolean(removed.storageName) });
   } catch (error) {
     next(error);
   }

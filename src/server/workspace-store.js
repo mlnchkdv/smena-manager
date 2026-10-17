@@ -14,6 +14,7 @@ import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
+import { retainDetachedFile } from './file-retention.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -243,6 +244,8 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   }
   const now = new Date().toISOString();
   if (options.replaceDocuments) {
+    const retained = new Set((nextData.files || []).map(file => file.storageFileId || file.storageName));
+    for (const file of current.files || []) if (!retained.has(file.storageFileId || file.storageName)) retainDetachedFile(nextData, file);
     nextData._notificationOutbox = [];
     nextData._aggregateVersion = 1;
     nextData._documentRevisions = Object.fromEntries(

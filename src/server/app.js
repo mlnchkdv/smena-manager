@@ -35,6 +35,7 @@ import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
+import { collectRetainedFiles, retainDetachedFile } from './file-retention.js';
 
 export const app = express();
 
@@ -65,6 +66,9 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     });
     const cleanup = await runNotificationCleanup();
     const pushCleanup = await cleanupPushSubscriptions();
+    const fileCleanup = await collectRetainedFiles({ storage: getStorageProvider(), load: getWorkspaceDatabase, mutate: mutateWorkspaceDatabase }).catch(
+      () => ({ error: 'cleanup_failed' }),
+    );
     const backup = await runAutomaticWorkspaceBackup().catch(error => {
       console.error('[Automatic backup]', error.message);
       return { error: 'backup_failed' };
@@ -77,7 +81,7 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       const issues = [digest.error && 'Email digest delivery failed', backup.error && 'Automatic backup failed'].filter(Boolean);
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => console.error('[System alert]', error.message));
     }
-    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, backup });
+    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup });
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     await notifyAdministratorsAboutSystemIssue(['Daily automation failed']).catch(() => undefined);
@@ -263,24 +267,13 @@ app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, res
         if (request.user.role !== 'admin' && [removed.data?.file, ...(removed.data?.files || [])].some(file => file?.by && file.by !== memberId))
           throw permissionError('files');
         database.trash = database.trash.filter(item => item.id !== removed.id);
+        for (const file of [removed.data?.file, ...(removed.data?.files || [])].filter(Boolean)) retainDetachedFile(database, file);
         return database;
       },
       revision,
       { role: request.user.role },
     );
-    const storedFiles = [removed.data?.file, ...(removed.data?.files || [])].filter(file => file?.storageName);
-    let cleanupPending = false;
-    await Promise.all(
-      storedFiles.map(file =>
-        getStorageProvider()
-          .deleteFile(file.storageName, file.storageFileId)
-          .catch(error => {
-            cleanupPending = true;
-            console.error('[Trash] Stored file cleanup failed:', error);
-          }),
-      ),
-    );
-    response.json({ data, cleanupPending });
+    response.json({ data, cleanupPending: false, contentRetainedForBackups: true });
   } catch (error) {
     next(error);
   }
