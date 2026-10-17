@@ -2,13 +2,15 @@
    QUIRE — core: utils, icons, seed data, store, render loop, events
    ===================================================================== */
 // Web fonts load without blocking first paint (the link starts as media=print).
+import { calendarDate, resolveTimeZone } from '../shared/calendar-time.js';
+
 document.querySelectorAll('link[data-font]').forEach(l => {
   l.media = 'all';
 });
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-export const uid = (p = 'x') => p + Math.random().toString(36).slice(2, 8);
+export const uid = (p = 'x') => p + (globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`);
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 export const MOD = isMac ? '⌘' : 'Ctrl';
@@ -21,6 +23,12 @@ export const sod = d => {
   return x;
 };
 export const TODAY = sod(new Date());
+let calendarZone = 'Europe/Saratov';
+export function updateToday(zone = calendarZone, now = new Date()) {
+  calendarZone = resolveTimeZone(zone);
+  const [year, month, day] = calendarDate(now, calendarZone).split('-').map(Number);
+  TODAY.setTime(new Date(year, month - 1, day).getTime());
+}
 export const iso = d => {
   const x = new Date(d);
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
@@ -111,7 +119,7 @@ export function ago(ts) {
 }
 export const minsAgo = m => Date.now() - m * 6e4;
 export function dayBucket(ts) {
-  const n = diffD(new Date(ts), TODAY);
+  const n = diffD(parse(calendarDate(new Date(ts), calendarZone)), TODAY);
   if (n === 0) return dateLocale === 'ru-RU' ? 'Сегодня' : 'Today';
   if (n === -1) return dateLocale === 'ru-RU' ? 'Вчера' : 'Yesterday';
   if (n > -7) return dateLocale === 'ru-RU' ? 'На этой неделе' : 'This week';

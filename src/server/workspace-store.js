@@ -15,6 +15,7 @@ import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
 import { retainDetachedFile } from './file-retention.js';
+import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -233,7 +234,10 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  validateWorkspaceData(nextData);
   validateMembershipTransition(current, nextData);
+  if (!options.replaceDocuments) validateTaskTransitions(current, nextData);
+  assignCanonicalTaskKeys(current, nextData);
   const membershipActivity = membershipAuditEntries(current, nextData, options.actorMemberId, current.revision + 1);
   if (membershipActivity.length) nextData.activity = [...membershipActivity, ...(nextData.activity || [])];
   if (options.actorMemberId) {

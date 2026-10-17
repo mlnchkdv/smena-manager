@@ -47,12 +47,18 @@ import { workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
+import { TODAY, iso, updateToday } from './core/utils.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
 });
 
 let conflictRecoveryPromise = null;
+setInterval(() => {
+  const before = iso(TODAY);
+  updateToday(S.prefs.tz);
+  if (before !== iso(TODAY) && !S.ui.auth) render();
+}, 60000);
 let pushSyncPromise = null;
 const refreshChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena:workspace:v2') : null;
 let refreshAnnouncementTimer = null;

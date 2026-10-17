@@ -1,6 +1,7 @@
 import { addWorkspaceNotification } from '../shared/notification-model.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { deliverWorkspaceNotifications } from './notification-delivery.js';
+import { calendarDate } from '../shared/calendar-time.js';
 
 const DEFAULT_TIME_ZONE = 'Europe/Saratov';
 
@@ -45,7 +46,9 @@ export function createDueReminders(value, options = {}) {
     if (!task?.id || task.archived || archivedProjects.has(task.project) || !task.assignee || !activeMembers.has(task.assignee) || task.status === 'done')
       continue;
     const due = String(task.due || '').slice(0, 10);
-    const kind = reminderKind(due, today);
+    const memberZone = data.members.find(member => member.id === task.assignee)?.timeZone;
+    const recipientToday = options.today || calendarDate(new Date(now), memberZone || options.timeZone || process.env.REMINDER_TIME_ZONE || DEFAULT_TIME_ZONE);
+    const kind = reminderKind(due, recipientToday);
     if (!kind) continue;
     const id = `n-due-${kind}-${due}-${task.id}-${task.assignee}`;
     if (existing.has(id)) continue;

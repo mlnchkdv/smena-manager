@@ -1,4 +1,5 @@
 import { DEFAULT_NOTIFICATION_PREFERENCES, notificationRecipient } from './notification-model.js';
+import { resolveTimeZone } from './calendar-time.js';
 
 const PREFERENCE_TYPES = Object.freeze({
   theme: 'string',
@@ -35,6 +36,7 @@ export function applyPersonalSettings(database, memberId, input) {
     }
     database._userPrefs = { ...database._userPrefs, [memberId]: { ...database._userPrefs?.[memberId], ...input.preferences } };
     if (input.preferences.lang) member.locale = input.preferences.lang === 'Русский' ? 'ru' : 'en';
+    if (input.preferences.tz) member.timeZone = resolveTimeZone(input.preferences.tz);
   }
   if (input.profile) {
     if (typeof input.profile !== 'object' || Array.isArray(input.profile)) invalid();

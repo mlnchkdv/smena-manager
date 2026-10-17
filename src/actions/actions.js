@@ -71,6 +71,7 @@ import { hasEnabledPushPreferences } from '../shared/push-client.js';
 import { primaryTeamId } from '../shared/team-relations.js';
 import { captureUndo, undoCommand } from '../shared/undo.js';
 import { canEditProject } from '../shared/project-access.js';
+import { nextRecurrenceDate } from '../shared/calendar-time.js';
 
 export const A = {},
   IN = {},
@@ -130,7 +131,6 @@ export function createTask(f) {
   logAct('created', t);
   return t;
 }
-export const RECUR_DAYS = { Daily: 1, Weekly: 7, 'Every 2 weeks': 14, Monthly: 30 };
 export function applyPatch(t, patch) {
   const msgs = [];
   for (const k of Object.keys(patch)) {
@@ -146,15 +146,18 @@ export function applyPatch(t, patch) {
         fxSet({ done: t.id });
       } else logAct('moved', t, `from ${ST[old].name} to ${ST[nv].name}`);
       if (nv === 'done' && t.recur && t.due) {
-        const nd = iso(addD(parse(t.due), RECUR_DAYS[t.recur] || 7));
+        const nd = nextRecurrenceDate(t.due, t.recur);
+        if (D().tasks.some(item => item.recurrenceOf === t.id && item.recurrenceFromDue === t.due)) continue;
         const n = createTask({
           ...JSON.parse(JSON.stringify(t)),
           id: undefined,
           key: undefined,
           status: 'todo',
           due: nd,
-          start: nd,
-          subtasks: t.subtasks.map(s => ({ ...s, done: false })),
+          start: t.start ? iso(addD(parse(nd), diffD(parse(t.start), parse(t.due)))) : null,
+          subtasks: t.subtasks.map(s => ({ ...s, id: uid('s'), done: false })),
+          recurrenceOf: t.id,
+          recurrenceFromDue: t.due,
           completedAt: null,
           attachments: [],
         });
