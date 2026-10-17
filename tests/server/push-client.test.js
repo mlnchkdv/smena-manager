@@ -6,6 +6,7 @@ test('push preference detection covers every supported delivery category', () =>
   assert.equal(hasEnabledPushPreferences({}), false);
   assert.equal(hasEnabledPushPreferences({ push_due: true }), true);
   assert.equal(hasEnabledPushPreferences({ push_comment: true }), true);
+  assert.equal(hasEnabledPushPreferences({ push_security: true }), true);
 });
 
 test('existing browser subscriptions are replaced only when the VAPID key changed', () => {

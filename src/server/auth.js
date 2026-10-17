@@ -5,6 +5,7 @@ import { getWorkspaceDatabase } from './workspace-store.js';
 import { workspaceAccessProfiles, workspaceMemberRole } from '../shared/workspace-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { ensureAuthSession, registerAuthSession, sessionDetailsFromRequest } from './auth-session-store.js';
+import { recordLoginSecurityNotification } from './login-security.js';
 
 const SESSION_PREFIX = 'smena_sess_';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -148,7 +149,7 @@ export function verifySession(token) {
 export async function createTrackedSession(profile, request, authMethod) {
   const token = createSession(profile);
   const verified = verifySession(token);
-  await registerAuthSession({
+  const session = await registerAuthSession({
     id: verified.sessionId,
     userId: profile.id,
     createdAt: verified.issuedAt,
@@ -156,6 +157,11 @@ export async function createTrackedSession(profile, request, authMethod) {
     expiresAt: verified.expiresAt,
     ...sessionDetailsFromRequest(request, authMethod),
   });
+  if (session) {
+    await recordLoginSecurityNotification(profile, session).catch(error => {
+      console.error('[Security] Login notification failed:', error?.message || error);
+    });
+  }
   return token;
 }
 

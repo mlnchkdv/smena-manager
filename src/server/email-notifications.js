@@ -12,6 +12,7 @@ const ACTIONS = {
     'mentioned everyone in': 'mentioned everyone',
     'is due tomorrow': 'is due tomorrow',
     'is overdue': 'is overdue',
+    'New sign-in detected': 'New sign-in detected',
   },
   ru: {
     'assigned you': 'назначил(а) вам задачу',
@@ -21,6 +22,7 @@ const ACTIONS = {
     'mentioned everyone in': 'упомянул(а) всех',
     'is due tomorrow': 'срок завтра',
     'is overdue': 'срок просрочен',
+    'New sign-in detected': 'Обнаружен новый вход',
   },
 };
 let authorizationCache = null;

@@ -56,6 +56,11 @@ test('authenticated users can inspect and revoke their active sessions', async t
   const desktopToken = await login('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/141.0.0.0 Safari/537.36');
   const phoneToken = await login('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile/15E148 Safari/604.1');
 
+  const loginAlerts = (await getWorkspaceDatabase()).notifs.filter(notification => notification.type === 'security');
+  assert.equal(loginAlerts.length, 2);
+  assert.equal(loginAlerts[0].recipient, 'session-user');
+  assert.match(loginAlerts[0].snippet, /iPhone · Safari 18/u);
+
   const sessionsResponse = await fetch(`${origin}/api/auth/sessions`, { headers: authorize(desktopToken) });
   assert.equal(sessionsResponse.status, 200);
   const sessions = (await sessionsResponse.json()).sessions;

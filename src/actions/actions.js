@@ -60,6 +60,7 @@ import { isRussian, locale, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
+import { hasEnabledPushPreferences } from '../shared/push-client.js';
 
 export const A = {},
   IN = {},
@@ -2383,6 +2384,7 @@ A.openNotif = el => {
   save();
   if (n.task) A.openTask({ dataset: { id: n.task } });
   else if (n.project) go('project', { id: n.project, tab: 'overview' });
+  else if (n.type === 'security') A.go({ dataset: { r: 'settings', sec: 'security' } });
 };
 
 /* search & palette */
@@ -2652,7 +2654,7 @@ IN.npToggle = async el => {
   save();
   if (!el.checked && el.dataset.k.startsWith('push_')) {
     const preferences = myNotificationPreferences();
-    if (!['push_mention', 'push_assign', 'push_comment', 'push_due'].some(key => preferences[key])) {
+    if (!hasEnabledPushPreferences(preferences)) {
       await disableWebPush().catch(() => undefined);
       S.ui.pushState = 'idle';
     }

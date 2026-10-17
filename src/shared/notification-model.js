@@ -21,6 +21,8 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
   push_assign: false,
   push_comment: false,
   push_due: false,
+  email_security: true,
+  push_security: true,
 });
 
 const preferenceForType = {
@@ -35,6 +37,7 @@ const pushPreferenceForType = Object.freeze({
   assign: 'push_assign',
   comment: 'push_comment',
   due: 'push_due',
+  security: 'push_security',
 });
 
 export function pushPreferenceForNotification(notification) {
@@ -46,6 +49,7 @@ const emailPreferenceForType = Object.freeze({
   assign: 'email_assign',
   comment: 'email_comment',
   due: 'email_due',
+  security: 'email_security',
 });
 
 export function emailPreferenceForNotification(notification) {

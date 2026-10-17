@@ -7,11 +7,13 @@ test('browser notification categories use independent personal preferences', () 
   assert.equal(browserNotificationPreferenceKey({ type: 'assign' }), 'push_assign');
   assert.equal(browserNotificationPreferenceKey({ type: 'comment' }), 'push_comment');
   assert.equal(browserNotificationPreferenceKey({ type: 'due' }), 'push_due');
+  assert.equal(browserNotificationPreferenceKey({ type: 'security' }), 'push_security');
   assert.equal(browserNotificationPreferenceKey({ type: 'update' }), null);
 
   assert.equal(canDeliverBrowserNotification({ type: 'mention' }, { push_mention: true }, 'granted'), true);
   assert.equal(canDeliverBrowserNotification({ type: 'mention' }, { push_mention: false }, 'granted'), false);
   assert.equal(canDeliverBrowserNotification({ type: 'mention' }, { push_mention: true }, 'denied'), false);
+  assert.equal(canDeliverBrowserNotification({ type: 'security' }, { push_security: true }, 'granted'), true);
 });
 
 test('browser notification content resolves actor, task, and translated action', () => {
