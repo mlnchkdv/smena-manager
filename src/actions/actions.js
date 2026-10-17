@@ -2572,18 +2572,16 @@ A.saveWorkspace = () => {
     toast("Workspace name can't be empty", { kind: 'err' });
     return;
   }
-  loadingBtn('ws-save', 600, () => {
-    if (
-      mutate(() => {
-        const old = D().ws.name;
-        D().ws.name = n;
-        D().ws.url = u || D().ws.url;
-        const w = D().workspaces.find(x => x.name === old);
-        if (w) w.name = n;
-      })
-    )
-      toast('Workspace settings saved');
-  });
+  if (
+    mutate(() => {
+      const old = D().ws.name;
+      D().ws.name = n;
+      D().ws.url = u || D().ws.url;
+      const w = D().workspaces.find(x => x.name === old);
+      if (w) w.name = n;
+    })
+  )
+    toast('Workspace settings saved');
 };
 A.delWorkspace = () =>
   confirmDlg({
