@@ -6,8 +6,7 @@ import { D, S, mem, proj, team } from '../core/store.js';
 import { applyPrefs } from '../core/theme.js';
 import { enhanceSelects, selectMenu } from '../ui/select.js';
 import { renderShell } from './layout.js';
-import { PTABS } from '../pages/project.js';
-import { tlAfter } from '../views/timeline.js';
+import { PROJECT_TABS } from '../shared/project-tabs.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
@@ -125,7 +124,8 @@ export function pageTitle() {
   const u = S.ui;
   if (u.auth) return PRODUCT_NAME;
   let title = ROUTE_NAMES[u.route] || 'Not found';
-  if (u.route === 'project' && proj(u.params.id)) title = `${tr((PTABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1])} · ${proj(u.params.id).name}`;
+  if (u.route === 'project' && proj(u.params.id))
+    title = `${tr((PROJECT_TABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1])} · ${proj(u.params.id).name}`;
   if (u.route === 'member' && mem(u.params.id)) title = mem(u.params.id).name;
   if (u.route === 'team' && team(u.params.id)) title = team(u.params.id).name;
   return `${tr(title)} · ${D().ws.name}`;
@@ -222,7 +222,9 @@ export function afterRender() {
   $$('textarea[data-autosize]').forEach(autosize);
   const pal = $('#pal-in');
   if (pal && document.activeElement !== pal && !S.ui.pop) pal.focus();
-  if ((S.ui.route === 'project' && S.ui.params.tab === 'timeline') || S.ui.route === 'timeline') tlAfter();
+  if ((S.ui.route === 'project' && S.ui.params.tab === 'timeline') || S.ui.route === 'timeline') {
+    void import('../views/timeline.js').then(module => module.tlAfter());
+  }
   void mountGoogleSignIn();
 }
 /* Headline numbers count up once when a dashboard is entered. */

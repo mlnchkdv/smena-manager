@@ -7,18 +7,7 @@ import { av } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
-import { pageOverview } from '../pages/overview.js';
-import { pageMyTasks } from '../pages/my-tasks.js';
-import { pageTasks } from '../pages/tasks.js';
-import { pageInbox } from '../pages/inbox.js';
-import { pageNotifications } from '../pages/notifications.js';
-import { pageFavorites } from '../pages/favorites.js';
-import { pageProjects } from '../pages/projects.js';
-import { pageSearch } from '../pages/search.js';
 import { page404, stateFailed } from '../pages/errors.js';
-import { pageProject } from '../pages/project.js';
-import { pageWsCalendar } from '../views/calendar.js';
-import { pageWsTimeline } from '../views/timeline.js';
 import { locale, t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
@@ -33,6 +22,17 @@ const SYNC_PRESENTATION = {
   invalid: ['triangle-alert', 'Data error'],
 };
 const lazyPageLoaders = {
+  inbox: () => import('../pages/inbox.js').then(module => module.pageInbox),
+  mytasks: () => import('../pages/my-tasks.js').then(module => module.pageMyTasks),
+  favorites: () => import('../pages/favorites.js').then(module => module.pageFavorites),
+  notifications: () => import('../pages/notifications.js').then(module => module.pageNotifications),
+  search: () => import('../pages/search.js').then(module => module.pageSearch),
+  overview: () => import('../pages/overview.js').then(module => module.pageOverview),
+  projects: () => import('../pages/projects.js').then(module => module.pageProjects),
+  project: () => import('../pages/project.js').then(module => module.pageProject),
+  tasks: () => import('../pages/tasks.js').then(module => module.pageTasks),
+  calendar: () => import('../views/calendar.js').then(module => module.pageWsCalendar),
+  timeline: () => import('../views/timeline.js').then(module => module.pageWsTimeline),
   knowledge: () => import('../pages/knowledge.js').then(module => module.pageKnowledge),
   bookmarks: () => import('../pages/bookmarks.js').then(module => module.pageBookmarks),
   settings: () => import('../pages/settings.js').then(module => module.pageSettings),
@@ -97,17 +97,17 @@ export function renderPage() {
   try {
     const P = {
       home: pageHome,
-      inbox: pageInbox,
-      mytasks: pageMyTasks,
-      favorites: pageFavorites,
-      notifications: pageNotifications,
-      search: pageSearch,
-      overview: pageOverview,
-      projects: pageProjects,
-      project: pageProject,
-      tasks: pageTasks,
-      calendar: pageWsCalendar,
-      timeline: pageWsTimeline,
+      inbox: () => lazyPage('inbox'),
+      mytasks: () => lazyPage('mytasks'),
+      favorites: () => lazyPage('favorites'),
+      notifications: () => lazyPage('notifications'),
+      search: () => lazyPage('search'),
+      overview: () => lazyPage('overview'),
+      projects: () => lazyPage('projects'),
+      project: () => lazyPage('project'),
+      tasks: () => lazyPage('tasks'),
+      calendar: () => lazyPage('calendar'),
+      timeline: () => lazyPage('timeline'),
       members: () => lazyPage('members'),
       member: () => lazyPage('member'),
       teams: () => lazyPage('teams'),

@@ -15,17 +15,9 @@ import { tableHtml } from '../views/table.js';
 import { calendarHtml } from '../views/calendar.js';
 import { timelineHtml, tlControls } from '../views/timeline.js';
 import { filesHtml } from '../views/files.js';
+import { PROJECT_TABS } from '../shared/project-tabs.js';
 
-export const PTABS = [
-  ['overview', 'Overview', 'layout-dashboard'],
-  ['board', 'Board', 'square-kanban'],
-  ['list', 'List', 'list'],
-  ['table', 'Table', 'table-2'],
-  ['calendar', 'Calendar', 'calendar'],
-  ['timeline', 'Timeline', 'chart-gantt'],
-  ['files', 'Files', 'paperclip'],
-  ['activity', 'Activity', 'activity'],
-];
+export const PTABS = PROJECT_TABS;
 
 export function pageProject() {
   const p = proj(S.ui.params.id);
