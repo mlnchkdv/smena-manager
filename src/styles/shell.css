@@ -300,31 +300,27 @@ svg.logo {
 }
 .account-connection-badge {
   position: absolute;
-  top: -4px;
-  right: -5px;
-  display: grid;
-  place-items: center;
-  width: 13px;
-  height: 13px;
-  border: 1.5px solid var(--surface);
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--surface);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--green);
-  box-shadow: 0 0 0 1px var(--border);
+  background: var(--green);
 }
 .account-avatar-status-md .account-connection-badge {
-  top: -4px;
-  right: -5px;
-  width: 15px;
-  height: 15px;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
 }
 .account-avatar-status[data-state='syncing'] .account-connection-badge {
-  color: var(--accent);
+  background: var(--accent);
   animation: pulse 1.1s ease-in-out infinite;
 }
 .account-avatar-status:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid'])
   .account-connection-badge {
-  color: var(--red);
+  background: var(--red);
 }
 .crumbs {
   display: flex;

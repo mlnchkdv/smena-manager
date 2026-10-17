@@ -135,7 +135,6 @@ function accountSystemStatusHtml() {
     too_large: 'Workspace synchronization limit exceeded',
     invalid: 'Workspace data could not be synchronized',
   }[state];
-  const provider = storage?.provider === 'google-drive' ? 'Google Drive' : storage?.provider === 'local' ? 'Local storage' : 'Checking…';
   const used = storage?.usageBytes ?? status?.workspaceBytes;
   const limit = storage?.quotaBytes ?? status?.workspaceMaxBytes;
   const usage = used == null ? '—' : limit ? `${formatSystemBytes(used)} / ${formatSystemBytes(limit)}` : formatSystemBytes(used);
@@ -143,17 +142,6 @@ function accountSystemStatusHtml() {
   const lastSync = lastSyncValue ? new Date(lastSyncValue).toLocaleString(locale()) : 'Never';
   const loading = S.ui.systemStatusLoading && !status;
   const expanded = S.ui.systemDetailsOpen;
-  const coordination = status?.coordination;
-  const writeProtection = coordination
-    ? coordination.mode === 'redis-lock'
-      ? coordination.healthy
-        ? 'Distributed lock'
-        : 'Lock unavailable'
-      : coordination.mode === 'drive-etag'
-        ? 'Revision protection'
-        : 'Local write queue'
-    : 'Checking…';
-
   return `<section class="account-system" data-state="${state}">
     <button class="account-system-summary" data-a="toggleSystemDetails" aria-expanded="${expanded}" aria-controls="account-system-details">
       <span class="account-system-icon">${ic('wifi', 15)}<span class="system-health-dot" aria-hidden="true"></span></span>
@@ -164,9 +152,7 @@ function accountSystemStatusHtml() {
       expanded
         ? `<div class="account-system-details" id="account-system-details">
       <dl class="account-system-grid" aria-busy="${loading}">
-        <div><dt>Storage</dt><dd>${loading ? 'Checking…' : provider}</dd></div>
         <div><dt>Used</dt><dd>${loading ? 'Checking…' : usage}</dd></div>
-        <div><dt>Write protection</dt><dd>${loading ? 'Checking…' : writeProtection}</dd></div>
         <div><dt>Team updates</dt><dd>Every 5 seconds while active</dd></div>
         <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
       </dl>

@@ -52,7 +52,7 @@ function accountMenuLabel() {
 
 function accountAvatarStatus(memberId, size = '') {
   const state = systemConnectionState();
-  return `<span class="account-avatar-status ${size === 'md' ? 'account-avatar-status-md' : ''}" data-state="${state}" aria-hidden="true">${av(memberId, size, false)}<span class="account-connection-badge">${ic('wifi', 8)}</span></span>`;
+  return `<span class="account-avatar-status ${size === 'md' ? 'account-avatar-status-md' : ''}" data-state="${state}" aria-hidden="true">${av(memberId, size, false)}<span class="account-connection-badge"></span></span>`;
 }
 
 function lazyPage(route) {

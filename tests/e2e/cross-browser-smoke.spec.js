@@ -34,6 +34,20 @@ test('core task flow and responsive shell work across browser engines', async ({
   await signIn(page);
   await page.setViewportSize({ width: 1366, height: 850 });
   await page.goto('/e2e-team');
+  const accountTrigger = page.locator('.topbar .account-menu-trigger:visible');
+  const connectionDot = accountTrigger.locator('.account-connection-badge');
+  await expect(connectionDot).toBeVisible();
+  await expect(connectionDot.locator('svg')).toHaveCount(0);
+  const avatarBox = await accountTrigger.locator('.account-avatar-status').boundingBox();
+  const dotBox = await connectionDot.boundingBox();
+  expect(dotBox.x + dotBox.width / 2).toBeGreaterThan(avatarBox.x + avatarBox.width / 2);
+  expect(dotBox.y + dotBox.height / 2).toBeGreaterThan(avatarBox.y + avatarBox.height / 2);
+
+  await accountTrigger.click();
+  await page.locator('.account-system-summary').click();
+  await expect(page.locator('.account-system-grid > div')).toHaveCount(3);
+  await page.keyboard.press('Escape');
+
   await page.locator('button[data-a="newTask"]:visible').first().click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
