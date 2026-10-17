@@ -106,11 +106,125 @@
 .account-security-hint {
   margin-top: 10px !important;
 }
+.auth-sessions-block {
+  margin-top: 28px;
+}
+.auth-sessions-head {
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.auth-sessions-head h2 {
+  margin: 0 0 4px;
+  font-size: var(--fs-md);
+}
+.auth-sessions-head p {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.auth-session-list {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.auth-session-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px;
+  border-bottom: 1px solid var(--divider);
+}
+.auth-session-row:last-child {
+  border-bottom: 0;
+}
+.auth-session-row[data-current='true'] {
+  background: color-mix(in srgb, var(--green) 4%, var(--surface));
+}
+.auth-session-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+.auth-session-copy {
+  min-width: 0;
+}
+.auth-session-title,
+.auth-session-meta,
+.auth-session-meta > span {
+  display: flex;
+  align-items: center;
+}
+.auth-session-title {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.auth-session-title b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+.auth-session-meta {
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin-top: 5px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.auth-session-meta > span {
+  gap: 5px;
+}
+.auth-session-meta time {
+  color: var(--text-2);
+}
+.auth-sessions-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 84px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-lg);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+.auth-sessions-error {
+  margin: 0;
+}
+.auth-sessions-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
 @media (max-width: 640px) {
   .account-security-card .grow {
     min-width: calc(100% - 54px);
   }
   .account-security-action {
+    width: 100%;
+  }
+  .auth-sessions-head {
+    align-items: center;
+  }
+  .auth-session-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .auth-session-signout {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .auth-session-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .auth-sessions-actions .btn {
     width: 100%;
   }
 }

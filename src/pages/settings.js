@@ -87,6 +87,30 @@ function deliveryStatusPanel() {
     </div>
   </div>`;
 }
+
+function authSessionsPanel() {
+  const sessions = S.ui.authSessions;
+  const locale = S.prefs.lang === 'Русский' ? 'ru-RU' : S.prefs.lang === 'English (UK)' ? 'en-GB' : 'en-US';
+  const stamp = value => new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  const content = S.ui.authSessionsLoading
+    ? `<div class="auth-sessions-state" role="status" aria-busy="true">${ic('loader', 16)}<span>Loading sessions…</span></div>`
+    : S.ui.authSessionsError
+      ? `<div class="alert warn auth-sessions-error" role="alert">${ic('triangle-alert', 16)}<span class="grow">${esc(S.ui.authSessionsError)}</span><button class="btn btn-secondary btn-sm" data-a="loadAuthSessions">Try again</button></div>`
+      : Array.isArray(sessions) && sessions.length
+        ? `<div class="auth-session-list">${sessions
+            .map(
+              session => `<div class="auth-session-row" data-current="${session.current ? 'true' : 'false'}">
+                <span class="ftype auth-session-icon">${ic(session.mobile ? 'smartphone' : 'monitor', 18)}</span>
+                <div class="auth-session-copy"><div class="auth-session-title"><b>${esc(session.device)}</b>${session.current ? '<span class="badge green">This device</span>' : ''}<span class="badge">${session.authMethod === 'google' ? 'Google' : session.authMethod === 'access_id' ? 'Access ID' : 'Existing session'}</span></div>
+                <div class="auth-session-meta"><span>${ic('log-in', 13)}<span>Signed in</span> <time datetime="${esc(session.createdAt)}">${stamp(session.createdAt)}</time></span><span>${ic('activity', 13)}${session.current ? '<span>Active now</span>' : `<span>Last active</span> <time datetime="${esc(session.lastSeenAt)}">${stamp(session.lastSeenAt)}</time>`}</span></div></div>
+                ${session.current ? '' : `<button class="btn btn-secondary btn-sm auth-session-signout" data-a="revokeAuthSession" data-id="${esc(session.id)}">${ic('log-out', 13)}Sign out</button>`}
+              </div>`,
+            )
+            .join('')}</div>`
+        : '<div class="auth-sessions-state"><span>No active sessions found.</span></div>';
+  const otherCount = sessions?.filter(session => !session.current).length || 0;
+  return `<div class="sblock auth-sessions-block"><div class="row between auth-sessions-head"><div><h2>Active sessions</h2><p class="muted">Devices currently signed in to your account.</p></div><button class="btn btn-secondary btn-sm" data-a="loadAuthSessions" ${S.ui.authSessionsLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}Refresh</button></div>${content}${otherCount ? `<div class="auth-sessions-actions"><button class="btn btn-danger-ghost btn-sm" data-a="revokeOtherAuthSessions">${ic('log-out', 13)}Sign out of all other sessions</button></div>` : ''}</div>`;
+}
 export function pageSettings() {
   const isAdmin = S.ui.currentUser?.role === 'admin';
   const navigation = SET_NAV.map(([group, items]) => [group, isAdmin ? items : items.filter(([key]) => !ADMIN_SETTINGS.has(key))]).filter(
@@ -392,7 +416,7 @@ export function settingsBody(sec, title) {
     case 'security':
       return (
         H('Sign-in security is managed by your Google Account.') +
-        `<div class="panel account-security-card"><span class="ftype account-security-icon">${ic('shield-check', 20)}</span><div class="grow"><h2>Google Account security</h2><p class="muted">Change your password, configure two-step verification, and review signed-in devices in Google Account settings.</p><div class="account-security-email">${ic('mail', 14)}<span>${esc(me()?.email || '')}</span></div><a class="btn btn-primary account-security-action" href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">Open Google security${ic('external-link', 14)}</a></div></div><p class="hint account-security-hint">Smena Manager never stores your Google password or recovery codes.</p>`
+        `<div class="panel account-security-card"><span class="ftype account-security-icon">${ic('shield-check', 20)}</span><div class="grow"><h2>Google Account security</h2><p class="muted">Change your password, configure two-step verification, and review signed-in devices in Google Account settings.</p><div class="account-security-email">${ic('mail', 14)}<span>${esc(me()?.email || '')}</span></div><a class="btn btn-primary account-security-action" href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer">Open Google security${ic('external-link', 14)}</a></div></div><p class="hint account-security-hint">Smena Manager never stores your Google password or recovery codes.</p>${authSessionsPanel()}`
       );
   }
   return page404();

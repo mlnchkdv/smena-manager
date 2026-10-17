@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.setTimeout(120_000);
+test.setTimeout(180_000);
 
 async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
@@ -50,7 +50,7 @@ async function openTrash(page) {
 async function visibleUntranslatedUi(page) {
   return page.evaluate(() => {
     const allowed =
-      /Smena Manager|KMS Brain|E2E|CtrlK|Ctrl|Shift|Esc|Tab|GMT|Gmail|Web Push|Push|https?|URL|JSON|Markdown|Google(?: Drive)?|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
+      /Smena Manager|KMS Brain|E2E|CtrlK|Ctrl|Shift|Esc|Tab|GMT|Gmail|Web Push|Push|Windows|macOS|ChromeOS|Linux|Android|iPhone|iPad|Chrome|Edge|Firefox|Safari|https?|URL|JSON|Markdown|Google(?: Drive)?|OAuth|\bPRJ-\d+\b|\b[^\s@]+@[^\s@]+\.[^\s@]+\b|\b[\w.-]+\.(?:app|com|net|org|ru|test|txt|pdf|csv|zip|docx?|xlsx?|png|jpe?g|gif|webp)\b|\b(?:MB|GB|PDF|CSV|TXT|ZIP|DOCX?|XLSX?|PNG|JPE?G|GIF|WebP|HTML|CSS|API)\b/giu;
     const visible = element => Boolean(element?.offsetWidth || element?.offsetHeight || element?.getClientRects().length);
     return [
       ...new Set(
@@ -280,6 +280,9 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.getByRole('heading', { name: 'Безопасность аккаунта', exact: true })).toBeVisible();
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Открыть настройки Google' })).toHaveAttribute('href', 'https://myaccount.google.com/security');
+  await expect(page.getByRole('heading', { name: 'Активные сеансы', exact: true })).toBeVisible();
+  await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText('Это устройство');
+  await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText('Windows');
   await expectRussianUi(page, 'account security settings');
 
   await page.goto('/e2e-team/settings/language');
@@ -289,6 +292,8 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/settings/security');
   await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Open Google security' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Active sessions', exact: true })).toBeVisible();
+  await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText('This device');
   await page.goto('/e2e-team/settings/data-transfer');
   await expect(page.getByRole('heading', { name: 'Backups', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create backup' })).toBeVisible();

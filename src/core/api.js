@@ -91,6 +91,23 @@ export async function getCurrentUser() {
   return result.user;
 }
 
+export async function getAuthSessions() {
+  const result = await request('/api/auth/sessions', {}, true);
+  return result.sessions || [];
+}
+
+export async function revokeAuthSession(sessionId) {
+  return request(`/api/auth/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' }, true);
+}
+
+export async function revokeOtherAuthSessions() {
+  return request('/api/auth/sessions/others', { method: 'DELETE' }, true);
+}
+
+export async function revokeCurrentAuthSession() {
+  return request('/api/auth/session', { method: 'DELETE' }, true);
+}
+
 export async function getWorkspace() {
   const result = await request('/api/workspace', {}, true);
   return result.data;

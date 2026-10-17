@@ -40,7 +40,11 @@ import {
   downloadWorkspaceFile,
   getStorageStatus,
   getNotificationDeliveryStatus,
+  getAuthSessions,
   getWorkspaceBackups,
+  revokeAuthSession,
+  revokeCurrentAuthSession,
+  revokeOtherAuthSessions,
   restoreWorkspaceBackup,
   uploadWorkspaceFile,
 } from '../core/api.js';
@@ -258,6 +262,7 @@ A.go = el => {
   S.ui.palette = null;
   const tabOnly = r === 'project' && S.ui.route === 'project' && S.ui.params.id === p.id;
   go(r, p, { tab: tabOnly });
+  if (r === 'settings' && p.sec === 'security') void A.loadAuthSessions();
 };
 A.back = () => {
   const h = S.ui.history.pop();
@@ -2443,6 +2448,7 @@ A.newWorkspace = () => {
   render();
 };
 A.signOut = () => {
+  void revokeCurrentAuthSession().catch(() => undefined);
   clearSession();
   disableWorkspaceSync();
   S.ui.currentUser = null;
@@ -2453,6 +2459,63 @@ A.signOut = () => {
   S.ui.auth = 'login';
   S.ui.errors = {};
   render();
+};
+
+A.loadAuthSessions = async () => {
+  if (S.ui.authSessionsLoading) return;
+  S.ui.authSessionsLoading = true;
+  S.ui.authSessionsError = '';
+  render();
+  try {
+    S.ui.authSessions = await getAuthSessions();
+  } catch (error) {
+    S.ui.authSessionsError = error.message || 'Unable to load active sessions.';
+  } finally {
+    S.ui.authSessionsLoading = false;
+    render();
+  }
+};
+A.revokeAuthSession = el => {
+  const session = S.ui.authSessions?.find(item => item.id === el.dataset.id && !item.current);
+  if (!session) return;
+  confirmDlg({
+    title: 'Sign out this device?',
+    body: `<b>${esc(session.device)}</b> will need to sign in again to access the workspace.`,
+    ok: 'Sign out',
+    danger: true,
+    run: async () => {
+      try {
+        await revokeAuthSession(session.id);
+        S.ui.authSessions = S.ui.authSessions.filter(item => item.id !== session.id);
+        S.ui.modals = [];
+        render();
+        toast('Session signed out.');
+      } catch (error) {
+        toast(error.message || 'Unable to sign out this session.', { kind: 'err' });
+      }
+    },
+  });
+};
+A.revokeOtherAuthSessions = () => {
+  const count = S.ui.authSessions?.filter(session => !session.current).length || 0;
+  if (!count) return;
+  confirmDlg({
+    title: 'Sign out of all other sessions?',
+    body: `${count} other ${count === 1 ? 'device' : 'devices'} will need to sign in again. This device will remain signed in.`,
+    ok: 'Sign out other sessions',
+    danger: true,
+    run: async () => {
+      try {
+        const result = await revokeOtherAuthSessions();
+        S.ui.authSessions = result.sessions || S.ui.authSessions.filter(session => session.current);
+        S.ui.modals = [];
+        render();
+        toast('Other sessions signed out.');
+      } catch (error) {
+        toast(error.message || 'Unable to sign out other sessions.', { kind: 'err' });
+      }
+    },
+  });
 };
 A.shortcuts = () => {
   S.ui.pop = null;

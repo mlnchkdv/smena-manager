@@ -261,9 +261,14 @@ function applyBrowserLocation() {
   S.ui.locationReady = true;
 }
 
+function loadRouteData() {
+  if (S.ui.route === 'settings' && S.ui.params.sec === 'security') void A.loadAuthSessions();
+}
+
 window.addEventListener('popstate', () => {
   applyBrowserLocation();
   render();
+  loadRouteData();
 });
 
 (async function init() {
@@ -293,7 +298,10 @@ window.addEventListener('popstate', () => {
     S.ui.authIssue = error.status === 401 ? '' : error.message || 'Unable to connect to the workspace server.';
   }
   render();
-  if (user && !S.ui.needsOnboarding) void refreshWebPushSubscription();
+  if (user && !S.ui.needsOnboarding) {
+    loadRouteData();
+    void refreshWebPushSubscription();
+  }
 })();
 
 let workspaceRefreshPromise = null;
