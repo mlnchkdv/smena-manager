@@ -288,64 +288,37 @@ svg.logo {
   position: relative;
   z-index: 5;
 }
-.connection-indicator {
-  position: fixed;
-  right: 20px;
-  bottom: 78px;
-  z-index: 44;
+.account-menu-button {
+  width: auto;
+  padding: 0 2px;
+  overflow: visible;
+}
+.account-avatar-status {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.account-connection-badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow-sm);
-  transition:
-    color var(--dur),
-    border-color var(--dur),
-    background var(--dur),
-    transform var(--dur);
-}
-.connection-indicator:hover,
-.connection-indicator[aria-expanded='true'] {
-  border-color: var(--border-strong);
-  background: var(--surface-2);
-  color: var(--text);
-  transform: translateY(-1px);
-}
-.connection-indicator-dot {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 7px;
-  height: 7px;
+  width: 15px;
+  height: 15px;
   border: 1.5px solid var(--surface);
   border-radius: 50%;
-  background: var(--green);
+  background: var(--surface);
+  color: var(--green);
+  box-shadow: 0 0 0 1px var(--border);
 }
-.connection-indicator[data-state='syncing'] {
+.account-avatar-status[data-state='syncing'] .account-connection-badge {
   color: var(--accent);
-}
-.connection-indicator[data-state='syncing'] .connection-indicator-dot {
-  background: var(--accent);
   animation: pulse 1.1s ease-in-out infinite;
 }
-.connection-indicator:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid']) {
+.account-avatar-status:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid'])
+  .account-connection-badge {
   color: var(--red);
-}
-.connection-indicator:is([data-state='offline'], [data-state='unavailable'], [data-state='conflict'], [data-state='too_large'], [data-state='invalid'])
-  .connection-indicator-dot {
-  background: var(--red);
-}
-@media (max-width: 640px) {
-  .connection-indicator {
-    right: 14px;
-    bottom: calc(128px + env(safe-area-inset-bottom, 0px));
-    width: 34px;
-    height: 34px;
-  }
 }
 .crumbs {
   display: flex;

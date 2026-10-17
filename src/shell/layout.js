@@ -69,7 +69,6 @@ export function renderShell() {
       <div class="content ${u.fx.route ? 'fx-route' : ''}" id="main-content" tabindex="-1" data-keep="c:${u.route}:${u.params.id || ''}:${u.params.tab || ''}:${u.params.sec || ''}">${u.loading ? skeleton() : renderPage()}</div>
     </main>
     ${renderBottomNav()}
-    ${renderConnectionIndicator()}
   </div>`;
 }
 export function renderPage() {
@@ -248,13 +247,8 @@ export function renderTopbar() {
     <button class="topsearch" data-a="openPalette" aria-label="Search and commands">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     <button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>
-    <button class="ibtn hide-m" data-a="pop" data-pop="user" aria-label="Account menu" style="width:auto;padding:0 2px">${av(D().me, 'md', false)}</button>
+    <button class="ibtn hide-m account-menu-button" data-a="pop" data-pop="user" aria-label="Account menu"><span class="account-avatar-status" data-state="${state}">${av(D().me, 'md', false)}<span class="account-connection-badge" aria-hidden="true">${ic('wifi', 8)}</span></span></button>
   </header>`;
-}
-export function renderConnectionIndicator() {
-  const state = systemConnectionState();
-  const open = S.ui.pop?.type === 'user';
-  return `<button class="connection-indicator" id="connection-status-button" data-state="${state}" data-a="pop" data-pop="user" aria-label="System status" aria-haspopup="menu" aria-expanded="${open}">${ic('wifi', 16)}<span class="connection-indicator-dot" aria-hidden="true"></span></button>`;
 }
 export function renderBottomNav() {
   const r = S.ui.route;
