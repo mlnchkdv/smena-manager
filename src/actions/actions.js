@@ -56,7 +56,7 @@ import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { workspaceDocumentData } from '../shared/workspace-documents.js';
-import { isRussian, templateText } from '../core/i18n.js';
+import { isRussian, locale, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
@@ -263,6 +263,7 @@ A.go = el => {
   const tabOnly = r === 'project' && S.ui.route === 'project' && S.ui.params.id === p.id;
   go(r, p, { tab: tabOnly });
   if (r === 'settings' && p.sec === 'security') void A.loadAuthSessions();
+  if (r === 'settings' && p.sec === 'data-transfer') void A.loadWorkspaceBackups();
 };
 A.back = () => {
   const h = S.ui.history.pop();
@@ -329,7 +330,7 @@ A.restoreWorkspaceBackup = el => {
   if (!backup || S.ui.currentUser?.role !== 'admin') return;
   confirmDlg({
     title: 'Restore backup?',
-    body: `The current state will first be saved as a separate backup, then the data will be restored to the version from ${new Date(backup.createdAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US')}.`,
+    body: `The current state will first be saved as a separate backup, then the data will be restored to the version from ${new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(backup.createdAt))}.`,
     ok: 'Restore',
     icon: 'history',
     run: async () => {

@@ -272,6 +272,7 @@ function applyBrowserLocation() {
 
 function loadRouteData() {
   if (S.ui.route === 'settings' && S.ui.params.sec === 'security') void A.loadAuthSessions();
+  if (S.ui.route === 'settings' && S.ui.params.sec === 'data-transfer') void A.loadWorkspaceBackups();
 }
 
 window.addEventListener('popstate', () => {

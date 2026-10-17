@@ -61,6 +61,8 @@ export const S = {
     authSessions: null,
     authSessionsLoading: false,
     authSessionsError: '',
+    backups: null,
+    backupsLoading: false,
     needsOnboarding: false,
     currentUser: null,
     workspaceRevision: null,
