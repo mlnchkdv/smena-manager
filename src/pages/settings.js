@@ -87,6 +87,12 @@ function deliveryStatusPanel() {
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
   const operational = status.operational;
+  const coordinationMode =
+    status.workspace?.coordination?.mode === 'local-queue'
+      ? 'Local write queue'
+      : status.workspace?.coordination?.mode === 'redis'
+        ? 'Distributed lock'
+        : status.workspace?.coordination?.mode || '—';
   const healthLabel = operational?.status === 'healthy' ? 'Healthy' : operational?.status === 'critical' ? 'Critical' : 'Needs attention';
   const cronLabel = !lastCron
     ? 'No run recorded yet'
@@ -100,7 +106,7 @@ function deliveryStatusPanel() {
     <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
-      <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(status.workspace?.coordination?.mode || '—')}</p></div>
+      <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(coordinationMode)}</p></div>
       <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
       <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>
