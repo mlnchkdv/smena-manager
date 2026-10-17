@@ -4,6 +4,7 @@ import { deliverPushNotifications, pushDeliveryStatus } from './push-subscriptio
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { drainNotificationOutbox } from './notification-outbox.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { reportProviderError } from './provider-safety.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
 let mutationQueue = Promise.resolve();
@@ -97,7 +98,7 @@ export async function deliverWorkspaceNotifications(data, notifications = [], op
   ]);
   if (notifications.length) {
     await recordNotificationDelivery({ push, email }, { source: options.source, notifications: notifications.length, cron: options.cron }).catch(error => {
-      console.error('[Notifications] Delivery diagnostics could not be saved:', error?.message || error);
+      reportProviderError('[Notifications] Delivery diagnostics', error);
     });
   }
   return { push, email };

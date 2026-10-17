@@ -13,6 +13,7 @@ import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canEditProject, canReadProject } from '../shared/project-access.js';
 import { retainDetachedFile } from './file-retention.js';
+import { reportProviderError } from './provider-safety.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -144,7 +145,7 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     if (stored)
       await getStorageProvider()
         .deleteFile(stored.filename, stored.fileId)
-        .catch(cleanupError => console.error('[Files] Upload rollback failed:', cleanupError));
+        .catch(cleanupError => reportProviderError('[Files] Upload rollback failed', cleanupError));
     next(error);
   } finally {
     if (temporaryPath) await fs.promises.unlink(temporaryPath).catch(() => undefined);

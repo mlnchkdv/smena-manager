@@ -1,4 +1,6 @@
 import express from 'express';
+import crypto from 'node:crypto';
+import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
 import {
@@ -42,12 +44,15 @@ import { applyPersonalSettings } from '../shared/personal-settings.js';
 export const app = express();
 
 app.disable('x-powered-by');
-app.use(express.json({ limit: WORKSPACE_TRANSPORT_MAX_BYTES }));
-app.use((_request, response, next) => {
+app.use((request, response, next) => {
+  request.requestId = crypto.randomUUID();
+  request.startedAt = Date.now();
+  response.setHeader('X-Request-ID', request.requestId);
   response.setHeader('Cache-Control', 'no-store');
   for (const [name, value] of Object.entries(HTTP_SECURITY_HEADERS)) response.setHeader(name, value);
   next();
 });
+app.use(express.json({ limit: WORKSPACE_TRANSPORT_MAX_BYTES }));
 
 app.get('/api/health', (_request, response) => {
   response.json({
@@ -63,7 +68,7 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     const reminders = await runDueReminderSweep();
     const outbox = await retryNotificationOutbox();
     const digest = await runDailyEmailDigest().catch(error => {
-      console.error('[Email digest]', error.providerReason || error.message);
+      reportProviderError('[Email digest]', error);
       return { delivered: 0, error: 'delivery_failed' };
     });
     const cleanup = await runNotificationCleanup();
@@ -72,16 +77,16 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       () => ({ error: 'cleanup_failed' }),
     );
     const backup = await runAutomaticWorkspaceBackup().catch(error => {
-      console.error('[Automatic backup]', error.message);
+      reportProviderError('[Automatic backup]', error);
       return { error: 'backup_failed' };
     });
     const cronStatus = digest.error || backup.error ? 'degraded' : 'ok';
     await recordNotificationCronRun({ status: cronStatus, reminders, digest, cleanup, pushCleanup, backup }).catch(error => {
-      console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
+      reportProviderError('[Notifications] Cron diagnostics', error);
     });
     if (cronStatus !== 'ok') {
       const issues = [digest.error && 'Email digest delivery failed', backup.error && 'Automatic backup failed'].filter(Boolean);
-      await notifyAdministratorsAboutSystemIssue(issues).catch(error => console.error('[System alert]', error.message));
+      await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
     }
     response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup });
   } catch (error) {
@@ -115,6 +120,24 @@ app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });
+});
+
+app.get('/api/readiness', requireRole('admin'), async (request, response, next) => {
+  try {
+    const [workspace, backups, notifications] = await Promise.all([getWorkspaceStatus(), listWorkspaceBackups(), notificationDeliveryStatus()]);
+    const operational = evaluateOperationalHealth({ ...notifications, workspace });
+    const lastBackup =
+      backups
+        .map(item => item.createdAt)
+        .filter(Boolean)
+        .sort()
+        .at(-1) || null;
+    if (!lastBackup || Date.now() - Date.parse(lastBackup) > 36 * 3600000) operational.issues.push({ code: 'backup_stale', severity: 'critical' });
+    const ready = !operational.issues.some(item => item.severity === 'critical');
+    response.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'degraded', requestId: request.requestId, operational, lastBackup, workspace });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/preferences', async (request, response, next) => {
@@ -402,11 +425,12 @@ app.use('/api', (_request, response) => {
   response.status(404).json({ error: 'API route not found.' });
 });
 
-app.use((error, _request, response, next) => {
+app.use((error, request, response, next) => {
   void next;
-  console.error('[API]', error);
+  console.error('[API]', { requestId: request.requestId, durationMs: Date.now() - request.startedAt, ...safeProviderError(error) });
   const status = error.statusCode || (error instanceof TypeError ? 400 : 503);
   const body = {
+    requestId: request.requestId,
     error: status === 503 ? 'Workspace storage is unavailable.' : error.message,
     code: error.code || (status === 400 ? 'INVALID_REQUEST' : status === 413 ? 'PAYLOAD_TOO_LARGE' : 'STORAGE_UNAVAILABLE'),
   };

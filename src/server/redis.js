@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import Redis from 'ioredis';
+import { reportProviderError } from './provider-safety.js';
 
 let client;
 
@@ -15,7 +16,7 @@ function getRedisClient() {
       maxRetriesPerRequest: 2,
       enableReadyCheck: true,
     });
-    client.on('error', error => console.error('[Redis]', error.message));
+    client.on('error', error => reportProviderError('[Redis]', error));
   }
   return client;
 }
@@ -74,7 +75,7 @@ export async function withRedisLock(key, action, options = {}) {
         clearInterval(renewalTimer);
         await redis
           .eval("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end", 1, key, token)
-          .catch(error => console.error('[Redis] Could not release lock:', error.message));
+          .catch(error => reportProviderError('[Redis] Could not release lock', error));
       }
     }
     await wait(100 + Math.floor(Math.random() * 100));

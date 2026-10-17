@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
+import { configureProviderTimeout, reportProviderError } from './provider-safety.js';
 import { emailPreferenceForNotification, notificationPreferencesForMember } from '../shared/notification-model.js';
 import { notificationUrl } from '../shared/notification-links.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
@@ -63,7 +64,7 @@ export async function emailAuthorizationStatus() {
     return value;
   }
   try {
-    const auth = new OAuth2Client(config.clientId, config.clientSecret);
+    const auth = configureProviderTimeout(new OAuth2Client(config.clientId, config.clientSecret));
     auth.setCredentials({ refresh_token: config.refreshToken });
     const result = await auth.getAccessToken();
     if (!result?.token) {
@@ -109,7 +110,7 @@ export function createRawEmail({ from, to, subject, text }) {
 }
 
 async function gmailAccessToken(config) {
-  const auth = new OAuth2Client(config.clientId, config.clientSecret);
+  const auth = configureProviderTimeout(new OAuth2Client(config.clientId, config.clientSecret));
   auth.setCredentials({ refresh_token: config.refreshToken });
   const result = await auth.getAccessToken();
   if (!result?.token) throw new Error('Google did not issue an email access token.');
@@ -118,6 +119,7 @@ async function gmailAccessToken(config) {
 
 async function sendGmail(accessToken, message) {
   const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    signal: AbortSignal.timeout(15000),
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ raw: createRawEmail(message) }),
@@ -165,7 +167,7 @@ export async function deliverEmailNotifications(data, notifications = [], option
   try {
     accessToken = options.accessToken || (await gmailAccessToken(config));
   } catch (error) {
-    console.error('[Email] Authorization failed:', error?.message || error);
+    reportProviderError('[Email] Authorization failed', error);
     return { configured: true, attempted: messages.length, delivered: 0, failed: messages.length, retried: 0, removed: 0 };
   }
   const sender = options.send || sendGmail;
@@ -185,7 +187,7 @@ export async function deliverEmailNotifications(data, notifications = [], option
           continue;
         }
         failed += 1;
-        console.error('[Email] Delivery failed:', error.providerReason || error.message);
+        reportProviderError('[Email] Delivery failed', error);
       }
     }
   }
@@ -241,7 +243,7 @@ export async function runDailyEmailDigest(options = {}) {
       await sendGmail(accessToken, { ...dailyDigestMessage(current, member, plan.today, configuredLocale(options.locale)), from: config.from });
       deliveredMembers.push(member.id);
     } catch (error) {
-      console.error('[Email digest] Delivery failed:', error.providerReason || error.message);
+      reportProviderError('[Email digest] Delivery failed', error);
     }
   }
   if (!deliveredMembers.length) return { delivered: 0, today: plan.today };

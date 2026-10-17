@@ -4,6 +4,7 @@ import { getStorageProvider } from './storage/index.js';
 import { notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
 import { notificationPath } from '../shared/notification-links.js';
 import { storageVersion } from './storage/version-token.js';
+import { reportProviderError } from './provider-safety.js';
 
 let mutationQueue = Promise.resolve();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -246,7 +247,7 @@ export async function deliverPushNotifications(data, notifications = [], options
                 continue;
               }
               failed += 1;
-              console.error('[Push] Delivery failed:', error?.message || error);
+              reportProviderError('[Push] Delivery failed', error);
               return;
             }
           }

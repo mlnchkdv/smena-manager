@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { sessionCookieToken } from './session-cookie.js';
+import { reportProviderError } from './provider-safety.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWorkspaceDatabase } from './workspace-store.js';
@@ -160,7 +161,7 @@ export async function createTrackedSession(profile, request, authMethod) {
   });
   if (session) {
     await recordLoginSecurityNotification(profile, session).catch(error => {
-      console.error('[Security] Login notification failed:', error?.message || error);
+      reportProviderError('[Security] Login notification failed', error);
     });
   }
   return token;

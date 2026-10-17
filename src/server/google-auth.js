@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
+import { configureProviderTimeout } from './provider-safety.js';
 import { findProfileByEmail, getAccessProfiles } from './auth.js';
 
 export class GoogleAuthenticationError extends Error {
@@ -43,7 +44,7 @@ export async function authenticateGoogleCredential(credential, options = {}) {
     if (options.verifyIdToken) {
       ticket = await options.verifyIdToken({ idToken: credential.trim(), audience: clientId });
     } else {
-      const client = new OAuth2Client(clientId);
+      const client = configureProviderTimeout(new OAuth2Client(clientId));
       ticket = await client.verifyIdToken({ idToken: credential.trim(), audience: clientId });
     }
   } catch {

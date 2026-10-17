@@ -3,6 +3,7 @@ import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
 import { rememberStorageVersion } from './version-token.js';
+import { configureProviderTimeout } from '../provider-safety.js';
 
 function conditionalWriteOptions(options, fallback) {
   const etag = Object.hasOwn(options, 'expectedEtag') ? options.expectedEtag : fallback;
@@ -88,8 +89,8 @@ export class GoogleDriveStorageProvider {
 
   async init() {
     if (this.initialized) return;
-    this.authClient = this.createAuthClient();
-    this.client = drive({ version: 'v3', auth: this.authClient });
+    this.authClient = configureProviderTimeout(this.createAuthClient());
+    this.client = drive({ version: 'v3', auth: this.authClient, timeout: 30000, retry: false });
     if (!this.rootFolderId) this.rootFolderId = await this.getOrCreateRootFolder();
     await this.client.files.get({
       fileId: this.rootFolderId,
@@ -549,6 +550,7 @@ export class GoogleDriveStorageProvider {
     uploadUrl.searchParams.set('supportsAllDrives', 'true');
     uploadUrl.searchParams.set('fields', 'id,name,size,mimeType,parents,trashed,appProperties');
     const result = await this.fetch(uploadUrl, {
+      signal: AbortSignal.timeout(15000),
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
