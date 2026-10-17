@@ -309,6 +309,11 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.locator('.pop')).toContainText('Keyboard shortcuts');
   await expect(page.locator('.pop')).toContainText('Command menu');
   await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('English (UK)', { force: true });
+  await waitForSaved(page);
+  await page.goto('/e2e-team/settings/security');
+  await expect(page.locator('.auth-session-row[data-current="true"] time').first()).toHaveText(/\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}/u);
+  await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await waitForSaved(page);

@@ -8,7 +8,7 @@ import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
-import { LANGUAGES } from '../core/i18n.js';
+import { LANGUAGES, locale } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 
@@ -64,6 +64,12 @@ export const sel = (k, opts, v) =>
     })
     .join('')}</select>`;
 
+function settingsTimestamp(value) {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
 function deliveryStatusPanel() {
   if (S.ui.currentUser?.role !== 'admin') return '';
   const status = S.ui.notificationDeliveryStatus;
@@ -74,24 +80,20 @@ function deliveryStatusPanel() {
   const pushReady = status.channels?.push?.configured;
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
-  const stamp = value =>
-    value ? new Intl.DateTimeFormat(S.prefs.lang === 'Русский' ? 'ru-RU' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
   const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${label}</span>`;
   return `<div class="sblock notification-delivery-card">
     <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div>
     <div class="notification-delivery-grid">
       <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
-      <div><span class="label">Last automatic run</span><b>${stamp(lastCron?.at)}</b><p class="hint">${lastCron?.status === 'degraded' ? 'Completed with delivery errors' : lastCron ? 'Completed successfully' : 'No run recorded yet'}</p></div>
-      <div><span class="label">Latest delivery</span><b>${stamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>
+      <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${lastCron?.status === 'degraded' ? 'Completed with delivery errors' : lastCron ? 'Completed successfully' : 'No run recorded yet'}</p></div>
+      <div><span class="label">Latest delivery</span><b>${settingsTimestamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>
     </div>
   </div>`;
 }
 
 function authSessionsPanel() {
   const sessions = S.ui.authSessions;
-  const locale = S.prefs.lang === 'Русский' ? 'ru-RU' : S.prefs.lang === 'English (UK)' ? 'en-GB' : 'en-US';
-  const stamp = value => new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const content = S.ui.authSessionsLoading
     ? `<div class="auth-sessions-state" role="status" aria-busy="true">${ic('loader', 16)}<span>Loading sessions…</span></div>`
     : S.ui.authSessionsError
@@ -102,7 +104,7 @@ function authSessionsPanel() {
               session => `<div class="auth-session-row" data-current="${session.current ? 'true' : 'false'}">
                 <span class="ftype auth-session-icon">${ic(session.mobile ? 'smartphone' : 'monitor', 18)}</span>
                 <div class="auth-session-copy"><div class="auth-session-title"><b>${esc(session.device)}</b>${session.current ? '<span class="badge green">This device</span>' : ''}<span class="badge">${session.authMethod === 'google' ? 'Google' : session.authMethod === 'access_id' ? 'Access ID' : 'Existing session'}</span></div>
-                <div class="auth-session-meta"><span>${ic('log-in', 13)}<span>Signed in</span> <time datetime="${esc(session.createdAt)}">${stamp(session.createdAt)}</time></span><span>${ic('activity', 13)}${session.current ? '<span>Active now</span>' : `<span>Last active</span> <time datetime="${esc(session.lastSeenAt)}">${stamp(session.lastSeenAt)}</time>`}</span></div></div>
+                <div class="auth-session-meta"><span>${ic('log-in', 13)}<span>Signed in</span> <time datetime="${esc(session.createdAt)}">${settingsTimestamp(session.createdAt)}</time></span><span>${ic('activity', 13)}${session.current ? '<span>Active now</span>' : `<span>Last active</span> <time datetime="${esc(session.lastSeenAt)}">${settingsTimestamp(session.lastSeenAt)}</time>`}</span></div></div>
                 ${session.current ? '' : `<button class="btn btn-secondary btn-sm auth-session-signout" data-a="revokeAuthSession" data-id="${esc(session.id)}">${ic('log-out', 13)}Sign out</button>`}
               </div>`,
             )
@@ -262,7 +264,7 @@ export function settingsBody(sec, title) {
       return (
         H('Full workspace backups and KMS Brain data transfer.') +
         `<div class="sblock" style="margin-top:0"><div class="row" style="gap:8px;flex-wrap:wrap"><div class="grow"><h2 style="margin-bottom:4px">Backups</h2><p class="lead" style="font-size:13px;margin:0">Backups are stored separately from the workspace database in Google Drive. The current version is saved automatically before a restore.</p></div><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div>
-        ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backup.label || 'Backup'), `${new Date(backup.createdAt).toLocaleString(S.prefs.lang === 'Русский' ? 'ru-RU' : 'en-US')} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
+        ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backup.label || 'Backup'), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
         </div>
         <div class="sblock"><h2>KMS Brain data transfer</h2><p class="lead" style="font-size:13px;margin-bottom:16px">The JSON file includes knowledge notes, folders, and bookmarks. Existing items are preserved and duplicates are skipped.</p>
         <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-secondary" data-a="exportPortableWorkspace">${ic('download', 14)}Export JSON</button><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Import JSON<input type="file" accept="application/json,.json" hidden data-in="importPortableWorkspace"></label></div>
