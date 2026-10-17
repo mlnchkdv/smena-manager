@@ -8,10 +8,6 @@ import { S } from './store.js';
 export const LANGUAGES = [
   ['English (US)', 'English (US)'],
   ['English (UK)', 'English (UK)'],
-  ['Deutsch', 'Deutsch'],
-  ['Español', 'Español'],
-  ['Français', 'Français'],
-  ['日本語', '日本語'],
   ['Русский', 'Русский'],
 ];
 
@@ -19,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Personal settings could not be synced. Keep this tab open and try again.':
+    'Не удалось синхронизировать личные настройки. Не закрывайте вкладку и повторите попытку.',
   'Cancel upload': 'Отменить загрузку',
   'Upload timed out. Try again.': 'Время загрузки истекло. Повторите попытку.',
   'Google Drive is unavailable. Try the upload again.': 'Google Диск недоступен. Повторите загрузку.',

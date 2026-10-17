@@ -37,6 +37,7 @@ import { canEditProject, trashProject, trashProjectId } from '../shared/project-
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile } from './file-retention.js';
 import { setSessionCookie } from './session-cookie.js';
+import { applyPersonalSettings } from '../shared/personal-settings.js';
 
 export const app = express();
 
@@ -114,6 +115,34 @@ app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });
+});
+
+app.get('/api/preferences', async (request, response, next) => {
+  try {
+    const data = await getWorkspaceDatabase();
+    const member = memberForProfile(bindAccessProfiles(data, getAccessProfiles()), request.user);
+    response.json({ preferences: data._userPrefs?.[member?.id] || {} });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/preferences', async (request, response, next) => {
+  try {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const current = await getWorkspaceDatabase();
+      const member = memberForProfile(bindAccessProfiles(current, getAccessProfiles()), request.user);
+      if (!member) throw permissionError('profile');
+      try {
+        const data = await mutateWorkspaceDatabase(database => applyPersonalSettings(database, member.id, request.body), current.revision, { role: 'admin' });
+        return response.json({ data, preferences: data._userPrefs?.[member.id] || {} });
+      } catch (error) {
+        if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/api/auth/sessions', async (request, response, next) => {

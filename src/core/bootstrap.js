@@ -2,6 +2,7 @@ import {
   clearSession,
   getAuthConfig,
   getCurrentUser,
+  getPersonalPreferences,
   getFileUploadPolicy,
   getSessionToken,
   getWorkspace,
@@ -15,6 +16,7 @@ import {
 } from './api.js';
 import { S, save, setWorkspaceBaseline } from './store.js';
 import { createDraftJournal, draftContext } from './offline-drafts.js';
+import { configurePersonalPreferences } from './personal-preferences.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import {
   configureCoreWorkspaceSync,
@@ -70,6 +72,7 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
 }
 
 async function loadWorkspaceFor(user) {
+  user = await getCurrentUser();
   let snapshot = await getWorkspace();
   const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name)])));
   if (isEmptyWorkspace(snapshot)) {
@@ -89,6 +92,9 @@ async function loadWorkspaceFor(user) {
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
+  const personal = await getPersonalPreferences();
+  Object.assign(S.prefs, personal.preferences);
+  configurePersonalPreferences(user.id, S.prefs);
   for (const scope of ['workspace', ...DOCUMENT_NAMES]) {
     try {
       const journal = createDraftJournal({ ...draftContext(user, S.data), scope });
@@ -110,6 +116,7 @@ async function loadWorkspaceFor(user) {
   }
   S.ui.filePolicy = await getFileUploadPolicy().catch(() => null);
   if (user.name) S.prefs.name = user.name;
+  S.prefs.title = user.title || '';
   return user;
 }
 

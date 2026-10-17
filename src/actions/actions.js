@@ -34,13 +34,13 @@ import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import {
   applyExternalCoreSnapshot,
-  applyWorkspaceSnapshot,
   authenticateAndLoadWorkspace,
   authenticateWithGoogleAndLoadWorkspace,
   refreshWorkspaceFromServer,
 } from '../core/bootstrap.js';
 import {
   clearSession,
+  savePersonalSettings,
   clearReadNotifications,
   createWorkspaceBackup,
   deleteAllWorkspaces,
@@ -2530,19 +2530,39 @@ A.delFile = el => {
 };
 
 /* inbox & notifications */
+async function persistPersonalChange(payload) {
+  const base = structuredClone(S.data);
+  const owner = S.ui.currentUser?.id;
+  try {
+    const result = await savePersonalSettings(payload);
+    if (owner !== S.ui.currentUser?.id) return false;
+    applyExternalCoreSnapshot(result.data, base);
+    if (payload.profile) {
+      Object.assign(S.ui.currentUser, { name: me().name, title: me().title });
+      S.prefs.name = me().name;
+      S.prefs.title = me().title;
+    }
+    save();
+    render();
+    return true;
+  } catch (error) {
+    toast(error.message || 'Personal settings could not be synced. Keep this tab open and try again.', { kind: 'err', ms: 8000 });
+    return false;
+  }
+}
 A.selNotif = el => {
   const n = myNotification(el.dataset.id);
   if (!n) return;
   n.read = true;
   S.ui.inboxSel = n.id;
-  save();
+  void persistPersonalChange({ readState: { ids: [n.id], read: true } });
   render();
 };
 A.toggleRead = el => {
   const n = myNotification(el.dataset.id);
   if (!n) return;
   n.read = !n.read;
-  save();
+  void persistPersonalChange({ readState: { ids: [n.id], read: n.read } });
   render();
 };
 A.markAllRead = () => {
@@ -2550,14 +2570,15 @@ A.markAllRead = () => {
   const n = notifications.filter(x => !x.read).length;
   notifications.forEach(x => (x.read = true));
   S.ui.inboxSel = null;
-  save();
+  void persistPersonalChange({ readState: { ids: notifications.map(item => item.id), read: true } });
   render();
   if (n) toast("You're all caught up.");
 };
 A.clearReadNotifications = async () => {
   try {
+    const base = structuredClone(S.data);
     const result = await clearReadNotifications(S.ui.workspaceRevision);
-    applyWorkspaceSnapshot(result.data);
+    applyExternalCoreSnapshot(result.data, base);
     render();
     toast(result.removed ? 'Read notifications cleared' : 'No read notifications to clear', { ms: 1800 });
   } catch (error) {
@@ -2573,7 +2594,7 @@ A.openNotif = el => {
   const n = myNotification(el.dataset.id);
   if (!n) return;
   n.read = true;
-  save();
+  void persistPersonalChange({ readState: { ids: [n.id], read: true } });
   if (n.task) A.openTask({ dataset: { id: n.task } });
   else if (n.project) go('project', { id: n.project, tab: 'overview' });
   else if (n.type === 'security' || n.type === 'system') A.go({ dataset: { r: 'settings', sec: n.type === 'system' ? 'notif-push' : 'security' } });
@@ -2843,7 +2864,8 @@ IN.npToggle = async el => {
     }
   }
   if (!setMyNotificationPreference(el.dataset.k, el.checked)) return;
-  save();
+  const saved = await persistPersonalChange({ notificationPreferences: { [el.dataset.k]: el.checked } });
+  if (!saved) return;
   if (!el.checked && el.dataset.k.startsWith('push_')) {
     const preferences = myNotificationPreferences();
     if (!hasEnabledPushPreferences(preferences)) {
@@ -2934,11 +2956,9 @@ A.delWorkspace = () =>
     },
   });
 A.avColor = el => {
-  me().c = el.dataset.v;
-  save();
-  render();
+  void persistPersonalChange({ profile: { c: el.dataset.v } });
 };
-A.saveProfile = () => {
+A.saveProfile = async () => {
   const n = $('#pf-name').value.trim();
   if (!n) {
     S.ui.errors.pname2 = 'Enter your name';
@@ -2947,17 +2967,10 @@ A.saveProfile = () => {
   }
   S.ui.errors.pname2 = null;
   const tt = $('#pf-title').value.trim();
-  loadingBtn('pf-save', 600, () => {
-    if (
-      mutate(() => {
-        S.prefs.name = n;
-        S.prefs.title = tt;
-        me().name = n;
-        me().title = tt;
-      })
-    )
-      toast('Profile updated');
-  });
+  const button = $('#pf-save');
+  button?.classList.add('is-loading');
+  if (await persistPersonalChange({ profile: { name: n, title: tt } })) toast('Profile updated');
+  button?.classList.remove('is-loading');
 };
 /* auth */
 A.auth = el => {

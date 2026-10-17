@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
+import { bindAccessProfiles } from '../../src/shared/member-identity.js';
+
+test('personal updates are scoped to their actor, preserve protected preferences and survive profile binding', () => {
+  const data = {
+    me: 'other',
+    members: [
+      { id: 'me', email: 'me@test', name: 'Old', role: 'Guest' },
+      { id: 'other', name: 'Other' },
+    ],
+    notifs: [
+      { id: 'mine', recipient: 'me', read: false },
+      { id: 'theirs', recipient: 'other', read: false },
+    ],
+    notifPrefs: { me: { emailDigestLastDate: '2026-10-18' }, other: { email_security: false } },
+  };
+  applyPersonalSettings(data, 'me', {
+    preferences: { lang: 'English (US)', theme: 'dark' },
+    profile: { name: 'Saved', title: 'Designer' },
+    notificationPreferences: { email_mention: true },
+    readState: { ids: ['mine', 'theirs'], read: true },
+  });
+  assert.equal(data.members[0].role, 'Guest');
+  assert.equal(data.members[0].locale, 'en');
+  assert.equal(data.notifPrefs.me.emailDigestLastDate, '2026-10-18');
+  assert.equal(data.notifs[0].read, true);
+  assert.equal(data.notifs[1].read, false);
+  const rebound = bindAccessProfiles(data, [{ id: 'me', email: 'me@test', name: 'Configured', title: 'Old', active: true }]);
+  assert.equal(rebound.members[0].name, 'Saved');
+  assert.equal(rebound.members[0].title, 'Designer');
+  assert.throws(() => applyPersonalSettings(data, 'me', { profile: { role: 'Owner' } }), /Invalid/u);
+  assert.throws(() => applyPersonalSettings(data, 'me', { notificationPreferences: { emailDigestLastDate: true } }), /Invalid/u);
+});

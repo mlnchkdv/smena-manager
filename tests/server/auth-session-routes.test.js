@@ -89,6 +89,36 @@ test('authenticated users can inspect and revoke their active sessions', async t
   assert.equal((await revokeOthers.json()).revoked, 1);
   assert.equal((await fetch(`${origin}/api/auth/me`, { headers: authorize(tabletToken) })).status, 401);
 
+  const beforePersonal = await getWorkspaceDatabase();
+  await replaceWorkspaceDatabase({ ...beforePersonal, members: beforePersonal.members.map(member => ({ ...member, role: 'Guest' })) }, beforePersonal.revision);
+  const personal = await fetch(`${origin}/api/preferences`, {
+    method: 'PUT',
+    headers: { ...authorize(desktopToken), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      profile: { name: 'Saved Viewer', title: 'Reviewer' },
+      preferences: { lang: 'English (US)', theme: 'dark' },
+      notificationPreferences: { email_mention: true },
+      readState: { ids: loginAlerts.map(item => item.id), read: true },
+    }),
+  });
+  assert.equal(personal.status, 200);
+  const savedPersonal = await personal.json();
+  assert.equal(savedPersonal.preferences.theme, 'dark');
+  const currentViewer = await fetch(`${origin}/api/auth/me`, { headers: authorize(desktopToken) }).then(response => response.json());
+  assert.equal(currentViewer.user.role, 'viewer');
+  assert.equal(currentViewer.user.name, 'Saved Viewer');
+  assert.equal((await getWorkspaceDatabase()).notifs.find(item => item.id === loginAlerts[0].id).read, true);
+  assert.equal(
+    (
+      await fetch(`${origin}/api/workspace`, {
+        method: 'PUT',
+        headers: { ...authorize(desktopToken), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: savedPersonal.data, revision: savedPersonal.data.revision }),
+      })
+    ).status,
+    403,
+  );
+
   assert.equal((await fetch(`${origin}/api/auth/session`, { method: 'DELETE', headers: authorize(desktopToken) })).status, 200);
   assert.equal((await fetch(`${origin}/api/auth/me`, { headers: authorize(desktopToken) })).status, 401);
 });

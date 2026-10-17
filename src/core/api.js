@@ -3,6 +3,7 @@ import { workspaceCoreData } from '../shared/workspace-documents.js';
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
+let sessionGeneration = 0;
 
 export class ApiError extends Error {
   constructor(message, status = 0, code = 'API_ERROR', details = {}) {
@@ -27,6 +28,7 @@ export function getSessionToken() {
 }
 
 export function setSessionToken(token) {
+  sessionGeneration += 1;
   memorySessionToken = token || '';
   try {
     if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);
@@ -41,6 +43,7 @@ export function clearSession() {
 }
 
 async function request(path, options = {}, authenticated = false) {
+  const generation = sessionGeneration;
   const headers = new Headers(options.headers || {});
   headers.set('Accept', 'application/json');
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -60,13 +63,15 @@ async function request(path, options = {}, authenticated = false) {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const error = new ApiError(body.error || `Request failed (${response.status}).`, response.status, body.code || 'API_ERROR', body);
-    if (response.status === 401 && authenticated) clearSession();
+    if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
     throw error;
   }
   return body;
 }
 
 export const getAuthConfig = () => request('/api/auth/config');
+export const getPersonalPreferences = () => request('/api/preferences', {}, true);
+export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);
 
 export async function loginWithAccessId(accessId) {
   const result = await request('/api/auth/validate', {

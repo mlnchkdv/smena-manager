@@ -194,7 +194,7 @@ export async function requireAuth(request, response, next) {
         response.status(401).json({ error: 'Account is deactivated.' });
         return;
       }
-      if (member) profile = { ...profile, role: workspaceMemberRole(member) };
+      if (member) profile = { ...profile, role: workspaceMemberRole(member), ...(member.profileEditedAt ? { name: member.name, title: member.title } : {}) };
     }
     const activeSession = await ensureAuthSession({
       id: result.sessionId,

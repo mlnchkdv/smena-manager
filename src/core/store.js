@@ -7,6 +7,7 @@ import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { canReadProject } from '../shared/project-access.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
+import { queuePersonalPreferences } from './personal-preferences.js';
 import {
   addWorkspaceNotification,
   migrateNotificationRecipients,
@@ -173,6 +174,7 @@ function guardWorkspaceData() {
 }
 
 export function save() {
+  void queuePersonalPreferences(S.ui.currentUser?.id, S.prefs);
   migrateMilestoneIds(S.data);
   guardWorkspaceData();
   clearTimeout(_saveT);

@@ -32,9 +32,9 @@ export function bindInitialAdministrator(database, profile) {
     data.members = [...members, member];
   }
   member.authProfileId = profile.id;
-  if (profile.name) member.name = profile.name;
+  if (profile.name && !member.profileEditedAt) member.name = profile.name;
   if (profile.email) member.email = profile.email;
-  if (profile.title) member.title = profile.title;
+  if (profile.title && !member.profileEditedAt) member.title = profile.title;
   data.me = member.id;
   return data;
 }

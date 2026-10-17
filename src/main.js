@@ -234,6 +234,10 @@ window.addEventListener('smena:sync-status', event => {
   }
 });
 
+window.addEventListener('smena:personal-save-error', () => {
+  toast('Personal settings could not be synced. Keep this tab open and try again.', { kind: 'err', ms: 8000 });
+});
+
 window.addEventListener('smena:permission-denied', event => {
   const viewer = event.detail?.role === 'viewer';
   render();
