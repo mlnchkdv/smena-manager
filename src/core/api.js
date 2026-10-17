@@ -72,6 +72,8 @@ async function request(path, options = {}, authenticated = false) {
 export const getAuthConfig = () => request('/api/auth/config');
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);
+export const commitPortableImport = (payload, revision, conflictPolicy) =>
+  request('/api/import/portable', { method: 'POST', body: JSON.stringify({ payload, revision, conflictPolicy }) }, true);
 
 export async function loginWithAccessId(accessId) {
   const result = await request('/api/auth/validate', {

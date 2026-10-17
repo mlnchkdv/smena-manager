@@ -6,6 +6,7 @@ import { getStorageProvider, resetStorageProvider } from '../../src/server/stora
 import {
   createWorkspaceBackup,
   getWorkspaceDatabase,
+  importPortableWorkspace,
   replaceWorkspaceDatabase,
   resetWorkspaceStore,
   restoreWorkspaceBackup,
@@ -57,4 +58,17 @@ test('restore is atomic across core and documents, including stale revision and 
   assert.equal(restored.ws.name, 'Before');
   assert.equal(restored.revision, changed.revision + 1);
   assert.equal((await getWorkspaceDocument('knowledge')).revision, knowledge.revision + 2);
+  const payload = { notes: [{ id: 'n', title: 'Before', formatted_markdown: '# Different imported content' }] };
+  storage.saveDatabase = async () => {
+    throw new Error('Injected import failure');
+  };
+  await assert.rejects(importPortableWorkspace(payload, restored.revision), /Injected import failure/u);
+  storage.saveDatabase = save;
+  assert.deepEqual(await getWorkspaceDatabase(), restored);
+  const imported = await importPortableWorkspace(payload, restored.revision);
+  assert.equal(imported.data.revision, restored.revision + 1);
+  assert.equal(imported.data.knowledgeNotes.length, 2);
+  assert.equal(imported.data.links[0].title, 'Before');
+  assert.ok(imported.backupId);
+  assert.equal(imported.report.conflicts.length, 1);
 });

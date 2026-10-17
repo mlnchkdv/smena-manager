@@ -5,6 +5,7 @@ import { getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { authRouter } from './auth-routes.js';
 import {
   createWorkspaceBackup,
+  importPortableWorkspace,
   getWorkspaceDatabase,
   getWorkspaceRevisionStatus,
   getWorkspaceStatus,
@@ -284,6 +285,14 @@ app.delete('/api/notifications/read', async (request, response, next) => {
 app.get('/api/backups', requireRole('admin'), async (_request, response, next) => {
   try {
     response.json({ backups: await listWorkspaceBackups() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/import/portable', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json(await importPortableWorkspace(request.body?.payload, request.body?.revision, request.body?.conflictPolicy));
   } catch (error) {
     next(error);
   }

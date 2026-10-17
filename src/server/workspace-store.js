@@ -16,6 +16,7 @@ import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
+import { mergePortableWorkspace } from '../shared/portable-workspace.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -173,6 +174,37 @@ export async function listWorkspaceBackups() {
   return storage.listDatabaseBackups();
 }
 
+export async function importPortableWorkspace(payload, expectedRevision, conflictPolicy = 'copy') {
+  if (!['copy', 'skip'].includes(conflictPolicy)) throw new TypeError('Invalid import conflict policy.');
+  const current = await getWorkspaceDatabase();
+  if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+  const preview = mergePortableWorkspace(current, payload, { conflictPolicy });
+  for (const name of DOCUMENT_NAMES) validateDocumentInput(name, workspaceDocumentData(name, preview.data));
+  const backup = await createWorkspaceBackup('Before portable import');
+  let counts;
+  let report;
+  const data = await mutateWorkspaceDatabase(
+    database => {
+      const result = mergePortableWorkspace(database, payload, { conflictPolicy });
+      counts = result.counts;
+      report = result.report;
+      for (const name of DOCUMENT_NAMES) {
+        Object.assign(database, workspaceDocumentData(name, result.data));
+        const old = database._documentRevisions[name];
+        database._documentRevisions[name] = { ...old, revision: old.revision + 1, updatedAt: new Date().toISOString() };
+      }
+      database._importHistory = [
+        ...(database._importHistory || []),
+        { at: new Date().toISOString(), counts, conflicts: report.conflicts.length, backupId: backup.id },
+      ].slice(-20);
+      return database;
+    },
+    expectedRevision,
+    { role: 'admin' },
+  );
+  return { data, counts, report, backupId: backup.id };
+}
+
 export async function deleteWorkspaceBackup(id) {
   const storage = getStorageProvider();
   if (typeof storage.deleteDatabaseBackup !== 'function') throw new Error('Workspace backup deletion is not supported by the configured storage.');
@@ -237,7 +269,10 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   validateWorkspaceData(nextData);
   validateMembershipTransition(current, nextData);
   if (!options.replaceDocuments) validateTaskTransitions(current, nextData);
-  assignCanonicalTaskKeys(current, nextData);
+  if (!options.replaceDocuments) assignCanonicalTaskKeys(current, nextData);
+  else
+    for (const project of nextData.projects || [])
+      project.seq = Math.max(Number(project.seq) || 0, Number(current.projects?.find(item => item.id === project.id)?.seq) || 0);
   const membershipActivity = membershipAuditEntries(current, nextData, options.actorMemberId, current.revision + 1);
   if (membershipActivity.length) nextData.activity = [...membershipActivity, ...(nextData.activity || [])];
   if (options.actorMemberId) {

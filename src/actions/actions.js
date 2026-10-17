@@ -41,6 +41,7 @@ import {
 import {
   clearSession,
   savePersonalSettings,
+  commitPortableImport,
   clearReadNotifications,
   createWorkspaceBackup,
   deleteAllWorkspaces,
@@ -55,14 +56,13 @@ import {
   restoreWorkspaceBackup,
   uploadWorkspaceFile,
 } from '../core/api.js';
-import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync } from '../core/workspace-sync.js';
+import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
-import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
+import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { isRussian, locale, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
@@ -367,34 +367,52 @@ IN.importPortableWorkspace = async el => {
   const file = el.files?.[0];
   if (!file || S.ui.currentUser?.role !== 'admin') return;
   try {
-    if (file.size > 10 * 1024 * 1024) throw new Error('The import file must be smaller than 10 MB.');
+    if (file.size > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
     const payload = JSON.parse(await file.text());
-    const result = mergePortableWorkspace(D(), payload, { idFactory: uid });
-    const candidate = {
-      ...D(),
-      knowledgeNotes: result.data.knowledgeNotes,
-      knowledgeFolders: result.data.knowledgeFolders,
-      links: result.data.links,
-      linkFolders: result.data.linkFolders,
-    };
-    if (
-      !workspaceFitsTransport(workspaceDocumentData('knowledge', candidate), S.ui.documentRevisions.knowledge) ||
-      !workspaceFitsTransport(workspaceDocumentData('bookmarks', candidate), S.ui.documentRevisions.bookmarks)
-    )
-      throw new Error('Imported data would exceed the 4 MB limit of a knowledge or bookmark document.');
-    mutate(() => {
-      D().knowledgeNotes = result.data.knowledgeNotes;
-      D().knowledgeFolders = result.data.knowledgeFolders;
-      D().links = result.data.links;
-      D().linkFolders = result.data.linkFolders;
-      S.ui.migrationStatus = `Imported ${result.counts.notes} notes, ${result.counts.links} bookmarks, and ${result.counts.knowledgeFolders + result.counts.linkFolders} folders. Skipped ${result.counts.skipped} duplicates.`;
-    });
+    if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
+    S.ui.importPreview = { payload, policy: 'copy', result: mergePortableWorkspace(D(), payload), busy: false };
+    openModal({ type: 'portableImport' });
   } catch (error) {
-    S.ui.migrationStatus = error instanceof Error ? error.message : 'The import file could not be read.';
-    toast(S.ui.migrationStatus, { kind: 'error', ms: 6000 });
-    render();
+    toast(error.message || 'The import file could not be read.', { kind: 'err', ms: 6000 });
   } finally {
     el.value = '';
+  }
+};
+IN.importConflictPolicy = el => {
+  const preview = S.ui.importPreview;
+  preview.policy = el.value;
+  preview.result = mergePortableWorkspace(D(), preview.payload, { conflictPolicy: preview.policy });
+  render();
+};
+A.downloadImportReport = () => {
+  const report = S.ui.importPreview?.result;
+  if (!report) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify({ counts: report.counts, report: report.report }, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'smena-import-report.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
+A.confirmPortableImport = async () => {
+  const preview = S.ui.importPreview;
+  if (!preview || preview.busy || !['admin', 'editor'].includes(S.ui.currentUser?.role)) return;
+  if (!workspaceSyncIsClean(S.data)) return toast('Wait until all changes are saved before importing.', { kind: 'info' });
+  preview.busy = true;
+  S.ui.atomicOperation = true;
+  render();
+  try {
+    const result = await commitPortableImport(preview.payload, S.ui.workspaceRevision, preview.policy);
+    await refreshWorkspaceFromServer({ force: true });
+    S.ui.migrationStatus = `Imported ${result.counts.notes} notes, ${result.counts.links} bookmarks, and ${result.counts.knowledgeFolders + result.counts.linkFolders} folders. Skipped ${result.counts.skipped} duplicates.`;
+    if (S.ui.modals.at(-1)?.type === 'portableImport') S.ui.modals.pop();
+    toast('Import complete. A recovery backup was saved.');
+  } catch (error) {
+    toast(error.message || 'The import file could not be read.', { kind: 'err', ms: 8000 });
+  } finally {
+    preview.busy = false;
+    S.ui.atomicOperation = false;
+    render();
   }
 };
 A.toggleSide = () => {
@@ -437,36 +455,18 @@ IN.importKnowledgeMarkdown = async el => {
   try {
     if (files.some(file => file.size > WORKSPACE_TRANSPORT_MAX_BYTES)) throw new Error('Each Markdown file must be smaller than 4 MB.');
     const imported = [];
-    let skipped = 0;
-    const existingTitles = new Set(
-      knowledgeCollections().notes.map(note =>
-        String(note.title || '')
-          .trim()
-          .toLocaleLowerCase('ru-RU'),
-      ),
-    );
     for (const file of files) {
       const note = parseMarkdownNote(file.name, await file.text(), {
         idFactory: uid,
         memberId: D().me,
         folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
       });
-      const titleKey = note.title.toLocaleLowerCase('ru-RU');
-      if (existingTitles.has(titleKey)) {
-        skipped += 1;
-        continue;
-      }
-      existingTitles.add(titleKey);
       imported.push(note);
     }
-    const candidate = { ...D(), knowledgeNotes: [...imported, ...knowledgeCollections().notes] };
-    if (!workspaceFitsTransport(workspaceDocumentData('knowledge', candidate), S.ui.documentRevisions.knowledge))
-      throw new Error('Imported notes would exceed the 4 MB knowledge document limit.');
-    mutate(() => {
-      knowledgeCollections().notes.unshift(...imported);
-      if (imported[0]) S.ui.knowledgeActive = imported[0].id;
-      S.ui.knowledgeImportStatus = `Imported ${imported.length} Markdown notes. Skipped ${skipped} duplicates.`;
-    });
+    const payload = { notes: imported };
+    if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
+    S.ui.importPreview = { payload, policy: 'copy', result: mergePortableWorkspace(D(), payload), busy: false };
+    openModal({ type: 'portableImport' });
   } catch (error) {
     S.ui.knowledgeImportStatus = error instanceof Error ? error.message : 'Markdown files could not be imported.';
     toast(S.ui.knowledgeImportStatus, { kind: 'error', ms: 6000 });

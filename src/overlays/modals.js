@@ -23,6 +23,7 @@ export function openModal(m) {
   }, 30);
 }
 export function closeModal() {
+  if (S.ui.atomicOperation) return;
   S.ui.modals.pop();
   S.ui.pop = null;
   render();
@@ -32,6 +33,25 @@ export function modalHtml(m) {
     `<div class="modal-h"><div><h2 id="mt-${m.type}">${title}</h2>${sub ? `<div class="muted" style="font-size:12.5px;margin-top:2px">${sub}</div>` : ''}</div><button class="ibtn ibtn-sm" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div>`;
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
+    case 'portableImport': {
+      const preview = S.ui.importPreview;
+      const { counts, report } = preview.result;
+      return wrap(
+        '',
+        `${H('Import preview', 'Existing content is never replaced. A backup is created before importing.')}
+        <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid}</b></div></div>
+        <label class="field"><span class="label">Conflicting notes</span><select class="select" data-in="importConflictPolicy" ${preview.busy ? 'disabled' : ''}><option value="copy" ${preview.policy === 'copy' ? 'selected' : ''}>Keep both copies</option><option value="skip" ${preview.policy === 'skip' ? 'selected' : ''}>Keep existing only</option></select></label>
+        ${
+          report.conflicts.length
+            ? `<div class="panel" style="padding:12px;max-height:180px;overflow:auto">${report.conflicts
+                .slice(0, 20)
+                .map(item => `<div class="trunc" translate="no">${esc(item.title || item.sourceId || '')}</div>`)
+                .join('')}</div>`
+            : ''
+        }
+        </div><div class="modal-f"><button class="btn btn-secondary" data-a="downloadImportReport">Download report</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${preview.busy ? 'disabled' : ''}>Cancel</button><button class="btn btn-primary" data-a="confirmPortableImport" ${preview.busy ? 'disabled' : ''}>Import</button></div>`,
+      );
+    }
     case 'task':
       return wrap('', taskModal(m, H));
     case 'project':

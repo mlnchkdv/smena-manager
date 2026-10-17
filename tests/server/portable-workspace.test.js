@@ -48,7 +48,7 @@ test('KMS Brain workspace snapshots import notes, folders, and bookmarks', () =>
   assert.deepEqual(result.data.links[0].tags, ['ui']);
 });
 
-test('portable imports skip duplicates without replacing existing workspace data', () => {
+test('portable imports keep conflicting note content as a separate copy and report bookmark conflicts', () => {
   const current = {
     ...emptyWorkspace(),
     knowledgeNotes: [{ id: 'note-1', title: 'Онбординг', formatted_markdown: '# Existing' }],
@@ -61,11 +61,49 @@ test('portable imports skip duplicates without replacing existing workspace data
 
   const result = mergePortableWorkspace(current, payload, { idFactory: ids });
 
-  assert.equal(result.data.knowledgeNotes.length, 1);
+  assert.equal(result.data.knowledgeNotes.length, 2);
   assert.equal(result.data.knowledgeNotes[0].formatted_markdown, '# Existing');
   assert.equal(result.data.links.length, 1);
   assert.equal(result.data.links[0].title, 'Existing link');
-  assert.equal(result.counts.skipped, 2);
+  assert.equal(result.data.knowledgeNotes[1].formatted_markdown, '# Imported');
+  assert.equal(result.counts.skipped, 1);
+  assert.equal(result.report.conflicts.length, 2);
+  const skipped = mergePortableWorkspace(current, payload, { idFactory: ids, conflictPolicy: 'skip' });
+  assert.equal(skipped.data.knowledgeNotes.length, 1);
+  assert.equal(skipped.counts.skipped, 2);
+});
+
+test('folder parent identities are resolved after remapping, including forward references and collisions', () => {
+  const current = { ...emptyWorkspace(), knowledgeFolders: [{ id: 'parent', name: 'Existing', parentId: null }] };
+  const imported = mergePortableWorkspace(
+    current,
+    {
+      vault_folders: [
+        { id: 'child', name: 'Child', parent_id: 'parent' },
+        { id: 'parent', name: 'Imported', parent_id: null },
+      ],
+      notes: [{ id: 'n', title: 'Content', formatted_markdown: '    indented code\n', folderId: 'child' }],
+    },
+    { idFactory: ids },
+  );
+  const parent = imported.data.knowledgeFolders.find(folder => folder.name === 'Imported');
+  const child = imported.data.knowledgeFolders.find(folder => folder.name === 'Child');
+  assert.notEqual(parent.id, 'parent');
+  assert.equal(child.parentId, parent.id);
+  assert.equal(imported.data.knowledgeNotes[0].folderId, child.id);
+  assert.equal(imported.data.knowledgeNotes[0].formatted_markdown, '    indented code\n');
+});
+
+test('cyclic imported folders are reported and unsupported future formats are rejected', () => {
+  const result = mergePortableWorkspace(emptyWorkspace(), {
+    vault_folders: [
+      { id: 'a', name: 'A', parent_id: 'b' },
+      { id: 'b', name: 'B', parent_id: 'a' },
+    ],
+  });
+  assert.equal(result.data.knowledgeFolders.length, 0);
+  assert.ok(result.report.invalid.length > 0);
+  assert.throws(() => mergePortableWorkspace(emptyWorkspace(), { format: 'smena-manager-portable', version: 999 }), /newer/u);
 });
 
 test('standalone KMS notes and bookmark exports are supported', () => {

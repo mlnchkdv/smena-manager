@@ -15,6 +15,22 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Import preview': 'Предварительный просмотр импорта',
+  'Notes:': 'Заметки:',
+  'Bookmarks:': 'Закладки:',
+  'Skipped:': 'Пропущено:',
+  'Invalid:': 'Некорректных:',
+  Import: 'Импортировать',
+  'This import format is newer than this application supports.': 'Этот формат импорта новее поддерживаемого приложением.',
+  'Existing content is never replaced. A backup is created before importing.': 'Существующие данные не заменяются. Перед импортом создаётся резервная копия.',
+  'Conflicting notes': 'Конфликтующие заметки',
+  'Keep both copies': 'Сохранить обе копии',
+  'Keep existing only': 'Оставить только существующие',
+  'Download report': 'Скачать отчёт',
+  'Wait until all changes are saved before importing.': 'Дождитесь сохранения всех изменений перед импортом.',
+  'Import complete. A recovery backup was saved.': 'Импорт завершён. Сохранена резервная копия для отката.',
+  'A workspace operation is in progress. Please wait.': 'Выполняется операция с пространством. Подождите.',
+  'The import file must be smaller than 4 MB.': 'Файл импорта должен быть меньше 4 МБ.',
   'Only workspace administrators can add sign-in access.': 'Доступ ко входу добавляют только администраторы пространства.',
   'Project links': 'Ссылки на проекты',
   'Project links require sign-in. Anonymous public sharing is not enabled.': 'Для открытия ссылок требуется вход. Анонимный доступ не включён.',

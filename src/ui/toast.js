@@ -30,6 +30,10 @@ export function toast(msg, opt = {}) {
 }
 export function mutate(fn, label) {
   void label;
+  if (S.ui.atomicOperation) {
+    toast('A workspace operation is in progress. Please wait.', { kind: 'info' });
+    return false;
+  }
   if (S.ui.currentUser?.role === 'viewer') {
     window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['*'], role: 'viewer' } }));
     return false;

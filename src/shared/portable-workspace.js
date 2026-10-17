@@ -36,6 +36,8 @@ function uniqueId(preferred, used, idFactory, prefix) {
 function importShape(payload) {
   if (Array.isArray(payload)) return { notes: payload, vaultFolders: [], links: [], linkFolders: [] };
   if (!payload || typeof payload !== 'object') throw new TypeError('Import file must contain a JSON object or an array of notes.');
+  if (payload.format === 'smena-manager-portable' && Number(payload.version) > 1)
+    throw new TypeError('This import format is newer than this application supports.');
   const hasVaultFolders = Array.isArray(payload.vault_folders) || Array.isArray(payload.knowledgeFolders);
   return {
     notes: list(payload.notes || payload.knowledgeNotes),
@@ -68,6 +70,68 @@ export function buildPortableWorkspace(data, exportedAt = new Date().toISOString
   };
 }
 
+function importFolders(target, incoming, options) {
+  const { idFactory, prefix, parentField, now, report } = options;
+  const ids = new Set(target.map(folder => folder.id));
+  const byPath = new Map(target.map(folder => [`${folder[parentField] || ''}\0${normalizedName(folder.name)}`, folder.id]));
+  const sources = new Map();
+  incoming.forEach((raw, index) => {
+    if (!raw || typeof raw !== 'object' || !text(raw.name)) {
+      report.invalid.push({ kind: 'folder', index, reason: 'invalid-folder' });
+      return;
+    }
+    const source = text(raw.id) || `import-folder-${index}`;
+    if (sources.has(source)) report.invalid.push({ kind: 'folder', source, reason: 'duplicate-source-id' });
+    else sources.set(source, raw);
+  });
+  const mapping = new Map();
+  const visiting = new Set();
+  let added = 0;
+  let skipped = 0;
+  function resolve(source, depth = 0) {
+    if (mapping.has(source)) return mapping.get(source);
+    const raw = sources.get(source);
+    if (!raw) return ids.has(source) ? source : null;
+    if (visiting.has(source) || depth > 100) {
+      mapping.set(source, null);
+      report.invalid.push({ kind: 'folder', source, reason: 'cyclic-folder' });
+      return null;
+    }
+    visiting.add(source);
+    const sourceParent = text(raw.parentId ?? raw.parent_id);
+    const parent = sourceParent ? resolve(sourceParent, depth + 1) : null;
+    visiting.delete(source);
+    if ((sourceParent && !parent) || mapping.get(source) === null) {
+      mapping.set(source, null);
+      report.invalid.push({ kind: 'folder', source, reason: 'missing-parent' });
+      return null;
+    }
+    const name = text(raw.name);
+    const path = `${parent || ''}\0${normalizedName(name)}`;
+    const existing = byPath.get(path);
+    if (existing) {
+      skipped += 1;
+      mapping.set(source, existing);
+      return existing;
+    }
+    const id = uniqueId(raw.id, ids, idFactory, prefix);
+    target.push({
+      id,
+      name,
+      [parentField]: parent,
+      color: /^#[0-9a-f]{6}$/i.test(text(raw.color)) ? text(raw.color) : '#8B5CF6',
+      createdAt: text(raw.createdAt || raw.created_at) || now,
+      created_at: text(raw.created_at || raw.createdAt) || now,
+    });
+    byPath.set(path, id);
+    mapping.set(source, id);
+    added += 1;
+    return id;
+  }
+  for (const source of sources.keys()) resolve(source);
+  return { ids, mapping, added, skipped };
+}
+
 export function mergePortableWorkspace(current, payload, options = {}) {
   const imported = importShape(payload);
   const now = options.now || new Date().toISOString();
@@ -81,38 +145,12 @@ export function mergePortableWorkspace(current, payload, options = {}) {
   };
   const counts = { notes: 0, knowledgeFolders: 0, links: 0, linkFolders: 0, skipped: 0, invalid: 0 };
 
-  const knowledgeFolderIds = new Set(data.knowledgeFolders.map(folder => folder.id));
-  const knowledgeFoldersByName = new Map(data.knowledgeFolders.map(folder => [normalizedName(folder.name), folder.id]));
-  const knowledgeFolderMap = new Map();
-  for (const raw of imported.vaultFolders) {
-    if (!raw || typeof raw !== 'object') {
-      counts.invalid += 1;
-      continue;
-    }
-    const name = text(raw.name);
-    if (!name) {
-      counts.invalid += 1;
-      continue;
-    }
-    const sourceId = text(raw.id);
-    const existingId = knowledgeFoldersByName.get(normalizedName(name));
-    if (existingId) {
-      if (sourceId) knowledgeFolderMap.set(sourceId, existingId);
-      counts.skipped += 1;
-      continue;
-    }
-    const id = uniqueId(sourceId, knowledgeFolderIds, idFactory, 'kf');
-    data.knowledgeFolders.push({
-      id,
-      name,
-      parentId: raw.parentId ?? raw.parent_id ?? null,
-      createdAt: text(raw.createdAt || raw.created_at) || now,
-    });
-    knowledgeFoldersByName.set(normalizedName(name), id);
-    if (sourceId) knowledgeFolderMap.set(sourceId, id);
-    counts.knowledgeFolders += 1;
-  }
-
+  const report = { invalid: [], skipped: [], conflicts: [] };
+  const knowledgeFolders = importFolders(data.knowledgeFolders, imported.vaultFolders, { idFactory, prefix: 'kf', parentField: 'parentId', now, report });
+  const knowledgeFolderIds = knowledgeFolders.ids;
+  const knowledgeFolderMap = knowledgeFolders.mapping;
+  counts.knowledgeFolders = knowledgeFolders.added;
+  counts.skipped += knowledgeFolders.skipped;
   const noteIds = new Set(data.knowledgeNotes.map(note => note.id));
   const noteTitles = new Set(data.knowledgeNotes.map(note => normalizedName(note.title)));
   for (const raw of imported.notes) {
@@ -120,15 +158,27 @@ export function mergePortableWorkspace(current, payload, options = {}) {
       counts.invalid += 1;
       continue;
     }
-    const title = text(raw.title);
-    const markdown = text(raw.formatted_markdown || raw.markdown || raw.content);
-    if (!title || !markdown) {
+    let title = text(raw.title);
+    const markdown = typeof (raw.formatted_markdown ?? raw.markdown ?? raw.content) === 'string' ? (raw.formatted_markdown ?? raw.markdown ?? raw.content) : '';
+    if (!title || !markdown.trim()) {
       counts.invalid += 1;
       continue;
     }
-    if ((text(raw.id) && noteIds.has(text(raw.id))) || noteTitles.has(normalizedName(title))) {
+    const existing = data.knowledgeNotes.find(note => (text(raw.id) && note.id === text(raw.id)) || normalizedName(note.title) === normalizedName(title));
+    if (existing && String(existing.formatted_markdown ?? existing.markdown ?? existing.content ?? '') === markdown) {
       counts.skipped += 1;
+      report.skipped.push({ kind: 'note', title, reason: 'identical-content' });
       continue;
+    }
+    if (existing) {
+      report.conflicts.push({ kind: 'note', title, sourceId: raw.id || null, action: options.conflictPolicy === 'skip' ? 'skipped' : 'imported-copy' });
+      if (options.conflictPolicy === 'skip') {
+        counts.skipped += 1;
+        continue;
+      }
+      const stem = title;
+      let suffix = 2;
+      while (noteTitles.has(normalizedName(title))) title = `${stem} (${suffix++})`;
     }
     const sourceFolder = text(raw.folderId ?? raw.folder_id);
     const id = uniqueId(raw.id, noteIds, idFactory, 'kn');
@@ -142,7 +192,13 @@ export function mergePortableWorkspace(current, payload, options = {}) {
       tags: stringList(raw.tags),
       wikilinks: stringList(raw.wikilinks),
       formatted_markdown: markdown,
-      folderId: sourceFolder ? knowledgeFolderMap.get(sourceFolder) || (knowledgeFolderIds.has(sourceFolder) ? sourceFolder : null) : null,
+      folderId: sourceFolder
+        ? knowledgeFolderMap.has(sourceFolder)
+          ? knowledgeFolderMap.get(sourceFolder)
+          : knowledgeFolderIds.has(sourceFolder)
+            ? sourceFolder
+            : null
+        : null,
       favorite: raw.favorite === true,
       createdAt: text(raw.createdAt || raw.created_at) || now,
       updatedAt: text(raw.updatedAt || raw.updated_at) || now,
@@ -151,39 +207,11 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     counts.notes += 1;
   }
 
-  const linkFolderIds = new Set(data.linkFolders.map(folder => folder.id));
-  const linkFoldersByName = new Map(data.linkFolders.map(folder => [normalizedName(folder.name), folder.id]));
-  const linkFolderMap = new Map();
-  for (const raw of imported.linkFolders) {
-    if (!raw || typeof raw !== 'object') {
-      counts.invalid += 1;
-      continue;
-    }
-    const name = text(raw.name);
-    if (!name) {
-      counts.invalid += 1;
-      continue;
-    }
-    const sourceId = text(raw.id);
-    const existingId = linkFoldersByName.get(normalizedName(name));
-    if (existingId) {
-      if (sourceId) linkFolderMap.set(sourceId, existingId);
-      counts.skipped += 1;
-      continue;
-    }
-    const id = uniqueId(sourceId, linkFolderIds, idFactory, 'lf');
-    data.linkFolders.push({
-      id,
-      name,
-      parent_id: raw.parent_id ?? raw.parentId ?? null,
-      color: /^#[0-9a-f]{6}$/i.test(text(raw.color)) ? text(raw.color) : '#8B5CF6',
-      created_at: text(raw.created_at || raw.createdAt) || now,
-    });
-    linkFoldersByName.set(normalizedName(name), id);
-    if (sourceId) linkFolderMap.set(sourceId, id);
-    counts.linkFolders += 1;
-  }
-
+  const linkFolders = importFolders(data.linkFolders, imported.linkFolders, { idFactory, prefix: 'lf', parentField: 'parent_id', now, report });
+  const linkFolderIds = linkFolders.ids;
+  const linkFolderMap = linkFolders.mapping;
+  counts.linkFolders = linkFolders.added;
+  counts.skipped += linkFolders.skipped;
   const linkIds = new Set(data.links.map(link => link.id));
   const linkUrls = new Set(data.links.map(link => normalizedHttpUrl(link.url)?.toString()).filter(Boolean));
   for (const raw of imported.links) {
@@ -198,6 +226,9 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     }
     const normalizedUrl = parsed.toString();
     if (linkUrls.has(normalizedUrl)) {
+      const existing = data.links.find(link => normalizedHttpUrl(link.url)?.toString() === normalizedUrl);
+      if (text(existing?.title) !== text(raw.title) || text(existing?.description) !== text(raw.description))
+        report.conflicts.push({ kind: 'bookmark', title: text(raw.title), action: 'kept-existing', incoming: raw });
       counts.skipped += 1;
       continue;
     }
@@ -211,7 +242,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
       site_name: text(raw.site_name) || parsed.hostname.replace(/^www\./, ''),
       preview_image: text(raw.preview_image),
       favicon_url: text(raw.favicon_url),
-      folder: sourceFolder ? linkFolderMap.get(sourceFolder) || (linkFolderIds.has(sourceFolder) ? sourceFolder : '') : '',
+      folder: sourceFolder ? (linkFolderMap.has(sourceFolder) ? linkFolderMap.get(sourceFolder) : linkFolderIds.has(sourceFolder) ? sourceFolder : '') : '',
       importance: IMPORTANCE.has(raw.importance) ? raw.importance : 'medium',
       tags: stringList(raw.tags).map(tag => tag.toLocaleLowerCase('ru-RU').replace(/^#/, '')),
       is_archived: raw.is_archived === true,
@@ -224,5 +255,6 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     counts.links += 1;
   }
 
-  return { data, counts };
+  counts.invalid += report.invalid.length;
+  return { data, counts, report };
 }
