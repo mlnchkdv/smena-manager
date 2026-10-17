@@ -6,7 +6,7 @@ const p256dh = Buffer.concat([Buffer.from([0x04]), Buffer.alloc(64, 7)]).toStrin
 const auth = Buffer.alloc(16, 9).toString('base64url');
 
 const subscription = {
-  endpoint: 'https://push.example.test/subscription/1',
+  endpoint: 'https://fcm.googleapis.com/subscription/1',
   expirationTime: null,
   keys: { p256dh, auth },
 };
@@ -16,6 +16,14 @@ test('push subscriptions require a bounded HTTPS endpoint and browser keys', () 
   assert.throws(() => normalizePushSubscription({ ...subscription, endpoint: 'http://push.example.test/1' }), /invalid/i);
   assert.throws(() => normalizePushSubscription({ endpoint: 'https://push.example.test/1', keys: {} }), /invalid/i);
   assert.throws(() => normalizePushSubscription({ ...subscription, endpoint: 'https://127.0.0.1/push' }), /invalid/i);
+  for (const endpoint of [
+    'https://[::ffff:7f00:1]/push',
+    'https://attacker.example/push',
+    'https://fcm.googleapis.com.attacker.test/push',
+    'https://fcm.googleapis.com:8443/push',
+  ]) {
+    assert.throws(() => normalizePushSubscription({ ...subscription, endpoint }), /invalid/i);
+  }
   assert.throws(() => normalizePushSubscription({ ...subscription, keys: { p256dh: 'not-a-browser-key', auth } }), /invalid/i);
 });
 

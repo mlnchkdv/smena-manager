@@ -1,9 +1,9 @@
 import crypto from 'node:crypto';
-import net from 'node:net';
 import webpush from 'web-push';
 import { getStorageProvider } from './storage/index.js';
 import { notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
 import { notificationPath } from '../shared/notification-links.js';
+import { storageVersion } from './storage/version-token.js';
 
 let mutationQueue = Promise.resolve();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -36,6 +36,7 @@ export function normalizePushSubscription(value) {
     url.protocol !== 'https:' ||
     url.username ||
     url.password ||
+    (url.port && url.port !== '443') ||
     endpoint.length > 2048 ||
     !publicEndpointHost(url.hostname) ||
     !validBrowserKey(p256dh, 65, 0x04) ||
@@ -54,26 +55,17 @@ function validBrowserKey(value, expectedBytes, firstByte) {
 }
 
 function publicEndpointHost(value) {
-  const hostname = String(value || '')
-    .replace(/^\[|\]$/gu, '')
-    .toLowerCase();
-  if (!hostname || hostname === 'localhost' || hostname.endsWith('.localhost') || (!hostname.includes('.') && !net.isIP(hostname))) return false;
-  const version = net.isIP(hostname);
-  if (version === 4) {
-    const [a, b] = hostname.split('.').map(Number);
-    return !(
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      a >= 224
-    );
-  }
-  if (version === 6) return !['::', '::1'].includes(hostname) && !/^f[cd]/u.test(hostname) && !/^fe[89ab]/u.test(hostname);
-  return true;
+  // Browser push endpoints are issued by known push services. Do not resolve
+  // user-controlled hosts: DNS rebinding and IPv4-mapped IPv6 bypass deny lists.
+  const hostname = String(value || '').toLowerCase();
+  return (
+    hostname === 'fcm.googleapis.com' ||
+    hostname === 'updates.push.services.mozilla.com' ||
+    hostname === 'web.push.apple.com' ||
+    hostname.endsWith('.push.apple.com') ||
+    hostname === 'wns.windows.com' ||
+    hostname.endsWith('.notify.windows.com')
+  );
 }
 
 export function prunePushSubscriptions(items, options = {}) {
@@ -103,7 +95,7 @@ async function mutateSubscriptions(mutator) {
       const current = typeof storage.loadPushSubscriptions === 'function' ? await storage.loadPushSubscriptions() : [];
       const next = await mutator(structuredClone(current));
       try {
-        await storage.savePushSubscriptions(next);
+        await storage.savePushSubscriptions(next, { expectedEtag: storageVersion(current) });
         return next;
       } catch (error) {
         if (Number(error?.response?.status || error?.code) !== 412 || attempt === 2) throw error;
@@ -226,6 +218,12 @@ export async function deliverPushNotifications(data, notifications = [], options
       const targets = subscriptions.filter(item => item.memberId === notification.recipient);
       await Promise.all(
         targets.map(async target => {
+          try {
+            normalizePushSubscription(target.subscription);
+          } catch {
+            stale.add(target.id);
+            return;
+          }
           attempted += 1;
           const payload = JSON.stringify(pushMessagePayload(notification, data, target.locale));
           const settings = { TTL: 60 * 60 * 24, urgency: notification.type === 'due' ? 'high' : 'normal' };

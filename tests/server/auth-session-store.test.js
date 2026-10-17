@@ -31,6 +31,29 @@ function details(id, userId, now, overrides = {}) {
   };
 }
 
+test('missing sessions cannot be recreated by presenting an old signed token', async () => {
+  const now = Date.now();
+  const provider = new MemorySessionStorage();
+  const registry = new AuthSessionRegistry({ provider: () => provider, now: () => now });
+  assert.equal(await registry.ensure(details('missing', 'user-1', now)), null);
+  assert.deepEqual(provider.sessions, []);
+});
+
+test('revoked tombstones survive session limits and other warm instances observe revocation', async () => {
+  const now = Date.now();
+  const provider = new MemorySessionStorage();
+  const first = new AuthSessionRegistry({ provider: () => provider, now: () => now, cacheDurationMs: 60000 });
+  const second = new AuthSessionRegistry({ provider: () => provider, now: () => now, cacheDurationMs: 60000 });
+  await first.register(details('revoked', 'user-1', now));
+  assert.ok(await second.ensure(details('revoked', 'user-1', now)));
+  await first.revoke('user-1', 'revoked');
+  assert.equal(await second.ensure(details('revoked', 'user-1', now)), null);
+  provider.sessions.push(...Array.from({ length: 501 }, (_, i) => details(`session-${i}`, 'user-2', now)));
+  await assert.rejects(first.register(details('overflow', 'user-2', now)), { code: 'SESSION_LIMIT' });
+  assert.ok(provider.sessions.find(record => record.id === 'revoked').revokedAt);
+  assert.equal(await first.ensure(details('revoked', 'user-1', now)), null);
+});
+
 test('user agent descriptions identify common desktop and mobile devices', () => {
   assert.deepEqual(describeUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/141.0.0.0 Safari/537.36'), {
     device: 'Windows · Chrome 141',

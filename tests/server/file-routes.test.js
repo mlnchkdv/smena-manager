@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { app } from '../../src/server/app.js';
-import { createSession, getAccessProfiles } from '../../src/server/auth.js';
+import { createTrackedSession, getAccessProfiles } from '../../src/server/auth.js';
 import { resetStorageProvider } from '../../src/server/storage/index.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, resetWorkspaceStore } from '../../src/server/workspace-store.js';
 
@@ -30,7 +30,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
 
   const initial = await getWorkspaceDatabase();
-  const prepared = await replaceWorkspaceDatabase(
+  await replaceWorkspaceDatabase(
     {
       ...initial,
       ws: { name: 'Команда' },
@@ -42,7 +42,8 @@ test('authenticated editors can upload and range-download a workspace file', asy
     },
     0,
   );
-  const token = createSession(getAccessProfiles()[0]);
+  const token = await createTrackedSession(getAccessProfiles()[0], { get: () => '' }, 'access_id');
+  const prepared = await getWorkspaceDatabase();
   const server = app.listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
   t.after(() => new Promise(resolve => server.close(resolve)));
@@ -61,7 +62,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   const uploaded = await uploadedResponse.json();
   assert.equal(uploaded.file.name, 'notes.txt');
   assert.equal(uploaded.file.bytes, 10);
-  assert.equal(uploaded.data.revision, 2);
+  assert.equal(uploaded.data.revision, prepared.revision + 1);
   assert.ok(uploaded.file.storageFileId);
 
   const contentResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {
@@ -81,7 +82,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
   assert.equal(deletedResponse.status, 200);
   const deleted = await deletedResponse.json();
-  assert.equal(deleted.data.revision, 3);
+  assert.equal(deleted.data.revision, prepared.revision + 2);
   assert.equal(deleted.data.files.length, 0);
 
   const missingResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {

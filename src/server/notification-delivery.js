@@ -1,6 +1,7 @@
 import { getStorageProvider } from './storage/index.js';
 import { deliverEmailNotifications, emailAuthorizationStatus } from './email-notifications.js';
 import { deliverPushNotifications, pushDeliveryStatus } from './push-subscriptions.js';
+import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
 let mutationQueue = Promise.resolve();
@@ -25,15 +26,17 @@ function cleanStatus(value = {}) {
 
 async function loadStatus(storage = getStorageProvider()) {
   const stored = typeof storage.loadNotificationDeliveryStatus === 'function' ? await storage.loadNotificationDeliveryStatus() : memoryStatus;
-  return cleanStatus(stored || {});
+  return copyStorageVersion(stored, cleanStatus(stored || {}));
 }
 
 async function mutateStatus(mutator) {
   const storage = getStorageProvider();
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const next = cleanStatus(await mutator(await loadStatus(storage)));
+    const current = await loadStatus(storage);
+    const next = cleanStatus(await mutator(current));
     try {
-      if (typeof storage.saveNotificationDeliveryStatus === 'function') await storage.saveNotificationDeliveryStatus(next);
+      if (typeof storage.saveNotificationDeliveryStatus === 'function')
+        await storage.saveNotificationDeliveryStatus(next, { expectedEtag: storageVersion(current) });
       memoryStatus = next;
       return next;
     } catch (error) {

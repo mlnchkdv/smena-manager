@@ -320,10 +320,10 @@ export class GoogleDriveStorageProvider {
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.pushSubscriptionsEtag = response.headers?.etag || null;
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-    return Array.isArray(parsed) ? parsed : [];
+    return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.pushSubscriptionsEtag);
   }
 
-  async savePushSubscriptions(subscriptions) {
+  async savePushSubscriptions(subscriptions, options = {}) {
     await this.init();
     const fileId = await this.findPushSubscriptionsFile();
     const media = {
@@ -331,7 +331,7 @@ export class GoogleDriveStorageProvider {
       body: Readable.from([JSON.stringify(subscriptions, null, 2)]),
     };
     if (fileId) {
-      const requestOptions = this.pushSubscriptionsEtag ? { headers: { 'If-Match': this.pushSubscriptionsEtag } } : undefined;
+      const requestOptions = conditionalWriteOptions(options, this.pushSubscriptionsEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.pushSubscriptionsEtag = updated.headers?.etag || null;
       return;
@@ -371,15 +371,15 @@ export class GoogleDriveStorageProvider {
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.notificationDeliveryEtag = response.headers?.etag || null;
-    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.notificationDeliveryEtag);
   }
 
-  async saveNotificationDeliveryStatus(status) {
+  async saveNotificationDeliveryStatus(status, options = {}) {
     await this.init();
     const fileId = await this.findNotificationDeliveryFile();
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(status, null, 2)]) };
     if (fileId) {
-      const requestOptions = this.notificationDeliveryEtag ? { headers: { 'If-Match': this.notificationDeliveryEtag } } : undefined;
+      const requestOptions = conditionalWriteOptions(options, this.notificationDeliveryEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.notificationDeliveryEtag = updated.headers?.etag || null;
       return;
@@ -420,15 +420,15 @@ export class GoogleDriveStorageProvider {
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.authSessionsEtag = response.headers?.etag || null;
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-    return Array.isArray(parsed) ? parsed : [];
+    return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.authSessionsEtag);
   }
 
-  async saveAuthSessions(sessions) {
+  async saveAuthSessions(sessions, options = {}) {
     await this.init();
     const fileId = await this.findAuthSessionsFile();
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(sessions, null, 2)]) };
     if (fileId) {
-      const requestOptions = this.authSessionsEtag ? { headers: { 'If-Match': this.authSessionsEtag } } : undefined;
+      const requestOptions = conditionalWriteOptions(options, this.authSessionsEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.authSessionsEtag = updated.headers?.etag || null;
       return;
