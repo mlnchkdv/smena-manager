@@ -28,5 +28,5 @@ export function skeleton() {
   else if (r === 'home' || r === 'overview')
     body = `<div class="stats" style="margin-bottom:16px">${Array.from({ length: 4 }, () => `<div class="stat">${sk('80px', 10)}${sk('44px', 20)}</div>`).join('')}</div><div class="grid2"><div class="panel" style="padding:14px">${skRows(6)}</div><div class="panel" style="padding:14px">${skRows(6)}</div></div>`;
   else body = skRows(10);
-  return `<div class="page" aria-busy="true" aria-label="Loading">${head}${body}</div>`;
+  return `<div class="page" role="status" aria-busy="true" aria-label="Loading"><div aria-hidden="true">${head}${body}</div></div>`;
 }
