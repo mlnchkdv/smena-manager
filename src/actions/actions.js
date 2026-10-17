@@ -50,6 +50,7 @@ import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceFitsTransport } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
+import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
@@ -326,8 +327,8 @@ A.restoreWorkspaceBackup = el => {
     icon: 'history',
     run: async () => {
       try {
-        const snapshot = await restoreWorkspaceBackup(id, S.ui.workspaceRevision);
-        applyWorkspaceSnapshot(snapshot);
+        await restoreWorkspaceBackup(id, S.ui.workspaceRevision);
+        await refreshWorkspaceFromServer({ force: true });
         S.ui.modals = [];
         render();
         toast('Рабочее пространство восстановлено из резервной копии.');
@@ -352,7 +353,11 @@ IN.importPortableWorkspace = async el => {
       links: result.data.links,
       linkFolders: result.data.linkFolders,
     };
-    if (!workspaceFitsTransport(candidate, S.ui.workspaceRevision)) throw new Error('Imported data would exceed the 4 MB workspace sync limit.');
+    if (
+      !workspaceFitsTransport(workspaceDocumentData('knowledge', candidate), S.ui.documentRevisions.knowledge) ||
+      !workspaceFitsTransport(workspaceDocumentData('bookmarks', candidate), S.ui.documentRevisions.bookmarks)
+    )
+      throw new Error('Imported data would exceed the 4 MB limit of a knowledge or bookmark document.');
     mutate(() => {
       D().knowledgeNotes = result.data.knowledgeNotes;
       D().knowledgeFolders = result.data.knowledgeFolders;
@@ -429,7 +434,8 @@ IN.importKnowledgeMarkdown = async el => {
       imported.push(note);
     }
     const candidate = { ...D(), knowledgeNotes: [...imported, ...knowledgeCollections().notes] };
-    if (!workspaceFitsTransport(candidate, S.ui.workspaceRevision)) throw new Error('Imported data would exceed the 4 MB workspace sync limit.');
+    if (!workspaceFitsTransport(workspaceDocumentData('knowledge', candidate), S.ui.documentRevisions.knowledge))
+      throw new Error('Imported notes would exceed the 4 MB knowledge document limit.');
     mutate(() => {
       knowledgeCollections().notes.unshift(...imported);
       if (imported[0]) S.ui.knowledgeActive = imported[0].id;
@@ -2594,8 +2600,8 @@ A.delWorkspace = () =>
     typeName: D().ws.name,
     run: async () => {
       try {
-        const snapshot = await deleteAllWorkspaces(S.ui.workspaceRevision);
-        applyWorkspaceSnapshot(snapshot);
+        await deleteAllWorkspaces(S.ui.workspaceRevision);
+        await refreshWorkspaceFromServer({ force: true });
         S.views = {};
         S.ui.auth = 'onboarding';
         S.ui.onb = 1;

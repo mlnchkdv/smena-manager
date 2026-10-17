@@ -8,6 +8,10 @@ const ROOT_FOLDER_NAME = 'Smena-Manager-Storage';
 const UPLOADS_FOLDER_NAME = 'uploads';
 const BACKUPS_FOLDER_NAME = 'backups';
 const PUSH_SUBSCRIPTIONS_NAME = 'smena-manager-push-subscriptions.json';
+const DOCUMENT_FILES = Object.freeze({
+  knowledge: 'smena-manager-knowledge.json',
+  bookmarks: 'smena-manager-bookmarks.json',
+});
 
 function escapeDriveQuery(value) {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -21,6 +25,11 @@ export class GoogleDriveStorageProvider {
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
   databaseEtag = null;
+  documentFileIds = {
+    knowledge: process.env.GOOGLE_DRIVE_KNOWLEDGE_FILE_ID?.trim() || null,
+    bookmarks: process.env.GOOGLE_DRIVE_BOOKMARKS_FILE_ID?.trim() || null,
+  };
+  documentEtags = { knowledge: null, bookmarks: null };
   pushSubscriptionsFileId = null;
   pushSubscriptionsEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
@@ -210,6 +219,68 @@ export class GoogleDriveStorageProvider {
       });
       this.databaseFileId = created.data.id;
       this.databaseEtag = created.headers?.etag || null;
+    }
+    this.lastSyncAt = new Date().toISOString();
+  }
+
+  async findDocumentFile(name) {
+    const filename = DOCUMENT_FILES[name];
+    if (!filename) throw new Error('Invalid workspace document name.');
+    if (this.documentFileIds[name]) return this.documentFileIds[name];
+    const result = await this.client.files.list({
+      q: `name = '${filename}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
+      fields: 'files(id)',
+      spaces: 'drive',
+      pageSize: 1,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    this.documentFileIds[name] = result.data.files?.[0]?.id || null;
+    return this.documentFileIds[name];
+  }
+
+  async loadDocument(name) {
+    await this.init();
+    const fileId = await this.findDocumentFile(name);
+    if (!fileId) return null;
+    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    this.documentEtags[name] = response.headers?.etag || null;
+    this.lastSyncAt = new Date().toISOString();
+    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+  }
+
+  async saveDocument(name, data) {
+    await this.init();
+    const filename = DOCUMENT_FILES[name];
+    if (!filename) throw new Error('Invalid workspace document name.');
+    const fileId = await this.findDocumentFile(name);
+    const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(data, null, 2)]) };
+    if (fileId) {
+      const requestOptions = this.documentEtags[name] ? { headers: { 'If-Match': this.documentEtags[name] } } : undefined;
+      const updated = await this.client.files.update(
+        {
+          fileId,
+          requestBody: { appProperties: { smenaDocument: name, smenaRevision: String(data.revision) } },
+          media,
+          supportsAllDrives: true,
+        },
+        requestOptions,
+      );
+      this.documentEtags[name] = updated.headers?.etag || null;
+    } else {
+      const created = await this.client.files.create({
+        requestBody: {
+          name: filename,
+          parents: [this.rootFolderId],
+          mimeType: 'application/json',
+          appProperties: { smenaDocument: name, smenaRevision: String(data.revision) },
+        },
+        media,
+        fields: 'id',
+        supportsAllDrives: true,
+      });
+      this.documentFileIds[name] = created.data.id;
+      this.documentEtags[name] = created.headers?.etag || null;
     }
     this.lastSyncAt = new Date().toISOString();
   }

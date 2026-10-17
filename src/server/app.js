@@ -25,6 +25,8 @@ import { cleanupPushSubscriptions, deliverPushNotifications, publicPushConfig, r
 import { deliverEmailNotifications, emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
+import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 
 export const app = express();
 
@@ -199,7 +201,7 @@ app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, res
 app.get('/api/workspace', async (_request, response, next) => {
   try {
     const database = await getWorkspaceDatabase();
-    response.json({ data: bindAccessProfiles(database, getAccessProfiles()) });
+    response.json({ data: workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())) });
   } catch (error) {
     next(error);
   }
@@ -207,7 +209,16 @@ app.get('/api/workspace', async (_request, response, next) => {
 
 app.get('/api/workspace/revision', async (_request, response, next) => {
   try {
-    response.json(await getWorkspaceRevisionStatus());
+    const database = await getWorkspaceDatabase();
+    const documents = Object.fromEntries(
+      await Promise.all(
+        DOCUMENT_NAMES.map(async name => {
+          const document = await getWorkspaceDocument(name, database);
+          return [name, { revision: document.revision, updatedAt: document.updatedAt }];
+        }),
+      ),
+    );
+    response.json({ ...(await getWorkspaceRevisionStatus()), documents });
   } catch (error) {
     next(error);
   }
@@ -215,7 +226,10 @@ app.get('/api/workspace/revision', async (_request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    let nextData = request.body?.data;
+    let nextData = {
+      ...workspaceCoreData(request.body?.data),
+      ...Object.fromEntries(['knowledgeNotes', 'knowledgeFolders', 'links', 'linkFolders'].map(field => [field, []])),
+    };
     const stored = await getWorkspaceDatabase();
     const knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
     const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
@@ -225,6 +239,29 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId });
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
     await Promise.allSettled([deliverPushNotifications(data, createdNotifications), deliverEmailNotifications(data, createdNotifications)]);
+    response.json({ data: workspaceCoreData(data) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/workspace-documents/:name', async (request, response, next) => {
+  try {
+    if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
+    const legacy = await getWorkspaceDatabase();
+    response.json({ data: await getWorkspaceDocument(request.params.name, legacy) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
+    const legacy = await getWorkspaceDatabase();
+    const data = await replaceWorkspaceDocument(request.params.name, workspaceDocumentData(request.params.name, request.body?.data), request.body?.revision, {
+      legacyData: legacy,
+    });
     response.json({ data });
   } catch (error) {
     next(error);
@@ -234,10 +271,15 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
     await createWorkspaceBackup('Перед удалением рабочего пространства');
+    const legacy = await getWorkspaceDatabase();
+    for (const name of DOCUMENT_NAMES) {
+      const document = await getWorkspaceDocument(name, legacy);
+      await replaceWorkspaceDocument(name, workspaceDocumentData(name), document.revision, { legacyData: legacy });
+    }
     const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(await getWorkspaceDatabase(), getAccessProfiles())), request.body?.revision, {
       role: request.user.role,
     });
-    response.json({ data });
+    response.json({ data: workspaceCoreData(data) });
   } catch (error) {
     next(error);
   }
@@ -255,7 +297,7 @@ app.use((error, _request, response, next) => {
     error: status === 503 ? 'Workspace storage is unavailable.' : error.message,
     code: error.code || (status === 400 ? 'INVALID_REQUEST' : status === 413 ? 'PAYLOAD_TOO_LARGE' : 'STORAGE_UNAVAILABLE'),
   };
-  if (error instanceof RevisionConflictError) body.currentRevision = error.currentRevision;
+  if (error instanceof RevisionConflictError || Number.isSafeInteger(error.currentRevision)) body.currentRevision = error.currentRevision;
   if (Number.isSafeInteger(error.maxBytes)) body.maxBytes = error.maxBytes;
   if (Number.isSafeInteger(error.actualBytes)) body.actualBytes = error.actualBytes;
   if (Array.isArray(error.fields)) body.fields = error.fields;

@@ -5,10 +5,12 @@ import {
   getFileUploadPolicy,
   getSessionToken,
   getWorkspace,
+  getWorkspaceDocument,
   getWorkspaceRevision,
   loginWithAccessId,
   loginWithGoogle,
   putWorkspace,
+  putWorkspaceDocument,
 } from './api.js';
 import { S, setWorkspaceBaseline } from './store.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
@@ -16,11 +18,15 @@ import { configureWorkspaceSync, workspaceSyncConflict, workspaceSyncIsClean } f
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
+import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceDocumentData } from '../shared/workspace-documents.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
 
-export function applyWorkspaceSnapshot(snapshot) {
-  const data = workspacePayload(snapshot);
+export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
+  const resolvedDocuments = Object.fromEntries(
+    DOCUMENT_NAMES.map(name => [name, documentSnapshots[name] || { revision: S.ui.documentRevisions?.[name] || 0, ...workspaceDocumentData(name, S.data) }]),
+  );
+  const data = mergeWorkspaceDocuments(workspacePayload(snapshot), resolvedDocuments);
   if (!data.ws || !Array.isArray(data.projects) || !Array.isArray(data.tasks)) {
     throw new Error('Workspace data has an unsupported format.');
   }
@@ -33,14 +39,16 @@ export function applyWorkspaceSnapshot(snapshot) {
   data.me = member.id;
   S.data = data;
   S.ui.workspaceRevision = Number(snapshot.revision || 0);
+  S.ui.documentRevisions = Object.fromEntries(DOCUMENT_NAMES.map(name => [name, Number(resolvedDocuments[name]?.revision || 0)]));
   S.ui.syncState = 'saved';
   S.ui.lastSyncedAt = Date.now();
   setWorkspaceBaseline(data);
-  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data);
+  configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments);
 }
 
 async function loadWorkspaceFor(user) {
   let snapshot = await getWorkspace();
+  const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name)])));
   if (isEmptyWorkspace(snapshot)) {
     if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
     const initialData = bindInitialAdministrator(emptyWorkspace(workspacePayload(snapshot)), user);
@@ -57,7 +65,7 @@ async function loadWorkspaceFor(user) {
     S.ui.needsOnboarding = false;
   }
   S.ui.currentUser = user;
-  applyWorkspaceSnapshot(snapshot);
+  applyWorkspaceSnapshot(snapshot, documentSnapshots);
   S.ui.filePolicy = await getFileUploadPolicy().catch(() => null);
   if (user.name) S.prefs.name = user.name;
   return user;
@@ -102,12 +110,15 @@ export async function refreshWorkspaceFromServer(options = {}) {
   const startingRevision = S.ui.workspaceRevision;
   if (!force) {
     const remote = await getWorkspaceRevision();
-    if (Number(remote.revision) === Number(startingRevision || 0)) return { status: 'current' };
+    const documentsCurrent = DOCUMENT_NAMES.every(name => Number(remote.documents?.[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));
+    if (Number(remote.revision) === Number(startingRevision || 0) && documentsCurrent) return { status: 'current' };
   }
-  const snapshot = await getWorkspace();
+  const [snapshot, ...loadedDocuments] = await Promise.all([getWorkspace(), ...DOCUMENT_NAMES.map(name => getWorkspaceDocument(name))]);
+  const documentSnapshots = Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]]));
   if (!force && (!workspaceSyncIsClean(S.data) || S.ui.workspaceRevision !== startingRevision)) return { status: 'local_changes' };
-  if (Number(snapshot.revision || 0) === Number(S.ui.workspaceRevision || 0)) return { status: 'current' };
-  applyWorkspaceSnapshot(snapshot);
+  const documentsCurrent = DOCUMENT_NAMES.every(name => Number(documentSnapshots[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));
+  if (Number(snapshot.revision || 0) === Number(S.ui.workspaceRevision || 0) && documentsCurrent) return { status: 'current' };
+  applyWorkspaceSnapshot(snapshot, documentSnapshots);
   S.ui.syncConflict = false;
   return { status: 'updated', revision: S.ui.workspaceRevision };
 }
@@ -127,8 +138,8 @@ export async function recoverWorkspaceConflict() {
   const base = conflict.base || conflict.local;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const snapshot = await getWorkspace();
-    const remote = workspacePayload(snapshot);
+    const snapshot = conflict.scope === 'workspace' ? await getWorkspace() : await getWorkspaceDocument(conflict.scope);
+    const remote = conflict.scope === 'workspace' ? workspacePayload(snapshot) : workspaceDocumentData(conflict.scope, snapshot);
     const merged = mergeWorkspaceData(base, local, remote);
     if (merged.conflicts.length) {
       storeConflictRecovery(local, {
@@ -139,8 +150,15 @@ export async function recoverWorkspaceConflict() {
       return { status: 'manual', conflicts: merged.conflicts };
     }
     try {
-      const saved = await putWorkspace(merged.data, Number(snapshot.revision || 0));
-      applyWorkspaceSnapshot(saved);
+      if (conflict.scope !== 'workspace') {
+        await putWorkspaceDocument(conflict.scope, merged.data, Number(snapshot.revision || 0));
+        const [core, ...loadedDocuments] = await Promise.all([getWorkspace(), ...DOCUMENT_NAMES.map(name => getWorkspaceDocument(name))]);
+        applyWorkspaceSnapshot(core, Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]])));
+      } else {
+        const saved = await putWorkspace(merged.data, Number(snapshot.revision || 0));
+        const loadedDocuments = await Promise.all(DOCUMENT_NAMES.map(name => getWorkspaceDocument(name)));
+        applyWorkspaceSnapshot(saved, Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]])));
+      }
       S.ui.syncConflict = false;
       try {
         localStorage.removeItem(CONFLICT_RECOVERY_KEY);

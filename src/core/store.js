@@ -59,6 +59,7 @@ export const S = {
     needsOnboarding: false,
     currentUser: null,
     workspaceRevision: null,
+    documentRevisions: { knowledge: 0, bookmarks: 0 },
     workspaceBaseline: null,
     syncState: 'saved',
     lastSyncedAt: null,

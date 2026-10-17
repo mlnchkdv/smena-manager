@@ -6,6 +6,8 @@ import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { migrateNotificationRecipients, reconcileWorkspaceNotifications } from '../shared/notification-model.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { validateWorkspaceData } from '../shared/workspace-schema.js';
+import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { getWorkspaceDocument, replaceWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
 
 export const CURRENT_SCHEMA_VERSION = 1;
 
@@ -132,9 +134,10 @@ export async function getWorkspaceRevisionStatus() {
 
 export async function createWorkspaceBackup(label = '') {
   const current = await getWorkspaceDatabase();
+  const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name, current)])));
   const storage = getStorageProvider();
   if (typeof storage.createDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
-  return storage.createDatabaseBackup(current, label);
+  return storage.createDatabaseBackup(mergeWorkspaceDocuments(current, documentSnapshots), label);
 }
 
 export async function listWorkspaceBackups() {
@@ -148,7 +151,16 @@ export async function restoreWorkspaceBackup(id, expectedRevision) {
   if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
   const backup = await storage.loadDatabaseBackup(id);
   await createWorkspaceBackup('Перед восстановлением');
-  return replaceWorkspaceDatabase(backup, expectedRevision, { role: 'admin' });
+  const current = await getWorkspaceDatabase();
+  for (const name of DOCUMENT_NAMES) {
+    const document = await getWorkspaceDocument(name, current);
+    await replaceWorkspaceDocument(name, workspaceDocumentData(name, backup), document.revision, { legacyData: current });
+  }
+  return replaceWorkspaceDatabase(
+    { ...workspaceCoreData(backup), ...Object.fromEntries(DOCUMENT_NAMES.flatMap(name => Object.keys(workspaceDocumentData(name)).map(field => [field, []]))) },
+    expectedRevision,
+    { role: 'admin' },
+  );
 }
 
 export class RevisionConflictError extends Error {
@@ -269,6 +281,7 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
 export async function getWorkspaceStatus() {
   const data = await initWorkspaceStore();
   const storage = getStorageProvider();
+  const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name, data)])));
   const redis = await getRedisHealth();
   const coordination = redis.configured
     ? { mode: 'redis-lock', healthy: redis.connected, latencyMs: redis.latencyMs }
@@ -281,8 +294,24 @@ export async function getWorkspaceStatus() {
     schemaVersion: data.schemaVersion,
     revision: data.revision,
     updatedAt: data.updatedAt,
-    workspaceBytes: workspaceTransportBytes(data, data.revision),
-    workspaceMaxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
+    workspaceBytes:
+      workspaceTransportBytes(workspaceCoreData(data), data.revision) +
+      DOCUMENT_NAMES.reduce(
+        (total, name) => total + workspaceTransportBytes(workspaceDocumentData(name, documentSnapshots[name]), documentSnapshots[name].revision),
+        0,
+      ),
+    workspaceMaxBytes: WORKSPACE_TRANSPORT_MAX_BYTES * (DOCUMENT_NAMES.length + 1),
+    documents: Object.fromEntries(
+      DOCUMENT_NAMES.map(name => [
+        name,
+        {
+          revision: documentSnapshots[name].revision,
+          updatedAt: documentSnapshots[name].updatedAt,
+          bytes: workspaceTransportBytes(workspaceDocumentData(name, documentSnapshots[name]), documentSnapshots[name].revision),
+          maxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
+        },
+      ]),
+    ),
   };
 }
 
@@ -292,4 +321,5 @@ export function resetWorkspaceStore() {
   reloadPromise = null;
   localWriteQueue = Promise.resolve();
   lastLoadedAt = 0;
+  resetWorkspaceDocumentStore();
 }

@@ -28,6 +28,11 @@ export class LocalStorageProvider {
     this.backupsPath = path.resolve(process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
   }
 
+  documentPath(name) {
+    if (!['knowledge', 'bookmarks'].includes(name)) throw new Error('Invalid workspace document name.');
+    return path.join(path.dirname(this.databasePath), `smena-manager-${name}.json`);
+  }
+
   async init() {
     await fs.promises.mkdir(path.dirname(this.databasePath), { recursive: true });
     await fs.promises.mkdir(this.uploadsPath, { recursive: true });
@@ -50,6 +55,27 @@ export class LocalStorageProvider {
     try {
       await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), 'utf8');
       await renameWithRetry(temporaryPath, this.databasePath);
+    } finally {
+      await fs.promises.unlink(temporaryPath).catch(() => undefined);
+    }
+  }
+
+  async loadDocument(name) {
+    try {
+      return JSON.parse(await fs.promises.readFile(this.documentPath(name), 'utf8'));
+    } catch (error) {
+      if (error?.code === 'ENOENT') return null;
+      throw error;
+    }
+  }
+
+  async saveDocument(name, data) {
+    await this.init();
+    const targetPath = this.documentPath(name);
+    const temporaryPath = `${targetPath}.${process.pid}.${Date.now()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), 'utf8');
+      await renameWithRetry(temporaryPath, targetPath);
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }

@@ -62,6 +62,7 @@ import { resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
+import { workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -152,7 +153,7 @@ async function handleWorkspaceConflict() {
 }
 
 window.addEventListener('smena:sync-status', event => {
-  const { status, revision, data } = event.detail;
+  const { status, revision, scope } = event.detail;
   if (status === 'syncing') {
     updateSyncIndicator('syncing');
   } else if (status === 'saved') {
@@ -162,10 +163,15 @@ window.addEventListener('smena:sync-status', event => {
     S.ui.syncTooLarge = false;
     S.ui.syncInvalid = false;
     S.ui.syncConflict = false;
-    S.ui.workspaceRevision = revision;
+    if (scope && scope !== 'workspace') S.ui.documentRevisions[scope] = revision;
+    else S.ui.workspaceRevision = revision;
     S.ui.lastSyncedAt = Date.now();
-    updateSyncIndicator('saved');
-    if (data) setWorkspaceBaseline(data);
+    queueMicrotask(() => {
+      const syncState = workspaceSyncState();
+      if (syncState.hasActive || syncState.hasPending) return updateSyncIndicator('syncing');
+      updateSyncIndicator('saved');
+      if (workspaceSyncIsClean(S.data)) setWorkspaceBaseline(S.data);
+    });
     if (wasOffline) {
       render();
       toast('Reconnected. All changes are synced.');

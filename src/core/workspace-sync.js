@@ -1,4 +1,5 @@
-import { putWorkspace } from './api.js';
+import { putWorkspace, putWorkspaceDocument } from './api.js';
+import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 
 function browserNotify(detail) {
   if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return;
@@ -151,11 +152,55 @@ export function createWorkspaceSync(options = {}) {
 }
 
 const workspaceSync = createWorkspaceSync();
+const documentSyncs = Object.fromEntries(
+  DOCUMENT_NAMES.map(name => [
+    name,
+    createWorkspaceSync({
+      writeWorkspace: (data, revision) => putWorkspaceDocument(name, data, revision),
+      notify: detail => browserNotify({ ...detail, scope: name }),
+    }),
+  ]),
+);
 
-export const configureWorkspaceSync = (revision, role, data) => workspaceSync.configure(revision, role, data);
-export const disableWorkspaceSync = () => workspaceSync.disable();
-export const queueWorkspaceSync = data => workspaceSync.queue(data);
-export const retryWorkspaceSync = () => workspaceSync.retry();
-export const workspaceSyncState = () => workspaceSync.state();
-export const workspaceSyncIsClean = data => workspaceSync.isClean(data);
-export const workspaceSyncConflict = () => workspaceSync.getConflict();
+export function configureWorkspaceSync(revision, role, data, documentSnapshots = {}) {
+  workspaceSync.configure(revision, role, workspaceCoreData(data));
+  for (const name of DOCUMENT_NAMES) {
+    documentSyncs[name].configure(documentSnapshots[name]?.revision || 0, role, workspaceDocumentData(name, data));
+  }
+}
+export function disableWorkspaceSync() {
+  workspaceSync.disable();
+  for (const sync of Object.values(documentSyncs)) sync.disable();
+}
+export function queueWorkspaceSync(data) {
+  return Promise.all([
+    workspaceSync.queue(workspaceCoreData(data)),
+    ...DOCUMENT_NAMES.map(name => documentSyncs[name].queue(workspaceDocumentData(name, data))),
+  ]);
+}
+export function retryWorkspaceSync() {
+  return Promise.all([workspaceSync.retry(), ...Object.values(documentSyncs).map(sync => sync.retry())]);
+}
+export function workspaceSyncState() {
+  const core = workspaceSync.state();
+  const shards = Object.fromEntries(DOCUMENT_NAMES.map(name => [name, documentSyncs[name].state()]));
+  return {
+    ...core,
+    hasPending: core.hasPending || Object.values(shards).some(state => state.hasPending),
+    hasActive: core.hasActive || Object.values(shards).some(state => state.hasActive),
+    hasConflict: core.hasConflict || Object.values(shards).some(state => state.hasConflict),
+    documents: shards,
+  };
+}
+export function workspaceSyncIsClean(data) {
+  return workspaceSync.isClean(workspaceCoreData(data)) && DOCUMENT_NAMES.every(name => documentSyncs[name].isClean(workspaceDocumentData(name, data)));
+}
+export function workspaceSyncConflict() {
+  const core = workspaceSync.getConflict();
+  if (core) return { ...core, scope: 'workspace' };
+  for (const name of DOCUMENT_NAMES) {
+    const conflict = documentSyncs[name].getConflict();
+    if (conflict) return { ...conflict, scope: name };
+  }
+  return null;
+}

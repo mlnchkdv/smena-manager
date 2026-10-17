@@ -1,4 +1,5 @@
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
+import { workspaceCoreData } from '../shared/workspace-documents.js';
 
 const SESSION_KEY = 'smena.session.v1';
 let memorySessionToken = '';
@@ -99,6 +100,23 @@ export async function getWorkspaceRevision() {
   return request('/api/workspace/revision', {}, true);
 }
 
+export async function getWorkspaceDocument(name) {
+  const result = await request(`/api/workspace-documents/${encodeURIComponent(name)}`, {}, true);
+  return result.data;
+}
+
+export async function putWorkspaceDocument(name, data, revision) {
+  const actualBytes = workspaceTransportBytes(data, revision);
+  if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
+    throw new ApiError(`The ${name} document exceeds the 4 MB synchronization limit.`, 413, 'WORKSPACE_TOO_LARGE', {
+      maxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
+      actualBytes,
+    });
+  }
+  const result = await request(`/api/workspace-documents/${encodeURIComponent(name)}`, { method: 'PUT', body: JSON.stringify({ data, revision }) }, true);
+  return result.data;
+}
+
 export async function getStorageStatus() {
   return request('/api/storage/status', {}, true);
 }
@@ -141,7 +159,8 @@ export async function clearReadNotifications(revision) {
 }
 
 export async function putWorkspace(data, revision) {
-  const actualBytes = workspaceTransportBytes(data, revision);
+  const coreData = workspaceCoreData(data);
+  const actualBytes = workspaceTransportBytes(coreData, revision);
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
     throw new ApiError('Workspace data exceeds the 4 MB synchronization limit.', 413, 'WORKSPACE_TOO_LARGE', {
       maxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
@@ -152,7 +171,7 @@ export async function putWorkspace(data, revision) {
     '/api/workspace',
     {
       method: 'PUT',
-      body: JSON.stringify({ data, revision }),
+      body: JSON.stringify({ data: coreData, revision }),
     },
     true,
   );

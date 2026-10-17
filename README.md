@@ -67,6 +67,13 @@ The direct mode suits a small team without a separate database; Redis remains pr
 write concurrency. The account menu reports the active write-protection mode and whether the shared
 lock is reachable, without exposing connection credentials.
 
+The shared data is synchronized as three revisioned JSON documents instead of one growing payload:
+workspace core (members, projects, tasks and notifications), knowledge, and bookmarks. Each document
+has its own conflict protection and 4 MB transport budget. Existing monolithic data is copied into the
+two content documents automatically on first load; the next core save removes the legacy copies. Files
+remain separate Drive objects as before. Optional `GOOGLE_DRIVE_KNOWLEDGE_FILE_ID` and
+`GOOGLE_DRIVE_BOOKMARKS_FILE_ID` values avoid lookup requests after the new files are created.
+
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
 projects/tasks/files but not membership or workspace settings, and `viewer` is read-only. Only an
 administrator can initialize an empty production database on the first sign-in.
