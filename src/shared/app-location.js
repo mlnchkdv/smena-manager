@@ -7,6 +7,7 @@ const SIMPLE_ROUTES = new Set([
   'search',
   'overview',
   'projects',
+  'files',
   'tasks',
   'calendar',
   'timeline',
@@ -58,9 +59,7 @@ export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') 
   }
   if (route === 'file') {
     const file = (data.files || []).find(item => item.id === parsed.key);
-    return file
-      ? { route: file.project ? 'project' : 'projects', params: file.project ? { id: file.project, tab: 'files' } : {}, file: file.id }
-      : { route: 'nowhere', params: {} };
+    return file ? { route: 'files', params: {}, file: file.id } : { route: 'nowhere', params: {} };
   }
   if (route === 'member') {
     return data.members.some(item => item.id === parsed.key) ? { route: 'member', params: { id: parsed.key } } : { route: 'nowhere', params: {} };

@@ -95,6 +95,7 @@ test('Russian workspace remains usable and responsive across breakpoints', async
     ['search', 'Поиск'],
     ['overview', 'Обзор'],
     ['projects', 'Проекты'],
+    ['files', 'Файлы'],
     ['tasks', 'Задачи'],
     ['calendar', 'Календарь'],
     ['timeline', 'Хронология'],
@@ -258,8 +259,12 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.getByText(fileName, { exact: true })).toBeVisible({ timeout: 15_000 });
   await waitForSaved(page);
   await page.reload();
-  const fileCard = page.locator('.fcard', { hasText: fileName });
+  await page.goto('/e2e-team/files');
+  await expect(page.getByRole('heading', { name: 'Файлы', exact: true })).toBeVisible();
+  await page.locator('#workspace-file-q').fill('e2e-team-note');
+  const fileCard = page.locator('.workspace-file-card', { hasText: fileName });
   await expect(fileCard).toBeVisible();
+  await expect(fileCard).toContainText('Проверка интерфейса');
   await fileCard.locator('[data-a="ctxBtn"]').click();
   await expectRussianUi(page, 'file context menu');
   await page.locator('[data-a="delFile"]:visible').click();

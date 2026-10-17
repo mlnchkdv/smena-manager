@@ -2,7 +2,7 @@
 import { MOD, TODAY, diffD, esc, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { D, S, allTasks, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, canSee, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
 import { av } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
@@ -29,6 +29,7 @@ const lazyPageLoaders = {
   search: () => import('../pages/search.js').then(module => module.pageSearch),
   overview: () => import('../pages/overview.js').then(module => module.pageOverview),
   projects: () => import('../pages/projects.js').then(module => module.pageProjects),
+  files: () => import('../pages/files.js').then(module => module.pageFiles),
   project: () => import('../pages/project.js').then(module => module.pageProject),
   tasks: () => import('../pages/tasks.js').then(module => module.pageTasks),
   calendar: () => import('../views/calendar.js').then(module => module.pageWsCalendar),
@@ -104,6 +105,7 @@ export function renderPage() {
       search: () => lazyPage('search'),
       overview: () => lazyPage('overview'),
       projects: () => lazyPage('projects'),
+      files: () => lazyPage('files'),
       project: () => lazyPage('project'),
       tasks: () => lazyPage('tasks'),
       calendar: () => lazyPage('calendar'),
@@ -138,6 +140,12 @@ export function renderSidebar() {
   const unreadInbox = notifications.filter(n => !n.read && n.type !== 'update').length;
   const unreadAll = notifications.filter(n => !n.read).length;
   const myOpen = allTasks().filter(t => t.assignee === d.me && t.status !== 'done' && t.due && diffD(parse(t.due), TODAY) <= 0).length;
+  const fileProjectIds = new Set(
+    visibleProjects()
+      .filter(canSee)
+      .map(project => project.id),
+  );
+  const fileCount = (d.files || []).filter(file => fileProjectIds.has(file.project)).length;
   const projs = visibleProjects().filter(p => p.status !== 'complete');
   const inProj = u.route === 'project' ? u.params.id : null;
   return `<nav class="side" aria-label="Main">
@@ -162,6 +170,7 @@ export function renderSidebar() {
         <div class="sgroup-h">Workspace</div>
         ${sItem('overview', 'Overview', 'layout-dashboard')}
         ${sItem('projects', 'Projects', 'folder-kanban')}
+        ${sItem('files', 'Files', 'files', { ct: fileCount || '' })}
         ${sItem('tasks', 'Tasks', 'list-checks')}
         ${sItem('calendar', 'Calendar', 'calendar')}
         ${sItem('timeline', 'Timeline', 'chart-gantt')}

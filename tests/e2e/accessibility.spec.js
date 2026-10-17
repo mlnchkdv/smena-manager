@@ -42,7 +42,7 @@ test('key Russian and English workflows pass automated WCAG checks', async ({ pa
   await signIn(page);
   await page.setViewportSize({ width: 1440, height: 900 });
 
-  for (const route of ['', 'projects', 'inbox', 'settings/security', 'settings/notif-push']) {
+  for (const route of ['', 'projects', 'files', 'inbox', 'settings/security', 'settings/notif-push']) {
     await page.goto(`/e2e-team${route ? `/${route}` : ''}`);
     await expect(page.locator('#main-content')).toBeVisible();
     await expectNoWcagViolations(page, `Russian route ${route || 'home'}`);

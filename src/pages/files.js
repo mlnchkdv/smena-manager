@@ -1,0 +1,178 @@
+import { ago, esc } from '../core/utils.js';
+import { ic } from '../core/icons.js';
+import { D, S, canSee, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';
+
+function formatBytes(value) {
+  const bytes = Math.max(0, Number(value) || 0);
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let amount = bytes;
+  let unit = 0;
+  while (amount >= 1024 && unit < units.length - 1) {
+    amount /= 1024;
+    unit += 1;
+  }
+  const digits = amount >= 100 || unit === 0 ? 0 : amount >= 10 ? 1 : 2;
+  return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(amount)} ${units[unit]}`;
+}
+
+function fileMeta(file) {
+  return FT[file.type] || FT.other;
+}
+
+function projectChip(file) {
+  const project = proj(file.project);
+  return project
+    ? `<button class="workspace-file-project trunc" data-a="go" data-r="project" data-id="${project.id}" data-tab="files" title="${esc(project.name)}"><span style="--c:${pColor(project)}"></span>${esc(project.name)}</button>`
+    : '';
+}
+
+function fileCard(file) {
+  const author = mem(file.by);
+  const linkedTask = file.task ? task(file.task) : null;
+  return `<article class="fcard workspace-file-card" data-ctx="file" data-id="${file.id}">
+    <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
+      ${filePrev(file)}
+      <span class="fi"><span class="fn trunc">${esc(file.name)}</span><span class="fm trunc">${esc(author?.name || 'Unknown member')} · ${ago(file.at)}</span></span>
+    </button>
+    <div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
+  </article>`;
+}
+
+function fileTable(files) {
+  return `<div class="panel workspace-file-table-wrap"><table class="perm-t workspace-file-table"><thead><tr><th>Name</th><th>Project</th><th>Type</th><th>Size</th><th>Uploaded by</th><th>Date</th><th></th></tr></thead><tbody>${files
+    .map(file => {
+      const meta = fileMeta(file);
+      const author = mem(file.by);
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="Name"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc">${esc(file.name)}</span></button></td><td data-label="Project">${projectChip(file) || '—'}</td><td data-label="Type" class="muted">${esc(meta.n)}</td><td data-label="Size" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="Uploaded by"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc">${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="Date" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
+    })
+    .join('')}</tbody></table></div>`;
+}
+
+function uploadsHtml() {
+  const uploads = S.ui.uploads || [];
+  if (!uploads.length) return '';
+  return `<div class="workspace-file-uploads" aria-live="polite">${uploads
+    .map(item => {
+      const meta = fileMeta({ type: item.type });
+      return `<div class="upl"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><div class="grow min0"><div class="row"><span class="trunc" style="font-weight:500">${esc(item.name)}</span><span class="sp"></span><span class="faint num" id="upct-${item.id}">${item.pct}%</span></div><div class="prog" style="margin-top:6px"><i id="upbar-${item.id}" style="--p:${item.pct / 100}"></i></div></div></div>`;
+    })
+    .join('')}</div>`;
+}
+
+export function pageFiles() {
+  const projects = visibleProjects().filter(canSee);
+  const projectIds = new Set(projects.map(project => project.id));
+  const allFiles = (D().files || []).filter(file => projectIds.has(file.project));
+  const query = String(S.ui.fileQ || '')
+    .trim()
+    .toLowerCase();
+  const typeFilter = S.ui.fileType || 'all';
+  const projectFilter = projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all';
+  const sort = S.ui.fileSort || 'date';
+  const view = S.ui.fileView || 'grid';
+  const uploadProject = projectIds.has(S.ui.fileUploadProject) ? S.ui.fileUploadProject : projectFilter !== 'all' ? projectFilter : projects[0]?.id || '';
+  S.ui.fileUploadProject = uploadProject;
+
+  const files = allFiles
+    .filter(file => projectFilter === 'all' || file.project === projectFilter)
+    .filter(file => typeFilter === 'all' || file.type === typeFilter)
+    .filter(file => {
+      if (!query) return true;
+      const linkedProject = proj(file.project);
+      const linkedTask = file.task ? task(file.task) : null;
+      const author = mem(file.by);
+      return [file.name, linkedProject?.name, linkedTask?.title, linkedTask?.key, author?.name, fileMeta(file).n]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(query);
+    })
+    .sort((left, right) => {
+      if (sort === 'name') return left.name.localeCompare(right.name);
+      if (sort === 'size') return Number(right.bytes || 0) - Number(left.bytes || 0);
+      if (sort === 'project') return (proj(left.project)?.name || '').localeCompare(proj(right.project)?.name || '');
+      return Number(right.at || 0) - Number(left.at || 0);
+    });
+
+  const totalBytes = allFiles.reduce((sum, file) => sum + Number(file.bytes || 0), 0);
+  const projectCount = new Set(allFiles.map(file => file.project)).size;
+  const readOnly = S.ui.currentUser?.role === 'viewer';
+  const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
+  const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
+
+  return `<div class="files-page">
+    <header class="page-head files-page-head"><div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>
+      ${
+        readOnly || !projects.length
+          ? ''
+          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}</select><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Upload files<input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label></div>`
+      }
+    </header>
+
+    <section class="files-summary" aria-label="File summary">
+      <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allFiles.length}</b></span></div>
+      <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${formatBytes(totalBytes)}</b></span></div>
+      <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
+    </section>
+
+    <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
+      <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files"></div>
+      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}</select>
+      <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
+        FT,
+      )
+        .filter(([key]) => key !== 'other')
+        .map(([key, meta]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${meta.n}</option>`)
+        .join('')}<option value="other" ${typeFilter === 'other' ? 'selected' : ''}>Other files</option></select>
+      <label class="sr" for="workspace-file-sort">Sort files</label><select class="select" id="workspace-file-sort" data-in="fileSort">${[
+        ['date', 'Newest'],
+        ['name', 'Name'],
+        ['size', 'Size'],
+        ['project', 'Project'],
+      ]
+        .map(([value, label]) => `<option value="${value}" ${sort === value ? 'selected' : ''}>${label}</option>`)
+        .join('')}</select>
+      <div class="seg files-view-switch" role="group" aria-label="File view">${[
+        ['grid', 'layout-grid', 'Grid view'],
+        ['list', 'list', 'List view'],
+      ]
+        .map(
+          ([value, icon, label]) =>
+            `<button class="${view === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${label}" aria-pressed="${view === value}">${ic(icon, 13)}</button>`,
+        )
+        .join('')}</div>
+    </section>
+
+    ${
+      readOnly || !projects.length
+        ? ''
+        : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label>`
+    }
+    ${uploadsHtml()}
+    ${
+      files.length
+        ? view === 'grid'
+          ? `<div class="fgrid workspace-file-grid">${files.map(fileCard).join('')}</div>`
+          : fileTable(files)
+        : empty(
+            filtered ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
+            filtered ? 'No files found' : projects.length ? 'No files yet' : 'Create a project first',
+            filtered
+              ? 'Try changing the search or filters.'
+              : projects.length
+                ? readOnly
+                  ? 'Editors can upload the first shared file.'
+                  : 'Upload the first document, design, or team asset.'
+                : 'Files are organized by project, so create one before uploading.',
+            filtered
+              ? `<button class="btn btn-secondary" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button>`
+              : !readOnly && !projects.length
+                ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
+                : '',
+            '',
+            1,
+          )
+    }
+  </div>`;
+}

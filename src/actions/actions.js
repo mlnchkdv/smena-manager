@@ -1401,7 +1401,7 @@ export async function handleFiles(files, ctx) {
       toast(`File is too large. Maximum size: ${fsize(S.ui.filePolicy.maxFileSizeBytes)}.`, { kind: 'err' });
       continue;
     }
-    const up = { id: uid('u'), name: file.name, size: fsize(file.size), project: ctx.project, task: ctx.task, pct: 0 };
+    const up = { id: uid('u'), name: file.name, size: fsize(file.size), type: fileType(file.name), project: ctx.project, task: ctx.task, pct: 0 };
     S.ui.uploads.push(up);
     render();
     try {
@@ -2293,6 +2293,21 @@ IN.fileType = el => {
 };
 IN.fileSort = el => {
   S.ui.fileSort = el.value;
+  render();
+};
+IN.fileProject = el => {
+  S.ui.fileProject = el.value;
+  if (el.value !== 'all') S.ui.fileUploadProject = el.value;
+  render();
+};
+IN.fileUploadProject = el => {
+  S.ui.fileUploadProject = el.value;
+  render();
+};
+A.clearFileFilters = () => {
+  S.ui.fileQ = '';
+  S.ui.fileType = 'all';
+  S.ui.fileProject = 'all';
   render();
 };
 A.renameFile = el => {

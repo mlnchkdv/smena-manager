@@ -19,8 +19,8 @@ test('app locations resolve copied project, task, and file links', () => {
     drawer: 't1',
   });
   assert.deepEqual(resolveAppLocation('/smena/file/f1', '', data), {
-    route: 'project',
-    params: { id: 'p1', tab: 'files' },
+    route: 'files',
+    params: {},
     file: 'f1',
   });
 });
@@ -28,6 +28,7 @@ test('app locations resolve copied project, task, and file links', () => {
 test('app locations support regular routes and legacy hash links', () => {
   assert.deepEqual(parseAppLocation('/', '#notifications'), { kind: 'notifications', slug: '' });
   assert.deepEqual(resolveAppLocation('/smena/settings', '', data), { route: 'settings', params: {} });
+  assert.deepEqual(resolveAppLocation('/smena/files', '', data), { route: 'files', params: {} });
   assert.deepEqual(resolveAppLocation('/smena/settings/data-transfer', '', data), { route: 'settings', params: { sec: 'data-transfer' } });
   assert.deepEqual(resolveAppLocation('/', '#notifications', data), { route: 'notifications', params: {} });
 });

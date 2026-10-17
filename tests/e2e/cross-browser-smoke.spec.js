@@ -63,7 +63,7 @@ test('core task flow and responsive shell work across browser engines', async ({
   await expect(page.getByText('Межбраузерная проверка', { exact: true }).first()).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const route of ['projects', 'inbox', 'settings/security']) {
+  for (const route of ['projects', 'files', 'inbox', 'settings/security']) {
     await page.goto(`/e2e-team/${route}`);
     await expect(page.locator('#main-content')).toBeVisible();
     await expectNoPageOverflow(page);
@@ -75,6 +75,9 @@ test('core task flow and responsive shell work across browser engines', async ({
   await page.goto('/e2e-team/projects');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
+  await expectNoPageOverflow(page);
+  await page.goto('/e2e-team/files');
+  await expect(page.getByRole('heading', { name: 'Files', exact: true })).toBeVisible();
   await expectNoPageOverflow(page);
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });

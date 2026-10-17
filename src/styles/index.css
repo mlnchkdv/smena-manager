@@ -16,5 +16,6 @@
 @import './pages/auth.css';
 @import './pages/knowledge.css';
 @import './pages/bookmarks.css';
+@import './pages/files.css';
 @import './motion.css';
 @import './responsive.css';
