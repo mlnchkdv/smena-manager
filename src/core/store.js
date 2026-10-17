@@ -133,6 +133,7 @@ export const S = {
     bookmarkForm: false,
     bookmarkEditing: null,
     bookmarkDraft: { url: '', title: '', description: '', folder: '', tags: '', importance: 'medium' },
+    milestoneForm: { name: '', description: '', date: '', completed: false },
     migrationStatus: '',
     collapsedCols: {},
     errors: {},

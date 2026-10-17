@@ -1,7 +1,7 @@
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
    ===================================================================== */
-import { $, $$, TODAY, addD, dOff, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
+import { $, $$, TODAY, addD, dOff, diffD, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
 import { seed } from '../data/seed.js';
 import {
@@ -1831,6 +1831,147 @@ A.clearProjFilters = () => {
   S.ui.projQ = '';
   S.ui.projStatus = 'all';
   render();
+};
+
+function projectMilestone(projectId, index) {
+  const project = proj(projectId);
+  const milestoneIndex = Number(index);
+  if (!project || !Number.isInteger(milestoneIndex)) return { project: null, milestone: null, index: -1 };
+  project.milestones = Array.isArray(project.milestones) ? project.milestones : [];
+  return { project, milestone: project.milestones[milestoneIndex] || null, index: milestoneIndex };
+}
+
+function canManageMilestones(project) {
+  return Boolean(project && canSee(project) && S.ui.currentUser?.role !== 'viewer');
+}
+
+function logProjectMilestone(project, verb, name = '') {
+  D().activity.unshift({
+    id: uid('a'),
+    by: D().me,
+    verb,
+    task: null,
+    project: project.id,
+    at: Date.now(),
+    extra: name ? `“${name}”` : '',
+  });
+}
+
+A.manageMilestones = el => {
+  const project = proj(el.dataset.id || el.dataset.project);
+  if (!project || !canSee(project)) return;
+  openModal({ type: 'milestones', id: project.id });
+};
+A.newMilestone = el => {
+  const project = proj(el.dataset.project || el.dataset.id);
+  if (!canManageMilestones(project)) return;
+  const projectDue = project.due && diffD(parse(project.due), TODAY) >= 0 ? project.due : dOff(14);
+  S.ui.milestoneForm = { name: '', description: '', date: projectDue, completed: false };
+  S.ui.errors = {};
+  openModal({ type: 'milestone', project: project.id, index: null });
+};
+A.editMilestone = el => {
+  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  if (!canManageMilestones(project) || !milestone) return;
+  S.ui.milestoneForm = {
+    name: milestone.name || '',
+    description: milestone.description || '',
+    date: milestone.date || '',
+    completed: Boolean(milestone.completed),
+  };
+  S.ui.errors = {};
+  openModal({ type: 'milestone', project: project.id, index });
+};
+IN.milestoneForm = el => {
+  S.ui.milestoneForm[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value;
+  if (el.dataset.f === 'name' && S.ui.errors.milestoneName && el.value.trim()) S.ui.errors.milestoneName = null;
+  if (el.dataset.f === 'date' && S.ui.errors.milestoneDate && el.value) S.ui.errors.milestoneDate = null;
+};
+A.submitMilestone = () => {
+  const modal = S.ui.modals[S.ui.modals.length - 1];
+  if (modal?.type !== 'milestone') return;
+  const project = proj(modal.project);
+  if (!canManageMilestones(project)) return;
+  const form = S.ui.milestoneForm;
+  form.name = ($('#milestone-name')?.value || '').trim();
+  form.description = ($('#milestone-description')?.value || '').trim();
+  form.date = $('#milestone-date')?.value || '';
+  form.completed = Boolean($('#milestone-completed')?.checked);
+  S.ui.errors.milestoneName = form.name ? null : 'Give the milestone a name';
+  S.ui.errors.milestoneDate = form.date ? null : 'Choose a target date';
+  if (S.ui.errors.milestoneName || S.ui.errors.milestoneDate) {
+    render();
+    $(`#${S.ui.errors.milestoneName ? 'milestone-name' : 'milestone-date'}`)?.focus();
+    return;
+  }
+  const existing = modal.index == null ? null : project.milestones?.[modal.index];
+  const milestone = {
+    id: existing?.id || uid('ms'),
+    name: form.name,
+    description: form.description,
+    date: form.date,
+    completed: form.completed,
+    completedAt: form.completed ? existing?.completedAt || Date.now() : null,
+  };
+  if (
+    mutate(() => {
+      project.milestones = Array.isArray(project.milestones) ? project.milestones : [];
+      if (existing) project.milestones[modal.index] = milestone;
+      else project.milestones.push(milestone);
+      logProjectMilestone(project, existing ? 'updated milestone in' : 'added milestone to', milestone.name);
+    })
+  ) {
+    S.ui.modals.pop();
+    render();
+    toast(existing ? 'Milestone updated' : 'Milestone added');
+  }
+};
+A.toggleMilestone = el => {
+  const { project, milestone } = projectMilestone(el.dataset.project, el.dataset.index);
+  if (!canManageMilestones(project) || !milestone) return;
+  const completed = !milestone.completed;
+  if (
+    mutate(() => {
+      milestone.completed = completed;
+      milestone.completedAt = completed ? Date.now() : null;
+      logProjectMilestone(project, completed ? 'completed milestone in' : 'reopened milestone in', milestone.name);
+    })
+  )
+    toast(completed ? 'Milestone completed' : 'Milestone reopened');
+};
+A.moveMilestone = el => {
+  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  const direction = Number(el.dataset.direction);
+  const destination = index + direction;
+  if (!canManageMilestones(project) || !milestone || ![-1, 1].includes(direction) || !project.milestones[destination]) return;
+  if (
+    mutate(() => {
+      project.milestones.splice(index, 1);
+      project.milestones.splice(destination, 0, milestone);
+      logProjectMilestone(project, 'reordered milestones in');
+    })
+  )
+    toast('Milestone order updated');
+};
+A.deleteMilestone = el => {
+  const { project, milestone, index } = projectMilestone(el.dataset.project, el.dataset.index);
+  if (!canManageMilestones(project) || !milestone) return;
+  confirmDlg({
+    title: 'Delete milestone?',
+    body: `“${esc(milestone.name)}” will be removed from this project. This cannot be undone.`,
+    ok: 'Delete milestone',
+    danger: true,
+    icon: 'trash-2',
+    run: () => {
+      if (
+        mutate(() => {
+          project.milestones.splice(index, 1);
+          logProjectMilestone(project, 'deleted milestone from', milestone.name);
+        })
+      )
+        toast('Milestone deleted');
+    },
+  });
 };
 A.newProject = () => {
   const availableTeams = teamsList();

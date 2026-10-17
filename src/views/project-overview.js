@@ -2,7 +2,7 @@
 import { TODAY, dayBucket, diffD, esc, fmtDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { STATUSES } from '../core/constants.js';
-import { D, TM, isOver, mem, pColor, progressOf, task, tasksOf } from '../core/store.js';
+import { D, S, TM, isOver, mem, progressOf, task, tasksOf } from '../core/store.js';
 import { av, avStack, empty, pStatus, stIcon } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
@@ -20,6 +20,8 @@ export function projOverview(p) {
     .activity.filter(a => a.project === p.id)
     .slice(0, 6);
   const daysLeft = diffD(parse(p.due), TODAY);
+  const milestones = p.milestones || [];
+  const canManageMilestones = S.ui.currentUser?.role !== 'viewer';
   return `<div class="page" style="max-width:1160px;padding-top:22px">
     <div class="grid2">
       <div class="stack">
@@ -41,13 +43,19 @@ export function projOverview(p) {
           <dt>${ic('flag', 14)}Due</dt><dd><span class="pillbtn num">${fmtDate(p.due, true)}</span></dd>
           <dt>${ic('user-plus', 14)}Members</dt><dd><button class="pillbtn" data-a="share" data-id="${p.id}">${avStack(p.members, 6)}<span class="faint">${p.members.length}</span></button></dd>
         </dl></div></section>
-        <section class="panel"><div class="panel-h"><h2>Milestones</h2></div><div class="panel-b">${
-          (p.milestones || [])
-            .map(m => {
-              const n = diffD(parse(m.date), TODAY);
-              return `<div class="row" style="height:32px;font-size:13px"><span style="width:9px;height:9px;transform:rotate(45deg);border-radius:2px;flex-shrink:0;margin:0 3px;background:${n < 0 ? 'var(--green)' : pColor(p)}"></span><span class="grow trunc ${n < 0 ? 'faint' : ''}">${esc(m.name)}</span><span class="num muted">${fmtDate(m.date)}</span></div>`;
-            })
-            .join('') || '<span class="faint">No milestones yet</span>'
+        <section class="panel"><div class="panel-h"><h2>Milestones</h2><div class="acts">${canManageMilestones ? `<button class="btn btn-sm btn-ghost" data-a="manageMilestones" data-id="${p.id}">${ic('settings-2', 13)}Manage</button>` : ''}</div></div><div class="panel-b project-milestones-list">${
+          milestones.length
+            ? milestones
+                .map((milestone, index) => {
+                  const overdue = !milestone.completed && milestone.date && diffD(parse(milestone.date), TODAY) < 0;
+                  return `<div class="project-milestone-row ${milestone.completed ? 'is-complete' : ''}">
+                    <input type="checkbox" class="check round" ${milestone.completed ? 'checked' : ''} ${canManageMilestones ? `data-a="toggleMilestone" data-project="${p.id}" data-index="${index}"` : 'disabled'} aria-label="${milestone.completed ? 'Reopen' : 'Mark'} ${esc(milestone.name)}${milestone.completed ? '' : ' complete'}">
+                    <button class="project-milestone-main" ${canManageMilestones ? `data-a="editMilestone" data-project="${p.id}" data-index="${index}"` : 'disabled'}><span class="project-milestone-title trunc">${esc(milestone.name)}</span>${milestone.description ? `<span class="project-milestone-description trunc">${esc(milestone.description)}</span>` : ''}</button>
+                    <time class="project-milestone-date ${overdue ? 'overdue' : ''}">${ic(milestone.completed ? 'circle-check' : overdue ? 'clock-alert' : 'calendar', 12)}${fmtDate(milestone.date)}</time>
+                  </div>`;
+                })
+                .join('')
+            : `<div class="milestone-manager-empty" style="padding:22px 12px">${ic('diamond', 19)}<b>No milestones yet</b><span>Plan the first key date for this project.</span>${canManageMilestones ? `<button class="btn btn-sm btn-secondary" data-a="newMilestone" data-project="${p.id}">${ic('plus', 13)}Add milestone</button>` : ''}</div>`
         }</div></section>
         <section class="panel"><div class="panel-h"><h2>Recent activity</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="project" data-id="${p.id}" data-tab="activity">View all</button></div></div><div class="panel-b feed">${acts.map(a => actHtml(a)).join('') || '<span class="faint">No activity yet</span>'}</div></section>
       </div>

@@ -159,7 +159,11 @@ export function msLane(ms, X, dw, y) {
       const name = first.name + (pt.list.length > 1 ? ` +${pt.list.length - 1}` : '');
       const tip = pt.list.map(m => m.name + (m.p ? ` (${m.p.name})` : '')).join(' · ') + ' · ' + fmtDate(pt.date);
       const label = room >= 28 ? `<span class="ms-l" style="max-width:${Number.isFinite(room) ? Math.round(room) + 'px' : 'none'}">${esc(name)}</span>` : '';
-      return `<div class="ms-w" style="left:${pt.x - 6}px;top:${y + 9}px" data-tip="${esc(tip)}" tabindex="0" aria-label="Milestone: ${esc(tip)}"><span class="ms" style="${first.p ? `background:${pColor(first.p)}` : ''}"></span>${label}</div>`;
+      const complete = pt.list.every(milestone => milestone.completed);
+      const overdue = !complete && diffD(parse(pt.date), TODAY) < 0;
+      const color = complete ? 'var(--green)' : overdue ? 'var(--red)' : first.p ? pColor(first.p) : '';
+      const state = complete ? ' · Completed' : overdue ? ' · Overdue' : '';
+      return `<div class="ms-w ${complete ? 'done' : overdue ? 'overdue' : ''}" style="left:${pt.x - 6}px;top:${y + 9}px" data-tip="${esc(tip + state)}" tabindex="0" aria-label="Milestone: ${esc(tip + state)}"><span class="ms" style="${color ? `background:${color}` : ''}"></span>${label}</div>`;
     })
     .join('');
 }

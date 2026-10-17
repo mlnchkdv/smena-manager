@@ -215,6 +215,13 @@
   text-overflow: ellipsis;
   min-width: 0;
 }
+.ms-w.done .ms-l {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+.ms-w.overdue .ms-l {
+  color: var(--red);
+}
 .ms-w[data-tip]:hover::after {
   left: 0;
   transform: none;
