@@ -122,7 +122,8 @@ async function handleWorkspaceConflict() {
   conflictRecoveryPromise = recoverWorkspaceConflict()
     .then(result => {
       if (result.status === 'merged') {
-        S.ui.syncConflict = false;
+        S.ui.syncConflict = workspaceSyncState().hasConflict;
+        if (S.ui.syncConflict) setTimeout(() => void handleWorkspaceConflict(), 0);
         render();
         toast('Changes from both sessions were safely merged.');
       } else if (result.status === 'manual') {

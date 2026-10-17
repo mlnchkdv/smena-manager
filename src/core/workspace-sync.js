@@ -238,6 +238,12 @@ export function configureWorkspaceSync(revision, role, data, documentSnapshots =
 export function configureCoreWorkspaceSync(revision, role, data, context = {}) {
   workspaceSync.configure(revision, role, workspaceCoreData(data), { ...context, scope: 'workspace' });
 }
+export function configureDocumentWorkspaceSync(name, revision, role, data, context = {}) {
+  documentSyncs[name].configure(revision, role, workspaceDocumentData(name, data), { ...context, scope: name });
+}
+export function queueScopedWorkspaceSync(scope, data) {
+  return scope === 'workspace' ? workspaceSync.queue(workspaceCoreData(data)) : documentSyncs[scope].queue(workspaceDocumentData(scope, data));
+}
 export function disableWorkspaceSync() {
   workspaceSync.disable();
   for (const sync of Object.values(documentSyncs)) sync.disable();

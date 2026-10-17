@@ -15,7 +15,14 @@ import {
 import { S, save, setWorkspaceBaseline } from './store.js';
 import { createDraftJournal, draftContext } from './offline-drafts.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
-import { configureCoreWorkspaceSync, configureWorkspaceSync, workspaceSyncConflict, workspaceSyncIsClean } from './workspace-sync.js';
+import {
+  configureCoreWorkspaceSync,
+  configureDocumentWorkspaceSync,
+  configureWorkspaceSync,
+  queueScopedWorkspaceSync,
+  workspaceSyncConflict,
+  workspaceSyncIsClean,
+} from './workspace-sync.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
@@ -159,8 +166,11 @@ export async function refreshWorkspaceFromServer(options = {}) {
 }
 
 function storeConflictRecovery(data, details = {}) {
+  const owner = S.ui.currentUser?.id || '';
+  const scope = details.scope || workspaceSyncConflict()?.scope || 'workspace';
+  S.ui.syncRecovery = { data: structuredClone(data), ...details, owner, scope };
   try {
-    localStorage.setItem(CONFLICT_RECOVERY_KEY, JSON.stringify({ savedAt: new Date().toISOString(), data, ...details }));
+    localStorage.setItem(`${CONFLICT_RECOVERY_KEY}:${owner}:${scope}`, JSON.stringify({ savedAt: new Date().toISOString(), ...S.ui.syncRecovery }));
   } catch {
     /* The current tab still retains the draft when storage is unavailable. */
   }
@@ -169,34 +179,60 @@ function storeConflictRecovery(data, details = {}) {
 export async function recoverWorkspaceConflict() {
   const conflict = workspaceSyncConflict();
   if (!conflict) return { status: 'none' };
-  let local = structuredClone(S.data || conflict.local);
-  const base = conflict.base || conflict.local;
+  const scopeData = data => (conflict.scope === 'workspace' ? workspaceCoreData(data) : workspaceDocumentData(conflict.scope, data));
+  let local = structuredClone(scopeData(S.data));
+  let observedLocal = structuredClone(local);
+  let base = conflict.base || conflict.local;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const snapshot = conflict.scope === 'workspace' ? await getWorkspace() : await getWorkspaceDocument(conflict.scope);
-    const remote = conflict.scope === 'workspace' ? workspacePayload(snapshot) : workspaceDocumentData(conflict.scope, snapshot);
+    const edited = mergeWorkspaceData(observedLocal, scopeData(S.data), local);
+    if (edited.conflicts.length) {
+      storeConflictRecovery(scopeData(S.data), { scope: conflict.scope, conflicts: edited.conflicts });
+      return { status: 'manual', conflicts: edited.conflicts };
+    }
+    local = edited.data;
+    observedLocal = structuredClone(scopeData(S.data));
+    const remote = scopeData(workspacePayload(snapshot));
+    if (conflict.scope === 'workspace') remote.me = local.me;
     const merged = mergeWorkspaceData(base, local, remote);
     if (merged.conflicts.length) {
       storeConflictRecovery(local, {
         baseRevision: conflict.revision,
         remoteRevision: Number(snapshot.revision || 0),
         conflicts: merged.conflicts,
+        scope: conflict.scope,
+        remote,
       });
       return { status: 'manual', conflicts: merged.conflicts };
     }
     try {
-      if (conflict.scope !== 'workspace') {
-        await putWorkspaceDocument(conflict.scope, merged.data, Number(snapshot.revision || 0));
-        const [core, ...loadedDocuments] = await Promise.all([getWorkspace(), ...DOCUMENT_NAMES.map(name => getWorkspaceDocument(name))]);
-        applyWorkspaceSnapshot(core, Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]])));
-      } else {
-        const saved = await putWorkspace(merged.data, Number(snapshot.revision || 0));
-        const loadedDocuments = await Promise.all(DOCUMENT_NAMES.map(name => getWorkspaceDocument(name)));
-        applyWorkspaceSnapshot(saved, Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]])));
+      const sentLocal = structuredClone(scopeData(S.data));
+      const saved =
+        conflict.scope === 'workspace'
+          ? await putWorkspace(merged.data, Number(snapshot.revision || 0))
+          : await putWorkspaceDocument(conflict.scope, merged.data, Number(snapshot.revision || 0));
+      const canonical = scopeData(workspacePayload(saved));
+      if (conflict.scope === 'workspace') canonical.me = local.me;
+      const latest = mergeWorkspaceData(sentLocal, scopeData(S.data), canonical);
+      if (latest.conflicts.length) {
+        storeConflictRecovery(scopeData(S.data), { scope: conflict.scope, remote: canonical, conflicts: latest.conflicts });
+        return { status: 'manual', conflicts: latest.conflicts };
       }
+      Object.assign(S.data, latest.data);
+      const context = draftContext(S.ui.currentUser, S.data);
+      if (conflict.scope === 'workspace') {
+        S.ui.workspaceRevision = Number(saved.revision);
+        configureCoreWorkspaceSync(saved.revision, S.ui.currentUser?.role, canonical, context);
+      } else {
+        S.ui.documentRevisions[conflict.scope] = Number(saved.revision);
+        configureDocumentWorkspaceSync(conflict.scope, saved.revision, S.ui.currentUser?.role, canonical, context);
+      }
+      S.ui.workspaceBaseline = { ...S.ui.workspaceBaseline, ...canonical };
+      void queueScopedWorkspaceSync(conflict.scope, latest.data);
       S.ui.syncConflict = false;
       try {
-        localStorage.removeItem(CONFLICT_RECOVERY_KEY);
+        localStorage.removeItem(`${CONFLICT_RECOVERY_KEY}:${S.ui.currentUser?.id || ''}:${conflict.scope}`);
       } catch {
         /* Storage may be unavailable. */
       }
@@ -204,6 +240,7 @@ export async function recoverWorkspaceConflict() {
     } catch (error) {
       if (error.status !== 409 && error.code !== 'REVISION_CONFLICT') throw error;
       local = merged.data;
+      base = remote;
     }
   }
 
