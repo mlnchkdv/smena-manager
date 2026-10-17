@@ -16,6 +16,7 @@ export function pageInbox() {
     ['due', 'Due dates'],
     ['update', 'Updates'],
     ['security', 'Security'],
+    ['system', 'System status'],
   ];
   const cat = S.ui.inboxCat;
   let ns = myNotifications()
@@ -51,15 +52,30 @@ export function notifText(n) {
 }
 export function notifIcon(n) {
   if (n.by) return av(n.by, 'md', false);
-  const i = n.type === 'security' ? 'shield-alert' : n.type === 'due' ? 'clock-alert' : n.type === 'update' && n.project ? 'triangle-alert' : 'clock';
+  const i =
+    n.type === 'security'
+      ? 'shield-alert'
+      : n.type === 'system'
+        ? 'triangle-alert'
+        : n.type === 'due'
+          ? 'clock-alert'
+          : n.type === 'update' && n.project
+            ? 'triangle-alert'
+            : 'clock';
   return `<span class="av md" style="--c:${n.project ? 'var(--red)' : 'var(--amber)'}">${ic(i, 13)}</span>`;
 }
 export function inboxItem(n, on) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-  const typeIc = { mention: 'at-sign', assign: 'user-plus', comment: 'message-square', due: 'clock-alert', update: 'refresh-cw', security: 'shield-alert' }[
-    n.type
-  ];
+  const typeIc = {
+    mention: 'at-sign',
+    assign: 'user-plus',
+    comment: 'message-square',
+    due: 'clock-alert',
+    update: 'refresh-cw',
+    security: 'shield-alert',
+    system: 'triangle-alert',
+  }[n.type];
   return `<div class="row" style="align-items:flex-start;gap:10px;padding:12px var(--gutter);border-bottom:1px solid var(--divider);cursor:pointer;position:relative;${on ? 'background:var(--surface-2);' : ''}" data-a="selNotif" data-id="${n.id}" role="button" tabindex="0">
     ${!n.read ? '<span style="position:absolute;left:6px;top:22px;width:6px;height:6px;border-radius:50%;background:var(--accent)" aria-label="Unread"></span>' : ''}
     ${notifIcon(n)}
@@ -74,8 +90,9 @@ export function inboxItem(n, on) {
 export function inboxPreview(n) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-  if (n.type === 'security') {
-    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic('shield-alert', 16)}<div><b>${esc(tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="security">${ic('monitor-smartphone', 14)}Review active sessions</button></div></div>`;
+  if (n.type === 'security' || n.type === 'system') {
+    const isSystem = n.type === 'system';
+    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic(isSystem ? 'triangle-alert' : 'shield-alert', 16)}<div><b>${esc(tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="${isSystem ? 'notif-push' : 'security'}">${ic(isSystem ? 'activity' : 'monitor-smartphone', 14)}${isSystem ? 'Open diagnostics' : 'Review active sessions'}</button></div></div>`;
   }
   if (!t) {
     const missing = n.task ? 'The related task is no longer available.' : p ? '' : 'The related project is no longer available.';

@@ -2391,7 +2391,7 @@ A.openNotif = el => {
   save();
   if (n.task) A.openTask({ dataset: { id: n.task } });
   else if (n.project) go('project', { id: n.project, tab: 'overview' });
-  else if (n.type === 'security') A.go({ dataset: { r: 'settings', sec: 'security' } });
+  else if (n.type === 'security' || n.type === 'system') A.go({ dataset: { r: 'settings', sec: n.type === 'system' ? 'notif-push' : 'security' } });
 };
 
 /* search & palette */

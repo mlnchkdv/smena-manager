@@ -38,6 +38,7 @@ const pushPreferenceForType = Object.freeze({
   comment: 'push_comment',
   due: 'push_due',
   security: 'push_security',
+  system: 'push_security',
 });
 
 export function pushPreferenceForNotification(notification) {
@@ -50,6 +51,7 @@ const emailPreferenceForType = Object.freeze({
   comment: 'email_comment',
   due: 'email_due',
   security: 'email_security',
+  system: 'email_security',
 });
 
 export function emailPreferenceForNotification(notification) {

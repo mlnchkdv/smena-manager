@@ -30,6 +30,8 @@ import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../sha
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
+import { evaluateOperationalHealth } from './operational-health.js';
+import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 
 export const app = express();
 
@@ -62,14 +64,18 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       console.error('[Automatic backup]', error.message);
       return { error: 'backup_failed' };
     });
-    await recordNotificationCronRun({ status: digest.error || backup.error ? 'degraded' : 'ok', reminders, digest, cleanup, pushCleanup, backup }).catch(
-      error => {
-        console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
-      },
-    );
+    const cronStatus = digest.error || backup.error ? 'degraded' : 'ok';
+    await recordNotificationCronRun({ status: cronStatus, reminders, digest, cleanup, pushCleanup, backup }).catch(error => {
+      console.error('[Notifications] Cron diagnostics could not be saved:', error?.message || error);
+    });
+    if (cronStatus !== 'ok') {
+      const issues = [digest.error && 'Email digest delivery failed', backup.error && 'Automatic backup failed'].filter(Boolean);
+      await notifyAdministratorsAboutSystemIssue(issues).catch(error => console.error('[System alert]', error.message));
+    }
     response.json({ status: 'ok', reminders, digest, cleanup, pushCleanup, backup });
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
+    await notifyAdministratorsAboutSystemIssue(['Daily automation failed']).catch(() => undefined);
     next(error);
   }
 });
@@ -135,7 +141,8 @@ app.get('/api/push/config', (_request, response) => {
 
 app.get('/api/notifications/delivery-status', requireRole('admin'), async (_request, response, next) => {
   try {
-    response.json(await notificationDeliveryStatus());
+    const [notifications, workspace] = await Promise.all([notificationDeliveryStatus(), getWorkspaceStatus()]);
+    response.json({ ...notifications, workspace, operational: evaluateOperationalHealth({ ...notifications, workspace }) });
   } catch (error) {
     next(error);
   }

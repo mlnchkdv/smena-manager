@@ -86,13 +86,24 @@ function deliveryStatusPanel() {
   const pushReady = status.channels?.push?.configured;
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
+  const operational = status.operational;
+  const healthLabel = operational?.status === 'healthy' ? 'Healthy' : operational?.status === 'critical' ? 'Critical' : 'Needs attention';
+  const cronLabel = !lastCron
+    ? 'No run recorded yet'
+    : lastCron.status === 'ok'
+      ? 'Completed successfully'
+      : lastCron.status === 'degraded'
+        ? 'Completed with delivery errors'
+        : 'Automatic run failed';
   const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${label}</span>`;
   return `<div class="sblock notification-delivery-card">
-    <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div>
+    <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
     <div class="notification-delivery-grid">
+      <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
+      <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(status.workspace?.coordination?.mode || '—')}</p></div>
       <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
-      <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${lastCron?.status === 'degraded' ? 'Completed with delivery errors' : lastCron ? 'Completed successfully' : 'No run recorded yet'}</p></div>
+      <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>
       <div><span class="label">Latest delivery</span><b>${settingsTimestamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>
     </div>
   </div>`;

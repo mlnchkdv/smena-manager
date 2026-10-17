@@ -13,6 +13,7 @@ const ACTIONS = {
     'is due tomorrow': 'is due tomorrow',
     'is overdue': 'is overdue',
     'New sign-in detected': 'New sign-in detected',
+    'System check needs attention': 'System check needs attention',
   },
   ru: {
     'assigned you': 'назначил(а) вам задачу',
@@ -23,6 +24,7 @@ const ACTIONS = {
     'is due tomorrow': 'срок завтра',
     'is overdue': 'срок просрочен',
     'New sign-in detected': 'Обнаружен новый вход',
+    'System check needs attention': 'Система требует внимания',
   },
 };
 let authorizationCache = null;
