@@ -76,6 +76,16 @@ test('new notifications require another valid workspace member as recipient', ()
   assert.equal(addWorkspaceNotification(data, { ...created, text: 'duplicate' }), created);
   assert.equal(data.notifs.filter(item => item.id === 'new-notification').length, 1);
   assert.equal(addWorkspaceNotification(data, { id: 'self', recipient: 'owner', by: 'owner' }), null);
+  assert.equal(
+    addWorkspaceNotification(data, {
+      id: 'explicit-self-mention',
+      recipient: 'owner',
+      by: 'owner',
+      type: 'mention',
+      scope: 'direct',
+    })?.id,
+    'explicit-self-mention',
+  );
   assert.equal(addWorkspaceNotification(data, { id: 'unknown', recipient: 'missing', by: 'owner' }), null);
 });
 
@@ -208,4 +218,29 @@ test('server reconciliation rejects forged notifications and creates trusted tas
 
   const repeated = reconcileWorkspaceNotifications(result, structuredClone(result), { actorMemberId: 'editor', revision: 6, now: 789 });
   assert.deepEqual(repeated.notifs, result.notifs);
+});
+
+test('server reconciliation delivers an explicit self mention without self-notifying for broad mentions', () => {
+  const current = workspace();
+  current.revision = 8;
+  current.tasks = [{ id: 'task-self', title: 'Самоупоминание', assignee: 'owner', status: 'todo' }];
+  current.comments = [];
+  current.notifs = [];
+  const candidate = structuredClone(current);
+  candidate.comments.push({
+    id: 'comment-self',
+    task: 'task-self',
+    by: 'owner',
+    text: '@Owner User проверьте себя; @все — общий контекст',
+    at: 321,
+  });
+
+  const result = reconcileWorkspaceNotifications(current, candidate, { actorMemberId: 'owner', revision: 9, now: 654 });
+  const selfNotifications = notificationsForMember(result, 'owner');
+
+  assert.equal(selfNotifications.length, 1);
+  assert.equal(selfNotifications[0].id, 'n-9-mention-comment-self-owner');
+  assert.equal(selfNotifications[0].scope, 'direct');
+  assert.equal(selfNotifications[0].text, 'mentioned you in');
+  assert.equal(selfNotifications[0].snippet, '@Owner User проверьте себя; @все — общий контекст');
 });

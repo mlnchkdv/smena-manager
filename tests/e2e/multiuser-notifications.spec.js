@@ -74,6 +74,14 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await editor.locator('#inbox-reply').fill('@Тестовый администратор Проверьте результат.');
   await editor.locator('.inbox-prev [data-a="postComment"]').click();
   await waitForSaved(editor);
+  await editor.locator('#inbox-reply').fill('@E2E Редактор Проверить собственное упоминание.');
+  await editor.locator('.inbox-prev [data-a="postComment"]').click();
+  await waitForSaved(editor);
+  await editor.goto('/e2e-team/inbox');
+  await editor.locator('.inbox-tabs [data-v="mention"]').click();
+  const selfMention = editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle });
+  await expect(selfMention).toContainText('mentioned you', { timeout: 8_000 });
+  await expect(selfMention).toContainText('Проверить собственное упоминание.');
   await editor.locator('.inbox-tabs [data-v="assign"]').click();
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 

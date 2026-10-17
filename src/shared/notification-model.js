@@ -107,7 +107,8 @@ export function notificationForMember(data, notificationId, memberId = data?.me)
 export function addWorkspaceNotification(data, notification) {
   const recipient = notification?.recipient;
   const actor = Object.hasOwn(notification || {}, 'by') ? notification.by : data?.me;
-  if (!recipient || (actor && recipient === actor) || !Array.isArray(data?.notifs)) return null;
+  const isExplicitSelfMention = notification?.type === 'mention' && notification?.scope === 'direct';
+  if (!recipient || (actor && recipient === actor && !isExplicitSelfMention) || !Array.isArray(data?.notifs)) return null;
   if (Array.isArray(data?.members) && !data.members.some(member => member.id === recipient)) return null;
   const existing = notification?.id && data.notifs.find(item => item?.id === notification.id);
   if (existing) return existing;
@@ -253,7 +254,7 @@ export function reconcileWorkspaceNotifications(current, candidate, options = {}
       workspace: 'mentioned everyone in',
     };
     for (const target of mentionNotificationTargets(comment.text, data)) {
-      if (target.recipient === actorMemberId || notified.has(target.recipient)) continue;
+      if ((target.recipient === actorMemberId && target.scope !== 'direct') || notified.has(target.recipient)) continue;
       const created = createServerNotification(
         data,
         {
