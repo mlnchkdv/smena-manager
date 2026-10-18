@@ -68,6 +68,9 @@ async function expectRussianUi(page, context) {
 }
 
 test('Russian workspace remains usable and responsive across breakpoints', async ({ page }) => {
+  // This sweep navigates every workspace section at four viewport sizes.
+  // Keep individual assertions bounded, but allow the complete sweep to finish on slower hosts.
+  test.setTimeout(360_000);
   await signIn(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   const untranslatedByRoute = [];
