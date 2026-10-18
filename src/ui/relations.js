@@ -51,7 +51,9 @@ export function relationPicker(m) {
     ENTITY_LABELS,
   )
     .map(([kind, label]) => `<option value="${kind}" ${m.kind === kind ? 'selected' : ''}>${label}</option>`)
-    .join('')}</select></label><label class="field"><span class="label">Connection type</span><select class="select" data-in="relationType" aria-label="Connection type" ${m.wikiLabel ? 'disabled' : ''}>${Object.entries(
+    .join(
+      '',
+    )}</select></label><label class="field"><span class="label">Connection type</span><select class="select" data-in="relationType" aria-label="Connection type" ${m.wikiLabel ? 'disabled' : ''}>${Object.entries(
     RELATION_TYPES,
   )
     .map(([type, label]) => `<option value="${type}" ${(m.relationType || 'related') === type ? 'selected' : ''}>${label}</option>`)

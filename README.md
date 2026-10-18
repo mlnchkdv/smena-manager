@@ -524,6 +524,50 @@ The existing approximately 508 kB initial-bundle warning remains a performance f
 writes used isolated local storage with Google, Gmail and push credentials disabled; this was not a
 new end-to-end test of concurrent production Drive writes or outbound notification delivery.
 
+### Material connections and workspace graph (2026-10-18)
+
+The workspace sidebar now includes **Graph**. Notes, bookmarks, files, tasks and projects share stable
+typed keys (`note:<id>`, `file:<id>`, etc.). Manual connections are stored in the existing aggregate's
+`relations` collection with their own IDs, types and deletion tombstones; no new database or Google
+scope is required. Project/task/file associations are computed rather than duplicated. Archived
+objects can be included explicitly; trashed objects disappear from the graph, while retained
+relations become visible again if their original IDs are restored.
+
+Connection panels support outgoing links, backlinks, typed cross-resource search, manual removal
+and local-graph navigation. Panels are available in the note editor, bookmark cards, file previews,
+task cards and project overview. Search can pass its query to the graph, and the command palette
+includes graph navigation. Only editors with edit access to both endpoints can create/remove a
+manual connection; private endpoints and their edges are filtered server-side and in the graph.
+
+Unambiguous legacy wiki references acquire stable target IDs. Renaming a target does not break the
+link, including saves from older document clients that omit wiki metadata. Ambiguous/missing targets
+are not guessed: select the unresolved link in a note's Connections panel to choose the target.
+Removing its wiki token from the note removes the computed connection. Automatic associations and
+wiki links are changed at their source rather than through the manual Remove connection button.
+
+The lazy-loaded Cytoscape view supports node selection/dragging, pan/zoom, fit controls, filters,
+one/two-hop local neighborhoods and an accessible list alternative. Stable local graph URLs survive
+reloads. The canvas displays at most 250 matching nodes; it does not silently discard stored data.
+Graph JSON export includes the entire permitted filtered selection, not just the visual window.
+Portable format v2 includes note/bookmark connections and remaps IDs across import conflicts and
+duplicate URLs. It intentionally does not export files/tasks/projects or their connections: use a
+full backup/recovery export for those. v1 and KMS imports remain supported.
+
+Acceptance checks used isolated local storage with Google/Gmail/push credentials disabled. RU/EN
+graph and picker layouts were exercised at 320, 390, 768 and 1440 px; screenshots exposed and helped
+fix an off-canvas viewport after desktop/mobile resizing. Browser checks covered connection creation
+and deletion across reloads, file-to-note links, direct file URL navigation, JSON download, explicit
+wiki target selection and target renaming. Local backup creation/restoration preserved manual file
+references and wiki bindings. Regression tests also cover private endpoints, view-only permissions,
+concurrent tombstones/additions, portable-ID remapping and a 10,000-task graph. These checks do not
+claim a new production-team mutation, byte-level attachment recovery or multi-device push test.
+
+Final validation: all 262 server tests passed, plus the four existing Chromium/Firefox/WebKit core
+and shared-content scenarios. The new graph-specific browser checks were performed in Chromium.
+Lint, formatting and production build passed. Public production smoke checks passed and the deployed
+graph chunk returned HTTP 200. The graph engine is a separate approximately 452 kB lazy chunk;
+the approximately 525 kB initial-bundle warning remains an optimization follow-up.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
