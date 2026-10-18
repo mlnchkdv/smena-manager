@@ -1,8 +1,75 @@
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDriveMatch } from '../../src/server/storage/google-drive.js';
 import { storageVersion } from '../../src/server/storage/version-token.js';
+
+test('production JSON stores bind V2 ETags to exact V3 bytes and write conditionally through V2', async () => {
+  const cases = [
+    ['databaseFileId', p => p.loadDatabase(), (p, value, options) => p.saveDatabase(value, options), { revision: 1, title: 'Проверка' }],
+    ['authSessionsFileId', p => p.loadAuthSessions(), (p, value, options) => p.saveAuthSessions(value, options), []],
+    ['pushSubscriptionsFileId', p => p.loadPushSubscriptions(), (p, value, options) => p.savePushSubscriptions(value, options), []],
+    ['notificationDeliveryFileId', p => p.loadNotificationDeliveryStatus(), (p, value, options) => p.saveNotificationDeliveryStatus(value, options), {}],
+    ['knowledge', p => p.loadDocument('knowledge'), (p, value, options) => p.saveDocument('knowledge', value, options), { revision: 1 }],
+  ];
+  for (const [identity, load, save, value] of cases) {
+    const body = JSON.stringify(value);
+    const provider = new GoogleDriveStorageProvider();
+    provider.initialized = true;
+    if (identity === 'knowledge') provider.documentFileIds.knowledge = 'test-file';
+    else provider[identity] = 'test-file';
+    let writes = 0;
+    provider.client = {
+      files: { get: async () => ({ data: body, headers: new Headers() }), update: () => assert.fail('V3 must not perform conditional writes') },
+    };
+    provider.versionClient = {
+      files: {
+        get: async () => ({ data: { etag: '"v1"', md5Checksum: createHash('md5').update(body).digest('hex') }, headers: new Headers() }),
+        update: async (params, options) => {
+          writes += 1;
+          assert.equal(options.headers['If-Match'], '"v1"');
+          assert.equal(params.fields, 'id,etag');
+          if (identity === 'databaseFileId' || identity === 'knowledge') {
+            assert.ok(params.requestBody.properties.some(p => p.key === 'smenaRevision' && p.value === '1' && p.visibility === 'PRIVATE'));
+            assert.equal(params.requestBody.appProperties, undefined);
+          }
+          return { data: { id: 'test-file', etag: '"v2"' }, headers: new Headers() };
+        },
+      },
+    };
+    const loaded = await load(provider);
+    assert.equal(storageVersion(loaded), '"v1"', identity);
+    await save(provider, loaded, { expectedEtag: storageVersion(loaded) });
+    assert.equal(writes, 1);
+    await assert.rejects(save(provider, loaded, { expectedEtag: null }), { code: 'STORAGE_VERSION_MISSING' });
+    if (identity === 'databaseFileId') assert.equal(storageVersion(loaded), '"v2"');
+  }
+});
+
+test('a racing Drive download cannot attach a stale ETag to new bytes', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.databaseFileId = 'database';
+  let reads = 0;
+  provider.versionClient = {
+    files: {
+      get: async () => {
+        reads += 1;
+        const body = JSON.stringify({ revision: reads === 1 ? 1 : 2 });
+        return { data: { etag: `"v${reads}"`, md5Checksum: createHash('md5').update(body).digest('hex') } };
+      },
+    },
+  };
+  provider.client = { files: { get: async () => ({ data: JSON.stringify({ revision: 2 }) }) } };
+  const loaded = await provider.loadDatabase();
+  assert.equal(reads, 2);
+  assert.equal(storageVersion(loaded), '"v2"');
+  provider.versionClient.files.get = async () => ({ data: { etag: '"v3"', md5Checksum: 'not-matching' } });
+  await assert.rejects(provider.loadDatabase(), { statusCode: 412 });
+  provider.versionClient.files.get = async () => ({ data: { etag: '"v3"' } });
+  await assert.rejects(provider.loadDatabase(), { code: 'STORAGE_VERSION_MISSING' });
+});
 
 for (const format of ['Headers', 'plain-object']) {
   test(`Google Drive preserves conditional-write versions with ${format} response headers`, async () => {

@@ -55,6 +55,7 @@ export function assertMetadataBootstrapAllowed(env = process.env) {
 export class GoogleDriveStorageProvider {
   name = 'google-drive';
   client = null;
+  versionClient = null;
   authClient = null;
   fetch = globalThis.fetch;
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
@@ -116,6 +117,7 @@ export class GoogleDriveStorageProvider {
     if (this.initialized) return;
     this.authClient = configureProviderTimeout(this.createAuthClient());
     this.client = drive({ version: 'v3', auth: this.authClient, timeout: 30000, retry: false });
+    this.versionClient = drive({ version: 'v2', auth: this.authClient, timeout: 30000, retry: false });
     if (!this.rootFolderId) this.rootFolderId = await this.getOrCreateRootFolder();
     await this.client.files.get({
       fileId: this.rootFolderId,
@@ -123,6 +125,38 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     this.initialized = true;
+  }
+
+  // V3 media/metadata responses may omit ETag. V2 exposes the resource validator.
+  // Bind it to the downloaded bytes using Google's checksum, never to a later read.
+  async readVersionedJson(fileId) {
+    if (!this.versionClient) return this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const metadata = await this.versionClient.files.get({ fileId, fields: 'etag,md5Checksum', supportsAllDrives: true });
+      const etag = metadata.data.etag || responseHeader(metadata, 'etag');
+      if (!etag || !metadata.data.md5Checksum)
+        throw Object.assign(new Error('Storage version is missing. Reload before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
+      const media = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+      if (typeof media.data === 'string' && createHash('md5').update(media.data).digest('hex') === metadata.data.md5Checksum)
+        return { data: media.data, headers: { etag } };
+    }
+    throw Object.assign(new Error('Storage changed while it was being read. Try again.'), { statusCode: 412, code: 412 });
+  }
+
+  async updateVersionedJson(params, options) {
+    if (!this.versionClient) return this.client.files.update(params, options);
+    const { requestBody, fields: _fields, ...rest } = params;
+    void _fields;
+    const properties = requestBody?.appProperties;
+    const updated = await this.versionClient.files.update(
+      {
+        ...rest,
+        fields: 'id,etag',
+        ...(properties ? { requestBody: { properties: Object.entries(properties).map(([key, value]) => ({ key, value, visibility: 'PRIVATE' })) } } : {}),
+      },
+      options,
+    );
+    return { data: updated.data, headers: { etag: updated.data?.etag || responseHeader(updated, 'etag') } };
   }
 
   async getOrCreateFolder(name, parentId = null) {
@@ -185,33 +219,8 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
-    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const response = await this.readVersionedJson(fileId);
     this.databaseEtag = responseHeader(response, 'etag');
-    if (process.env.VERCEL && !this.databaseEtag && !this.versionDiagnosticLogged) {
-      this.versionDiagnosticLogged = true;
-      const metadata = await this.client.files.get({ fileId, fields: 'version,md5Checksum', supportsAllDrives: true });
-      const legacy = drive({ version: 'v2', auth: this.authClient, timeout: 15000, retry: false });
-      const legacyMetadata = await legacy.files.get({ fileId, fields: 'etag,md5Checksum', supportsAllDrives: true });
-      const conditionalStatus = async (client, etag) => {
-        try {
-          const result = await client.files.get({ fileId, fields: 'id', supportsAllDrives: true }, { headers: { 'If-Match': etag } });
-          return result.status;
-        } catch (error) {
-          return error.response?.status || Number(error.code) || null;
-        }
-      };
-      console.warn('[Drive read diagnostic]', {
-        mediaEtag: Boolean(responseHeader(response, 'etag')),
-        metadataEtag: Boolean(responseHeader(metadata, 'etag')),
-        versionAvailable: Boolean(metadata.data.version),
-        checksumMatches: typeof response.data === 'string' && createHash('md5').update(response.data).digest('hex') === metadata.data.md5Checksum,
-        v2Etag: Boolean(legacyMetadata.data.etag),
-        v2ChecksumMatches: typeof response.data === 'string' && createHash('md5').update(response.data).digest('hex') === legacyMetadata.data.md5Checksum,
-        v3MatchingCondition: legacyMetadata.data.etag ? await conditionalStatus(this.client, legacyMetadata.data.etag) : null,
-        v3WrongCondition: await conditionalStatus(this.client, '"smena-readonly-invalid-etag"'),
-        v2WrongCondition: await conditionalStatus(legacy, '"smena-readonly-invalid-etag"'),
-      });
-    }
     this.lastSyncAt = new Date().toISOString();
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.databaseEtag);
   }
@@ -237,8 +246,8 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findDatabaseFile();
     if (!fileId) return;
-    const requestOptions = this.databaseEtag ? { headers: { 'If-Match': this.databaseEtag } } : undefined;
-    const updated = await this.client.files.update(
+    const requestOptions = conditionalWriteOptions({}, this.databaseEtag);
+    const updated = await this.updateVersionedJson(
       {
         fileId,
         requestBody: { appProperties: { smenaRevision: String(revision) } },
@@ -260,7 +269,7 @@ export class GoogleDriveStorageProvider {
 
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.databaseEtag);
-      const updated = await this.client.files.update(
+      const updated = await this.updateVersionedJson(
         {
           fileId,
           requestBody: { appProperties: { smenaRevision: String(data.revision) } },
@@ -310,7 +319,7 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findDocumentFile(name);
     if (!fileId) return null;
-    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const response = await this.readVersionedJson(fileId);
     this.documentEtags[name] = responseHeader(response, 'etag');
     this.lastSyncAt = new Date().toISOString();
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.documentEtags[name]);
@@ -324,7 +333,7 @@ export class GoogleDriveStorageProvider {
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(data, null, 2)]) };
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.documentEtags[name]);
-      const updated = await this.client.files.update(
+      const updated = await this.updateVersionedJson(
         {
           fileId,
           requestBody: { appProperties: { smenaDocument: name, smenaRevision: String(data.revision) } },
@@ -372,7 +381,7 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findPushSubscriptionsFile();
     if (!fileId) return [];
-    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const response = await this.readVersionedJson(fileId);
     this.pushSubscriptionsEtag = responseHeader(response, 'etag');
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.pushSubscriptionsEtag);
@@ -387,7 +396,7 @@ export class GoogleDriveStorageProvider {
     };
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.pushSubscriptionsEtag);
-      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      const updated = await this.updateVersionedJson({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.pushSubscriptionsEtag = responseHeader(updated, 'etag');
       return;
     }
@@ -425,7 +434,7 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findNotificationDeliveryFile();
     if (!fileId) return null;
-    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const response = await this.readVersionedJson(fileId);
     this.notificationDeliveryEtag = responseHeader(response, 'etag');
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.notificationDeliveryEtag);
   }
@@ -436,7 +445,7 @@ export class GoogleDriveStorageProvider {
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(status, null, 2)]) };
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.notificationDeliveryEtag);
-      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      const updated = await this.updateVersionedJson({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.notificationDeliveryEtag = responseHeader(updated, 'etag');
       return;
     }
@@ -474,7 +483,7 @@ export class GoogleDriveStorageProvider {
     await this.init();
     const fileId = await this.findAuthSessionsFile();
     if (!fileId) return [];
-    const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const response = await this.readVersionedJson(fileId);
     this.authSessionsEtag = responseHeader(response, 'etag');
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.authSessionsEtag);
@@ -486,7 +495,7 @@ export class GoogleDriveStorageProvider {
     const media = { mimeType: 'application/json', body: Readable.from([JSON.stringify(sessions, null, 2)]) };
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.authSessionsEtag);
-      const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
+      const updated = await this.updateVersionedJson({ fileId, media, supportsAllDrives: true }, requestOptions);
       this.authSessionsEtag = responseHeader(updated, 'etag');
       return;
     }
