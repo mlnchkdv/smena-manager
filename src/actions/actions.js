@@ -699,6 +699,7 @@ A.searchInGraph = () => {
 };
 A.exportGraph = () => {
   const graph = graphView(workspaceGraph(D(), { ...graphOptions(), includeArchived: S.ui.graphArchive === 'yes' }), {
+    limit: Infinity,
     center: S.ui.params.center,
     depth: S.ui.graphDepth || 1,
     query: S.ui.graphQuery,

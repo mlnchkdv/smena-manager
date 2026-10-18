@@ -12,7 +12,7 @@ export function graphView(graph, { center = '', depth = 1, query = '', kind = ''
       [node.title, ...(node.tags || []), node.item?.url].join(' ').toLocaleLowerCase().includes(q),
   );
   matching.sort((a, b) => Number(b.key === center) - Number(a.key === center));
-  const nodes = matching.slice(0, Math.min(500, Math.max(1, limit)));
+  const nodes = matching.slice(0, Number.isFinite(limit) ? Math.min(500, Math.max(1, limit)) : matching.length);
   const keys = new Set(nodes.map(node => node.key));
   return {
     nodes,

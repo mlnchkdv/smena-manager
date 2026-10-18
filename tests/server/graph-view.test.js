@@ -28,6 +28,7 @@ test('graph views are bounded and stable-ID local routes survive reload', () => 
   const large = { nodes: Array.from({ length: 10000 }, (_, i) => ({ key: `note:${i}`, kind: 'note', title: String(i), tags: [] })), edges: [], unresolved: [] };
   assert.equal(graphView(large).nodes.length, 250);
   assert.equal(graphView(large).total, 10000);
+  assert.equal(graphView(large, { limit: Infinity }).nodes.length, 10000, 'Explicit exports include the full filtered graph, not just the visual window');
   const path = appLocationPath({ ws: { url: 'smena' } }, { route: 'graph', params: { center: 'note:a' }, modals: [] });
   assert.equal(path, '/smena/graph/note%3Aa');
   assert.deepEqual(resolveAppLocation(path, '', {}), { route: 'graph', params: { center: 'note:a' } });
