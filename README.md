@@ -425,6 +425,35 @@ Remaining acceptance checks: the next successful scheduled run, recipient confir
 and push receipt, file upload/download, attachment recovery and controlled concurrent edits.
 Earlier delivery failures remain historical evidence; tests do not rewrite that history.
 
+### Attachment recovery and scheduled-run check (2026-10-18)
+
+The recipient confirmed the Gmail test arrived in the inbox and the OS push notification appeared.
+Today's genuine scheduled `/api/cron/reminders` invocation at 04:44:56 UTC (08:44:56 Saratov)
+returned HTTP 503 before storage recovery. No manual cron invocation was used to claim scheduling
+success. The next genuine morning run remains pending; a user-approved, one-time read-only follow-up
+was scheduled for 2026-10-19 at 09:15 Europe/Saratov.
+
+A synthetic 296-byte TXT attachment initially failed direct browser upload. Resumable Drive session
+initialization now forwards the validated browser Origin so subsequent browser requests have the
+proper CORS context. After deployment, the same fixture uploaded successfully and rendered in the
+production file preview. No browser security protections or Drive sharing permissions were relaxed.
+
+The production independent recovery export was downloaded through its normal authenticated link.
+It contained one real asset. `scripts/restore-recovery.js` restored it to a new empty local directory,
+alongside two tasks and one project, without writing to the production workspace or reading Drive
+during restoration. The recovered attachment matched the original byte-for-byte:
+SHA-256 `9ed52eec377fbc51df4e4736d4d4ed14b5241c4aa47261e0e9e093001af4c8fd`.
+The private bundle and recovered workspace stay outside Git; the clearly named synthetic fixture
+remains in the production file library. The separate ordinary-file browser download event could
+not be verified because browser automation stalled; authenticated preview and bundle download worked.
+
+This validates independent recovery for the tested small TXT asset, not every MIME type, the 100 MB
+limit, Drive-to-Drive disaster recovery, or attachment recreation from ordinary JSON-only backups.
+Ordinary backups retain file references and protect referenced uploads from garbage collection;
+independent exports include the actual bytes. A stale open tab also encountered an old lazy-loaded
+asset after deployment; the failure screen now has localized refresh guidance, without automatic
+reloads that could interrupt unsaved work.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
