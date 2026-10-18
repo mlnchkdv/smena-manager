@@ -221,9 +221,17 @@ export function reconcileWorkspaceNotifications(current, candidate, options = {}
 
   const currentTasks = new Map((current.tasks || []).filter(item => item?.id).map(item => [item.id, item]));
   const currentComments = new Set((current.comments || []).filter(item => item?.id).map(item => item.id));
-  data.comments = (data.comments || []).map(comment =>
-    currentComments.has(comment?.id) ? comment : { ...comment, by: actorMemberId, at: Number(comment?.at) || now },
-  );
+  data.comments = (data.comments || []).map(comment => {
+    if (currentComments.has(comment?.id)) return comment;
+    const result = { ...comment, by: actorMemberId, at: now };
+    for (const field of ['re', 'reactions']) {
+      if (result[field])
+        result[field] = Object.fromEntries(
+          Object.entries(result[field]).map(([emoji, members]) => [emoji, members.includes(actorMemberId) ? [actorMemberId] : []]),
+        );
+    }
+    return result;
+  });
 
   for (const task of data.tasks || []) {
     if (!task?.id) continue;

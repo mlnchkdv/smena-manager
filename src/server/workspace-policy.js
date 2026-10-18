@@ -119,6 +119,14 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
     for (const item of incoming[field]) {
       const previous = before.get(item.id);
       if (previous && same(previous, item)) continue;
+      if (field === 'comments' && previous && ['task', 'by', 'at'].some(key => !same(previous[key], item[key]))) throw permissionError('comments');
+      if (field === 'comments' && previous && role !== 'admin') {
+        for (const key of ['re', 'reactions'])
+          for (const emoji of new Set([...Object.keys(previous[key] || {}), ...Object.keys(item[key] || {})])) {
+            const other = values => (values || []).filter(id => id !== memberId).sort();
+            if (!same(other(previous[key]?.[emoji]), other(item[key]?.[emoji]))) throw permissionError('comments.reactions');
+          }
+      }
       const target = entityProjectId(item, { ...current, tasks: candidate.tasks });
       const originalTarget = previous && entityProjectId(previous, current);
       const allowed = field === 'comments' ? commentable : editable;

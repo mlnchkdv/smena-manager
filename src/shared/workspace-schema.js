@@ -49,10 +49,10 @@ export function validateWorkspaceData(value) {
   }
   if (value.me != null && typeof value.me !== 'string') invalid.push('me');
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
-  for (const field of OBJECT_ARRAY_FIELDS) {
+  for (const field of [...OBJECT_ARRAY_FIELDS, 'teams']) {
     if (!Array.isArray(value[field])) continue;
     const ids = value[field].map(item => item?.id);
-    if (ids.some(id => typeof id !== 'string' || !id || id.length > 180) || new Set(ids).size !== ids.length) invalid.push(`${field}.id`);
+    if (ids.some(id => typeof id !== 'string' || !/^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(id)) || new Set(ids).size !== ids.length) invalid.push(`${field}.id`);
   }
   const projectIds = new Set((Array.isArray(value.projects) ? value.projects : []).map(item => item?.id));
   const taskIds = new Set((Array.isArray(value.tasks) ? value.tasks : []).map(item => item?.id));
@@ -75,13 +75,30 @@ export function validateWorkspaceData(value) {
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
     if (!isObject(project)) continue;
     if (project.members != null && !Array.isArray(project.members)) invalid.push('projects.members');
+    if (project.members?.some?.(id => typeof id !== 'string')) invalid.push('projects.members');
+    if (project.key != null && (typeof project.key !== 'string' || !/^[\p{L}\p{N}_-]{1,32}$/u.test(project.key))) invalid.push('projects.key');
     if (project.milestones != null && (!Array.isArray(project.milestones) || project.milestones.some(item => !isObject(item) || !validDate(item.date))))
       invalid.push('projects.milestones');
   }
   for (const comment of Array.isArray(value.comments) ? value.comments : []) {
     if (comment?.task != null && !taskIds.has(comment.task)) invalid.push('comments.task');
     if (comment?.text != null && typeof comment.text !== 'string') invalid.push('comments.text');
+    for (const field of ['re', 'reactions']) {
+      if (
+        comment?.[field] != null &&
+        (!isObject(comment[field]) ||
+          Object.entries(comment[field]).some(
+            ([emoji, members]) =>
+              !/^[\p{Extended_Pictographic}\p{Emoji_Modifier}\uFE0F\u200D]{1,16}$/u.test(emoji) ||
+              !Array.isArray(members) ||
+              members.some(id => typeof id !== 'string'),
+          ))
+      )
+        invalid.push(`comments.${field}`);
+    }
   }
+  for (const member of Array.isArray(value.members) ? value.members : [])
+    if (member?.c != null && (typeof member.c !== 'string' || !/^#[\da-f]{6}$/iu.test(member.c))) invalid.push('members.c');
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
   return value;
 }
@@ -89,7 +106,11 @@ export function validateWorkspaceData(value) {
 export function validateDocumentInput(name, value) {
   const fields = name === 'knowledge' ? ['knowledgeNotes', 'knowledgeFolders'] : name === 'bookmarks' ? ['links', 'linkFolders'] : [];
   if (!fields.length || !isObject(value)) throw new WorkspaceValidationError([name]);
-  const invalid = fields.filter(field => !Array.isArray(value[field]) || value[field].some(item => !isObject(item) || typeof item.id !== 'string' || !item.id));
+  const invalid = fields.filter(
+    field =>
+      !Array.isArray(value[field]) ||
+      value[field].some(item => !isObject(item) || typeof item.id !== 'string' || !/^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(item.id)),
+  );
   for (const field of fields) if (Array.isArray(value[field]) && new Set(value[field].map(item => item.id)).size !== value[field].length) invalid.push(field);
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
   return value;

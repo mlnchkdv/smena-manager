@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mergeClientWorkspace, projectWorkspace } from '../../src/server/workspace-policy.js';
 import { sanitizeDescription } from '../../src/server/content-security.js';
-import { validateDocumentInput } from '../../src/shared/workspace-schema.js';
+import { validateDocumentInput, validateWorkspaceData } from '../../src/shared/workspace-schema.js';
+import { createEmptyDatabase } from '../../src/server/workspace-store.js';
 
 function fixture() {
   return {
@@ -70,6 +71,32 @@ test('a known private physical file cannot be aliased into a public project afte
   assert.ok(mergeClientWorkspace(current, candidate, 'editor', 'editor').files.some(file => file.id === privateFile.id));
   candidate.files.push({ ...privateFile, id: 'new-alias', project: 'open' });
   assert.throws(() => mergeClientWorkspace(current, candidate, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+});
+
+test('comment authorship and other members reactions cannot be forged', () => {
+  const current = fixture();
+  current.comments.push({ id: 'c', task: 'public-task', by: 'owner', at: 10, text: 'Original', reactions: { '👍': ['owner'] } });
+  const candidate = projectWorkspace(current, { id: 'editor', role: 'editor' });
+  candidate.comments[0].by = 'editor';
+  assert.throws(() => mergeClientWorkspace(current, candidate, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+  candidate.comments[0].by = 'owner';
+  candidate.comments[0].reactions['👍'].push('editor');
+  assert.ok(mergeClientWorkspace(current, candidate, 'editor', 'editor'));
+  candidate.comments[0].reactions['👍'] = ['editor'];
+  assert.throws(() => mergeClientWorkspace(current, candidate, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+});
+
+test('unsafe identity strings and active markup reaction names are rejected', () => {
+  const data = createEmptyDatabase();
+  data.tasks.push({ id: 'bad" data-a="signOut' });
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  data.tasks = [];
+  data.comments.push({ id: 'c', reactions: { '<button>': ['m'] } });
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  data.comments = [{ id: 'c', re: { '👍': ['m'] } }];
+  assert.ok(validateWorkspaceData(data));
+  data.comments[0].re = { '<button>': ['m'] };
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
 });
 
 test('filtered updates preserve hidden records and reject forged edits', () => {

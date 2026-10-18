@@ -93,7 +93,7 @@ async function loadAggregate(storage, stored) {
     };
   }
   value._aggregateVersion = 1;
-  return value;
+  return validateWorkspaceData(value);
 }
 
 export async function initWorkspaceStore() {
