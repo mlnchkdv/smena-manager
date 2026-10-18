@@ -8,6 +8,7 @@ import { D, S, commentsOf, isOver, mem, pColor, proj, task } from '../core/store
 import { av, dueHtml, empty, lbl, prIcon, prPill, stIcon, stPill } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { activityExtra, inProject, isRussian, t as tr } from '../core/i18n.js';
+import { listWindow } from '../shared/list-window.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
@@ -45,7 +46,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
   const sel = S.ui.sel.has(t.id);
   const open = S.ui.openTasks[t.id];
   const editing = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === 'title';
-  const cc = commentsOf(t.id).length;
+  const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
   const sd = t.subtasks.filter(s => s.done).length;
   return `<div class="trow ${t.status === 'done' ? 'done' : ''} ${sel ? 'sel' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" style="--cols:${tpl}" data-task-row="${t.id}" data-group="${opt.group || ''}" data-lkey="${opt.key || ''}" data-ctx="task" data-id="${t.id}">
     <div class="handle" draggable="${opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
@@ -71,7 +72,16 @@ export function listHtml(groups, key, opt = {}) {
   const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
   const tpl = `18px 30px minmax(220px,1fr) ${cols.map(c => LCOLS[c][1]).join(' ')} 40px`;
   const all = groups.flatMap(g => g.tasks.map(t => t.id));
-  const nSel = all.filter(id => S.ui.sel.has(id)).length;
+  const commentCounts = new Map();
+  for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
+  const windows = new Map(
+    groups.map(group => {
+      const groupKey = `${key}:${group.key}`;
+      return [group.key, { ...listWindow(group.tasks, S.ui.listPages?.[groupKey]), collapsed: S.ui.collapsedGroups[groupKey] ?? (group.collapsed || false) }];
+    }),
+  );
+  const visibleIds = groups.flatMap(group => (windows.get(group.key).collapsed ? [] : windows.get(group.key).items.map(task => task.id)));
+  const nSel = visibleIds.filter(id => S.ui.sel.has(id)).length;
   const total = all.length;
   if (!total && !opt.keepEmpty)
     return (
@@ -87,7 +97,7 @@ export function listHtml(groups, key, opt = {}) {
   return `<div class="tlist" role="table" aria-label="Tasks">
     <div class="thead" style="--cols:${tpl}" role="row">
       <div></div>
-      <div>${opt.complete ? '' : `<input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === total ? 'checked' : ''} ${nSel && nSel < total ? 'data-indet="1"' : ''} aria-label="Select all">`}</div>
+      <div>${opt.complete ? '' : `<input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === visibleIds.length ? 'checked' : ''} ${nSel && nSel < visibleIds.length ? 'data-indet="1"' : ''} aria-label="Select visible tasks">`}</div>
       <div data-a="sortBy" data-key="${key}" data-f="title" style="cursor:pointer">Task ${v?.sort.f === 'title' ? ic(v.sort.dir > 0 ? 'arrow-up' : 'arrow-down', 11) : ''}</div>
       ${cols.map(c => `<div data-a="sortBy" data-key="${key}" data-f="${c === 'labels' ? 'manual' : c}" style="cursor:pointer">${LCOLS[c][0]} ${v?.sort.f === c ? ic(v.sort.dir > 0 ? 'arrow-up' : 'arrow-down', 11) : ''}</div>`).join('')}
       <div></div>
@@ -95,6 +105,7 @@ export function listHtml(groups, key, opt = {}) {
     ${groups
       .map(g => {
         const gk = key + ':' + g.key;
+        const window = windows.get(g.key);
         const coll = S.ui.collapsedGroups[gk] ?? (g.collapsed || false);
         const comp = S.ui.composer && S.ui.composer.ctx === key && S.ui.composer.group === g.key;
         return `${
@@ -106,7 +117,8 @@ export function listHtml(groups, key, opt = {}) {
         </div>`
             : ''
         }
-        ${coll ? '' : g.tasks.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key })).join('')}
+        ${coll ? '' : window.items.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key, commentCounts })).join('')}
+        ${!coll && window.pages > 1 ? `<div class="row" style="justify-content:center;gap:12px;padding:10px;flex-wrap:wrap"><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page - 1}" ${window.page === 0 ? 'disabled' : ''}>Previous</button><span class="hint"><span>Page</span> ${window.page + 1} / ${window.pages}</span><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page + 1}" ${window.page + 1 === window.pages ? 'disabled' : ''}>Next</button></div>` : ''}
         ${coll || opt.noAdd ? '' : comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-key-enter="commitComposer" placeholder="Task name — press Enter to add, Esc to cancel" aria-label="New task name"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}Add task</button>`}`;
       })
       .join('')}

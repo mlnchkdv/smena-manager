@@ -40,10 +40,22 @@ export function validateTaskTransitions(current, candidate) {
 
 export function assignCanonicalTaskKeys(current, candidate) {
   const existing = new Map((current.tasks || []).map(task => [task.id, task]));
+  const projectKeys = new Set((current.projects || []).map(project => String(project.key || '').toLocaleLowerCase()));
+  const taskKeys = new Set((current.tasks || []).map(task => String(task.key || '').toLocaleLowerCase()));
   for (const project of candidate.projects || []) {
     const before = current.projects?.find(item => item.id === project.id);
     if (before?.key) project.key = before.key;
-    let sequence = Math.max(Number(before?.seq) || 0, Number(project.seq) || 0);
+    else {
+      const preferred = String(project.key || 'PRJ')
+        .toLocaleUpperCase()
+        .slice(0, 24);
+      let suffix = 1;
+      let key = preferred;
+      while (projectKeys.has(key.toLocaleLowerCase())) key = `${preferred}-${++suffix}`;
+      project.key = key;
+      projectKeys.add(key.toLocaleLowerCase());
+    }
+    let sequence = Number(before?.seq) || 0;
     for (const task of current.tasks || [])
       if (task.project === project.id) {
         const suffix = /-(\d+)$/u.exec(task.key || '');
@@ -52,7 +64,14 @@ export function assignCanonicalTaskKeys(current, candidate) {
     for (const task of candidate.tasks || []) {
       if (task.project !== project.id) continue;
       if (existing.get(task.id)?.key) task.key = existing.get(task.id).key;
-      else task.key = `${project.key || 'TASK'}-${++sequence}`;
+      else {
+        let key;
+        do {
+          key = `${project.key || 'TASK'}-${++sequence}`;
+        } while (taskKeys.has(key.toLocaleLowerCase()));
+        task.key = key;
+        taskKeys.add(key.toLocaleLowerCase());
+      }
     }
     project.seq = sequence;
   }

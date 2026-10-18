@@ -52,3 +52,22 @@ test('new task keys are assigned from the stored sequence, not duplicate provisi
   );
   assert.equal(candidate.projects[0].seq, 203);
 });
+
+test('project prefixes and task keys remain unique across projects, including legacy duplicate prefixes', () => {
+  const current = {
+    projects: [
+      { id: 'a', key: 'PRJ', seq: 1 },
+      { id: 'b', key: 'PRJ', seq: 0 },
+    ],
+    tasks: [{ id: 'old', project: 'a', key: 'PRJ-1' }],
+  };
+  const next = structuredClone(current);
+  next.projects.push({ id: 'new-project', key: 'PRJ', seq: 999999 });
+  next.tasks.push({ id: 'new-task', project: 'b' }, { id: 'other-task', project: 'new-project' });
+  assignCanonicalTaskKeys(current, next);
+  assert.equal(next.projects[2].key, 'PRJ-2');
+  assert.equal(next.tasks[1].key, 'PRJ-2');
+  assert.equal(next.tasks[2].key, 'PRJ-2-1');
+  assert.equal(next.projects[2].seq, 1);
+  assert.equal(new Set(next.tasks.map(task => task.key)).size, next.tasks.length);
+});

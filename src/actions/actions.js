@@ -14,9 +14,7 @@ import {
   logAct,
   me,
   mem,
-  myNotification,
   myNotificationPreferences,
-  myNotifications,
   proj,
   save,
   setMyNotificationPreference,
@@ -42,9 +40,7 @@ import {
 import {
   clearSession,
   getSessionToken,
-  savePersonalSettings,
   commitPortableImport,
-  clearReadNotifications,
   createWorkspaceBackup,
   deleteAllWorkspaces,
   downloadWorkspaceFile,
@@ -67,7 +63,7 @@ import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText } from '../core/i18n.js';
-import { resolveAppLocation } from '../shared/app-location.js';
+import { resolveAppLocation, entityRouteKey } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
 import { hasEnabledPushPreferences } from '../shared/push-client.js';
@@ -75,6 +71,7 @@ import { primaryTeamId } from '../shared/team-relations.js';
 import { captureUndo, undoCommand } from '../shared/undo.js';
 import { canEditProject } from '../shared/project-access.js';
 import { nextRecurrenceDate } from '../shared/calendar-time.js';
+import { persistPersonalChange, registerNotificationActions } from './notifications.js';
 
 export const A = {},
   IN = {},
@@ -1041,13 +1038,13 @@ A.copyLink = el => {
   const linkedFile = d.fid || (d.id && D().files.some(file => file.id === d.id) ? d.id : '');
   const path =
     d.id && task(d.id)
-      ? `task/${task(d.id).key}`
+      ? `task/${encodeURIComponent(entityRouteKey(D().tasks, task(d.id)))}`
       : d.pid
-        ? `project/${proj(d.pid).key.toLowerCase()}`
+        ? `project/${encodeURIComponent(entityRouteKey(D().projects, proj(d.pid)))}`
         : linkedFile
           ? `file/${linkedFile}`
           : d.id && proj(d.id)
-            ? `project/${proj(d.id).key.toLowerCase()}`
+            ? `project/${encodeURIComponent(entityRouteKey(D().projects, proj(d.id)))}`
             : '';
   copy(workspaceHref(D().ws.url, path));
 };
@@ -1617,6 +1614,11 @@ A.selAll = el => {
 };
 A.clearSel = () => {
   S.ui.sel.clear();
+  render();
+};
+A.listPage = el => {
+  S.ui.listPages ||= {};
+  S.ui.listPages[el.dataset.key] = Math.max(0, Number(el.dataset.page) || 0);
   render();
 };
 A.bulkSet = el => {
@@ -2555,75 +2557,7 @@ A.delFile = el => {
 };
 
 /* inbox & notifications */
-async function persistPersonalChange(payload) {
-  const base = structuredClone(S.data);
-  const owner = S.ui.currentUser?.id;
-  try {
-    const result = await savePersonalSettings(payload);
-    if (owner !== S.ui.currentUser?.id) return false;
-    applyExternalCoreSnapshot(result.data, base);
-    if (payload.profile) {
-      Object.assign(S.ui.currentUser, { name: me().name, title: me().title });
-      S.prefs.name = me().name;
-      S.prefs.title = me().title;
-    }
-    save();
-    render();
-    return true;
-  } catch (error) {
-    toast(error.message || 'Personal settings could not be synced. Keep this tab open and try again.', { kind: 'err', ms: 8000 });
-    return false;
-  }
-}
-A.selNotif = el => {
-  const n = myNotification(el.dataset.id);
-  if (!n) return;
-  n.read = true;
-  S.ui.inboxSel = n.id;
-  void persistPersonalChange({ readState: { ids: [n.id], read: true } });
-  render();
-};
-A.toggleRead = el => {
-  const n = myNotification(el.dataset.id);
-  if (!n) return;
-  n.read = !n.read;
-  void persistPersonalChange({ readState: { ids: [n.id], read: n.read } });
-  render();
-};
-A.markAllRead = () => {
-  const notifications = myNotifications();
-  const n = notifications.filter(x => !x.read).length;
-  notifications.forEach(x => (x.read = true));
-  S.ui.inboxSel = null;
-  void persistPersonalChange({ readState: { ids: notifications.map(item => item.id), read: true } });
-  render();
-  if (n) toast("You're all caught up.");
-};
-A.clearReadNotifications = async () => {
-  try {
-    const base = structuredClone(S.data);
-    const result = await clearReadNotifications(S.ui.workspaceRevision);
-    applyExternalCoreSnapshot(result.data, base);
-    render();
-    toast(result.removed ? 'Read notifications cleared' : 'No read notifications to clear', { ms: 1800 });
-  } catch (error) {
-    toast(error.message || 'Unable to clear read notifications.', { kind: 'err', ms: 5000 });
-  }
-};
-A.toggleUnreadOnly = () => {
-  S.ui.inboxUnread = !S.ui.inboxUnread;
-  S.ui.inboxSel = null;
-  render();
-};
-A.openNotif = el => {
-  const n = myNotification(el.dataset.id);
-  if (!n) return;
-  n.read = true;
-  void persistPersonalChange({ readState: { ids: [n.id], read: true } });
-  if (n.task) A.openTask({ dataset: { id: n.task } });
-  else if (n.project) go('project', { id: n.project, tab: 'overview' });
-  else if (n.type === 'security' || n.type === 'system') A.go({ dataset: { r: 'settings', sec: n.type === 'system' ? 'notif-push' : 'security' } });
-};
+registerNotificationActions(A);
 
 /* search & palette */
 A.openPalette = () => {

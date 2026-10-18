@@ -11,6 +11,14 @@ const data = {
   teams: [{ id: 'tm1' }],
 };
 
+test('ambiguous legacy display keys cannot open the wrong entity and canonical URLs fall back to IDs', () => {
+  const duplicate = structuredClone(data);
+  duplicate.tasks.push({ id: 't2', key: 'WEB-12', project: 'p1' });
+  assert.equal(resolveAppLocation('/smena/task/WEB-12', '', duplicate).route, 'nowhere');
+  assert.equal(resolveAppLocation('/smena/task/t1', '', duplicate).drawer, 't1');
+  assert.equal(appLocationPath(duplicate, { drawer: 't1', modals: [], route: 'project', params: { id: 'p1' } }), '/smena/task/t1');
+});
+
 test('app locations resolve copied project, task, and file links', () => {
   assert.deepEqual(resolveAppLocation('/smena/project/web', '', data), { route: 'project', params: { id: 'p1', tab: 'board' } });
   assert.deepEqual(resolveAppLocation('/smena/task/WEB-12', '', data), {

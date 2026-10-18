@@ -43,6 +43,18 @@ export function parseAppLocation(pathname, hash = '') {
   return { slug, kind, key, detail };
 }
 
+function resolveEntity(items, key) {
+  const exact = items.find(item => item.id === key);
+  if (exact) return exact;
+  const matches = items.filter(item => item.key && String(item.key).toLocaleLowerCase() === key.toLocaleLowerCase());
+  return matches.length === 1 ? matches[0] : null;
+}
+
+export function entityRouteKey(items, entity) {
+  const key = String(entity?.key || '');
+  return key && items.filter(item => String(item.key || '').toLocaleLowerCase() === key.toLocaleLowerCase()).length === 1 ? key : entity?.id || '';
+}
+
 export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') {
   const parsed = parseAppLocation(pathname, hash);
   const route = parsed.kind === 'home' && !parsed.slug ? defaultRoute : parsed.kind;
@@ -50,11 +62,11 @@ export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') 
   if (SIMPLE_ROUTES.has(route)) return { route, params: {} };
 
   if (route === 'project') {
-    const project = data.projects.find(item => item.id === parsed.key || String(item.key || '').toLowerCase() === parsed.key.toLowerCase());
+    const project = resolveEntity(data.projects, parsed.key);
     return project ? { route: 'project', params: { id: project.id, tab: parsed.detail || 'board' } } : { route: 'nowhere', params: {} };
   }
   if (route === 'task') {
-    const task = data.tasks.find(item => item.id === parsed.key || String(item.key || '').toLowerCase() === parsed.key.toLowerCase());
+    const task = resolveEntity(data.tasks, parsed.key);
     return task ? { route: 'project', params: { id: task.project, tab: 'board' }, drawer: task.id } : { route: 'nowhere', params: {} };
   }
   if (route === 'file') {
@@ -77,13 +89,14 @@ export function appLocationPath(data, ui) {
   if (fileId) return `/${slug}/file/${encode(fileId)}`;
 
   const task = ui.drawer ? data.tasks.find(item => item.id === ui.drawer) : null;
-  if (task) return `/${slug}/task/${encode(task.key || task.id)}`;
+  if (task) return `/${slug}/task/${encode(entityRouteKey(data.tasks, task))}`;
 
   if (ui.route === 'project') {
     const project = data.projects.find(item => item.id === ui.params.id);
     if (!project) return `/${slug}/projects`;
     const tab = ui.params.tab && ui.params.tab !== 'board' ? `/${encode(ui.params.tab)}` : '';
-    return `/${slug}/project/${encode(String(project.key || project.id).toLowerCase())}${tab}`;
+    const routeKey = entityRouteKey(data.projects, project);
+    return `/${slug}/project/${encode(routeKey === project.key ? routeKey.toLowerCase() : routeKey)}${tab}`;
   }
   if (ui.route === 'member' && ui.params.id) return `/${slug}/member/${encode(ui.params.id)}`;
   if (ui.route === 'team' && ui.params.id) return `/${slug}/team/${encode(ui.params.id)}`;
