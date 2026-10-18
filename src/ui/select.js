@@ -138,7 +138,7 @@ window.visualViewport?.addEventListener('scroll', () => selectMenu.position());
 document.addEventListener(
   'scroll',
   e => {
-    if (selectMenu.el && !selectMenu.el.contains(e.target)) selectMenu.close();
+    if (selectMenu.el && !selectMenu.el.contains(e.target)) selectMenu.position();
   },
   true,
 );
