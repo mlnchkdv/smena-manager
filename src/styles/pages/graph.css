@@ -23,7 +23,7 @@
 }
 .graph-toolbar {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(130px, 180px) minmax(130px, 180px) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
 }
 .graph-toolbar > *,
@@ -44,7 +44,7 @@
 }
 .graph-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -54,11 +54,14 @@
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: var(--surface);
+  background-color: var(--surface);
+  background-image: radial-gradient(var(--border) 0.7px, transparent 0.7px);
+  background-size: 22px 22px;
 }
 #knowledge-graph-canvas {
+  position: relative;
   width: 100%;
-  height: 560px;
+  height: clamp(380px, 62svh, 620px);
   touch-action: none;
 }
 .graph-controls {
@@ -78,6 +81,7 @@
   font-size: var(--fs-2xs);
   color: var(--text-3);
   border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 .graph-detail {
   min-width: 0;
@@ -85,6 +89,8 @@
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   background: var(--surface);
+  max-height: 72svh;
+  overflow-y: auto;
 }
 .graph-detail h2 {
   font-size: var(--fs-lg);
@@ -125,30 +131,146 @@
 }
 @media (max-width: 1100px) {
   .graph-toolbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
   .graph-layout {
     grid-template-columns: minmax(0, 1fr);
   }
   .graph-detail {
     width: 100%;
+    max-height: none;
+    scroll-margin: 16px;
   }
 }
 @media (max-width: 540px) {
   .graph-head {
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .graph-head p {
+    display: none;
+  }
+  .graph-page {
+    padding-top: 18px;
+  }
+  .graph-head h1 {
+    font-size: var(--fs-xl);
+  }
+  .graph-export span {
+    display: none;
   }
   .graph-toolbar {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .graph-search {
+    grid-column: 1 / -1;
+  }
+  .graph-toolbar .seg {
+    justify-self: end;
   }
   #knowledge-graph-canvas {
-    height: 390px;
+    height: clamp(280px, 55svh, 430px);
   }
   .graph-options {
     gap: 10px;
   }
   .graph-detail .relations-head .btn {
     white-space: normal;
+  }
+}
+.graph-layout.has-detail {
+  grid-template-columns: minmax(0, 1fr) 310px;
+}
+.graph-filter-toggle.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.graph-filter-panel:not([hidden]) {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+}
+.graph-filter-panel .field {
+  flex: 1;
+  min-width: 150px;
+  margin: 0;
+}
+.graph-filter-panel .graph-depth {
+  flex: 0 0 80px;
+  min-width: 70px;
+}
+.graph-filter-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.graph-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 14px 0 12px;
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+}
+.graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.graph-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.graph-kind > .i {
+  color: var(--node-color);
+}
+.graph-summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.graph-meta-dot {
+  margin: 0 3px;
+  color: var(--text-4);
+}
+.graph-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.graph-toolbar .seg button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+@media (max-width: 1100px) {
+  .graph-layout.has-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 540px) {
+  .graph-filter-panel .field {
+    flex-basis: 100%;
+  }
+  .graph-filter-checks {
+    width: 100%;
+  }
+  .graph-filter-panel .graph-depth {
+    flex-basis: 80px;
   }
 }
 .relations-panel {

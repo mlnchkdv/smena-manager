@@ -653,6 +653,7 @@ A.openRelatedEntity = el => {
   else go('project', { id: entity.id });
 };
 A.showGraph = el => {
+  S.ui.graphSelectionClosed = false;
   S.ui.graphCenter = el.dataset.key || '';
   S.ui.graphSelected = S.ui.graphCenter;
   const target = resolveGraphEntity(D(), S.ui.graphCenter);
@@ -686,10 +687,20 @@ A.resetGraphFilters = () => {
   render();
 };
 A.selectGraphNode = el => {
+  S.ui.graphSelectionClosed = false;
   S.ui.graphSelected = el.dataset.key;
   render();
 };
 A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control', { detail: el.dataset.command }));
+A.toggleGraphFilters = () => {
+  S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
+  render();
+};
+A.clearGraphSelection = () => {
+  S.ui.graphSelected = '';
+  S.ui.graphSelectionClosed = true;
+  render();
+};
 A.searchInGraph = () => {
   S.ui.graphQuery = S.ui.searchQ || '';
   S.ui.graphKind = '';
