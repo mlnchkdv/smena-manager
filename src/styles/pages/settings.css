@@ -40,6 +40,18 @@
   color: var(--text-2);
   margin: 0 0 24px;
 }
+.settings-member-actions {
+  flex-wrap: wrap;
+}
+.settings-member-actions .btn {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  min-height: var(--h-md);
+}
+.settings-member .grow {
+  overflow-wrap: anywhere;
+}
 .srow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
