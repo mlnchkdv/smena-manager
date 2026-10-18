@@ -7,6 +7,9 @@ import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
+import { t as tr } from '../core/i18n.js';
+
+const teamDescription = value => (!value || value === 'No description yet.' ? tr('No description yet.') : value);
 
 export function pageMembers() {
   const u = S.ui;
@@ -83,7 +86,7 @@ export function teamsGrid() {
     .map(t => {
       const ms = D().members.filter(m => m.team === t.id);
       const ps = visibleProjects().filter(p => p.team === t.id);
-      return `<div class="pcard" data-a="go" data-r="team" data-id="${t.id}" role="link" tabindex="0"><div class="row"><span class="picon" style="--c:${t.c}">${ic(t.icon, 15)}</span><b style="font-weight:600;font-size:14px" translate="no">${esc(t.name)}</b></div><div class="desc" translate="no">${esc(t.desc)}</div><div class="foot"><span class="row" style="gap:4px">${ic('users', 12)}${ms.length} members</span><span class="row" style="gap:4px">${ic('folder', 12)}${ps.length} projects</span><span class="sp"></span>${avStack(
+      return `<div class="pcard" data-a="go" data-r="team" data-id="${t.id}" role="link" tabindex="0"><div class="row"><span class="picon" style="--c:${t.c}">${ic(t.icon, 15)}</span><b style="font-weight:600;font-size:14px" translate="no">${esc(t.name)}</b></div><div class="desc" translate="no">${esc(teamDescription(t.desc))}</div><div class="foot"><span class="row" style="gap:4px">${ic('users', 12)}${ms.length} members</span><span class="row" style="gap:4px">${ic('folder', 12)}${ps.length} projects</span><span class="sp"></span>${avStack(
         ms.map(m => m.id),
         4,
       )}</div></div>`;
@@ -101,7 +104,7 @@ export function pageTeam() {
   const ps = visibleProjects().filter(p => p.team === t.id);
   const ts = allTasks().filter(x => ms.some(m => m.id === x.assignee) && x.status !== 'done');
   return `<div class="page">
-    <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${t.c}">${ic(t.icon, 18)}</span><div><h1 translate="no">${esc(t.name)}</h1><p style="margin:2px 0 0" translate="no">${esc(t.desc)}</p></div></div>${S.ui.currentUser?.role === 'admin' ? `<div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${t.id}">${ic('pencil', 14)}Edit team</button><button class="btn btn-secondary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
+    <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${t.c}">${ic(t.icon, 18)}</span><div><h1 translate="no">${esc(t.name)}</h1><p style="margin:2px 0 0" translate="no">${esc(teamDescription(t.desc))}</p></div></div>${S.ui.currentUser?.role === 'admin' ? `<div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${t.id}">${ic('pencil', 14)}Edit team</button><button class="btn btn-secondary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
     <div class="grid2"><div class="stack">
       <section class="panel"><div class="panel-h"><h2>Projects</h2><span class="faint">${ps.length}</span></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span>${pStatus(p.status)}<span class="row" style="width:120px">${progBar(progressOf(p.id))}</span></div>`).join('') || '<div class="panel-b faint">No projects</div>'}</section>
       <section class="panel"><div class="panel-h"><h2>Open tasks</h2><span class="faint">${ts.length}</span></div>${sortTasks(ts, { f: 'due', dir: 1 })

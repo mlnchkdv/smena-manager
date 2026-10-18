@@ -4,6 +4,7 @@ import { ic } from '../core/icons.js';
 import { LABELS, PR, PRIOS, STATUSES } from '../core/constants.js';
 import { D, S, canSee, isOver, mem, pColor, proj, visibleProjects } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
+import { t as tr } from '../core/i18n.js';
 
 export const FIELDS = {
   status: { name: 'Status', icon: 'circle-dot', opts: () => STATUSES.map(s => ({ id: s.id, name: s.name, html: stIcon(s.id) })) },
@@ -12,7 +13,7 @@ export const FIELDS = {
     icon: 'user',
     opts: () => [
       { id: 'none', name: 'Unassigned', html: av(null, 'sm', false) },
-      ...D().members.map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ' (you)' : ''), html: av(m.id, 'sm', false) })),
+      ...D().members.map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false) })),
     ],
   },
   priority: { name: 'Priority', icon: 'signal-high', opts: () => PRIOS.map(p => ({ id: p.id, name: p.name, html: prIcon(p.id) })) },
@@ -155,9 +156,12 @@ export function filterChips(key) {
     .map((f, i) => {
       const F = FIELDS[f.f];
       const opts = F.opts();
-      const names = f.v.map(id => opts.find(o => o.id === id)?.name || id);
-      const val = names.length ? (names.length > 2 ? `${names.length} selected` : names.join(', ')) : 'any';
-      return `${i ? '<span>and</span>' : ''}<span class="chip"><button data-a="pop" data-pop="fvals" data-key="${key}" data-i="${i}" style="display:inline-flex;gap:5px;align-items:center">${ic(F.icon, 12)}<b>${F.name}</b> ${f.op === 'not' ? 'is not' : 'is'} <span>${esc(val)}</span></button><button class="ibtn" data-a="rmFilter" data-key="${key}" data-i="${i}" aria-label="Remove filter">${ic('x', 12)}</button></span>`;
+      const names = f.v.map(id => {
+        const name = opts.find(o => o.id === id)?.name || id;
+        return ['assignee', 'project'].includes(f.f) ? name : tr(name);
+      });
+      const val = names.length ? (names.length > 2 ? tr(`${names.length} selected`) : names.join(', ')) : tr('any');
+      return `${i ? `<span>${tr('and')}</span>` : ''}<span class="chip"><button data-a="pop" data-pop="fvals" data-key="${key}" data-i="${i}" style="display:inline-flex;gap:5px;align-items:center">${ic(F.icon, 12)}<b>${esc(tr(F.name))}</b> <span>${tr(f.op === 'not' ? 'is not' : 'is')}</span> <span>${esc(val)}</span></button><button class="ibtn" data-a="rmFilter" data-key="${key}" data-i="${i}" aria-label="Remove filter">${ic('x', 12)}</button></span>`;
     })
     .join('');
   return `<div class="chipsbar">${ic('list-filter', 13)}${chips}<button class="btn btn-sm btn-ghost" data-a="pop" data-pop="filter" data-key="${key}">${ic('plus', 12)}Add</button><span class="sp"></span><button class="btn btn-sm btn-ghost" data-a="clearFilters" data-key="${key}">Clear all</button></div>`;

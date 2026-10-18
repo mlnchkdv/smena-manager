@@ -9,7 +9,7 @@ import { FIELDS, viewOf } from '../shell/view-engine.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
-import { locale } from '../core/i18n.js';
+import { locale, t as tr } from '../core/i18n.js';
 
 export function openPop(el, extra = {}) {
   const r = el.getBoundingClientRect();
@@ -183,7 +183,7 @@ export function popHtml(p) {
           { id: '', name: 'Unassigned', html: av(null, 'sm', false), on: !sb.assignee },
           ...D()
             .members.filter(m => m.status !== 'deactivated')
-            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ' (you)' : ''), html: av(m.id, 'sm', false), on: sb.assignee === m.id })),
+            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false), on: sb.assignee === m.id })),
         ],
         { search: 'Assign subtask to…' },
       );
@@ -201,7 +201,7 @@ export function popHtml(p) {
           { id: '', name: 'Unassigned', html: av(null, 'sm', false), on: !t?.assignee },
           ...D()
             .members.filter(m => m.status !== 'deactivated')
-            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ' (you)' : ''), html: av(m.id, 'sm', false), on: t?.assignee === m.id })),
+            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false), on: t?.assignee === m.id })),
         ],
         { search: 'Assign to…' },
       );
