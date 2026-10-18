@@ -60,7 +60,10 @@ export function inspectDeploymentConfig(options = {}) {
     warnings.push({ key: 'DRIVE_WRITE_CONCURRENCY', message: 'Direct Drive writes use revision and ETag conflict protection instead of a shared lock.' });
   }
   if (!value(env, 'GOOGLE_DRIVE_DATABASE_FILE_ID')) {
-    warnings.push({ key: 'GOOGLE_DRIVE_DATABASE_FILE_ID', message: 'Optional: set the created database file ID to reduce Drive lookup requests.' });
+    warnings.push({
+      key: 'GOOGLE_DRIVE_DATABASE_FILE_ID',
+      message: 'Pin the initialized database file ID. Missing metadata is not created on Vercel; use npm run setup:storage from one local process.',
+    });
   }
   if (!value(env, 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID')) {
     warnings.push({ key: 'GOOGLE_DRIVE_UPLOADS_FOLDER_ID', message: 'Optional: set the created uploads folder ID to reduce Drive lookup requests.' });

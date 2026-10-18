@@ -1,8 +1,54 @@
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import test from 'node:test';
-import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
+import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDriveMatch } from '../../src/server/storage/google-drive.js';
 import { storageVersion } from '../../src/server/storage/version-token.js';
+
+test('serverless cold starts fail closed instead of creating duplicate metadata identities', () => {
+  assert.throws(() => assertMetadataBootstrapAllowed({ VERCEL: '1' }), { code: 'DRIVE_BOOTSTRAP_REQUIRED' });
+  assert.doesNotThrow(() => assertMetadataBootstrapAllowed({}));
+  assert.equal(uniqueDriveMatch({ data: { files: [] } }), null);
+  assert.equal(uniqueDriveMatch({ data: { files: [{ id: 'one' }] } }).id, 'one');
+  assert.throws(() => uniqueDriveMatch({ data: { files: [{ id: 'one' }, { id: 'two' }] } }), { code: 'DRIVE_STORAGE_AMBIGUOUS' });
+});
+
+test('missing serverless metadata never reaches files.create', async () => {
+  const previous = process.env.VERCEL;
+  process.env.VERCEL = '1';
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root';
+  provider.databaseFileId = null;
+  provider.authSessionsFileId = null;
+  provider.pushSubscriptionsFileId = null;
+  provider.notificationDeliveryFileId = null;
+  provider.documentFileIds = { knowledge: null, bookmarks: null };
+  let creates = 0;
+  provider.client = {
+    files: {
+      list: async () => ({ data: { files: [] } }),
+      create: async () => {
+        creates += 1;
+        throw new Error('Unexpected creation');
+      },
+    },
+  };
+  try {
+    for (const save of [
+      () => provider.saveDatabase({ revision: 0 }),
+      () => provider.saveAuthSessions([]),
+      () => provider.savePushSubscriptions([]),
+      () => provider.saveNotificationDeliveryStatus({}),
+      () => provider.saveDocument('knowledge', {}),
+      () => provider.getOrCreateFolder('missing', 'root'),
+    ])
+      await assert.rejects(save, { code: 'DRIVE_BOOTSTRAP_REQUIRED' });
+    assert.equal(creates, 0);
+  } finally {
+    if (previous == null) delete process.env.VERCEL;
+    else process.env.VERCEL = previous;
+  }
+});
 
 test('Google Drive status includes account storage quota when available', async () => {
   const provider = new GoogleDriveStorageProvider();

@@ -27,6 +27,24 @@ function escapeDriveQuery(value) {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
+export function uniqueDriveMatch(result) {
+  const files = result.data.files || [];
+  if (files.length > 1)
+    throw Object.assign(new Error('Multiple storage identities match. Pin the intended file or folder ID before continuing.'), {
+      statusCode: 503,
+      code: 'DRIVE_STORAGE_AMBIGUOUS',
+    });
+  return files[0] || null;
+}
+
+export function assertMetadataBootstrapAllowed(env = process.env) {
+  if (env.VERCEL)
+    throw Object.assign(new Error('Initialize missing Drive storage metadata with npm run setup:storage from a single local process before deploying.'), {
+      statusCode: 503,
+      code: 'DRIVE_BOOTSTRAP_REQUIRED',
+    });
+}
+
 export class GoogleDriveStorageProvider {
   name = 'google-drive';
   client = null;
@@ -40,14 +58,14 @@ export class GoogleDriveStorageProvider {
     bookmarks: process.env.GOOGLE_DRIVE_BOOKMARKS_FILE_ID?.trim() || null,
   };
   documentEtags = { knowledge: null, bookmarks: null };
-  pushSubscriptionsFileId = null;
+  pushSubscriptionsFileId = process.env.GOOGLE_DRIVE_PUSH_FILE_ID?.trim() || null;
   pushSubscriptionsEtag = null;
-  notificationDeliveryFileId = null;
+  notificationDeliveryFileId = process.env.GOOGLE_DRIVE_DELIVERY_FILE_ID?.trim() || null;
   notificationDeliveryEtag = null;
-  authSessionsFileId = null;
+  authSessionsFileId = process.env.GOOGLE_DRIVE_SESSIONS_FILE_ID?.trim() || null;
   authSessionsEtag = null;
   uploadsFolderId = process.env.GOOGLE_DRIVE_UPLOADS_FOLDER_ID?.trim() || null;
-  backupsFolderId = null;
+  backupsFolderId = process.env.GOOGLE_DRIVE_BACKUPS_FOLDER_ID?.trim() || null;
   credentialType = null;
   initialized = false;
   lastSyncAt = null;
@@ -106,11 +124,13 @@ export class GoogleDriveStorageProvider {
       q: `name = '${escapeDriveQuery(name)}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false${parentQuery}`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    if (result.data.files?.[0]?.id) return result.data.files[0].id;
+    const existing = uniqueDriveMatch(result);
+    if (existing) return existing.id;
+    assertMetadataBootstrapAllowed();
 
     const created = await this.client.files.create({
       requestBody: {
@@ -146,11 +166,11 @@ export class GoogleDriveStorageProvider {
       q: `name = '${DATABASE_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    this.databaseFileId = result.data.files?.[0]?.id || null;
+    this.databaseFileId = uniqueDriveMatch(result)?.id || null;
     return this.databaseFileId;
   }
 
@@ -219,6 +239,7 @@ export class GoogleDriveStorageProvider {
       );
       this.databaseEtag = updated.headers?.etag || null;
     } else {
+      assertMetadataBootstrapAllowed();
       const created = await this.client.files.create({
         requestBody: {
           name: DATABASE_NAME,
@@ -245,11 +266,11 @@ export class GoogleDriveStorageProvider {
       q: `name = '${filename}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    this.documentFileIds[name] = result.data.files?.[0]?.id || null;
+    this.documentFileIds[name] = uniqueDriveMatch(result)?.id || null;
     return this.documentFileIds[name];
   }
 
@@ -282,6 +303,7 @@ export class GoogleDriveStorageProvider {
       );
       this.documentEtags[name] = updated.headers?.etag || null;
     } else {
+      assertMetadataBootstrapAllowed();
       const created = await this.client.files.create({
         requestBody: {
           name: filename,
@@ -306,11 +328,11 @@ export class GoogleDriveStorageProvider {
       q: `name = '${PUSH_SUBSCRIPTIONS_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    this.pushSubscriptionsFileId = result.data.files?.[0]?.id || null;
+    this.pushSubscriptionsFileId = uniqueDriveMatch(result)?.id || null;
     return this.pushSubscriptionsFileId;
   }
 
@@ -337,6 +359,7 @@ export class GoogleDriveStorageProvider {
       this.pushSubscriptionsEtag = updated.headers?.etag || null;
       return;
     }
+    assertMetadataBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: PUSH_SUBSCRIPTIONS_NAME,
@@ -358,11 +381,11 @@ export class GoogleDriveStorageProvider {
       q: `name = '${NOTIFICATION_DELIVERY_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    this.notificationDeliveryFileId = result.data.files?.[0]?.id || null;
+    this.notificationDeliveryFileId = uniqueDriveMatch(result)?.id || null;
     return this.notificationDeliveryFileId;
   }
 
@@ -385,6 +408,7 @@ export class GoogleDriveStorageProvider {
       this.notificationDeliveryEtag = updated.headers?.etag || null;
       return;
     }
+    assertMetadataBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: NOTIFICATION_DELIVERY_NAME,
@@ -406,11 +430,11 @@ export class GoogleDriveStorageProvider {
       q: `name = '${AUTH_SESSIONS_NAME}' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false`,
       fields: 'files(id)',
       spaces: 'drive',
-      pageSize: 1,
+      pageSize: 2,
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
     });
-    this.authSessionsFileId = result.data.files?.[0]?.id || null;
+    this.authSessionsFileId = uniqueDriveMatch(result)?.id || null;
     return this.authSessionsFileId;
   }
 
@@ -434,6 +458,7 @@ export class GoogleDriveStorageProvider {
       this.authSessionsEtag = updated.headers?.etag || null;
       return;
     }
+    assertMetadataBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: AUTH_SESSIONS_NAME,

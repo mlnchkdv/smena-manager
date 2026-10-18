@@ -78,7 +78,7 @@ objects. This design favors consistency for a small team and does not reduce the
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
 projects/tasks/files but not membership or workspace settings, and `viewer` cannot change shared content.
 All roles can save their own profile, preferences and notification read state through `/api/preferences`. Only an
-administrator can initialize an empty production database on the first sign-in.
+administrator can complete onboarding after the Drive storage identities have been initialized.
 
 ## Vercel production setup
 
@@ -91,8 +91,8 @@ administrator can initialize an empty production database on the first sign-in.
    `authProfileId`, matching `id`, or matching email. The first administrator is linked automatically
    when the database is created.
 3. Configure Google Drive using one of these options:
-   - OAuth2: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. The application will
-     create its `Smena-Manager-Storage` folder in that account if necessary.
+   - OAuth2: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. Local storage setup
+     creates its `Smena-Manager-Storage` folder in that account if necessary.
    - Service account: `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_PRIVATE_KEY`, or the full
      `GOOGLE_SERVICE_ACCOUNT_KEY` JSON. Create a Drive folder, share it with the service account and
      set `GOOGLE_DRIVE_FOLDER_ID`.
@@ -104,16 +104,20 @@ administrator can initialize an empty production database on the first sign-in.
    team editing, add a managed Redis connection as `REDIS_URL` (for example Vercel Marketplace/Upstash).
    Use a TLS `rediss://` URL in Production. Once connected, the account status panel must show
    `Distributed lock`; `Lock unavailable` means writes should be investigated before team use.
-6. Add the variables to every Vercel environment that should work (Production and, if desired,
+6. From one local maintenance process, with the intended Google credentials in `.env` and no `VERCEL`
+   variable, run `npm run setup:storage`. It creates only missing storage metadata and does not replace
+   an existing workspace. Copy the printed file/folder IDs into the corresponding Vercel variables.
+   Existing installations can run the same command to discover IDs and initialize missing private files.
+   Do not run setup concurrently from another machine. Vercel requests fail with `DRIVE_BOOTSTRAP_REQUIRED`
+   rather than creating duplicate metadata; ambiguous name lookups fail with `DRIVE_STORAGE_AMBIGUOUS`.
+   Resolve duplicates by pinning the intended IDs; do not delete files to guess which is current.
+   Add the variables to every Vercel environment that should work (Production and, if desired,
    Preview), then redeploy. Run `npm run check:deploy` against an equivalent local `.env` before the
    deployment.
 7. Open `/api/auth/config`. `deploymentReady` and `googleAuthEnabled` must both be `true`, while
    `configurationIssues` must be empty. Sign in with the administrator Google account;
-   the first sign-in creates the Drive database from the current workspace seed. Afterwards, copy the
-   created Drive file ID into the optional
-   `GOOGLE_DRIVE_DATABASE_FILE_ID` variable to reduce lookup requests.
-   The uploads folder is created alongside it; its optional ID can be saved as
-   `GOOGLE_DRIVE_UPLOADS_FOLDER_ID` for the same reason.
+   the administrator can then finish workspace onboarding. `/api/readiness` must confirm storage and
+   operational health after signing in; public configuration alone does not verify Drive access.
 
 ### Separate Gmail consent for email notifications
 
