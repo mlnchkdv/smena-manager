@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@googleapis/drive": "^26.0.0",
+    "cytoscape": "^3.34.4",
     "dompurify": "^3.4.17",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
