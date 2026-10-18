@@ -7,6 +7,7 @@ let context = '';
 let disconnectObserver;
 let savedView;
 let resizeObserver;
+let topology = '';
 export function mountGraph(graph, selected, center, onSelect) {
   requestAnimationFrame(() => {
     const container = document.getElementById('knowledge-graph-canvas');
@@ -14,6 +15,7 @@ export function mountGraph(graph, selected, center, onSelect) {
     const previous =
       instance && context === center
         ? {
+            signature: topology,
             zoom: instance.zoom(),
             pan: instance.pan(),
             width: instance.width(),
@@ -29,13 +31,18 @@ export function mountGraph(graph, selected, center, onSelect) {
     context = center;
     const css = getComputedStyle(container);
     const signature = graphTopologyKey(graph);
+    topology = signature;
     const positions = graphPositions(graph, center);
     const glyphs = Object.fromEntries(
       Object.entries(GRAPH_KINDS).map(([kind, meta]) => {
         const color = css.getPropertyValue(meta.color).trim() || '#6366f1';
         return [
           kind,
-          { color, icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ic(meta.icon, 18).replace('currentColor', color))}`, shape: meta.shape },
+          {
+            color,
+            icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ic(meta.icon, 18).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ').replace('currentColor', color))}`,
+            shape: meta.shape,
+          },
         ];
       }),
     );
@@ -76,7 +83,7 @@ export function mountGraph(graph, selected, center, onSelect) {
             label: 'data(label)',
             color: css.getPropertyValue('--text').trim(),
             'font-size': 12,
-            'font-family': css.getPropertyValue('--sans').trim() || 'Arial, sans-serif',
+            'font-family': css.getPropertyValue('--font').trim() || 'Arial, sans-serif',
             'min-zoomed-font-size': 6,
             'text-valign': 'bottom',
             'text-margin-y': 10,
