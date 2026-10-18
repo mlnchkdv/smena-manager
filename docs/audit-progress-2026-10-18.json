@@ -2,62 +2,229 @@
   "audit": "audit-and-improvement-plan-2026-10-18.md",
   "updatedAt": "2026-10-18",
   "implementationComplete": false,
+  "statusMeaning": {
+    "implemented": "Code shipped or included in the current verified package; remaining notes are explicit acceptance limits.",
+    "acceptance_pending": "Implementation present, operational acceptance not yet confirmed.",
+    "partial": "Concrete implementation delivered, named engineering follow-ups remain."
+  },
   "checks": {
-    "serverTests": "168 passed",
+    "serverTests": "215 passed",
     "lint": "passed",
-    "build": "passed",
-    "browsers": "8/9 passed before inbox identity fix; isolated multiuser retry passed; aggregate regression running"
+    "format": "passed",
+    "build": "passed, including isolated browser production build",
+    "browsers": "12/12 final default scenarios passed; 6/6 extended PDF/thumbnail/pagination scenarios passed across Chromium, Firefox and WebKit",
+    "production": "Latest code deployment: /api/health 200, /api/auth/config 200, /api/workspace 401 without authentication",
+    "dependencyAudit": "0 known vulnerabilities after current sanitizer compatibility fix",
+    "googleConsole": "Read-only check of kms-brain-storage under designated account: External / In production; verification required; registered restricted drive scope unverified. Only drive appears in the configured scope list. No settings changed."
   },
   "items": [
-    { "id": "A01", "status": "implemented", "evidence": "de9592f", "remaining": "Broader direct API role matrix" },
-    { "id": "A02", "status": "partial", "evidence": "de9592f", "remaining": "Independent file registry and lifecycle checks" },
-    { "id": "A03", "status": "partial", "evidence": "05325ac,409e92c", "remaining": "Cold-start duplicate file prevention; Drive integration fault tests" },
-    { "id": "A04", "status": "verification", "evidence": "tests/server/atomic-workspace.test.js", "remaining": "Browser aggregate regression and commit" },
-    { "id": "A05", "status": "implemented", "evidence": "05325ac" },
-    { "id": "A06", "status": "implemented", "evidence": "05325ac,83c03b1" },
-    { "id": "A07", "status": "partial", "evidence": "c88a0ec", "remaining": "Browser offline/reload/quota tests and conflict comparison UI" },
-    { "id": "A08", "status": "partial", "evidence": "05325ac", "remaining": "Scope-only conflict recovery without resetting other document queues" },
-    { "id": "A09", "status": "implemented", "evidence": "05325ac,3926be7", "remaining": "Concurrent milestone browser test" },
-    { "id": "A10", "status": "partial", "evidence": "de9592f", "remaining": "Dependency cycles, nested structures and folder references" },
-    { "id": "A11", "status": "implemented", "evidence": "3926be7" },
-    { "id": "A12", "status": "implemented", "evidence": "3926be7" },
-    { "id": "A13", "status": "implemented", "evidence": "de9592f" },
+    {
+      "id": "A01",
+      "status": "implemented",
+      "implementation": "Server project/entity ACL and filtered snapshots",
+      "evidence": "de9592f,8179600,31b062b",
+      "remaining": "Full production direct-API matrix with approved accounts"
+    },
+    {
+      "id": "A02",
+      "status": "implemented",
+      "implementation": "Private physical-file registry, immutable metadata and upload ACL recheck",
+      "evidence": "e2e187e",
+      "remaining": "Production legacy-file inventory"
+    },
+    {
+      "id": "A03",
+      "status": "implemented",
+      "implementation": "Snapshot-bound ETags, fail-closed cold starts, explicit provisioning and duplicate detection",
+      "evidence": "05325ac,fe85b2d",
+      "remaining": "Drive integration fault acceptance; no live provisioning was run"
+    },
+    {
+      "id": "A04",
+      "status": "implemented",
+      "implementation": "Single aggregate CAS for core, knowledge and bookmarks, including restore/import/delete",
+      "evidence": "35e8599",
+      "remaining": "Controlled production recovery drill"
+    },
+    {
+      "id": "A05",
+      "status": "implemented",
+      "implementation": "Queued A-to-B-to-A edits retain latest local intent",
+      "evidence": "05325ac"
+    },
+    {
+      "id": "A06",
+      "status": "implemented",
+      "implementation": "Canonical server snapshots form the acknowledged baseline",
+      "evidence": "05325ac,83c03b1,211de3b"
+    },
+    {
+      "id": "A07",
+      "status": "implemented",
+      "implementation": "Scoped IndexedDB journal, offline reload recovery, quota warning and draft export",
+      "evidence": "c88a0ec,f7ac693,0586aaa,622ff6e",
+      "remaining": "Browser storage exhaustion is injected in unit tests, not forced on a real device"
+    },
+    {
+      "id": "A08",
+      "status": "implemented",
+      "implementation": "Conflict comparison/export and scope-only recovery preserve other queues",
+      "evidence": "fc86abc,f7ac693"
+    },
+    {
+      "id": "A09",
+      "status": "implemented",
+      "implementation": "Stable milestone IDs, explicit ordering and unique task display keys",
+      "evidence": "3926be7,35fc637,6e2fb35",
+      "remaining": "Concurrent milestone edit acceptance in real multi-device use"
+    },
+    {
+      "id": "A10",
+      "status": "implemented",
+      "implementation": "Nested schemas, canonical optional fields, references, folder trees and cycles",
+      "evidence": "37799a0,211de3b,8179600,0586aaa"
+    },
+    {
+      "id": "A11",
+      "status": "implemented",
+      "implementation": "Targeted three-way Undo does not restore unrelated stale snapshots",
+      "evidence": "3926be7"
+    },
+    {
+      "id": "A12",
+      "status": "implemented",
+      "implementation": "Upload acknowledgement preserves newer local edits",
+      "evidence": "3926be7"
+    },
+    {
+      "id": "A13",
+      "status": "implemented",
+      "implementation": "Server HTML allowlist and script-free file previews; patched sanitizer bundled for Vercel",
+      "evidence": "de9592f,211de3b,d177775"
+    },
     {
       "id": "A14",
-      "status": "partial",
-      "evidence": "409e92c",
-      "remaining": "HTTP-only session transport, shared rate limiting, legacy token migration policy"
+      "status": "implemented",
+      "implementation": "HttpOnly cookies, session revocation, stale-response guards and shared login limiter",
+      "evidence": "f2edf92,083f68d,387fca5"
     },
     {
       "id": "A15",
-      "status": "partial",
-      "evidence": "409e92c,b7c97cb",
-      "remaining": "Delivery queue diagnostics, worker scheduling and live controlled acceptance"
+      "status": "acceptance_pending",
+      "implementation": "Atomic durable outbox, leases, retries, per-channel diagnostics and endpoint checks",
+      "evidence": "b7c97cb,db26ec8",
+      "remaining": "Real email/push delivery needs the user's separate test-recipient approval; frequent external scheduling not configured"
     },
     {
       "id": "A16",
-      "status": "partial",
-      "evidence": "de9592f",
-      "remaining": "ID-based mentions, description events, update channel preferences and deep links"
+      "status": "implemented",
+      "implementation": "ID-based mentions, self-mentions, comment/description/status events and recipient-localized deep links",
+      "evidence": "e07fe53,f8094b2",
+      "remaining": "Real-device channel acceptance"
     },
     {
       "id": "A17",
-      "status": "partial",
-      "evidence": "b7c97cb",
-      "remaining": "Digest concurrent idempotence, cleanup reminder tombstones and cron failure status"
+      "status": "implemented",
+      "implementation": "Idempotent digest queue, timezone/weekdays, reminder tombstones and truthful cron status",
+      "evidence": "db26ec8,b27a913,967cc2e",
+      "remaining": "Production cron execution and provider-failure acceptance"
     },
-    { "id": "A18", "status": "pending" },
-    { "id": "A19", "status": "pending" },
-    { "id": "A20", "status": "pending" },
-    { "id": "A21", "status": "pending" },
-    { "id": "A22", "status": "pending" },
-    { "id": "A23", "status": "pending" },
-    { "id": "A24", "status": "pending" },
-    { "id": "A25", "status": "pending" },
-    { "id": "A26", "status": "pending" },
-    { "id": "A27", "status": "partial", "evidence": "2dedce3", "remaining": "Full themes, keyboard and adaptive acceptance matrix" },
-    { "id": "A28", "status": "pending" },
-    { "id": "A29", "status": "pending" },
-    { "id": "A30", "status": "partial", "evidence": "2dedce3", "remaining": "Split oversized actions, complete regression and operational documentation" }
-  ]
+    {
+      "id": "A18",
+      "status": "implemented",
+      "implementation": "Live/trash/backup references, delayed verified GC and abandoned direct-upload journal",
+      "evidence": "0e8f3e8,bece9d4",
+      "remaining": "Manual inventory of unverifiable legacy orphan files; no broad deletion authorized"
+    },
+    {
+      "id": "A19",
+      "status": "acceptance_pending",
+      "implementation": "Actual image/text/PDF previews, bounded thumbnails, cancel and resumable direct uploads",
+      "evidence": "420756a,7565481,a0593dd,af4c851",
+      "remaining": "Large-file/Range/resume acceptance on Vercel, slow networks and real phones"
+    },
+    {
+      "id": "A20",
+      "status": "acceptance_pending",
+      "implementation": "Independent checksummed binary recovery bundle and isolated restore CLI",
+      "evidence": "cc77a46",
+      "remaining": "Controlled production recovery drill in a new folder and measured RPO/RTO"
+    },
+    {
+      "id": "A21",
+      "status": "implemented",
+      "implementation": "Personal preferences, profile and notification read state available independently of project-edit roles",
+      "evidence": "12e4433"
+    },
+    {
+      "id": "A22",
+      "status": "implemented",
+      "implementation": "Server-enforced permissions, truthful invitation flow and explicit single-workspace model",
+      "evidence": "31b062b"
+    },
+    {
+      "id": "A23",
+      "status": "implemented",
+      "implementation": "Moving TODAY, timezone/clock format, calendar monthly recurrence and recipient-local reminders",
+      "evidence": "103753b,35fc637,b27a913"
+    },
+    {
+      "id": "A24",
+      "status": "implemented",
+      "implementation": "Stable identities, dependency cycles and references, active-assignee validation and explicit single-team membership",
+      "evidence": "35fc637,8179600,6e2fb35"
+    },
+    {
+      "id": "A25",
+      "status": "implemented",
+      "implementation": "Atomic portable import, preview/conflicts, folder ID remapping, backup and history",
+      "evidence": "9eb0e30"
+    },
+    {
+      "id": "A26",
+      "status": "implemented",
+      "implementation": "User-content translation opt-outs and shared per-recipient notification copy",
+      "evidence": "cc78120,e07fe53,f8094b2",
+      "remaining": "Systematic explicit-key i18n migration remains a longer-term refactor"
+    },
+    {
+      "id": "A27",
+      "status": "acceptance_pending",
+      "implementation": "Loading semantics, roving tabs, keyboard handling, RU/EN and adaptive automated checks",
+      "evidence": "2dedce3,4c9a718",
+      "remaining": "Real iOS/Android keyboards, Google popup, PWA push, screen reader and full 200% zoom matrix"
+    },
+    {
+      "id": "A28",
+      "status": "partial",
+      "implementation": "Single metadata check, backoff, cross-tab poll coordinator, linear bounded search and task/file pagination",
+      "evidence": "387fca5,0a302f1,6e2fb35,af4c851,622ff6e",
+      "remaining": "Entity-oriented mutation API, paginated data transport and incremental DOM rendering remain engineering follow-ups. Fixture: 1k tasks/comments 831389 bytes; 10k 8373390 bytes exceeds the 4 MiB ceiling."
+    },
+    {
+      "id": "A29",
+      "status": "acceptance_pending",
+      "implementation": "Protected readiness, request IDs, provider timeouts/redaction, operational docs and production bootstrap regression",
+      "evidence": "f2bc1b0,fe85b2d,d177775,967cc2e",
+      "remaining": "Google Console publishing mode confirmed production, but restricted Drive scope remains unverified. Protected production readiness, Gmail token scope/delivery, independent alerts and credential-lifecycle acceptance remain."
+    },
+    {
+      "id": "A30",
+      "status": "partial",
+      "implementation": "Isolated immutable browser builds, three engines, schema migration, domain extraction and regression coverage",
+      "evidence": "c3bf828,6154a5e,6e2fb35,d177775",
+      "remaining": "Further decomposition of legacy actions/rendering and a dedicated staged-deployment smoke gate"
+    }
+  ],
+  "acceptanceSafety": {
+    "liveWorkspaceDestructiveChecks": false,
+    "realEmailOrPushSent": false,
+    "googleSettingsChanged": false,
+    "approvalPending": "One test email and push to mlnchkdv@gmail.com only; no reply received."
+  },
+  "summary": {
+    "implemented": 23,
+    "acceptancePending": 5,
+    "partial": 2
+  }
 }

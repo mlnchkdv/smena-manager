@@ -148,6 +148,14 @@ On Vercel, the server creates a short-lived signed Google Drive resumable sessio
 workspace. This keeps file bodies outside the Vercel Function request limit. `SHARED_FILE_MAX_BYTES` can
 lower or raise the application limit if the team needs a different policy.
 
+File previews download actual authorized file content: bounded raster images (20 MiB), plain text
+(1 MiB), and PDF pages (20 MiB). PDF.js is loaded only when needed, runs its worker locally and renders
+one page at a time without document scripts, forms or interactive links. Rendering is cancelled on
+close/account change and times out after 15 seconds. Font/CMap assets and third-party notices are
+self-hosted. Visible small raster thumbnails are lazy-loaded, with two concurrent downloads and a
+32-entry cache; SVG, animated GIF and large-image thumbnails are excluded. Unsupported files remain
+downloadable rather than using a misleading mock preview.
+
 ## Recovery and operations
 
 Settings → Data transfer provides an independent recovery download containing workspace data and
@@ -180,6 +188,27 @@ Physical attachment deletion is delayed for at least 30 days and then requires t
 trash and retained-backup references. An unreadable backup prevents garbage collection. Manual
 backups retain their referenced files until those backups are removed.
 
+Direct-upload sessions are journaled before Drive creates an upload. A bounded daily sweep checks
+abandoned sessions after 48 hours, verifies their unique marker, folder and size, and queues eligible
+unreferenced files for the same delayed garbage collection. It does not immediately delete them.
+Missing or unverifiable legacy uploads require manual inventory; no broad Drive folder purge runs.
+
+Unsaved workspace/document drafts use an account-scoped IndexedDB journal and recover after reload.
+If browser storage is unavailable or full, saving to the server still works, but unsaved changes only
+remain in the open tab. The warning provides a JSON draft download; this is not a binary recovery
+bundle and should not be treated as a substitute for one.
+
+The current JSON transport ceiling is 4 MiB per logical document, independent of binary uploads.
+Pagination bounds displayed task/file rows but does not raise that ceiling. A representative local
+fixture with descriptions and one comment per task measured 831,389 bytes for 1,000 tasks and
+8,373,390 bytes for 10,000. These are fixtures, not a guaranteed task count: real text and history
+change the capacity. Large-workspace support still needs entity-oriented mutations and paginated data
+transport; do not promise 10,000 fully populated tasks on the current snapshot API.
+
+Browsers with Web Locks, BroadcastChannel and storage elect a short-lived polling coordinator per
+account. Other tabs refresh when document revisions change. An expired lease can be taken over by
+another tab; unsupported or blocked facilities retain independent polling and exponential backoff.
+
 `GET /api/health` is public liveness. Administrator-only `GET /api/readiness` checks storage,
 coordination, automation and backup freshness. API failures include an `X-Request-ID` header and a
 `requestId` field for correlation. Provider logs contain error codes and statuses, not authorization
@@ -191,6 +220,15 @@ and recovery access for Google, GitHub and Vercel available to the responsible a
 production acceptance, check the Google consent publishing state and authorized scopes, the dedicated
 Gmail refresh token, domain and redirect configuration, real-device push delivery and an independent
 recovery drill. Rotate credentials through ignored local files and Vercel secrets, never Git.
+
+Read-only Google Console acceptance on 18 October 2026 confirmed that `kms-brain-storage` is External
+and In production, but the configured restricted `drive` scope is still unverified. The registered
+scope list currently shows only `drive`; this does not prove the actual Gmail refresh token's grants.
+The shared OAuth client is named KMS-Brain Web Client. No consent settings, scopes, clients or secrets
+were changed during this check. Before submitting verification, review the least-privilege `drive.file`
+option against isolated existing-file/folder access, confirm the Gmail grant separately, and prepare
+the required demonstration/justification. Do not narrow or revoke shared grants without checking
+their effect on KMS-brain and obtaining explicit approval.
 
 ## Project structure
 
@@ -251,6 +289,24 @@ Dependencies point downward:
 Every push and pull request runs lint, the format check, server tests and a production build
 (`.github/workflows/ci.yml`).
 
+The default browser suite covers Chromium workflows plus Firefox/WebKit smoke checks. For the extended
+workspace/PDF scenarios on all three engines, run in PowerShell:
+
+```powershell
+$env:E2E_EXTENDED_BROWSERS = 'true'
+npm run test:e2e
+Remove-Item Env:E2E_EXTENDED_BROWSERS
+```
+
+Tests use isolated local storage, ports and build artifacts with external delivery credentials disabled.
+Desktop emulation does not replace Google popup, mobile keyboard or installed-PWA push acceptance on
+real iOS/Android devices.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
+
+`npm ci` also builds `.generated/sanitizer.mjs` in `postinstall`. Do not disable lifecycle scripts for
+deployment: Vercel's CommonJS instrumentation cannot load the ESM-only HTML parser via `require()`.
+The build bundles the current patched sanitizer as ESM rather than downgrading it. A bootstrap test
+explicitly disables CommonJS `require(ESM)` to catch this production-only failure before release.
