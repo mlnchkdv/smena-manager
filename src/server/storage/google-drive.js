@@ -2,6 +2,7 @@ import { drive } from '@googleapis/drive';
 import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
+import { createHash } from 'node:crypto';
 import { rememberStorageVersion } from './version-token.js';
 import { configureProviderTimeout } from '../provider-safety.js';
 
@@ -186,6 +187,16 @@ export class GoogleDriveStorageProvider {
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     this.databaseEtag = responseHeader(response, 'etag');
+    if (process.env.VERCEL && !this.databaseEtag && !this.versionDiagnosticLogged) {
+      this.versionDiagnosticLogged = true;
+      const metadata = await this.client.files.get({ fileId, fields: 'version,md5Checksum', supportsAllDrives: true });
+      console.warn('[Drive read diagnostic]', {
+        mediaEtag: Boolean(responseHeader(response, 'etag')),
+        metadataEtag: Boolean(responseHeader(metadata, 'etag')),
+        versionAvailable: Boolean(metadata.data.version),
+        checksumMatches: typeof response.data === 'string' && createHash('md5').update(response.data).digest('hex') === metadata.data.md5Checksum,
+      });
+    }
     this.lastSyncAt = new Date().toISOString();
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.databaseEtag);
   }
