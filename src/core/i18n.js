@@ -821,6 +821,8 @@ const RU = {
   'Select visible tasks': 'Выбрать видимые задачи',
   Page: 'Страница',
   Pagination: 'Навигация по страницам',
+  'Reduce the affected data below 4 MB or download a copy before changing it.':
+    'Уменьшите объём соответствующих данных до 4 МБ или скачайте копию перед изменением.',
   'The signed-in account changed. Sign in again.': 'Аккаунт входа изменился. Войдите снова.',
   'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.':
     'Сводка открытых задач после ежедневного планового запуска, по рабочим дням в вашем часовом поясе.',
