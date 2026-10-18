@@ -20,6 +20,7 @@ const originalDatabasePath = process.env.DATABASE_PATH;
 const originalVercel = process.env.VERCEL;
 const originalWriteMode = process.env.WORKSPACE_WRITE_MODE;
 const testDirectory = path.join(process.cwd(), '.data', 'tests', `workspace-${process.pid}`);
+const canonicalTask = id => ({ id, title: '', desc: '', status: 'todo', priority: 'none', subtasks: [], attachments: [], deps: [], labels: [] });
 
 test.beforeEach(async () => {
   await fs.promises.rm(testDirectory, { recursive: true, force: true });
@@ -61,13 +62,13 @@ test('workspace snapshots increment their revision and persist', async () => {
     initial.revision,
   );
   assert.equal(updated.revision, 1);
-  assert.deepEqual(updated.tasks, [{ id: 'task-1' }]);
+  assert.deepEqual(updated.tasks, [canonicalTask('task-1')]);
 
   resetStorageProvider();
   resetWorkspaceStore();
   const restored = await getWorkspaceDatabase();
   assert.equal(restored.revision, 1);
-  assert.deepEqual(restored.tasks, [{ id: 'task-1' }]);
+  assert.deepEqual(restored.tasks, [canonicalTask('task-1')]);
   assert.deepEqual(restored.knowledgeFolders, [{ id: 'kf1', name: 'Регламенты' }]);
   assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
   assert.deepEqual(restored.linkFolders, [{ id: 'lf1', name: 'Инструменты' }]);
@@ -113,7 +114,7 @@ test('explicit Drive mode permits revision-checked writes on Vercel without Redi
   const updated = await replaceWorkspaceDatabase({ ...initial, tasks: [{ id: 'direct-drive-task' }] }, initial.revision);
 
   assert.equal(updated.revision, 1);
-  assert.deepEqual(updated.tasks, [{ id: 'direct-drive-task' }]);
+  assert.deepEqual(updated.tasks, [canonicalTask('direct-drive-task')]);
 });
 
 test('stale workspace revisions are rejected', async () => {
@@ -157,7 +158,7 @@ test('a client-specific current member never replaces the shared canonical membe
   const prepared = await replaceWorkspaceDatabase({ ...initial, me: 'm1', members: [{ id: 'm1' }, { id: 'm2' }], tasks: [] }, 0, { role: 'admin' });
   const updated = await replaceWorkspaceDatabase({ ...prepared, me: 'm2', tasks: [{ id: 'task-2' }] }, 1, { role: 'editor' });
   assert.equal(updated.me, 'm1');
-  assert.deepEqual(updated.tasks, [{ id: 'task-2' }]);
+  assert.deepEqual(updated.tasks, [canonicalTask('task-2')]);
 });
 
 test('oversized workspace snapshots are rejected before persistence', async () => {
@@ -181,8 +182,33 @@ test('partial workspace updates preserve collections omitted by the client', asy
   const initial = await getWorkspaceDatabase();
   const prepared = await replaceWorkspaceDatabase({ ...initial, comments: [{ id: 'comment-1' }], tasks: [{ id: 'task-1' }] }, 0);
   const updated = await replaceWorkspaceDatabase({ tasks: [{ id: 'task-2' }] }, prepared.revision);
-  assert.deepEqual(updated.tasks, [{ id: 'task-2' }]);
-  assert.deepEqual(updated.comments, [{ id: 'comment-1' }]);
+  assert.deepEqual(updated.tasks, [canonicalTask('task-2')]);
+  assert.deepEqual(updated.comments, [{ id: 'comment-1', text: '', re: {} }]);
+});
+
+test('canonical optional fields and sanitized descriptions survive persistence and reload', async () => {
+  const initial = await getWorkspaceDatabase();
+  const updated = await replaceWorkspaceDatabase(
+    {
+      ...initial,
+      tasks: [
+        {
+          id: 'safe-task',
+          desc: '<p><b>Safe</b><button data-a="delWorkspace">Unsafe action</button><script>alert(1)</script></p>',
+          subtasks: [{ id: 'sub', desc: '<p data-a="signOut">Safe subtask<script>alert(1)</script></p>' }],
+        },
+      ],
+    },
+    initial.revision,
+  );
+  assert.equal(updated.tasks[0].status, 'todo');
+  assert.deepEqual(updated.tasks[0].labels, []);
+  assert.match(updated.tasks[0].desc, /<b>Safe<\/b>/u);
+  assert.doesNotMatch(updated.tasks[0].desc, /data-a|<button|<script/u);
+  assert.doesNotMatch(updated.tasks[0].subtasks[0].desc, /data-a|<script/u);
+  resetStorageProvider();
+  resetWorkspaceStore();
+  assert.deepEqual((await getWorkspaceDatabase()).tasks, updated.tasks);
 });
 
 test('malformed workspace collections are rejected without changing persisted data', async () => {

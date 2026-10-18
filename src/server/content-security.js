@@ -12,8 +12,12 @@ export function sanitizeDescription(value) {
 
 export function sanitizeWorkspaceContent(data) {
   const next = structuredClone(data);
-  const cleanTask = task => {
+  const cleanDescription = task => {
     if (task && Object.hasOwn(task, 'desc')) task.desc = sanitizeDescription(task.desc);
+  };
+  const cleanTask = task => {
+    cleanDescription(task);
+    for (const subtask of Array.isArray(task?.subtasks) ? task.subtasks : []) cleanDescription(subtask);
   };
   (next.tasks || []).forEach(cleanTask);
   for (const entry of next.trash || []) {

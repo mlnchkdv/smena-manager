@@ -48,7 +48,7 @@ export function validateWorkspaceData(value) {
   }
   if (value.teams != null && (!Array.isArray(value.teams) || value.teams.some(item => !isObject(item)))) invalid.push('teams');
   for (const field of OBJECT_FIELDS) {
-    if (value[field] != null && !isObject(value[field])) invalid.push(field);
+    if (Object.hasOwn(value, field) && !isObject(value[field])) invalid.push(field);
   }
   if (value.me != null && typeof value.me !== 'string') invalid.push('me');
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
@@ -69,12 +69,17 @@ export function validateWorkspaceData(value) {
     if (!isObject(task)) continue;
     if (task.project != null && !projectIds.has(task.project)) invalid.push('tasks.project');
     if (task.status != null && !['backlog', 'todo', 'progress', 'review', 'done'].includes(task.status)) invalid.push('tasks.status');
+    if (task.priority != null && !['none', 'urgent', 'high', 'medium', 'low'].includes(task.priority)) invalid.push('tasks.priority');
     for (const field of ['subtasks', 'attachments', 'deps', 'labels']) if (task[field] != null && !Array.isArray(task[field])) invalid.push(`tasks.${field}`);
     for (const field of ['subtasks', 'attachments']) if (task[field] != null && !validEntityArray(task[field])) invalid.push(`tasks.${field}`);
     if (
       Array.isArray(task.subtasks) &&
       task.subtasks.some(
-        item => !isObject(item) || (item.title != null && typeof item.title !== 'string') || (item.done != null && typeof item.done !== 'boolean'),
+        item =>
+          !isObject(item) ||
+          (item.title != null && typeof item.title !== 'string') ||
+          (item.desc != null && typeof item.desc !== 'string') ||
+          (item.done != null && typeof item.done !== 'boolean'),
       )
     )
       invalid.push('tasks.subtasks');
@@ -87,6 +92,13 @@ export function validateWorkspaceData(value) {
   }
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
     if (!isObject(project)) continue;
+    if (project.seq != null && (!Number.isSafeInteger(project.seq) || project.seq < 0)) invalid.push('projects.seq');
+    if (
+      project.perms != null &&
+      (!isObject(project.perms) ||
+        Object.values(project.perms).some(permission => !['Can view', 'Can comment', 'Can edit', 'Full access'].includes(permission)))
+    )
+      invalid.push('projects.perms');
     if (project.members != null && !Array.isArray(project.members)) invalid.push('projects.members');
     if (project.members?.some?.(id => typeof id !== 'string')) invalid.push('projects.members');
     if (project.key != null && (typeof project.key !== 'string' || !/^[\p{L}\p{N}_-]{1,32}$/u.test(project.key))) invalid.push('projects.key');

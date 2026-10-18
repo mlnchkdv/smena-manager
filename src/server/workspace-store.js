@@ -15,6 +15,7 @@ import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
 import { indexStoredFiles } from './file-registry.js';
+import { applyEntityDefaults } from '../shared/workspace-defaults.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
@@ -70,12 +71,13 @@ function normalizeDatabase(value) {
   }
   const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
-  return copyStorageVersion(
-    value,
-    indexStoredFiles(
-      sanitizeWorkspaceContent(validateWorkspaceData(migrateMilestoneIds(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))))),
-    ),
-  );
+  const data = migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized));
+  applyEntityDefaults(data);
+  migrateMilestoneIds(data);
+  validateWorkspaceData(data);
+  const safe = sanitizeWorkspaceContent(data);
+  indexStoredFiles(safe);
+  return copyStorageVersion(value, safe);
 }
 
 function clone(value) {
@@ -269,6 +271,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);
   validateMembershipTransition(current, nextData);
   if (!options.replaceDocuments) validateTaskTransitions(current, nextData);
