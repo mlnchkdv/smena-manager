@@ -83,7 +83,7 @@ export function mountGraph(graph, selected, center, onSelect) {
             label: 'data(label)',
             color: css.getPropertyValue('--text').trim(),
             'font-size': 12,
-            'font-family': css.getPropertyValue('--font').trim() || 'Arial, sans-serif',
+            'font-family': 'Geist',
             'min-zoomed-font-size': 6,
             'text-valign': 'bottom',
             'text-margin-y': 10,
