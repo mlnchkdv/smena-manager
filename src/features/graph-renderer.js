@@ -31,7 +31,6 @@ export function mountGraph(graph, selected, center, onSelect) {
       elements,
       minZoom: 0.25,
       maxZoom: 3,
-      wheelSensitivity: 0.2,
       layout: {
         name: 'concentric',
         animate: false,
@@ -78,6 +77,9 @@ export function mountGraph(graph, selected, center, onSelect) {
       instance.nodes().positions(node => previous.positions.get(node.id()));
       instance.zoom(previous.zoom);
       instance.pan(previous.pan);
+    } else if (instance.zoom() > 1.2) {
+      instance.zoom(1.2);
+      instance.center();
     }
     instance.on('tap', 'node', event => onSelect(event.target.id()));
     instance.on('mouseover', 'node', () => {

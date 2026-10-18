@@ -27,7 +27,10 @@ export function relationsPanel(key, compact = false) {
       })
       .join('');
   const unresolved = graph.unresolved.filter(ref => ref.from === key);
-  const content = `<section class="relations-panel" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${edges.length ? `<h4>Related materials</h4>${rows(false)}<h4>Where used</h4>${rows(true)}` : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolved.length ? `<div class="relation-unresolved"><span>Unresolved wiki links</span>: ${unresolved.map(ref => `<span translate="no">${esc(ref.label)}</span>`).join(', ')}<p class="hint">Create the missing note or choose a target with Add connection.</p></div>` : ''}</section>`;
+  const unresolvedHtml = unresolved.length
+    ? `<div class="relation-unresolved"><span>Unresolved wiki links</span>: ${unresolved.map(ref => (writable ? `<button class="link" data-a="resolveWikiReference" data-key="${esc(key)}" data-label="${esc(ref.label)}" translate="no">${esc(ref.label)}</button>` : `<span translate="no">${esc(ref.label)}</span>`)).join(', ')}<p class="hint">Select a wiki link to choose its target, or create the missing note.</p></div>`
+    : '';
+  const content = `<section class="relations-panel" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${edges.length ? `<h4>Related materials</h4>${rows(false)}<h4>Where used</h4>${rows(true)}` : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolvedHtml}</section>`;
   return compact ? `<details class="relations-compact"><summary><span>Connections</span> · ${edges.length}</summary>${content}</details>` : content;
 }
 
@@ -39,6 +42,7 @@ export function relationPicker(m) {
   const candidates = graph.nodes.filter(
     node =>
       node.key !== m.source &&
+      (!m.wikiLabel || node.kind === 'note') &&
       entityAllowed(D(), node.key, graphOptions(), true) &&
       (!m.kind || node.kind === m.kind) &&
       [node.title, node.item.url, ...(node.tags || [])].join(' ').toLocaleLowerCase().includes(query),

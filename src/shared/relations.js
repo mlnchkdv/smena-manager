@@ -33,7 +33,12 @@ export function bindWikiReferences(notes = []) {
   }
   for (const note of notes) {
     const previous = Array.isArray(note.wikiRefs) ? note.wikiRefs : [];
-    const labels = extractWikiLinks(note.formatted_markdown);
+    const labels = [
+      ...new Set([
+        ...extractWikiLinks(note.formatted_markdown),
+        ...(Array.isArray(note.wikilinks) ? note.wikilinks.filter(label => typeof label === 'string') : []),
+      ]),
+    ];
     if (!labels.length && !Object.hasOwn(note, 'wikiRefs')) continue;
     note.wikiRefs = labels.map(label => {
       const bound = previous.find(ref => normalized(ref.label) === normalized(label));
@@ -65,12 +70,13 @@ export function workspaceGraph(data, options = {}) {
   };
   for (const relation of data.relations || []) if (!relation.deletedAt) add({ ...relation, origin: 'manual' });
   const notes = bindWikiReferences(structuredClone(data.knowledgeNotes || []));
+  const noteIds = new Set(notes.map(note => note.id));
   const unresolved = [];
   for (const note of notes) {
     const from = entityKey('note', note.id);
     if (!visible.has(from)) continue;
     for (const ref of note.wikiRefs || []) {
-      if (!ref.target) unresolved.push({ from, label: ref.label });
+      if (!ref.target || !noteIds.has(ref.target)) unresolved.push({ from, label: ref.label });
       else add({ id: `wiki:${note.id}:${ref.target}`, from, to: entityKey('note', ref.target), type: 'source', origin: 'wiki' });
     }
   }

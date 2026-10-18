@@ -596,6 +596,10 @@ A.addRelationPicker = el => {
   if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;
   openModal({ type: 'relations', source: el.dataset.key, query: '', kind: '', relationType: 'related' });
 };
+A.resolveWikiReference = el => {
+  if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;
+  openModal({ type: 'relations', source: el.dataset.key, query: '', kind: 'note', relationType: 'source', wikiLabel: el.dataset.label });
+};
 IN.relationQuery = el => {
   S.ui.modals.at(-1).query = el.value;
   render();
@@ -613,7 +617,16 @@ A.createRelation = el => {
   const from = modal.source,
     to = el.dataset.key;
   if (from === to || ![from, to].every(key => entityAllowed(D(), key, graphOptions(), true))) return;
+  if (modal.wikiLabel && (!from.startsWith('note:') || !to.startsWith('note:'))) return;
   mutate(() => {
+    if (modal.wikiLabel) {
+      const note = resolveGraphEntity(D(), from).item;
+      bindWikiReferences(D().knowledgeNotes);
+      const reference = note.wikiRefs?.find(ref => ref.label === modal.wikiLabel);
+      if (reference) reference.target = resolveGraphEntity(D(), to).id;
+      S.ui.modals.pop();
+      return;
+    }
     D().relations ||= [];
     if (!D().relations.some(edge => !edge.deletedAt && edge.from === from && edge.to === to && edge.type === modal.relationType))
       D().relations.push({ id: uid('rel'), from, to, type: modal.relationType, createdBy: D().me, createdAt: new Date().toISOString() });
@@ -642,6 +655,8 @@ A.openRelatedEntity = el => {
 A.showGraph = el => {
   S.ui.graphCenter = el.dataset.key || '';
   S.ui.graphSelected = S.ui.graphCenter;
+  const target = resolveGraphEntity(D(), S.ui.graphCenter);
+  if (target) S.ui.graphArchive = target.item.archived || target.item.is_archived ? 'yes' : '';
   S.ui.graphQuery = '';
   S.ui.graphKind = '';
   S.ui.graphProject = '';

@@ -122,3 +122,24 @@ test('graph builds bounded views over ten thousand tasks within the regression b
   assert.equal(graph.edges.length, 10000);
   assert.ok(performance.now() - start < 2000);
 });
+
+test('legacy wiki arrays migrate without guessing missing targets and deleted targets remain diagnosable', () => {
+  const notes = [
+    { id: 'a', title: 'A', wikilinks: ['B'] },
+    { id: 'b', title: 'B' },
+  ];
+  bindWikiReferences(notes);
+  assert.equal(notes[0].wikiRefs[0].target, 'b');
+  notes.pop();
+  assert.deepEqual(workspaceGraph({ knowledgeNotes: notes }, { role: 'admin' }).unresolved, [{ from: 'note:a', label: 'B' }]);
+});
+
+test('read-only project access cannot be used to create or remove connections', () => {
+  const data = fixture();
+  data.projects[0].members = ['editor'];
+  data.projects[0].perms = { editor: 'Can view' };
+  data.relations = [{ id: 'r', from: 'note:a', to: 'task:t', type: 'source' }];
+  const incoming = projectWorkspace(data, { id: 'editor', role: 'editor' });
+  incoming.relations[0].deletedAt = '2026-10-18T00:00:00Z';
+  assert.throws(() => mergeClientWorkspace(data, incoming, 'editor', 'editor'), { code: 'ENTITY_FORBIDDEN' });
+});

@@ -16,6 +16,7 @@ export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
   Graph: 'Граф',
+  'Select a wiki link to choose its target, or create the missing note.': 'Выберите вики-ссылку, чтобы указать её цель, или создайте недостающую заметку.',
   'Go to Graph': 'Перейти к графу',
   'Search in graph': 'Найти в графе',
   "Explore connections between your team's materials.": 'Исследуйте связи между материалами команды.',
