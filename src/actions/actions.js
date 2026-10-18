@@ -24,6 +24,7 @@ import {
   visibleProjects,
 } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
+import { detachTaskFile } from '../shared/file-identity.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
@@ -2549,19 +2550,21 @@ A.dupFile = el => {
 A.delFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
+  if (!f) return;
   confirmDlg({
     title: 'Delete file?',
     body: `<b>${esc(f.name)}</b> will be removed from the project${f.task ? ' and its task' : ''}.`,
     ok: 'Delete file',
     danger: true,
     run: () => {
+      const currentFile = D().files.find(item => item.id === f.id);
+      if (!currentFile) return;
       const snap = snapshot();
       if (
         mutate(() => {
-          const attachment = f.task && task(f.task) ? task(f.task).attachments.find(item => item.id === f.id || item.name === f.name) : null;
-          moveToTrash('file', f.name, { file: structuredClone(f), attachment: attachment ? structuredClone(attachment) : null });
-          D().files = D().files.filter(x => x !== f);
-          if (f.task && task(f.task)) task(f.task).attachments = task(f.task).attachments.filter(a => a.id !== f.id && a.name !== f.name);
+          const attachment = detachTaskFile(currentFile.task ? task(currentFile.task) : null, currentFile);
+          moveToTrash('file', currentFile.name, { file: structuredClone(currentFile), attachment: attachment ? structuredClone(attachment) : null });
+          D().files = D().files.filter(item => item.id !== currentFile.id);
         })
       )
         toast(`${f.name} moved to trash`, { action: 'Undo', onAction: () => restore(snap) });

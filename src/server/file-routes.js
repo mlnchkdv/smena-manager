@@ -10,6 +10,7 @@ import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUpl
 import { getStorageProvider } from './storage/index.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
+import { detachTaskFile } from '../shared/file-identity.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canEditProject, canReadProject } from '../shared/project-access.js';
 import { retainDetachedFile } from './file-retention.js';
@@ -335,7 +336,7 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
         retainDetachedFile(database, removed);
         if (removed.task) {
           const task = database.tasks?.find(item => item.id === removed.task);
-          if (task) task.attachments = (task.attachments || []).filter(item => item.id !== removed.id);
+          detachTaskFile(task, removed);
         }
         return database;
       },
