@@ -190,11 +190,26 @@ export class GoogleDriveStorageProvider {
     if (process.env.VERCEL && !this.databaseEtag && !this.versionDiagnosticLogged) {
       this.versionDiagnosticLogged = true;
       const metadata = await this.client.files.get({ fileId, fields: 'version,md5Checksum', supportsAllDrives: true });
+      const legacy = drive({ version: 'v2', auth: this.authClient, timeout: 15000, retry: false });
+      const legacyMetadata = await legacy.files.get({ fileId, fields: 'etag,md5Checksum', supportsAllDrives: true });
+      const conditionalStatus = async (client, etag) => {
+        try {
+          const result = await client.files.get({ fileId, fields: 'id', supportsAllDrives: true }, { headers: { 'If-Match': etag } });
+          return result.status;
+        } catch (error) {
+          return error.response?.status || Number(error.code) || null;
+        }
+      };
       console.warn('[Drive read diagnostic]', {
         mediaEtag: Boolean(responseHeader(response, 'etag')),
         metadataEtag: Boolean(responseHeader(metadata, 'etag')),
         versionAvailable: Boolean(metadata.data.version),
         checksumMatches: typeof response.data === 'string' && createHash('md5').update(response.data).digest('hex') === metadata.data.md5Checksum,
+        v2Etag: Boolean(legacyMetadata.data.etag),
+        v2ChecksumMatches: typeof response.data === 'string' && createHash('md5').update(response.data).digest('hex') === legacyMetadata.data.md5Checksum,
+        v3MatchingCondition: legacyMetadata.data.etag ? await conditionalStatus(this.client, legacyMetadata.data.etag) : null,
+        v3WrongCondition: await conditionalStatus(this.client, '"smena-readonly-invalid-etag"'),
+        v2WrongCondition: await conditionalStatus(legacy, '"smena-readonly-invalid-etag"'),
       });
     }
     this.lastSyncAt = new Date().toISOString();
