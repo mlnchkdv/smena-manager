@@ -606,7 +606,11 @@ export class GoogleDriveStorageProvider {
     };
   }
 
-  async createResumableUpload(filename, size, mimeType = 'application/octet-stream', marker) {
+  async createResumableUpload(filename, size, mimeType = 'application/octet-stream', marker, origin = '') {
+    if (origin) {
+      const parsed = new URL(origin);
+      if (!['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== origin) throw new TypeError('A valid upload origin is required.');
+    }
     const folderId = await this.ensureUploadsFolder();
     const accessTokenResult = await this.authClient.getAccessToken();
     const accessToken = typeof accessTokenResult === 'string' ? accessTokenResult : accessTokenResult?.token;
@@ -623,6 +627,8 @@ export class GoogleDriveStorageProvider {
         'Content-Type': 'application/json; charset=UTF-8',
         'X-Upload-Content-Type': mimeType,
         'X-Upload-Content-Length': String(size),
+        // Google binds resumable session CORS to the initiating request's origin.
+        ...(origin ? { Origin: origin } : {}),
       },
       body: JSON.stringify({
         name: filename,

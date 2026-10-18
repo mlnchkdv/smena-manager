@@ -199,7 +199,13 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
         if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
       }
     }
-    const session = await storage.createResumableUpload(filename, metadata.size, metadata.mimeType, marker);
+    const session = await storage.createResumableUpload(
+      filename,
+      metadata.size,
+      metadata.mimeType,
+      marker,
+      request.get('origin') || process.env.APP_ORIGIN || '',
+    );
     const ticket = createUploadTicket({
       profileId: request.user.id,
       projectId,

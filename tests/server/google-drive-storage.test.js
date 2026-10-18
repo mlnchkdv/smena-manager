@@ -272,10 +272,12 @@ test('Google Drive creates and verifies a scoped resumable upload session', asyn
     },
   };
 
-  const session = await provider.createResumableUpload('stored.pdf', 5 * 1024 * 1024, 'application/pdf', 'marker-1');
+  const session = await provider.createResumableUpload('stored.pdf', 5 * 1024 * 1024, 'application/pdf', 'marker-1', 'https://smena-manager.vercel.app');
   assert.equal(session.uploadUrl, 'https://www.googleapis.com/upload/session-1');
   assert.match(initiated.url, /uploadType=resumable/);
   assert.equal(initiated.options.headers.Authorization, 'Bearer drive-token');
+  assert.equal(initiated.options.headers.Origin, 'https://smena-manager.vercel.app');
+  await assert.rejects(provider.createResumableUpload('stored.pdf', 10, 'application/pdf', 'marker-1', 'https://example.test/path'), /valid upload origin/u);
   assert.deepEqual(JSON.parse(initiated.options.body).parents, ['uploads-folder']);
 
   const verified = await provider.verifyResumableUpload('stored.pdf', 5 * 1024 * 1024, 'marker-1');
