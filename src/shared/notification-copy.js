@@ -29,7 +29,7 @@ export function notificationAction(notification, locale = 'en') {
 export function notificationSnippet(notification, locale = 'en') {
   const text = notification?.snippet || '';
   // Only status-transition events contain system labels. Never translate user content.
-  return locale === 'ru' && notification?.type === 'update'
+  return locale === 'ru' && notification?.type === 'update' && notification?.task && /^(?:moved to |completed$)/u.test(notification.text || '')
     ? text
         .split(' → ')
         .map(status => RU_STATUSES[status] || status)

@@ -185,6 +185,15 @@ test('stable mention references resolve renamed and duplicate names without ambi
     { recipient: 'editor', scope: 'direct' },
   ]);
   assert.deepEqual(mentionNotificationTargets('No mention', data, [{ id: 'editor', kind: 'member', label: 'Old name' }]), []);
+  data.members[2].name = 'Old name';
+  assert.deepEqual(mentionNotificationTargets('@Old name test', data, [{ id: 'editor', kind: 'member', label: 'Old name' }]), [
+    { recipient: 'editor', scope: 'direct' },
+  ]);
+  data.teams[0].name = 'Renamed product';
+  assert.deepEqual(
+    mentionNotificationTargets('@Продукт test', data, [{ id: 'product', kind: 'group', label: 'Продукт' }]).map(target => target.recipient),
+    ['owner', 'editor'],
+  );
 });
 
 test('description mentions notify only newly added recipients and comments reach trusted task creator', () => {

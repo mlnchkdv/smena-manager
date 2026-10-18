@@ -64,9 +64,16 @@ export function hl(text, q) {
   if (i < 0) return esc(text);
   return esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
 }
-export function fmtComment(txt) {
+export function fmtComment(txt, references = []) {
   const source = String(txt || '');
-  const names = [...D().members.map(member => member.name), ...(D().teams || []).map(team => team.name), 'workspace', 'пространство', 'все']
+  const names = [
+    ...D().members.map(member => member.name),
+    ...(D().teams || []).map(team => team.name),
+    ...references.map(reference => reference.label).filter(label => typeof label === 'string'),
+    'workspace',
+    'пространство',
+    'все',
+  ]
     .filter(Boolean)
     .filter((value, index, items) => items.findIndex(item => item.toLocaleLowerCase() === value.toLocaleLowerCase()) === index)
     .sort((a, b) => b.length - a.length);

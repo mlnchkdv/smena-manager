@@ -5,7 +5,8 @@ import { S, commentsOf, mem, myNotification, myNotifications, pColor, proj, task
 import { av, empty, fmtComment } from '../ui/helpers.js';
 import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-list.js';
 import { commentHtml, mentionPicker } from '../overlays/drawer.js';
-import { t as tr } from '../core/i18n.js';
+import { isRussian, t as tr } from '../core/i18n.js';
+import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
 
 export function pageInbox() {
   const cats = [
@@ -44,11 +45,13 @@ export function pageInbox() {
 export function notifText(n) {
   const t = n.task ? task(n.task) : null;
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-  const who = n.by ? `<b style="font-weight:600">${esc(mem(n.by)?.name)}</b>` : '';
-  if (!n.by && p && !t) return `<b style="font-weight:600">${esc(tr(n.text))}</b>`;
-  if (!n.by && t) return `<b style="font-weight:600" translate="no">${esc(t.title)}</b> <span class="muted">${esc(tr(n.text))}</span>`;
-  return `${who} <span class="muted">${esc(tr(n.text))}</span> ${t ? `<b style="font-weight:500" translate="no">${esc(t.title)}</b>` : ''}`;
+  const who = n.by ? `<b style="font-weight:600" translate="no">${esc(mem(n.by)?.name)}</b>` : '';
+  const action = tr(notificationAction(n, isRussian() ? 'ru' : 'en'));
+  if (!n.by && p && !t) return `<b style="font-weight:600">${esc(action)}</b>`;
+  if (!n.by && t) return `<b style="font-weight:600" translate="no">${esc(t.title)}</b> <span class="muted">${esc(action)}</span>`;
+  return `${who} <span class="muted">${esc(action)}</span> ${t ? `<b style="font-weight:500" translate="no">${esc(t.title)}</b>` : ''}`;
 }
+export const notifSnippet = n => fmtComment(notificationSnippet(n, isRussian() ? 'ru' : 'en'));
 export function notifIcon(n) {
   if (n.by) return av(n.by, 'md', false);
   const i =
@@ -80,7 +83,7 @@ export function inboxItem(n, on) {
     ${notifIcon(n)}
     <div class="grow" style="font-size:13px;line-height:1.45">
       <div>${notifText(n)}</div>
-      <div class="trunc muted" style="font-size:12.5px;margin-top:2px">${fmtComment(n.snippet)}</div>
+      <div class="trunc muted" style="font-size:12.5px;margin-top:2px" translate="no">${notifSnippet(n)}</div>
       <div class="row" style="gap:6px;margin-top:5px;font-size:11.5px;color:var(--text-3)">${ic(typeIc, 11)}${p ? `<span class="pdot" style="--c:${pColor(p)};width:6px;height:6px"></span>${esc(p.name)}` : ''}<span>·</span><span>${ago(n.at)}</span></div>
     </div>
     <button class="ibtn ibtn-xs" data-a="toggleRead" data-id="${n.id}" data-tip="${n.read ? 'Mark as unread' : 'Mark as read'}" aria-label="${n.read ? 'Mark as unread' : 'Mark as read'}">${ic(n.read ? 'mail' : 'mail-open', 13)}</button>

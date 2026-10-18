@@ -19,6 +19,7 @@ test('notification channels use recipient language, localize system statuses and
   assert.match(notificationAction(notification, 'ru'), /На проверке/u);
   assert.equal(notificationSnippet(notification, 'ru'), 'К выполнению → На проверке');
   assert.equal(notificationSnippet({ type: 'comment', snippet: 'Review' }, 'ru'), 'Review');
+  assert.equal(notificationSnippet({ type: 'update', project: 'p', text: 'updated milestone in', snippet: 'Review' }, 'ru'), 'Review');
   const email = emailNotificationMessage(notification, data);
   assert.match(email.text, /Здравствуйте, Review!/u);
   assert.match(email.text, /\/team\/task\/t/u);

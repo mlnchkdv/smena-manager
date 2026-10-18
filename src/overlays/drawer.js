@@ -149,7 +149,7 @@ export function mentionPicker(taskId) {
 export function commentHtml(c) {
   const m = mem(c.by);
   const mine = c.by === D().me;
-  return `<div class="cmt">${av(c.by, 'md', false)}<div class="body"><div class="who"><b translate="no">${esc(m?.name)}</b><time>${ago(c.at)}</time>${mine ? `<span class="sp"></span><button class="ibtn ibtn-xs" data-a="delComment" data-id="${c.id}" aria-label="Delete comment" data-tip="Delete">${ic('trash-2', 12)}</button>` : ''}</div><div class="txt" translate="no">${fmtComment(c.text)}</div>
+  return `<div class="cmt">${av(c.by, 'md', false)}<div class="body"><div class="who"><b translate="no">${esc(m?.name)}</b><time>${ago(c.at)}</time>${mine ? `<span class="sp"></span><button class="ibtn ibtn-xs" data-a="delComment" data-id="${c.id}" aria-label="Delete comment" data-tip="Delete">${ic('trash-2', 12)}</button>` : ''}</div><div class="txt" translate="no">${fmtComment(c.text, c.mentions || [])}</div>
     <div class="reacts">${Object.entries(c.re || {})
       .filter(([, v]) => v.length)
       .map(

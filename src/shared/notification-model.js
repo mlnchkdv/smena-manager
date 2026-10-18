@@ -165,6 +165,7 @@ export function mentionedMemberIds(text, members = []) {
 export function mentionedTeamIds(text, teams = []) {
   return teams
     .filter(team => team?.id && team?.name)
+    .filter(team => teams.filter(other => other.name?.toLocaleLowerCase() === team.name.toLocaleLowerCase()).length === 1)
     .filter(team => containsMention(text, team.name))
     .map(team => team.id);
 }
@@ -174,18 +175,26 @@ export function mentionsWorkspace(text) {
 }
 
 export function mentionNotificationTargets(text, data = {}, references = []) {
-  const members = Array.isArray(data.members) ? data.members.filter(member => member?.id && member.status !== 'deactivated') : [];
-  const targets = mentionedMemberIds(text, members).map(recipient => ({ recipient, scope: 'direct' }));
+  const members = Array.isArray(data.members) ? data.members.filter(member => member?.id && !['deactivated', 'removed'].includes(member.status)) : [];
+  const teams = Array.isArray(data.teams) ? data.teams : [];
+  const targets = [];
+  let legacyText = String(text || '');
   for (const reference of Array.isArray(references) ? references.slice(0, 100) : []) {
-    if (reference?.kind !== 'member' || typeof reference.label !== 'string' || !containsMention(text, reference.label)) continue;
-    if (members.some(member => member.id === reference.id)) targets.push({ recipient: reference.id, scope: 'direct' });
+    if (!['member', 'group'].includes(reference?.kind) || typeof reference.label !== 'string' || !containsMention(text, reference.label)) continue;
+    // A selected identity must not be rebound to another person/team that later takes its name.
+    legacyText = legacyText.replace(new RegExp(`(^|[\\s([{])@${escapeRegExp(reference.label)}(?=$|[\\s.,!?;:)\\]}…])`, 'giu'), '$1');
+    if (reference.kind === 'member' && members.some(member => member.id === reference.id)) targets.push({ recipient: reference.id, scope: 'direct' });
+    if (reference.kind === 'group' && reference.id === 'workspace') members.forEach(member => targets.push({ recipient: member.id, scope: 'workspace' }));
+    else if (reference.kind === 'group' && teams.some(team => team.id === reference.id))
+      members.filter(member => member.team === reference.id).forEach(member => targets.push({ recipient: member.id, scope: 'team', team: reference.id }));
   }
+  targets.push(...mentionedMemberIds(legacyText, members).map(recipient => ({ recipient, scope: 'direct' })));
 
-  mentionedTeamIds(text, Array.isArray(data.teams) ? data.teams : []).forEach(teamId => {
+  mentionedTeamIds(legacyText, teams).forEach(teamId => {
     members.filter(member => member.team === teamId).forEach(member => targets.push({ recipient: member.id, scope: 'team', team: teamId }));
   });
 
-  if (mentionsWorkspace(text)) {
+  if (mentionsWorkspace(legacyText)) {
     members.forEach(member => targets.push({ recipient: member.id, scope: 'workspace' }));
   }
   return targets;
