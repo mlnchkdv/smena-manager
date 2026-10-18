@@ -14,6 +14,8 @@ const PREFERENCE_TYPES = Object.freeze({
   motion: 'string',
   home: 'string',
   openTasks: 'string',
+  spell: 'boolean',
+  confirmDel: 'boolean',
 });
 
 export const MAX_READ_STATE_IDS = 500;

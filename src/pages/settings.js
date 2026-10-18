@@ -53,12 +53,13 @@ export const SET_NAV = [
 ];
 const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions']);
 export function srow(t, d, ctl) {
+  ctl = ctl.replace(/data-setting-control aria-label="[^"]*"/gu, () => `aria-label="${esc(t)}"`);
   return `<div class="srow"><div><div class="t">${t}</div>${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
 }
 export const tog = (k, on, src = 'pref') =>
-  `<input type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} aria-label="${k}">`;
+  `<input type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} data-setting-control aria-label="${k}">`;
 export const sel = (k, opts, v) =>
-  `<select class="select" style="width:auto;min-width:180px" data-in="prefSel" data-k="${k}" aria-label="${k}">${opts
+  `<select class="select" style="width:auto;min-width:180px" data-in="prefSel" data-k="${k}" data-setting-control aria-label="${k}">${opts
     .map(o => {
       const [val, n] = Array.isArray(o) ? o : [o, o];
       return `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${n}</option>`;

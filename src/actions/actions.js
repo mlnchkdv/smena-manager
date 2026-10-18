@@ -2923,7 +2923,7 @@ IN.prefSel = el => {
   S.prefs[k] = k === 'weekStart' ? +el.value : el.value;
   save();
   render();
-  toast('Preference saved', { ms: 1500 });
+  toast('Preference updated', { ms: 1500 });
 };
 A.wsColor = el => {
   D().ws.c = el.dataset.v;

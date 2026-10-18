@@ -1370,6 +1370,7 @@ const RU = {
   'The page you requested does not exist.': 'Запрошенная страница не существует.',
   'Back home': 'На главную',
   'Preference saved': 'Настройка сохранена',
+  'Preference updated': 'Настройка изменена',
   'Notification preferences saved': 'Настройки уведомлений сохранены',
   'Workspace settings saved': 'Настройки рабочего пространства сохранены',
   'Profile saved': 'Профиль сохранён',

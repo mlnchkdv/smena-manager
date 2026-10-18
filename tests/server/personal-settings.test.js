@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyPersonalSettings, persistReadStateBatches } from '../../src/shared/personal-settings.js';
+import { applyPersonalSettings, personalPreferenceData, persistReadStateBatches } from '../../src/shared/personal-settings.js';
 import { bindAccessProfiles } from '../../src/shared/member-identity.js';
+
+test('spellcheck and deletion confirmation are persisted as booleans, including false', () => {
+  assert.deepEqual(personalPreferenceData({ spell: false, confirmDel: false, role: 'Owner' }), { spell: false, confirmDel: false });
+  const database = { members: [{ id: 'me' }] };
+  applyPersonalSettings(database, 'me', { preferences: { spell: false, confirmDel: false } });
+  assert.deepEqual(database._userPrefs.me, { spell: false, confirmDel: false });
+  assert.throws(() => applyPersonalSettings(database, 'me', { preferences: { spell: 'false' } }), /Invalid/u);
+});
 
 test('mark all read stays within the API limit, deduplicates IDs and stops after a failed batch', async () => {
   const ids = Array.from({ length: 1201 }, (_, index) => `n-${index}`);

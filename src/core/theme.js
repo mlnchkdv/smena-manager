@@ -11,6 +11,7 @@ export function applyPrefs() {
   setTimeFormat(p.timeFmt);
   updateToday(p.tz);
   r.lang = locale().split('-')[0];
+  r.spellcheck = p.spell !== false;
   if (p.theme === 'system') r.removeAttribute('data-theme');
   else r.setAttribute('data-theme', p.theme);
   if (p.accent === 'indigo') r.removeAttribute('data-accent');
