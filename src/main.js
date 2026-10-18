@@ -43,7 +43,7 @@ import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
-import { workspaceRefreshDelay } from './core/workspace-refresh.js';
+import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
@@ -345,12 +345,18 @@ let workspaceRefreshFailures = 0;
 async function refreshVisibleWorkspace(showNotice = false) {
   if (S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return workspaceRefreshPromise;
   const owner = S.ui.currentUser.id;
+  const previousIdentity = JSON.stringify(S.ui.currentUser);
   const previousNotifications = new Set(myNotifications().map(notification => notification.id));
   workspaceRefreshPromise = refreshWorkspaceFromServer()
     .then(result => {
+      if (S.ui.currentUser?.id !== owner || result.status === 'session_changed') return;
       workspaceRefreshFailures = 0;
+      const flags = pollConnectionFlags(workspaceSyncState());
+      const connectionChanged = S.ui.offline !== flags.offline || S.ui.syncUnavailable !== flags.syncUnavailable;
+      Object.assign(S.ui, flags);
       if (S.ui.currentUser?.id === owner && ['current', 'updated'].includes(result.status))
         refreshChannel?.postMessage({ type: 'workspace-polled', owner, fingerprint: workspaceFingerprint() });
+      if (result.status !== 'updated' && (connectionChanged || previousIdentity !== JSON.stringify(S.ui.currentUser))) render();
       if (result.status === 'updated') {
         const freshNotifications = myNotifications().filter(notification => !previousNotifications.has(notification.id));
         render();

@@ -2,6 +2,26 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPollCoordinator } from '../../src/core/poll-coordinator.js';
 
+test('followers periodically revalidate even when the leader and revision stay unchanged', async () => {
+  const values = new Map();
+  const storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
+  const locks = { request: async (_name, callback) => callback() };
+  let time = 1000;
+  const leader = createPollCoordinator({ locks, storage, now: () => time, id: 'leader' });
+  const follower = createPollCoordinator({ locks, storage, now: () => time, id: 'follower' });
+  assert.equal(await leader.shouldPoll('owner'), true);
+  assert.equal(await follower.shouldPoll('owner'), false);
+  for (let step = 1; step <= 12; step += 1) {
+    time += 5000;
+    assert.equal(await leader.shouldPoll('owner'), true);
+    assert.equal(await follower.shouldPoll('owner'), step === 12);
+  }
+  assert.equal(JSON.parse(values.get('smena:poll:v1:owner')).id, 'leader');
+  time += 5000;
+  assert.equal(await leader.shouldPoll('owner'), true);
+  assert.equal(await follower.shouldPoll('owner'), false);
+});
+
 test('one tab polls per account and another takes over an expired or future-dated lease', async () => {
   const values = new Map();
   const storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
