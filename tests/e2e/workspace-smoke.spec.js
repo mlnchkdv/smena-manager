@@ -190,7 +190,8 @@ test('shared content, files, settings, and backups persist through core workflow
 
   await page.goto('/e2e-team/teams');
   await page.locator('[data-a="newTeam"]:visible').first().click();
-  await page.locator('#tm-name').fill('Команда регрессии');
+  const teamName = 'Команда регрессии <strong>Review</strong>';
+  await page.locator('#tm-name').fill(teamName);
   await page.locator('label.mi', { hasText: 'Тестовый администратор' }).locator('[data-a="tformMember"]').check();
   await page.locator('label.mi', { hasText: 'Проверка интерфейса' }).locator('[data-a="tformProject"]').check();
   await page.locator('[data-a="submitTeam"]').click();
@@ -200,6 +201,14 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.reload();
   await expect(page.locator('.grid2').getByText('Тестовый администратор', { exact: true })).toBeVisible();
   await expect(page.locator('.grid2 .stack > section.panel').first().getByText('Проверка интерфейса', { exact: true })).toBeVisible();
+
+  await page.goto('/e2e-team/teams');
+  await page.locator('[data-a="newTeam"]:visible').first().click();
+  await page.locator('#tm-name').fill(teamName);
+  await page.locator('[data-a="submitTeam"]').click();
+  await expect(page.locator('#tm-name-err')).toHaveText(`Команда с названием «${teamName}» уже существует.`);
+  await expect(page.locator('#tm-name-err strong')).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Отмена', exact: true }).click();
 
   const noteTitle = 'Регламент сквозной проверки';
   await page.goto('/e2e-team/knowledge');

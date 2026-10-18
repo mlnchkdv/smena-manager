@@ -15,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'People and projects will be unlinked from this team, not deleted. Workspace access and tasks will be preserved.':
+    'Участники и проекты будут отвязаны от команды, но не удалены. Доступ к пространству и задачи сохранятся.',
   'This team no longer exists. Refresh the list and try again.': 'Этой команды больше нет. Обновите список и повторите попытку.',
   Undo: 'Отменить',
   'Stored files are retained for at least 30 days and while referenced by backups.':
@@ -1599,6 +1601,7 @@ const PATTERNS = [
   [/^Signed in as (.+)$/u, 'Выполнен вход: $1'],
   [/^(.+) · Access ID$/u, '$1 · Идентификатор доступа'],
   [/^Add access to (.+)$/u, 'Добавить доступ к $1'],
+  [/^A team called “(.+)” already exists$/u, 'Команда с названием «$1» уже существует.'],
   [/^Team member email (\d+)$/u, 'Эл. почта участника $1'],
   [/^“(.+)” moved to trash$/u, '«$1» перемещено в корзину'],
   [/^Deleted (.+)$/u, 'Удалено $1'],

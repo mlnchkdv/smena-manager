@@ -109,12 +109,10 @@ A.delTeam = el => {
   if (S.ui.currentUser?.role !== 'admin') return;
   const t = team(el.dataset.id);
   if (!t) return;
-  const n = D().members.filter(x => x.team === t.id).length;
-  const np = D().projects.filter(p => p.team === t.id).length;
   S.ui.modals.pop();
   confirmDlg({
     title: `Delete ${t.name}?`,
-    body: `${n ? `<b>${n} member${n > 1 ? 's' : ''}</b> will have no team` : 'The team has no members'}${np ? ` and <b>${np} project${np > 1 ? 's' : ''}</b> will need a new team` : ''}. People and projects are not deleted.`,
+    body: 'People and projects will be unlinked from this team, not deleted. Workspace access and tasks will be preserved.',
     ok: 'Delete team',
     danger: true,
     icon: 'users',
