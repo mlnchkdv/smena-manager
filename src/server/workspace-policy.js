@@ -2,6 +2,7 @@ import { canEditProject, canReadProject, entityProjectId, projectAccess, trashPr
 import { memberForProfile } from '../shared/member-identity.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
+import { entityAllowed } from '../shared/relations.js';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const FILE_FIELDS = ['storageFileId', 'storageName', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
@@ -35,6 +36,9 @@ export function projectWorkspace(database, user) {
     return project ? canReadProject(project, memberId, user.role) : user.role === 'admin' || item.deletedBy === memberId;
   });
   data.sessions = [];
+  data.relations = (data.relations || []).filter(
+    edge => entityAllowed(data, edge.from, { role: user.role, memberId }) && entityAllowed(data, edge.to, { role: user.role, memberId }),
+  );
   data.invoices = [];
   for (const key of Object.keys(data)) if (key.startsWith('_')) delete data[key];
   return data;
@@ -166,5 +170,21 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
     ];
   }
   validateClientFiles(current, candidate, role, memberId);
+  if (Object.hasOwn(incoming, 'relations')) {
+    if (!Array.isArray(incoming.relations)) throw permissionError('relations');
+    const exposed = new Set((visible.relations || []).map(edge => edge.id));
+    const before = new Map((current.relations || []).map(edge => [edge.id, edge]));
+    for (const edge of incoming.relations) {
+      const previous = before.get(edge.id);
+      if (previous && same(previous, edge)) continue;
+      if (previous && !exposed.has(edge.id)) throw permissionError('relations');
+      const targets = [edge.from, edge.to, ...(previous ? [previous.from, previous.to] : [])];
+      if (targets.some(key => !entityAllowed(candidate, key, { role, memberId }, true))) throw permissionError('relations');
+      if (previous?.deletedAt && !edge.deletedAt) throw permissionError('relations');
+    }
+    const incomingIds = new Set(incoming.relations.map(edge => edge.id));
+    if ((visible.relations || []).some(edge => !incomingIds.has(edge.id))) throw permissionError('relations');
+    candidate.relations = [...(current.relations || []).filter(edge => !exposed.has(edge.id)), ...incoming.relations];
+  }
   return candidate;
 }

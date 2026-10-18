@@ -1,4 +1,5 @@
 const EMPTY_COLLECTIONS = [
+  'relations',
   'workspaces',
   'projects',
   'tasks',

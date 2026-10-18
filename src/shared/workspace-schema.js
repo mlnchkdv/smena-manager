@@ -1,3 +1,4 @@
+import { ENTITY_COLLECTIONS, RELATION_TYPES } from './relations.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -38,6 +39,19 @@ export class WorkspaceValidationError extends TypeError {
 export function validateWorkspaceData(value) {
   if (!isObject(value)) throw new WorkspaceValidationError(['workspace']);
   const invalid = [];
+  if (value.relations != null) {
+    if (!validEntityArray(value.relations) || value.relations.length > 20000) invalid.push('relations');
+    else
+      for (const relation of value.relations) {
+        const validEndpoint = key =>
+          typeof key === 'string' && Object.keys(ENTITY_COLLECTIONS).some(kind => key.startsWith(`${kind}:`) && validIdentity(key.slice(kind.length + 1)));
+        if (!validEndpoint(relation.from) || !validEndpoint(relation.to) || relation.from === relation.to || !Object.hasOwn(RELATION_TYPES, relation.type))
+          invalid.push('relations.endpoint');
+        for (const field of ['createdAt', 'deletedAt'])
+          if (relation[field] != null && (typeof relation[field] !== 'string' || !Number.isFinite(Date.parse(relation[field]))))
+            invalid.push(`relations.${field}`);
+      }
+  }
   for (const field of OBJECT_ARRAY_FIELDS) {
     const collection = value[field];
     if (!Array.isArray(collection) || collection.some(item => !isObject(item))) invalid.push(field);
@@ -185,6 +199,14 @@ export function validateDocumentInput(name, value) {
     for (const id of [...path].reverse()) resolved.set(id, ++depth);
   }
   for (const item of value[contentField]) {
+    if (
+      item.wikiRefs != null &&
+      (!Array.isArray(item.wikiRefs) ||
+        item.wikiRefs.some(
+          ref => !isObject(ref) || typeof ref.label !== 'string' || typeof ref.target !== 'string' || (ref.target && !validIdentity(ref.target)),
+        ))
+    )
+      invalid.push(`${contentField}.wikiRefs`);
     if (item[contentFolder] != null && item[contentFolder] !== '' && !folders.has(item[contentFolder])) invalid.push(`${contentField}.folder`);
     for (const field of ['title', 'summary', 'formatted_markdown', 'description', 'url'])
       if (item[field] != null && typeof item[field] !== 'string') invalid.push(`${contentField}.${field}`);
