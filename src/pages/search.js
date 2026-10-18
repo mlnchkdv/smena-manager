@@ -23,7 +23,7 @@ export function pageSearch() {
   const visibleTotal = cat === 'all' ? total : r[cat]?.length || 0;
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
-      ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px">${title} · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
+      ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
     <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
