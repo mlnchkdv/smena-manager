@@ -42,7 +42,7 @@ import { resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
-import { disableWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
+import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
@@ -139,7 +139,10 @@ function updateSyncIndicator(status) {
 
 async function handleWorkspaceConflict() {
   if (conflictRecoveryPromise) return conflictRecoveryPromise;
-  conflictRecoveryPromise = recoverWorkspaceConflict()
+  // Core and knowledge documents share the Drive aggregate. Finish sibling
+  // writes before reading its revision, otherwise our own write can race the merge.
+  conflictRecoveryPromise = retryWorkspaceSync()
+    .then(() => recoverWorkspaceConflict())
     .then(result => {
       if (result.status === 'merged') {
         S.ui.syncConflict = workspaceSyncState().hasConflict;
