@@ -107,6 +107,7 @@ export const getAuthConfig = () => request('/api/auth/config');
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);
 export const retryNotificationDelivery = () => request('/api/notifications/retry', { method: 'POST' }, true);
+export const sendTestNotification = channel => request('/api/notifications/test', { method: 'POST', body: JSON.stringify({ channel }) }, true);
 export const commitPortableImport = (payload, revision, conflictPolicy) =>
   request('/api/import/portable', { method: 'POST', body: JSON.stringify({ payload, revision, conflictPolicy }) }, true);
 

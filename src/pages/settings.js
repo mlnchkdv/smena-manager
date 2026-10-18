@@ -128,6 +128,9 @@ function deliveryStatusPanel() {
             .join('')}</ul>`
         : ''
     }
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="email" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test email to me</button><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="push" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test push to me</button></div>
+    <p class="hint">Tests go only to your account, not to the team. Provider acceptance does not confirm receipt on your device.</p>
+    ${S.ui.testNotificationResult ? `<div role="status" class="alert ${S.ui.testNotificationResult.delivered ? 'success' : 'warn'}"><span>${esc(tr(S.ui.testNotificationResult.channel === 'email' ? 'Test email' : 'Test push'))}: ${esc(S.ui.testNotificationResult.recipient)} · ${esc(tr('Accepted'))}: ${Number(S.ui.testNotificationResult.delivered || 0)} · ${esc(tr('Failed'))}: ${Number(S.ui.testNotificationResult.failed || 0)} · ${esc(tr('Attempted'))}: ${Number(S.ui.testNotificationResult.attempted || 0)} · ${settingsTimestamp(S.ui.testNotificationResult.at)}</span></div>` : ''}
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>

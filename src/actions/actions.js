@@ -47,6 +47,7 @@ import {
   getStorageStatus,
   getNotificationDeliveryStatus,
   retryNotificationDelivery,
+  sendTestNotification,
   getAuthSessions,
   getWorkspaceBackups,
   revokeAuthSession,
@@ -2921,6 +2922,19 @@ A.retryNotificationDelivery = async () => {
     toast(error.message, { kind: 'err' });
   } finally {
     S.ui.notificationDeliveryLoading = false;
+    render();
+  }
+};
+A.testNotificationDelivery = async el => {
+  if (S.ui.currentUser?.role !== 'admin' || S.ui.testNotificationSending) return;
+  S.ui.testNotificationSending = true;
+  render();
+  try {
+    S.ui.testNotificationResult = await sendTestNotification(el.dataset.channel);
+  } catch (error) {
+    toast(error.message || 'Unable to send test notification.', { kind: 'err', ms: 8000 });
+  } finally {
+    S.ui.testNotificationSending = false;
     render();
   }
 };

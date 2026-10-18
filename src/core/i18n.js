@@ -15,6 +15,17 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Send test email to me': 'Отправить мне тестовое письмо',
+  'Send test push to me': 'Отправить мне тестовый push',
+  'Tests go only to your account, not to the team. Provider acceptance does not confirm receipt on your device.':
+    'Тесты отправляются только вам, не команде. Принятие сервисом не подтверждает получение на устройстве.',
+  'Test email': 'Тестовое письмо',
+  'Test push': 'Тестовый push',
+  Accepted: 'Принято сервисом',
+  Attempted: 'Попыток',
+  Failed: 'Ошибок',
+  'Unable to send test notification.': 'Не удалось отправить тестовое уведомление.',
+  'Please wait one minute before another test.': 'Подождите минуту перед следующим тестом.',
   'Independent recovery export': 'Независимая копия для восстановления',
   'Includes workspace data and attachments up to 100 MB total. Store this confidential export outside Google Drive.':
     'Включает данные пространства и вложения общим размером до 100 МБ. Храните эту конфиденциальную копию вне Google Диска.',

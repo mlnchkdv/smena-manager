@@ -41,6 +41,7 @@ import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from 
 import { setSessionCookie } from './session-cookie.js';
 import { applyPersonalSettings } from '../shared/personal-settings.js';
 import { writeRecoveryBundle } from './recovery-bundle.js';
+import { sendOwnTestNotification } from './test-notification.js';
 
 export const app = express();
 
@@ -230,6 +231,26 @@ app.post('/api/notifications/retry', requireRole('admin'), async (_request, resp
   try {
     const result = await retryNotificationOutbox();
     response.json({ result, ...(await notificationDeliveryStatus()) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const testNotificationCooldowns = new Map();
+app.post('/api/notifications/test', requireRole('admin'), async (request, response, next) => {
+  try {
+    const channel = request.body?.channel;
+    if (!['email', 'push'].includes(channel)) return response.status(400).json({ error: 'Invalid notification channel.' });
+    const now = Date.now();
+    for (const [key, until] of testNotificationCooldowns) if (until <= now) testNotificationCooldowns.delete(key);
+    const key = `${request.user.id}:${channel}`;
+    if (testNotificationCooldowns.has(key)) return response.status(429).json({ error: 'Please wait one minute before another test.' });
+    testNotificationCooldowns.set(key, now + 60_000);
+    const stored = await getWorkspaceDatabase();
+    const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
+    // Recipient is resolved from the authenticated profile, never accepted from the request body.
+    if (!member || member.email?.toLowerCase() !== request.user.email?.toLowerCase()) throw permissionError('profile');
+    response.json(await sendOwnTestNotification(stored, member, channel));
   } catch (error) {
     next(error);
   }
