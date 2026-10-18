@@ -8,14 +8,15 @@
     "partial": "Concrete implementation delivered, named engineering follow-ups remain."
   },
   "checks": {
-    "serverTests": "215 passed",
+    "serverTests": "230/230 passed on Node.js 22; current local Node.js regression also passed",
     "lint": "passed",
     "format": "passed",
-    "build": "passed, including isolated browser production build",
-    "browsers": "12/12 final default scenarios passed; 6/6 extended PDF/thumbnail/pagination scenarios passed across Chromium, Firefox and WebKit",
-    "production": "Latest code deployment: /api/health 200, /api/auth/config 200, /api/workspace 401 without authentication",
-    "dependencyAudit": "0 known vulnerabilities after current sanitizer compatibility fix",
-    "googleConsole": "Read-only check of kms-brain-storage under designated account: External / In production; verification required; registered restricted drive scope unverified. Only drive appears in the configured scope list. No settings changed."
+    "build": "passed; initial JS 499.54 kB minified / 151.63 kB gzip, no chunk-size warning",
+    "browsers": "12/12 full scenarios passed after account-context and lazy-action changes; 3/3 additional PDF/thumbnail scenarios passed on Chromium, Firefox and WebKit after lazy-thumbnail change; RU/EN WCAG scenario passed separately",
+    "production": "Public GET smoke passed: / 200, /api/health 200, /api/auth/config 200, /api/workspace 401 without authentication",
+    "dependencyAudit": "0 known vulnerabilities",
+    "googleConsole": "Read-only check of kms-brain-storage under designated account: External / In production; verification required; registered restricted drive scope unverified. Only drive appears in the configured scope list. No settings changed.",
+    "deploymentSmoke": "GitHub repository_dispatch production run verified successful: https://github.com/mlnchkdv/smena-manager/actions/runs/39088906502"
   },
   "items": [
     {
@@ -62,7 +63,7 @@
       "id": "A07",
       "status": "implemented",
       "implementation": "Scoped IndexedDB journal, offline reload recovery, quota warning and draft export",
-      "evidence": "c88a0ec,f7ac693,0586aaa,622ff6e",
+      "evidence": "c88a0ec,f7ac693,0586aaa,622ff6e,499b743",
       "remaining": "Browser storage exhaustion is injected in unit tests, not forced on a real device"
     },
     {
@@ -106,7 +107,7 @@
       "id": "A14",
       "status": "implemented",
       "implementation": "HttpOnly cookies, session revocation, stale-response guards and shared login limiter",
-      "evidence": "f2edf92,083f68d,387fca5"
+      "evidence": "f2edf92,083f68d,387fca5,7f15abf"
     },
     {
       "id": "A15",
@@ -119,7 +120,7 @@
       "id": "A16",
       "status": "implemented",
       "implementation": "ID-based mentions, self-mentions, comment/description/status events and recipient-localized deep links",
-      "evidence": "e07fe53,f8094b2",
+      "evidence": "e07fe53,f8094b2,aa11661",
       "remaining": "Real-device channel acceptance"
     },
     {
@@ -154,7 +155,7 @@
       "id": "A21",
       "status": "implemented",
       "implementation": "Personal preferences, profile and notification read state available independently of project-edit roles",
-      "evidence": "12e4433"
+      "evidence": "12e4433,499b743,aa11661,6935c76"
     },
     {
       "id": "A22",
@@ -191,28 +192,28 @@
       "id": "A27",
       "status": "acceptance_pending",
       "implementation": "Loading semantics, roving tabs, keyboard handling, RU/EN and adaptive automated checks",
-      "evidence": "2dedce3,4c9a718",
+      "evidence": "2dedce3,4c9a718,6935c76",
       "remaining": "Real iOS/Android keyboards, Google popup, PWA push, screen reader and full 200% zoom matrix"
     },
     {
       "id": "A28",
       "status": "partial",
       "implementation": "Single metadata check, backoff, cross-tab poll coordinator, linear bounded search and task/file pagination",
-      "evidence": "387fca5,0a302f1,6e2fb35,af4c851,622ff6e",
+      "evidence": "387fca5,0a302f1,6e2fb35,af4c851,622ff6e,aa1b3d9,c7f3bc3",
       "remaining": "Entity-oriented mutation API, paginated data transport and incremental DOM rendering remain engineering follow-ups. Fixture: 1k tasks/comments 831389 bytes; 10k 8373390 bytes exceeds the 4 MiB ceiling."
     },
     {
       "id": "A29",
       "status": "acceptance_pending",
       "implementation": "Protected readiness, request IDs, provider timeouts/redaction, operational docs and production bootstrap regression",
-      "evidence": "f2bc1b0,fe85b2d,d177775,967cc2e",
+      "evidence": "f2bc1b0,fe85b2d,d177775,967cc2e,1e8e6a7,de41fd2",
       "remaining": "Google Console publishing mode confirmed production, but restricted Drive scope remains unverified. Protected production readiness, Gmail token scope/delivery, independent alerts and credential-lifecycle acceptance remain."
     },
     {
       "id": "A30",
       "status": "partial",
       "implementation": "Isolated immutable browser builds, three engines, schema migration, domain extraction and regression coverage",
-      "evidence": "c3bf828,6154a5e,6e2fb35,d177775",
+      "evidence": "c3bf828,6154a5e,6e2fb35,d177775,1e8e6a7,de41fd2,c7f3bc3",
       "remaining": "Further decomposition of legacy actions/rendering and a dedicated staged-deployment smoke gate"
     }
   ],
@@ -226,5 +227,57 @@
     "implemented": 23,
     "acceptancePending": 5,
     "partial": 2
+  },
+  "followup": {
+    "date": "2026-10-18",
+    "changes": [
+      {
+        "issue": "Unchanged successful polls left stale read-outage indicators; follower tabs could miss session changes indefinitely",
+        "fix": "Recover read state without hiding pending write errors; follower session revalidation every minute",
+        "commit": "aa1b3d9"
+      },
+      {
+        "issue": "Personal preference writes were memory-only, had no automatic retry and could overwrite unrelated remote settings",
+        "fix": "Scoped durable preference delta journal, bounded backoff, reload recovery and account/session generation guards",
+        "commit": "499b743"
+      },
+      {
+        "issue": "Mark-all-read failed above 500 IDs; rapid toggles could be written out of order; failed marks remained optimistic",
+        "fix": "Serialize personal mutations, batch read updates and roll back only unsaved/latest optimistic edits",
+        "commit": "aa11661"
+      },
+      {
+        "issue": "No check of the running deployment; immutable production URL redirected to Vercel SSO",
+        "fix": "Credential-free public-alias smoke checks after production success events; bounded bodies and no redirect following",
+        "commits": "1e8e6a7,de41fd2"
+      },
+      {
+        "issue": "Spellcheck/deletion confirmation were not persisted; English accessible labels exposed internal field keys",
+        "fix": "Boolean preferences and spellcheck inheritance; labels match visible settings titles",
+        "commit": "6935c76"
+      },
+      {
+        "issue": "Another tab's cookie switch could submit a previous account's intent under the new account",
+        "fix": "Server-verified expected-account context for API/upload/download/export; stop old tab without clearing the new shared session",
+        "commit": "7f15abf"
+      },
+      {
+        "issue": "Start-up code grew past the chunk warning threshold",
+        "fix": "On-demand personal-action and thumbnail modules, preserving account checks and fallback placeholders",
+        "commit": "c7f3bc3"
+      }
+    ],
+    "manualBrowserAcceptance": [
+      "With PUT /api/preferences failing 503, English choice survived reload and was subsequently verified saved on the local server after writes resumed.",
+      "Spellcheck=false survived reload and document.documentElement.spellcheck was false.",
+      "Two synthetic accounts sharing one browser cookie: old tab stopped with an account-change warning, new tab stayed signed in and retained its own default language.",
+      "Mobile viewport 390x844: no horizontal document overflow after preference recovery."
+    ],
+    "remaining": [
+      "A28: entity-oriented mutations, paginated data transport and incremental rendering beyond the 4 MiB document ceiling.",
+      "A30: isolated staging with a pre-promotion gate remains separate from the implemented post-production smoke check.",
+      "Real Google verification, authorized email/push acceptance, mobile PWA and independent production recovery drill remain unverified."
+    ],
+    "safety": "Only synthetic local data was mutated during browser acceptance. Production checks were public reads. No real email/push was sent and no Google consent/credentials were modified."
   }
 }

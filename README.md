@@ -198,6 +198,19 @@ If browser storage is unavailable or full, saving to the server still works, but
 remain in the open tab. The warning provides a JSON draft download; this is not a binary recovery
 bundle and should not be treated as a substitute for one.
 
+Personal display preferences have their own account/workspace-scoped journal and retry queue. They
+recover after reload, send only fields changed locally, and stop on a session change. Defaults reset
+when another account signs in. Spellcheck and deletion confirmation are persisted booleans; disabling
+spellcheck is inherited by the app's text editors. Notification read changes are serialized and bulk
+read operations use at most 500 IDs per request, stop on failure, and roll back unsaved UI marks.
+
+The browser binds authenticated API requests to its loaded account with `X-Smena-Account`; the server
+compares this context with the verified session, not with a client-selected permission. A cookie
+changed in another tab causes a mismatch rather than writing under the new account. The old tab stops
+its queues without clearing the new account's shared session. Recovery download links carry the same
+expected account as a query parameter. Reload existing tabs after deployment to adopt the new client
+guard; legacy requests remain subject to the normal server session/ACL checks.
+
 The current JSON transport ceiling is 4 MiB per logical document, independent of binary uploads.
 Pagination bounds displayed task/file rows but does not raise that ceiling. A representative local
 fixture with descriptions and one comment per task measured 831,389 bytes for 1,000 tasks and
@@ -301,6 +314,26 @@ Remove-Item Env:E2E_EXTENDED_BROWSERS
 Tests use isolated local storage, ports and build artifacts with external delivery credentials disabled.
 Desktop emulation does not replace Google popup, mobile keyboard or installed-PWA push acceptance on
 real iOS/Android devices.
+
+Personal mutation handlers and file-thumbnail code load only when first needed. A failed optional
+thumbnail load keeps the normal placeholder and file actions. Deferred personal actions check the
+account/session context again before running; a late module load cannot apply a previous account's
+action to the new session.
+
+`.github/workflows/deployment-smoke.yml` runs public, read-only smoke checks after production
+`vercel.deployment.success` events and supports manual runs. It checks the frontend module entry,
+API health, usable sign-in configuration and HTTP 401 for unauthenticated workspace access. The
+automatic run targets the public production alias: immutable Vercel URLs can redirect to SSO even
+when the public app is available. Checks never follow redirects, send credentials, bypass protection,
+or perform workspace writes. They are a post-deployment check, not a pre-promotion staging gate or
+proof of Drive/Gmail readiness. Event integration follows the
+[Vercel GitHub documentation](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events).
+
+Run the same checks manually without local Google credentials:
+
+```powershell
+npm run check:live
+```
 
 ## Deploy
 
