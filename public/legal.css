@@ -54,6 +54,7 @@ main,
   text-decoration: none;
 }
 main {
+  overflow-wrap: anywhere;
   margin-top: 32px;
   margin-bottom: 32px;
   padding: clamp(24px, 5vw, 56px);
