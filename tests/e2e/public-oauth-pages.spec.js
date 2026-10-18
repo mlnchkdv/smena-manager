@@ -13,11 +13,14 @@ test('public Google OAuth disclosure pages are accessible and responsive without
     for (const viewport of [
       { width: 1440, height: 900 },
       { width: 390, height: 844 },
+      { width: 320, height: 568 },
     ]) {
       await page.setViewportSize(viewport);
       await page.goto(path);
       await expect(page.locator('h1')).toHaveText(heading);
       await expect(page.locator('details[lang="en"] summary')).toHaveText('English version');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      await page.locator('details[lang="en"] summary').click();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     }
   }
