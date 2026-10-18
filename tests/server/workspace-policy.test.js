@@ -97,6 +97,9 @@ test('unsafe identity strings and active markup reaction names are rejected', ()
   assert.ok(validateWorkspaceData(data));
   data.comments[0].re = { '<button>': ['m'] };
   assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  const workspace = createEmptyDatabase();
+  workspace.ws = { c: '#fff" data-a="signOut' };
+  assert.throws(() => validateWorkspaceData(workspace), { code: 'WORKSPACE_INVALID' });
 });
 
 test('filtered updates preserve hidden records and reject forged edits', () => {

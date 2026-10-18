@@ -14,6 +14,7 @@ export function createWorkspaceSync(options = {}) {
   const notify = options.notify || browserNotify;
   const schedule = options.schedule || setTimeout;
   const cancel = options.cancel || clearTimeout;
+  const journalFactory = options.createJournal || createDraftJournal;
   let revision = 0;
   let enabled = false;
   let pending = null;
@@ -33,7 +34,7 @@ export function createWorkspaceSync(options = {}) {
     generation += 1;
     activePromise = null;
     lastError = null;
-    journal = context?.owner ? createDraftJournal(context) : null;
+    journal = context?.owner ? journalFactory(context) : null;
     revision = Number(nextRevision || 0);
     enabled = role === 'admin' || role === 'editor';
     pending = null;

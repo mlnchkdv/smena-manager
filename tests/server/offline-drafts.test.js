@@ -1,6 +1,32 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDraftJournal } from '../../src/core/offline-drafts.js';
+import { createWorkspaceSync } from '../../src/core/workspace-sync.js';
+
+test('quota failures warn explicitly without blocking a successful server save', async () => {
+  const events = [];
+  let writes = 0;
+  const sync = createWorkspaceSync({
+    createJournal: () => ({
+      save: async () => {
+        throw Object.assign(new Error('Quota'), { name: 'QuotaExceededError' });
+      },
+      acknowledge: async () => {},
+    }),
+    writeWorkspace: async data => {
+      writes += 1;
+      return { data: { ...data, revision: 2 } };
+    },
+    notify: event => events.push(event),
+  });
+  sync.configure(1, 'editor', { value: 'A' }, { owner: 'alice', workspace: 'team', scope: 'workspace' });
+  await sync.queue({ value: 'B' });
+  assert.equal(writes, 1);
+  assert.ok(events.some(event => event.status === 'recovery_unavailable'));
+  assert.ok(events.some(event => event.status === 'saved'));
+  assert.equal(sync.state().hasPending, false);
+  sync.disable();
+});
 
 test('drafts survive journal recreation and are isolated by owner, workspace and document', async () => {
   const records = new Map();

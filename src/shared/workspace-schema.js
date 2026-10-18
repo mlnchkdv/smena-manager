@@ -52,6 +52,16 @@ export function validateWorkspaceData(value) {
   }
   if (value.me != null && typeof value.me !== 'string') invalid.push('me');
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
+  if (isObject(value.ws)) {
+    if (value.ws.c != null && (typeof value.ws.c !== 'string' || !/^#[\da-f]{6}$/iu.test(value.ws.c))) invalid.push('ws.c');
+    for (const field of ['name', 'url'])
+      if (value.ws[field] != null && (typeof value.ws[field] !== 'string' || value.ws[field].length > 500)) invalid.push(`ws.${field}`);
+    if (
+      value.ws.permissions != null &&
+      (!isObject(value.ws.permissions) || (value.ws.permissions.createProjects != null && typeof value.ws.permissions.createProjects !== 'boolean'))
+    )
+      invalid.push('ws.permissions');
+  }
   for (const field of [...OBJECT_ARRAY_FIELDS, 'teams']) {
     if (!Array.isArray(value[field])) continue;
     const ids = value[field].map(item => item?.id);
