@@ -47,11 +47,11 @@ export function relationPicker(m) {
       (!m.kind || node.kind === m.kind) &&
       [node.title, node.item.url, ...(node.tags || [])].join(' ').toLocaleLowerCase().includes(query),
   );
-  return `<div class="modal-h"><h2>Add connection</h2><button class="ibtn" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div><div class="modal-b relation-picker"><label class="label" for="relation-search">Find material</label><input id="relation-search" class="input" data-in="relationQuery" value="${esc(m.query || '')}" placeholder="Search notes, bookmarks, files, projects and tasks" autofocus><div class="relation-picker-filters"><label class="field"><span class="label">Material type</span><select class="select" data-in="relationKind"><option value="">All types</option>${Object.entries(
+  return `<div class="modal-h"><h2>Add connection</h2><button class="ibtn" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div><div class="modal-b relation-picker"><label class="label" for="relation-search">Find material</label><input id="relation-search" class="input" data-in="relationQuery" value="${esc(m.query || '')}" placeholder="Search notes, bookmarks, files, projects and tasks" autofocus><div class="relation-picker-filters"><label class="field"><span class="label">Material type</span><select class="select" data-in="relationKind" aria-label="Material type" ${m.wikiLabel ? 'disabled' : ''}><option value="">All types</option>${Object.entries(
     ENTITY_LABELS,
   )
     .map(([kind, label]) => `<option value="${kind}" ${m.kind === kind ? 'selected' : ''}>${label}</option>`)
-    .join('')}</select></label><label class="field"><span class="label">Connection type</span><select class="select" data-in="relationType">${Object.entries(
+    .join('')}</select></label><label class="field"><span class="label">Connection type</span><select class="select" data-in="relationType" aria-label="Connection type" ${m.wikiLabel ? 'disabled' : ''}>${Object.entries(
     RELATION_TYPES,
   )
     .map(([type, label]) => `<option value="${type}" ${(m.relationType || 'related') === type ? 'selected' : ''}>${label}</option>`)
