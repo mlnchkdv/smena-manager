@@ -204,7 +204,7 @@ export function render() {
   // Return focus to whatever opened a surface that just closed; otherwise keep the control that had it.
   const lost = () => !document.activeElement || document.activeElement === document.body;
   if (prevOv.modals > ov.modals) {
-    const k = S.ui.modalOpeners.splice(ov.modals).shift();
+    const k = (S.ui.modalOpeners ||= []).splice(ov.modals).shift();
     if (lost()) tryFocus(k);
   }
   if (prevOv.pop && !ov.pop && lost()) tryFocus(S.ui.popOpener);
