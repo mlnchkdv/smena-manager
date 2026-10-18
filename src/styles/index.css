@@ -18,5 +18,6 @@
 @import './pages/knowledge.css';
 @import './pages/bookmarks.css';
 @import './pages/files.css';
+@import './pages/graph.css';
 @import './motion.css';
 @import './responsive.css';

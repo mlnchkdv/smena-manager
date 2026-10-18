@@ -8,6 +8,7 @@ import { ensureFilePreview } from '../core/file-preview.js';
 import { focusKey, render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
 import { t as tr, templateText } from '../core/i18n.js';
+import { relationPicker, relationsPanel } from '../ui/relations.js';
 
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
@@ -33,6 +34,8 @@ export function modalHtml(m) {
     `<div class="modal-h"><div><h2 id="mt-${m.type}">${title}</h2>${sub ? `<div class="muted" style="font-size:12.5px;margin-top:2px">${sub}</div>` : ''}</div><button class="ibtn ibtn-sm" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div>`;
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
+    case 'relations':
+      return wrap('md', relationPicker(m).replace('<h2>', '<h2 id="mt-relations">'));
     case 'syncRecovery': {
       const recovery = S.ui.syncRecovery;
       if (!recovery || recovery.owner !== S.ui.currentUser?.id) return '';
@@ -391,6 +394,6 @@ export function filePreviewModal(m, H) {
         : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
   return `${H(`<span translate="no">${esc(f.name)}</span>`, `${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} ${esc(mem(f.by)?.name || tr('You'))} ${ago(f.at)}`)}
   <div class="modal-b">${preview.kind === 'pdf' ? `<div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page - 1}" ${preview.loading || preview.page === 1 ? 'disabled' : ''}>Previous</button><span><span>Page</span> ${preview.page} / ${preview.pages}</span><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page + 1}" ${preview.loading || preview.page === preview.pages ? 'disabled' : ''}>Next</button></div>` : ''}<div class="file-preview-content" aria-busy="${Boolean(preview.loading)}">${content}</div>
-  ${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}</div>
+  ${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}${relationsPanel(`file:${f.id}`)}</div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-fid="${f.id}">${ic('link', 14)}Copy link</button>${f.storageName ? `<button class="btn btn-secondary" data-a="downloadStoredFile" data-id="${f.id}">${ic('download', 14)}Download</button>` : ''}<span class="sp"></span><button class="btn btn-primary" data-a="closeModal">Close</button></div>`;
 }

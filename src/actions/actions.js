@@ -62,6 +62,8 @@ import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
+import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity } from '../shared/relations.js';
+import { graphOptions } from '../ui/relations.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
@@ -561,6 +563,7 @@ IN.knowledgeField = el => {
   if (S.ui.currentUser?.role === 'viewer') return;
   const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
   if (!note) return;
+  bindWikiReferences(D().knowledgeNotes);
   const field = el.dataset.field;
   if (field === 'tags')
     note.tags = [
@@ -573,6 +576,7 @@ IN.knowledgeField = el => {
     ];
   else note[field] = el.value || (field === 'folderId' ? null : '');
   if (field === 'formatted_markdown') note.wikilinks = extractWikiLinks(note.formatted_markdown);
+  if (field === 'formatted_markdown') bindWikiReferences(D().knowledgeNotes);
   note.updatedAt = new Date().toISOString();
   note.updatedBy = D().me;
   save();
@@ -587,6 +591,60 @@ BLUR.knowledgeField = el => {
 };
 
 /* ---------- shared bookmarks ---------- */
+A.addRelationPicker = el => {
+  if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;
+  openModal({ type: 'relations', source: el.dataset.key, query: '', kind: '', relationType: 'related' });
+};
+IN.relationQuery = el => {
+  S.ui.modals.at(-1).query = el.value;
+  render();
+};
+IN.relationKind = el => {
+  S.ui.modals.at(-1).kind = el.value;
+  render();
+};
+IN.relationType = el => {
+  S.ui.modals.at(-1).relationType = el.value;
+};
+A.createRelation = el => {
+  const modal = S.ui.modals.at(-1);
+  if (modal?.type !== 'relations' || !Object.hasOwn(RELATION_TYPES, modal.relationType)) return;
+  const from = modal.source,
+    to = el.dataset.key;
+  if (from === to || ![from, to].every(key => entityAllowed(D(), key, graphOptions(), true))) return;
+  mutate(() => {
+    D().relations ||= [];
+    if (!D().relations.some(edge => !edge.deletedAt && edge.from === from && edge.to === to && edge.type === modal.relationType))
+      D().relations.push({ id: uid('rel'), from, to, type: modal.relationType, createdBy: D().me, createdAt: new Date().toISOString() });
+    S.ui.modals.pop();
+  });
+};
+A.removeRelation = el => {
+  const edge = D().relations?.find(item => item.id === el.dataset.id);
+  if (!edge || ![edge.from, edge.to].every(key => entityAllowed(D(), key, graphOptions(), true))) return;
+  mutate(() => {
+    edge.deletedAt = new Date().toISOString();
+  });
+};
+A.openRelatedEntity = el => {
+  const key = el.dataset.key;
+  if (!entityAllowed(D(), key, graphOptions())) return;
+  const entity = resolveGraphEntity(D(), key);
+  S.ui.modals = [];
+  S.ui.drawer = null;
+  if (entity.kind === 'note') A.goKnowledgeNote({ dataset: { id: entity.id } });
+  else if (entity.kind === 'bookmark') A.goBookmark({ dataset: { id: entity.id } });
+  else if (entity.kind === 'file') A.previewFile({ dataset: { id: entity.id } });
+  else if (entity.kind === 'task') A.openTask({ dataset: { id: entity.id } });
+  else go('project', { id: entity.id });
+};
+A.showGraph = el => {
+  S.ui.graphCenter = el.dataset.key || '';
+  S.ui.graphSelected = S.ui.graphCenter;
+  S.ui.modals = [];
+  S.ui.drawer = null;
+  go('graph');
+};
 A.newBookmark = () => {
   S.ui.bookmarkEditing = null;
   S.ui.bookmarkDraft = emptyBookmarkDraft(S.ui.bookmarkFolder !== 'all' && S.ui.bookmarkFolder !== 'root' ? S.ui.bookmarkFolder : '');

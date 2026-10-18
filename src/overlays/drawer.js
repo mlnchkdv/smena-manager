@@ -13,6 +13,7 @@ import { paletteHtml } from './palette.js';
 import { subtaskHtml } from '../features/subtasks.js';
 import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 import { safeRichText } from '../ui/rich-text.js';
+import { relationsPanel } from '../ui/relations.js';
 
 export function renderLayer() {
   const u = S.ui;
@@ -96,6 +97,7 @@ export function drawerHtml(t) {
         ${t.attachments.length ? `<div class="att">${t.attachments.map(f => `<div class="attc" data-a="filePreview" data-tid="${t.id}" data-aid="${f.id}" role="button" tabindex="0">${filePrev(f)}<div class="fi"><div class="trunc" style="font-weight:500">${esc(f.name)}</div><div class="faint">${FT[f.type]?.n || 'File'} · ${f.size}</div></div><button class="ibtn ibtn-xs x" data-a="rmAttach" data-id="${t.id}" data-aid="${f.id}" aria-label="Remove attachment">${ic('x', 12)}</button></div>`).join('')}</div>` : !ups.length ? `<label class="dropzone" style="padding:12px" data-dropzone-task="${t.id}">${ic('paperclip', 15)}<span>Drop files or click to attach</span><input type="file" multiple hidden data-in="uploadFiles" data-task="${t.id}" data-project="${t.project}"></label>` : ''}
       </div>
 
+      ${relationsPanel(`task:${t.id}`)}
       <div class="dsec">
         <div class="tabs" style="margin-bottom:6px">${[
           ['comments', `Comments`, cs.length],

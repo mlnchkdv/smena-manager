@@ -2,6 +2,7 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
+import { relationsPanel } from '../ui/relations.js';
 
 const IMPORTANCE = {
   low: { label: 'Low', icon: 'minus', tone: 'muted' },
@@ -69,6 +70,7 @@ function bookmarkCard(link, folders, readOnly) {
         ? ''
         : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><button class="ibtn ibtn-xs" data-a="copyBookmark" data-id="${link.id}" data-tip="Copy link" aria-label="Copy link">${ic('copy', 14)}</button><button class="ibtn ibtn-xs" data-a="editBookmark" data-id="${link.id}" data-tip="Edit bookmark" aria-label="Edit bookmark">${ic('pencil', 14)}</button><button class="ibtn ibtn-xs" data-a="toggleBookmarkArchive" data-id="${link.id}" data-tip="${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}" aria-label="${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}</button><button class="ibtn ibtn-xs danger" data-a="deleteBookmark" data-id="${link.id}" data-tip="Delete bookmark" aria-label="Delete bookmark">${ic('trash-2', 14)}</button>`
     }</div>
+    ${relationsPanel(`bookmark:${link.id}`, true)}
   </article>`;
 }
 
