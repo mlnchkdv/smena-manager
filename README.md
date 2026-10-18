@@ -496,6 +496,34 @@ and 320 px RU/EN team dialogs passed in Chromium, Firefox and WebKit; screenshot
 The full Russian section sweep passed at 390, 768, 1024 and 1440 px. Build, lint and formatting passed.
 All writes in these acceptance tests used isolated local data, not the team's production workspace.
 
+### Search, knowledge and bookmarks follow-up audit (2026-10-18)
+
+Search now distinguishes an empty selected category from matches elsewhere. Workspace-level file
+results open the file preview rather than a missing project, and unknown file types, missing authors
+and absent project descriptions no longer break the result renderer. Query matching ignores outer
+spaces without removing spaces while the user types a multiword phrase. Populated section headings
+and empty-category guidance are localized.
+
+User-authored result titles, note summaries, wiki-link labels, bookmark descriptions, tags and folder
+names are protected from UI translation. Literal `Review` and `Done` were checked in Russian and
+English. Knowledge filters now select only matching notes; an empty selection cannot leave an
+unrelated note editable. Following a wiki connection clears restrictive filters. Editor blur refreshes
+wait for the focus transition and do not replace controls while focus stays inside the editor.
+
+Saving a bookmark clears a stale search and reconciles its folder filter. Editing an archived
+bookmark keeps the archived list selected. A concurrently removed bookmark is rejected rather than
+silently recreated by a stale edit form. Four new unit regressions cover knowledge selection and
+bookmark visibility, bringing the passing server suite to 250 tests.
+
+Focused Playwright CLI checks exercised these sections in RU/EN at 320, 390, 768 and 1440 px, including
+bookmark forms, archive editing, wiki navigation, empty categories and sequential editor input.
+The measured page/editor/card/form overflow was zero; mobile screenshots were inspected. Existing
+core browser scenarios passed in Chromium, Firefox and WebKit, and the Chromium shared-content
+scenario passed. Lint, formatting, production build and public production smoke endpoints passed.
+The existing approximately 508 kB initial-bundle warning remains a performance follow-up. Acceptance
+writes used isolated local storage with Google, Gmail and push credentials disabled; this was not a
+new end-to-end test of concurrent production Drive writes or outbound notification delivery.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
