@@ -12,15 +12,54 @@ import {
   RevisionConflictError,
   WorkspaceSizeError,
   WorkspacePermissionError,
+  createWorkspaceBackup,
+  restoreWorkspaceBackup,
 } from '../../src/server/workspace-store.js';
 import { WorkspaceValidationError } from '../../src/shared/workspace-schema.js';
 import { WorkspaceMembershipError } from '../../src/shared/workspace-membership.js';
+import { workspaceGraph } from '../../src/shared/relations.js';
 
 const originalDatabasePath = process.env.DATABASE_PATH;
 const originalVercel = process.env.VERCEL;
 const originalWriteMode = process.env.WORKSPACE_WRITE_MODE;
 const testDirectory = path.join(process.cwd(), '.data', 'tests', `workspace-${process.pid}`);
 const canonicalTask = id => ({ id, title: '', desc: '', status: 'todo', priority: 'none', subtasks: [], attachments: [], deps: [], labels: [] });
+
+test('backup restore retains manual file references and stable wiki bindings across document changes', async () => {
+  const previousBackupsPath = process.env.BACKUPS_PATH;
+  process.env.BACKUPS_PATH = path.join(testDirectory, 'backups');
+  try {
+    const initial = await getWorkspaceDatabase();
+    const saved = await replaceWorkspaceDatabase(
+      {
+        ...initial,
+        projects: [{ id: 'p', name: 'P' }],
+        files: [{ id: 'f', project: 'p', name: 'guide.txt' }],
+        knowledgeNotes: [
+          { id: 'a', title: 'A', formatted_markdown: '[[B]]' },
+          { id: 'b', title: 'B' },
+        ],
+        relations: [{ id: 'r', from: 'note:a', to: 'file:f', type: 'source' }],
+      },
+      initial.revision,
+    );
+    const backup = await createWorkspaceBackup('Graph acceptance');
+    const changed = await replaceWorkspaceDatabase({ ...saved, files: [], knowledgeNotes: [] }, saved.revision);
+    assert.equal(
+      workspaceGraph(changed, { role: 'admin' }).edges.some(edge => edge.id === 'r'),
+      false,
+    );
+    const restored = await restoreWorkspaceBackup(backup.id, changed.revision);
+    assert.equal(restored.knowledgeNotes[0].wikiRefs[0].target, 'b');
+    assert.ok(workspaceGraph(restored, { role: 'admin' }).edges.some(edge => edge.id === 'r'));
+    resetWorkspaceStore();
+    resetStorageProvider();
+    assert.equal((await getWorkspaceDatabase()).relations[0].to, 'file:f');
+  } finally {
+    if (previousBackupsPath === undefined) delete process.env.BACKUPS_PATH;
+    else process.env.BACKUPS_PATH = previousBackupsPath;
+  }
+});
 
 test.beforeEach(async () => {
   await fs.promises.rm(testDirectory, { recursive: true, force: true });
