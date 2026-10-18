@@ -58,12 +58,12 @@ function bookmarkCard(link, folders, readOnly) {
   const host = link.site_name || parsed.hostname.replace(/^www\./, '');
   return `<article class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'}">
     <div class="bookmark-card-top">
-      <span class="bookmark-site-icon" aria-hidden="true">${esc(host.slice(0, 1).toUpperCase())}</span>
-      <div class="grow min0"><a class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc">${esc(host)}</span></div>
+      <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
+      <div class="grow min0"><a class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
       <span class="bookmark-importance tone-${importance.tone}" title="${importance.label}">${ic(importance.icon, 13)}<span>${importance.label}</span></span>
     </div>
-    ${link.description ? `<p class="bookmark-description">${esc(link.description)}</p>` : ''}
-    <div class="bookmark-tags">${(link.tags || []).map(tag => `<span class="chip">#${esc(tag)}</span>`).join('')}${folder ? `<span class="chip bookmark-folder-chip">${ic('folder', 11)}${esc(folder.name)}</span>` : ''}</div>
+    ${link.description ? `<p class="bookmark-description" translate="no">${esc(link.description)}</p>` : ''}
+    <div class="bookmark-tags" translate="no">${(link.tags || []).map(tag => `<span class="chip">#${esc(tag)}</span>`).join('')}${folder ? `<span class="chip bookmark-folder-chip">${ic('folder', 11)}${esc(folder.name)}</span>` : ''}</div>
     <div class="bookmark-card-foot"><span>${ic('clock-3', 12)}${ago(new Date(link.updated_at || link.created_at).getTime())}</span><span class="sp"></span>${
       readOnly
         ? ''

@@ -27,7 +27,7 @@ function noteItem(note, active, folder, readOnly) {
   return `<div class="knowledge-note-row ${active ? 'on' : ''}">
     <button class="knowledge-note" data-a="openKnowledgeNote" data-id="${note.id}" ${active ? 'aria-current="page"' : ''}>
       <span class="knowledge-note-icon">${ic('file-text', 15)}</span>
-      <span class="grow"><b class="trunc">${esc(note.title || 'Untitled note')}</b><span class="trunc">${esc(note.summary || folder?.name || 'No summary')}</span></span>
+      <span class="grow"><b class="trunc" ${note.title ? 'translate="no"' : ''}>${esc(note.title || 'Untitled note')}</b><span class="trunc" ${note.summary || folder?.name ? 'translate="no"' : ''}>${esc(note.summary || folder?.name || 'No summary')}</span></span>
       <span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span>
     </button>
     ${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}
@@ -36,7 +36,7 @@ function noteItem(note, active, folder, readOnly) {
 }
 
 function relationItem(note, title, missing = false) {
-  const content = `<span class="knowledge-relation-icon">${ic(missing ? 'circle-help' : 'file-text', 14)}</span><span class="trunc">${esc(title)}</span>${missing ? '<span class="badge">Not found</span>' : ic('arrow-up-right', 13)}`;
+  const content = `<span class="knowledge-relation-icon">${ic(missing ? 'circle-help' : 'file-text', 14)}</span><span class="trunc" translate="no">${esc(title)}</span>${missing ? '<span class="badge">Not found</span>' : ic('arrow-up-right', 13)}`;
   return missing
     ? `<div class="knowledge-relation is-missing">${content}</div>`
     : `<button class="knowledge-relation" data-a="openKnowledgeNote" data-id="${esc(note.id)}">${content}</button>`;
@@ -67,7 +67,7 @@ function noteEditor(note, folders, notes, readOnly) {
       <div class="grow">
         <label class="sr" for="knowledge-title">Note title</label>
         <input class="knowledge-title" id="knowledge-title" value="${esc(note.title)}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="title" placeholder="Untitled note" ${disabled}>
-        <div class="knowledge-meta">${ic('clock-3', 12)}<span>Updated ${ago(noteTime(note.updatedAt))}</span>${note.updatedBy && mem(note.updatedBy) ? `<span>· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>
+        <div class="knowledge-meta">${ic('clock-3', 12)}<span>Updated ${ago(noteTime(note.updatedAt))}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>
       </div>
       ${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<button class="btn btn-danger-ghost btn-sm" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button>`}
     </div>

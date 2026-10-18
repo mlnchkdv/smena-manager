@@ -32,7 +32,7 @@ export function pageSearch() {
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${D()
-            .recentSearches.map(s => `<button class="badge" data-a="setSearch" data-q="${esc(s)}">${ic('history', 11)}${esc(s)}</button>`)
+            .recentSearches.map(s => `<button class="badge" data-a="setSearch" data-q="${esc(s)}" translate="no">${ic('history', 11)}${esc(s)}</button>`)
             .join('')}</div>`
         : visibleTotal
           ? sec(
@@ -41,7 +41,7 @@ export function pageSearch() {
               r.tasks
                 .map(
                   t =>
-                    `<div class="mini" data-a="openTask" data-id="${t.id}">${stIcon(t.status)}<span class="mono faint" style="font-size:11px">${t.key}</span><span class="tt">${hl(t.title, q)}</span><span class="pj"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span>${esc(proj(t.project).name)}</span>${av(t.assignee, 'sm')}</div>`,
+                    `<div class="mini" data-a="openTask" data-id="${t.id}">${stIcon(t.status)}<span class="mono faint" style="font-size:11px" translate="no">${esc(t.key)}</span><span class="tt" translate="no">${hl(t.title, q)}</span><span class="pj" translate="no"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span>${esc(proj(t.project).name)}</span>${av(t.assignee, 'sm')}</div>`,
                 )
                 .join(''),
             ) +
@@ -51,7 +51,7 @@ export function pageSearch() {
               r.projects
                 .map(
                   p =>
-                    `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 13)}<span class="tt">${hl(p.name, q)} <span class="faint" style="font-size:12px">${p.desc ? `— ${esc(p.desc.slice(0, 70))}${p.desc.length > 70 ? '…' : ''}` : ''}</span></span>${pStatus(p.status)}</div>`,
+                    `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 13)}<span class="tt" translate="no">${hl(p.name, q)} <span class="faint" style="font-size:12px">${p.desc ? `— ${esc(p.desc.slice(0, 70))}${p.desc.length > 70 ? '…' : ''}` : ''}</span></span>${pStatus(p.status)}</div>`,
                 )
                 .join(''),
             ) +
@@ -61,7 +61,7 @@ export function pageSearch() {
               r.people
                 .map(
                   m =>
-                    `<div class="mini" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false)}<span class="tt">${hl(m.name, q)} <span class="faint" style="font-size:12px">${esc(m.title)}</span></span><span class="faint" style="font-size:12px">${esc(m.email)}</span></div>`,
+                    `<div class="mini" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false)}<span class="tt" translate="no">${hl(m.name, q)} <span class="faint" style="font-size:12px">${esc(m.title)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(m.email)}</span></div>`,
                 )
                 .join(''),
             ) +
@@ -72,7 +72,7 @@ export function pageSearch() {
                 .map(f => {
                   const meta = FT[f.type] || FT.other;
                   const project = proj(f.project);
-                  return `<div class="mini" data-a="previewFile" data-id="${f.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="tt">${hl(f.name, q)}</span><span class="faint" style="font-size:12px">${esc(f.size || '')}${project ? ` · ${esc(project.name)}` : ''}</span></div>`;
+                  return `<div class="mini" data-a="previewFile" data-id="${f.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="tt" translate="no">${hl(f.name, q)}</span><span class="faint" style="font-size:12px" translate="no">${esc(f.size || '')}${project ? ` · ${esc(project.name)}` : ''}</span></div>`;
                 })
                 .join(''),
             ) +
@@ -82,7 +82,7 @@ export function pageSearch() {
               r.comments
                 .map(
                   c =>
-                    `<div class="mini" style="align-items:flex-start;padding-top:10px;padding-bottom:10px" data-a="openTask" data-id="${c.task}">${av(c.by, 'sm')}<div class="grow" style="min-width:0"><div style="font-size:12px" class="muted"><b style="color:var(--text);font-weight:500">${esc(mem(c.by)?.name || 'Unknown member')}</b> · ${esc(task(c.task)?.title || '')} · ${ago(c.at)}</div><div style="font-size:13px">${hl(c.text, q)}</div></div></div>`,
+                    `<div class="mini" style="align-items:flex-start;padding-top:10px;padding-bottom:10px" data-a="openTask" data-id="${c.task}">${av(c.by, 'sm')}<div class="grow" style="min-width:0"><div style="font-size:12px" class="muted"><b style="color:var(--text);font-weight:500" ${mem(c.by) ? 'translate="no"' : ''}>${esc(mem(c.by)?.name || 'Unknown member')}</b> · <span translate="no">${esc(task(c.task)?.title || '')}</span> · ${ago(c.at)}</div><div style="font-size:13px" translate="no">${hl(c.text, q)}</div></div></div>`,
                 )
                 .join(''),
             ) +
@@ -92,7 +92,7 @@ export function pageSearch() {
               r.knowledge
                 .map(
                   note =>
-                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt">${hl(note.title || 'Untitled note', q)} <span class="faint" style="font-size:12px">— ${hl((note.summary || note.formatted_markdown || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(note.category || 'General')}</span></div>`,
+                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${hl(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${hl((note.summary || note.formatted_markdown || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(note.category || 'General')}</span></div>`,
                 )
                 .join(''),
             ) +
@@ -107,7 +107,7 @@ export function pageSearch() {
                   } catch {
                     host ||= link.url;
                   }
-                  return `<div class="mini" data-a="goBookmark" data-id="${link.id}">${ic('bookmark', 15)}<span class="tt">${hl(link.title || host, q)} <span class="faint" style="font-size:12px">— ${hl((link.description || link.url || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(host)}</span></div>`;
+                  return `<div class="mini" data-a="goBookmark" data-id="${link.id}">${ic('bookmark', 15)}<span class="tt" translate="no">${hl(link.title || host, q)} <span class="faint" style="font-size:12px">— ${hl((link.description || link.url || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(host)}</span></div>`;
                 })
                 .join(''),
             )
