@@ -335,6 +335,21 @@ Run the same checks manually without local Google credentials:
 npm run check:live
 ```
 
+### Responsive follow-up (2026-10-18)
+
+Bulk task actions wrap within the viewport and sit above mobile navigation. Dialog bodies scroll
+independently of their wrapping action footers; dynamic viewport heights and bottom safe-area
+insets keep the controls usable on short screens. Enhanced selects use the visual viewport when
+positioning and sizing their menus. Recovery banners wrap their text and actions on phones, and
+member settings wrap directory actions and long email addresses instead of clipping them.
+
+Verification: 10 Chromium scenarios plus the Firefox and WebKit core smoke scenarios passed.
+Additional RU/EN checks covered task dialogs and bulk actions at 320×568, 640×320, 768×540 and
+1440×900. A 31-route Russian sweep at 320×568 and 640×320 found the member-settings overflow
+addressed above; a simulated preferences-write outage verified that both recovery buttons remain
+visible and that retry succeeds. These are browser-emulation results, not real-device acceptance.
+The production build succeeds, with a remaining initial-chunk size warning (about 500 kB minified).
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
