@@ -24,6 +24,7 @@ const RU = {
   Accepted: 'Принято сервисом',
   Attempted: 'Попыток',
   Failed: 'Ошибок',
+  'Test accepted by provider': 'Тест принят сервисом',
   'Unable to send test notification.': 'Не удалось отправить тестовое уведомление.',
   'Please wait one minute before another test.': 'Подождите минуту перед следующим тестом.',
   'Independent recovery export': 'Независимая копия для восстановления',

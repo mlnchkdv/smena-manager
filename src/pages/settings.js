@@ -89,7 +89,14 @@ function deliveryStatusPanel() {
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
   const recentEmailFailure = Number(lastRun?.email?.failed || 0) > 0;
-  const emailLabel = !emailReady ? 'Needs attention' : recentEmailFailure ? 'Recent delivery failed' : 'Authorized';
+  const emailTestAccepted = Number(S.ui.testNotificationResults?.email?.delivered || 0) > 0;
+  const emailLabel = !emailReady
+    ? 'Needs attention'
+    : emailTestAccepted
+      ? 'Test accepted by provider'
+      : recentEmailFailure
+        ? 'Recent delivery failed'
+        : 'Authorized';
   const operational = status.operational;
   const coordinationMode =
     status.workspace?.coordination?.mode === 'local-queue'
@@ -130,11 +137,16 @@ function deliveryStatusPanel() {
     }
     <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="email" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test email to me</button><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="push" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test push to me</button></div>
     <p class="hint">Tests go only to your account, not to the team. Provider acceptance does not confirm receipt on your device.</p>
-    ${S.ui.testNotificationResult ? `<div role="status" class="alert ${S.ui.testNotificationResult.delivered ? 'success' : 'warn'}"><span>${esc(tr(S.ui.testNotificationResult.channel === 'email' ? 'Test email' : 'Test push'))}: ${esc(S.ui.testNotificationResult.recipient)} · ${esc(tr('Accepted'))}: ${Number(S.ui.testNotificationResult.delivered || 0)} · ${esc(tr('Failed'))}: ${Number(S.ui.testNotificationResult.failed || 0)} · ${esc(tr('Attempted'))}: ${Number(S.ui.testNotificationResult.attempted || 0)} · ${settingsTimestamp(S.ui.testNotificationResult.at)}</span></div>` : ''}
+    ${Object.values(S.ui.testNotificationResults || {})
+      .map(
+        result =>
+          `<div role="status" class="alert ${result.delivered ? 'success' : 'warn'}"><span>${esc(tr(result.channel === 'email' ? 'Test email' : 'Test push'))}: ${esc(result.recipient)} · ${esc(tr('Accepted'))}: ${Number(result.delivered || 0)} · ${esc(tr('Failed'))}: ${Number(result.failed || 0)} · ${esc(tr('Attempted'))}: ${Number(result.attempted || 0)} · ${settingsTimestamp(result.at)}</span></div>`,
+      )
+      .join('')}
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>
-      <div><span class="label">Email</span>${state(emailReady && !recentEmailFailure, emailLabel)}<p class="hint">Gmail API</p>${emailReady && !Number(lastRun?.email?.delivered || 0) ? `<p class="hint">${tr('OAuth access is verified; successful email delivery is not confirmed yet.')}</p>` : ''}</div>
+      <div><span class="label">Email</span>${state(emailReady && (emailTestAccepted || !recentEmailFailure), emailLabel)}<p class="hint">Gmail API</p>${emailReady && !emailTestAccepted && !Number(lastRun?.email?.delivered || 0) ? `<p class="hint">${tr('OAuth access is verified; successful email delivery is not confirmed yet.')}</p>` : ''}</div>
       <div><span class="label">Pending deliveries</span><b>${Number(status.outbox?.pending || 0)}</b><p class="hint">${tr('Retrying')}: ${Number(status.outbox?.retrying || 0)}</p>${status.outbox?.pending ? `<button class="btn btn-secondary btn-sm" data-a="retryNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}Send pending</button>` : ''}</div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
       <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>

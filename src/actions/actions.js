@@ -2930,7 +2930,8 @@ A.testNotificationDelivery = async el => {
   S.ui.testNotificationSending = true;
   render();
   try {
-    S.ui.testNotificationResult = await sendTestNotification(el.dataset.channel);
+    const result = await sendTestNotification(el.dataset.channel);
+    S.ui.testNotificationResults = { ...S.ui.testNotificationResults, [result.channel]: result };
   } catch (error) {
     toast(error.message || 'Unable to send test notification.', { kind: 'err', ms: 8000 });
   } finally {
