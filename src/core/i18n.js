@@ -1371,6 +1371,7 @@ const RU = {
   'Back home': 'На главную',
   'Preference saved': 'Настройка сохранена',
   'Preference updated': 'Настройка изменена',
+  'Unable to load this action. Reload the page and try again.': 'Не удалось загрузить это действие. Обновите страницу и повторите попытку.',
   'The account changed in another tab. Reload this page to continue.': 'В другой вкладке изменился аккаунт. Обновите страницу, чтобы продолжить.',
   'Notification preferences saved': 'Настройки уведомлений сохранены',
   'Workspace settings saved': 'Настройки рабочего пространства сохранены',

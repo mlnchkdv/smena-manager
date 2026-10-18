@@ -12,7 +12,6 @@ import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
 import { isRussian, t as tr, translateApp } from '../core/i18n.js';
 import { normalizeTablists } from '../ui/tabs.js';
-import { syncFileThumbnails } from '../core/file-thumbnails.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
@@ -220,8 +219,20 @@ export function render() {
   afterRender();
   syncBrowserLocation();
 }
+let thumbnailModule;
+function refreshThumbnails() {
+  if (!thumbnailModule && !document.querySelector('[data-file-thumb]')) return;
+  thumbnailModule ||= import('../core/file-thumbnails.js');
+  void thumbnailModule
+    .then(module => module.syncFileThumbnails())
+    .catch(() => {
+      // Thumbnails are optional; keep the placeholder and normal file actions.
+      thumbnailModule = null;
+    });
+}
+
 export function afterRender() {
-  syncFileThumbnails();
+  refreshThumbnails();
   selectMenu.close();
   enhanceSelects();
   placePop();

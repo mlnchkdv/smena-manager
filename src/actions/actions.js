@@ -71,7 +71,7 @@ import { primaryTeamId } from '../shared/team-relations.js';
 import { captureUndo, undoCommand } from '../shared/undo.js';
 import { canEditProject } from '../shared/project-access.js';
 import { nextRecurrenceDate } from '../shared/calendar-time.js';
-import { persistPersonalChange, registerNotificationActions } from './notifications.js';
+import { persistPersonalChange, registerNotificationActions } from './notification-loader.js';
 import { changePdfPreviewPage } from '../core/file-preview.js';
 import { retryPersonalPreferences } from '../core/personal-preferences.js';
 
