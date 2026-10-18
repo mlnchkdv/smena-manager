@@ -581,7 +581,9 @@ IN.knowledgeField = el => {
 BLUR.knowledgeField = el => {
   IN.knowledgeField(el);
   // Let the browser finish focusing/clicking the next control before replacing the editor DOM.
-  requestAnimationFrame(() => render());
+  requestAnimationFrame(() => {
+    if (!document.activeElement?.closest('.knowledge-editor')) render();
+  });
 };
 
 /* ---------- shared bookmarks ---------- */
