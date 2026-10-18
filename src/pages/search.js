@@ -6,7 +6,7 @@ import { searchAll } from '../core/search.js';
 import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 
 export function pageSearch() {
-  const q = S.ui.searchQ;
+  const q = String(S.ui.searchQ || '').trim();
   const r = searchAll(q);
   const cat = S.ui.searchCat;
   const cats = [
@@ -20,11 +20,12 @@ export function pageSearch() {
     ['bookmarks', 'Bookmarks'],
   ];
   const total = Object.values(r).reduce((a, b) => a + b.length, 0);
+  const visibleTotal = cat === 'all' ? total : r[cat]?.length || 0;
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
       ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px">${title} · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
       : '';
-  return `<div class="page" style="max-width:860px">
+  return `<div class="page search-page" style="max-width:860px">
     <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
     ${q ? '<p class="hint">Showing up to 30 matches per category. Refine your search to find more.</p>' : ''}
     <div class="tabs" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
@@ -33,7 +34,7 @@ export function pageSearch() {
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${D()
             .recentSearches.map(s => `<button class="badge" data-a="setSearch" data-q="${esc(s)}">${ic('history', 11)}${esc(s)}</button>`)
             .join('')}</div>`
-        : total
+        : visibleTotal
           ? sec(
               'tasks',
               'Tasks',
@@ -50,7 +51,7 @@ export function pageSearch() {
               r.projects
                 .map(
                   p =>
-                    `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 13)}<span class="tt">${hl(p.name, q)} <span class="faint" style="font-size:12px">— ${esc(p.desc.slice(0, 70))}…</span></span>${pStatus(p.status)}</div>`,
+                    `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 13)}<span class="tt">${hl(p.name, q)} <span class="faint" style="font-size:12px">${p.desc ? `— ${esc(p.desc.slice(0, 70))}${p.desc.length > 70 ? '…' : ''}` : ''}</span></span>${pStatus(p.status)}</div>`,
                 )
                 .join(''),
             ) +
@@ -68,10 +69,11 @@ export function pageSearch() {
               'files',
               'Files',
               r.files
-                .map(
-                  f =>
-                    `<div class="mini" data-a="go" data-r="project" data-id="${f.project}" data-tab="files"><span class="ftype" style="--c:${FT[f.type].c}">${ic(FT[f.type].i, 14)}</span><span class="tt">${hl(f.name, q)}</span><span class="faint" style="font-size:12px">${f.size} · ${esc(proj(f.project).name)}</span></div>`,
-                )
+                .map(f => {
+                  const meta = FT[f.type] || FT.other;
+                  const project = proj(f.project);
+                  return `<div class="mini" data-a="previewFile" data-id="${f.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="tt">${hl(f.name, q)}</span><span class="faint" style="font-size:12px">${esc(f.size || '')}${project ? ` · ${esc(project.name)}` : ''}</span></div>`;
+                })
                 .join(''),
             ) +
             sec(
@@ -80,7 +82,7 @@ export function pageSearch() {
               r.comments
                 .map(
                   c =>
-                    `<div class="mini" style="align-items:flex-start;padding-top:10px;padding-bottom:10px" data-a="openTask" data-id="${c.task}">${av(c.by, 'sm')}<div class="grow" style="min-width:0"><div style="font-size:12px" class="muted"><b style="color:var(--text);font-weight:500">${esc(mem(c.by).name)}</b> on ${esc(task(c.task).title)} · ${ago(c.at)}</div><div style="font-size:13px">${hl(c.text, q)}</div></div></div>`,
+                    `<div class="mini" style="align-items:flex-start;padding-top:10px;padding-bottom:10px" data-a="openTask" data-id="${c.task}">${av(c.by, 'sm')}<div class="grow" style="min-width:0"><div style="font-size:12px" class="muted"><b style="color:var(--text);font-weight:500">${esc(mem(c.by)?.name || 'Unknown member')}</b> · ${esc(task(c.task)?.title || '')} · ${ago(c.at)}</div><div style="font-size:13px">${hl(c.text, q)}</div></div></div>`,
                 )
                 .join(''),
             ) +
@@ -109,7 +111,7 @@ export function pageSearch() {
                 })
                 .join(''),
             )
-          : `<div class="panel">${empty('search-x', 'No results found', `Nothing matches “${q}”. Check the spelling or try a broader term.`, `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+          : `<div class="panel">${empty('search-x', 'No results found', 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }

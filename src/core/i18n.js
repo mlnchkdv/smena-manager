@@ -503,6 +503,7 @@ const RU = {
   'Clear filters': 'Сбросить фильтры',
   'No results': 'Нет результатов',
   'No results found': 'Ничего не найдено',
+  'Try another category or a broader search term.': 'Выберите другой раздел или уточните поисковый запрос.',
   'Clear search': 'Очистить поиск',
   'Nothing due': 'Нет задач со сроком',
   'No tasks': 'Нет задач',
