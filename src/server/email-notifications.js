@@ -5,6 +5,7 @@ import { notificationUrl } from '../shared/notification-links.js';
 import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { enqueueDigestJobs, eligibleNotification } from './notification-outbox.js';
+import { resolveTimeZone } from '../shared/calendar-time.js';
 
 let authorizationCache = null;
 
@@ -193,13 +194,19 @@ export function createDailyDigestPlan(data, options = {}) {
   const timeZone = options.timeZone || process.env.REMINDER_TIME_ZONE || 'Europe/Saratov';
   const now = options.now ? new Date(options.now) : new Date();
   const today = options.today || dateInTimeZone(now, timeZone);
-  const weekday = options.weekday ?? new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(now);
-  if (['Sat', 'Sun'].includes(weekday)) return { today, recipients: [] };
   const recipients = (data.members || [])
     .filter(member => member?.id && member.email && !['removed', 'deactivated'].includes(member.status))
+    .map(member => ({ ...member, digestDate: options.today || dateInTimeZone(now, resolveTimeZone(member.timeZone || timeZone)) }))
     .filter(member => {
+      const weekday =
+        options.weekday ?? new Intl.DateTimeFormat('en-US', { timeZone: resolveTimeZone(member.timeZone || timeZone), weekday: 'short' }).format(now);
+      if (['Sat', 'Sun'].includes(weekday)) return false;
       const preferences = notificationPreferencesForMember(data, member.id);
-      return preferences.email_digest === true && preferences.emailDigestLastDate !== today && preferences.emailDigestLastQueuedDate !== today;
+      return (
+        preferences.email_digest === true &&
+        preferences.emailDigestLastDate !== member.digestDate &&
+        preferences.emailDigestLastQueuedDate !== member.digestDate
+      );
     });
   return { today, recipients };
 }

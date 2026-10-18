@@ -4,20 +4,23 @@ import { canReadProject } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 
 export function enqueueDigestJobs(data, plan, now = Date.now()) {
-  data._notificationOutbox ||= [];
+  data._notificationOutbox = (data._notificationOutbox || []).filter(
+    job => Object.values(job.channels || {}).some(state => !['sent', 'skipped'].includes(state.status)) || now - job.createdAt < 7 * 86400000,
+  );
   const queued = [];
   for (const member of plan.recipients) {
-    const id = `digest:${member.id}:${plan.today}`;
+    const digestDate = member.digestDate || plan.today;
+    const id = `digest:${member.id}:${digestDate}`;
     const prefs = notificationPreferencesForMember(data, member.id);
-    if (prefs.emailDigestLastQueuedDate === plan.today || data._notificationOutbox.some(job => job.id === id)) continue;
+    if (prefs.emailDigestLastQueuedDate === digestDate || data._notificationOutbox.some(job => job.id === id)) continue;
     data._notificationOutbox.push({
       id,
       createdAt: now,
-      notification: { id, recipient: member.id, type: 'digest', digestDate: plan.today },
+      notification: { id, recipient: member.id, type: 'digest', digestDate },
       channels: { email: { status: 'pending', attempts: 0, nextAt: now } },
     });
     data.notifPrefs ||= {};
-    data.notifPrefs[member.id] = { ...prefs, emailDigestLastQueuedDate: plan.today };
+    data.notifPrefs[member.id] = { ...prefs, emailDigestLastQueuedDate: digestDate };
     queued.push(member.id);
   }
   return queued;

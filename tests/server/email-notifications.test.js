@@ -32,6 +32,21 @@ test('email authorization status is disabled without credentials', async () => {
   else process.env.GMAIL_OAUTH_REFRESH_TOKEN = previous.gmailRefreshToken;
 });
 
+test('digest weekday and identity use each recipient local calendar rather than the server day', () => {
+  const data = {
+    members: [
+      { id: 'us', email: 'us@example.test', timeZone: 'America/Los_Angeles' },
+      { id: 'ru', email: 'ru@example.test', timeZone: 'Europe/Saratov' },
+    ],
+    notifPrefs: { us: { email_digest: true }, ru: { email_digest: true } },
+  };
+  const plan = createDailyDigestPlan(data, { now: '2026-10-19T01:00:00Z' });
+  assert.deepEqual(
+    plan.recipients.map(member => [member.id, member.digestDate]),
+    [['ru', '2026-10-19']],
+  );
+});
+
 test('email delivery prefers a dedicated Gmail token while reusing the OAuth client', () => {
   const keys = [
     'GOOGLE_CLIENT_ID',

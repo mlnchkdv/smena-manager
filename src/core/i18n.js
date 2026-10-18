@@ -815,6 +815,8 @@ const RU = {
   'No run recorded yet': 'Запуски пока не зафиксированы',
   'Notification delivery status updated.': 'Статус доставки уведомлений обновлён.',
   'Pending deliveries': 'Ожидают доставки',
+  'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.':
+    'Сводка открытых задач после ежедневного планового запуска, по рабочим дням в вашем часовом поясе.',
   'Task status changes': 'Изменения статуса задач',
   'Review conflict': 'Разобрать конфликт',
   'Showing up to 30 matches per category. Refine your search to find more.': 'Показано до 30 совпадений в каждом разделе. Уточните запрос, чтобы найти нужное.',
