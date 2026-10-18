@@ -11,7 +11,13 @@ export function mountGraph(graph, selected, center, onSelect) {
     if (!container) return;
     const previous =
       instance && context === center
-        ? { zoom: instance.zoom(), pan: instance.pan(), positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])) }
+        ? {
+            zoom: instance.zoom(),
+            pan: instance.pan(),
+            width: instance.width(),
+            height: instance.height(),
+            positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
+          }
         : savedView?.center === center
           ? savedView
           : null;
@@ -77,8 +83,16 @@ export function mountGraph(graph, selected, center, onSelect) {
     });
     if (previous && graph.nodes.every(node => previous.positions.has(node.key))) {
       instance.nodes().positions(node => previous.positions.get(node.id()));
-      instance.zoom(previous.zoom);
-      instance.pan(previous.pan);
+      if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
+        instance.zoom(previous.zoom);
+        instance.pan(previous.pan);
+      } else {
+        instance.fit(undefined, 35);
+        if (instance.zoom() > 1.2) {
+          instance.zoom(1.2);
+          instance.center();
+        }
+      }
     } else if (instance.zoom() > 1.2) {
       instance.zoom(1.2);
       instance.center();
@@ -109,6 +123,8 @@ export function mountGraph(graph, selected, center, onSelect) {
         if (instance)
           savedView = {
             center,
+            width,
+            height,
             zoom: instance.zoom(),
             pan: instance.pan(),
             positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
