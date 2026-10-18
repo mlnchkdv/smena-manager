@@ -568,6 +568,29 @@ Lint, formatting and production build passed. Public production smoke checks pas
 graph chunk returned HTTP 200. The graph engine is a separate approximately 452 kB lazy chunk;
 the approximately 525 kB initial-bundle warning remains an optimization follow-up.
 
+### Production graph follow-up, 18 October 2026
+
+With explicit approval, two uniquely named `ТЕСТ ГРАФА` notes were created in production.
+A manual connection survived a full reload and appeared in the local graph; deleting it also
+survived reload. Both temporary notes were then moved to recoverable Trash. The original note,
+bookmark, project and tasks were left unchanged. Production returned to 5 graph nodes and 2 edges.
+The account language was temporarily changed to English and restored to Russian.
+
+The graph now has a compact collapsible filter panel, a type legend, colored shape/icon nodes,
+deterministic component packing and an optional closable details panel. Topology changes reset
+stale viewports while selection changes preserve them. Browser geometry checks covered widths
+320, 390, 768 and 1440 in both languages, including expanded filters and mobile material details;
+no horizontal page overflow was observed. Production UI checks used its actual 320 px viewport.
+
+The production Trash test also exposed recovery racing sibling document writes against the shared
+Drive aggregate. Recovery now waits for those writes before fetching/merging revisions. The two
+production deletions were completed with the safe synchronization action, not a forced overwrite.
+This timing fix has not been re-tested with another production deletion.
+
+Validation: 264 server tests, three existing Chromium/Firefox/WebKit core smoke scenarios, lint,
+formatting, build and public deployment smoke checks passed. Graph-specific visual checks used
+Chromium. The approximately 525 kB initial-bundle warning remains a performance follow-up.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
