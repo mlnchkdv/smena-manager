@@ -1,4 +1,6 @@
 import cytoscape from 'cytoscape';
+import { ic } from '../core/icons.js';
+import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
 
 let instance;
 let context = '';
@@ -26,50 +28,82 @@ export function mountGraph(graph, selected, center, onSelect) {
     resizeObserver?.disconnect();
     context = center;
     const css = getComputedStyle(container);
-    const colors = { note: '--accent', bookmark: '--amber', file: '--teal', project: '--blue', task: '--text-3' };
+    const signature = graphTopologyKey(graph);
+    const positions = graphPositions(graph, center);
+    const glyphs = Object.fromEntries(
+      Object.entries(GRAPH_KINDS).map(([kind, meta]) => {
+        const color = css.getPropertyValue(meta.color).trim() || '#6366f1';
+        return [
+          kind,
+          { color, icon: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ic(meta.icon, 18).replace('currentColor', color))}`, shape: meta.shape },
+        ];
+      }),
+    );
+    const neighbors = new Set(graph.edges.filter(edge => edge.from === selected || edge.to === selected).flatMap(edge => [edge.from, edge.to]));
+    if (selected) neighbors.add(selected);
     const elements = [
       ...graph.nodes.map(node => ({
-        data: { id: node.key, label: node.title, color: css.getPropertyValue(colors[node.kind]).trim() || '#6366f1', center: node.key === center ? 1 : 0 },
+        data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
+        position: positions.get(node.key),
+        classes: selected && !neighbors.has(node.key) ? 'muted' : '',
         selected: node.key === selected,
       })),
-      ...graph.edges.map((edge, index) => ({ data: { id: `e${index}`, source: edge.from, target: edge.to, automatic: edge.origin === 'automatic' ? 1 : 0 } })),
+      ...graph.edges.map((edge, index) => ({
+        data: { id: `e${index}`, source: edge.from, target: edge.to, automatic: edge.origin === 'automatic' ? 1 : 0 },
+        classes: selected && (edge.from === selected || edge.to === selected) ? 'highlight' : '',
+      })),
     ];
     instance = cytoscape({
       container,
       elements,
-      minZoom: 0.25,
+      minZoom: 0.08,
       maxZoom: 3,
       layout: {
-        name: 'concentric',
+        name: 'preset',
         animate: false,
         padding: 35,
-        minNodeSpacing: 35,
-        concentric: node => (node.data('center') ? 100 : node.degree()),
-        levelWidth: () => 2,
       },
       style: [
         {
           selector: 'node',
           style: {
             'background-color': 'data(color)',
+            'background-opacity': 0.12,
+            'background-image': 'data(icon)',
+            'background-width': 18,
+            'background-height': 18,
+            shape: 'data(shape)',
             label: 'data(label)',
             color: css.getPropertyValue('--text').trim(),
-            'font-size': 11,
+            'font-size': 12,
+            'font-family': css.getPropertyValue('--sans').trim() || 'Arial, sans-serif',
+            'min-zoomed-font-size': 6,
             'text-valign': 'bottom',
-            'text-margin-y': 8,
-            'text-wrap': 'ellipsis',
-            'text-max-width': 110,
-            width: 18,
-            height: 18,
-            'border-width': 2,
-            'border-color': css.getPropertyValue('--surface').trim(),
+            'text-margin-y': 10,
+            'text-wrap': 'wrap',
+            'text-max-width': 125,
+            width: 38,
+            height: 38,
+            'border-width': 1.5,
+            'border-color': 'data(color)',
           },
         },
-        { selector: 'node:selected', style: { width: 26, height: 26, 'border-width': 4, 'border-color': css.getPropertyValue('--accent').trim() } },
+        {
+          selector: 'node:selected',
+          style: {
+            'background-opacity': 0.22,
+            'border-width': 3,
+            'font-weight': 600,
+            'overlay-color': 'data(color)',
+            'overlay-opacity': 0.08,
+            'overlay-padding': 7,
+          },
+        },
+        { selector: 'node.muted', style: { opacity: 0.38 } },
         {
           selector: 'edge',
           style: {
-            width: 1,
+            width: 1.4,
             'line-color': css.getPropertyValue('--border-strong').trim(),
             'target-arrow-color': css.getPropertyValue('--text-3').trim(),
             'target-arrow-shape': 'triangle',
@@ -78,10 +112,19 @@ export function mountGraph(graph, selected, center, onSelect) {
             opacity: 0.65,
           },
         },
-        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.35 } },
+        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.45 } },
+        {
+          selector: 'edge.highlight',
+          style: {
+            'line-color': css.getPropertyValue('--accent').trim(),
+            'target-arrow-color': css.getPropertyValue('--accent').trim(),
+            opacity: 0.9,
+            width: 2,
+          },
+        },
       ],
     });
-    if (previous && graph.nodes.every(node => previous.positions.has(node.key))) {
+    if (previous?.signature === signature) {
       instance.nodes().positions(node => previous.positions.get(node.id()));
       if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
         instance.zoom(previous.zoom);
@@ -123,6 +166,7 @@ export function mountGraph(graph, selected, center, onSelect) {
         if (instance)
           savedView = {
             center,
+            signature,
             width,
             height,
             zoom: instance.zoom(),
@@ -143,7 +187,7 @@ window.addEventListener('smena:graph-control', event => {
   if (event.detail === 'fit') instance.fit(undefined, 35);
   else
     instance.zoom({
-      level: Math.max(0.25, Math.min(3, instance.zoom() * (event.detail === 'in' ? 1.3 : 1 / 1.3))),
+      level: Math.max(0.08, Math.min(3, instance.zoom() * (event.detail === 'in' ? 1.3 : 1 / 1.3))),
       renderedPosition: { x: instance.width() / 2, y: instance.height() / 2 },
     });
 });
