@@ -3,6 +3,7 @@ import { TODAY, diffD, esc, parse, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { LB, PR, PSTAT, ST } from '../core/constants.js';
 import { D, mem, pColor } from '../core/store.js';
+import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 
 export function av(id, cls = '', tip = true) {
   const m = mem(id);
@@ -126,5 +127,5 @@ export function filePrev(f) {
   else if (f.type === 'zip') art = `<div style="color:${t.c}">${ic('folder-archive', 30)}</div>`;
   else art = `<div class="art"><i class="h"></i><i></i><i></i><i style="width:80%"></i><i></i><i style="width:60%"></i></div>`;
   const ext = (f.name.split('.').pop() || '').slice(0, 4);
-  return `<div class="fprev">${art}<span class="ext" style="--c:${t.c}">${esc(ext)}</span></div>`;
+  return `<div class="fprev" ${canLoadThumbnail(f) ? `data-file-thumb="${esc(f.id)}"` : ''}>${art}<span class="ext" style="--c:${t.c}">${esc(ext)}</span></div>`;
 }

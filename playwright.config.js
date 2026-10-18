@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 const runId = `${process.pid}-${Date.now()}`;
 const clientPort = Number(process.env.E2E_CLIENT_PORT || 5198);
 const apiPort = Number(process.env.E2E_API_PORT || 3198);
+const engineSmokeMatch = process.env.E2E_EXTENDED_BROWSERS === 'true' ? /(?:cross-browser-smoke|workspace-smoke)\.spec\.js/ : /cross-browser-smoke\.spec\.js/;
 const isolatedEnv = {
   VERCEL: '',
   REDIS_URL: '',
@@ -57,8 +58,8 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', testMatch: /cross-browser-smoke\.spec\.js/, use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', testMatch: /cross-browser-smoke\.spec\.js/, use: { ...devices['Desktop Safari'] } },
+    { name: 'firefox', testMatch: engineSmokeMatch, use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', testMatch: engineSmokeMatch, use: { ...devices['Desktop Safari'] } },
   ],
   webServer: [
     {

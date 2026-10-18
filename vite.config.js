@@ -52,6 +52,14 @@ export default defineConfig({
   plugins: [
     lucideSubset(),
     {
+      name: 'pdf-third-party-notices',
+      generateBundle() {
+        for (const name of ['LICENSE', 'standard_fonts/LICENSE_FOXIT', 'standard_fonts/LICENSE_LIBERATION', 'cmaps/LICENSE']) {
+          this.emitFile({ type: 'asset', fileName: `licenses/pdfjs/${name}`, source: fs.readFileSync(path.resolve('node_modules/pdfjs-dist', name)) });
+        }
+      },
+    },
+    {
       name: 'isolated-test-assets',
       transformIndexHtml: html =>
         process.env.SMENA_TEST_MODE === 'true' ? html.replace(/<link\b[^>]*href="https:\/\/fonts\.(?:googleapis|gstatic)\.com[^>]*>/gu, '') : html,

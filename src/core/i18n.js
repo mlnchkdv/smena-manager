@@ -815,8 +815,12 @@ const RU = {
   'No run recorded yet': 'Запуски пока не зафиксированы',
   'Notification delivery status updated.': 'Статус доставки уведомлений обновлён.',
   'Pending deliveries': 'Ожидают доставки',
+  'Download unsynced copy': 'Скачать несохранённую копию',
+  'PDF preview is unavailable. Download the file instead.': 'Не удалось открыть предпросмотр PDF. Скачайте файл, чтобы просмотреть его.',
+  'Changes are kept in this tab. Download a copy before closing.': 'Изменения хранятся в этой вкладке. Скачайте копию перед её закрытием.',
   'Select visible tasks': 'Выбрать видимые задачи',
   Page: 'Страница',
+  Pagination: 'Навигация по страницам',
   'The signed-in account changed. Sign in again.': 'Аккаунт входа изменился. Войдите снова.',
   'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.':
     'Сводка открытых задач после ежедневного планового запуска, по рабочим дням в вашем часовом поясе.',

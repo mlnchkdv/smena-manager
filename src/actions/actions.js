@@ -72,6 +72,7 @@ import { captureUndo, undoCommand } from '../shared/undo.js';
 import { canEditProject } from '../shared/project-access.js';
 import { nextRecurrenceDate } from '../shared/calendar-time.js';
 import { persistPersonalChange, registerNotificationActions } from './notifications.js';
+import { changePdfPreviewPage } from '../core/file-preview.js';
 
 export const A = {},
   IN = {},
@@ -1621,6 +1622,10 @@ A.listPage = el => {
   S.ui.listPages[el.dataset.key] = Math.max(0, Number(el.dataset.page) || 0);
   render();
 };
+A.pdfPreviewPage = el => {
+  const modal = S.ui.modals.at(-1);
+  if (modal?.type === 'filePreview') void changePdfPreviewPage(modal, Number(el.dataset.page), render);
+};
 A.bulkSet = el => {
   const f = el.dataset.f;
   let v = el.dataset.v || null;
@@ -2738,6 +2743,16 @@ A.downloadSyncRecovery = () => {
   const link = document.createElement('a');
   link.href = url;
   link.download = `smena-recovery-${recovery.scope}-${Date.now()}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+A.downloadUnsyncedCopy = () => {
+  if (!S.ui.currentUser || S.ui.auth) return;
+  const copy = { format: 'smena-offline-draft', version: 1, owner: S.ui.currentUser.id, savedAt: new Date().toISOString(), data: S.data };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(copy, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `smena-unsynced-${Date.now()}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };

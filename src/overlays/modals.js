@@ -384,13 +384,13 @@ export function filePreviewModal(m, H) {
   const t = FT[f.type] || FT.other;
   const preview = m.preview;
   const content =
-    preview.kind === 'image'
+    preview.kind === 'image' || preview.kind === 'pdf'
       ? `<img src="${esc(preview.url)}" alt="${esc(f.name)}" class="file-preview-image" translate="no">`
       : preview.kind === 'text'
         ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
         : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
-  return `${H(esc(f.name), `${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} ${esc(mem(f.by)?.name || tr('You'))} ${ago(f.at)}`)}
-  <div class="modal-b"><div class="file-preview-content">${content}</div>
+  return `${H(`<span translate="no">${esc(f.name)}</span>`, `${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} ${esc(mem(f.by)?.name || tr('You'))} ${ago(f.at)}`)}
+  <div class="modal-b">${preview.kind === 'pdf' ? `<div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page - 1}" ${preview.loading || preview.page === 1 ? 'disabled' : ''}>Previous</button><span><span>Page</span> ${preview.page} / ${preview.pages}</span><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page + 1}" ${preview.loading || preview.page === preview.pages ? 'disabled' : ''}>Next</button></div>` : ''}<div class="file-preview-content" aria-busy="${Boolean(preview.loading)}">${content}</div>
   ${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}</div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-fid="${f.id}">${ic('link', 14)}Copy link</button>${f.storageName ? `<button class="btn btn-secondary" data-a="downloadStoredFile" data-id="${f.id}">${ic('download', 14)}Download</button>` : ''}<span class="sp"></span><button class="btn btn-primary" data-a="closeModal">Close</button></div>`;
 }
