@@ -872,7 +872,7 @@ const RU = {
   'Write coordination needs attention.': 'Проверьте защиту одновременных записей.',
   'Email authorization needs attention.': 'Проверьте авторизацию отправки почты.',
   'Web Push is not configured.': 'Web Push не настроен.',
-  'No recent automatic run. Check the Vercel cron schedule.': 'Нет недавнего автозапуска. Проверьте расписание cron в Vercel.',
+  'No recent automatic run. Check the Vercel cron schedule.': 'Нет недавнего автозапуска. Проверьте расписание в панели хостинга.',
   'The last automatic run reported errors.': 'Последний автозапуск завершился с ошибками.',
   'The latest notification delivery reported errors.': 'Последняя доставка уведомлений завершилась с ошибками.',
   'Some notifications have been waiting for more than one hour.': 'Некоторые уведомления ожидают доставки более часа.',
