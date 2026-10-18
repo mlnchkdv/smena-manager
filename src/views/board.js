@@ -2,12 +2,14 @@
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { PR, STATUSES } from '../core/constants.js';
-import { S, commentsOf, pColor, proj } from '../core/store.js';
+import { D, S, commentsOf, pColor, proj } from '../core/store.js';
 import { av, dueHtml, lbl, prIcon, progBar, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
+import { listWindow } from '../shared/list-window.js';
+import { paginationHtml } from '../ui/pagination.js';
 
 export function kcard(t, opt = {}) {
-  const cc = commentsOf(t.id).length;
+  const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
   const ac = t.attachments.length;
   const sd = t.subtasks.filter(s => s.done).length;
   const p = proj(t.project);
@@ -29,9 +31,13 @@ export function kcard(t, opt = {}) {
   </div>`;
 }
 export function boardHtml(ts, key, opt = {}) {
+  const commentCounts = new Map();
+  for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
   return `<div class="board" data-keep="board:${key}">${STATUSES.map(s => {
     const col = ts.filter(t => t.status === s.id).sort((a, b) => a.order - b.order);
     const ck = key + ':' + s.id;
+    const pageKey = `board:${ck}`;
+    const window = listWindow(col, S.ui.listPages?.[pageKey]);
     if (S.ui.collapsedCols[ck])
       return `<div class="bcol collapsed" data-a="toggleCol" data-ck="${ck}" data-drop-col="${s.id}" data-key="${key}" role="button" aria-label="Expand ${s.name}" title="Expand">${stIcon(s.id)}<span class="vname">${s.name}<span class="faint">${col.length}</span></span></div>`;
     const comp = S.ui.composer && S.ui.composer.ctx === key && S.ui.composer.group === s.id;
@@ -39,7 +45,8 @@ export function boardHtml(ts, key, opt = {}) {
       <div class="bcol-h">${stIcon(s.id)}<span>${s.name}</span><span class="cnt">${col.length}</span>
         <span class="acts"><button class="ibtn ibtn-xs" data-a="startComposer" data-ctx="${key}" data-group="${s.id}" data-gb='${JSON.stringify({ status: s.id, ...(opt.project ? { project: opt.project } : {}) })}' data-tip="Add task" aria-label="Add task to ${s.name}">${ic('plus', 14)}</button><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="column" data-id="${s.id}" data-key="${key}" aria-label="Column options">${ic('ellipsis', 14)}</button></span></div>
       <div class="bcol-b" data-col-body="${s.id}">
-        ${col.map(t => kcard(t, { showProj: !opt.project })).join('')}
+        ${window.items.map(t => kcard(t, { showProj: !opt.project, commentCounts })).join('')}
+        ${paginationHtml(window, pageKey)}
         ${
           comp
             ? `<div class="composer"><textarea id="composer-in" data-key-enter="commitComposer" placeholder="Task name" rows="2" aria-label="New task name"></textarea><div class="row"><span class="faint" style="font-size:11px">Enter to add · Esc to cancel</span><span class="sp"></span><button class="btn btn-sm btn-ghost" data-a="cancelComposer">Cancel</button><button class="btn btn-sm btn-primary" data-a="commitComposer">Add</button></div></div>`

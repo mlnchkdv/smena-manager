@@ -2,6 +2,8 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, canSee, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';
+import { listWindow } from '../shared/list-window.js';
+import { paginationHtml } from '../ui/pagination.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -95,6 +97,8 @@ export function pageFiles() {
       return Number(right.at || 0) - Number(left.at || 0);
     });
 
+  const pageKey = `files:${projectFilter}:${typeFilter}:${sort}:${query}`;
+  const window = listWindow(files, S.ui.listPages?.[pageKey]);
   const totalBytes = allFiles.reduce((sum, file) => sum + Number(file.bytes || 0), 0);
   const projectCount = new Set(allFiles.map(file => file.project)).size;
   const readOnly = S.ui.currentUser?.role === 'viewer';
@@ -153,8 +157,8 @@ export function pageFiles() {
     ${
       files.length
         ? view === 'grid'
-          ? `<div class="fgrid workspace-file-grid">${files.map(fileCard).join('')}</div>`
-          : fileTable(files)
+          ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
+          : fileTable(window.items)
         : empty(
             filtered ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
             filtered ? 'No files found' : projects.length ? 'No files yet' : 'Create a project first',
@@ -174,5 +178,6 @@ export function pageFiles() {
             1,
           )
     }
+    ${paginationHtml(window, pageKey)}
   </div>`;
 }

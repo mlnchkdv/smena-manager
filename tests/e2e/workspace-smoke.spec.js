@@ -358,3 +358,134 @@ test('signing out is synchronized across browser tabs', async ({ browser }) => {
   await expect(secondPage.getByRole('alert')).toContainText(/You signed out in another tab|В другой вкладке выполнен выход/u);
   await context.close();
 });
+
+test('unsaved task drafts survive reload and synchronize after write connectivity returns', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/e2e-team/tasks');
+  const title = `Офлайн-копия ${Date.now()}`;
+  await page.route('**/api/workspace', route => (route.request().method() === 'PUT' ? route.abort('internetdisconnected') : route.continue()));
+  await page.locator('button[data-a="newTask"]:visible').first().click();
+  await page.locator('#f-title').fill(title);
+  await page.locator('#f-submit').click();
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'offline', { timeout: 15000 });
+  await page.reload();
+  await expect(page.locator('.shell')).toBeVisible();
+  await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'offline', { timeout: 15000 });
+  await page.unroute('**/api/workspace');
+  await page.locator('[data-a="retryOnline"]:visible').first().click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+});
+
+test('large task views keep bounded pages and allow reaching later tasks', async ({ page }) => {
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace')).json()).data;
+  const prefix = `page-check-${Date.now()}-`;
+  const tasks = Array.from({ length: 105 }, (_, index) => ({
+    id: `${prefix}${index}`,
+    project: snapshot.projects[0].id,
+    title: `${prefix}${index}`,
+    status: 'todo',
+    priority: 'none',
+    order: index + 1,
+    labels: [],
+    subtasks: [],
+    attachments: [],
+    deps: [],
+    desc: '',
+    created: Date.now(),
+    updated: Date.now(),
+  }));
+  const saved = await page.request.put('/api/workspace', {
+    data: { revision: snapshot.revision, data: { ...snapshot, tasks: [...snapshot.tasks, ...tasks] } },
+  });
+  expect(saved.status()).toBe(200);
+  try {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/e2e-team/tasks');
+    await page.locator('[data-a="setViewMode"][data-v="board"]').click();
+    const column = page.locator('.bcol[data-drop-col="todo"]');
+    await expect(column.locator('.kcard')).toHaveCount(100);
+    await column.locator('[data-a="listPage"][data-page="1"]').click();
+    await expect(column.getByText(`${prefix}104`, { exact: true })).toBeVisible();
+    await page.locator('[data-a="setViewMode"][data-v="table"]').click();
+    expect(await page.locator('table tr [data-a="openTask"]').count()).toBeLessThanOrEqual(100);
+    await expect(page.locator('[data-a="listPage"][data-page="1"]').first()).toBeVisible();
+  } finally {
+    const latest = (await (await page.request.get('/api/workspace')).json()).data;
+    latest.tasks = latest.tasks.filter(task => !task.id.startsWith(prefix));
+    expect((await page.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } })).status()).toBe(200);
+  }
+});
+
+test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {
+  await signIn(page);
+  const current = (await (await page.request.get('/api/workspace')).json()).data;
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (globalThis.__pdfPreviewExecuted=true;) >> >>',
+    '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 320 200] /Resources << /Font << /F1 7 0 R >> >> /Contents 4 0 R >>',
+    null,
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 320 200] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>',
+    null,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ];
+  for (const [index, text] of [
+    [3, 'Page One'],
+    [5, 'Page Two'],
+  ]) {
+    const stream = `BT /F1 20 Tf 30 120 Td (${text}) Tj ET\n`;
+    objects[index] = `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}endstream`;
+  }
+  let pdf = '%PDF-1.7\n';
+  const offsets = [];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = Buffer.byteLength(pdf);
+  pdf += `xref\n0 8\n0000000000 65535 f \n${offsets.map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 8 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  const upload = await page.request.post('/api/files/upload', {
+    multipart: {
+      file: { name: 'e2e-safe-preview.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) },
+      revision: String(current.revision),
+      project: current.projects[0].id,
+    },
+  });
+  expect(upload.status()).toBe(201);
+  const file = (await upload.json()).file;
+  const nextRevision = (await (await page.request.get('/api/workspace')).json()).data.revision;
+  const thumbnailUpload = await page.request.post('/api/files/upload', {
+    multipart: {
+      file: {
+        name: 'e2e-thumbnail.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aBn8AAAAASUVORK5CYII=', 'base64'),
+      },
+      revision: String(nextRevision),
+      project: current.projects[0].id,
+    },
+  });
+  expect(thumbnailUpload.status()).toBe(201);
+  const thumbnail = (await thumbnailUpload.json()).file;
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/e2e-team/files');
+    await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
+    await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();
+    const image = page.locator('.modal .file-preview-image');
+    await expect(image).toBeVisible({ timeout: 30000 });
+    await expect(image).toHaveJSProperty('naturalWidth', 480);
+    await page.locator('.modal [data-a="pdfPreviewPage"][data-page="2"]').click();
+    await expect(page.locator('.modal [data-a="pdfPreviewPage"][data-page="3"]')).toBeDisabled({ timeout: 30000 });
+    expect(await page.evaluate(() => globalThis.__pdfPreviewExecuted)).toBeUndefined();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
+    await page.screenshot({ path: `output/playwright/pdf-preview-${language === 'Русский' ? 'ru' : 'en'}.png` });
+    await page.locator('.modal-f [data-a="closeModal"]').click();
+  }
+});

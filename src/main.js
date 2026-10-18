@@ -46,8 +46,9 @@ import { disableWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from '
 import { workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
-import { workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
+import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
 import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
+import { createPollCoordinator } from './core/poll-coordinator.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -61,6 +62,15 @@ setInterval(() => {
 }, 60000);
 let pushSyncPromise = null;
 const refreshChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena:workspace:v2') : null;
+let pollStorage;
+try {
+  pollStorage = localStorage;
+} catch {
+  // Private browser modes may block storage; independent polling remains safe.
+}
+const pollCoordinator = createPollCoordinator({ locks: refreshChannel ? navigator.locks : null, storage: pollStorage });
+const workspaceFingerprint = () =>
+  JSON.stringify([S.ui.currentUser?.role, S.ui.workspaceRevision, ...DOCUMENT_NAMES.map(name => S.ui.documentRevisions?.[name] || 0)]);
 let refreshAnnouncementTimer = null;
 
 function announceWorkspaceChange() {
@@ -339,6 +349,8 @@ async function refreshVisibleWorkspace(showNotice = false) {
   workspaceRefreshPromise = refreshWorkspaceFromServer()
     .then(result => {
       workspaceRefreshFailures = 0;
+      if (S.ui.currentUser?.id === owner && ['current', 'updated'].includes(result.status))
+        refreshChannel?.postMessage({ type: 'workspace-polled', owner, fingerprint: workspaceFingerprint() });
       if (result.status === 'updated') {
         const freshNotifications = myNotifications().filter(notification => !previousNotifications.has(notification.id));
         render();
@@ -388,7 +400,7 @@ function scheduleWorkspaceRefresh(delay = null) {
   clearTimeout(workspaceRefreshTimer);
   workspaceRefreshTimer = setTimeout(
     async () => {
-      await refreshVisibleWorkspace(false);
+      if (await pollCoordinator.shouldPoll(S.ui.auth ? null : S.ui.currentUser?.id)) await refreshVisibleWorkspace(false);
       scheduleWorkspaceRefresh();
     },
     delay ?? workspaceRefreshDelay({ hidden: document.hidden, offline: !navigator.onLine, failures: workspaceRefreshFailures }),
@@ -413,6 +425,8 @@ window.addEventListener('online', () => {
 });
 refreshChannel?.addEventListener('message', event => {
   if (event.data?.type === 'workspace-saved') refreshWorkspaceSoon(false);
+  if (event.data?.type === 'workspace-polled' && event.data.owner === S.ui.currentUser?.id && event.data.fingerprint !== workspaceFingerprint())
+    refreshWorkspaceSoon(false);
 });
 navigator.serviceWorker?.addEventListener('message', event => {
   if (event.data?.type === 'smena:push-subscription-change') void refreshWebPushSubscription();
