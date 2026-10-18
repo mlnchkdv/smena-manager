@@ -41,6 +41,16 @@ async function expectNoWcagViolations(page, context) {
 test('key Russian and English workflows pass automated WCAG checks', async ({ page }) => {
   await signIn(page);
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/e2e-team');
+  const homeTabs = page.getByRole('tablist').first();
+  await homeTabs.getByRole('tab').first().focus();
+  await page.keyboard.press('End');
+  await expect(homeTabs.getByRole('tab').last()).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(homeTabs.getByRole('tab').last()).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Enter');
+  await expect(homeTabs.getByRole('tab').first()).toHaveAttribute('aria-selected', 'true');
 
   for (const route of ['', 'projects', 'files', 'inbox', 'settings/security', 'settings/notif-push']) {
     await page.goto(`/e2e-team${route ? `/${route}` : ''}`);

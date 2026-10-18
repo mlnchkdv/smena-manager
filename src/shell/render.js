@@ -11,6 +11,7 @@ import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
 import { isRussian, t as tr, translateApp } from '../core/i18n.js';
+import { normalizeTablists } from '../ui/tabs.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
@@ -174,6 +175,7 @@ export function render() {
   $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
   $('#layer').innerHTML = renderLayer();
   translateApp();
+  normalizeTablists();
   makeFocusable();
   keep.forEach(([k, t, l]) => {
     const el = document.querySelector(`[data-keep="${CSS.escape(k)}"]`);

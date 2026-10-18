@@ -6,6 +6,7 @@ import { go, render } from '../shell/render.js';
 import { closeModal } from '../overlays/modals.js';
 import { closePop } from '../overlays/popovers.js';
 import { A, KEY } from './actions.js';
+import { moveTabFocus } from '../ui/tabs.js';
 
 export let gPending = 0;
 document.addEventListener('keydown', e => {
@@ -13,6 +14,7 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   const typing = t.matches?.('input, textarea, select, [contenteditable="true"]');
   const pl = S.ui.palette;
+  if (moveTabFocus(e)) return;
   if (mod && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     pl ? A.closePalette() : A.openPalette();
