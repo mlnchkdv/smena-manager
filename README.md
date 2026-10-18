@@ -385,6 +385,30 @@ as storage readiness. This still does not prove successful login, write delivery
 Temporary read-only probes were removed. The temporary ignored environment file was deleted; Vercel
 had returned sensitive-value placeholders, not usable production credentials.
 
+### Authenticated production audit (2026-10-18)
+
+After sign-in recovery, the authenticated workspace was inspected without changing team content.
+Home, inbox, notifications, project tasks, calendar, timeline, knowledge, bookmarks, team membership,
+account sessions and settings loaded. The team displayed five members and its linked project.
+At an actual 320 CSS-pixel viewport, inspected files, knowledge, bookmarks, team and inbox pages
+had no horizontal root overflow. The empty file library did not permit verification of real uploads.
+
+Fixes include task-dialog focus restoration after closing the assignee picker, localized active
+filters and current-user labels, localized default team descriptions, explicit notification-health
+explanations, and distinguishing Gmail authorization from proven successful delivery. Backup errors
+now remain visible with actionable setup guidance instead of only a transient toast.
+
+With user approval, Gmail API was enabled in the existing Google Cloud project. No test email or
+manual delivery retry was sent. The missing `backups` folder was created inside the existing Drive
+storage root without modifying existing files or permissions. The production backup list then
+loaded successfully and reported no copies. This verifies listing, not backup creation or restore.
+The interface no longer claims that daily copies already exist merely because scheduling is supported.
+
+Remaining acceptance checks: the next successful scheduled run, actual Gmail delivery, Web Push on
+subscribed devices, backup creation/restore, file upload/download and controlled concurrent edits.
+Earlier delivery failures and queued retries remain historical evidence until a successful run;
+enabling the API alone does not establish end-to-end delivery.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
