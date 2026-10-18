@@ -10,7 +10,7 @@ import { av } from '../ui/helpers.js';
 export function teamModal(m, H) {
   const f = S.ui.tform;
   const err = S.ui.errors.tname;
-  const people = D().members.filter(x => x.status !== 'deactivated');
+  const people = D().members.filter(x => !['deactivated', 'removed'].includes(x.status));
   const projects = D().projects.filter(project => !project.archived);
   return `${H(m.edit ? 'Edit team' : 'New team', m.edit ? '' : 'Teams group the people who work on projects together.')}
   <form class="modal-b" data-submit="submitTeam">

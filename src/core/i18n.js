@@ -15,6 +15,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'This team no longer exists. Refresh the list and try again.': 'Этой команды больше нет. Обновите список и повторите попытку.',
   Undo: 'Отменить',
   'Stored files are retained for at least 30 days and while referenced by backups.':
     'Файлы в хранилище сохраняются не менее 30 дней, а также пока на них ссылаются резервные копии.',

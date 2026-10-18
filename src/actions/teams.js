@@ -29,7 +29,7 @@ A.editTeam = el => {
     icon: t.icon,
     color: Object.keys(PCOLORS).find(k => PCOLORS[k] === t.c) || 'slate',
     members: D()
-      .members.filter(m => m.team === t.id)
+      .members.filter(m => m.team === t.id && !['deactivated', 'removed'].includes(m.status))
       .map(m => m.id),
     projects: D()
       .projects.filter(project => project.team === t.id && !project.archived)
@@ -79,6 +79,12 @@ A.submitTeam = () => {
     return;
   }
   let t;
+  if (m.edit && !team(m.edit)) {
+    S.ui.modals.pop();
+    render();
+    toast('This team no longer exists. Refresh the list and try again.', { kind: 'err' });
+    return;
+  }
   const ok = mutate(() => {
     if (m.edit) {
       t = team(m.edit);
@@ -102,6 +108,7 @@ A.submitTeam = () => {
 A.delTeam = el => {
   if (S.ui.currentUser?.role !== 'admin') return;
   const t = team(el.dataset.id);
+  if (!t) return;
   const n = D().members.filter(x => x.team === t.id).length;
   const np = D().projects.filter(p => p.team === t.id).length;
   S.ui.modals.pop();
@@ -115,7 +122,7 @@ A.delTeam = el => {
       const snap = snapshot();
       if (
         mutate(() => {
-          D().teams = teamsList().filter(x => x !== t);
+          D().teams = teamsList().filter(x => x.id !== t.id);
           D().members.forEach(x => {
             if (x.team === t.id) x.team = '';
           });
