@@ -7,7 +7,7 @@ import { FT, av, hl, stIcon } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
 import { sortTasks } from '../shell/view-engine.js';
-import { searchAll } from '../pages/search.js';
+import { searchAll } from '../core/search.js';
 import { t as tr } from '../core/i18n.js';
 import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';

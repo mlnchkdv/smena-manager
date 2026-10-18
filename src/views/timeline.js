@@ -4,7 +4,7 @@ import { ic } from '../core/icons.js';
 import { S, allTasks, canSee, pColor, proj, task, taskProg, visibleProjects } from '../core/store.js';
 import { av, empty, stIcon } from '../ui/helpers.js';
 import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine.js';
-import { startOfWeek } from './calendar.js';
+import { startOfWeek } from '../core/calendar-layout.js';
 
 export function tlControls() {
   return `<div class="seg" style="margin-left:4px">${[

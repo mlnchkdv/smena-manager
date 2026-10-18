@@ -7,7 +7,7 @@ import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { FIELDS, viewOf } from '../shell/view-engine.js';
 import { TCOLS } from '../views/table.js';
-import { startOfWeek } from '../views/calendar.js';
+import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
 import { locale } from '../core/i18n.js';
 

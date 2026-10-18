@@ -48,6 +48,7 @@ function lucideSubset() {
 }
 
 export default defineConfig({
+  build: { rollupOptions: { output: { manualChunks: { sanitizer: ['dompurify'] } } } },
   plugins: [
     lucideSubset(),
     {

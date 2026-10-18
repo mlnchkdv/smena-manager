@@ -1,25 +1,10 @@
 /* ---------- SEARCH RESULTS ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, allTasks, canSee, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { D, S, mem, pColor, proj, task } from '../core/store.js';
+import { searchAll } from '../core/search.js';
 import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 
-export function searchAll(q) {
-  q = (q || '').trim().toLowerCase();
-  if (!q) return { tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [] };
-  const has = s => (s || '').toLowerCase().includes(q);
-  return {
-    tasks: allTasks()
-      .filter(t => has(t.title) || has(t.key) || has(t.desc.replace(/<[^>]+>/g, '')))
-      .slice(0, 30),
-    projects: visibleProjects().filter(p => has(p.name) || has(p.desc)),
-    people: D().members.filter(m => has(m.name) || has(m.email) || has(m.title)),
-    files: D().files.filter(f => has(f.name) && canSee(proj(f.project))),
-    comments: D().comments.filter(c => has(c.text) && task(c.task) && canSee(proj(task(c.task).project))),
-    knowledge: (D().knowledgeNotes || []).filter(note => has([note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' '))),
-    bookmarks: (D().links || []).filter(link => has([link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' '))),
-  };
-}
 export function pageSearch() {
   const q = S.ui.searchQ;
   const r = searchAll(q);
@@ -41,6 +26,7 @@ export function pageSearch() {
       : '';
   return `<div class="page" style="max-width:860px">
     <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
+    ${q ? '<p class="hint">Showing up to 30 matches per category. Refine your search to find more.</p>' : ''}
     <div class="tabs" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
     ${
       !q

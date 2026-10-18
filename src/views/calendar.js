@@ -1,17 +1,12 @@
 /* ---------- CALENDAR ---------- */
-import { MONL, TODAY, WD, addD, diffD, esc, fmtDate, iso, parse, sod } from '../core/utils.js';
+import { MONL, TODAY, WD, addD, diffD, esc, fmtDate, iso, parse } from '../core/utils.js';
+import { startOfWeek } from '../core/calendar-layout.js';
 import { ic } from '../core/icons.js';
 import { D, S, allTasks, pColor, proj } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 
-export function startOfWeek(d) {
-  const x = sod(d);
-  const ws = S.prefs.weekStart;
-  const diff = (x.getDay() - ws + 7) % 7;
-  return addD(x, -diff);
-}
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
   const mode = S.ui.calMode;
