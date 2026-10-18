@@ -5,6 +5,12 @@ import { Readable } from 'node:stream';
 import { rememberStorageVersion } from './version-token.js';
 import { configureProviderTimeout } from '../provider-safety.js';
 
+function responseHeader(response, name) {
+  const headers = response.headers;
+  if (typeof headers?.get === 'function') return headers.get(name);
+  return Object.entries(headers || {}).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1] || null;
+}
+
 function conditionalWriteOptions(options, fallback) {
   const etag = Object.hasOwn(options, 'expectedEtag') ? options.expectedEtag : fallback;
   if (!etag) throw Object.assign(new Error('Storage version is missing. Reload before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
@@ -179,7 +185,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-    this.databaseEtag = response.headers?.etag || null;
+    this.databaseEtag = responseHeader(response, 'etag');
     this.lastSyncAt = new Date().toISOString();
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.databaseEtag);
   }
@@ -215,7 +221,7 @@ export class GoogleDriveStorageProvider {
       },
       requestOptions,
     );
-    this.databaseEtag = updated.headers?.etag || null;
+    this.databaseEtag = responseHeader(updated, 'etag');
   }
 
   async saveDatabase(data, options = {}) {
@@ -237,7 +243,7 @@ export class GoogleDriveStorageProvider {
         },
         requestOptions,
       );
-      this.databaseEtag = updated.headers?.etag || null;
+      this.databaseEtag = responseHeader(updated, 'etag');
     } else {
       assertMetadataBootstrapAllowed();
       const created = await this.client.files.create({
@@ -252,7 +258,7 @@ export class GoogleDriveStorageProvider {
         supportsAllDrives: true,
       });
       this.databaseFileId = created.data.id;
-      this.databaseEtag = created.headers?.etag || null;
+      this.databaseEtag = responseHeader(created, 'etag');
     }
     this.lastSyncAt = new Date().toISOString();
     rememberStorageVersion(data, this.databaseEtag);
@@ -279,7 +285,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findDocumentFile(name);
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-    this.documentEtags[name] = response.headers?.etag || null;
+    this.documentEtags[name] = responseHeader(response, 'etag');
     this.lastSyncAt = new Date().toISOString();
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.documentEtags[name]);
   }
@@ -301,7 +307,7 @@ export class GoogleDriveStorageProvider {
         },
         requestOptions,
       );
-      this.documentEtags[name] = updated.headers?.etag || null;
+      this.documentEtags[name] = responseHeader(updated, 'etag');
     } else {
       assertMetadataBootstrapAllowed();
       const created = await this.client.files.create({
@@ -316,7 +322,7 @@ export class GoogleDriveStorageProvider {
         supportsAllDrives: true,
       });
       this.documentFileIds[name] = created.data.id;
-      this.documentEtags[name] = created.headers?.etag || null;
+      this.documentEtags[name] = responseHeader(created, 'etag');
     }
     this.lastSyncAt = new Date().toISOString();
     rememberStorageVersion(data, this.documentEtags[name]);
@@ -341,7 +347,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findPushSubscriptionsFile();
     if (!fileId) return [];
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-    this.pushSubscriptionsEtag = response.headers?.etag || null;
+    this.pushSubscriptionsEtag = responseHeader(response, 'etag');
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.pushSubscriptionsEtag);
   }
@@ -356,7 +362,7 @@ export class GoogleDriveStorageProvider {
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.pushSubscriptionsEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
-      this.pushSubscriptionsEtag = updated.headers?.etag || null;
+      this.pushSubscriptionsEtag = responseHeader(updated, 'etag');
       return;
     }
     assertMetadataBootstrapAllowed();
@@ -372,7 +378,7 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     this.pushSubscriptionsFileId = created.data.id;
-    this.pushSubscriptionsEtag = created.headers?.etag || null;
+    this.pushSubscriptionsEtag = responseHeader(created, 'etag');
   }
 
   async findNotificationDeliveryFile() {
@@ -394,7 +400,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findNotificationDeliveryFile();
     if (!fileId) return null;
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-    this.notificationDeliveryEtag = response.headers?.etag || null;
+    this.notificationDeliveryEtag = responseHeader(response, 'etag');
     return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.notificationDeliveryEtag);
   }
 
@@ -405,7 +411,7 @@ export class GoogleDriveStorageProvider {
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.notificationDeliveryEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
-      this.notificationDeliveryEtag = updated.headers?.etag || null;
+      this.notificationDeliveryEtag = responseHeader(updated, 'etag');
       return;
     }
     assertMetadataBootstrapAllowed();
@@ -421,7 +427,7 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     this.notificationDeliveryFileId = created.data.id;
-    this.notificationDeliveryEtag = created.headers?.etag || null;
+    this.notificationDeliveryEtag = responseHeader(created, 'etag');
   }
 
   async findAuthSessionsFile() {
@@ -443,7 +449,7 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findAuthSessionsFile();
     if (!fileId) return [];
     const response = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-    this.authSessionsEtag = response.headers?.etag || null;
+    this.authSessionsEtag = responseHeader(response, 'etag');
     const parsed = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     return rememberStorageVersion(Array.isArray(parsed) ? parsed : [], this.authSessionsEtag);
   }
@@ -455,7 +461,7 @@ export class GoogleDriveStorageProvider {
     if (fileId) {
       const requestOptions = conditionalWriteOptions(options, this.authSessionsEtag);
       const updated = await this.client.files.update({ fileId, media, supportsAllDrives: true }, requestOptions);
-      this.authSessionsEtag = updated.headers?.etag || null;
+      this.authSessionsEtag = responseHeader(updated, 'etag');
       return;
     }
     assertMetadataBootstrapAllowed();
@@ -471,7 +477,7 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     this.authSessionsFileId = created.data.id;
-    this.authSessionsEtag = created.headers?.etag || null;
+    this.authSessionsEtag = responseHeader(created, 'etag');
   }
 
   async createDatabaseBackup(data, label = '') {
@@ -675,7 +681,7 @@ export class GoogleDriveStorageProvider {
       { fileId: metadata.id, alt: 'media', supportsAllDrives: true },
       { responseType: 'stream', headers: range ? { Range: `bytes=${start}-${end}` } : undefined },
     );
-    const responseSize = Number(response.headers['content-length']) || 0;
+    const responseSize = Number(responseHeader(response, 'content-length')) || 0;
     return {
       stream: response.data,
       mimeType: metadata.mimeType || 'application/octet-stream',

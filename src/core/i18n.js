@@ -1233,6 +1233,7 @@ const RU = {
   'Connecting…': 'Подключение…',
   'Invalid Access ID.': 'Неверный идентификатор доступа.',
   'The server is unavailable.': 'Сервер недоступен.',
+  'Workspace storage is unavailable.': 'Хранилище рабочего пространства временно недоступно. Попробуйте ещё раз.',
   'Unable to sign in.': 'Не удалось выполнить вход.',
   'Unable to connect to the workspace server.': 'Не удалось подключиться к серверу рабочего пространства.',
   'The workspace has not been initialized yet.': 'Рабочее пространство ещё не инициализировано.',

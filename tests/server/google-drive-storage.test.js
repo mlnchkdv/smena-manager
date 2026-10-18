@@ -4,6 +4,60 @@ import test from 'node:test';
 import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDriveMatch } from '../../src/server/storage/google-drive.js';
 import { storageVersion } from '../../src/server/storage/version-token.js';
 
+for (const format of ['Headers', 'plain-object']) {
+  test(`Google Drive preserves conditional-write versions with ${format} response headers`, async () => {
+    const headers = etag => (format === 'Headers' ? new Headers({ etag }) : { ETag: etag });
+    const cases = [
+      ['databaseFileId', p => p.loadDatabase(), (p, value, options) => p.saveDatabase(value, options), { revision: 1 }, p => p.databaseEtag],
+      ['authSessionsFileId', p => p.loadAuthSessions(), (p, value, options) => p.saveAuthSessions(value, options), [], p => p.authSessionsEtag],
+      [
+        'pushSubscriptionsFileId',
+        p => p.loadPushSubscriptions(),
+        (p, value, options) => p.savePushSubscriptions(value, options),
+        [],
+        p => p.pushSubscriptionsEtag,
+      ],
+      [
+        'notificationDeliveryFileId',
+        p => p.loadNotificationDeliveryStatus(),
+        (p, value, options) => p.saveNotificationDeliveryStatus(value, options),
+        {},
+        p => p.notificationDeliveryEtag,
+      ],
+      [
+        'knowledge',
+        p => p.loadDocument('knowledge'),
+        (p, value, options) => p.saveDocument('knowledge', value, options),
+        { revision: 1 },
+        p => p.documentEtags.knowledge,
+      ],
+    ];
+    for (const [identity, load, save, data, version] of cases) {
+      const provider = new GoogleDriveStorageProvider();
+      provider.initialized = true;
+      if (identity === 'knowledge') provider.documentFileIds.knowledge = 'test-file';
+      else provider[identity] = 'test-file';
+      let writes = 0;
+      provider.client = {
+        files: {
+          get: async () => ({ data: JSON.stringify(data), headers: headers('"version-1"') }),
+          update: async (_options, requestOptions) => {
+            writes += 1;
+            assert.equal(requestOptions.headers['If-Match'], '"version-1"', identity);
+            return { headers: headers('"version-2"') };
+          },
+        },
+      };
+      const stored = await load(provider);
+      assert.equal(storageVersion(stored), '"version-1"', identity);
+      await save(provider, stored, { expectedEtag: storageVersion(stored) });
+      assert.equal(version(provider), '"version-2"', identity);
+      await assert.rejects(save(provider, stored, { expectedEtag: null }), { code: 'STORAGE_VERSION_MISSING' });
+      assert.equal(writes, 1);
+    }
+  });
+}
+
 test('serverless cold starts fail closed instead of creating duplicate metadata identities', () => {
   assert.throws(() => assertMetadataBootstrapAllowed({ VERCEL: '1' }), { code: 'DRIVE_BOOTSTRAP_REQUIRED' });
   assert.doesNotThrow(() => assertMetadataBootstrapAllowed({}));
