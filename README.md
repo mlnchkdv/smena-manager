@@ -443,8 +443,10 @@ It contained one real asset. `scripts/restore-recovery.js` restored it to a new 
 alongside two tasks and one project, without writing to the production workspace or reading Drive
 during restoration. The recovered attachment matched the original byte-for-byte:
 SHA-256 `9ed52eec377fbc51df4e4736d4d4ed14b5241c4aa47261e0e9e093001af4c8fd`.
-The private bundle and recovered workspace stay outside Git; the clearly named synthetic fixture
-remains in the production file library. The separate ordinary-file browser download event could
+The private bundle and recovered workspace stay outside Git. At the user's request, the synthetic
+fixture was subsequently moved from the production file library to application Trash; the empty
+library persisted after reload. No permanent purge or physical Drive deletion was performed.
+The separate ordinary-file browser download event could
 not be verified because browser automation stalled; authenticated preview and bundle download worked.
 
 This validates independent recovery for the tested small TXT asset, not every MIME type, the 100 MB
@@ -453,6 +455,24 @@ Ordinary backups retain file references and protect referenced uploads from garb
 independent exports include the actual bytes. A stale open tab also encountered an old lazy-loaded
 asset after deployment; the failure screen now has localized refresh guidance, without automatic
 reloads that could interrupt unsaved work.
+
+### File lifecycle follow-up audit (2026-10-18)
+
+Deleting a library file previously removed task attachments by filename as well as ID. Two different
+uploads named alike could therefore lose the wrong task reference. Both UI and API now use the same
+stable-identity matcher: explicit IDs take precedence, storage identities support legacy references,
+and display names never establish identity. The confirmation callback also re-resolves the current
+record by ID instead of relying on an object that a background refresh may have replaced.
+
+The file deletion toast and Undo action are localized, with a browser assertion for their Russian
+text. Permanent-trash confirmation now explains that stored bytes are retained for at least 30 days
+and while referenced by backups; it no longer promises immediate deletion from Google Drive.
+The updated production confirmation was inspected and cancelled, not executed.
+
+Validation: 241 server tests passed, including three new identity regressions; four selected existing
+browser scenarios passed across Chromium, Firefox and WebKit, covering core RU/EN flows and shared
+content/file/trash persistence. Lint and formatting checks passed. This is a focused lifecycle audit,
+not a claim that all production concurrency and recovery scenarios have been accepted.
 
 ## Deploy
 
