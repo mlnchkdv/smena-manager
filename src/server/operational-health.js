@@ -1,5 +1,16 @@
 const CRON_STALE_AFTER_MS = 36 * 60 * 60 * 1000;
 
+export function evaluateAutomationRun({ digest, backup, fileCleanup, abandonedUploads, outbox }) {
+  const issues = [
+    digest?.error && 'Email digest delivery failed',
+    backup?.error && 'Automatic backup failed',
+    (fileCleanup?.error || fileCleanup?.failed) && 'File cleanup failed',
+    (abandonedUploads?.error || abandonedUploads?.failed) && 'Abandoned upload cleanup failed',
+    outbox?.failed && 'Notification delivery failed',
+  ].filter(Boolean);
+  return { status: issues.length ? 'degraded' : 'ok', issues };
+}
+
 export function evaluateOperationalHealth({ delivery, channels, workspace, outbox }, options = {}) {
   const now = new Date(options.now || Date.now()).getTime();
   const issues = [];

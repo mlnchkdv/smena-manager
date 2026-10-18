@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateOperationalHealth } from '../../src/server/operational-health.js';
+import { evaluateAutomationRun, evaluateOperationalHealth } from '../../src/server/operational-health.js';
+
+test('partial file cleanup failures degrade cron status and produce actionable administrator alerts', () => {
+  assert.deepEqual(evaluateAutomationRun({}), { status: 'ok', issues: [] });
+  for (const failure of [{ failed: 1 }, { error: 'storage_unavailable' }]) {
+    assert.deepEqual(evaluateAutomationRun({ fileCleanup: failure }), { status: 'degraded', issues: ['File cleanup failed'] });
+    assert.deepEqual(evaluateAutomationRun({ abandonedUploads: failure }), { status: 'degraded', issues: ['Abandoned upload cleanup failed'] });
+  }
+});
 
 const healthyInput = {
   workspace: { storage: { connected: true, persistent: true }, coordination: { healthy: true } },

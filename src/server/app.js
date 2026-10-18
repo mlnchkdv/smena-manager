@@ -32,7 +32,7 @@ import { DOCUMENT_NAMES, workspaceCoreData } from '../shared/workspace-documents
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
-import { evaluateOperationalHealth } from './operational-health.js';
+import { evaluateAutomationRun, evaluateOperationalHealth } from './operational-health.js';
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
@@ -84,19 +84,13 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       return { error: 'backup_failed' };
     });
     const outbox = await retryNotificationOutbox();
-    const cronStatus = digest.error || backup.error || fileCleanup.error || abandonedUploads.error || outbox.failed ? 'degraded' : 'ok';
+    const { status: cronStatus, issues } = evaluateAutomationRun({ digest, backup, fileCleanup, abandonedUploads, outbox });
     await recordNotificationCronRun({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup }).catch(
       error => {
         reportProviderError('[Notifications] Cron diagnostics', error);
       },
     );
     if (cronStatus !== 'ok') {
-      const issues = [
-        digest.error && 'Email digest delivery failed',
-        backup.error && 'Automatic backup failed',
-        fileCleanup.error && 'File cleanup failed',
-        outbox.failed && 'Notification delivery failed',
-      ].filter(Boolean);
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
     }
     response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup });
