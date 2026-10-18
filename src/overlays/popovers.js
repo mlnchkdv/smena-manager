@@ -5,7 +5,8 @@ import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, me, mem, pColor, proj, systemConnectionState, task, visibleProjects } from '../core/store.js';
 import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
-import { FIELDS, viewOf } from '../shell/view-engine.js';
+import { FIELDS, applyView, viewOf } from '../shell/view-engine.js';
+import { calendarDayItems } from '../shared/calendar-items.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
@@ -22,6 +23,7 @@ export function openPop(el, extra = {}) {
     i: d.i != null ? +d.i : undefined,
     field: d.field,
     date: d.date,
+    ...(d.pop === 'daylist' ? { calendarProject: d.project || '', calendarEvents: d.events === '1' } : {}),
     x: r.left,
     y: r.bottom + 4,
     top: r.top,
@@ -392,8 +394,9 @@ export function popHtml(p) {
     }
     case 'daylist': {
       const ds = p.date;
-      const evs = D().events.filter(e => e.date === ds);
-      const ts = allTasks().filter(x => x.due === ds);
+      const items = calendarDayItems(applyView(allTasks(), viewOf(p.key || 'cal')), p.calendarEvents ? D().events : [], ds, p.calendarProject);
+      const evs = items.filter(item => item.ev).map(item => item.ev);
+      const ts = items.filter(item => item.t).map(item => item.t);
       inner =
         `<div class="mh">${fmtDate(ds, true)}</div>` +
         evs

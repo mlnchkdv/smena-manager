@@ -6,12 +6,12 @@ import { D, S, allTasks, pColor, proj } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
+import { calendarDayItems } from '../shared/calendar-items.js';
 
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
   const mode = S.ui.calMode;
-  const evs = opt.events ? D().events.filter(e => !opt.project || e.project === opt.project) : [];
-  const itemsOn = ds => [...evs.filter(e => e.date === ds).map(e => ({ ev: e })), ...ts.filter(t => t.due === ds).map(t => ({ t }))];
+  const itemsOn = ds => calendarDayItems(ts, opt.events ? D().events : [], ds, opt.project);
   const wdn = Array.from({ length: 7 }, (_, i) => WD[(i + S.prefs.weekStart) % 7]);
   const chip = it => {
     if (it.ev) {
@@ -39,7 +39,7 @@ export function calendarHtml(ts, opt = {}) {
           <span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span>
           <button class="ibtn ibtn-xs add" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="Add task on ${fmtDate(ds)}">${ic('plus', 13)}</button>
           ${items.slice(0, 3).map(chip).join('')}
-          ${items.length > 3 ? `<button class="cmore" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}">+${items.length - 3} more</button>` : ''}
+          ${items.length > 3 ? `<button class="cmore" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}">+${items.length - 3} more</button>` : ''}
         </div>`;
         })
         .join('')}</div>`;
