@@ -31,6 +31,24 @@ function details(id, userId, now, overrides = {}) {
   };
 }
 
+test('Drive-backed login attempt limits survive worker changes, expire and never expose raw IPs as sessions', async () => {
+  let now = Date.now();
+  const provider = new MemorySessionStorage();
+  const first = new AuthSessionRegistry({ provider: () => provider, now: () => now });
+  const second = new AuthSessionRegistry({ provider: () => provider, now: () => now });
+  const options = { secret: 'test-stable-secret', maxAttempts: 2, windowMs: 1000 };
+  await first.register(details('session', 'member', now));
+  assert.equal((await first.reserveLoginAttempt('192.0.2.1', options)).allowed, true);
+  assert.equal((await second.reserveLoginAttempt('192.0.2.1', options)).allowed, true);
+  assert.equal((await first.reserveLoginAttempt('192.0.2.1', options)).allowed, false);
+  assert.equal((await first.list('member', 'session')).length, 1);
+  assert.equal((await first.list('__smena_rate_limit__', 'session')).length, 0);
+  assert.doesNotMatch(JSON.stringify(provider.sessions), /192\.0\.2\.1/u);
+  now += 1001;
+  assert.equal((await second.reserveLoginAttempt('192.0.2.1', options)).allowed, true);
+  assert.ok(await first.ensure(details('session', 'member', now)));
+});
+
 test('missing sessions cannot be recreated by presenting an old signed token', async () => {
   const now = Date.now();
   const provider = new MemorySessionStorage();

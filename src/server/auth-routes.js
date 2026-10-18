@@ -7,6 +7,7 @@ import { inspectDeploymentConfig, workspaceWritesEnabled } from './deployment-co
 import { createLoginRateLimiter } from './login-rate-limit.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 import { mergeAccessProfiles } from '../shared/workspace-access.js';
+import { reserveSharedLoginAttempt } from './auth-session-store.js';
 
 const loginRateLimiter = createLoginRateLimiter();
 
@@ -15,16 +16,20 @@ function rateLimitKey(request) {
   return forwarded || request.socket.remoteAddress || request.ip || 'unknown';
 }
 
-function rateLimit(request, response, next) {
-  const key = rateLimitKey(request);
-  const result = loginRateLimiter.check(key);
-  if (!result.allowed) {
-    response.setHeader('Retry-After', String(Math.ceil(result.retryAfterMs / 1000)));
-    response.status(429).json({ error: 'Too many login attempts. Try again later.', code: 'LOGIN_RATE_LIMITED' });
-    return;
+async function rateLimit(request, response, next) {
+  try {
+    const key = rateLimitKey(request);
+    const result = process.env.VERCEL ? await reserveSharedLoginAttempt(key) : loginRateLimiter.check(key);
+    if (!result.allowed) {
+      response.setHeader('Retry-After', String(Math.ceil(result.retryAfterMs / 1000)));
+      response.status(429).json({ error: 'Too many login attempts. Try again later.', code: 'LOGIN_RATE_LIMITED' });
+      return;
+    }
+    request.loginRateLimitKey = key;
+    next();
+  } catch (error) {
+    next(error);
   }
-  request.loginRateLimitKey = key;
-  next();
 }
 
 function requireAccessIdLogin(_request, response, next) {
