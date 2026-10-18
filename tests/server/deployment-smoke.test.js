@@ -6,7 +6,9 @@ function response(path) {
   if (path === '/') return new Response('<html><script type="module" src="/assets/app.js"></script></html>', { headers: { 'Content-Type': 'text/html' } });
   if (path === '/api/workspace') return new Response('{}', { status: 401 });
   return new Response(
-    JSON.stringify(path === '/api/health' ? { status: 'ok', service: 'smena-manager' } : { deploymentReady: true, googleAuthEnabled: true }),
+    JSON.stringify(
+      path === '/api/health' ? { status: 'ok', service: 'smena-manager' } : { deploymentReady: true, googleAuthEnabled: true, workspaceStorageAvailable: true },
+    ),
     { headers: { 'Content-Type': 'application/json' } },
   );
 }
@@ -42,6 +44,20 @@ test('deployment smoke catches broken runtimes and frontend fallback responses',
           : response(new URL(url).pathname),
     }),
     /not ready/u,
+  );
+});
+
+test('deployment smoke rejects configured sign-in when workspace storage cannot be read', async () => {
+  await assert.rejects(
+    smokeDeployment('example.vercel.app', {
+      fetch: async url =>
+        new URL(url).pathname === '/api/auth/config'
+          ? new Response(JSON.stringify({ deploymentReady: true, googleAuthEnabled: true, workspaceStorageAvailable: false }), {
+              headers: { 'Content-Type': 'application/json' },
+            })
+          : response(new URL(url).pathname),
+    }),
+    /Workspace storage is unavailable/u,
   );
 });
 

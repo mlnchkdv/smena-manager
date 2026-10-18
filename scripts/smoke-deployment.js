@@ -68,6 +68,7 @@ export async function smokeDeployment(input, options = {}) {
         if (path === '/api/health' && (data.status !== 'ok' || data.service !== 'smena-manager')) throw new Error('API liveness failed.');
         if (path === '/api/auth/config' && (data.deploymentReady !== true || !(data.googleAuthEnabled === true || data.accessIdEnabled === true)))
           throw new Error('Sign-in configuration is not ready.');
+        if (path === '/api/auth/config' && data.workspaceStorageAvailable !== true) throw new Error('Workspace storage is unavailable.');
       }
     }
     results.push({ path, status: response.status });

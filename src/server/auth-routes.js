@@ -59,9 +59,11 @@ authRouter.get('/config', async (request, response) => {
   let profileCount = 0;
   let configuredProfiles = [];
   let configurationError = null;
+  let workspaceStorageAvailable = false;
   try {
     configuredProfiles = getAccessProfiles().filter(profile => profile.active);
     const database = await getWorkspaceDatabase().catch(() => null);
+    workspaceStorageAvailable = Boolean(database);
     profiles = mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
     profileCount = configuredProfiles.length;
   } catch (error) {
@@ -79,6 +81,7 @@ authRouter.get('/config', async (request, response) => {
     configurationWarnings: deployment?.warnings.map(warning => warning.key) || [],
     googleCredentialMode: deployment?.credentialMode || (hasGoogleDriveCredentials() ? 'configured' : null),
     workspaceWritesEnabled: workspaceWritesEnabled(),
+    workspaceStorageAvailable,
   });
 });
 
