@@ -771,7 +771,7 @@ const RU = {
   'Delete permanently?': 'Удалить безвозвратно?',
   'Move to trash': 'В корзину',
   'will be moved to trash.': 'будет перемещено в корзину.',
-  'will be permanently deleted.': 'будет окончательно удалёно.',
+  'will be permanently deleted.': 'будет окончательно удалено.',
   'will be permanently deleted, including its files in Google Drive.': 'будет окончательно удалено вместе с файлами в Google Drive.',
   'The item could not be restored because its parent project was deleted or its ID is already in use.':
     'Не удалось восстановить элемент: его родительский проект удалён или идентификатор уже занят.',
