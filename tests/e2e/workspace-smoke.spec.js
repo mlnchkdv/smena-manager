@@ -273,6 +273,8 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('[data-a="delFile"]:visible').click();
   await expectRussianUi(page, 'file delete confirmation');
   await confirmDialog(page);
+  await expect(page.locator('.toast').filter({ hasText: `«${fileName}» перемещено в корзину` })).toBeVisible();
+  await expect(page.locator('.toast').filter({ hasText: fileName }).getByRole('button', { name: 'Отменить', exact: true })).toBeVisible();
   await waitForSaved(page);
   await openTrash(page);
   const fileTrashRow = page.locator('.mini', { hasText: fileName });

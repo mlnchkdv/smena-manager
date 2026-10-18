@@ -2567,7 +2567,7 @@ A.delFile = el => {
           D().files = D().files.filter(item => item.id !== currentFile.id);
         })
       )
-        toast(`${f.name} moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
+        toast(`“${currentFile.name}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
     },
   });
 };
