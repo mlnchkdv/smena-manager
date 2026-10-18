@@ -14,6 +14,7 @@ import { memberForProfile } from '../shared/member-identity.js';
 import { canEditProject, canReadProject } from '../shared/project-access.js';
 import { retainDetachedFile } from './file-retention.js';
 import { reportProviderError } from './provider-safety.js';
+import { registerFileMetadata } from './file-registry.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -76,6 +77,7 @@ function appendFileRecord(database, user, metadata, stored, projectId, taskId) {
   };
   database.files = Array.isArray(database.files) ? database.files : [];
   database.files.unshift(fileRecord);
+  registerFileMetadata(database, fileRecord, true);
   if (taskId) {
     const task = database.tasks.find(item => item.id === taskId);
     task.attachments = Array.isArray(task.attachments) ? task.attachments : [];
@@ -215,6 +217,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
     let data;
     for (let attempt = 0; attempt < 3; attempt++) {
       const current = await getWorkspaceDatabase();
+      assertFileTarget(current, request.user, ticket.projectId, ticket.taskId);
       const existing = current.files?.find(item => item.storageFileId === stored.fileId);
       if (existing) {
         fileRecord = existing;

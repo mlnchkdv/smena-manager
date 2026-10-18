@@ -59,6 +59,7 @@ export async function collectRetainedFiles(options) {
       try {
         await options.mutate(database => {
           database._fileGc = (database._fileGc || []).filter(item => !removed.has(item.id));
+          for (const id of removed) if (database._fileRegistry) delete database._fileRegistry[id];
           return database;
         }, latest.revision);
         break;

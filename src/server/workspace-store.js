@@ -14,6 +14,7 @@ import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
+import { indexStoredFiles } from './file-registry.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
@@ -71,7 +72,9 @@ function normalizeDatabase(value) {
   if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
   return copyStorageVersion(
     value,
-    sanitizeWorkspaceContent(validateWorkspaceData(migrateMilestoneIds(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))))),
+    indexStoredFiles(
+      sanitizeWorkspaceContent(validateWorkspaceData(migrateMilestoneIds(migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized))))),
+    ),
   );
 }
 
