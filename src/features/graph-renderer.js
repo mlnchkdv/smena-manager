@@ -3,6 +3,7 @@ import cytoscape from 'cytoscape';
 let instance;
 let context = '';
 let disconnectObserver;
+let savedView;
 export function mountGraph(graph, selected, center, onSelect) {
   requestAnimationFrame(() => {
     const container = document.getElementById('knowledge-graph-canvas');
@@ -10,7 +11,9 @@ export function mountGraph(graph, selected, center, onSelect) {
     const previous =
       instance && context === center
         ? { zoom: instance.zoom(), pan: instance.pan(), positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])) }
-        : null;
+        : savedView?.center === center
+          ? savedView
+          : null;
     instance?.destroy();
     disconnectObserver?.disconnect();
     context = center;
@@ -85,6 +88,13 @@ export function mountGraph(graph, selected, center, onSelect) {
     });
     disconnectObserver = new MutationObserver(() => {
       if (!container.isConnected) {
+        if (instance)
+          savedView = {
+            center,
+            zoom: instance.zoom(),
+            pan: instance.pan(),
+            positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
+          };
         instance?.destroy();
         instance = null;
         disconnectObserver.disconnect();

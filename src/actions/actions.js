@@ -62,7 +62,8 @@ import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
-import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity } from '../shared/relations.js';
+import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
+import { graphView } from '../shared/graph-view.js';
 import { graphOptions } from '../ui/relations.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
@@ -641,9 +642,62 @@ A.openRelatedEntity = el => {
 A.showGraph = el => {
   S.ui.graphCenter = el.dataset.key || '';
   S.ui.graphSelected = S.ui.graphCenter;
+  S.ui.graphQuery = '';
+  S.ui.graphKind = '';
+  S.ui.graphProject = '';
+  S.ui.graphConnected = '';
   S.ui.modals = [];
   S.ui.drawer = null;
-  go('graph');
+  go('graph', S.ui.graphCenter ? { center: S.ui.graphCenter } : {});
+};
+IN.graphQuery = el => {
+  S.ui.graphQuery = el.value;
+  render();
+};
+IN.graphFilter = el => {
+  if (['graphKind', 'graphProject', 'graphDepth'].includes(el.dataset.field)) S.ui[el.dataset.field] = el.value;
+  render();
+};
+IN.graphCheck = el => {
+  if (['graphConnected', 'graphArchive'].includes(el.dataset.field)) S.ui[el.dataset.field] = el.checked ? 'yes' : '';
+  render();
+};
+A.resetGraphFilters = () => {
+  S.ui.graphQuery = '';
+  S.ui.graphKind = '';
+  S.ui.graphProject = '';
+  S.ui.graphConnected = '';
+  S.ui.graphArchive = '';
+  render();
+};
+A.selectGraphNode = el => {
+  S.ui.graphSelected = el.dataset.key;
+  render();
+};
+A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control', { detail: el.dataset.command }));
+A.exportGraph = () => {
+  const graph = graphView(workspaceGraph(D(), { ...graphOptions(), includeArchived: S.ui.graphArchive === 'yes' }), {
+    center: S.ui.params.center,
+    depth: S.ui.graphDepth || 1,
+    query: S.ui.graphQuery,
+    kind: S.ui.graphKind,
+    project: S.ui.graphProject,
+    connectedOnly: S.ui.graphConnected === 'yes',
+  });
+  const payload = {
+    format: 'smena-graph',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    total: graph.total,
+    nodes: graph.nodes.map(({ key, kind, id, title }) => ({ key, kind, id, title })),
+    edges: graph.edges,
+  };
+  const href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = 'smena-graph.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
 };
 A.newBookmark = () => {
   S.ui.bookmarkEditing = null;

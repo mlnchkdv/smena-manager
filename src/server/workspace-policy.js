@@ -36,9 +36,9 @@ export function projectWorkspace(database, user) {
     return project ? canReadProject(project, memberId, user.role) : user.role === 'admin' || item.deletedBy === memberId;
   });
   data.sessions = [];
-  data.relations = (data.relations || []).filter(
-    edge => entityAllowed(data, edge.from, { role: user.role, memberId }) && entityAllowed(data, edge.to, { role: user.role, memberId }),
-  );
+  // Notes/bookmarks are workspace-wide documents and may be absent from a core-only snapshot.
+  const readableEndpoint = key => /^(note|bookmark):/.test(key) || entityAllowed(data, key, { role: user.role, memberId });
+  data.relations = (data.relations || []).filter(edge => readableEndpoint(edge.from) && readableEndpoint(edge.to));
   data.invoices = [];
   for (const key of Object.keys(data)) if (key.startsWith('_')) delete data[key];
   return data;

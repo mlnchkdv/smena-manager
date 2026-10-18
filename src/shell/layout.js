@@ -36,6 +36,7 @@ const lazyPageLoaders = {
   timeline: () => import('../views/timeline.js').then(module => module.pageWsTimeline),
   knowledge: () => import('../pages/knowledge.js').then(module => module.pageKnowledge),
   bookmarks: () => import('../pages/bookmarks.js').then(module => module.pageBookmarks),
+  graph: () => import('../pages/graph.js').then(module => module.pageGraph),
   settings: () => import('../pages/settings.js').then(module => module.pageSettings),
   system: () => import('../pages/design-system.js').then(module => module.pageSystem),
   states: () => import('../pages/design-system.js').then(module => module.pageStates),
@@ -119,6 +120,7 @@ export function renderPage() {
       activity: () => lazyPage('activity'),
       knowledge: () => lazyPage('knowledge'),
       bookmarks: () => lazyPage('bookmarks'),
+      graph: () => lazyPage('graph'),
       settings: () => lazyPage('settings'),
       system: () => lazyPage('system'),
       states: () => lazyPage('states'),
@@ -178,6 +180,7 @@ export function renderSidebar() {
         ${sItem('timeline', 'Timeline', 'chart-gantt')}
         ${sItem('knowledge', 'Knowledge base', 'library-big', { ct: d.knowledgeNotes?.length || '' })}
         ${sItem('bookmarks', 'Bookmarks', 'bookmark', { ct: d.links?.filter(link => !link.is_archived).length || '' })}
+        ${sItem('graph', 'Graph', 'network')}
         ${sItem('members', 'Members', 'users')}
         ${sItem('activity', 'Activity', 'activity')}
       </div>
