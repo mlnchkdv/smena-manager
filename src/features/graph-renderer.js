@@ -4,6 +4,7 @@ let instance;
 let context = '';
 let disconnectObserver;
 let savedView;
+let resizeObserver;
 export function mountGraph(graph, selected, center, onSelect) {
   requestAnimationFrame(() => {
     const container = document.getElementById('knowledge-graph-canvas');
@@ -16,6 +17,7 @@ export function mountGraph(graph, selected, center, onSelect) {
           : null;
     instance?.destroy();
     disconnectObserver?.disconnect();
+    resizeObserver?.disconnect();
     context = center;
     const css = getComputedStyle(container);
     const colors = { note: '--accent', bookmark: '--amber', file: '--teal', project: '--blue', task: '--text-3' };
@@ -88,6 +90,20 @@ export function mountGraph(graph, selected, center, onSelect) {
     instance.on('mouseout', 'node', () => {
       container.style.cursor = '';
     });
+    let width = container.clientWidth,
+      height = container.clientHeight;
+    resizeObserver = new ResizeObserver(() => {
+      if (!instance || !container.isConnected || (width === container.clientWidth && height === container.clientHeight)) return;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      instance.resize();
+      instance.fit(undefined, 35);
+      if (instance.zoom() > 1.2) {
+        instance.zoom(1.2);
+        instance.center();
+      }
+    });
+    resizeObserver.observe(container);
     disconnectObserver = new MutationObserver(() => {
       if (!container.isConnected) {
         if (instance)
@@ -100,6 +116,7 @@ export function mountGraph(graph, selected, center, onSelect) {
         instance?.destroy();
         instance = null;
         disconnectObserver.disconnect();
+        resizeObserver.disconnect();
       }
     });
     disconnectObserver.observe(document.getElementById('app'), { childList: true, subtree: true });
