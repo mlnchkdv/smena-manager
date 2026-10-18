@@ -210,6 +210,7 @@ export async function requireAuth(request, response, next) {
       return;
     }
     request.user = safeProfile(profile);
+    request.workspaceSnapshot = database;
     request.sessionId = result.sessionId;
     request.authSession = activeSession;
     next();

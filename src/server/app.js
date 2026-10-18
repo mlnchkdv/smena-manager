@@ -7,7 +7,6 @@ import {
   createWorkspaceBackup,
   importPortableWorkspace,
   getWorkspaceDatabase,
-  getWorkspaceRevisionStatus,
   getWorkspaceStatus,
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
@@ -377,18 +376,16 @@ app.get('/api/workspace', async (_request, response, next) => {
   }
 });
 
-app.get('/api/workspace/revision', async (_request, response, next) => {
+app.get('/api/workspace/revision', async (request, response, next) => {
   try {
-    const database = await getWorkspaceDatabase();
+    const database = request.workspaceSnapshot || (await getWorkspaceDatabase());
     const documents = Object.fromEntries(
-      await Promise.all(
-        DOCUMENT_NAMES.map(async name => {
-          const document = await getWorkspaceDocument(name, database);
-          return [name, { revision: document.revision, updatedAt: document.updatedAt }];
-        }),
-      ),
+      DOCUMENT_NAMES.map(name => {
+        const metadata = database._documentRevisions?.[name];
+        return [name, { revision: Number(metadata?.revision || 0), updatedAt: metadata?.updatedAt || database.updatedAt }];
+      }),
     );
-    response.json({ ...(await getWorkspaceRevisionStatus()), documents });
+    response.json({ revision: database.revision, updatedAt: database.updatedAt, documents, user: request.user });
   } catch (error) {
     next(error);
   }

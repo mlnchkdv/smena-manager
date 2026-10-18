@@ -815,6 +815,9 @@ const RU = {
   'No run recorded yet': 'Запуски пока не зафиксированы',
   'Notification delivery status updated.': 'Статус доставки уведомлений обновлён.',
   'Pending deliveries': 'Ожидают доставки',
+  'Select visible tasks': 'Выбрать видимые задачи',
+  Page: 'Страница',
+  'The signed-in account changed. Sign in again.': 'Аккаунт входа изменился. Войдите снова.',
   'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.':
     'Сводка открытых задач после ежедневного планового запуска, по рабочим дням в вашем часовом поясе.',
   'Task status changes': 'Изменения статуса задач',

@@ -96,3 +96,48 @@ test('accepting one server scope preserves other local documents and retains the
     globalThis.localStorage = originalStorage;
   }
 });
+
+test('unchanged polling checks the current account and roles in one request and ignores a late previous-account response', async () => {
+  globalThis.document ||= { querySelectorAll: () => [] };
+  globalThis.navigator ||= { platform: 'test', userAgent: 'test' };
+  const { S } = await import('../../src/core/store.js');
+  const { setSessionToken } = await import('../../src/core/api.js');
+  const { refreshWorkspaceFromServer } = await import('../../src/core/bootstrap.js');
+  const { configureWorkspaceSync, disableWorkspaceSync } = await import('../../src/core/workspace-sync.js');
+  const originalFetch = globalThis.fetch;
+  S.ui.currentUser = { id: 'test-owner', role: 'admin' };
+  S.ui.workspaceRevision = 9;
+  S.ui.documentRevisions = { knowledge: 0, bookmarks: 0 };
+  configureWorkspaceSync(9, 'admin', S.data);
+  setSessionToken('synthetic-token');
+  let calls = 0;
+  const response = () =>
+    new Response(
+      JSON.stringify({ revision: 9, documents: { knowledge: { revision: 0 }, bookmarks: { revision: 0 } }, user: { id: 'test-owner', role: 'viewer' } }),
+      { headers: { 'Content-Type': 'application/json' } },
+    );
+  globalThis.fetch = async path => {
+    calls += 1;
+    assert.equal(path, '/api/workspace/revision');
+    return response();
+  };
+  try {
+    assert.equal((await refreshWorkspaceFromServer()).status, 'current');
+    assert.equal(calls, 1);
+    assert.equal(S.ui.currentUser.role, 'viewer');
+    let release;
+    globalThis.fetch = () =>
+      new Promise(resolve => {
+        release = () => resolve(response());
+      });
+    const pending = refreshWorkspaceFromServer();
+    S.ui.currentUser = { id: 'another-owner', role: 'editor' };
+    release();
+    assert.equal((await pending).status, 'session_changed');
+    assert.equal(S.ui.currentUser.id, 'another-owner');
+  } finally {
+    disableWorkspaceSync();
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -156,16 +156,29 @@ export async function authenticateWithGoogleAndLoadWorkspace(credential) {
 
 export async function refreshWorkspaceFromServer(options = {}) {
   if (!S.ui.currentUser || !getSessionToken()) return { status: 'signed_out' };
-  S.ui.currentUser = await getCurrentUser();
   const force = options.force === true;
-  if (!force && !workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
+  const owner = S.ui.currentUser.id;
+  if (force) {
+    const user = await getCurrentUser();
+    if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
+    if (user.id !== owner) throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { status: 401, code: 'SESSION_ACCOUNT_CHANGED' });
+    S.ui.currentUser = user;
+  }
   const startingRevision = S.ui.workspaceRevision;
   if (!force) {
     const remote = await getWorkspaceRevision();
+    if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
+    if (remote.user) {
+      if (remote.user.id !== owner)
+        throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { status: 401, code: 'SESSION_ACCOUNT_CHANGED' });
+      S.ui.currentUser = remote.user;
+    }
+    if (!workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
     const documentsCurrent = DOCUMENT_NAMES.every(name => Number(remote.documents?.[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));
     if (Number(remote.revision) === Number(startingRevision || 0) && documentsCurrent) return { status: 'current' };
   }
   const [snapshot, ...loadedDocuments] = await Promise.all([getWorkspace(), ...DOCUMENT_NAMES.map(name => getWorkspaceDocument(name))]);
+  if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
   const documentSnapshots = Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]]));
   if (!force && (!workspaceSyncIsClean(S.data) || S.ui.workspaceRevision !== startingRevision)) return { status: 'local_changes' };
   const documentsCurrent = DOCUMENT_NAMES.every(name => Number(documentSnapshots[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));

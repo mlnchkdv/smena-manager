@@ -334,6 +334,7 @@ let workspaceRefreshTimer = null;
 let workspaceRefreshFailures = 0;
 async function refreshVisibleWorkspace(showNotice = false) {
   if (S.ui.auth || !S.ui.currentUser || workspaceRefreshPromise) return workspaceRefreshPromise;
+  const owner = S.ui.currentUser.id;
   const previousNotifications = new Set(myNotifications().map(notification => notification.id));
   workspaceRefreshPromise = refreshWorkspaceFromServer()
     .then(result => {
@@ -362,6 +363,7 @@ async function refreshVisibleWorkspace(showNotice = false) {
       }
     })
     .catch(error => {
+      if (error.staleSession || S.ui.currentUser?.id !== owner) return;
       if (error.status === 401) {
         clearSession();
         S.ui.currentUser = null;

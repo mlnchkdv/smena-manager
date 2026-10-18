@@ -61,6 +61,8 @@ async function request(path, options = {}, authenticated = false) {
   }
 
   const body = await response.json().catch(() => ({}));
+  if (authenticated && generation !== sessionGeneration)
+    throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   if (!response.ok) {
     const error = new ApiError(body.error || `Request failed (${response.status}).`, response.status, body.code || 'API_ERROR', body);
     if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
@@ -231,6 +233,7 @@ export async function getFileUploadPolicy() {
 }
 
 function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
+  const generation = sessionGeneration;
   return new Promise((resolve, reject) => {
     if (metadata.signal?.aborted) return reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
     const token = getSessionToken();
@@ -258,6 +261,8 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     xhr.onerror = () => reject(new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR'));
     xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
     xhr.onload = () => {
+      if (generation !== sessionGeneration)
+        return reject(new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true }));
       const body = xhr.response || {};
       if (xhr.status >= 200 && xhr.status < 300) resolve(body);
       else {
