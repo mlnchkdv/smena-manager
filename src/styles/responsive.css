@@ -332,7 +332,11 @@
   }
   .modal {
     max-height: 92vh;
+    max-height: 92dvh;
     border-radius: 14px 14px 0 0;
+  }
+  .modal-f {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
   .pop.floating[data-pop-type='assignee'],
   .pop.floating[data-pop-type='subassignee'] {

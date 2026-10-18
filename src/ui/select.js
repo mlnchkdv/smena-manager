@@ -62,12 +62,6 @@ export const selectMenu = {
       )
       .join('');
     document.body.appendChild(menu);
-    const r = btn.getBoundingClientRect();
-    menu.style.minWidth = Math.max(r.width, 160) + 'px';
-    const h = menu.offsetHeight,
-      w = menu.offsetWidth;
-    menu.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
-    menu.style.top = (r.bottom + 4 + h > innerHeight - 8 ? Math.max(8, r.top - 4 - h) : r.bottom + 4) + 'px';
     menu.addEventListener('mousedown', e => e.preventDefault());
     menu.addEventListener('click', e => {
       const it = e.target.closest('.mi');
@@ -91,8 +85,28 @@ export const selectMenu = {
       } else if (e.key === 'Tab') this.close();
     });
     Object.assign(this, { el: menu, sel, btn });
+    this.position();
     btn.setAttribute('aria-expanded', 'true');
     (menu.querySelector('[aria-selected="true"]') || menu.querySelector('.mi'))?.focus({ preventScroll: true });
+  },
+  position() {
+    if (!this.el) return;
+    if (!this.btn?.isConnected) return this.close();
+    const { el, btn } = this;
+    const viewport = window.visualViewport;
+    const left = (viewport?.offsetLeft || 0) + 8;
+    const top = (viewport?.offsetTop || 0) + 8;
+    const width = Math.max(0, (viewport?.width || innerWidth) - 16);
+    const height = Math.max(0, (viewport?.height || innerHeight) - 16);
+    const r = btn.getBoundingClientRect();
+    el.style.minWidth = Math.min(Math.max(r.width, 160), width) + 'px';
+    el.style.maxWidth = width + 'px';
+    el.style.maxHeight = Math.min(420, height) + 'px';
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const preferredTop = r.bottom + 4 + h > top + height ? r.top - 4 - h : r.bottom + 4;
+    el.style.left = Math.max(left, Math.min(r.left, left + width - w)) + 'px';
+    el.style.top = Math.max(top, Math.min(preferredTop, top + height - h)) + 'px';
   },
   pick(i) {
     const { sel, btn } = this;
@@ -119,6 +133,8 @@ document.addEventListener(
   true,
 );
 addEventListener('resize', () => selectMenu.close());
+window.visualViewport?.addEventListener('resize', () => selectMenu.position());
+window.visualViewport?.addEventListener('scroll', () => selectMenu.position());
 document.addEventListener(
   'scroll',
   e => {
