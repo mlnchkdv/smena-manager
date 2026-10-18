@@ -86,9 +86,10 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 
   await admin.goto('/e2e-team/notifications');
-  const mention = admin.locator('.nrow', { hasText: taskTitle });
+  const mention = admin.locator('.nrow', { hasText: taskTitle }).filter({ hasText: 'упомянул' });
   await expect(mention).toContainText('упомянул', { timeout: 8_000 });
   await expect(mention).toContainText('Проверьте результат.');
+  await expect(admin.locator('.nrow', { hasText: taskTitle }).filter({ hasText: 'оставил' })).toContainText('Проверить собственное упоминание.');
 
   for (const [page, width, height] of [
     [admin, 390, 844],

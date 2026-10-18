@@ -55,7 +55,7 @@ async function visibleUntranslatedUi(page) {
     return [
       ...new Set(
         [...document.querySelectorAll('body *')]
-          .filter(element => visible(element) && !element.children.length)
+          .filter(element => visible(element) && !element.children.length && !element.closest('[translate="no"]'))
           .map(element => element.textContent?.replace(/\s+/g, ' ').trim() || '')
           .filter(text => /[A-Za-z]{3}/u.test(text.replace(allowed, ''))),
       ),
