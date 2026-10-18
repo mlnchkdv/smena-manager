@@ -503,6 +503,7 @@ const RU = {
   'Clear filters': 'Сбросить фильтры',
   'No results': 'Нет результатов',
   'No results found': 'Ничего не найдено',
+  'This bookmark no longer exists. Refresh the list and try again.': 'Этой закладки больше нет. Обновите список и повторите попытку.',
   'Try another category or a broader search term.': 'Выберите другой раздел или уточните поисковый запрос.',
   'Clear search': 'Очистить поиск',
   'Nothing due': 'Нет задач со сроком',

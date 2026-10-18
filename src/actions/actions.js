@@ -61,6 +61,7 @@ import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspace
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
+import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
@@ -614,6 +615,10 @@ A.editBookmark = el => {
 };
 A.saveBookmark = () => {
   if (S.ui.currentUser?.role === 'viewer') return;
+  if (S.ui.bookmarkEditing && !bookmarkCollections().links.some(link => link.id === S.ui.bookmarkEditing)) {
+    toast('This bookmark no longer exists. Refresh the list and try again.', { kind: 'error' });
+    return;
+  }
   const draft = S.ui.bookmarkDraft;
   const parsed = normalizedBookmarkUrl(draft.url);
   if (!parsed) {
@@ -658,7 +663,7 @@ A.saveBookmark = () => {
     S.ui.bookmarkForm = false;
     S.ui.bookmarkEditing = null;
     S.ui.bookmarkDraft = emptyBookmarkDraft();
-    S.ui.bookmarkScope = 'active';
+    Object.assign(S.ui, savedBookmarkView(existing || { ...values, is_archived: false }, S.ui.bookmarkFolder));
   });
 };
 A.newBookmarkFolder = () => {
