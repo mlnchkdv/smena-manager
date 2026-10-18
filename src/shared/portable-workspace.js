@@ -1,3 +1,4 @@
+import { bindWikiReferences, RELATION_TYPES } from './relations.js';
 const IMPORTANCE = new Set(['low', 'medium', 'high', 'critical']);
 
 const list = value => (Array.isArray(value) ? value : []);
@@ -36,11 +37,12 @@ function uniqueId(preferred, used, idFactory, prefix) {
 function importShape(payload) {
   if (Array.isArray(payload)) return { notes: payload, vaultFolders: [], links: [], linkFolders: [] };
   if (!payload || typeof payload !== 'object') throw new TypeError('Import file must contain a JSON object or an array of notes.');
-  if (payload.format === 'smena-manager-portable' && Number(payload.version) > 1)
+  if (payload.format === 'smena-manager-portable' && Number(payload.version) > 2)
     throw new TypeError('This import format is newer than this application supports.');
   const hasVaultFolders = Array.isArray(payload.vault_folders) || Array.isArray(payload.knowledgeFolders);
   return {
     notes: list(payload.notes || payload.knowledgeNotes),
+    relations: list(payload.relations),
     vaultFolders: list(payload.vault_folders || payload.knowledgeFolders),
     links: list(payload.links),
     linkFolders: list(payload.link_folders || payload.linkFolders || (!hasVaultFolders ? payload.folders : [])),
@@ -50,7 +52,7 @@ function importShape(payload) {
 export function buildPortableWorkspace(data, exportedAt = new Date().toISOString()) {
   return {
     format: 'smena-manager-portable',
-    version: 1,
+    version: 2,
     exported_at: exportedAt,
     notes: list(data.knowledgeNotes),
     vault_folders: list(data.knowledgeFolders).map(folder => ({
@@ -60,6 +62,7 @@ export function buildPortableWorkspace(data, exportedAt = new Date().toISOString
       created_at: folder.createdAt || folder.created_at || exportedAt,
     })),
     links: list(data.links),
+    relations: list(data.relations).filter(edge => !edge.deletedAt && [edge.from, edge.to].every(key => /^(note|bookmark):/.test(key))),
     link_folders: list(data.linkFolders).map(folder => ({
       id: folder.id,
       name: folder.name,
@@ -138,11 +141,14 @@ export function mergePortableWorkspace(current, payload, options = {}) {
   const idFactory = options.idFactory || (prefix => prefix + Math.random().toString(36).slice(2, 10));
   const data = {
     ...current,
-    knowledgeNotes: [...list(current.knowledgeNotes)],
+    knowledgeNotes: structuredClone(list(current.knowledgeNotes)),
     knowledgeFolders: [...list(current.knowledgeFolders)],
     links: [...list(current.links)],
     linkFolders: [...list(current.linkFolders)],
+    relations: structuredClone(list(current.relations)),
   };
+  const entityMapping = new Map();
+  const importedNotes = [];
   const counts = { notes: 0, knowledgeFolders: 0, links: 0, linkFolders: 0, skipped: 0, invalid: 0 };
 
   const report = { invalid: [], skipped: [], conflicts: [] };
@@ -166,6 +172,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     }
     const existing = data.knowledgeNotes.find(note => (text(raw.id) && note.id === text(raw.id)) || normalizedName(note.title) === normalizedName(title));
     if (existing && String(existing.formatted_markdown ?? existing.markdown ?? existing.content ?? '') === markdown) {
+      if (text(raw.id)) entityMapping.set(`note:${raw.id}`, `note:${existing.id}`);
       counts.skipped += 1;
       report.skipped.push({ kind: 'note', title, reason: 'identical-content' });
       continue;
@@ -173,6 +180,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     if (existing) {
       report.conflicts.push({ kind: 'note', title, sourceId: raw.id || null, action: options.conflictPolicy === 'skip' ? 'skipped' : 'imported-copy' });
       if (options.conflictPolicy === 'skip') {
+        if (text(raw.id)) entityMapping.set(`note:${raw.id}`, `note:${existing.id}`);
         counts.skipped += 1;
         continue;
       }
@@ -182,6 +190,8 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     }
     const sourceFolder = text(raw.folderId ?? raw.folder_id);
     const id = uniqueId(raw.id, noteIds, idFactory, 'kn');
+    if (text(raw.id)) entityMapping.set(`note:${raw.id}`, `note:${id}`);
+    importedNotes.push(id);
     data.knowledgeNotes.push({
       ...raw,
       id,
@@ -227,6 +237,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     const normalizedUrl = parsed.toString();
     if (linkUrls.has(normalizedUrl)) {
       const existing = data.links.find(link => normalizedHttpUrl(link.url)?.toString() === normalizedUrl);
+      if (text(raw.id) && existing) entityMapping.set(`bookmark:${raw.id}`, `bookmark:${existing.id}`);
       if (text(existing?.title) !== text(raw.title) || text(existing?.description) !== text(raw.description))
         report.conflicts.push({ kind: 'bookmark', title: text(raw.title), action: 'kept-existing', incoming: raw });
       counts.skipped += 1;
@@ -234,6 +245,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     }
     const sourceFolder = text(raw.folder);
     const id = uniqueId(raw.id, linkIds, idFactory, 'ln');
+    if (text(raw.id)) entityMapping.set(`bookmark:${raw.id}`, `bookmark:${id}`);
     data.links.push({
       id,
       url: normalizedUrl,
@@ -255,6 +267,23 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     counts.links += 1;
   }
 
+  for (const note of data.knowledgeNotes.filter(item => importedNotes.includes(item.id))) {
+    note.wikiRefs = list(note.wikiRefs)
+      .filter(ref => ref && typeof ref.label === 'string')
+      .map(ref => ({ label: ref.label, target: entityMapping.get(`note:${ref.target}`)?.slice(5) || '' }));
+  }
+  bindWikiReferences(data.knowledgeNotes);
+  const relationIds = new Set(data.relations.map(edge => edge.id));
+  for (const edge of list(imported.relations)) {
+    const from = entityMapping.get(edge?.from),
+      to = entityMapping.get(edge?.to);
+    if (!from || !to || from === to || !Object.hasOwn(RELATION_TYPES, edge?.type)) {
+      report.invalid.push({ kind: 'relation', reason: 'unresolved-endpoint' });
+      continue;
+    }
+    if (data.relations.some(item => !item.deletedAt && item.from === from && item.to === to && item.type === edge.type)) continue;
+    data.relations.push({ id: uniqueId(edge.id, relationIds, idFactory, 'rel'), from, to, type: edge.type, createdAt: now });
+  }
   counts.invalid += report.invalid.length;
   return { data, counts, report };
 }

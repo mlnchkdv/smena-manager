@@ -16,6 +16,8 @@ export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
   Graph: 'Граф',
+  'Go to Graph': 'Перейти к графу',
+  'Search in graph': 'Найти в графе',
   "Explore connections between your team's materials.": 'Исследуйте связи между материалами команды.',
   'Export graph': 'Экспорт графа',
   'All materials': 'Все материалы',

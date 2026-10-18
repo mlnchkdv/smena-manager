@@ -6,9 +6,15 @@ import { entityAllowed, RELATION_TYPES, workspaceGraph } from '../shared/relatio
 export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task' };
 export const ENTITY_ICONS = { note: 'file-text', bookmark: 'bookmark', file: 'paperclip', project: 'folder', task: 'circle-check' };
 export const graphOptions = () => ({ role: S.ui.currentUser?.role || 'viewer', memberId: D().me });
+let cachedGraph;
+export function relationGraph() {
+  if (!cachedGraph || cachedGraph.data !== D() || cachedGraph.revision !== S.ui.renderRevision)
+    cachedGraph = { data: D(), revision: S.ui.renderRevision, graph: workspaceGraph(D(), { ...graphOptions(), includeArchived: true }) };
+  return cachedGraph.graph;
+}
 
 export function relationsPanel(key, compact = false) {
-  const graph = workspaceGraph(D(), graphOptions());
+  const graph = relationGraph();
   const nodes = new Map(graph.nodes.map(node => [node.key, node]));
   const edges = graph.edges.filter(edge => edge.from === key || edge.to === key);
   const writable = entityAllowed(D(), key, graphOptions(), true);
@@ -29,7 +35,7 @@ export function relationPicker(m) {
   const query = String(m.query || '')
     .trim()
     .toLocaleLowerCase();
-  const graph = workspaceGraph(D(), graphOptions());
+  const graph = relationGraph();
   const candidates = graph.nodes.filter(
     node =>
       node.key !== m.source &&

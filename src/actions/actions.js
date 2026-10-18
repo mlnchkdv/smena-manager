@@ -675,6 +675,13 @@ A.selectGraphNode = el => {
   render();
 };
 A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control', { detail: el.dataset.command }));
+A.searchInGraph = () => {
+  S.ui.graphQuery = S.ui.searchQ || '';
+  S.ui.graphKind = '';
+  S.ui.graphProject = '';
+  S.ui.graphConnected = '';
+  go('graph');
+};
 A.exportGraph = () => {
   const graph = graphView(workspaceGraph(D(), { ...graphOptions(), includeArchived: S.ui.graphArchive === 'yes' }), {
     center: S.ui.params.center,

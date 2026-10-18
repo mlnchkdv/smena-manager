@@ -6,6 +6,7 @@ import { ic } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, canSee, proj, tasksOf } from '../core/store.js';
 import { avStack, empty, pIcon } from '../ui/helpers.js';
+import { relationsPanel } from '../ui/relations.js';
 import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { listHtml } from '../components/task-list.js';
 import { page404, stateDenied } from './errors.js';
@@ -66,7 +67,7 @@ export function pageProject() {
         <button class="tab" data-a="saveView" data-id="${p.id}" data-tip="Save current filters as a view" aria-label="Save view">${ic('plus', 14)}</button>
       </nav>
     </div>
-    <div class="pbody${S.ui.fx.tab ? ' fx-tab' : ''}">${body}</div>
+    <div class="pbody${S.ui.fx.tab ? ' fx-tab' : ''}">${body}${tab === 'overview' ? relationsPanel(`project:${p.id}`) : ''}</div>
   </div>`;
 }
 export function taskViewBody(type, ts, key, p) {

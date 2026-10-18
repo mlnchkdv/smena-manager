@@ -33,7 +33,9 @@ export function bindWikiReferences(notes = []) {
   }
   for (const note of notes) {
     const previous = Array.isArray(note.wikiRefs) ? note.wikiRefs : [];
-    note.wikiRefs = extractWikiLinks(note.formatted_markdown).map(label => {
+    const labels = extractWikiLinks(note.formatted_markdown);
+    if (!labels.length && !Object.hasOwn(note, 'wikiRefs')) continue;
+    note.wikiRefs = labels.map(label => {
       const bound = previous.find(ref => normalized(ref.label) === normalized(label));
       const matches = titles.get(normalized(label)) || [];
       return { label, target: bound?.target || (matches.length === 1 ? matches[0] : '') };
@@ -45,13 +47,14 @@ export function bindWikiReferences(notes = []) {
 export function workspaceGraph(data, options = {}) {
   const nodes = [];
   const visible = new Set();
+  const projectMap = new Map((data.projects || []).map(project => [project.id, project]));
   const projectIds = new Set((data.projects || []).filter(project => options.includeArchived || !project.archived).map(project => project.id));
   for (const [kind, field] of Object.entries(ENTITY_COLLECTIONS)) {
     for (const item of data[field] || []) {
       const key = entityKey(kind, item.id);
       const project = kind === 'project' ? item.id : entityProjectId(item, data);
       if (!options.includeArchived && (item.archived || item.is_archived || (project && !projectIds.has(project)))) continue;
-      if (!entityAllowed(data, key, options)) continue;
+      if (project && !canReadProject(projectMap.get(project), options.memberId || data.me, options.role || 'viewer')) continue;
       nodes.push({ key, kind, id: item.id, title: item.title || item.name || item.url || item.id, project, tags: item.tags || [], item });
       visible.add(key);
     }
@@ -66,7 +69,7 @@ export function workspaceGraph(data, options = {}) {
   for (const note of notes) {
     const from = entityKey('note', note.id);
     if (!visible.has(from)) continue;
-    for (const ref of note.wikiRefs) {
+    for (const ref of note.wikiRefs || []) {
       if (!ref.target) unresolved.push({ from, label: ref.label });
       else add({ id: `wiki:${note.id}:${ref.target}`, from, to: entityKey('note', ref.target), type: 'source', origin: 'wiki' });
     }

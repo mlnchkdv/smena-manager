@@ -3,6 +3,9 @@ import test from 'node:test';
 import { bindWikiReferences, graphNeighborhood, workspaceGraph } from '../../src/shared/relations.js';
 import { mergeClientWorkspace, projectWorkspace } from '../../src/server/workspace-policy.js';
 import { mergeWorkspaceData } from '../../src/shared/workspace-merge.js';
+import { buildPortableWorkspace, mergePortableWorkspace } from '../../src/shared/portable-workspace.js';
+import { validateWorkspaceData } from '../../src/shared/workspace-schema.js';
+import { createEmptyDatabase } from '../../src/server/workspace-store.js';
 
 const fixture = () => ({
   me: 'editor',
@@ -67,4 +70,55 @@ test('trash hides dangling links until the same ID is restored; tombstones merge
   assert.ok(merged.data.relations[0].deletedAt);
   const graph = graphNeighborhood(workspaceGraph(data, { role: 'admin' }), 'bookmark:l', 1);
   assert.deepEqual(graph.nodes.map(node => node.key).sort(), ['bookmark:l', 'note:a']);
+});
+
+test('portable v2 remaps relation endpoints and wiki bindings across collisions and bookmark duplicates without mutating input', () => {
+  const current = {
+    knowledgeNotes: [{ id: 'a', title: 'Existing', formatted_markdown: 'old' }],
+    links: [{ id: 'existing-link', url: 'https://example.com/' }],
+    knowledgeFolders: [],
+    linkFolders: [],
+  };
+  const original = structuredClone(current);
+  const payload = {
+    format: 'smena-manager-portable',
+    version: 2,
+    notes: [
+      { id: 'a', title: 'New', formatted_markdown: '[[Second]]', wikiRefs: [{ label: 'Second', target: 'b' }] },
+      { id: 'b', title: 'Second', formatted_markdown: 'body' },
+    ],
+    links: [{ id: 'x', url: 'https://example.com/' }],
+    relations: [{ id: 'r', from: 'note:a', to: 'bookmark:x', type: 'source' }],
+  };
+  let seq = 0;
+  const imported = mergePortableWorkspace(current, payload, { idFactory: prefix => `${prefix}-${++seq}` });
+  const note = imported.data.knowledgeNotes.find(item => item.formatted_markdown === '[[Second]]');
+  assert.notEqual(note.id, 'a');
+  assert.equal(note.wikiRefs[0].target, 'b');
+  assert.equal(imported.data.relations[0].from, `note:${note.id}`);
+  assert.equal(imported.data.relations[0].to, 'bookmark:existing-link');
+  assert.deepEqual(current, original);
+  const restored = mergePortableWorkspace({ knowledgeNotes: [], links: [], knowledgeFolders: [], linkFolders: [] }, buildPortableWorkspace(imported.data));
+  assert.equal(restored.data.relations.length, 1);
+});
+
+test('core API snapshots keep globally-readable note edges, and malformed edges fail validation', () => {
+  const data = fixture();
+  data.relations = [{ id: 'r', from: 'note:a', to: 'bookmark:l', type: 'source' }];
+  const core = structuredClone(data);
+  delete core.knowledgeNotes;
+  delete core.links;
+  assert.equal(projectWorkspace(core, { id: 'editor', role: 'editor' }).relations.length, 1);
+  const bad = createEmptyDatabase();
+  bad.relations = [{ id: 'r', from: 'note:a', to: 'javascript:evil', type: 'source' }];
+  assert.throws(() => validateWorkspaceData(bad), { code: 'WORKSPACE_INVALID' });
+});
+
+test('graph builds bounded views over ten thousand tasks within the regression budget', () => {
+  const data = { me: 'm', projects: [{ id: 'p' }], tasks: Array.from({ length: 10000 }, (_, i) => ({ id: String(i), project: 'p' })) };
+  const start = performance.now();
+  const graph = workspaceGraph(data, { role: 'editor' });
+  assert.equal(graph.nodes.length, 10001);
+  assert.equal(graph.edges.length, 10000);
+  assert.ok(performance.now() - start < 2000);
 });

@@ -148,6 +148,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  S.ui.renderRevision = (S.ui.renderRevision || 0) + 1;
   disposeClosedPreviews();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';

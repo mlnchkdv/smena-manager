@@ -35,6 +35,7 @@ export function commands() {
     { id: 'c-knowledge', name: 'Go to Knowledge base', icon: 'library-big', run: () => go('knowledge') },
     { id: 'c-bookmarks', name: 'Go to Bookmarks', icon: 'bookmark', run: () => go('bookmarks') },
     { id: 'c-files', name: 'Go to Files', icon: 'files', run: () => go('files') },
+    { id: 'c-graph', name: 'Go to Graph', icon: 'network', run: () => go('graph') },
     { id: 'c-mem', name: 'Go to Members', icon: 'users', run: () => go('members') },
     { id: 'c-set', name: 'Open settings', icon: 'settings', kbd: 'G S', run: () => go('settings') },
     { id: 'c-app', name: 'Appearance settings', icon: 'palette', run: () => go('settings', { sec: 'appearance' }) },

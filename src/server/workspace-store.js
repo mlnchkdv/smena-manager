@@ -193,6 +193,7 @@ export async function importPortableWorkspace(payload, expectedRevision, conflic
       const result = mergePortableWorkspace(database, payload, { conflictPolicy });
       counts = result.counts;
       report = result.report;
+      database.relations = result.data.relations;
       for (const name of DOCUMENT_NAMES) {
         Object.assign(database, workspaceDocumentData(name, result.data));
         const old = database._documentRevisions[name];
