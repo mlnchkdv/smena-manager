@@ -14,6 +14,34 @@ import {
 const originalDatabasePath = process.env.DATABASE_PATH;
 const directory = path.join(process.cwd(), '.data', 'tests', `documents-${process.pid}`);
 
+test('legacy clients without wiki metadata cannot sever a stable binding by renaming the target', async () => {
+  const initial = await getWorkspaceDocument('knowledge');
+  const saved = await replaceWorkspaceDocument(
+    'knowledge',
+    {
+      knowledgeNotes: [
+        { id: 'a', title: 'A', formatted_markdown: '[[B]]' },
+        { id: 'b', title: 'B' },
+      ],
+      knowledgeFolders: [],
+    },
+    initial.revision,
+  );
+  assert.equal(saved.knowledgeNotes[0].wikiRefs[0].target, 'b');
+  const renamed = await replaceWorkspaceDocument(
+    'knowledge',
+    {
+      knowledgeNotes: [
+        { id: 'a', title: 'A', formatted_markdown: '[[B]]' },
+        { id: 'b', title: 'Renamed' },
+      ],
+      knowledgeFolders: [],
+    },
+    saved.revision,
+  );
+  assert.equal(renamed.knowledgeNotes[0].wikiRefs[0].target, 'b');
+});
+
 test.beforeEach(async () => {
   await fs.promises.rm(directory, { recursive: true, force: true });
   process.env.DATABASE_PATH = path.join(directory, 'workspace.json');

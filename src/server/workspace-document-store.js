@@ -1,5 +1,6 @@
 import { DOCUMENT_NAMES, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
+import { bindWikiReferences } from '../shared/relations.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 
 function assertName(name) {
@@ -45,7 +46,17 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
         database => {
           const document = projectDocument(name, database);
           if (document.revision !== expectedRevision) throw new WorkspaceDocumentConflictError(document.revision);
-          Object.assign(database, workspaceDocumentData(name, nextData));
+          const incoming = structuredClone(workspaceDocumentData(name, nextData));
+          if (name === 'knowledge') {
+            bindWikiReferences(database.knowledgeNotes);
+            const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
+            for (const note of incoming.knowledgeNotes) {
+              const references = previous.get(note.id)?.wikiRefs;
+              if (!Object.hasOwn(note, 'wikiRefs') && references) note.wikiRefs = structuredClone(references);
+            }
+            bindWikiReferences(incoming.knowledgeNotes);
+          }
+          Object.assign(database, incoming);
           database._documentRevisions = {
             ...database._documentRevisions,
             [name]: {
