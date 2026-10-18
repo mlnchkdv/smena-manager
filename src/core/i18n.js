@@ -789,8 +789,8 @@ const RU = {
   Backups: 'Резервные копии',
   'Backups are stored separately from the workspace database in Google Drive. The current version is saved automatically before a restore.':
     'Копии хранятся отдельно от рабочей базы в Google Drive. Перед восстановлением текущая версия сохраняется автоматически.',
-  'A backup is created daily in Google Drive. The latest 30 automatic copies are retained; manual copies are kept until you restore or remove them.':
-    'Резервная копия ежедневно создаётся на Google Drive. Хранятся 30 последних автоматических копий; ручные копии хранятся до восстановления или удаления.',
+  'Automatic backups require a working daily schedule. Check the copies below to confirm successful runs. The latest 30 automatic copies are retained; manual copies are kept until you restore or remove them.':
+    'Для автоматических копий нужно работающее ежедневное расписание. Успешные запуски подтверждаются копиями в списке ниже. Хранятся 30 последних автоматических копий; ручные копии хранятся до восстановления или удаления.',
   'Create backup': 'Создать копию',
   'Loading…': 'Загрузка…',
   Backup: 'Резервная копия',
