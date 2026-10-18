@@ -16,7 +16,7 @@ export function calendarHtml(ts, opt = {}) {
   const chip = it => {
     if (it.ev) {
       const p = proj(it.ev.project);
-      return `<button class="cev event" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}" title="${esc(it.ev.title)} · ${it.ev.time}"><span class="num faint" style="font-size:11px">${it.ev.time}</span><span class="trunc">${esc(it.ev.title)}</span></button>`;
+      return `<button class="cev event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}" title="${esc(it.ev.title)} · ${it.ev.time}"><span class="num faint" style="font-size:11px">${it.ev.time}</span><span class="trunc">${esc(it.ev.title)}</span></button>`;
     }
     const t = it.t;
     const p = proj(t.project);
@@ -58,11 +58,11 @@ export function calendarHtml(ts, opt = {}) {
             .map(it => {
               if (it.ev) {
                 const p = proj(it.ev.project);
-                return `<button class="wcard event" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}"><span class="t"><span class="pdot" style="--c:${pColor(p)};border-radius:50%"></span>${esc(it.ev.title)}</span><span class="m">${ic('clock', 11)}${it.ev.time} · ${esc(p.name)}</span></button>`;
+                return `<button class="wcard event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}"><span class="t"><span class="pdot" style="--c:${pColor(p)};border-radius:50%"></span>${esc(it.ev.title)}</span><span class="m">${ic('clock', 11)}${it.ev.time} · ${esc(p.name)}</span></button>`;
               }
               const t = it.t;
               const p = proj(t.project);
-              return `<button class="wcard${fxc('moved', t.id)}" style="--c:${pColor(p)}" draggable="true" data-drag-cal="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task"><span class="t" style="${t.status === 'done' ? 'text-decoration:line-through;color:var(--text-3)' : ''}"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(t.title)}</span><span class="m">${stIcon(t.status, 11)}${prIcon(t.priority, 11)}<span class="trunc grow" translate="no">${esc(p.name)}</span>${av(t.assignee, 'sm', false)}</span></button>`;
+              return `<button class="wcard${fxc('moved', t.id)}" style="--c:${pColor(p)}" draggable="true" data-drag-cal="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task"><span class="t" translate="no" style="${t.status === 'done' ? 'text-decoration:line-through;color:var(--text-3)' : ''}"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(t.title)}</span><span class="m">${stIcon(t.status, 11)}${prIcon(t.priority, 11)}<span class="trunc grow" translate="no">${esc(p.name)}</span>${av(t.assignee, 'sm', false)}</span></button>`;
             })
             .join('') || '<span class="faint" style="font-size:12px;padding:4px">No tasks</span>'
         }</div></div>`;
@@ -80,7 +80,7 @@ export function calendarHtml(ts, opt = {}) {
         !opt.project && projs.length > 1
           ? `<span class="row hide-m" style="gap:10px;font-size:11.5px;color:var(--text-2);margin-right:8px">${projs
               .slice(0, 5)
-              .map(p => `<span class="row" style="gap:4px"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>`)
+              .map(p => `<span class="row" translate="no" style="gap:4px"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>`)
               .join('')}</span>`
           : ''
       }

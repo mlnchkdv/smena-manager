@@ -133,7 +133,7 @@ export function renderPage() {
 
 export function sItem(route, label, icon, opt = {}) {
   const on = S.ui.route === route && (!opt.id || S.ui.params.id === opt.id);
-  return `<button class="sitem ${on ? 'on' : ''}" data-a="${opt.act || 'go'}" data-r="${route}" ${opt.id ? `data-id="${opt.id}"` : ''} ${S.ui.collapsed ? `data-tip="${esc(label)}" data-tip-pos="right"` : ''} ${on ? 'aria-current="page"' : ''}>${ic(icon, 16)}<span class="trunc">${esc(label)}</span>${opt.ct ? `<span class="ct ${opt.dot ? 'dotc' : ''}">${opt.ct}</span>` : ''}${opt.kbd ? `<span class="ct hide-m"><kbd>${opt.kbd}</kbd></span>` : ''}</button>`;
+  return `<button class="sitem ${on ? 'on' : ''}" ${opt.userText ? 'translate="no"' : ''} data-a="${opt.act || 'go'}" data-r="${route}" ${opt.id ? `data-id="${opt.id}"` : ''} ${S.ui.collapsed ? `data-tip="${esc(label)}" data-tip-pos="right"` : ''} ${on ? 'aria-current="page"' : ''}>${ic(icon, 16)}<span class="trunc">${esc(label)}</span>${opt.ct ? `<span class="ct ${opt.dot ? 'dotc' : ''}">${opt.ct}</span>` : ''}${opt.kbd ? `<span class="ct hide-m"><kbd>${opt.kbd}</kbd></span>` : ''}</button>`;
 }
 export function renderSidebar() {
   const u = S.ui,
@@ -217,7 +217,7 @@ export function renderSidebar() {
       <div class="sgroup">
         <div class="sgroup-h"><span>Teams</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="newTeam" data-tip="New team" aria-label="New team">${ic('plus', 14)}</button></div>
         ${teamsList()
-          .map(t => sItem('team', t.name, t.icon, { id: t.id }))
+          .map(t => sItem('team', t.name, t.icon, { id: t.id, userText: true }))
           .join('')}
       </div>
     </div>
@@ -233,7 +233,8 @@ export function crumbs() {
   const u = S.ui,
     r = u.route,
     out = [];
-  const c = (label, act = '', cur = false, icon = '') => `<button class="${cur ? 'cur' : ''}" ${act}>${icon}${esc(label)}</button>`;
+  const c = (label, act = '', cur = false, icon = '', userText = false) =>
+    `<button class="${cur ? 'cur' : ''}" ${userText ? 'translate="no"' : ''} ${act}>${icon}${esc(label)}</button>`;
   if (r === 'project') {
     const p = proj(u.params.id);
     out.push(c('Projects', 'data-a="go" data-r="projects"'));
@@ -244,14 +245,15 @@ export function crumbs() {
           `data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"`,
           true,
           `<span class="pico" style="--c:${pColor(p)};width:16px;height:16px;border-radius:4px;display:grid;place-items:center;color:${pColor(p)}">${ic(p.icon, 11)}</span>`,
+          true,
         ),
       );
   } else if (r === 'member') {
     out.push(c('Members', 'data-a="go" data-r="members"'));
-    out.push(c(mem(u.params.id)?.name || 'Member', '', true));
+    out.push(c(mem(u.params.id)?.name || 'Member', '', true, '', Boolean(mem(u.params.id)?.name)));
   } else if (r === 'team') {
     out.push(c('Teams', 'data-a="go" data-r="teams"'));
-    out.push(c(team(u.params.id)?.name || 'Team', '', true));
+    out.push(c(team(u.params.id)?.name || 'Team', '', true, '', Boolean(team(u.params.id)?.name)));
   } else if (r === 'settings') {
     out.push(c('Settings', '', true));
   } else out.push(c(ROUTE_NAMES[r] || 'Not found', '', true));
