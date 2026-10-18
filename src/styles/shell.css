@@ -478,20 +478,24 @@ h3.sub {
   border-color: var(--divider);
 }
 
-@media (max-width: 480px) {
-  .size-limit-bar {
+@media (max-width: 640px) {
+  .offline-bar {
     align-items: flex-start;
     flex-wrap: wrap;
   }
-  .size-limit-bar > span:not(.sp) {
+  .offline-bar > span:not(.sp) {
     flex: 1 1 calc(100% - 26px);
     min-width: 0;
+    overflow-wrap: anywhere;
   }
-  .size-limit-bar .sp {
+  .offline-bar .sp {
     display: none;
   }
-  .size-limit-bar .btn {
-    margin-left: 23px;
+  .offline-bar .btn {
+    max-width: 100%;
+    min-height: 40px;
+    height: auto;
+    white-space: normal;
   }
 }
 
