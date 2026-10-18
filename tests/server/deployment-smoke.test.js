@@ -15,7 +15,7 @@ test('deployment smoke only performs public GETs, never sends credentials and re
   const fetch = async (url, options) => {
     assert.equal(options.method, 'GET');
     assert.equal(options.credentials, 'omit');
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.ok(options.signal);
     return response(new URL(url).pathname);
   };
@@ -25,7 +25,7 @@ test('deployment smoke only performs public GETs, never sends credentials and re
       fetch: async url =>
         new URL(url).pathname === '/api/workspace'
           ? new Response('{}')
-          : fetch(url, { method: 'GET', credentials: 'omit', redirect: 'error', signal: AbortSignal.timeout(1000) }),
+          : fetch(url, { method: 'GET', credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(1000) }),
     }),
     /expected HTTP 401/u,
   );
@@ -57,4 +57,19 @@ test('deployment target cannot contain secrets, arbitrary external origins or un
     'file:///etc/passwd',
   ])
     assert.throws(() => smokeOrigin(value));
+});
+
+test('protected redirects are never followed and unexpectedly large responses are bounded', async () => {
+  let requests = 0;
+  await assert.rejects(
+    smokeDeployment('example.vercel.app', {
+      fetch: async () => {
+        requests += 1;
+        return new Response(null, { status: 302, headers: { Location: 'https://vercel.com/login' } });
+      },
+    }),
+    /received 302/u,
+  );
+  assert.equal(requests, 1);
+  await assert.rejects(smokeDeployment('example.vercel.app', { fetch: async () => new Response('x'.repeat(1024 * 1024 + 10)) }), /large smoke-check response/u);
 });

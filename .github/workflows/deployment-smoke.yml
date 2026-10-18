@@ -26,4 +26,6 @@ jobs:
       - name: Check public frontend, API, sign-in and access protection
         run: node scripts/smoke-deployment.js
         env:
-          DEPLOYMENT_URL: ${{ inputs.url || github.event.client_payload.url }}
+          # Immutable deployment URLs may be SSO-protected even in production.
+          # Check the public alias without bypass credentials or redirects.
+          DEPLOYMENT_URL: ${{ inputs.url || 'https://smena-manager.vercel.app' }}

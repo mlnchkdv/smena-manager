@@ -41,7 +41,7 @@ export async function smokeDeployment(input, options = {}) {
   for (const path of ['/', '/api/health', '/api/auth/config', '/api/workspace']) {
     const response = await request(`${origin}${path}`, {
       method: 'GET',
-      redirect: 'error',
+      redirect: 'manual',
       credentials: 'omit',
       cache: 'no-store',
       signal: AbortSignal.timeout(10000),
