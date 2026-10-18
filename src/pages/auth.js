@@ -33,9 +33,13 @@ export function renderAuth() {
     ${S.ui.authConfig?.configurationIssues?.length ? `<div class="alert info" role="status">${ic('info', 15)}<span>Deployment setup required: ${esc(S.ui.authConfig.configurationIssues.join(', '))}</span></div>` : ''}
     ${e.login ? `<div class="alert danger" role="alert">${ic('circle-alert', 15)}<span>${e.login}</span></div>` : ''}
     ${S.ui.authConfig?.googleAuthEnabled ? `<div class="google-signin-wrap${S.ui.authBusy ? ' is-busy' : ''}" aria-label="Sign in with Google" aria-busy="${S.ui.authBusy}"><div id="google-signin"></div></div>${S.ui.authConfig?.accessIdEnabled ? '<div class="or">or use Access ID</div>' : ''}` : ''}
-    ${S.ui.authConfig?.accessIdEnabled !== false ? `<div class="field"><label class="label" for="l-access">Access ID</label>
+    ${
+      S.ui.authConfig?.accessIdEnabled !== false
+        ? `<div class="field"><label class="label" for="l-access">Access ID</label>
       <div class="inwrap"><input class="input input-lg ${icls('access')}" id="l-access" type="${S.ui.showPw ? 'text' : 'password'}" autocomplete="current-password" style="padding-right:38px" aria-invalid="${!!e.access}" aria-describedby="access-hint access-err" autofocus><button type="button" class="ibtn ibtn-sm" style="position:absolute;right:5px" data-a="toggleShowPw" aria-label="${S.ui.showPw ? 'Hide' : 'Show'} Access ID">${ic(S.ui.showPw ? 'eye-off' : 'eye', 15)}</button></div>${ferr('access')}<span class="hint" id="access-hint">Your administrator provides this key.</span></div>
-    <button class="btn btn-primary btn-lg btn-block${S.ui.authBusy ? ' is-loading' : ''}" data-a="doLogin" id="login-btn" ${S.ui.authBusy ? 'disabled' : ''}>${S.ui.authBusy ? 'Connecting…' : 'Sign in'}</button>` : ''}
+    <button class="btn btn-primary btn-lg btn-block${S.ui.authBusy ? ' is-loading' : ''}" data-a="doLogin" id="login-btn" ${S.ui.authBusy ? 'disabled' : ''}>${S.ui.authBusy ? 'Connecting…' : 'Sign in'}</button>`
+        : ''
+    }
     </form>`,
     );
   if (s === 'signup')

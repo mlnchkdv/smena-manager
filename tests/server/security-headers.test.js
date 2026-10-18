@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { CONTENT_SECURITY_POLICY, HTTP_SECURITY_HEADERS } from '../../src/shared/http-security.js';
+import { CONTENT_SECURITY_POLICY, GOOGLE_BUTTON_STYLE_HASH, HTTP_SECURITY_HEADERS } from '../../src/shared/http-security.js';
 
 test('application security headers restrict active and privileged browser content', () => {
   const directives = Object.fromEntries(
@@ -17,6 +17,9 @@ test('application security headers restrict active and privileged browser conten
   assert.match(CONTENT_SECURITY_POLICY, /style-src-attr 'unsafe-inline'/);
   assert.doesNotMatch(directives['style-src'], /'unsafe-inline'/);
   assert.doesNotMatch(directives['style-src-elem'], /'unsafe-inline'/);
+  assert.ok(directives['style-src'].includes(GOOGLE_BUTTON_STYLE_HASH));
+  assert.ok(directives['style-src-elem'].includes(GOOGLE_BUTTON_STYLE_HASH));
+  assert.doesNotMatch(directives['script-src'], /'unsafe-inline'|'unsafe-eval'/);
   assert.equal(directives['style-src-attr'], "'unsafe-inline'");
   assert.match(CONTENT_SECURITY_POLICY, /frame-ancestors 'self'/);
   assert.equal(HTTP_SECURITY_HEADERS['X-Content-Type-Options'], 'nosniff');
