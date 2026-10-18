@@ -1,7 +1,36 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
+import { applyPersonalSettings, persistReadStateBatches } from '../../src/shared/personal-settings.js';
 import { bindAccessProfiles } from '../../src/shared/member-identity.js';
+
+test('mark all read stays within the API limit, deduplicates IDs and stops after a failed batch', async () => {
+  const ids = Array.from({ length: 1201 }, (_, index) => `n-${index}`);
+  const batches = [];
+  assert.equal(
+    await persistReadStateBatches([...ids, ids[0]], true, async input => {
+      batches.push(input);
+      return true;
+    }),
+    true,
+  );
+  assert.deepEqual(
+    batches.map(input => input.readState.ids.length),
+    [500, 500, 201],
+  );
+  assert.deepEqual(
+    batches.flatMap(input => input.readState.ids),
+    ids,
+  );
+  let calls = 0;
+  assert.equal(
+    await persistReadStateBatches(ids, false, async () => {
+      calls += 1;
+      return calls < 2;
+    }),
+    false,
+  );
+  assert.equal(calls, 2);
+});
 
 test('personal updates are scoped to their actor, preserve protected preferences and survive profile binding', () => {
   const data = {

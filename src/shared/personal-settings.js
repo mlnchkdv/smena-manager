@@ -16,6 +16,16 @@ const PREFERENCE_TYPES = Object.freeze({
   openTasks: 'string',
 });
 
+export const MAX_READ_STATE_IDS = 500;
+
+export async function persistReadStateBatches(ids, read, persist) {
+  const unique = [...new Set(ids)];
+  for (let start = 0; start < unique.length; start += MAX_READ_STATE_IDS) {
+    if (!(await persist({ readState: { ids: unique.slice(start, start + MAX_READ_STATE_IDS), read } }))) return false;
+  }
+  return true;
+}
+
 export function personalPreferenceData(preferences) {
   return Object.fromEntries(Object.entries(preferences || {}).filter(([key, value]) => typeof value === PREFERENCE_TYPES[key]));
 }
@@ -59,7 +69,7 @@ export function applyPersonalSettings(database, memberId, input) {
   }
   if (input.readState) {
     const { ids, read } = input.readState;
-    if (!Array.isArray(ids) || ids.length > 500 || ids.some(id => typeof id !== 'string') || typeof read !== 'boolean') invalid();
+    if (!Array.isArray(ids) || ids.length > MAX_READ_STATE_IDS || ids.some(id => typeof id !== 'string') || typeof read !== 'boolean') invalid();
     const requested = new Set(ids);
     for (const item of database.notifs || []) if (requested.has(item.id) && notificationRecipient(item, database) === memberId) item.read = read;
   }
