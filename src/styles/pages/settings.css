@@ -52,6 +52,38 @@
 .settings-member .grow {
   overflow-wrap: anywhere;
 }
+@media (max-width: 480px) {
+  .settings-member {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    gap: 4px 8px;
+    padding-block: 10px;
+  }
+  .settings-member > .av {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  .settings-member > .grow {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .settings-member > .pillbtn {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .settings-member > .badge {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: start;
+  }
+  .settings-member > .ibtn {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+  }
+}
 .srow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
