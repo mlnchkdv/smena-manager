@@ -179,6 +179,16 @@ export async function requireAuth(request, response, next) {
     response.status(401).json({ error: result.error || 'Authentication required.' });
     return;
   }
+  let expectedAccount;
+  try {
+    expectedAccount = request.get('X-Smena-Account') ? decodeURIComponent(request.get('X-Smena-Account')) : null;
+  } catch {
+    expectedAccount = '__invalid_account_header__';
+  }
+  if ((expectedAccount && expectedAccount !== result.profile.id) || (request.query?.account && request.query.account !== result.profile.id)) {
+    response.status(409).json({ error: 'The account changed in another tab. Reload this page to continue.', code: 'SESSION_ACCOUNT_CHANGED' });
+    return;
+  }
   try {
     let profile = result.profile;
     const database = await getWorkspaceDatabase();

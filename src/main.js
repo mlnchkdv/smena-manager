@@ -303,6 +303,16 @@ window.addEventListener('storage', event => {
   }
 });
 
+window.addEventListener('smena:session-account-changed', () => {
+  disableWorkspaceSync();
+  S.ui.currentUser = null;
+  S.ui.authSessions = S.ui.pop = S.ui.palette = S.ui.drawer = null;
+  S.ui.modals = [];
+  S.ui.auth = 'login';
+  S.ui.errors = { login: 'The account changed in another tab. Reload this page to continue.' };
+  render();
+});
+
 function applyBrowserLocation() {
   if (!S.ui.currentUser) return;
   const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');

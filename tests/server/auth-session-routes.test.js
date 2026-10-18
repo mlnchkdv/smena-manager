@@ -61,6 +61,18 @@ test('authenticated users can inspect and revoke their active sessions', async t
   const desktopToken = await login('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/141.0.0.0 Safari/537.36');
   const phoneToken = await login('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile/15E148 Safari/604.1');
 
+  const revisionBeforeMismatch = (await getWorkspaceDatabase()).revision;
+  const mismatch = await fetch(`${origin}/api/preferences`, {
+    method: 'PUT',
+    headers: { ...authorize(desktopToken), 'Content-Type': 'application/json', 'X-Smena-Account': 'another-account' },
+    body: JSON.stringify({ preferences: { theme: 'dark' } }),
+  });
+  assert.equal(mismatch.status, 409);
+  assert.equal((await mismatch.json()).code, 'SESSION_ACCOUNT_CHANGED');
+  assert.equal((await getWorkspaceDatabase()).revision, revisionBeforeMismatch);
+  assert.equal((await fetch(`${origin}/api/recovery/export?account=another-account`, { headers: authorize(desktopToken) })).status, 409);
+  assert.equal((await fetch(`${origin}/api/preferences`, { headers: { ...authorize(desktopToken), 'X-Smena-Account': 'session-user' } })).status, 200);
+
   const loginAlerts = (await getWorkspaceDatabase()).notifs.filter(notification => notification.type === 'security');
   assert.equal(loginAlerts.length, 2);
   assert.equal(loginAlerts[0].recipient, 'session-user');

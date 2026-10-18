@@ -4,6 +4,8 @@ import { workspaceCoreData } from '../shared/workspace-documents.js';
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
 let sessionGeneration = 0;
+let sessionAccount = '';
+let sessionBlocked = false;
 
 export const getSessionGeneration = () => sessionGeneration;
 
@@ -31,6 +33,8 @@ export function getSessionToken() {
 
 export function setSessionToken(token) {
   sessionGeneration += 1;
+  sessionAccount = '';
+  sessionBlocked = false;
   memorySessionToken = token || '';
   try {
     if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);
@@ -44,6 +48,21 @@ export function clearSession() {
   setSessionToken('');
 }
 
+function accountChanged() {
+  if (!sessionBlocked) {
+    sessionBlocked = true;
+    sessionGeneration += 1;
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:session-account-changed'));
+  }
+  return new ApiError('The account changed in another tab. Reload this page to continue.', 409, 'SESSION_ACCOUNT_CHANGED', { staleSession: true });
+}
+
+function addAccountHeader(headers) {
+  if (sessionBlocked) throw accountChanged();
+  if (sessionAccount) headers.set('X-Smena-Account', encodeURIComponent(sessionAccount));
+  return headers;
+}
+
 async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
   const headers = new Headers(options.headers || {});
@@ -53,6 +72,7 @@ async function request(path, options = {}, authenticated = false) {
     const token = getSessionToken();
     if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
     if (token !== 'cookie') headers.set('Authorization', `Bearer ${token}`);
+    addAccountHeader(headers);
   }
 
   let response;
@@ -66,6 +86,7 @@ async function request(path, options = {}, authenticated = false) {
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   if (!response.ok) {
+    if (authenticated && body.code === 'SESSION_ACCOUNT_CHANGED') throw accountChanged();
     const message =
       typeof body.error === 'string'
         ? body.error
@@ -95,6 +116,7 @@ export async function loginWithAccessId(accessId) {
     body: JSON.stringify({ accessId }),
   });
   setSessionToken('cookie');
+  sessionAccount = result.user?.id || '';
   return result.user;
 }
 
@@ -104,11 +126,13 @@ export async function loginWithGoogle(credential) {
     body: JSON.stringify({ credential }),
   });
   setSessionToken('cookie');
+  sessionAccount = result.user?.id || '';
   return result.user;
 }
 
 export async function getCurrentUser() {
   const result = await request('/api/auth/me', {}, true);
+  sessionAccount = result.user?.id || '';
   return result.user;
 }
 
@@ -252,6 +276,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
       reject(new ApiError('Authentication required.', 401, 'AUTH_REQUIRED'));
       return;
     }
+    if (sessionBlocked) return reject(accountChanged());
     const form = new FormData();
     form.append('file', file);
     form.append('revision', String(metadata.revision));
@@ -260,6 +285,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
     if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    if (sessionAccount) xhr.setRequestHeader('X-Smena-Account', encodeURIComponent(sessionAccount));
     xhr.responseType = 'json';
     xhr.timeout = 120000;
     const abort = () => xhr.abort();
@@ -277,6 +303,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
       const body = xhr.response || {};
       if (xhr.status >= 200 && xhr.status < 300) resolve(body);
       else {
+        if (body.code === 'SESSION_ACCOUNT_CHANGED') return reject(accountChanged());
         if (xhr.status === 401) clearSession();
         reject(new ApiError(body.error || `Upload failed (${xhr.status}).`, xhr.status, body.code || 'UPLOAD_FAILED', body));
       }
@@ -390,19 +417,27 @@ export function uploadWorkspaceFile(file, metadata, onProgress) {
 }
 
 export async function downloadWorkspaceFile(id, download = false, options = {}) {
+  const generation = sessionGeneration;
   const token = getSessionToken();
   if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
   let response;
   try {
     response = await fetch(`/api/files/${encodeURIComponent(id)}/content${download ? '?download=1' : ''}`, {
-      headers: token === 'cookie' ? {} : { Authorization: `Bearer ${token}` },
+      headers: addAccountHeader(new Headers(token === 'cookie' ? {} : { Authorization: `Bearer ${token}` })),
       signal: options.signal,
     });
   } catch (error) {
+    if (error.staleSession) throw error;
     throw new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR', { cause: error });
+  }
+  if (generation !== sessionGeneration) {
+    await response.body?.cancel().catch(() => {});
+    throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
+    if (body.code === 'SESSION_ACCOUNT_CHANGED') throw accountChanged();
     throw new ApiError(body.error || 'Unable to open the file.', response.status, body.code || 'FILE_ERROR', body);
   }
   let blob;
@@ -427,6 +462,7 @@ export async function downloadWorkspaceFile(id, download = false, options = {}) 
     blob = new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' });
   } else blob = await response.blob();
   if (options.maxBytes && blob.size > options.maxBytes) throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
+  if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   return { blob, disposition: response.headers.get('content-disposition') || '' };
 }
 

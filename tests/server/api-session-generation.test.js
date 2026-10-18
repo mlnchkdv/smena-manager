@@ -1,6 +1,31 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getCurrentUser, getSessionToken, setSessionToken, getAuthConfig } from '../../src/core/api.js';
+import { getCurrentUser, getSessionToken, setSessionToken, getAuthConfig, savePersonalSettings } from '../../src/core/api.js';
+
+test('a cookie switched by another tab cannot write through the previous account context or sign out the new account', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  setSessionToken('cookie');
+  globalThis.fetch = async (_url, options) => {
+    calls += 1;
+    if (calls === 1) return new Response(JSON.stringify({ user: { id: 'Алиса' } }), { headers: { 'Content-Type': 'application/json' } });
+    assert.equal(options.headers.get('X-Smena-Account'), encodeURIComponent('Алиса'));
+    return new Response(JSON.stringify({ error: 'Changed account', code: 'SESSION_ACCOUNT_CHANGED' }), {
+      status: 409,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+  try {
+    await getCurrentUser();
+    await assert.rejects(savePersonalSettings({ preferences: { theme: 'dark' } }), { staleSession: true, code: 'SESSION_ACCOUNT_CHANGED' });
+    assert.equal(getSessionToken(), 'cookie');
+    await assert.rejects(getCurrentUser(), { staleSession: true });
+    assert.equal(calls, 2);
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('platform errors produce readable text instead of object placeholders', async () => {
   const originalFetch = globalThis.fetch;
