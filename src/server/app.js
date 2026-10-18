@@ -37,7 +37,7 @@ import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
-import { collectRetainedFiles, retainDetachedFile } from './file-retention.js';
+import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
 import { setSessionCookie } from './session-cookie.js';
 import { applyPersonalSettings } from '../shared/personal-settings.js';
 import { writeRecoveryBundle } from './recovery-bundle.js';
@@ -73,6 +73,9 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     });
     const cleanup = await runNotificationCleanup();
     const pushCleanup = await cleanupPushSubscriptions();
+    const abandonedUploads = await sweepAbandonedUploads({ storage: getStorageProvider(), load: getWorkspaceDatabase, mutate: mutateWorkspaceDatabase }).catch(
+      () => ({ error: 'upload_cleanup_failed' }),
+    );
     const fileCleanup = await collectRetainedFiles({ storage: getStorageProvider(), load: getWorkspaceDatabase, mutate: mutateWorkspaceDatabase }).catch(
       () => ({ error: 'cleanup_failed' }),
     );
@@ -81,10 +84,12 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       return { error: 'backup_failed' };
     });
     const outbox = await retryNotificationOutbox();
-    const cronStatus = digest.error || backup.error || fileCleanup.error || outbox.failed ? 'degraded' : 'ok';
-    await recordNotificationCronRun({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup }).catch(error => {
-      reportProviderError('[Notifications] Cron diagnostics', error);
-    });
+    const cronStatus = digest.error || backup.error || fileCleanup.error || abandonedUploads.error || outbox.failed ? 'degraded' : 'ok';
+    await recordNotificationCronRun({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup }).catch(
+      error => {
+        reportProviderError('[Notifications] Cron diagnostics', error);
+      },
+    );
     if (cronStatus !== 'ok') {
       const issues = [
         digest.error && 'Email digest delivery failed',
@@ -94,7 +99,7 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       ].filter(Boolean);
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
     }
-    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup });
+    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup });
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     await notifyAdministratorsAboutSystemIssue(['Daily automation failed']).catch(() => undefined);

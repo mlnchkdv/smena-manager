@@ -17,6 +17,7 @@ export async function writeRecoveryBundle(database, storage, output, options = {
   delete data._notificationOutbox;
   delete data._fileGc;
   delete data._fileRegistry;
+  delete data._pendingUploads;
   delete data._importHistory;
   const assets = collectAssets(data);
   const estimated = [...assets.values()].reduce((total, file) => total + Number(file.bytes || 0), 0);

@@ -15,6 +15,7 @@ import { canEditProject, canReadProject } from '../shared/project-access.js';
 import { retainDetachedFile } from './file-retention.js';
 import { reportProviderError } from './provider-safety.js';
 import { registerFileMetadata } from './file-registry.js';
+import { workspaceMemberRole } from '../shared/workspace-access.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -50,7 +51,8 @@ function assertFileTarget(database, user, projectId, taskId) {
   const project = database.projects?.find(item => item.id === projectId);
   if (!project) throw new TypeError('Unknown project.');
   const memberId = memberIdFor(database, user);
-  if (!canEditProject(project, memberId, user.role)) {
+  const member = database.members?.find(item => item.id === memberId);
+  if (!member || ['removed', 'deactivated'].includes(member.status) || !canEditProject(project, memberId, workspaceMemberRole(member))) {
     throw Object.assign(new Error('You do not have access to this project.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
   }
   if (taskId && !database.tasks?.some(task => task.id === taskId && task.project === projectId)) throw new TypeError('Unknown task.');
@@ -78,6 +80,7 @@ function appendFileRecord(database, user, metadata, stored, projectId, taskId) {
   database.files = Array.isArray(database.files) ? database.files : [];
   database.files.unshift(fileRecord);
   registerFileMetadata(database, fileRecord, true);
+  database._pendingUploads = (database._pendingUploads || []).filter(upload => upload.filename !== stored.filename);
   if (taskId) {
     const task = database.tasks.find(item => item.id === taskId);
     task.attachments = Array.isArray(task.attachments) ? task.attachments : [];
@@ -173,6 +176,29 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
     }
     const filename = storageFilename(metadata.name);
     const marker = crypto.randomUUID();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const current = await getWorkspaceDatabase();
+      try {
+        await mutateWorkspaceDatabase(
+          database => {
+            assertFileTarget(database, request.user, projectId, taskId);
+            const pending = database._pendingUploads || [];
+            if (pending.length >= 500)
+              throw Object.assign(new Error('Too many pending uploads. Try again later.'), { statusCode: 429, code: 'UPLOAD_QUEUE_FULL' });
+            database._pendingUploads = [
+              ...pending,
+              { filename, marker, size: metadata.size, mimeType: metadata.mimeType, ownerId: request.user.id, projectId, taskId, createdAt: Date.now() },
+            ];
+            return database;
+          },
+          current.revision,
+          { role: 'admin' },
+        );
+        break;
+      } catch (error) {
+        if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
+      }
+    }
     const session = await storage.createResumableUpload(filename, metadata.size, metadata.mimeType, marker);
     const ticket = createUploadTicket({
       profileId: request.user.id,

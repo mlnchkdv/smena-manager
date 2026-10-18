@@ -20,8 +20,8 @@ test('upload tickets preserve trusted metadata and reject tampering or expiry', 
     profileId: 'm1',
     filename: 'stored.pdf',
     size: 42,
-    expiresAt: 1_801_000,
+    expiresAt: 86_401_000,
   });
   assert.throws(() => verifyUploadTicket(`${ticket}x`, 2_000), /invalid/);
-  assert.throws(() => verifyUploadTicket(ticket, 1_801_000), /expired/);
+  assert.throws(() => verifyUploadTicket(ticket, 86_401_000), /expired/);
 });

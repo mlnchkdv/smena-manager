@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
 const PREFIX = 'smena_upload_';
-const LIFETIME_MS = 30 * 60 * 1000;
+const LIFETIME_MS = 24 * 60 * 60 * 1000;
 
 function secret() {
   const value = process.env.SESSION_SECRET?.trim();

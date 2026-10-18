@@ -1,5 +1,49 @@
 const RETENTION_MS = 30 * 86400000;
 
+export async function sweepAbandonedUploads(options) {
+  if (typeof options.storage.verifyResumableUpload !== 'function') return { scanned: 0, queued: 0 };
+  const now = options.now || Date.now();
+  const current = await options.load();
+  const candidates = (current._pendingUploads || [])
+    .filter(upload => now - upload.createdAt >= 2 * 86400000)
+    .sort((a, b) => (a.lastCheckedAt || a.createdAt) - (b.lastCheckedAt || b.createdAt))
+    .slice(0, 10);
+  const verified = [];
+  const expired = new Set();
+  for (const upload of candidates) {
+    // Verify the app marker, exact filename/size and uploads parent before retaining an orphan.
+    const stored = await options.storage.verifyResumableUpload(upload.filename, upload.size, upload.marker, '');
+    if (stored) verified.push({ upload, stored });
+    else if (now - upload.createdAt >= 90 * 86400000) expired.add(upload.filename);
+  }
+  if (!candidates.length) return { scanned: 0, queued: 0 };
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const latest = await options.load();
+    try {
+      let queued = 0;
+      await options.mutate(database => {
+        const references = referencedStorageFiles(database);
+        for (const { upload, stored } of verified) {
+          const file = { storageName: stored.filename, storageFileId: stored.fileId };
+          if (!references.has(key(file))) {
+            retainDetachedFile(database, file, now);
+            queued += 1;
+          }
+          expired.add(upload.filename);
+        }
+        database._pendingUploads = (database._pendingUploads || []).filter(upload => !expired.has(upload.filename));
+        const checked = new Set(candidates.map(upload => upload.filename));
+        for (const upload of database._pendingUploads) if (checked.has(upload.filename)) upload.lastCheckedAt = now;
+        return database;
+      }, latest.revision);
+      return { scanned: candidates.length, queued };
+    } catch (error) {
+      if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
+    }
+  }
+  return { scanned: candidates.length, queued: 0 };
+}
+
 function key(file) {
   return file?.storageFileId ? `id:${file.storageFileId}` : file?.storageName ? `name:${file.storageName}` : null;
 }
