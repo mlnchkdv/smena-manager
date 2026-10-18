@@ -21,6 +21,9 @@ const STRING_ARRAY_FIELDS = ['projOrder', 'recentSearches'];
 const OBJECT_FIELDS = ['workspace', 'ws', 'notifPrefs'];
 
 const isObject = value => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+const validIdentity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
+const validEntityArray = items =>
+  Array.isArray(items) && items.every(item => isObject(item) && validIdentity(item.id)) && new Set(items.map(item => item.id)).size === items.length;
 
 export class WorkspaceValidationError extends TypeError {
   constructor(fields) {
@@ -67,6 +70,16 @@ export function validateWorkspaceData(value) {
     if (task.project != null && !projectIds.has(task.project)) invalid.push('tasks.project');
     if (task.status != null && !['backlog', 'todo', 'progress', 'review', 'done'].includes(task.status)) invalid.push('tasks.status');
     for (const field of ['subtasks', 'attachments', 'deps', 'labels']) if (task[field] != null && !Array.isArray(task[field])) invalid.push(`tasks.${field}`);
+    for (const field of ['subtasks', 'attachments']) if (task[field] != null && !validEntityArray(task[field])) invalid.push(`tasks.${field}`);
+    if (
+      Array.isArray(task.subtasks) &&
+      task.subtasks.some(
+        item => !isObject(item) || (item.title != null && typeof item.title !== 'string') || (item.done != null && typeof item.done !== 'boolean'),
+      )
+    )
+      invalid.push('tasks.subtasks');
+    for (const field of ['deps', 'labels'])
+      if (Array.isArray(task[field]) && task[field].some(item => typeof item !== 'string')) invalid.push(`tasks.${field}`);
     if (!validDate(task.due) || !validDate(task.start)) invalid.push('tasks.date');
     if (Array.isArray(task.deps) && task.deps.some(id => id === task.id || !taskIds.has(id))) invalid.push('tasks.deps');
     if (task.title != null && (typeof task.title !== 'string' || task.title.length > 20_000)) invalid.push('tasks.title');
@@ -78,6 +91,11 @@ export function validateWorkspaceData(value) {
     if (project.members?.some?.(id => typeof id !== 'string')) invalid.push('projects.members');
     if (project.key != null && (typeof project.key !== 'string' || !/^[\p{L}\p{N}_-]{1,32}$/u.test(project.key))) invalid.push('projects.key');
     if (project.milestones != null && (!Array.isArray(project.milestones) || project.milestones.some(item => !isObject(item) || !validDate(item.date))))
+      invalid.push('projects.milestones');
+    if (
+      project.milestones != null &&
+      (!validEntityArray(project.milestones) || project.milestones.some(item => item.name != null && typeof item.name !== 'string'))
+    )
       invalid.push('projects.milestones');
   }
   for (const comment of Array.isArray(value.comments) ? value.comments : []) {
@@ -110,6 +128,8 @@ export function validateWorkspaceData(value) {
   for (const member of Array.isArray(value.members) ? value.members : [])
     if (member?.c != null && (typeof member.c !== 'string' || !/^#[\da-f]{6}$/iu.test(member.c))) invalid.push('members.c');
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
+  validateDocumentInput('knowledge', value);
+  validateDocumentInput('bookmarks', value);
   return value;
 }
 
@@ -122,6 +142,32 @@ export function validateDocumentInput(name, value) {
       value[field].some(item => !isObject(item) || typeof item.id !== 'string' || !/^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(item.id)),
   );
   for (const field of fields) if (Array.isArray(value[field]) && new Set(value[field].map(item => item.id)).size !== value[field].length) invalid.push(field);
+  if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
+  const [contentField, folderField] = fields;
+  const folders = new Map(value[folderField].map(folder => [folder.id, folder]));
+  const parentField = name === 'knowledge' ? 'parentId' : 'parent_id';
+  const contentFolder = name === 'knowledge' ? 'folderId' : 'folder';
+  const resolved = new Map();
+  for (const folder of folders.values()) {
+    const path = new Set();
+    let current = folder;
+    while (current && !resolved.has(current.id)) {
+      if (path.has(current.id) || path.size >= 200) throw new WorkspaceValidationError([`${folderField}.cycle`]);
+      path.add(current.id);
+      const parent = current[parentField];
+      if (parent != null && parent !== '' && !folders.has(parent)) throw new WorkspaceValidationError([`${folderField}.parent`]);
+      current = parent ? folders.get(parent) : null;
+    }
+    let depth = current ? resolved.get(current.id) : 0;
+    if (depth + path.size > 200) throw new WorkspaceValidationError([`${folderField}.depth`]);
+    for (const id of [...path].reverse()) resolved.set(id, ++depth);
+  }
+  for (const item of value[contentField]) {
+    if (item[contentFolder] != null && item[contentFolder] !== '' && !folders.has(item[contentFolder])) invalid.push(`${contentField}.folder`);
+    for (const field of ['title', 'summary', 'formatted_markdown', 'description', 'url'])
+      if (item[field] != null && typeof item[field] !== 'string') invalid.push(`${contentField}.${field}`);
+    if (item.tags != null && (!Array.isArray(item.tags) || item.tags.some(tag => typeof tag !== 'string'))) invalid.push(`${contentField}.tags`);
+  }
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
   return value;
 }

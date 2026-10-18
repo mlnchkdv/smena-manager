@@ -139,3 +139,30 @@ test('malformed document updates are rejected rather than converted into empty c
   assert.throws(() => validateDocumentInput('knowledge', { knowledgeNotes: 'broken', knowledgeFolders: [] }), { code: 'WORKSPACE_INVALID' });
   assert.throws(() => validateDocumentInput('bookmarks', {}), { code: 'WORKSPACE_INVALID' });
 });
+
+test('nested task entities and folder graphs reject malformed values, duplicate identities and cycles', () => {
+  const data = createEmptyDatabase();
+  data.tasks = [{ id: 't', subtasks: ['not-an-object'] }];
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  data.tasks[0].subtasks = [{ id: 's' }, { id: 's' }];
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  data.tasks[0].subtasks = [];
+  data.tasks[0].attachments = [null];
+  assert.throws(() => validateWorkspaceData(data), { code: 'WORKSPACE_INVALID' });
+  const document = {
+    knowledgeFolders: [
+      { id: 'a', parentId: 'b' },
+      { id: 'b', parentId: 'a' },
+    ],
+    knowledgeNotes: [],
+  };
+  assert.throws(() => validateDocumentInput('knowledge', document), { code: 'WORKSPACE_INVALID' });
+  document.knowledgeFolders = [{ id: 'a', parentId: 'missing' }];
+  assert.throws(() => validateDocumentInput('knowledge', document), { code: 'WORKSPACE_INVALID' });
+  document.knowledgeFolders = [];
+  document.knowledgeNotes = [{ id: 'n', folderId: 'missing' }];
+  assert.throws(() => validateDocumentInput('knowledge', document), { code: 'WORKSPACE_INVALID' });
+  document.knowledgeNotes = [];
+  document.knowledgeFolders = Array.from({ length: 201 }, (_, index) => ({ id: `f${index}`, parentId: index ? `f${index - 1}` : null }));
+  assert.throws(() => validateDocumentInput('knowledge', document), { code: 'WORKSPACE_INVALID' });
+});
