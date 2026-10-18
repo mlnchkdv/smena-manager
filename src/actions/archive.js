@@ -85,7 +85,7 @@ A.purgeTrash = el => {
   if (!item) return;
   confirmDlg({
     title: 'Delete permanently?',
-    body: `<b>${esc(item.name)}</b> will be permanently deleted${item.kind === 'file' || item.data?.files?.length ? ', including its files in Google Drive' : ''}.`,
+    body: `<b>${esc(item.name)}</b> will be permanently deleted.${item.kind === 'file' || item.data?.files?.length ? '<p>Stored files are retained for at least 30 days and while referenced by backups.</p>' : ''}`,
     ok: 'Delete permanently',
     danger: true,
     run: async () => {

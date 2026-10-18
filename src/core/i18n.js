@@ -16,6 +16,8 @@ export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
   Undo: 'Отменить',
+  'Stored files are retained for at least 30 days and while referenced by backups.':
+    'Файлы в хранилище сохраняются не менее 30 дней, а также пока на них ссылаются резервные копии.',
   'Something went wrong.': 'Не удалось открыть раздел.',
   'This section could not load. Check your connection or reload the page to get the latest app version.':
     'Раздел не загрузился. Проверьте подключение или обновите страницу, чтобы загрузить актуальную версию приложения.',
