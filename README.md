@@ -404,10 +404,26 @@ storage root without modifying existing files or permissions. The production bac
 loaded successfully and reported no copies. This verifies listing, not backup creation or restore.
 The interface no longer claims that daily copies already exist merely because scheduling is supported.
 
-Remaining acceptance checks: the next successful scheduled run, actual Gmail delivery, Web Push on
-subscribed devices, backup creation/restore, file upload/download and controlled concurrent edits.
-Earlier delivery failures and queued retries remain historical evidence until a successful run;
-enabling the API alone does not establish end-to-end delivery.
+### Controlled delivery and recovery acceptance (2026-10-18)
+
+With explicit user approval, two real manual Drive backups were created (HTTP 201). The newest
+copy was restored without intentional intervening content changes (HTTP 200); the additional
+pre-restore safety copy appeared and the authenticated workspace loaded afterward. This is a
+same-state recovery rehearsal, not evidence of a disaster recovery SLA or attachment restoration.
+The copies remain available in storage; no backup was deleted.
+
+Self-only diagnostic buttons now send one selected channel to the authenticated administrator,
+resolving the recipient server-side. They do not drain the team outbox, create task events or change
+saved notification preferences. A per-instance one-minute cooldown limits repeat clicks; it is not
+a distributed rate limiter. RU/EN labels distinguish provider acceptance from device receipt.
+The real Gmail test to `mlnchkdv@gmail.com` and push test to one subscribed device each returned
+one attempted, one accepted and zero failed deliveries. Actual inbox placement and OS presentation
+still require the recipient's confirmation. Test results are session-local diagnostics, not a
+replacement for the normal delivery history or evidence that previously failed messages were resent.
+
+Remaining acceptance checks: the next successful scheduled run, recipient confirmation of Gmail
+and push receipt, file upload/download, attachment recovery and controlled concurrent edits.
+Earlier delivery failures remain historical evidence; tests do not rewrite that history.
 
 ## Deploy
 
