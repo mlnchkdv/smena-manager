@@ -23,7 +23,7 @@ export function cellStatus(t) {
 }
 export function cellAssignee(t) {
   const m = mem(t.assignee);
-  return `<button class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc">${m ? esc(m.name) : 'Unassigned'}</span></button>`;
+  return `<button class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc" ${m ? 'translate="no"' : ''}>${m ? esc(m.name) : 'Unassigned'}</span></button>`;
 }
 export function cellPrio(t) {
   return `<button class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
@@ -37,7 +37,7 @@ export function cellLabels(t) {
 }
 export function cellProject(t) {
   const p = proj(t.project);
-  return `<button class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="${esc(tr('Project'))}: ${esc(p?.name || '')}"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p?.name)}</span></button>`;
+  return `<button class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="${esc(tr('Project'))}: ${esc(p?.name || '')}"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p?.name)}</span></button>`;
 }
 export const CELL = { status: cellStatus, assignee: cellAssignee, priority: cellPrio, due: cellDue, labels: cellLabels, project: cellProject };
 
@@ -57,7 +57,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
     <div class="ttl" ${editing ? '' : `data-a="openTask" data-id="${t.id}"`} data-dbl="editTitle">
       ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
       <span class="key">${t.key}</span>
-      ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt">${esc(t.title)}</span>`}
+      ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt" translate="no">${esc(t.title)}</span>`}
       ${t.recur ? `<span class="meta-mini" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 11)}</span>` : ''}
       ${t.subtasks.length ? `<span class="meta-mini">${ic('list-checks', 11)}${sd}/${t.subtasks.length}</span>` : ''}
       ${cc ? `<span class="meta-mini">${ic('message-square', 11)}${cc}</span>` : ''}
@@ -65,7 +65,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
     ${cols.map(c => `<div class="c-meta c-${c === 'labels' ? 'lbl' : c}">${CELL[c](t)}</div>`).join('')}
     <div class="c-more"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More actions">${ic('ellipsis', 15)}</button></div>
   </div>
-  ${open ? `<div class="subrows">${t.subtasks.map(s => `<div class="subrow ${s.done ? 'done' : ''}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="Complete subtask"><span>${esc(s.title)}</span></div>`).join('')}</div>` : ''}`;
+  ${open ? `<div class="subrows">${t.subtasks.map(s => `<div class="subrow ${s.done ? 'done' : ''}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="Complete subtask"><span translate="no">${esc(s.title)}</span></div>`).join('')}</div>` : ''}`;
 }
 export function listHtml(groups, key, opt = {}) {
   const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
@@ -129,9 +129,9 @@ export function actHtml(a, opt = {}) {
   const t = a.task ? task(a.task) : null;
   const p = a.project ? proj(a.project) : null;
   const obj = t
-    ? `<span class="obj" data-a="openTask" data-id="${t.id}">${esc(t.title)}</span>`
+    ? `<span class="obj" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</span>`
     : p
-      ? `<span class="obj" data-a="go" data-r="project" data-id="${p.id}">${esc(p.name)}</span>`
+      ? `<span class="obj" data-a="go" data-r="project" data-id="${p.id}" translate="no">${esc(p.name)}</span>`
       : '';
   return `<div class="fitem">${av(a.by, 'sm')}<div class="grow"><b>${esc(m?.id === D().me ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(tr(a.verb))}</span> ${obj} ${a.extra ? `<span class="muted">${esc(activityExtra(a.extra, a.verb))}</span>` : ''}${opt.proj && p && t ? ` <span class="faint">${esc(inProject(p.name))}</span>` : ''}</div><time>${ago(a.at)}</time></div>`;
 }
@@ -140,8 +140,8 @@ export function miniRow(t, opt = {}) {
   return `<div class="mini ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-id="${t.id}" data-ctx="task">
     <input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Complete ${esc(t.title)}">
     <span data-tip="${ST[t.status].name}">${stIcon(t.status)}</span>
-    <button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}">${esc(t.title)}</button>
-    ${opt.noProj ? '' : `<span class="pj hide-m"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc">${esc(p.name)}</span></span>`}
+    <button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</button>
+    ${opt.noProj ? '' : `<span class="pj hide-m"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p.name)}</span></span>`}
     <span data-tip="${PR[t.priority].name} priority">${prIcon(t.priority)}</span>
     <span style="width:74px;text-align:right" class="hide-m">${dueHtml(t, false)}</span>
     ${opt.av === false ? '' : av(t.assignee, 'sm')}

@@ -13,7 +13,7 @@ export function kcard(t, opt = {}) {
   const p = proj(t.project);
   return `<div class="kcard ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}${fxc('moved', t.id)}" draggable="true" data-drag-card="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task" role="button" tabindex="0" aria-label="${esc(t.title)}">
     ${t.labels.length ? `<div class="labels">${t.labels.map(lbl).join('')}</div>` : ''}
-    <div class="top">${t.status === 'done' ? `<span class="done-ic" style="margin:2px 7px 0 0;display:inline-flex" aria-label="Done">${stIcon('done', 14)}</span>` : ''}<div class="title">${esc(t.title)}</div></div>
+    <div class="top">${t.status === 'done' ? `<span class="done-ic" style="margin:2px 7px 0 0;display:inline-flex" aria-label="Done">${stIcon('done', 14)}</span>` : ''}<div class="title" translate="no">${esc(t.title)}</div></div>
     ${t.subtasks.length ? `<div class="subp">${ic('list-checks', 12)}<span class="num">${sd}/${t.subtasks.length}</span>${progBar(Math.round((sd / t.subtasks.length) * 100), sd === t.subtasks.length ? 'green' : '')}</div>` : ''}
     <div class="meta">
       ${opt.showProj ? `<span class="m" data-tip="${esc(p.name)}"><span class="pdot" style="--c:${pColor(p)}"></span></span>` : ''}

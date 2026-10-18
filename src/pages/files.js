@@ -33,7 +33,7 @@ function fileCard(file) {
   return `<article class="fcard workspace-file-card" data-ctx="file" data-id="${file.id}">
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
       ${filePrev(file)}
-      <span class="fi"><span class="fn trunc">${esc(file.name)}</span><span class="fm trunc">${esc(author?.name || 'Unknown member')} · ${ago(file.at)}</span></span>
+      <span class="fi"><span class="fn trunc" translate="no">${esc(file.name)}</span><span class="fm trunc">${esc(author?.name || 'Unknown member')} · ${ago(file.at)}</span></span>
     </button>
     <div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
   </article>`;
@@ -44,7 +44,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="Name"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc">${esc(file.name)}</span></button></td><td data-label="Project">${projectChip(file) || '—'}</td><td data-label="Type" class="muted">${esc(meta.n)}</td><td data-label="Size" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="Uploaded by"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc">${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="Date" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="Name"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button></td><td data-label="Project">${projectChip(file) || '—'}</td><td data-label="Type" class="muted">${esc(meta.n)}</td><td data-label="Size" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="Uploaded by"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc">${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="Date" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }
@@ -106,7 +106,7 @@ export function pageFiles() {
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}</select><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Upload files<input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label></div>`
+          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Upload files<input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label></div>`
       }
     </header>
 
@@ -118,7 +118,7 @@ export function pageFiles() {
 
     <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files"></div>
-      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''}>${esc(project.name)}</option>`).join('')}</select>
+      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
       )

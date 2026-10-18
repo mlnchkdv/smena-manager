@@ -58,9 +58,9 @@ test('core task flow and responsive shell work across browser engines', async ({
   await dialog.locator('[data-pop="assignee"]').click();
   await expect(page.locator('.pop:visible')).toBeVisible();
   await page.keyboard.press('Escape');
-  await dialog.locator('#f-title').fill('Межбраузерная проверка');
+  await dialog.locator('#f-title').fill('Review');
   await dialog.locator('#f-submit').click();
-  await expect(page.getByText('Межбраузерная проверка', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Review', { exact: true }).first()).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of ['projects', 'files', 'inbox', 'settings/security']) {

@@ -46,8 +46,8 @@ export function notifText(n) {
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
   const who = n.by ? `<b style="font-weight:600">${esc(mem(n.by)?.name)}</b>` : '';
   if (!n.by && p && !t) return `<b style="font-weight:600">${esc(tr(n.text))}</b>`;
-  if (!n.by && t) return `<b style="font-weight:600">${esc(t.title)}</b> <span class="muted">${esc(tr(n.text))}</span>`;
-  return `${who} <span class="muted">${esc(tr(n.text))}</span> ${t ? `<b style="font-weight:500">${esc(t.title)}</b>` : ''}`;
+  if (!n.by && t) return `<b style="font-weight:600" translate="no">${esc(t.title)}</b> <span class="muted">${esc(tr(n.text))}</span>`;
+  return `${who} <span class="muted">${esc(tr(n.text))}</span> ${t ? `<b style="font-weight:500" translate="no">${esc(t.title)}</b>` : ''}`;
 }
 export function notifIcon(n) {
   if (n.by) return av(n.by, 'md', false);
@@ -102,10 +102,10 @@ export function inboxPreview(n) {
   const cs = commentsOf(t.id).slice(-4);
   return `<div class="row" style="height:46px;padding:0 16px;border-bottom:1px solid var(--border);gap:8px;flex-shrink:0">
       <button class="ibtn ibtn-sm" data-a="set" data-k="inboxSel" data-v="" aria-label="Back">${ic('arrow-left', 15)}</button>
-      <span class="pdot" style="--c:${pColor(p)}"></span><span class="muted" style="font-size:12.5px">${esc(p.name)}</span><span class="faint mono">${t.key}</span><span class="sp"></span>
+      <span class="pdot" style="--c:${pColor(p)}"></span><span class="muted" style="font-size:12.5px" translate="no">${esc(p.name)}</span><span class="faint mono">${t.key}</span><span class="sp"></span>
       <button class="btn btn-sm btn-secondary" data-a="openTask" data-id="${t.id}">${ic('panel-right-open', 14)}Open task</button></div>
     <div style="padding:24px 28px;max-width:720px;width:100%">
-      <h2 style="font-size:var(--fs-xl);margin:0 0 10px;font-weight:600;letter-spacing:-.015em">${esc(t.title)}</h2>
+      <h2 style="font-size:var(--fs-xl);margin:0 0 10px;font-weight:600;letter-spacing:-.015em" translate="no">${esc(t.title)}</h2>
       <div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:18px">${cellStatus(t)}${cellAssignee(t)}${cellPrio(t)}${cellDue(t)}</div>
       <div class="eyebrow" style="margin-bottom:4px">Conversation</div>
       ${cs.length ? cs.map(commentHtml).join('') : `<p class="muted">${esc(n.snippet)}</p>`}

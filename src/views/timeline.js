@@ -93,7 +93,7 @@ export function timelineHtml(ts, key, p) {
       const w = Math.max(dw, (diffD(parse(t.due), parse(s)) + 1) * dw);
       const c = g === 'status' || g === 'none' ? pColor(pp) : `var(--st-${t.status})`;
       const inside = w > 110;
-      return `<div class="tl-rowbg" style="top:${y}px"></div><div class="bar ${t.status === 'done' ? 'done' : ''}" style="--c:${c};left:${x}px;top:${y + 7}px;width:${w}px" data-bar="${t.id}" data-dw="${dw}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)} · ${fmtDate(s)} → ${fmtDate(t.due)}"><span class="pf" style="width:${taskProg(t)}%"></span>${inside ? `${av(t.assignee, 'sm', false)}<span class="trunc">${esc(t.title)}</span>` : ''}</div>${inside ? '' : `<div class="bar-lbl" style="left:${x + w + 8}px;top:${y + 10}px">${esc(t.title)}</div>`}`;
+      return `<div class="tl-rowbg" style="top:${y}px"></div><div class="bar ${t.status === 'done' ? 'done' : ''}" style="--c:${c};left:${x}px;top:${y + 7}px;width:${w}px" data-bar="${t.id}" data-dw="${dw}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)} · ${fmtDate(s)} → ${fmtDate(t.due)}"><span class="pf" style="width:${taskProg(t)}%"></span>${inside ? `${av(t.assignee, 'sm', false)}<span class="trunc" translate="no">${esc(t.title)}</span>` : ''}</div>${inside ? '' : `<div class="bar-lbl" style="left:${x + w + 8}px;top:${y + 10}px" translate="no">${esc(t.title)}</div>`}`;
     })
     .join('');
   // dependency paths
@@ -119,7 +119,7 @@ export function timelineHtml(ts, key, p) {
       if (r.type === 'g')
         return `<div class="tl-row g">${r.G.html || ''}${esc(r.G.name)}<span class="faint" style="font-weight:500">${r.G.tasks.length}</span></div>`;
       const t = r.t;
-      return `<div class="tl-row" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc grow" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}">${esc(t.title)}</span>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}${av(t.assignee, 'sm')}</div>`;
+      return `<div class="tl-row" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc grow" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}" translate="no">${esc(t.title)}</span>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}${av(t.assignee, 'sm')}</div>`;
     })
     .join('');
   if (!rows.length)

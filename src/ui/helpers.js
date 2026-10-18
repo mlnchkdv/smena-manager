@@ -12,7 +12,7 @@ export function av(id, cls = '', tip = true) {
     .map(x => x[0])
     .join('')
     .slice(0, 2);
-  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} aria-label="${esc(m.name)}">${ini}</span>`;
+  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} aria-label="${esc(m.name)}" translate="no">${ini}</span>`;
 }
 export function avStack(ids, max = 4, cls = 'sm') {
   const v = ids.slice(0, max);
@@ -43,7 +43,7 @@ export function prIcon(p, s = 14) {
 }
 export const stPill = st => `${stIcon(st)}<span>${ST[st].name}</span>`;
 export const prPill = p => `${prIcon(p)}<span>${PR[p || 'none'].name}</span>`;
-export const lbl = id => (LB[id] ? `<span class="lbl" style="--c:${LB[id].c}"><i></i>${LB[id].name}</span>` : '');
+export const lbl = id => (LB[id] ? `<span class="lbl" style="--c:${LB[id].c}" translate="no"><i></i>${esc(LB[id].name)}</span>` : '');
 export const pIcon = (p, cls = '', s = 15) => `<span class="picon ${cls}" style="--c:${pColor(p)}">${ic(p.icon, s)}</span>`;
 export const pStatus = s => `<span class="pstatus" style="--c:${PSTAT[s].c}"><i></i>${PSTAT[s].name}</span>`;
 export function dueHtml(t, withIcon = true) {

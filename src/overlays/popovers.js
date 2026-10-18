@@ -293,7 +293,7 @@ export function popHtml(p) {
       style = 'width:260px';
       break;
     case 'user':
-      inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600">${esc(S.prefs.name)}</div><div class="faint trunc" style="font-size:12px">${esc(me().email)}</div></div></div><div class="msep"></div>
+      inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600" translate="no">${esc(S.prefs.name)}</div><div class="faint trunc" style="font-size:12px">${esc(me().email)}</div></div></div><div class="msep"></div>
       <button class="mi" data-a="go" data-r="member" data-id="${D().me}">${ic('user', 15)}View profile</button><button class="mi" data-a="go" data-r="settings" data-sec="profile">${ic('settings', 15)}Account settings</button>
       <div class="msep"></div>${accountSystemStatusHtml()}
       <div class="msep"></div><div class="mh">Theme</div><div style="padding:2px 6px 6px"><div class="seg" style="width:100%">${[
@@ -405,7 +405,7 @@ export function popHtml(p) {
         ts
           .map(
             x =>
-              `<button class="mi" data-a="openTask" data-id="${x.id}">${stIcon(x.status)}<span class="trunc">${esc(x.title)}</span><span class="r">${av(x.assignee, 'sm', false)}</span></button>`,
+              `<button class="mi" data-a="openTask" data-id="${x.id}">${stIcon(x.status)}<span class="trunc" translate="no">${esc(x.title)}</span><span class="r">${av(x.assignee, 'sm', false)}</span></button>`,
           )
           .join('');
       style = 'width:280px';

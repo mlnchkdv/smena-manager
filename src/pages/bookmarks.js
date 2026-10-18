@@ -38,7 +38,7 @@ function bookmarkForm(folders) {
       <div class="field bookmark-url-field"><label class="label" for="bookmark-url">URL</label><input class="input" id="bookmark-url" type="url" inputmode="url" value="${esc(draft.url)}" data-in="bookmarkDraft" data-field="url" placeholder="https://example.com" autocomplete="url"></div>
       <div class="field"><label class="label" for="bookmark-title">Bookmark title</label><input class="input" id="bookmark-title" value="${esc(draft.title)}" data-in="bookmarkDraft" data-field="title" placeholder="Resource title"></div>
       <div class="field bookmark-description-field"><label class="label" for="bookmark-description">Description</label><textarea class="textarea" id="bookmark-description" data-in="bookmarkDraft" data-field="description" placeholder="Why this resource is useful">${esc(draft.description)}</textarea></div>
-      <div class="field"><label class="label" for="bookmark-folder">Folder</label><select class="select" id="bookmark-folder" data-in="bookmarkDraft" data-field="folder"><option value="">No folder</option>${folders.map(folder => `<option value="${folder.id}" ${draft.folder === folder.id ? 'selected' : ''}>${esc(folder.name)}</option>`).join('')}</select></div>
+      <div class="field"><label class="label" for="bookmark-folder">Folder</label><select class="select" id="bookmark-folder" data-in="bookmarkDraft" data-field="folder"><option value="">No folder</option>${folders.map(folder => `<option value="${folder.id}" ${draft.folder === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="bookmark-importance">Importance</label><select class="select" id="bookmark-importance" data-in="bookmarkDraft" data-field="importance">${Object.entries(
         IMPORTANCE,
       )
@@ -93,7 +93,7 @@ export function pageBookmarks() {
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     <div class="bookmark-toolbar">
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks"></div>
-      <label class="sr" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''}>${esc(folder.name)}</option>`).join('')}</select>
+      <label class="sr" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
       <div class="seg" role="group" aria-label="Bookmark status"><button class="${scope === 'active' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="active">Active</button><button class="${scope === 'archived' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="archived">Archived</button></div>
     </div>
     ${

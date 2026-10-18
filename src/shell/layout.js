@@ -153,7 +153,7 @@ export function renderSidebar() {
       <div class="row" style="gap:2px">
         <button class="ws grow" data-a="pop" data-pop="ws" aria-haspopup="menu" title="${esc(tr('Switch workspace'))}">
           ${wsLogo(d.ws, 22)}
-          <span class="ws-name trunc">${esc(d.ws.name)}</span>
+          <span class="ws-name trunc" translate="no">${esc(d.ws.name)}</span>
           <span class="chev-d faint">${ic('chevrons-up-down', 13)}</span>
         </button>
         ${u.collapsed ? '' : `<button class="ibtn ibtn-sm hide-m" data-a="toggleSide" data-tip="Collapse sidebar  [" aria-label="Collapse sidebar">${ic('panel-left', 15)}</button>`}
@@ -188,7 +188,7 @@ export function renderSidebar() {
             return `<div class="sproj" data-proj-drop="${p.id}">
             <div class="sitem ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" ${u.collapsed ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
               <span class="pico" style="--c:${pColor(p)}" data-a="toggleExpand" data-id="${p.id}" aria-label="Toggle sub-pages">${ic(p.icon, 12)}</span>
-              <span class="trunc">${esc(p.name)}</span>
+              <span class="trunc" translate="no">${esc(p.name)}</span>
               ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               ${p.private ? `<span class="faint" style="margin-left:4px">${ic('lock', 11)}</span>` : ''}
               <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
@@ -222,7 +222,7 @@ export function renderSidebar() {
     <div class="side-bot">
       <button class="sitem" data-a="pop" data-pop="help" ${u.collapsed ? 'data-tip="Help" data-tip-pos="right"' : ''}>${ic('circle-help', 16)}<span>Help & resources</span></button>
       ${sItem('settings', 'Settings', 'settings')}
-      <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
+      <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500" translate="no">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
     </div>
   </nav>`;
 }
