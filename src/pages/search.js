@@ -6,7 +6,8 @@ import { searchAll } from '../core/search.js';
 import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 
 export function pageSearch() {
-  const q = String(S.ui.searchQ || '').trim();
+  const inputQuery = String(S.ui.searchQ || '');
+  const q = inputQuery.trim();
   const r = searchAll(q);
   const cat = S.ui.searchCat;
   const cats = [
@@ -26,7 +27,7 @@ export function pageSearch() {
       ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
-    <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(q)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
+    <div class="inwrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;font-size:15px" aria-label="Search"></div>
     ${q ? '<p class="hint">Showing up to 30 matches per category. Refine your search to find more.</p>' : ''}
     <div class="tabs" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
     ${
