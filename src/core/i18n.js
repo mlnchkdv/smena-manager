@@ -867,6 +867,8 @@ const RU = {
   'OAuth access is verified; successful email delivery is not confirmed yet.': 'OAuth-доступ подтверждён; успешная доставка письма пока не подтверждена.',
   'Version and ETag checks': 'Контроль версий и ETag',
   'Workspace storage needs attention.': 'Проверьте подключение хранилища рабочего пространства.',
+  'Backup storage is not initialized. An administrator must prepare the Drive backups folder.':
+    'Хранилище резервных копий не подготовлено. Администратору нужно создать служебную папку backups на Google Диске.',
   'Write coordination needs attention.': 'Проверьте защиту одновременных записей.',
   'Email authorization needs attention.': 'Проверьте авторизацию отправки почты.',
   'Web Push is not configured.': 'Web Push не настроен.',

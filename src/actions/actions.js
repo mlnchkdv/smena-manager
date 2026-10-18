@@ -318,11 +318,16 @@ A.exportPortableWorkspace = () => {
 A.loadWorkspaceBackups = async () => {
   if (S.ui.currentUser?.role !== 'admin' || S.ui.backupsLoading) return;
   S.ui.backupsLoading = true;
+  S.ui.backupsError = '';
   render();
   try {
     S.ui.backups = await getWorkspaceBackups();
   } catch (error) {
-    toast(error.message || 'Unable to load backups.', { kind: 'err' });
+    S.ui.backupsError =
+      error.code === 'DRIVE_BOOTSTRAP_REQUIRED'
+        ? 'Backup storage is not initialized. An administrator must prepare the Drive backups folder.'
+        : error.message || 'Unable to load backups.';
+    toast(S.ui.backupsError, { kind: 'err' });
   } finally {
     S.ui.backupsLoading = false;
     render();
@@ -335,6 +340,7 @@ A.createWorkspaceBackup = async el => {
     await queueWorkspaceSync(S.data);
     await createWorkspaceBackup('Manual backup');
     S.ui.backups = await getWorkspaceBackups();
+    S.ui.backupsError = '';
     render();
     toast('Backup saved.');
   } catch (error) {
