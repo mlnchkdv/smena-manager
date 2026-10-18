@@ -253,6 +253,21 @@
   .hide-m {
     display: none !important;
   }
+  .bulkbar {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    justify-content: center;
+    padding: 8px;
+  }
+  .bulkbar > b {
+    flex-basis: 100%;
+    text-align: center;
+  }
+  .bulkbar > .sep {
+    display: none;
+  }
+  .bulkbar .btn {
+    min-height: 40px;
+  }
   .ph h1 {
     font-size: var(--fs-xl);
   }

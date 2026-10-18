@@ -169,8 +169,11 @@
   position: fixed;
   left: 50%;
   bottom: 24px;
+  width: max-content;
+  max-width: calc(100% - 24px);
   transform: translateX(-50%);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   padding: 6px 6px 6px 14px;
@@ -180,6 +183,10 @@
   box-shadow: var(--shadow-pop);
   z-index: 40;
   font-size: var(--fs-sm);
+}
+.bulkbar > b,
+.bulkbar > .btn {
+  flex-shrink: 0;
 }
 .bulkbar.enter {
   animation: popUp 0.28s var(--spring);
