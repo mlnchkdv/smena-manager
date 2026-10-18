@@ -36,6 +36,13 @@
   margin: 0 0 4px;
   letter-spacing: -0.015em;
 }
+.notification-delivery-issues {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
 .set-in > p.lead {
   color: var(--text-2);
   margin: 0 0 24px;

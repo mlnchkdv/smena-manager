@@ -88,13 +88,27 @@ function deliveryStatusPanel() {
   const pushReady = status.channels?.push?.configured;
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
+  const recentEmailFailure = Number(lastRun?.email?.failed || 0) > 0;
+  const emailLabel = !emailReady ? 'Needs attention' : recentEmailFailure ? 'Recent delivery failed' : 'Authorized';
   const operational = status.operational;
   const coordinationMode =
     status.workspace?.coordination?.mode === 'local-queue'
       ? 'Local write queue'
       : status.workspace?.coordination?.mode === 'redis'
         ? 'Distributed lock'
-        : status.workspace?.coordination?.mode || '—';
+        : status.workspace?.coordination?.mode === 'drive-etag'
+          ? 'Version and ETag checks'
+          : status.workspace?.coordination?.mode || '—';
+  const issueMessages = {
+    storage: 'Workspace storage needs attention.',
+    coordination: 'Write coordination needs attention.',
+    email: 'Email authorization needs attention.',
+    push: 'Web Push is not configured.',
+    cron_stale: 'No recent automatic run. Check the Vercel cron schedule.',
+    cron_degraded: 'The last automatic run reported errors.',
+    delivery: 'The latest notification delivery reported errors.',
+    outbox_stale: 'Some notifications have been waiting for more than one hour.',
+  };
   const healthLabel = operational?.status === 'healthy' ? 'Healthy' : operational?.status === 'critical' ? 'Critical' : 'Needs attention';
   const cronLabel = !lastCron
     ? 'No run recorded yet'
@@ -103,13 +117,21 @@ function deliveryStatusPanel() {
       : lastCron.status === 'degraded'
         ? 'Completed with delivery errors'
         : 'Automatic run failed';
-  const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${label}</span>`;
+  const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${esc(tr(label))}</span>`;
   return `<div class="sblock notification-delivery-card">
     <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
+    ${
+      operational?.issues?.length
+        ? `<ul class="notification-delivery-issues">${operational.issues
+            .filter(issue => issueMessages[issue.code])
+            .map(issue => `<li>${esc(tr(issueMessages[issue.code]))}</li>`)
+            .join('')}</ul>`
+        : ''
+    }
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
-      <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(coordinationMode)}</p></div>
-      <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
+      <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>
+      <div><span class="label">Email</span>${state(emailReady && !recentEmailFailure, emailLabel)}<p class="hint">Gmail API</p>${emailReady && !Number(lastRun?.email?.delivered || 0) ? `<p class="hint">${tr('OAuth access is verified; successful email delivery is not confirmed yet.')}</p>` : ''}</div>
       <div><span class="label">Pending deliveries</span><b>${Number(status.outbox?.pending || 0)}</b><p class="hint">${tr('Retrying')}: ${Number(status.outbox?.retrying || 0)}</p>${status.outbox?.pending ? `<button class="btn btn-secondary btn-sm" data-a="retryNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}Send pending</button>` : ''}</div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
       <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>
