@@ -350,6 +350,25 @@ addressed above; a simulated preferences-write outage verified that both recover
 visible and that retry succeeds. These are browser-emulation results, not real-device acceptance.
 The production build succeeds, with a remaining initial-chunk size warning (about 500 kB minified).
 
+### Production audit (2026-10-18)
+
+Read-only checks against `https://smena-manager.vercel.app` found and addressed four issues:
+
+- Long OAuth scope URLs overflowed the privacy page at 320 px; legal content now wraps them.
+- Google-only deployments still displayed the disabled Access ID form; it now follows server configuration.
+- GIS injected a stylesheet blocked by CSP. Its observed SHA-256 hash is explicitly allowed in both
+  static and API headers, without permitting arbitrary inline style elements or scripts. Re-audit this
+  hash if Google's stylesheet changes; it is not a promise of compatibility with future SDK versions.
+- The Google iframe's own padding was incorrectly included in a `max-width: 100%` restriction,
+  clipping the button. Only the host wrapper is now constrained.
+
+The public frontend, API health and auth configuration returned HTTP 200; anonymous workspace access
+returned HTTP 401. Public RU/EN documents were checked at 320, 390, 768 and 1440 px. Authenticated
+production sections, Drive writes, Gmail/Web Push delivery and multi-user conflict recovery still
+require a signed-in session and controlled acceptance checks; public liveness cannot verify them.
+`DRIVE_WRITE_CONCURRENCY` remains a documented warning about revision/ETag protection without a shared
+lock, not an observed production data-loss incident. No team content was modified during this audit.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
