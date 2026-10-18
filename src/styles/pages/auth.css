@@ -86,8 +86,7 @@
   opacity: 0.55;
   pointer-events: none;
 }
-#google-signin > div,
-#google-signin iframe {
+#google-signin > div {
   max-width: 100% !important;
 }
 .google-signin-error {
