@@ -2,32 +2,9 @@ import { OAuth2Client } from 'google-auth-library';
 import { configureProviderTimeout, reportProviderError } from './provider-safety.js';
 import { emailPreferenceForNotification, notificationPreferencesForMember } from '../shared/notification-model.js';
 import { notificationUrl } from '../shared/notification-links.js';
+import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 
-const ACTIONS = {
-  en: {
-    'assigned you': 'assigned you a task',
-    'commented on': 'commented on your task',
-    'mentioned you in': 'mentioned you',
-    'mentioned your team in': 'mentioned your team',
-    'mentioned everyone in': 'mentioned everyone',
-    'is due tomorrow': 'is due tomorrow',
-    'is overdue': 'is overdue',
-    'New sign-in detected': 'New sign-in detected',
-    'System check needs attention': 'System check needs attention',
-  },
-  ru: {
-    'assigned you': 'назначил(а) вам задачу',
-    'commented on': 'оставил(а) комментарий к вашей задаче',
-    'mentioned you in': 'упомянул(а) вас',
-    'mentioned your team in': 'упомянул(а) вашу команду',
-    'mentioned everyone in': 'упомянул(а) всех',
-    'is due tomorrow': 'срок завтра',
-    'is overdue': 'срок просрочен',
-    'New sign-in detected': 'Обнаружен новый вход',
-    'System check needs attention': 'Система требует внимания',
-  },
-};
 let authorizationCache = null;
 
 function configuredLocale(value = process.env.NOTIFICATION_LOCALE) {
@@ -137,18 +114,18 @@ async function sendGmail(accessToken, message) {
 const transientStatus = status => !status || status === 408 || status === 425 || status === 429 || status >= 500;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function emailNotificationMessage(notification, data, locale = configuredLocale()) {
+export function emailNotificationMessage(notification, data, locale = notificationLocale(data, notification.recipient, configuredLocale())) {
   const member = data.members?.find(item => item.id === notification.recipient);
   const actor = notification.by ? data.members?.find(item => item.id === notification.by)?.name : '';
   const task = notification.task ? data.tasks?.find(item => item.id === notification.task) : null;
-  const action = ACTIONS[locale]?.[notification.text] || notification.text || (locale === 'ru' ? 'Новое уведомление' : 'New notification');
+  const action = notificationAction(notification, locale) || (locale === 'ru' ? 'Новое уведомление' : 'New notification');
   const subject = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action;
   const greeting = locale === 'ru' ? `Здравствуйте, ${member?.name || ''}!` : `Hello, ${member?.name || ''}!`;
   const open = locale === 'ru' ? 'Открыть Smena Manager' : 'Open Smena Manager';
   return {
     to: member?.email || '',
     subject: `[Smena Manager] ${subject}`,
-    text: `${greeting}\n\n${subject}\n${notification.snippet || task?.title || ''}\n\n${open}: ${notificationUrl(data)}`,
+    text: `${greeting}\n\n${subject}\n${notificationSnippet(notification, locale) || task?.title || ''}\n\n${open}: ${notificationUrl(data, notification)}`,
   };
 }
 
@@ -162,7 +139,7 @@ export async function deliverEmailNotifications(data, notifications = [], option
     return preference && notificationPreferencesForMember(data, notification.recipient)[preference] === true;
   });
   if (!deliveries.length) return { configured: true, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
-  const messages = deliveries.map(notification => emailNotificationMessage(notification, data, configuredLocale(options.locale))).filter(message => message.to);
+  const messages = deliveries.map(notification => emailNotificationMessage(notification, data, options.locale)).filter(message => message.to);
   let accessToken;
   try {
     accessToken = options.accessToken || (await gmailAccessToken(config));
@@ -215,7 +192,7 @@ export function createDailyDigestPlan(data, options = {}) {
   return { today, recipients };
 }
 
-export function dailyDigestMessage(data, member, today, locale = configuredLocale()) {
+export function dailyDigestMessage(data, member, today, locale = notificationLocale(data, member.id, configuredLocale())) {
   const open = (data.tasks || []).filter(task => task.assignee === member.id && task.status !== 'done');
   const overdue = open.filter(task => task.due && String(task.due).slice(0, 10) < today).length;
   const dueToday = open.filter(task => String(task.due || '').slice(0, 10) === today).length;

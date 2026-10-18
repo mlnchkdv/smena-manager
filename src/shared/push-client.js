@@ -1,4 +1,4 @@
-export const PUSH_PREFERENCE_KEYS = ['push_mention', 'push_assign', 'push_comment', 'push_due', 'push_security'];
+export const PUSH_PREFERENCE_KEYS = ['push_mention', 'push_assign', 'push_comment', 'push_update', 'push_due', 'push_security'];
 
 export function decodeApplicationServerKey(value, decode = globalThis.atob) {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);

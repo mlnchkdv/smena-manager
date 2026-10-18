@@ -89,7 +89,7 @@ test('notification email content supports Russian and English', () => {
   assert.match(english.subject, /mentioned you/u);
   assert.match(russian.subject, /упомянул/u);
   assert.match(russian.text, /Здравствуйте, Полина/u);
-  assert.match(russian.text, /https:\/\/smena-manager\.vercel\.app\/smena-team\/notifications/u);
+  assert.match(russian.text, /https:\/\/smena-manager\.vercel\.app\/smena-team\/task\/task-1/u);
 });
 
 test('raw Gmail messages encode Unicode and reject header injection', () => {

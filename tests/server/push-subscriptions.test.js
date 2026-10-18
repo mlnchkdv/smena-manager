@@ -60,5 +60,5 @@ test('push payloads are localized without exposing workspace data', () => {
   assert.equal(pushMessagePayload(notification, data, 'en').title, 'Alex: mentioned you in');
   assert.equal(pushMessagePayload(notification, data, 'ru').title, 'Alex: упомянул(а) вас');
   assert.deepEqual(Object.keys(pushMessagePayload(notification, data, 'ru')).sort(), ['badge', 'body', 'icon', 'tag', 'title', 'url']);
-  assert.equal(pushMessagePayload(notification, data, 'ru').url, '/%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0-%D1%81%D0%BC%D0%B5%D0%BD%D0%B0/notifications');
+  assert.equal(pushMessagePayload(notification, data, 'ru').url, '/%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0-%D1%81%D0%BC%D0%B5%D0%BD%D0%B0/task/task-1');
 });

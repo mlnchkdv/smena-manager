@@ -344,6 +344,7 @@ export function settingsBody(sec, title) {
         srow('Mentions', 'When someone @mentions you.', tog('email_mention', np.email_mention, 'np')) +
         srow('Assignments', 'When a task is assigned to you.', tog('email_assign', np.email_assign, 'np')) +
         srow('Comments', 'On tasks you created or are assigned.', tog('email_comment', np.email_comment, 'np')) +
+        srow('Task status changes', '', tog('email_update', np.email_update, 'np')) +
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('email_due', np.email_due, 'np')) +
         srow('Security alerts', 'When a new device signs in to your account.', tog('email_security', np.email_security !== false, 'np')) +
         srow('Daily digest', 'A summary of what changed, every weekday at 8:00.', tog('email_digest', np.email_digest, 'np'))
@@ -371,6 +372,7 @@ export function settingsBody(sec, title) {
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
         srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +
+        srow('Task status changes', '', tog('push_update', np.push_update, 'np')) +
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
         srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np')) +
         deliveryStatusPanel()

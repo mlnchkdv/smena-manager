@@ -1,4 +1,5 @@
 import { pushPreferenceForNotification } from '../shared/notification-model.js';
+import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
 
 export function browserNotificationState() {
   if (typeof Notification === 'undefined') return 'unsupported';
@@ -21,12 +22,13 @@ export function canDeliverBrowserNotification(notification, preferences, permiss
 }
 
 export function browserNotificationContent(notification, data, translate = value => value) {
+  const locale = notificationLocale(data, notification?.recipient);
   const actor = notification?.by ? data?.members?.find(member => member.id === notification.by)?.name : '';
   const task = notification?.task ? data?.tasks?.find(item => item.id === notification.task) : null;
-  const action = translate(notification?.text || 'New notification');
+  const action = translate(notificationAction(notification, locale) || 'New notification');
   return {
     title: actor ? `${actor} ${action}` : action,
-    body: notification?.snippet || task?.title || translate('Open notifications to see the details.'),
+    body: notificationSnippet(notification, locale) || task?.title || translate('Open notifications to see the details.'),
   };
 }
 

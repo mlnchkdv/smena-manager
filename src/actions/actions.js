@@ -1507,6 +1507,9 @@ IN.draft = el => {
 A.pickMention = el => {
   const id = el.dataset.id;
   const d = S.ui.drafts[id] || '';
+  S.ui.draftMentionRefs ||= {};
+  S.ui.draftMentionRefs[id] ||= [];
+  S.ui.draftMentionRefs[id].push({ id: el.dataset.member, kind: el.dataset.kind, label: el.dataset.name });
   S.ui.drafts[id] = d.replace(/@([^@\n]*)$/u, '@' + el.dataset.name + ' ');
   S.ui.mention = null;
   render();
@@ -1539,7 +1542,8 @@ A.postComment = el => {
   const t = task(id);
   if (
     mutate(() => {
-      D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, re: {} });
+      D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, mentions: S.ui.draftMentionRefs?.[id] || [], re: {} });
+      if (S.ui.draftMentionRefs) delete S.ui.draftMentionRefs[id];
       logAct('commented on', t);
       S.ui.drafts[id] = '';
       S.ui.mention = null;

@@ -142,7 +142,7 @@ export function mentionPicker(taskId) {
   return `<div class="pop mention-picker" style="position:absolute;top:auto;bottom:calc(100% + 4px);left:0">${matches
     .map(
       item =>
-        `<button class="mi" data-a="pickMention" data-id="${taskId}" data-name="${esc(item.name)}">${item.kind === 'member' ? av(item.id, 'sm', false) : `<span class="av sm" style="--c:var(--accent)">${ic(item.icon, 12)}</span>`}${esc(item.name)}<span class="r">${esc(item.title)}</span></button>`,
+        `<button class="mi" data-a="pickMention" data-id="${taskId}" data-member="${esc(item.id)}" data-kind="${item.kind}" data-name="${esc(item.name)}">${item.kind === 'member' ? av(item.id, 'sm', false) : `<span class="av sm" style="--c:var(--accent)">${ic(item.icon, 12)}</span>`}<span translate="no">${esc(item.name)}</span><span class="r">${esc(item.title)}</span></button>`,
     )
     .join('')}</div>`;
 }

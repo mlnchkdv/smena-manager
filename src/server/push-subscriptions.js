@@ -3,6 +3,7 @@ import webpush from 'web-push';
 import { getStorageProvider } from './storage/index.js';
 import { notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
 import { notificationPath } from '../shared/notification-links.js';
+import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
 import { storageVersion } from './storage/version-token.js';
 import { reportProviderError } from './provider-safety.js';
 
@@ -157,30 +158,21 @@ export async function removePushSubscription(memberId, endpoint) {
   return removed;
 }
 
-const RU_ACTIONS = {
-  'assigned you': 'назначил(а) вам задачу',
-  'commented on': 'оставил(а) комментарий',
-  'mentioned you in': 'упомянул(а) вас',
-  'mentioned your team in': 'упомянул(а) вашу команду',
-  'mentioned everyone in': 'упомянул(а) всех',
-  'is due tomorrow': 'срок завтра',
-  'is due today': 'срок сегодня',
-  'is overdue': 'срок просрочен',
-};
-
-export function pushMessagePayload(notification, data, locale = 'en') {
+export function pushMessagePayload(notification, data, locale = notificationLocale(data, notification.recipient)) {
   const actor = notification.by ? data.members?.find(member => member.id === notification.by)?.name : '';
   const task = notification.task ? data.tasks?.find(item => item.id === notification.task) : null;
-  const action = locale === 'ru' ? RU_ACTIONS[notification.text] || notification.text : notification.text;
+  const action = notificationAction(notification, locale);
   const title = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action || 'Smena Manager';
   return {
     title,
     body:
-      notification.snippet || task?.title || (locale === 'ru' ? 'Откройте уведомления, чтобы узнать подробности.' : 'Open notifications to see the details.'),
+      notificationSnippet(notification, locale) ||
+      task?.title ||
+      (locale === 'ru' ? 'Откройте уведомления, чтобы узнать подробности.' : 'Open notifications to see the details.'),
     icon: '/favicon.svg',
     badge: '/favicon.svg',
     tag: `smena-notification-${notification.id}`,
-    url: notificationPath(data),
+    url: notificationPath(data, notification),
   };
 }
 
@@ -227,7 +219,7 @@ export async function deliverPushNotifications(data, notifications = [], options
             return;
           }
           attempted += 1;
-          const payload = JSON.stringify(pushMessagePayload(notification, data, target.locale));
+          const payload = JSON.stringify(pushMessagePayload(notification, data, notificationLocale(data, notification.recipient, target.locale)));
           const settings = { TTL: 60 * 60 * 24, urgency: notification.type === 'due' ? 'high' : 'normal' };
           for (let attempt = 0; attempt < 2; attempt += 1) {
             try {

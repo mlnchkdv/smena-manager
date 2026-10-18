@@ -83,6 +83,16 @@ export function validateWorkspaceData(value) {
   for (const comment of Array.isArray(value.comments) ? value.comments : []) {
     if (comment?.task != null && !taskIds.has(comment.task)) invalid.push('comments.task');
     if (comment?.text != null && typeof comment.text !== 'string') invalid.push('comments.text');
+    if (
+      comment?.mentions != null &&
+      (!Array.isArray(comment.mentions) ||
+        comment.mentions.length > 100 ||
+        comment.mentions.some(
+          ref =>
+            !isObject(ref) || typeof ref.id !== 'string' || typeof ref.label !== 'string' || ref.label.length > 300 || !['member', 'group'].includes(ref.kind),
+        ))
+    )
+      invalid.push('comments.mentions');
     for (const field of ['re', 'reactions']) {
       if (
         comment?.[field] != null &&

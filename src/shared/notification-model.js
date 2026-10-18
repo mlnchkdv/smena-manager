@@ -18,11 +18,13 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = Object.freeze({
   email_mention: false,
   email_assign: false,
   email_comment: false,
+  email_update: false,
   email_due: false,
   email_digest: false,
   push_mention: false,
   push_assign: false,
   push_comment: false,
+  push_update: false,
   push_due: false,
   email_security: true,
   push_security: true,
@@ -39,6 +41,7 @@ const pushPreferenceForType = Object.freeze({
   mention: 'push_mention',
   assign: 'push_assign',
   comment: 'push_comment',
+  update: 'push_update',
   due: 'push_due',
   security: 'push_security',
   system: 'push_security',
@@ -52,6 +55,7 @@ const emailPreferenceForType = Object.freeze({
   mention: 'email_mention',
   assign: 'email_assign',
   comment: 'email_comment',
+  update: 'email_update',
   due: 'email_due',
   security: 'email_security',
   system: 'email_security',
@@ -152,6 +156,7 @@ function containsMention(text, value) {
 export function mentionedMemberIds(text, members = []) {
   return members
     .filter(member => member?.id && member?.name)
+    .filter(member => members.filter(other => other.name?.toLocaleLowerCase() === member.name.toLocaleLowerCase()).length === 1)
     .filter(member => containsMention(text, member.name))
     .map(member => member.id);
 }
@@ -167,9 +172,13 @@ export function mentionsWorkspace(text) {
   return ['workspace', 'пространство', 'все'].some(alias => containsMention(text, alias));
 }
 
-export function mentionNotificationTargets(text, data = {}) {
+export function mentionNotificationTargets(text, data = {}, references = []) {
   const members = Array.isArray(data.members) ? data.members.filter(member => member?.id && member.status !== 'deactivated') : [];
   const targets = mentionedMemberIds(text, members).map(recipient => ({ recipient, scope: 'direct' }));
+  for (const reference of Array.isArray(references) ? references.slice(0, 100) : []) {
+    if (reference?.kind !== 'member' || typeof reference.label !== 'string' || !containsMention(text, reference.label)) continue;
+    if (members.some(member => member.id === reference.id)) targets.push({ recipient: reference.id, scope: 'direct' });
+  }
 
   mentionedTeamIds(text, Array.isArray(data.teams) ? data.teams : []).forEach(teamId => {
     members.filter(member => member.team === teamId).forEach(member => targets.push({ recipient: member.id, scope: 'team', team: teamId }));
@@ -236,6 +245,32 @@ export function reconcileWorkspaceNotifications(current, candidate, options = {}
   for (const task of data.tasks || []) {
     if (!task?.id) continue;
     const previous = currentTasks.get(task.id);
+    if (previous?.createdBy) task.createdBy = previous.createdBy;
+    else if (!previous) task.createdBy = actorMemberId;
+    else delete task.createdBy;
+    const descriptionText = value =>
+      String(value || '')
+        .replace(/<[^>]*>/gu, ' ')
+        .replace(/&nbsp;/gu, ' ')
+        .replace(/&amp;/gu, '&');
+    const oldMentions = new Set(mentionNotificationTargets(descriptionText(previous?.desc), current).map(target => `${target.scope}:${target.recipient}`));
+    if (task.desc !== previous?.desc)
+      for (const target of mentionNotificationTargets(descriptionText(task.desc), data)) {
+        if (oldMentions.has(`${target.scope}:${target.recipient}`)) continue;
+        createServerNotification(
+          data,
+          {
+            recipient: target.recipient,
+            type: 'mention',
+            task: task.id,
+            text: target.scope === 'direct' ? 'mentioned you in' : target.scope === 'team' ? 'mentioned your team in' : 'mentioned everyone in',
+            snippet: descriptionText(task.desc).trim(),
+            scope: target.scope,
+            ...(target.team ? { team: target.team } : {}),
+          },
+          { actorMemberId, revision, sourceId: `description-${task.id}`, at: now },
+        );
+      }
     if (task.assignee && (!previous || previous.assignee !== task.assignee)) {
       createServerNotification(
         data,
@@ -275,7 +310,7 @@ export function reconcileWorkspaceNotifications(current, candidate, options = {}
       team: 'mentioned your team in',
       workspace: 'mentioned everyone in',
     };
-    for (const target of mentionNotificationTargets(comment.text, data)) {
+    for (const target of mentionNotificationTargets(comment.text, data, comment.mentions)) {
       if ((target.recipient === actorMemberId && target.scope !== 'direct') || notified.has(target.recipient)) continue;
       const created = createServerNotification(
         data,
@@ -292,19 +327,20 @@ export function reconcileWorkspaceNotifications(current, candidate, options = {}
       );
       if (created) notified.add(target.recipient);
     }
-    if (task.assignee && task.assignee !== actorMemberId && !notified.has(task.assignee)) {
-      createServerNotification(
-        data,
-        {
-          recipient: task.assignee,
-          type: 'comment',
-          task: task.id,
-          text: 'commented on',
-          snippet: comment.text,
-        },
-        { actorMemberId, revision, sourceId: comment.id, at: Number(comment.at) || now },
-      );
-    }
+    for (const recipient of new Set([task.assignee, task.createdBy].filter(Boolean)))
+      if (recipient !== actorMemberId && !notified.has(recipient)) {
+        createServerNotification(
+          data,
+          {
+            recipient,
+            type: 'comment',
+            task: task.id,
+            text: 'commented on',
+            snippet: comment.text,
+          },
+          { actorMemberId, revision, sourceId: comment.id, at: Number(comment.at) || now },
+        );
+      }
   }
 
   return data;

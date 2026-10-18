@@ -173,7 +173,34 @@ test('delivery channels map notification types to independent preferences', () =
   assert.equal(pushPreferenceForNotification({ type: 'due' }), 'push_due');
   assert.equal(emailPreferenceForNotification({ type: 'due' }), 'email_due');
   assert.equal(emailPreferenceForNotification({ type: 'mention' }), 'email_mention');
-  assert.equal(emailPreferenceForNotification({ type: 'update' }), null);
+  assert.equal(emailPreferenceForNotification({ type: 'update' }), 'email_update');
+});
+
+test('stable mention references resolve renamed and duplicate names without ambiguous legacy fanout', () => {
+  const data = workspace();
+  data.members[1].name = 'Renamed';
+  data.members[2].name = 'Renamed';
+  assert.deepEqual(mentionNotificationTargets('@Renamed test', data), []);
+  assert.deepEqual(mentionNotificationTargets('@Old name test', data, [{ id: 'editor', kind: 'member', label: 'Old name' }]), [
+    { recipient: 'editor', scope: 'direct' },
+  ]);
+  assert.deepEqual(mentionNotificationTargets('No mention', data, [{ id: 'editor', kind: 'member', label: 'Old name' }]), []);
+});
+
+test('description mentions notify only newly added recipients and comments reach trusted task creator', () => {
+  const current = workspace();
+  current.tasks = [{ id: 't', title: 'Task', createdBy: 'designer', assignee: 'editor', desc: '<p>@Editor User</p>' }];
+  current.comments = [];
+  const candidate = structuredClone(current);
+  candidate.tasks[0].desc = '<p>@Editor User @Owner User</p>';
+  candidate.tasks[0].createdBy = 'owner';
+  candidate.comments.push({ id: 'c', task: 't', text: 'Ready', by: 'editor', re: { '👍': ['owner', 'designer'] } });
+  const result = reconcileWorkspaceNotifications(current, candidate, { actorMemberId: 'editor', now: 100 });
+  assert.equal(result.tasks[0].createdBy, 'designer');
+  assert.deepEqual(result.comments[0].re['👍'], []);
+  assert.equal(result.notifs.filter(item => item.type === 'mention' && item.recipient === 'editor').length, 0);
+  assert.equal(result.notifs.filter(item => item.type === 'mention' && item.recipient === 'owner').length, 1);
+  assert.equal(result.notifs.filter(item => item.type === 'comment' && item.recipient === 'designer').length, 1);
 });
 
 test('server reconciliation rejects forged notifications and creates trusted task events', () => {

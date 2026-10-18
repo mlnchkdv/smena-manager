@@ -2,6 +2,10 @@ const DEFAULT_ORIGIN = 'https://smena-manager.vercel.app';
 
 export function notificationPath(data, route = 'notifications') {
   const slug = encodeURIComponent(String(data?.ws?.url || 'workspace').trim() || 'workspace');
+  if (route && typeof route === 'object') {
+    if (route.task && data?.tasks?.some(task => task.id === route.task)) return `/${slug}/task/${encodeURIComponent(route.task)}`;
+    route = 'notifications';
+  }
   const page = String(route || 'notifications')
     .replace(/^\/+|\/+$/gu, '')
     .replace(/[^a-z-]/giu, '');
