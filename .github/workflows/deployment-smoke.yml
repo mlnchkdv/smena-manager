@@ -1,0 +1,29 @@
+name: Deployment smoke
+
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Public Vercel deployment origin (read-only checks)
+        required: true
+        default: https://smena-manager.vercel.app
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Check public frontend, API, sign-in and access protection
+        run: node scripts/smoke-deployment.js
+        env:
+          DEPLOYMENT_URL: ${{ inputs.url || github.event.client_payload.url }}

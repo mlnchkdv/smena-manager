@@ -16,6 +16,7 @@
     "setup:gmail": "node scripts/setup-gmail-oauth.js",
     "setup:storage": "node scripts/setup-storage.js",
     "check:deploy": "node scripts/check-deployment-config.js",
+    "check:live": "node scripts/smoke-deployment.js",
     "postinstall": "node scripts/build-sanitizer.js",
     "lint": "eslint .",
     "format": "prettier --write .",
