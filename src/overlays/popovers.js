@@ -1,5 +1,5 @@
 /* ---------------- POPOVERS ---------------- */
-import { $, MOD, MONL, TODAY, WD, addD, dOff, diffD, esc, fmtDate, iso, parse } from '../core/utils.js';
+import { $, MOD, MONL, TODAY, WD, addD, dOff, diffD, esc, fmtDate, fmtTimestamp, iso, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, me, mem, pColor, proj, systemConnectionState, task, visibleProjects } from '../core/store.js';
@@ -139,7 +139,7 @@ function accountSystemStatusHtml() {
   const limit = storage?.quotaBytes ?? status?.workspaceMaxBytes;
   const usage = used == null ? '—' : limit ? `${formatSystemBytes(used)} / ${formatSystemBytes(limit)}` : formatSystemBytes(used);
   const lastSyncValue = S.ui.lastSyncedAt || storage?.lastSyncAt || status?.updatedAt;
-  const lastSync = lastSyncValue ? new Date(lastSyncValue).toLocaleString(locale()) : 'Never';
+  const lastSync = lastSyncValue ? fmtTimestamp(lastSyncValue) : 'Never';
   const loading = S.ui.systemStatusLoading && !status;
   const expanded = S.ui.systemDetailsOpen;
   return `<section class="account-system" data-state="${state}">

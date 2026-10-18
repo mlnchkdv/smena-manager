@@ -2,7 +2,7 @@
    QUIRE — core: utils, icons, seed data, store, render loop, events
    ===================================================================== */
 // Web fonts load without blocking first paint (the link starts as media=print).
-import { calendarDate, resolveTimeZone } from '../shared/calendar-time.js';
+import { calendarDate, resolveTimeZone, formatTimestamp } from '../shared/calendar-time.js';
 
 document.querySelectorAll('link[data-font]').forEach(l => {
   l.media = 'all';
@@ -66,6 +66,11 @@ export const MONL = [...DATE_WORDS.en.monLong];
 export const WD = [...DATE_WORDS.en.wd];
 export const WDL = [...DATE_WORDS.en.wdLong];
 let dateLocale = 'en-US';
+let timeFormat = '24';
+export const setTimeFormat = value => {
+  timeFormat = value === '12' ? '12' : '24';
+};
+export const fmtTimestamp = (value, timeOnly = false) => formatTimestamp(value, { locale: dateLocale, timeZone: calendarZone, timeFormat, timeOnly });
 /* Set from preferences on every render (core/theme.js), so utils never depends on the store. */
 export let dateFormat = 'MMM d';
 export function setDateFormat(f) {

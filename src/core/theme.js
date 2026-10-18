@@ -1,5 +1,5 @@
 /* ---------- theme ---------- */
-import { setDateFormat, setDateLocale, updateToday } from './utils.js';
+import { setDateFormat, setDateLocale, setTimeFormat, updateToday } from './utils.js';
 import { locale } from './i18n.js';
 import { S } from './store.js';
 
@@ -8,6 +8,7 @@ export function applyPrefs() {
     p = S.prefs;
   setDateFormat(p.dateFmt);
   setDateLocale(locale());
+  setTimeFormat(p.timeFmt);
   updateToday(p.tz);
   r.lang = locale().split('-')[0];
   if (p.theme === 'system') r.removeAttribute('data-theme');

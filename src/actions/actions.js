@@ -1,7 +1,7 @@
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
    ===================================================================== */
-import { $, $$, TODAY, addD, dOff, diffD, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
+import { $, $$, TODAY, addD, dOff, diffD, esc, fmtDate, fmtTimestamp, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
 import { seed } from '../data/seed.js';
 import {
@@ -66,7 +66,7 @@ import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { parseMarkdownNote } from '../shared/markdown-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { isRussian, locale, templateText } from '../core/i18n.js';
+import { isRussian, templateText } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
@@ -349,7 +349,7 @@ A.restoreWorkspaceBackup = el => {
   if (!backup || S.ui.currentUser?.role !== 'admin') return;
   confirmDlg({
     title: 'Restore backup?',
-    body: `The current state will first be saved as a separate backup, then the data will be restored to the version from ${new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(backup.createdAt))}.`,
+    body: `The current state will first be saved as a separate backup, then the data will be restored to the version from ${fmtTimestamp(backup.createdAt)}.`,
     ok: 'Restore',
     icon: 'history',
     run: async () => {

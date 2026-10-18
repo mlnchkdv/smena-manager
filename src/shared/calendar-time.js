@@ -23,6 +23,17 @@ export function calendarDate(value = new Date(), zone = 'Europe/Saratov') {
   return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
+export function formatTimestamp(value, { locale = 'ru-RU', timeZone = 'Europe/Saratov', timeFormat = '24', timeOnly = false } = {}) {
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) return '—';
+  return new Intl.DateTimeFormat(locale, {
+    ...(timeOnly ? {} : { dateStyle: 'medium' }),
+    timeStyle: 'short',
+    timeZone: resolveTimeZone(timeZone),
+    hour12: timeFormat === '12',
+  }).format(date);
+}
+
 export function nextRecurrenceDate(date, recurrence) {
   const [year, month, day] = String(date).split('-').map(Number);
   const current = new Date(Date.UTC(year, month - 1, day));

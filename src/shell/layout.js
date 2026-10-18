@@ -1,5 +1,5 @@
 /* ---------- shell ---------- */
-import { MOD, TODAY, diffD, esc, parse } from '../core/utils.js';
+import { MOD, TODAY, diffD, esc, fmtTimestamp, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
@@ -8,7 +8,7 @@ import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
-import { locale, t as tr } from '../core/i18n.js';
+import { t as tr } from '../core/i18n.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -258,8 +258,7 @@ export function crumbs() {
 export function renderTopbar() {
   const state = systemConnectionState();
   const sync = SYNC_PRESENTATION[state];
-  const syncTitle =
-    state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt).toLocaleTimeString(locale())}` : tr(sync[1]);
+  const syncTitle = state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : tr(sync[1]);
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" id="mnav-btn">${ic('menu', 17)}</button>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>

@@ -47,7 +47,7 @@ import { workspaceRefreshDelay } from './core/workspace-refresh.js';
 import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
-import { TODAY, iso, updateToday } from './core/utils.js';
+import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -118,9 +118,7 @@ function updateSyncIndicator(status) {
   const label = indicator.querySelector('.sync-label');
   if (label) label.textContent = tr(labels[status] || labels.saved);
   indicator.title =
-    status === 'saved'
-      ? `${tr('Last synchronized')}: ${new Date(S.ui.lastSyncedAt || Date.now()).toLocaleTimeString(S.prefs.lang === 'Русский' ? 'ru-RU' : S.prefs.lang === 'English (UK)' ? 'en-GB' : 'en-US')}`
-      : tr(labels[status] || labels.saved);
+    status === 'saved' ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt || Date.now(), true)}` : tr(labels[status] || labels.saved);
 }
 
 async function handleWorkspaceConflict() {

@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from '../../src/server/task-integrity.js';
-import { calendarDate, nextRecurrenceDate, resolveTimeZone } from '../../src/shared/calendar-time.js';
+import { calendarDate, nextRecurrenceDate, resolveTimeZone, formatTimestamp } from '../../src/shared/calendar-time.js';
+
+test('timestamps honor the selected time zone and 12/24-hour preference', () => {
+  const instant = '2026-10-18T12:30:00Z';
+  assert.equal(formatTimestamp(instant, { locale: 'en-US', timeZone: 'Europe/Saratov', timeFormat: '24', timeOnly: true }), '16:30');
+  assert.match(formatTimestamp(instant, { locale: 'en-US', timeZone: 'Europe/Saratov', timeFormat: '12', timeOnly: true }), /4:30.*PM/u);
+  assert.equal(formatTimestamp(instant, { locale: 'ru-RU', timeZone: 'UTC', timeOnly: true }), '12:30');
+  assert.equal(formatTimestamp('broken'), '—');
+});
 
 test('calendar recurrence clamps month ends and uses calendar days across DST', () => {
   assert.equal(nextRecurrenceDate('2026-01-31', 'Monthly'), '2026-02-28');

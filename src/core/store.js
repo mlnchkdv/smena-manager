@@ -26,6 +26,7 @@ export const DEFAULT_PREFS = {
   density: 'comfortable',
   weekStart: 1,
   dateFmt: 'MMM d',
+  timeFmt: '24',
   lang: 'Русский',
   tz: '(GMT+04:00) Saratov',
   motion: 'system',

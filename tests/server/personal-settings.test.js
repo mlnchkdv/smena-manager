@@ -17,13 +17,14 @@ test('personal updates are scoped to their actor, preserve protected preferences
     notifPrefs: { me: { emailDigestLastDate: '2026-10-18' }, other: { email_security: false } },
   };
   applyPersonalSettings(data, 'me', {
-    preferences: { lang: 'English (US)', theme: 'dark' },
+    preferences: { lang: 'English (US)', theme: 'dark', timeFmt: '24' },
     profile: { name: 'Saved', title: 'Designer' },
     notificationPreferences: { email_mention: true },
     readState: { ids: ['mine', 'theirs'], read: true },
   });
   assert.equal(data.members[0].role, 'Guest');
   assert.equal(data.members[0].locale, 'en');
+  assert.equal(data._userPrefs.me.timeFmt, '24');
   assert.equal(data.notifPrefs.me.emailDigestLastDate, '2026-10-18');
   assert.equal(data.notifs[0].read, true);
   assert.equal(data.notifs[1].read, false);

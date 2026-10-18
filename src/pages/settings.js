@@ -1,14 +1,14 @@
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
    ===================================================================== */
-import { dOff, esc, fmtDate } from '../core/utils.js';
+import { dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
 import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
-import { LANGUAGES, locale, t as tr } from '../core/i18n.js';
+import { LANGUAGES, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 
@@ -68,7 +68,7 @@ export const sel = (k, opts, v) =>
 function settingsTimestamp(value) {
   const date = new Date(value);
   if (!value || Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+  return fmtTimestamp(date);
 }
 
 function backupDisplayLabel(value) {
@@ -281,7 +281,7 @@ export function settingsBody(sec, title) {
               ['12', '12-hour (2:30 PM)'],
               ['24', '24-hour (14:30)'],
             ],
-            P.timeFmt || '12',
+            P.timeFmt || '24',
           ),
         )
       );

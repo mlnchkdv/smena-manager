@@ -8,6 +8,7 @@ const PREFERENCE_TYPES = Object.freeze({
   density: 'string',
   weekStart: 'number',
   dateFmt: 'string',
+  timeFmt: 'string',
   lang: 'string',
   tz: 'string',
   motion: 'string',
@@ -31,6 +32,7 @@ export function applyPersonalSettings(database, memberId, input) {
     for (const [key, value] of Object.entries(input.preferences)) {
       if (typeof value !== PREFERENCE_TYPES[key] || (typeof value === 'string' && value.length > 180)) invalid();
       if (key === 'theme' && !['light', 'dark', 'system'].includes(value)) invalid();
+      if (key === 'timeFmt' && !['12', '24'].includes(value)) invalid();
       if (key === 'weekStart' && ![0, 1, 6].includes(value)) invalid();
       if (key === 'lang' && !['Русский', 'English (US)', 'English (UK)'].includes(value)) invalid();
     }
