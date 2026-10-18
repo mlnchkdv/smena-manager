@@ -474,6 +474,28 @@ browser scenarios passed across Chromium, Firefox and WebKit, covering core RU/E
 content/file/trash persistence. Lint and formatting checks passed. This is a focused lifecycle audit,
 not a claim that all production concurrency and recovery scenarios have been accepted.
 
+### Teams and calendar follow-up audit (2026-10-18)
+
+Saving a team now preserves archived project relations hidden by the editor. Inactive members are
+not reassigned by stale picker selections, and a team removed while its edit dialog is open no longer
+causes a missing-object error. Team deletion resolves IDs instead of stale object references.
+
+Calendar overflow lists now share the cell's date/project selection and current filtered task set;
+they no longer reintroduce tasks or events from unrelated projects. User-authored event/task titles,
+team names, member names and dynamic breadcrumbs are protected from UI translation. Team names in
+member views and duplicate-name validation errors are escaped rather than interpreted as HTML.
+The team deletion explanation and duplicate-name validation are localized.
+
+A 320 px dialog check exposed a small horizontal overflow. Team picker fieldsets can now shrink,
+and long related-team names are truncated within their column instead of pushing member names out.
+Stale team IDs no longer render an untranslated fallback label in the picker.
+
+Validation: 246 server tests passed; the shared-content workflow passed with a literal
+`<strong>Review</strong>` team name, duplicate-name rejection and a 320 px picker check. Core flows
+and 320 px RU/EN team dialogs passed in Chromium, Firefox and WebKit; screenshots were inspected.
+The full Russian section sweep passed at 390, 768, 1024 and 1440 px. Build, lint and formatting passed.
+All writes in these acceptance tests used isolated local data, not the team's production workspace.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
