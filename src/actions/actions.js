@@ -73,6 +73,7 @@ import { canEditProject } from '../shared/project-access.js';
 import { nextRecurrenceDate } from '../shared/calendar-time.js';
 import { persistPersonalChange, registerNotificationActions } from './notifications.js';
 import { changePdfPreviewPage } from '../core/file-preview.js';
+import { retryPersonalPreferences } from '../core/personal-preferences.js';
 
 export const A = {},
   IN = {},
@@ -2748,13 +2749,16 @@ A.downloadSyncRecovery = () => {
 };
 A.downloadUnsyncedCopy = () => {
   if (!S.ui.currentUser || S.ui.auth) return;
-  const copy = { format: 'smena-offline-draft', version: 1, owner: S.ui.currentUser.id, savedAt: new Date().toISOString(), data: S.data };
+  const copy = { format: 'smena-offline-draft', version: 1, owner: S.ui.currentUser.id, savedAt: new Date().toISOString(), data: S.data, preferences: S.prefs };
   const url = URL.createObjectURL(new Blob([JSON.stringify(copy, null, 2)], { type: 'application/json' }));
   const link = document.createElement('a');
   link.href = url;
   link.download = `smena-unsynced-${Date.now()}.json`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+A.retryPersonalSettings = () => {
+  void retryPersonalPreferences();
 };
 A.resetDemo = () => {
   S.ui.pop = null;

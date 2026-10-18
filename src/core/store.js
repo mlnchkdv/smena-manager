@@ -148,15 +148,15 @@ export const S = {
 export function systemConnectionState() {
   return S.ui.syncConflict
     ? 'conflict'
-    : S.ui.offline
+    : S.ui.offline || S.ui.personalSyncState === 'offline'
       ? 'offline'
-      : S.ui.syncUnavailable
+      : S.ui.syncUnavailable || ['unavailable', 'invalid'].includes(S.ui.personalSyncState)
         ? 'unavailable'
         : S.ui.syncTooLarge
           ? 'too_large'
           : S.ui.syncInvalid
             ? 'invalid'
-            : S.ui.systemSyncing
+            : S.ui.systemSyncing || S.ui.personalSyncState === 'syncing'
               ? 'syncing'
               : S.ui.syncState || 'saved';
 }

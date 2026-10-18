@@ -5,6 +5,8 @@ export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
 let sessionGeneration = 0;
 
+export const getSessionGeneration = () => sessionGeneration;
+
 export class ApiError extends Error {
   constructor(message, status = 0, code = 'API_ERROR', details = {}) {
     super(message);

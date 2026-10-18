@@ -49,6 +49,7 @@ import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
 import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
 import { createPollCoordinator } from './core/poll-coordinator.js';
+import { retryPersonalPreferences } from './core/personal-preferences.js';
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -107,6 +108,11 @@ async function refreshWebPushSubscription() {
 
 function updateSyncIndicator(status) {
   S.ui.syncState = status;
+  if (['saved', 'syncing'].includes(status)) {
+    if (S.ui.personalSyncState === 'offline') status = 'offline';
+    else if (['unavailable', 'invalid'].includes(S.ui.personalSyncState)) status = 'unavailable';
+    else if (S.ui.personalSyncState === 'syncing') status = 'syncing';
+  }
   const indicator = document.getElementById('sync-indicator');
   if (!indicator) return;
   const labels = {
@@ -248,8 +254,24 @@ window.addEventListener('smena:sync-status', event => {
   }
 });
 
-window.addEventListener('smena:personal-save-error', () => {
-  toast('Personal settings could not be synced. Keep this tab open and try again.', { kind: 'err', ms: 8000 });
+window.addEventListener('smena:personal-save-status', event => {
+  const { status, owner } = event.detail;
+  if (owner !== S.ui.currentUser?.id) return;
+  if (status === 'recovery_unavailable') {
+    S.ui.recoveryUnavailable = true;
+    if (!S.ui.personalRecoveryUnavailable)
+      toast('Local recovery storage is unavailable. Keep this tab open until changes are saved.', { kind: 'err', ms: 12000 });
+    S.ui.personalRecoveryUnavailable = true;
+    return;
+  }
+  const changed = status !== S.ui.personalSyncState;
+  S.ui.personalSyncState = status;
+  if (status === 'saved') S.ui.personalSaveNotified = false;
+  if (changed && ['offline', 'unavailable'].includes(status) && !S.ui.personalSaveNotified) {
+    S.ui.personalSaveNotified = true;
+    toast('Personal settings could not be synced. They will retry automatically.', { kind: 'err', ms: 8000 });
+  }
+  if (changed && !S.ui.auth) render();
 });
 
 window.addEventListener('smena:permission-denied', event => {
@@ -426,6 +448,7 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('focus', () => refreshWorkspaceSoon(true));
 window.addEventListener('online', () => {
   void A.retryOnline();
+  void retryPersonalPreferences();
   refreshWorkspaceSoon(true);
   void refreshWebPushSubscription();
 });

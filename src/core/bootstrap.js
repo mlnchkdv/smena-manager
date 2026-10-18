@@ -14,7 +14,7 @@ import {
   putWorkspace,
   putWorkspaceDocument,
 } from './api.js';
-import { S, save, setWorkspaceBaseline } from './store.js';
+import { DEFAULT_PREFS, S, save, setWorkspaceBaseline } from './store.js';
 import { createDraftJournal, draftContext } from './offline-drafts.js';
 import { configurePersonalPreferences } from './personal-preferences.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
@@ -94,8 +94,11 @@ async function loadWorkspaceFor(user) {
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
   const personal = await getPersonalPreferences();
-  Object.assign(S.prefs, personal.preferences);
-  configurePersonalPreferences(user.id, S.prefs);
+  Object.assign(S.prefs, DEFAULT_PREFS, personal.preferences);
+  const recoveredPreferences = await configurePersonalPreferences(user.id, S.prefs, draftContext(user, S.data));
+  if (!recoveredPreferences || S.ui.currentUser?.id !== user.id)
+    throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
+  if (recoveredPreferences) Object.assign(S.prefs, recoveredPreferences);
   for (const scope of ['workspace', ...DOCUMENT_NAMES]) {
     try {
       const journal = createDraftJournal({ ...draftContext(user, S.data), scope });
@@ -139,7 +142,7 @@ export async function authenticateAndLoadWorkspace(accessId) {
   try {
     return await loadWorkspaceFor(user);
   } catch (error) {
-    clearSession();
+    if (!error.staleSession) clearSession();
     throw error;
   }
 }
@@ -149,7 +152,7 @@ export async function authenticateWithGoogleAndLoadWorkspace(credential) {
   try {
     return await loadWorkspaceFor(user);
   } catch (error) {
-    clearSession();
+    if (!error.staleSession) clearSession();
     throw error;
   }
 }

@@ -821,6 +821,9 @@ const RU = {
   'Select visible tasks': 'Выбрать видимые задачи',
   Page: 'Страница',
   Pagination: 'Навигация по страницам',
+  'Personal settings are waiting to sync.': 'Личные настройки ожидают синхронизации.',
+  'Personal settings could not be synced. They will retry automatically.':
+    'Не удалось сохранить личные настройки. Повторная отправка выполнится автоматически.',
   'Reduce the affected data below 4 MB or download a copy before changing it.':
     'Уменьшите объём соответствующих данных до 4 МБ или скачайте копию перед изменением.',
   'The signed-in account changed. Sign in again.': 'Аккаунт входа изменился. Войдите снова.',
