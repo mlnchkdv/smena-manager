@@ -32,7 +32,6 @@ const RU = {
   'Find material': 'Найти материал',
   'Material type': 'Тип материала',
   'Connection type': 'Тип связи',
-  'All types': 'Все типы',
   'Search notes, bookmarks, files, projects and tasks': 'Поиск заметок, закладок, файлов, проектов и задач',
   'No matching materials.': 'Подходящих материалов нет.',
   'Showing 50 materials. Refine your search.': 'Показано 50 материалов. Уточните поиск.',
