@@ -204,11 +204,16 @@ test('shared content, files, settings, and backups persist through core workflow
 
   await page.goto('/e2e-team/teams');
   await page.locator('[data-a="newTeam"]:visible').first().click();
+  await page.setViewportSize({ width: 320, height: 720 });
+  for (const panel of await page.locator('.team-form .panel').all()) {
+    expect(await panel.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(2);
+  }
   await page.locator('#tm-name').fill(teamName);
   await page.locator('[data-a="submitTeam"]').click();
   await expect(page.locator('#tm-name-err')).toHaveText(`Команда с названием «${teamName}» уже существует.`);
   await expect(page.locator('#tm-name-err strong')).toHaveCount(0);
   await page.getByRole('dialog').getByRole('button', { name: 'Отмена', exact: true }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
 
   const noteTitle = 'Регламент сквозной проверки';
   await page.goto('/e2e-team/knowledge');

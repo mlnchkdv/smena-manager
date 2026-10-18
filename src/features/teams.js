@@ -13,7 +13,7 @@ export function teamModal(m, H) {
   const people = D().members.filter(x => !['deactivated', 'removed'].includes(x.status));
   const projects = D().projects.filter(project => !project.archived);
   return `${H(m.edit ? 'Edit team' : 'New team', m.edit ? '' : 'Teams group the people who work on projects together.')}
-  <form class="modal-b" data-submit="submitTeam">
+  <form class="modal-b team-form" data-submit="submitTeam">
     <div class="row" style="gap:10px;align-items:flex-start">
       <span class="picon lg" style="--c:${PCOLORS[f.color]};margin-top:22px" aria-hidden="true">${ic(f.icon, 18)}</span>
       <div class="field grow"><label class="label" for="tm-name">Team name</label><input class="input ${err ? 'is-error' : ''}" id="tm-name" data-in="tform" data-f="name" value="${esc(f.name)}" placeholder="e.g. Growth" autofocus aria-invalid="${!!err}" aria-describedby="tm-name-err">${err ? `<span class="err" id="tm-name-err" role="alert">${ic('circle-alert', 12)}${esc(err)}</span>` : ''}</div>
@@ -30,10 +30,10 @@ export function teamModal(m, H) {
         )
         .join('')}</div></div>
     </div>
-    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:6px">Members <span class="faint" style="font-weight:400">· ${f.members.length} selected</span></legend>
+    <fieldset class="field" style="border:0;padding:0;margin:0;min-width:0"><legend class="label" style="margin-bottom:6px">Members <span class="faint" style="font-weight:400">· ${f.members.length} selected</span></legend>
       <div class="panel" style="max-height:220px;overflow-y:auto;padding:4px">${people.map(x => `<label class="mi" translate="no" style="cursor:pointer;min-height:36px"><input type="checkbox" class="check" data-a="tformMember" data-id="${x.id}" ${f.members.includes(x.id) ? 'checked' : ''}>${av(x.id, 'sm', false)}<span class="grow trunc">${esc(x.name)}</span><span class="r">${x.team && x.team !== m.edit && TM[x.team].id ? esc(TM[x.team].name) : ''}</span></label>`).join('')}</div>
       <span class="hint">Everyone belongs to one primary team. Adding someone here moves them from their current team.</span></fieldset>
-    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="label" style="margin-bottom:6px">Projects <span class="faint" style="font-weight:400">· ${(f.projects || []).length} selected</span></legend>
+    <fieldset class="field" style="border:0;padding:0;margin:0;min-width:0"><legend class="label" style="margin-bottom:6px">Projects <span class="faint" style="font-weight:400">· ${(f.projects || []).length} selected</span></legend>
       <div class="panel" style="max-height:180px;overflow-y:auto;padding:4px">${projects.length ? projects.map(project => `<label class="mi" translate="no" style="cursor:pointer;min-height:36px"><input type="checkbox" class="check" data-a="tformProject" data-id="${project.id}" ${(f.projects || []).includes(project.id) ? 'checked' : ''}><span class="grow trunc">${esc(project.name)}</span><span class="r">${project.team && project.team !== m.edit && TM[project.team].id ? esc(TM[project.team].name) : ''}</span></label>`).join('') : '<span class="hint" style="display:block;padding:10px">No projects yet</span>'}</div>
       <span class="hint">A project belongs to one primary team. Adding it here moves it from its current team.</span></fieldset>
   </form>

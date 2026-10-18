@@ -30,7 +30,25 @@ async function expectNoPageOverflow(page) {
   expect(overflow).toBeLessThanOrEqual(2);
 }
 
-test('core task flow and responsive shell work across browser engines', async ({ page }) => {
+async function checkNarrowTeamDialog(page, language, browserName) {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/e2e-team/teams');
+  await page.locator('#main-content [data-a="newTeam"]').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: language === 'ru' ? 'Новая команда' : 'New team', exact: true })).toBeVisible();
+  await dialog.locator('#tm-name').fill('Review · Очень длинное название команды / A long team name');
+  await expectNoPageOverflow(page);
+  for (const selector of ['.modal-b', '.modal-f']) {
+    expect(
+      await dialog.locator(selector).evaluate(element => element.scrollWidth - element.clientWidth),
+      `${language} team dialog ${selector} overflow`,
+    ).toBeLessThanOrEqual(2);
+  }
+  await page.screenshot({ path: `output/playwright/team-dialog-${language}-320-${browserName}.png` });
+  await dialog.getByRole('button', { name: language === 'ru' ? 'Отмена' : 'Cancel', exact: true }).click();
+}
+
+test('core task flow and responsive shell work across browser engines', async ({ page, browserName }) => {
   await signIn(page);
   await page.setViewportSize({ width: 1366, height: 850 });
   await page.goto('/e2e-team');
@@ -78,6 +96,7 @@ test('core task flow and responsive shell work across browser engines', async ({
     await expectNoPageOverflow(page);
   }
 
+  await checkNarrowTeamDialog(page, 'ru', browserName);
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('English (US)', { force: true });
   await page.waitForTimeout(700);
@@ -88,6 +107,7 @@ test('core task flow and responsive shell work across browser engines', async ({
   await page.goto('/e2e-team/files');
   await expect(page.getByRole('heading', { name: 'Files', exact: true })).toBeVisible();
   await expectNoPageOverflow(page);
+  await checkNarrowTeamDialog(page, 'en', browserName);
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
 });

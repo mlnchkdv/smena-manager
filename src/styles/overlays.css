@@ -88,6 +88,14 @@
 .modal-f .sp {
   flex: 1;
 }
+.team-form .mi .r {
+  display: block;
+  min-width: 0;
+  max-width: 40%;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @keyframes modalIn {
   from {
     opacity: 0;
