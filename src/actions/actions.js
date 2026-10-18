@@ -34,6 +34,7 @@ import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import {
   applyExternalCoreSnapshot,
+  acceptServerConflictVersion,
   authenticateAndLoadWorkspace,
   authenticateWithGoogleAndLoadWorkspace,
   refreshWorkspaceFromServer,
@@ -2781,13 +2782,30 @@ A.retryOnline = el => {
 A.reloadWorkspaceVersion = async el => {
   el?.classList?.add('is-loading');
   try {
-    const result = await refreshWorkspaceFromServer({ force: true });
-    S.ui.syncConflict = false;
+    const result = S.ui.syncConflict ? await acceptServerConflictVersion() : await refreshWorkspaceFromServer({ force: true });
+    if (S.ui.modals.at(-1)?.type === 'syncRecovery') S.ui.modals.pop();
     render();
     toast(result.status === 'updated' ? 'Latest server version loaded.' : 'You already have the latest version.', { kind: 'info' });
   } catch (error) {
     toast(error.message || 'Unable to load the server version.', { kind: 'err', ms: 8000 });
   }
+};
+A.reviewSyncConflict = () => {
+  if (S.ui.syncRecovery?.owner === S.ui.currentUser?.id) openModal({ type: 'syncRecovery' });
+};
+A.downloadSyncRecovery = () => {
+  const recovery = S.ui.syncRecovery;
+  if (!recovery || recovery.owner !== S.ui.currentUser?.id) return;
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify({ format: 'smena-conflict-recovery', version: 1, savedAt: new Date().toISOString(), ...recovery }, null, 2)], {
+      type: 'application/json',
+    }),
+  );
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `smena-recovery-${recovery.scope}-${Date.now()}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 A.resetDemo = () => {
   S.ui.pop = null;

@@ -59,3 +59,40 @@ test('recovering a core conflict preserves an active knowledge write and its loc
     globalThis.fetch = originalFetch;
   }
 });
+
+test('accepting one server scope preserves other local documents and retains the original offline recovery copy', async () => {
+  globalThis.document ||= { querySelectorAll: () => [] };
+  globalThis.navigator ||= { platform: 'test', userAgent: 'test' };
+  const { S } = await import('../../src/core/store.js');
+  const { setSessionToken } = await import('../../src/core/api.js');
+  const { acceptServerConflictVersion } = await import('../../src/core/bootstrap.js');
+  const { configureWorkspaceSync, disableWorkspaceSync } = await import('../../src/core/workspace-sync.js');
+  const { workspaceCoreData } = await import('../../src/shared/workspace-documents.js');
+  const originalFetch = globalThis.fetch;
+  const originalStorage = globalThis.localStorage;
+  const stored = new Map();
+  globalThis.localStorage = { setItem: (key, value) => stored.set(key, value), getItem: key => stored.get(key), removeItem: key => stored.delete(key) };
+  S.ui.currentUser = { id: 'test-owner', role: 'admin' };
+  const base = structuredClone(S.data);
+  configureWorkspaceSync(1, 'admin', base);
+  const localDraft = workspaceCoreData(structuredClone(base));
+  localDraft.tasks[0].title = 'Original offline copy';
+  S.ui.syncRecovery = { owner: 'test-owner', scope: 'workspace', data: localDraft, conflicts: ['tasks.title'] };
+  S.data.knowledgeNotes = [{ id: 'keep', title: 'Local document' }];
+  const remote = workspaceCoreData(base);
+  remote.tasks[0].title = 'Chosen server version';
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: { ...remote, revision: 9 } }), { headers: { 'Content-Type': 'application/json' } });
+  setSessionToken('synthetic-token');
+  try {
+    await acceptServerConflictVersion({ createJournal: () => ({ read: async () => null }) });
+    assert.equal(S.data.tasks[0].title, 'Chosen server version');
+    assert.equal(S.data.knowledgeNotes[0].title, 'Local document');
+    const recovery = JSON.parse(stored.get('smena.recovery.conflict.v1:test-owner:workspace'));
+    assert.equal(recovery.data.tasks[0].title, 'Original offline copy');
+  } finally {
+    disableWorkspaceSync();
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+    globalThis.localStorage = originalStorage;
+  }
+});

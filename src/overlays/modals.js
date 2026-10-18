@@ -33,6 +33,20 @@ export function modalHtml(m) {
     `<div class="modal-h"><div><h2 id="mt-${m.type}">${title}</h2>${sub ? `<div class="muted" style="font-size:12.5px;margin-top:2px">${sub}</div>` : ''}</div><button class="ibtn ibtn-sm" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div>`;
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
+    case 'syncRecovery': {
+      const recovery = S.ui.syncRecovery;
+      if (!recovery || recovery.owner !== S.ui.currentUser?.id) return '';
+      const preview = value => esc(JSON.stringify(value || {}, null, 2).slice(0, 12000));
+      return wrap(
+        '',
+        `${H('Review synchronization conflict', 'Download your local copy before choosing the server version.')}
+        <div class="modal-b"><p>${esc(recovery.scope)} · ${tr('Conflicting fields')}: ${esc((recovery.conflicts || []).slice(0, 20).join(', '))}</p>
+        <details open><summary>Local version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${preview(recovery.data)}</pre></details>
+        <details><summary>Server version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${recovery.remote ? preview(recovery.remote) : tr('The latest server version will be fetched before applying.')}</pre></details>
+        <p class="hint">The preview is limited. The download contains the complete recovery copy.</p></div>
+        <div class="modal-f"><button class="btn btn-secondary" data-a="downloadSyncRecovery">Download local copy</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="reloadWorkspaceVersion">Load server version</button></div>`,
+      );
+    }
     case 'portableImport': {
       const preview = S.ui.importPreview;
       const { counts, report } = preview.result;

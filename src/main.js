@@ -138,8 +138,8 @@ async function handleWorkspaceConflict() {
         toast('The same data changed in two sessions. Your version was saved as a recovery copy in this browser.', {
           kind: 'err',
           ms: 15_000,
-          action: 'Load server version',
-          onAction: () => void A.reloadWorkspaceVersion(),
+          action: 'Review conflict',
+          onAction: () => A.reviewSyncConflict(),
         });
       }
       return result;

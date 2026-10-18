@@ -25,6 +25,7 @@ import {
   queueScopedWorkspaceSync,
   workspaceSyncConflict,
   workspaceSyncIsClean,
+  workspaceSyncState,
 } from './workspace-sync.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
@@ -103,7 +104,7 @@ async function loadWorkspaceFor(user) {
       const remote = scope === 'workspace' ? workspaceCoreData(S.data) : workspaceDocumentData(scope, S.data);
       const recovered = mergeWorkspaceData(draft.base, draft.local, remote);
       if (recovered.conflicts.length) {
-        storeConflictRecovery(draft.local, { scope, owner: user.id, conflicts: recovered.conflicts });
+        storeConflictRecovery(draft.local, { scope, owner: user.id, remote, conflicts: recovered.conflicts });
         S.ui.syncConflict = true;
       } else {
         Object.assign(S.data, recovered.data);
@@ -180,9 +181,52 @@ function storeConflictRecovery(data, details = {}) {
   S.ui.syncRecovery = { data: structuredClone(data), ...details, owner, scope };
   try {
     localStorage.setItem(`${CONFLICT_RECOVERY_KEY}:${owner}:${scope}`, JSON.stringify({ savedAt: new Date().toISOString(), ...S.ui.syncRecovery }));
+    return true;
   } catch {
     /* The current tab still retains the draft when storage is unavailable. */
+    return false;
   }
+}
+
+export async function acceptServerConflictVersion(options = {}) {
+  const recovery = S.ui.syncRecovery;
+  const owner = S.ui.currentUser?.id;
+  if (!recovery || recovery.owner !== owner) throw new Error('No recovery copy is available for this account.');
+  const scope = recovery.scope;
+  if (scope !== 'workspace' && !DOCUMENT_NAMES.includes(scope)) throw new Error('Invalid recovery scope.');
+  const scopeData = data => (scope === 'workspace' ? workspaceCoreData(data) : workspaceDocumentData(scope, data));
+  const before = structuredClone(scopeData(S.data));
+  const snapshot = scope === 'workspace' ? await getWorkspace() : await getWorkspaceDocument(scope);
+  if (owner !== S.ui.currentUser?.id || JSON.stringify(before) !== JSON.stringify(scopeData(S.data)))
+    throw new Error('Local data changed. Review the conflict again before loading the server version.');
+  // Keep an explicit recovery copy even after the user accepts the server version.
+  if (!storeConflictRecovery(recovery.data, { ...recovery, currentLocal: before, acceptedAt: new Date().toISOString() }))
+    throw new Error('Local recovery storage is unavailable. Keep this tab open until changes are saved.');
+  const context = draftContext(S.ui.currentUser, S.data);
+  const journal = (options.createJournal || createDraftJournal)({ ...context, scope });
+  const draft = await journal.read();
+  if (draft) await journal.acknowledge(draft.local);
+  if (owner !== S.ui.currentUser?.id || JSON.stringify(before) !== JSON.stringify(scopeData(S.data)))
+    throw new Error('Local data changed. Review the conflict again before loading the server version.');
+  const canonical = scopeData(workspacePayload(snapshot));
+  if (scope === 'workspace') {
+    canonical.me = S.data.me;
+    S.ui.workspaceRevision = Number(snapshot.revision);
+    configureCoreWorkspaceSync(snapshot.revision, S.ui.currentUser.role, canonical, context);
+  } else {
+    S.ui.documentRevisions[scope] = Number(snapshot.revision);
+    configureDocumentWorkspaceSync(scope, snapshot.revision, S.ui.currentUser.role, canonical, context);
+  }
+  Object.assign(S.data, canonical);
+  S.ui.workspaceBaseline = { ...S.ui.workspaceBaseline, ...canonical };
+  S.ui.syncRecovery = null;
+  S.ui.syncConflict = workspaceSyncState().hasConflict;
+  S.ui.syncState = S.ui.syncConflict
+    ? 'conflict'
+    : Object.values(workspaceSyncState().errors)[0] || (workspaceSyncState().hasActive || workspaceSyncState().hasPending ? 'syncing' : 'saved');
+  S.ui.lastSyncedAt = Date.now();
+  if (S.ui.syncConflict) await recoverWorkspaceConflict();
+  return { status: 'updated' };
 }
 
 export async function recoverWorkspaceConflict() {
