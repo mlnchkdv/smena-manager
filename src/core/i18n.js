@@ -15,6 +15,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Something went wrong.': 'Не удалось открыть раздел.',
+  'This section could not load. Check your connection or reload the page to get the latest app version.':
+    'Раздел не загрузился. Проверьте подключение или обновите страницу, чтобы загрузить актуальную версию приложения.',
+  'Reload page': 'Обновить страницу',
   'Send test email to me': 'Отправить мне тестовое письмо',
   'Send test push to me': 'Отправить мне тестовый push',
   'Tests go only to your account, not to the team. Provider acceptance does not confirm receipt on your device.':
