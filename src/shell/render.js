@@ -108,7 +108,10 @@ export function focusKey(el) {
   if (el.id) return '#' + CSS.escape(el.id);
   const d = el.dataset || {};
   const parts = FKEYS.filter(k => d[k] != null).map(k => `[data-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}="${CSS.escape(d[k])}"]`);
-  return parts.length ? el.tagName.toLowerCase() + parts.join('') : null;
+  if (!parts.length) return null;
+  const selector = el.tagName.toLowerCase() + parts.join('');
+  const surface = el.closest('.drawer,.modal');
+  return surface && surface !== el ? `${surface.matches('.drawer') ? '.drawer' : '.modal'} ${selector}` : selector;
 }
 export function tryFocus(key) {
   if (!key) return false;

@@ -61,6 +61,15 @@ test('core task flow and responsive shell work across browser engines', async ({
   await dialog.locator('#f-title').fill('Review');
   await dialog.locator('#f-submit').click();
   await expect(page.getByText('Review', { exact: true }).first()).toBeVisible();
+  await page.getByText('Review', { exact: true }).first().click();
+  const drawerAssignee = page.locator('.drawer [data-pop="assignee"]');
+  await expect(drawerAssignee).toBeVisible();
+  await drawerAssignee.click();
+  await expect(page.locator('.pop:visible')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(drawerAssignee).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.drawer')).toHaveCount(0);
 
   await page.setViewportSize({ width: 390, height: 844 });
   for (const route of ['projects', 'files', 'inbox', 'settings/security']) {
