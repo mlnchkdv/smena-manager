@@ -369,6 +369,22 @@ require a signed-in session and controlled acceptance checks; public liveness ca
 `DRIVE_WRITE_CONCURRENCY` remains a documented warning about revision/ETag protection without a shared
 lock, not an observed production data-loss incident. No team content was modified during this audit.
 
+### Drive sign-in incident (2026-10-18)
+
+Production read-only probes confirmed that V3 JSON media and metadata responses omitted ETag;
+V2 metadata provided a validator and rejected a deliberately wrong conditional GET with HTTP 412.
+Versioned JSON reads now bind the V2 resource ETag to the downloaded V3 bytes using Drive's MD5
+checksum. A mismatch retries the read, then fails closed. Existing JSON files are updated with V2
+`files.update` and the matching `If-Match`; private revision properties are translated to V2's
+`PRIVATE` properties. General file operations remain on V3. No data migration or reset is involved.
+
+Tests cover missing validators, racing downloads, stale writes, private-property mapping, and all
+five JSON stores. Public auth configuration now reports `workspaceStorageAvailable`, and deployment
+smoke requires a successful actual workspace read instead of treating credential configuration alone
+as storage readiness. This still does not prove successful login, write delivery or notifications.
+Temporary read-only probes were removed. The temporary ignored environment file was deleted; Vercel
+had returned sensitive-value placeholders, not usable production credentials.
+
 ## Deploy
 
 `vercel.json` builds with Vite, serves `dist/` and routes `/api/*` to the Express Vercel Function.
