@@ -3,6 +3,7 @@ import { ic } from '../core/icons.js';
 import { D, S, mem } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeRelations } from '../shared/knowledge-links.js';
+import { knowledgeView } from '../shared/knowledge-view.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
@@ -15,12 +16,6 @@ const knowledgeData = () => ({
   notes: Array.isArray(D().knowledgeNotes) ? D().knowledgeNotes : [],
   folders: Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [],
 });
-
-function noteMatches(note, query) {
-  if (!query) return true;
-  const haystack = [note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' ').toLowerCase();
-  return haystack.includes(query);
-}
 
 function noteItem(note, active, folder, readOnly) {
   const author = mem(note.updatedBy || note.createdBy);
@@ -84,17 +79,10 @@ function noteEditor(note, folders, notes, readOnly) {
 
 export function pageKnowledge() {
   const { notes, folders } = knowledgeData();
-  const query = String(S.ui.knowledgeQuery || '')
-    .trim()
-    .toLowerCase();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const filtered = notes
-    .filter(note => noteMatches(note, query))
-    .filter(note => folderFilter === 'all' || (folderFilter === 'root' ? !note.folderId : note.folderId === folderFilter))
-    .sort((a, b) => Number(!!b.favorite) - Number(!!a.favorite) || noteTime(b.updatedAt) - noteTime(a.updatedAt));
-  const active = notes.find(note => note.id === S.ui.knowledgeActive) || filtered[0] || notes[0] || null;
-  if (active && S.ui.knowledgeActive !== active.id) S.ui.knowledgeActive = active.id;
+  const { filtered, active } = knowledgeView(notes, { query: S.ui.knowledgeQuery, folder: folderFilter, activeId: S.ui.knowledgeActive });
+  S.ui.knowledgeActive = active?.id || null;
 
   return `<div class="knowledge-shell">
     <aside class="knowledge-sidebar">
@@ -122,7 +110,7 @@ export function pageKnowledge() {
       </div>
     </aside>
     <div class="knowledge-main">
-      ${active ? noteEditor(active, folders, notes, readOnly) : empty('library-big', 'No notes yet', readOnly ? 'An editor can add the first note to this workspace.' : 'Create the first note for your team knowledge base.', readOnly ? '' : `<button class="btn btn-primary" data-a="newKnowledgeNote">${ic('plus', 14)}Create note</button>`, '', 1)}
+      ${active ? noteEditor(active, folders, notes, readOnly) : notes.length ? empty('search-x', 'No results found', 'No notes match your filters.') : empty('library-big', 'No notes yet', readOnly ? 'An editor can add the first note to this workspace.' : 'Create the first note for your team knowledge base.', readOnly ? '' : `<button class="btn btn-primary" data-a="newKnowledgeNote">${ic('plus', 14)}Create note</button>`, '', 1)}
     </div>
   </div>`;
 }

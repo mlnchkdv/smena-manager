@@ -487,6 +487,10 @@ IN.importKnowledgeMarkdown = async el => {
 };
 A.openKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
+  if (el.classList.contains('knowledge-relation')) {
+    S.ui.knowledgeQuery = '';
+    S.ui.knowledgeFolder = 'all';
+  }
   render();
 };
 A.goKnowledgeNote = el => {
