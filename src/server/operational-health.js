@@ -1,6 +1,6 @@
 const CRON_STALE_AFTER_MS = 36 * 60 * 60 * 1000;
 
-export function evaluateOperationalHealth({ delivery, channels, workspace }, options = {}) {
+export function evaluateOperationalHealth({ delivery, channels, workspace, outbox }, options = {}) {
   const now = new Date(options.now || Date.now()).getTime();
   const issues = [];
   if (!workspace?.storage?.connected || !workspace?.storage?.persistent) issues.push({ code: 'storage', severity: 'critical' });
@@ -12,6 +12,8 @@ export function evaluateOperationalHealth({ delivery, channels, workspace }, opt
   else if (delivery?.lastCron?.status !== 'ok') issues.push({ code: 'cron_degraded', severity: 'warning' });
   const deliveryFailures = Number(delivery?.lastRun?.push?.failed || 0) + Number(delivery?.lastRun?.email?.failed || 0);
   if (deliveryFailures) issues.push({ code: 'delivery', severity: 'warning', count: deliveryFailures });
+  if (outbox?.pending && now - Number(outbox.oldestPendingAt || now) > 60 * 60 * 1000)
+    issues.push({ code: 'outbox_stale', severity: 'warning', count: outbox.pending });
   return {
     status: issues.some(issue => issue.severity === 'critical') ? 'critical' : issues.length ? 'warning' : 'healthy',
     checkedAt: new Date(now).toISOString(),

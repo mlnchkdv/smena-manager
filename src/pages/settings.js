@@ -37,6 +37,7 @@ export const SET_NAV = [
     [
       ['notif-mentions', 'Mentions', 'at-sign'],
       ['notif-assign', 'Task assignments', 'user-check'],
+      ['notif-email', 'Email', 'mail'],
       ['notif-push', 'Browser notifications', 'monitor-smartphone'],
     ],
   ],
@@ -108,6 +109,7 @@ function deliveryStatusPanel() {
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(coordinationMode)}</p></div>
       <div><span class="label">Email</span>${state(emailReady, emailReady ? 'Connected' : 'Needs attention')}<p class="hint">Gmail API</p></div>
+      <div><span class="label">Pending deliveries</span><b>${Number(status.outbox?.pending || 0)}</b><p class="hint">${tr('Retrying')}: ${Number(status.outbox?.retrying || 0)}</p>${status.outbox?.pending ? `<button class="btn btn-secondary btn-sm" data-a="retryNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}Send pending</button>` : ''}</div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
       <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>
       <div><span class="label">Latest delivery</span><b>${settingsTimestamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>

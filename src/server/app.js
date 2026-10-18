@@ -67,9 +67,8 @@ app.get('/api/health', (_request, response) => {
 
 app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
   try {
-    const reminders = await runDueReminderSweep();
-    const outbox = await retryNotificationOutbox();
-    const digest = await runDailyEmailDigest().catch(error => {
+    const reminders = await runDueReminderSweep({ enqueueOnly: true });
+    const digest = await runDailyEmailDigest({ enqueueOnly: true }).catch(error => {
       reportProviderError('[Email digest]', error);
       return { delivered: 0, error: 'delivery_failed' };
     });
@@ -82,12 +81,18 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
       reportProviderError('[Automatic backup]', error);
       return { error: 'backup_failed' };
     });
-    const cronStatus = digest.error || backup.error ? 'degraded' : 'ok';
-    await recordNotificationCronRun({ status: cronStatus, reminders, digest, cleanup, pushCleanup, backup }).catch(error => {
+    const outbox = await retryNotificationOutbox();
+    const cronStatus = digest.error || backup.error || fileCleanup.error || outbox.failed ? 'degraded' : 'ok';
+    await recordNotificationCronRun({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup }).catch(error => {
       reportProviderError('[Notifications] Cron diagnostics', error);
     });
     if (cronStatus !== 'ok') {
-      const issues = [digest.error && 'Email digest delivery failed', backup.error && 'Automatic backup failed'].filter(Boolean);
+      const issues = [
+        digest.error && 'Email digest delivery failed',
+        backup.error && 'Automatic backup failed',
+        fileCleanup.error && 'File cleanup failed',
+        outbox.failed && 'Notification delivery failed',
+      ].filter(Boolean);
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
     }
     response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, fileCleanup, backup });
@@ -218,6 +223,15 @@ app.get('/api/notifications/delivery-status', requireRole('admin'), async (_requ
   try {
     const [notifications, workspace] = await Promise.all([notificationDeliveryStatus(), getWorkspaceStatus()]);
     response.json({ ...notifications, workspace, operational: evaluateOperationalHealth({ ...notifications, workspace }) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/notifications/retry', requireRole('admin'), async (_request, response, next) => {
+  try {
+    const result = await retryNotificationOutbox();
+    response.json({ result, ...(await notificationDeliveryStatus()) });
   } catch (error) {
     next(error);
   }

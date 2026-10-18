@@ -40,6 +40,25 @@ export function createDueReminders(value, options = {}) {
   );
   const archivedProjects = new Set((data.projects || []).filter(project => project.archived).map(project => project.id));
   const existing = new Set(data.notifs.map(item => item.id));
+  const activeTasks = new Map((data.tasks || []).filter(task => !task.archived && task.status !== 'done').map(task => [task.id, task]));
+  const history = (data._reminderHistory || []).filter(item => {
+    const task = activeTasks.get(item.task);
+    return task && task.assignee === item.assignee && String(task.due || '').slice(0, 10) === item.due;
+  });
+  const remembered = new Set(history.map(item => item.id));
+  // Keep delivery identity separately from inbox retention, including legacy events.
+  for (const notification of data.notifs)
+    if (notification.type === 'due' && notification.reminder && activeTasks.has(notification.task) && !remembered.has(notification.id)) {
+      history.push({
+        id: notification.id,
+        task: notification.task,
+        assignee: notification.recipient,
+        due: notification.due,
+        kind: notification.reminder,
+        at: notification.at,
+      });
+      remembered.add(notification.id);
+    }
   const created = [];
 
   for (const task of data.tasks || []) {
@@ -51,7 +70,7 @@ export function createDueReminders(value, options = {}) {
     const kind = reminderKind(due, recipientToday);
     if (!kind) continue;
     const id = `n-due-${kind}-${due}-${task.id}-${task.assignee}`;
-    if (existing.has(id)) continue;
+    if (existing.has(id) || remembered.has(id)) continue;
     const notification = addWorkspaceNotification(data, {
       id,
       recipient: task.assignee,
@@ -64,20 +83,26 @@ export function createDueReminders(value, options = {}) {
       reminder: kind,
       at: now,
     });
-    if (notification && notification.at === now) created.push(notification);
+    if (notification && notification.at === now) {
+      created.push(notification);
+      history.push({ id, task: task.id, assignee: task.assignee, due, kind, at: now });
+      remembered.add(id);
+    }
   }
 
-  return { data, created, today };
+  const historyChanged = JSON.stringify(data._reminderHistory || []) !== JSON.stringify(history);
+  data._reminderHistory = history;
+  return { data, created, today, historyChanged };
 }
 
 export async function runDueReminderSweep(options = {}) {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const current = await getWorkspaceDatabase();
     const result = createDueReminders(current, options);
-    if (!result.created.length) return { created: 0, revision: current.revision, today: result.today };
+    if (!result.created.length && !result.historyChanged) return { created: 0, revision: current.revision, today: result.today };
     try {
       const saved = await replaceWorkspaceDatabase(result.data, current.revision, { role: 'admin' });
-      const delivery = await deliverWorkspaceNotifications(saved, result.created, { source: 'cron-reminders' });
+      const delivery = options.enqueueOnly ? { deferred: true } : await deliverWorkspaceNotifications(saved, result.created, { source: 'cron-reminders' });
       return { created: result.created.length, revision: saved.revision, today: result.today, delivery };
     } catch (error) {
       if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;

@@ -49,6 +49,7 @@ import {
   downloadWorkspaceFile,
   getStorageStatus,
   getNotificationDeliveryStatus,
+  retryNotificationDelivery,
   getAuthSessions,
   getWorkspaceBackups,
   revokeAuthSession,
@@ -2926,6 +2927,21 @@ A.refreshNotificationDelivery = async () => {
     toast('Notification delivery status updated.', { ms: 1800 });
   } catch (error) {
     toast(error.message || 'Unable to load notification delivery status.', { kind: 'err', ms: 6000 });
+  } finally {
+    S.ui.notificationDeliveryLoading = false;
+    render();
+  }
+};
+A.retryNotificationDelivery = async () => {
+  if (S.ui.currentUser?.role !== 'admin' || S.ui.notificationDeliveryLoading) return;
+  S.ui.notificationDeliveryLoading = true;
+  render();
+  try {
+    await retryNotificationDelivery();
+    S.ui.notificationDeliveryStatus = await getNotificationDeliveryStatus();
+    toast('Notification delivery status updated.');
+  } catch (error) {
+    toast(error.message, { kind: 'err' });
   } finally {
     S.ui.notificationDeliveryLoading = false;
     render();

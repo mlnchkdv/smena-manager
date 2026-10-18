@@ -814,6 +814,9 @@ const RU = {
   'Completed successfully': 'Завершено успешно',
   'No run recorded yet': 'Запуски пока не зафиксированы',
   'Notification delivery status updated.': 'Статус доставки уведомлений обновлён.',
+  'Pending deliveries': 'Ожидают доставки',
+  Retrying: 'Повторная доставка',
+  'Send pending': 'Повторить доставку',
   'Unable to load notification delivery status.': 'Не удалось загрузить статус доставки уведомлений.',
   "Assign another administrator before changing the last administrator's role.":
     'Назначьте другого администратора перед изменением роли последнего администратора.',

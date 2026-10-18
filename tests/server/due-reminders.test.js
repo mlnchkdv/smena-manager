@@ -58,6 +58,15 @@ test('overdue preference disables automated due reminders for that member', () =
   assert.equal(result.created.length, 0);
 });
 
+test('inbox cleanup does not recreate already delivered overdue reminders', () => {
+  const first = createDueReminders(workspace(), { today: '2026-10-16', now: 1000 });
+  first.data.notifs = [];
+  const second = createDueReminders(first.data, { today: '2026-10-16', now: 2000 });
+  assert.equal(second.created.length, 0);
+  second.data.tasks.find(task => task.id === 'late').due = '2026-10-13';
+  assert.equal(createDueReminders(second.data, { today: '2026-10-16', now: 3000 }).created.length, 1);
+});
+
 test('reminder dates use the configured workspace time zone', () => {
   assert.equal(dateInTimeZone(new Date('2026-10-15T23:30:00.000Z'), 'Europe/Saratov'), '2026-10-16');
   assert.equal(dateInTimeZone(new Date('2026-10-15T23:30:00.000Z'), 'UTC'), '2026-10-15');

@@ -3,6 +3,26 @@ import { emailPreferenceForNotification, notificationPreferencesForMember, pushP
 import { canReadProject } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 
+export function enqueueDigestJobs(data, plan, now = Date.now()) {
+  data._notificationOutbox ||= [];
+  const queued = [];
+  for (const member of plan.recipients) {
+    const id = `digest:${member.id}:${plan.today}`;
+    const prefs = notificationPreferencesForMember(data, member.id);
+    if (prefs.emailDigestLastQueuedDate === plan.today || data._notificationOutbox.some(job => job.id === id)) continue;
+    data._notificationOutbox.push({
+      id,
+      createdAt: now,
+      notification: { id, recipient: member.id, type: 'digest', digestDate: plan.today },
+      channels: { email: { status: 'pending', attempts: 0, nextAt: now } },
+    });
+    data.notifPrefs ||= {};
+    data.notifPrefs[member.id] = { ...prefs, emailDigestLastQueuedDate: plan.today };
+    queued.push(member.id);
+  }
+  return queued;
+}
+
 export function enqueueNotificationEvents(current, candidate, now = Date.now()) {
   const known = new Set((current.notifs || []).map(item => item.id));
   const queue = structuredClone(current._notificationOutbox || []);
@@ -39,9 +59,11 @@ export function eligibleNotification(data, notification) {
 export async function drainNotificationOutbox(options) {
   const now = options.now || Date.now;
   const token = crypto.randomUUID();
+  const startedAt = now();
   let processed = 0;
   let failed = 0;
   for (let index = 0; index < (options.limit || 10); index += 1) {
+    if (index > 0 && now() - startedAt >= (options.maxDurationMs || 20000)) return { processed, failed, deferred: true };
     let claim;
     let data;
     for (let retry = 0; retry < 3; retry += 1) {
@@ -87,6 +109,10 @@ export async function drainNotificationOutbox(options) {
           if (state?.token === token) {
             Object.assign(state, { status: outcome, leaseUntil: 0, nextAt: now() + Math.min(3600000, 30000 * 2 ** Math.min(state.attempts, 7)) });
             delete state.token;
+            if (outcome === 'sent' && claim.notification.type === 'digest') {
+              const memberId = claim.notification.recipient;
+              next.notifPrefs[memberId] = { ...notificationPreferencesForMember(next, memberId), emailDigestLastDate: claim.notification.digestDate };
+            }
           }
           return next;
         }, current.revision);

@@ -86,11 +86,22 @@ export async function recordNotificationCronRun(details, options = {}) {
 
 export async function deliverWorkspaceNotifications(data, notifications = [], options = {}) {
   if (data._notificationOutbox) {
-    return drainNotificationOutbox({
+    const channels = { push: { ...EMPTY_CHANNEL }, email: { ...EMPTY_CHANNEL } };
+    const sender = (name, send) => async (workspace, events) => {
+      const result = await send(workspace, events);
+      for (const key of Object.keys(EMPTY_CHANNEL)) channels[name][key] += Number(result[key] || 0);
+      return result;
+    };
+    const result = await drainNotificationOutbox({
       load: getWorkspaceDatabase,
       mutate: (change, revision) => mutateWorkspaceDatabase(change, revision, { role: 'admin', outboxWorker: true }),
-      send: { email: deliverEmailNotifications, push: deliverPushNotifications },
+      send: { email: sender('email', deliverEmailNotifications), push: sender('push', deliverPushNotifications) },
     });
+    if (result.processed)
+      await recordNotificationDelivery(channels, { source: options.source || 'outbox', notifications: result.processed }).catch(error =>
+        reportProviderError('[Notifications] Delivery diagnostics', error),
+      );
+    return { ...result, ...channels };
   }
   const [push, email] = await Promise.all([
     deliverPushNotifications(data, notifications).catch(() => ({ ...EMPTY_CHANNEL, failed: notifications.length })),
@@ -109,8 +120,25 @@ export async function retryNotificationOutbox() {
 }
 
 export async function notificationDeliveryStatus() {
-  const [delivery, email, push] = await Promise.all([loadStatus(), emailAuthorizationStatus(), pushDeliveryStatus()]);
-  return { delivery, channels: { email, push } };
+  const [delivery, email, push, data] = await Promise.all([loadStatus(), emailAuthorizationStatus(), pushDeliveryStatus(), getWorkspaceDatabase()]);
+  const outbox = notificationQueueStatus(data);
+  return { delivery, channels: { email, push }, outbox };
+}
+
+export function notificationQueueStatus(data, now = Date.now()) {
+  let pending = 0;
+  let sending = 0;
+  let retrying = 0;
+  let oldestPendingAt = null;
+  for (const job of data._notificationOutbox || [])
+    for (const state of Object.values(job.channels || {})) {
+      if (['sent', 'skipped'].includes(state.status)) continue;
+      pending += 1;
+      if ((state.leaseUntil || 0) > now) sending += 1;
+      if (state.attempts > 0) retrying += 1;
+      if (!oldestPendingAt || job.createdAt < oldestPendingAt) oldestPendingAt = job.createdAt;
+    }
+  return { pending, sending, retrying, oldestPendingAt };
 }
 
 export function resetNotificationDeliveryForTests() {

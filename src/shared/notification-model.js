@@ -56,6 +56,7 @@ const emailPreferenceForType = Object.freeze({
   assign: 'email_assign',
   comment: 'email_comment',
   update: 'email_update',
+  digest: 'email_digest',
   due: 'email_due',
   security: 'email_security',
   system: 'email_security',

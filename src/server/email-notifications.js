@@ -3,7 +3,8 @@ import { configureProviderTimeout, reportProviderError } from './provider-safety
 import { emailPreferenceForNotification, notificationPreferencesForMember } from '../shared/notification-model.js';
 import { notificationUrl } from '../shared/notification-links.js';
 import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
-import { getWorkspaceDatabase, replaceWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import { enqueueDigestJobs, eligibleNotification } from './notification-outbox.js';
 
 let authorizationCache = null;
 
@@ -139,7 +140,18 @@ export async function deliverEmailNotifications(data, notifications = [], option
     return preference && notificationPreferencesForMember(data, notification.recipient)[preference] === true;
   });
   if (!deliveries.length) return { configured: true, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
-  const messages = deliveries.map(notification => emailNotificationMessage(notification, data, options.locale)).filter(message => message.to);
+  const messages = deliveries
+    .map(notification =>
+      notification.type === 'digest'
+        ? dailyDigestMessage(
+            data,
+            data.members.find(member => member.id === notification.recipient),
+            notification.digestDate,
+            options.locale,
+          )
+        : emailNotificationMessage(notification, data, options.locale),
+    )
+    .filter(message => message.to);
   let accessToken;
   try {
     accessToken = options.accessToken || (await gmailAccessToken(config));
@@ -184,16 +196,18 @@ export function createDailyDigestPlan(data, options = {}) {
   const weekday = options.weekday ?? new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(now);
   if (['Sat', 'Sun'].includes(weekday)) return { today, recipients: [] };
   const recipients = (data.members || [])
-    .filter(member => member?.id && member.email && member.status !== 'deactivated')
+    .filter(member => member?.id && member.email && !['removed', 'deactivated'].includes(member.status))
     .filter(member => {
       const preferences = notificationPreferencesForMember(data, member.id);
-      return preferences.email_digest === true && preferences.emailDigestLastDate !== today;
+      return preferences.email_digest === true && preferences.emailDigestLastDate !== today && preferences.emailDigestLastQueuedDate !== today;
     });
   return { today, recipients };
 }
 
 export function dailyDigestMessage(data, member, today, locale = notificationLocale(data, member.id, configuredLocale())) {
-  const open = (data.tasks || []).filter(task => task.assignee === member.id && task.status !== 'done');
+  const open = (data.tasks || []).filter(
+    task => task.assignee === member.id && task.status !== 'done' && eligibleNotification(data, { recipient: member.id, task: task.id }),
+  );
   const overdue = open.filter(task => task.due && String(task.due).slice(0, 10) < today).length;
   const dueToday = open.filter(task => String(task.due || '').slice(0, 10) === today).length;
   const lines =
@@ -210,41 +224,27 @@ export function dailyDigestMessage(data, member, today, locale = notificationLoc
 export async function runDailyEmailDigest(options = {}) {
   const config = emailDeliveryConfig();
   if (!config.enabled) return { delivered: 0, skipped: 'disabled' };
-  const current = await getWorkspaceDatabase();
-  const plan = createDailyDigestPlan(current, options);
-  if (!plan.recipients.length) return { delivered: 0, today: plan.today };
-  const accessToken = await gmailAccessToken(config);
-  const deliveredMembers = [];
-  for (const member of plan.recipients) {
-    try {
-      await sendGmail(accessToken, { ...dailyDigestMessage(current, member, plan.today, configuredLocale(options.locale)), from: config.from });
-      deliveredMembers.push(member.id);
-    } catch (error) {
-      reportProviderError('[Email digest] Delivery failed', error);
-    }
-  }
-  if (!deliveredMembers.length) return { delivered: 0, today: plan.today };
-
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const latest = await getWorkspaceDatabase();
+    const plan = createDailyDigestPlan(latest, options);
+    if (!plan.recipients.length) return { queued: 0, today: plan.today };
     try {
-      await replaceWorkspaceDatabase(
-        {
-          ...latest,
-          notifPrefs: {
-            ...latest.notifPrefs,
-            ...Object.fromEntries(
-              deliveredMembers.map(memberId => [memberId, { ...notificationPreferencesForMember(latest, memberId), emailDigestLastDate: plan.today }]),
-            ),
-          },
+      let queued;
+      await mutateWorkspaceDatabase(
+        data => {
+          queued = enqueueDigestJobs(data, plan, options.now ? new Date(options.now).getTime() : Date.now());
+          return data;
         },
         latest.revision,
-        { role: 'admin' },
+        { role: 'admin', outboxWorker: true },
       );
-      break;
+      // The shared worker claims the durable job before contacting Gmail.
+      const { retryNotificationOutbox } = await import('./notification-delivery.js');
+      const delivery = options.enqueueOnly ? { deferred: true } : await retryNotificationOutbox();
+      return { queued: queued.length, today: plan.today, delivery };
     } catch (error) {
       if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
     }
   }
-  return { delivered: deliveredMembers.length, today: plan.today };
+  throw new Error('Daily digest could not acquire the current workspace revision.');
 }

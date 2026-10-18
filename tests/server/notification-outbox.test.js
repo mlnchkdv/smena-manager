@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { drainNotificationOutbox, enqueueNotificationEvents } from '../../src/server/notification-outbox.js';
+import { drainNotificationOutbox, enqueueNotificationEvents, enqueueDigestJobs } from '../../src/server/notification-outbox.js';
 
 function fixture() {
   const data = {
@@ -14,6 +14,37 @@ function fixture() {
   data._notificationOutbox = enqueueNotificationEvents({ notifs: [] }, data, 1);
   return data;
 }
+
+test('digest jobs are queued once and competing workers cannot send the same live lease', async () => {
+  let state = fixture();
+  state._notificationOutbox = [];
+  state.notifPrefs.m.email_digest = true;
+  const plan = { today: '2026-10-19', recipients: [state.members[0]] };
+  assert.deepEqual(enqueueDigestJobs(state, plan, 1), ['m']);
+  assert.deepEqual(enqueueDigestJobs(state, plan, 1), []);
+  let calls = 0;
+  const worker = {
+    now: () => 100,
+    load: async () => structuredClone(state),
+    mutate: async (change, revision) => {
+      if (revision !== state.revision) throw Object.assign(new Error('Conflict'), { code: 'REVISION_CONFLICT' });
+      state = change(structuredClone(state));
+      state.revision += 1;
+      return structuredClone(state);
+    },
+    send: {
+      email: async () => {
+        calls += 1;
+        return { configured: true, delivered: 1, failed: 0 };
+      },
+    },
+  };
+  await Promise.all([drainNotificationOutbox(worker), drainNotificationOutbox(worker)]);
+  assert.equal(calls, 1);
+  assert.equal(state.notifPrefs.m.emailDigestLastDate, plan.today);
+  state._notificationOutbox = [];
+  assert.deepEqual(enqueueDigestJobs(state, plan, 1), []);
+});
 
 test('outbox survives failed delivery, retries channels independently and never trusts candidate queue', async () => {
   let state = fixture();
