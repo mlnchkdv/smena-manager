@@ -16,3 +16,5 @@ access-ids*.json
 .playwright-cli/
 playwright-report/
 test-results/
+output/playwright/
+.generated/

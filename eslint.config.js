@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist/', '.data/'] },
+  { ignores: ['dist/', '.data/', '.generated/'] },
   js.configs.recommended,
   {
     files: ['**/*.js'],

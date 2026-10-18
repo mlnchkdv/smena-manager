@@ -64,7 +64,16 @@ async function request(path, options = {}, authenticated = false) {
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   if (!response.ok) {
-    const error = new ApiError(body.error || `Request failed (${response.status}).`, response.status, body.code || 'API_ERROR', body);
+    const message =
+      typeof body.error === 'string'
+        ? body.error
+        : response.status >= 500
+          ? 'The server is unavailable.'
+          : typeof body.error?.message === 'string'
+            ? body.error.message
+            : `Request failed (${response.status}).`;
+    const code = typeof body.code === 'string' ? body.code : typeof body.error?.code === 'string' ? body.error.code : 'API_ERROR';
+    const error = new ApiError(message, response.status, code, body);
     if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
     throw error;
   }

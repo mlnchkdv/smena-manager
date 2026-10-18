@@ -1,4 +1,4 @@
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from '../../.generated/sanitizer.mjs';
 
 export function sanitizeDescription(value) {
   return sanitizeHtml(String(value || ''), {
