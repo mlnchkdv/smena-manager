@@ -5,6 +5,7 @@ import { S, allTasks, canSee, pColor, proj, task, taskProg, visibleProjects } fr
 import { av, empty, stIcon } from '../ui/helpers.js';
 import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { startOfWeek } from '../core/calendar-layout.js';
+import { timelineMilestones } from '../shared/timeline-scope.js';
 
 export function tlControls() {
   return `<div class="seg" style="margin-left:4px">${[
@@ -34,12 +35,7 @@ export function timelineHtml(ts, key, p) {
     g === 'project' && p ? 'status' : g,
   ).filter(G => G.tasks.length);
   const rows = [];
-  const projectScope = new Set(ts.map(item => item.project));
-  const ms = p
-    ? p.milestones || []
-    : visibleProjects()
-        .filter(q => projectScope.has(q.id) && canSee(q))
-        .flatMap(q => (q.milestones || []).map(m => ({ ...m, p: q })));
+  const ms = timelineMilestones(ts, visibleProjects().filter(canSee), p);
   if (ms.length) rows.push({ type: 'ms' });
   groups.forEach(G => {
     if (g !== 'none') rows.push({ type: 'g', G });
