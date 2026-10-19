@@ -67,20 +67,20 @@ function addAccountHeader(headers) {
 
 async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
-  const { returnMeta = false, ...fetchOptions } = options;
+  const { returnMeta = false, allowCookieOnly = false, ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers || {});
   headers.set('Accept', 'application/json');
   if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (authenticated) {
     const token = getSessionToken();
-    if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
+    if (!token && !allowCookieOnly) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
     if (token !== 'cookie') headers.set('Authorization', `Bearer ${token}`);
     addAccountHeader(headers);
   }
 
   let response;
   try {
-    response = await fetch(path, { ...fetchOptions, headers });
+    response = await fetch(path, { ...fetchOptions, credentials: 'include', headers });
   } catch (error) {
     throw new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR', { cause: error });
   }
@@ -135,8 +135,8 @@ export async function loginWithGoogle(credential) {
   return result.user;
 }
 
-export async function getCurrentUser() {
-  const result = await request('/api/auth/me', {}, true);
+export async function getCurrentUser(options = {}) {
+  const result = await request('/api/auth/me', options, true);
   sessionAccount = result.user?.id || '';
   return result.user;
 }
@@ -297,6 +297,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     if (metadata.task) form.append('task', metadata.task);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
+    xhr.withCredentials = true;
     if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     if (sessionAccount) xhr.setRequestHeader('X-Smena-Account', encodeURIComponent(sessionAccount));
     xhr.responseType = 'json';
@@ -437,6 +438,7 @@ export async function downloadWorkspaceFile(id, download = false, options = {}) 
   try {
     response = await fetch(`/api/files/${encodeURIComponent(id)}/content${download ? '?download=1' : ''}`, {
       headers: addAccountHeader(new Headers(token === 'cookie' ? {} : { Authorization: `Bearer ${token}` })),
+      credentials: 'include',
       signal: options.signal,
     });
   } catch (error) {

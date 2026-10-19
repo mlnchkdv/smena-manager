@@ -5,6 +5,7 @@ import {
   getPersonalPreferences,
   getFileUploadPolicy,
   getSessionToken,
+  setSessionToken,
   getWorkspace,
   getWorkspaceDocument,
   getWorkspaceRevision,
@@ -126,7 +127,19 @@ async function loadWorkspaceFor(user) {
 
 export async function restoreSessionAndWorkspace() {
   S.ui.authConfig = await getAuthConfig();
-  if (!getSessionToken()) return null;
+  if (!getSessionToken()) {
+    // The local marker may be unavailable in private/in-app browser contexts,
+    // while the HttpOnly session cookie is still valid. Ask the server before
+    // showing the login screen so a reload does not sign the user out.
+    try {
+      const user = await getCurrentUser({ allowCookieOnly: true });
+      setSessionToken('cookie');
+      return await loadWorkspaceFor(user);
+    } catch (error) {
+      if (error.status === 401) return null;
+      throw error;
+    }
+  }
   try {
     await migrateLegacySessionCookie();
     const user = await getCurrentUser();
