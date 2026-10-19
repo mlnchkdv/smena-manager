@@ -322,6 +322,7 @@ const RU = {
   'Search knowledge base': 'Поиск по базе знаний',
   'Search notes, tags, and content': 'Поиск по заметкам, тегам и тексту',
   'Filter by folder': 'Фильтр по папке',
+  'Sort notes': 'Сортировать заметки',
   'All folders': 'Все папки',
   'No folder': 'Без папки',
   'All notes': 'Все заметки',
