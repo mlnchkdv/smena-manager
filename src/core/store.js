@@ -131,6 +131,7 @@ export const S = {
     membersTab: 'members',
     knowledgeQuery: '',
     knowledgeFolder: 'all',
+    knowledgeFolderQuery: '',
     knowledgeActive: null,
     knowledgeSort: 'updated',
     knowledgeLimit: 200,

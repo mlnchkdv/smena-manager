@@ -539,6 +539,12 @@ A.collapseKnowledgeFolders = () => {
   S.ui.knowledgeCollapsedFolders = Object.fromEntries(knowledgeCollections().folders.map(folder => [folder.id, true]));
   render();
 };
+A.clearKnowledgeTag = () => {
+  S.ui.knowledgeTag = '';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
 A.loadMoreKnowledge = () => {
   S.ui.knowledgeLimit = Math.min(1000, (S.ui.knowledgeLimit || 200) + 200);
   render();
@@ -597,6 +603,17 @@ IN.knowledgeFolder = el => {
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';
   render();
+};
+IN.knowledgeFolderQuery = el => {
+  S.ui.knowledgeFolderQuery = el.value;
+  render();
+  requestAnimationFrame(() => {
+    const input = document.querySelector('[data-in="knowledgeFolderQuery"]');
+    if (input) {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+  });
 };
 IN.knowledgeSort = el => {
   S.ui.knowledgeSort = el.value === 'title' ? 'title' : 'updated';
