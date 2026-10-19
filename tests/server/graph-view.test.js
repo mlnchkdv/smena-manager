@@ -33,3 +33,18 @@ test('graph views are bounded and stable-ID local routes survive reload', () => 
   assert.equal(path, '/smena/graph/note%3Aa');
   assert.deepEqual(resolveAppLocation(path, '', {}), { route: 'graph', params: { center: 'note:a' } });
 });
+
+test('large graph views expose truncation metadata for progressive rendering', () => {
+  const graph = {
+    nodes: Array.from({ length: 600 }, (_, index) => ({ key: `note:${index}`, title: `Note ${index}` })),
+    edges: [],
+    unresolved: [],
+  };
+  const view = graphView(graph, { limit: 250 });
+  assert.equal(view.nodes.length, 250);
+  assert.equal(view.visibleTotal, 250);
+  assert.equal(view.visibleEdgeTotal, 0);
+  assert.equal(view.total, 600);
+  assert.equal(view.truncated, true);
+  assert.equal(view.limit, 250);
+});

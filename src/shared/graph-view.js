@@ -14,10 +14,15 @@ export function graphView(graph, { center = '', depth = 1, query = '', kind = ''
   matching.sort((a, b) => Number(b.key === center) - Number(a.key === center));
   const nodes = matching.slice(0, Number.isFinite(limit) ? Math.min(500, Math.max(1, limit)) : matching.length);
   const keys = new Set(nodes.map(node => node.key));
+  const edges = local.edges.filter(edge => keys.has(edge.from) && keys.has(edge.to));
   return {
     nodes,
-    edges: local.edges.filter(edge => keys.has(edge.from) && keys.has(edge.to)),
+    edges,
     unresolved: local.unresolved.filter(ref => keys.has(ref.from)),
     total: matching.length,
+    visibleTotal: nodes.length,
+    visibleEdgeTotal: edges.length,
+    truncated: nodes.length < matching.length,
+    limit: Number.isFinite(limit) ? Math.min(500, Math.max(1, limit)) : matching.length,
   };
 }
