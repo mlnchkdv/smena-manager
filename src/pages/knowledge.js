@@ -21,6 +21,7 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
   const directCounts = new Map(folders.map(folder => [folder.id, 0]));
   notes.forEach(note => note.folderId && directCounts.set(note.folderId, (directCounts.get(note.folderId) || 0) + 1));
   const children = new Map();
+  const byId = new Map(folders.map(folder => [folder.id, folder]));
   folders.forEach(folder => {
     const parent = folders.some(item => item.id === folder.parentId) ? folder.parentId : '';
     if (!children.has(parent)) children.set(parent, []);
@@ -30,6 +31,7 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
   const counts = new Map();
   const normalizedQuery = String(query || '').trim().toLocaleLowerCase();
   const countDescendants = (id, seen = new Set()) => {
+    if (counts.has(id)) return counts.get(id);
     if (seen.has(id)) return 0;
     const nextSeen = new Set(seen).add(id);
     const total = (directCounts.get(id) || 0) + (children.get(id) || []).reduce((sum, child) => sum + countDescendants(child.id, nextSeen), 0);
@@ -37,12 +39,19 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
     return total;
   };
   folders.forEach(folder => countDescendants(folder.id));
+  const matching = new Map();
   const branchMatches = (id, seen = new Set()) => {
+    if (matching.has(id)) return matching.get(id);
     if (seen.has(id)) return false;
     const nextSeen = new Set(seen).add(id);
-    const folder = folders.find(item => item.id === id);
-    if (!normalizedQuery || String(folder?.name || '').toLocaleLowerCase().includes(normalizedQuery)) return true;
-    return (children.get(id) || []).some(child => branchMatches(child.id, nextSeen));
+    const folder = byId.get(id);
+    if (!normalizedQuery || String(folder?.name || '').toLocaleLowerCase().includes(normalizedQuery)) {
+      matching.set(id, true);
+      return true;
+    }
+    const result = (children.get(id) || []).some(child => branchMatches(child.id, nextSeen));
+    matching.set(id, result);
+    return result;
   };
   const render = (parent = '', depth = 0, seen = new Set()) =>
     (children.get(parent) || [])
