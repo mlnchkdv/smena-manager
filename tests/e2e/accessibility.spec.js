@@ -74,3 +74,22 @@ test('key Russian and English workflows pass automated WCAG checks', async ({ pa
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
 });
+
+test('settings remain usable at 200% zoom on a narrow viewport in both locales', async ({ page }) => {
+  await signIn(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language, { force: true });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => {
+      document.documentElement.style.zoom = '2';
+    });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `${language} settings overflow at 200% zoom`).toBeLessThanOrEqual(2);
+    await expect(page.locator('#main-content')).toBeVisible();
+    await page.evaluate(() => {
+      document.documentElement.style.zoom = '';
+    });
+  }
+});
