@@ -104,24 +104,29 @@ export async function restoreRecoveryBundle(bundle, storage) {
   await storage.init();
   if (await storage.loadDatabase()) throw new Error('Recovery destination must be empty. Existing data was not overwritten.');
   const mappings = new Map();
-  for (const [key, asset] of assets) {
-    const filename = `recovered-${crypto.randomUUID()}.bin`;
-    mappings.set(key, await storage.uploadFile(filename, asset.bytes, asset.mimeType));
-  }
-  const data = structuredClone(bundle.data);
-  function remap(value) {
-    if (!value || typeof value !== 'object') return;
-    if (value.storageName) {
-      const uploaded = mappings.get(storageKey(value));
-      if (!uploaded) throw new TypeError('Recovery asset mapping is missing.');
-      value.storageName = uploaded.filename;
-      value.storageFileId = uploaded.fileId;
+  try {
+    for (const [key, asset] of assets) {
+      const filename = `recovered-${crypto.randomUUID()}.bin`;
+      mappings.set(key, await storage.uploadFile(filename, asset.bytes, asset.mimeType));
     }
-    for (const [key, child] of Object.entries(value)) if (!key.startsWith('_') && child && typeof child === 'object') remap(child);
+    const data = structuredClone(bundle.data);
+    function remap(value) {
+      if (!value || typeof value !== 'object') return;
+      if (value.storageName) {
+        const uploaded = mappings.get(storageKey(value));
+        if (!uploaded) throw new TypeError('Recovery asset mapping is missing.');
+        value.storageName = uploaded.filename;
+        value.storageFileId = uploaded.fileId;
+      }
+      for (const [key, child] of Object.entries(value)) if (!key.startsWith('_') && child && typeof child === 'object') remap(child);
+    }
+    remap(data);
+    data._notificationOutbox = [];
+    data._fileGc = [];
+    await storage.saveDatabase(data);
+    return { files: assets.size, tasks: data.tasks.length, projects: data.projects.length };
+  } catch (error) {
+    await Promise.all([...mappings.values()].map(item => storage.deleteFile(item.filename, item.fileId).catch(() => undefined)));
+    throw error;
   }
-  remap(data);
-  data._notificationOutbox = [];
-  data._fileGc = [];
-  await storage.saveDatabase(data);
-  return { files: assets.size, tasks: data.tasks.length, projects: data.projects.length };
 }

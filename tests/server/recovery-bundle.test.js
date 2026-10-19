@@ -56,4 +56,13 @@ test('independent recovery restores metadata and attachments without the source 
   for await (const chunk of download.stream) actual.push(chunk);
   assert.deepEqual(Buffer.concat(actual), bytes);
   await assert.rejects(restoreRecoveryBundle(bundle, target), /must be empty/u);
+
+  const failing = new LocalStorageProvider(path.join(root, 'failing', 'workspace.json'));
+  failing.uploadsPath = path.join(root, 'failing', 'uploads');
+  failing.saveDatabase = async () => {
+    throw new Error('Injected attachment failure');
+  };
+  await assert.rejects(restoreRecoveryBundle(bundle, failing), /Injected attachment failure/u);
+  assert.equal(await failing.loadDatabase(), null);
+  assert.deepEqual(await fs.readdir(failing.uploadsPath), []);
 });
