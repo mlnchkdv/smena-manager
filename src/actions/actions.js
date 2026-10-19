@@ -560,6 +560,7 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';
+  if (typeof window !== 'undefined' && window.innerWidth <= 640) S.ui.knowledgeFolderNavOpen = false;
   if (S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder)) {
     const folders = knowledgeCollections().folders;
     const collapsed = { ...(S.ui.knowledgeCollapsedFolders || {}) };
