@@ -134,6 +134,7 @@ export const S = {
     knowledgeActive: null,
     knowledgeSort: 'updated',
     knowledgeLimit: 200,
+    knowledgeTag: '',
     knowledgeImportStatus: '',
     bookmarkQuery: '',
     bookmarkFolder: 'all',

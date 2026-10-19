@@ -511,6 +511,7 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
+  S.ui.knowledgeTag = '';
   render();
 };
 A.loadMoreKnowledge = () => {
@@ -569,12 +570,70 @@ IN.knowledgeFolder = el => {
   S.ui.knowledgeFolder = el.value;
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
+  S.ui.knowledgeTag = '';
   render();
 };
 IN.knowledgeSort = el => {
   S.ui.knowledgeSort = el.value === 'title' ? 'title' : 'updated';
   S.ui.knowledgeActive = null;
   render();
+};
+IN.knowledgeTag = el => {
+  S.ui.knowledgeTag = el.value || '';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
+A.setKnowledgeTag = el => {
+  S.ui.knowledgeTag = el.dataset.tag || '';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
+A.renameKnowledgeFolder = el => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  const folder = knowledgeCollections().folders.find(item => item.id === el.dataset.folder);
+  if (!folder) return;
+  openModal({
+    type: 'prompt',
+    title: 'Rename knowledge folder',
+    label: 'Folder name',
+    value: folder.name,
+    run: value => {
+      const name = value.trim();
+      if (!name || name === folder.name) return;
+      mutate(() => {
+        if (knowledgeCollections().folders.some(item => item.id !== folder.id && item.name.trim().toLowerCase() === name.toLowerCase())) return;
+        folder.name = name;
+      });
+    },
+  });
+};
+A.deleteKnowledgeFolder = el => {
+  if (S.ui.currentUser?.role === 'viewer') return;
+  const { folders, notes } = knowledgeCollections();
+  const folder = folders.find(item => item.id === el.dataset.folder);
+  if (!folder) return;
+  const parentId = folders.some(item => item.id === folder.parentId) ? folder.parentId : null;
+  const childCount = folders.filter(item => item.parentId === folder.id).length;
+  const noteCount = notes.filter(note => note.folderId === folder.id).length;
+  confirmDlg({
+    title: 'Delete knowledge folder?',
+    body: `<b>${esc(folder.name)}</b> will be removed. ${noteCount || childCount ? 'Notes and subfolders will move to its parent.' : ''}`,
+    ok: 'Delete folder',
+    danger: true,
+    run: () => mutate(() => {
+      folders.forEach(item => {
+        if (item.parentId === folder.id) item.parentId = parentId;
+      });
+      notes.forEach(note => {
+        if (note.folderId === folder.id) note.folderId = parentId;
+      });
+      D().knowledgeFolders = folders.filter(item => item.id !== folder.id);
+      S.ui.knowledgeFolder = parentId || 'all';
+      S.ui.knowledgeActive = null;
+    }),
+  });
 };
 IN.knowledgeField = el => {
   if (S.ui.currentUser?.role === 'viewer') return;
