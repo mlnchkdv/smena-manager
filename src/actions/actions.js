@@ -564,12 +564,22 @@ A.expandKnowledgeFolders = () => {
   S.ui.knowledgeCollapsedFolders = {};
   render();
 };
+A.toggleKnowledgeFolderNav = () => {
+  S.ui.knowledgeFolderNavOpen = S.ui.knowledgeFolderNavOpen !== false ? false : true;
+  render();
+};
 A.collapseKnowledgeFolders = () => {
   S.ui.knowledgeCollapsedFolders = Object.fromEntries(knowledgeCollections().folders.map(folder => [folder.id, true]));
   render();
 };
 A.clearKnowledgeTag = () => {
   S.ui.knowledgeTag = '';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
+A.clearKnowledgeQuery = () => {
+  S.ui.knowledgeQuery = '';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   render();

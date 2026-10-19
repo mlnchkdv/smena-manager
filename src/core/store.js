@@ -135,6 +135,7 @@ export const S = {
     knowledgeDrawerOpener: null,
     knowledgeFolder: 'all',
     knowledgeFolderQuery: '',
+    knowledgeFolderNavOpen: true,
     knowledgeActive: null,
     knowledgeSort: 'updated',
     knowledgeLimit: 200,
