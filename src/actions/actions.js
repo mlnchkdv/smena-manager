@@ -460,6 +460,7 @@ A.newKnowledgeNote = () => {
     if (S.ui.knowledgePresentation === 'drawer') {
       S.ui.knowledgeActive = null;
       S.ui.knowledgeDrawer = note.id;
+      S.ui.knowledgeDrawerView = 'edit';
     } else {
       S.ui.knowledgeActive = note.id;
     }
@@ -497,6 +498,7 @@ A.openKnowledgeNote = el => {
   if (usePanel) {
     if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
     S.ui.knowledgeDrawer = el.dataset.id;
+    S.ui.knowledgeDrawerView = 'preview';
     S.ui.knowledgeActive = null;
   } else {
     S.ui.knowledgeActive = el.dataset.id;
@@ -513,7 +515,10 @@ A.openKnowledgeNote = el => {
 };
 A.goKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
-  if (S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640)) S.ui.knowledgeDrawer = el.dataset.id;
+  if (S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640)) {
+    S.ui.knowledgeDrawer = el.dataset.id;
+    S.ui.knowledgeDrawerView = 'edit';
+  }
   S.ui.knowledgeQuery = '';
   S.ui.knowledgeFolder = 'all';
   go('knowledge');
@@ -527,6 +532,10 @@ A.setKnowledgePresentation = el => {
 };
 A.closeKnowledgeDrawer = () => {
   S.ui.knowledgeDrawer = null;
+  render();
+};
+A.editKnowledgeNote = () => {
+  S.ui.knowledgeDrawerView = 'edit';
   render();
 };
 A.toggleKnowledgeFavorite = el => {

@@ -525,6 +525,45 @@
 .knowledge-drawer-brand .i {
   color: var(--accent);
 }
+.knowledge-quick-preview {
+  width: min(820px, 100%);
+  margin: 0 auto;
+}
+.knowledge-quick-preview-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-quick-summary {
+  margin: 24px 0 18px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r) var(--r) 0;
+  background: var(--accent-soft);
+  color: var(--text-2);
+  font-size: var(--fs-md);
+  line-height: 1.55;
+}
+.knowledge-quick-content {
+  min-height: 160px;
+  padding: 18px 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.knowledge-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
 .knowledge-editor {
   width: min(1120px, 100%);
   margin: 0 auto;

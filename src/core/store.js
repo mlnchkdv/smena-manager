@@ -132,6 +132,7 @@ export const S = {
     knowledgeQuery: '',
     knowledgePresentation: 'split',
     knowledgeDrawer: null,
+    knowledgeDrawerView: 'preview',
     knowledgeDrawerOpener: null,
     knowledgeFolder: 'all',
     knowledgeFolderQuery: '',

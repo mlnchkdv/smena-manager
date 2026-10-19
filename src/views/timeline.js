@@ -34,10 +34,11 @@ export function timelineHtml(ts, key, p) {
     g === 'project' && p ? 'status' : g,
   ).filter(G => G.tasks.length);
   const rows = [];
+  const projectScope = new Set(ts.map(item => item.project));
   const ms = p
     ? p.milestones || []
     : visibleProjects()
-        .filter(canSee)
+        .filter(q => projectScope.has(q.id) && canSee(q))
         .flatMap(q => (q.milestones || []).map(m => ({ ...m, p: q })));
   if (ms.length) rows.push({ type: 'ms' });
   groups.forEach(G => {
