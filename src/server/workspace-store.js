@@ -19,6 +19,7 @@ import { applyEntityDefaults } from '../shared/workspace-defaults.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
+import { migrateWorkspaceSchema } from '../shared/workspace-schema-migrations.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -69,8 +70,8 @@ function normalizeDatabase(value) {
   if (version > CURRENT_SCHEMA_VERSION) {
     throw new Error(`Workspace schema ${version} is newer than supported schema ${CURRENT_SCHEMA_VERSION}.`);
   }
-  const normalized = { ...createEmptyDatabase(), ...value, schemaVersion: CURRENT_SCHEMA_VERSION };
-  if (!Object.hasOwn(value, 'notifs') && Array.isArray(value.notifications)) normalized.notifs = value.notifications;
+  const migrated = migrateWorkspaceSchema(value, CURRENT_SCHEMA_VERSION);
+  const normalized = { ...createEmptyDatabase(), ...migrated, schemaVersion: CURRENT_SCHEMA_VERSION };
   const data = migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized));
   applyEntityDefaults(data);
   migrateMilestoneIds(data);
