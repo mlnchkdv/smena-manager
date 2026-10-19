@@ -4,7 +4,7 @@ import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { migrateNotificationRecipients, reconcileWorkspaceNotifications } from '../shared/notification-model.js';
-import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
+import { WORKSPACE_TRANSPORT_MAX_BYTES, WORKSPACE_TRANSPORT_WARNING_BYTES, workspaceCapacity, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { validateWorkspaceData, validateDocumentInput } from '../shared/workspace-schema.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
@@ -383,19 +383,23 @@ export async function getWorkspaceStatus() {
     : process.env.VERCEL
       ? { mode: 'drive-etag', healthy: directDriveWritesEnabled(), latencyMs: null }
       : { mode: 'local-queue', healthy: true, latencyMs: null };
+  const workspaceBytes =
+    workspaceTransportBytes(workspaceCoreData(data), data.revision) +
+    DOCUMENT_NAMES.reduce(
+      (total, name) => total + workspaceTransportBytes(workspaceDocumentData(name, documentSnapshots[name]), documentSnapshots[name].revision),
+      0,
+    );
+  const workspaceMaxBytes = WORKSPACE_TRANSPORT_MAX_BYTES * (DOCUMENT_NAMES.length + 1);
   return {
     storage: await storage.getStatus(),
     coordination,
     schemaVersion: data.schemaVersion,
     revision: data.revision,
     updatedAt: data.updatedAt,
-    workspaceBytes:
-      workspaceTransportBytes(workspaceCoreData(data), data.revision) +
-      DOCUMENT_NAMES.reduce(
-        (total, name) => total + workspaceTransportBytes(workspaceDocumentData(name, documentSnapshots[name]), documentSnapshots[name].revision),
-        0,
-      ),
-    workspaceMaxBytes: WORKSPACE_TRANSPORT_MAX_BYTES * (DOCUMENT_NAMES.length + 1),
+    workspaceBytes,
+    workspaceMaxBytes,
+    workspaceCapacity: workspaceCapacity(workspaceBytes, workspaceMaxBytes),
+    workspaceWarningBytes: WORKSPACE_TRANSPORT_WARNING_BYTES * (DOCUMENT_NAMES.length + 1),
     documents: Object.fromEntries(
       DOCUMENT_NAMES.map(name => [
         name,
