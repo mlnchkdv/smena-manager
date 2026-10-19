@@ -457,7 +457,12 @@ A.newKnowledgeNote = () => {
       updatedAt: now,
     };
     notes.unshift(note);
-    S.ui.knowledgeActive = note.id;
+    if (S.ui.knowledgePresentation === 'drawer') {
+      S.ui.knowledgeActive = null;
+      S.ui.knowledgeDrawer = note.id;
+    } else {
+      S.ui.knowledgeActive = note.id;
+    }
     S.ui.knowledgeQuery = '';
   });
 };
@@ -488,18 +493,40 @@ IN.importKnowledgeMarkdown = async el => {
   }
 };
 A.openKnowledgeNote = el => {
-  S.ui.knowledgeActive = el.dataset.id;
+  if (S.ui.knowledgePresentation === 'drawer') {
+    if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
+    S.ui.knowledgeDrawer = el.dataset.id;
+    S.ui.knowledgeActive = null;
+  } else {
+    S.ui.knowledgeActive = el.dataset.id;
+  }
   if (el.classList.contains('knowledge-relation')) {
     S.ui.knowledgeQuery = '';
     S.ui.knowledgeFolder = 'all';
   }
   render();
+  if (S.ui.knowledgeDrawer) {
+    const drawer = $('.knowledge-drawer');
+    if (drawer && !drawer.contains(document.activeElement)) drawer.focus({ preventScroll: true });
+  }
 };
 A.goKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
+  if (S.ui.knowledgePresentation === 'drawer') S.ui.knowledgeDrawer = el.dataset.id;
   S.ui.knowledgeQuery = '';
   S.ui.knowledgeFolder = 'all';
   go('knowledge');
+};
+A.setKnowledgePresentation = el => {
+  const mode = el.dataset.view === 'drawer' ? 'drawer' : 'split';
+  S.ui.knowledgePresentation = mode;
+  if (mode === 'split') S.ui.knowledgeDrawer = null;
+  else S.ui.knowledgeActive = null;
+  render();
+};
+A.closeKnowledgeDrawer = () => {
+  S.ui.knowledgeDrawer = null;
+  render();
 };
 A.toggleKnowledgeFavorite = el => {
   mutate(() => {
@@ -508,6 +535,7 @@ A.toggleKnowledgeFavorite = el => {
   });
 };
 A.setKnowledgeFolder = el => {
+  S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
@@ -583,6 +611,7 @@ A.deleteKnowledgeNote = el => {
         moveToTrash('note', note.title, { note: structuredClone(note) });
         D().knowledgeNotes = knowledgeCollections().notes.filter(item => item.id !== note.id);
         S.ui.knowledgeActive = D().knowledgeNotes[0]?.id || null;
+        if (S.ui.knowledgeDrawer === note.id) S.ui.knowledgeDrawer = null;
       }),
   });
 };

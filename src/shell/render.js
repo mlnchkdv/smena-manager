@@ -79,6 +79,7 @@ export function go(route, params = {}, opt = {}) {
   S.ui.pop = null;
   S.ui.composer = null;
   S.ui.editCell = null;
+  if (route !== 'knowledge') S.ui.knowledgeDrawer = null;
   if (!opt.keepDrawer && S.ui.drawer && innerWidth < 900) S.ui.drawer = null;
   // Pages render instantly; motion (not a fake wait) carries the transition.
   clearTimeout(go._t);
@@ -153,10 +154,11 @@ export function render() {
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';
   const prevOv = render._ov || {};
-  const ov = { pop: !!S.ui.pop, modals: S.ui.modals.length, drawer: S.ui.drawer, pal: !!S.ui.palette, sub: !!S.ui.subOpen };
+  const ov = { pop: !!S.ui.pop, modals: S.ui.modals.length, drawer: S.ui.drawer, knowledgeDrawer: S.ui.knowledgeDrawer, pal: !!S.ui.palette, sub: !!S.ui.subOpen };
   // Entrances animate only on the render where the surface first appears.
   const fx = S.ui.fx || (S.ui.fx = {});
   if (ov.drawer && prevOv.drawer !== ov.drawer) fx.drawer = true;
+  if (ov.knowledgeDrawer && prevOv.knowledgeDrawer !== ov.knowledgeDrawer) fx.knowledgeDrawer = true;
   if (ov.modals > (prevOv.modals || 0)) fx.modal = ov.modals;
   const popSig = S.ui.pop ? [S.ui.pop.type, S.ui.pop.id, S.ui.pop.i, S.ui.pop.field, S.ui.pop.ctx, S.ui.pop.key].join('|') : '';
   if (popSig && popSig !== render._popSig) fx.pop = true;
@@ -209,6 +211,7 @@ export function render() {
   }
   if (prevOv.pop && !ov.pop && lost()) tryFocus(S.ui.popOpener);
   if (prevOv.drawer && !ov.drawer && lost()) tryFocus(S.ui.drawerOpener);
+  if (prevOv.knowledgeDrawer && !ov.knowledgeDrawer && lost()) tryFocus(S.ui.knowledgeDrawerOpener);
   if (prevOv.pal && !ov.pal && lost()) tryFocus(S.ui.palOpener);
   if (prevOv.sub && !ov.sub && lost()) tryFocus('.drawer .subt [data-sid="' + (S.ui.lastSub || '') + '"]');
   if (lost() && fkey) tryFocus(fkey);

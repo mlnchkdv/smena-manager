@@ -14,12 +14,15 @@ import { subtaskHtml } from '../features/subtasks.js';
 import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 import { safeRichText } from '../ui/rich-text.js';
 import { relationsPanel } from '../ui/relations.js';
+import { noteEditor } from '../ui/knowledge-editor.js';
 
 export function renderLayer() {
   const u = S.ui;
   let h = '';
   if (u.drawer && task(u.drawer))
     h += (u.drawerFull ? `<div class="drawer-scrim full${u.fx.drawer ? ' enter' : ''}" data-a="closeDrawer"></div>` : '') + drawerHtml(task(u.drawer));
+  const knowledgeNote = u.knowledgeDrawer && (D().knowledgeNotes || []).find(note => note.id === u.knowledgeDrawer);
+  if (knowledgeNote) h += knowledgeDrawerHtml(knowledgeNote);
   u.modals.forEach((m, i) => {
     const en = u.fx.modal === i + 1;
     const covered = i < u.modals.length - 1;
@@ -28,6 +31,15 @@ export function renderLayer() {
   if (u.palette) h += `<div class="scrim" data-a="closePalette" style="z-index:89"></div>${paletteHtml()}`;
   if (u.pop) h += popHtml(u.pop);
   return h;
+}
+
+export function knowledgeDrawerHtml(note) {
+  const readOnly = S.ui.currentUser?.role === 'viewer';
+  const folders = Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [];
+  return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
+    <div class="drawer-h"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span>${readOnly ? '' : `<button class="ibtn ibtn-sm" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`}<button class="ibtn ibtn-sm" data-a="closeKnowledgeDrawer" data-tip="Close  Esc" aria-label="Close">${ic('x', 16)}</button></div>
+    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${noteEditor(note, folders, readOnly)}</div>
+  </aside>`;
 }
 
 /* ---------------- TASK DRAWER ---------------- */

@@ -131,6 +131,11 @@ document.addEventListener('keydown', e => {
       A.closeSub();
       return;
     }
+    if (S.ui.knowledgeDrawer) {
+      if (typing) t.blur();
+      A.closeKnowledgeDrawer();
+      return;
+    }
     if (S.ui.drawer) {
       if (typing) t.blur();
       A.closeDrawer();

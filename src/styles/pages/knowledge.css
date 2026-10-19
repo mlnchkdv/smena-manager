@@ -37,6 +37,26 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
+.knowledge-view-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--sunken);
+}
+.knowledge-view-toggle .ibtn {
+  width: 28px;
+  height: 26px;
+  color: var(--text-3);
+}
+.knowledge-view-toggle .ibtn.on,
+.knowledge-view-toggle .ibtn:hover {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
 .knowledge-import-status {
   padding: 8px 10px;
   border-radius: var(--r-sm);
@@ -292,6 +312,46 @@
 .knowledge-main > .empty-state {
   min-height: 420px;
 }
+.knowledge-mode-placeholder {
+  min-height: min(480px, 70vh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-3);
+  text-align: center;
+}
+.knowledge-mode-placeholder .i {
+  color: var(--accent);
+}
+.knowledge-mode-placeholder h2,
+.knowledge-mode-placeholder p {
+  margin: 0;
+}
+.knowledge-mode-placeholder h2 {
+  color: var(--text);
+  font-size: var(--fs-lg);
+}
+.knowledge-mode-placeholder p {
+  max-width: 340px;
+  font-size: var(--fs-sm);
+}
+.knowledge-drawer .knowledge-editor {
+  width: min(920px, 100%);
+}
+.knowledge-drawer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.knowledge-drawer-brand .i {
+  color: var(--accent);
+}
 .knowledge-editor {
   width: min(1120px, 100%);
   margin: 0 auto;
@@ -462,6 +522,9 @@ button.knowledge-relation:hover {
   .knowledge-sidebar-head .grow {
     flex-basis: 100%;
   }
+  .knowledge-drawer .knowledge-editor {
+    width: 100%;
+  }
 }
 @media (max-width: 640px) {
   .knowledge-shell {
@@ -481,6 +544,12 @@ button.knowledge-relation:hover {
   }
   .knowledge-sidebar-head .grow {
     flex-basis: auto;
+  }
+  .knowledge-sidebar-head .row {
+    align-items: flex-start;
+  }
+  .knowledge-view-toggle {
+    margin-left: auto;
   }
   .knowledge-list {
     max-height: 320px;
