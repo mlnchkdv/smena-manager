@@ -75,6 +75,19 @@ test('authenticated editors can upload and range-download a workspace file', asy
   assert.equal(contentResponse.headers.get('cross-origin-resource-policy'), 'same-origin');
   assert.equal(await contentResponse.text(), '2345');
 
+  const suffixResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {
+    headers: { Authorization: `Bearer ${token}`, Range: 'bytes=-3' },
+  });
+  assert.equal(suffixResponse.status, 206);
+  assert.equal(suffixResponse.headers.get('content-range'), 'bytes 7-9/10');
+  assert.equal(await suffixResponse.text(), '789');
+
+  const invalidRangeResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {
+    headers: { Authorization: `Bearer ${token}`, Range: 'bytes=20-30' },
+  });
+  assert.equal(invalidRangeResponse.status, 416);
+  assert.equal(invalidRangeResponse.headers.get('content-range'), 'bytes */10');
+
   const deletedResponse = await fetch(`${origin}/api/files/${uploaded.file.id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
