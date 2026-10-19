@@ -3,7 +3,7 @@
    ============================================================ */
 .knowledge-shell {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 340px minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   background: var(--surface);
@@ -20,7 +20,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 20px 16px 14px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
@@ -45,6 +45,23 @@
 .knowledge-title-block {
   min-width: 0;
   flex: 1 1 auto;
+}
+.knowledge-pane-kicker {
+  display: block;
+  color: var(--text);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.knowledge-title-block p {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.knowledge-title-block p b {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
 }
 .knowledge-head-actions {
   display: flex;
@@ -401,8 +418,19 @@
 .knowledge-main {
   min-width: 0;
   min-height: 0;
-  padding: 32px clamp(20px, 5vw, 72px) 80px;
+  padding: 20px clamp(18px, 3.5vw, 48px) 56px;
+  background: var(--sunken);
   overflow-y: auto;
+}
+.knowledge-editor-frame {
+  width: min(1080px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 26px clamp(20px, 3vw, 42px) 52px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .04);
 }
 .knowledge-main > .empty-state {
   min-height: 420px;
@@ -591,7 +619,7 @@
   border-top: 1px solid var(--border);
 }
 .knowledge-editor {
-  width: min(1120px, 100%);
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -757,7 +785,7 @@ button.knowledge-relation:hover {
 }
 @media (max-width: 900px) {
   .knowledge-shell {
-    grid-template-columns: 270px minmax(0, 1fr);
+    grid-template-columns: 290px minmax(0, 1fr);
   }
   .knowledge-main {
     padding: 24px clamp(16px, 4vw, 32px) 64px;
@@ -778,6 +806,16 @@ button.knowledge-relation:hover {
   }
   .knowledge-sidebar-head {
     padding: 16px;
+  }
+  .knowledge-main {
+    padding: 0 12px 80px;
+  }
+  .knowledge-editor-frame {
+    min-height: auto;
+    padding: 20px 14px 42px;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: none;
   }
   .knowledge-sidebar-head h1 {
     font-size: var(--fs-md);
