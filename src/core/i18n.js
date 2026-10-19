@@ -333,6 +333,8 @@ const RU = {
   'Collapse all': 'Свернуть все',
   'Expand folder': 'Развернуть папку',
   'Collapse folder': 'Свернуть папку',
+  'Filter folders': 'Фильтр папок',
+  'Clear tag': 'Сбросить тег',
   'Rename folder': 'Переименовать папку',
   'Delete folder': 'Удалить папку',
   'Rename knowledge folder': 'Переименовать папку базы знаний',
