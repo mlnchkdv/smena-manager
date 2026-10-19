@@ -1,5 +1,11 @@
 # Smena Manager
 
+## Кратко / Short description
+
+**RU:** Smena Manager — совместное рабочее пространство команды: задачи, проекты, календарь, входящие, уведомления, файлы, база знаний, закладки и граф связей между материалами. Приложение поддерживает русский и английский языки, Google Sign-In, хранение JSON-документов в Google Drive и Web Push/Gmail-уведомления без PostgreSQL. Подробный двуязычный контекст для передачи другим моделям находится в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
+
+**EN:** Smena Manager is a shared team workspace for tasks, projects, calendar, inbox, notifications, files, knowledge notes, bookmarks, and a graph connecting materials. It supports Russian and English, Google Sign-In, Drive-backed JSON documents, and Web Push/Gmail notifications without PostgreSQL. The detailed bilingual handoff context is available in [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
+
 A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
 files, members, teams, activity and settings. The interface is being adapted into the Smena team's
 own workspace and prepared for later KMS modules such as knowledge, files and bookmarks.
