@@ -25,7 +25,7 @@ import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
 import { cleanupPushSubscriptions, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
 import { emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
-import { deliverWorkspaceNotifications, retryNotificationOutbox, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
+import { claimNotificationTestCooldown, deliverWorkspaceNotifications, retryNotificationOutbox, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData } from '../shared/workspace-documents.js';
@@ -236,16 +236,12 @@ app.post('/api/notifications/retry', requireRole('admin'), async (_request, resp
   }
 });
 
-const testNotificationCooldowns = new Map();
 app.post('/api/notifications/test', requireRole('admin'), async (request, response, next) => {
   try {
     const channel = request.body?.channel;
     if (!['email', 'push'].includes(channel)) return response.status(400).json({ error: 'Invalid notification channel.' });
-    const now = Date.now();
-    for (const [key, until] of testNotificationCooldowns) if (until <= now) testNotificationCooldowns.delete(key);
     const key = `${request.user.id}:${channel}`;
-    if (testNotificationCooldowns.has(key)) return response.status(429).json({ error: 'Please wait one minute before another test.' });
-    testNotificationCooldowns.set(key, now + 60_000);
+    if (!(await claimNotificationTestCooldown(key))) return response.status(429).json({ error: 'Please wait one minute before another test.' });
     const stored = await getWorkspaceDatabase();
     const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
     // Recipient is resolved from the authenticated profile, never accepted from the request body.

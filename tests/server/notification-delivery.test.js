@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   notificationDeliveryStatus,
+  claimNotificationTestCooldown,
   recordNotificationCronRun,
   recordNotificationDelivery,
   resetNotificationDeliveryForTests,
@@ -40,4 +41,24 @@ test('delivery diagnostics retain channel totals and the latest cron result', as
   assert.equal(status.delivery.totals.push.retried, 1);
   assert.equal(status.delivery.totals.email.delivered, 1);
   assert.equal(status.delivery.lastCron.status, 'ok');
+});
+
+test('diagnostic notification cooldown is persisted and claimed atomically', async t => {
+  const testRoot = path.join(process.cwd(), '.data', 'tests');
+  const directory = await fs.promises.mkdtemp(path.join(testRoot, 'notification-cooldown-'));
+  const previousPath = process.env.DATABASE_PATH;
+  process.env.DATABASE_PATH = path.join(directory, 'workspace.json');
+  resetStorageProvider();
+  resetNotificationDeliveryForTests();
+  t.after(async () => {
+    if (previousPath === undefined) delete process.env.DATABASE_PATH;
+    else process.env.DATABASE_PATH = previousPath;
+    resetStorageProvider();
+    resetNotificationDeliveryForTests();
+    await fs.promises.rm(directory, { recursive: true, force: true });
+  });
+  const now = Date.now();
+  assert.equal(await claimNotificationTestCooldown('admin:email', 60_000, now), true);
+  assert.equal(await claimNotificationTestCooldown('admin:email', 60_000, now + 1_000), false);
+  assert.equal(await claimNotificationTestCooldown('admin:email', 60_000, now + 61_000), true);
 });

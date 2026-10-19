@@ -15,6 +15,9 @@ function cleanChannel(value = {}) {
 }
 
 function cleanStatus(value = {}) {
+  const testCooldowns = Object.fromEntries(
+    Object.entries(value.testCooldowns || {}).filter(([, until]) => Number.isFinite(Number(until)) && Number(until) > Date.now()),
+  );
   return {
     version: 1,
     updatedAt: value.updatedAt || null,
@@ -24,6 +27,7 @@ function cleanStatus(value = {}) {
       push: cleanChannel(value.totals?.push),
       email: cleanChannel(value.totals?.email),
     },
+    testCooldowns,
   };
 }
 
@@ -82,6 +86,22 @@ export async function recordNotificationCronRun(details, options = {}) {
   });
   mutationQueue = operation.catch(() => undefined);
   return operation;
+}
+
+/** Atomically claim a diagnostic test slot across workers/providers. */
+export async function claimNotificationTestCooldown(key, cooldownMs = 60_000, now = Date.now()) {
+  let claimed = false;
+  const operation = mutationQueue.then(async () => {
+    await mutateStatus(current => {
+      const active = Object.fromEntries(Object.entries(current.testCooldowns || {}).filter(([, until]) => Number(until) > now));
+      if (active[key] && Number(active[key]) > now) return { ...current, testCooldowns: active };
+      claimed = true;
+      return { ...current, testCooldowns: { ...active, [key]: now + Math.max(1_000, Number(cooldownMs) || 60_000) } };
+    });
+  });
+  mutationQueue = operation.catch(() => undefined);
+  await operation;
+  return claimed;
 }
 
 export async function deliverWorkspaceNotifications(data, notifications = [], options = {}) {
