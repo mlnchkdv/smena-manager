@@ -27,6 +27,22 @@ test('a cookie switched by another tab cannot write through the previous account
   }
 });
 
+test('a valid HttpOnly cookie can restore the account when local storage has no marker', async () => {
+  const originalFetch = globalThis.fetch;
+  setSessionToken('');
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(options.credentials, 'include');
+    return new Response(JSON.stringify({ user: { id: 'cookie-owner' } }), { headers: { 'Content-Type': 'application/json' } });
+  };
+  try {
+    const user = await getCurrentUser({ allowCookieOnly: true });
+    assert.equal(user.id, 'cookie-owner');
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('platform errors produce readable text instead of object placeholders', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
