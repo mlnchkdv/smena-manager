@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateAutomationRun, evaluateOperationalHealth } from '../../src/server/operational-health.js';
+import { evaluateAutomationRun, evaluateOperationalHealth, nextScheduledCronAt } from '../../src/server/operational-health.js';
 
 test('partial file cleanup failures degrade cron status and produce actionable administrator alerts', () => {
   assert.deepEqual(evaluateAutomationRun({}), { status: 'ok', issues: [] });
@@ -23,6 +23,12 @@ test('operational health reports a healthy production pipeline', () => {
   const result = evaluateOperationalHealth(healthyInput, { now: '2026-10-18T12:00:00.000Z' });
   assert.equal(result.status, 'healthy');
   assert.deepEqual(result.issues, []);
+  assert.deepEqual(result.schedule, { timezone: 'UTC', dailyAt: '04:00', nextRunAt: '2026-10-19T04:00:00.000Z' });
+});
+
+test('next scheduled cron is deterministic around the daily boundary', () => {
+  assert.equal(nextScheduledCronAt('2026-10-18T03:59:59.000Z'), '2026-10-18T04:00:00.000Z');
+  assert.equal(nextScheduledCronAt('2026-10-18T04:00:00.000Z'), '2026-10-19T04:00:00.000Z');
 });
 
 test('operational health detects stale cron, storage, coordination, and delivery failures', () => {

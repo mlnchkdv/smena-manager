@@ -1,4 +1,14 @@
 const CRON_STALE_AFTER_MS = 36 * 60 * 60 * 1000;
+const CRON_SCHEDULE_UTC_HOUR = 4;
+
+/** Return the next daily Vercel cron execution (04:00 UTC) after `now`. */
+export function nextScheduledCronAt(now = Date.now()) {
+  const date = new Date(now);
+  const next = new Date(date);
+  next.setUTCHours(CRON_SCHEDULE_UTC_HOUR, 0, 0, 0);
+  if (next.getTime() <= date.getTime()) next.setUTCDate(next.getUTCDate() + 1);
+  return next.toISOString();
+}
 
 export function evaluateAutomationRun({ digest, backup, fileCleanup, abandonedUploads, outbox }) {
   const issues = [
@@ -28,8 +38,13 @@ export function evaluateOperationalHealth({ delivery, channels, workspace, outbo
   return {
     status: issues.some(issue => issue.severity === 'critical') ? 'critical' : issues.length ? 'warning' : 'healthy',
     checkedAt: new Date(now).toISOString(),
+    schedule: {
+      timezone: 'UTC',
+      dailyAt: '04:00',
+      nextRunAt: nextScheduledCronAt(now),
+    },
     issues,
   };
 }
 
-export { CRON_STALE_AFTER_MS };
+export { CRON_STALE_AFTER_MS, CRON_SCHEDULE_UTC_HOUR };
