@@ -530,7 +530,8 @@ A.newKnowledgeFolder = () => {
       mutate(() => {
         const { folders } = knowledgeCollections();
         if (folders.some(folder => folder.name.toLowerCase() === name.toLowerCase())) return;
-        const folder = { id: uid('kf'), name, parentId: null, createdAt: new Date().toISOString() };
+        const parentId = S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null;
+        const folder = { id: uid('kf'), name, parentId, createdAt: new Date().toISOString() };
         folders.push(folder);
         S.ui.knowledgeFolder = folder.id;
       });
