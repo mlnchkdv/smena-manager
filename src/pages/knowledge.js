@@ -21,7 +21,7 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
   const children = new Map();
   const byId = new Map(folders.map(folder => [folder.id, folder]));
   folders.forEach(folder => {
-    const parent = folders.some(item => item.id === folder.parentId) ? folder.parentId : '';
+    const parent = byId.has(folder.parentId) ? folder.parentId : '';
     if (!children.has(parent)) children.set(parent, []);
     children.get(parent).push(folder);
   });
