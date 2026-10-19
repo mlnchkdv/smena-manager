@@ -449,7 +449,7 @@ A.newKnowledgeNote = () => {
       formatted_markdown: isRussian()
         ? '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.'
         : '# New note\n\nAdd team knowledge, guidelines, or working agreements here.',
-      folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
+      folderId: S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) && knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null,
       favorite: false,
       createdBy: D().me,
       updatedBy: D().me,
@@ -457,13 +457,9 @@ A.newKnowledgeNote = () => {
       updatedAt: now,
     };
     notes.unshift(note);
-    if (S.ui.knowledgePresentation === 'drawer') {
-      S.ui.knowledgeActive = null;
-      S.ui.knowledgeDrawer = note.id;
-      S.ui.knowledgeDrawerView = 'edit';
-    } else {
-      S.ui.knowledgeActive = note.id;
-    }
+    S.ui.knowledgeActive = null;
+    S.ui.knowledgeDrawer = note.id;
+    S.ui.knowledgeDrawerView = 'edit';
     S.ui.knowledgeQuery = '';
   });
 };
@@ -477,7 +473,7 @@ IN.importKnowledgeMarkdown = async el => {
       const note = parseMarkdownNote(file.name, await file.text(), {
         idFactory: uid,
         memberId: D().me,
-        folderId: S.ui.knowledgeFolder !== 'all' && S.ui.knowledgeFolder !== 'root' ? S.ui.knowledgeFolder : null,
+        folderId: S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) && knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null,
       });
       imported.push(note);
     }
@@ -494,15 +490,10 @@ IN.importKnowledgeMarkdown = async el => {
   }
 };
 A.openKnowledgeNote = el => {
-  const usePanel = S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640);
-  if (usePanel) {
-    if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
-    S.ui.knowledgeDrawer = el.dataset.id;
-    S.ui.knowledgeDrawerView = 'preview';
-    S.ui.knowledgeActive = null;
-  } else {
-    S.ui.knowledgeActive = el.dataset.id;
-  }
+  if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
+  S.ui.knowledgeDrawer = el.dataset.id;
+  S.ui.knowledgeDrawerView = 'preview';
+  S.ui.knowledgeActive = null;
   if (el.classList.contains('knowledge-relation')) {
     S.ui.knowledgeQuery = '';
     S.ui.knowledgeFolder = 'all';
@@ -524,20 +515,16 @@ A.previewKnowledgeNote = el => {
   if (drawer) drawer.focus({ preventScroll: true });
 };
 A.goKnowledgeNote = el => {
-  S.ui.knowledgeActive = el.dataset.id;
-  if (S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640)) {
-    S.ui.knowledgeDrawer = el.dataset.id;
-    S.ui.knowledgeDrawerView = 'edit';
-  }
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeDrawer = el.dataset.id;
+  S.ui.knowledgeDrawerView = 'edit';
   S.ui.knowledgeQuery = '';
   S.ui.knowledgeFolder = 'all';
   go('knowledge');
 };
-A.setKnowledgePresentation = el => {
-  const mode = el.dataset.view === 'drawer' ? 'drawer' : 'split';
-  S.ui.knowledgePresentation = mode;
-  if (mode === 'split') S.ui.knowledgeDrawer = null;
-  else S.ui.knowledgeActive = null;
+A.setKnowledgePresentation = () => {
+  // Kept for old deep links; the knowledge base now always uses panel view.
+  S.ui.knowledgePresentation = 'drawer';
   render();
 };
 A.closeKnowledgeDrawer = () => {

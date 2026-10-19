@@ -224,6 +224,9 @@ test('shared content, files, settings, and backups persist through core workflow
   await expectRussianUi(page, 'knowledge editor');
   await waitForSaved(page);
   await page.reload();
+  await page.locator('[data-a="openKnowledgeNote"][data-id]').filter({ hasText: noteTitle }).click();
+  await expect(page.locator('.knowledge-drawer')).toBeVisible();
+  await page.locator('[data-a="editKnowledgeNote"]').click();
   await expect(page.locator('#knowledge-title')).toHaveValue(noteTitle);
   await page.locator('[data-a="deleteKnowledgeNote"]').click();
   await expectRussianUi(page, 'knowledge delete confirmation');
