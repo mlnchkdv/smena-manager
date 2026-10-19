@@ -337,6 +337,8 @@ const RU = {
   'Clear tag': 'Сбросить тег',
   'Split view': 'Раздельный вид',
   'Panel view': 'Вид с панелью',
+  Split: 'Раздельный',
+  Panel: 'Панель',
   'Select a note': 'Выберите заметку',
   'Open a note from the list to read or edit it in a panel.': 'Откройте заметку из списка, чтобы читать или редактировать её в панели.',
   'Rename folder': 'Переименовать папку',
