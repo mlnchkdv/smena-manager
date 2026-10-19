@@ -80,6 +80,7 @@ import { nextRecurrenceDate } from '../shared/calendar-time.js';
 import { persistPersonalChange, registerNotificationActions } from './notification-loader.js';
 import { changePdfPreviewPage } from '../core/file-preview.js';
 import { retryPersonalPreferences } from '../core/personal-preferences.js';
+import { nextTaskKey } from './task-key.js';
 
 export const A = {},
   IN = {},
@@ -101,10 +102,7 @@ async function refreshSystemStatus() {
 }
 
 /* ---------- task mutations ---------- */
-export function nextKey(p) {
-  p.seq = (p.seq || 200) + 1;
-  return p.key + '-' + p.seq;
-}
+const nextKey = nextTaskKey;
 export function createTask(f) {
   const p = proj(f.project) || visibleProjects().find(canSee);
   const maxO = Math.max(0, ...D().tasks.map(t => t.order));
