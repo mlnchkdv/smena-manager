@@ -42,6 +42,7 @@ import { setSessionCookie } from './session-cookie.js';
 import { applyPersonalSettings } from '../shared/personal-settings.js';
 import { writeRecoveryBundle } from './recovery-bundle.js';
 import { sendOwnTestNotification } from './test-notification.js';
+import { workspaceRevisionEtag } from '../shared/revision-etag.js';
 
 export const app = express();
 
@@ -401,6 +402,9 @@ app.get('/api/workspace/revision', async (request, response, next) => {
         return [name, { revision: Number(metadata?.revision || 0), updatedAt: metadata?.updatedAt || database.updatedAt }];
       }),
     );
+    const etag = workspaceRevisionEtag(database.revision, database.updatedAt);
+    response.setHeader('ETag', etag);
+    if (request.get('if-none-match') === etag) return response.status(304).end();
     response.json({ revision: database.revision, updatedAt: database.updatedAt, documents, user: request.user });
   } catch (error) {
     next(error);

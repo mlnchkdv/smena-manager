@@ -6,6 +6,7 @@ let memorySessionToken = '';
 let sessionGeneration = 0;
 let sessionAccount = '';
 let sessionBlocked = false;
+let revisionCache = null;
 
 export const getSessionGeneration = () => sessionGeneration;
 
@@ -35,6 +36,7 @@ export function setSessionToken(token) {
   sessionGeneration += 1;
   sessionAccount = '';
   sessionBlocked = false;
+  revisionCache = null;
   memorySessionToken = token || '';
   try {
     if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);
@@ -65,9 +67,10 @@ function addAccountHeader(headers) {
 
 async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
-  const headers = new Headers(options.headers || {});
+  const { returnMeta = false, ...fetchOptions } = options;
+  const headers = new Headers(fetchOptions.headers || {});
   headers.set('Accept', 'application/json');
-  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (authenticated) {
     const token = getSessionToken();
     if (!token) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
@@ -77,12 +80,13 @@ async function request(path, options = {}, authenticated = false) {
 
   let response;
   try {
-    response = await fetch(path, { ...options, headers });
+    response = await fetch(path, { ...fetchOptions, headers });
   } catch (error) {
     throw new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR', { cause: error });
   }
 
-  const body = await response.json().catch(() => ({}));
+  const notModified = response.status === 304;
+  const body = notModified ? {} : await response.json().catch(() => ({}));
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   if (!response.ok) {
@@ -100,7 +104,7 @@ async function request(path, options = {}, authenticated = false) {
     if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
     throw error;
   }
-  return body;
+  return returnMeta ? { body, headers: response.headers, notModified } : body;
 }
 
 export const getAuthConfig = () => request('/api/auth/config');
@@ -167,7 +171,15 @@ export async function getWorkspace() {
 }
 
 export async function getWorkspaceRevision() {
-  return request('/api/workspace/revision', {}, true);
+  const result = await request(
+    '/api/workspace/revision',
+    { ...(revisionCache?.etag ? { headers: { 'If-None-Match': revisionCache.etag } } : {}), returnMeta: true },
+    true,
+  );
+  if (result.notModified && revisionCache?.value) return revisionCache.value;
+  const value = result.body;
+  revisionCache = { etag: result.headers.get('etag') || '', value };
+  return value;
 }
 
 export async function getWorkspaceDocument(name) {
