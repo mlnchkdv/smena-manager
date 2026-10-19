@@ -89,7 +89,7 @@ async function request(path, options = {}, authenticated = false) {
   const body = notModified ? {} : await response.json().catch(() => ({}));
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
-  if (!response.ok) {
+  if (!response.ok && !notModified) {
     if (authenticated && body.code === 'SESSION_ACCOUNT_CHANGED') throw accountChanged();
     const message =
       typeof body.error === 'string'
