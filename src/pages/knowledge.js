@@ -17,6 +17,28 @@ const knowledgeData = () => ({
   folders: Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [],
 });
 
+function folderTree(folders, notes, activeId) {
+  const counts = new Map(folders.map(folder => [folder.id, 0]));
+  notes.forEach(note => note.folderId && counts.set(note.folderId, (counts.get(note.folderId) || 0) + 1));
+  const children = new Map();
+  folders.forEach(folder => {
+    const parent = folders.some(item => item.id === folder.parentId) ? folder.parentId : '';
+    if (!children.has(parent)) children.set(parent, []);
+    children.get(parent).push(folder);
+  });
+  for (const list of children.values()) list.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }));
+  const render = (parent = '', depth = 0, seen = new Set()) =>
+    (children.get(parent) || [])
+      .filter(folder => !seen.has(folder.id))
+      .map(folder => {
+        const nextSeen = new Set(seen).add(folder.id);
+        const nested = render(folder.id, depth + 1, nextSeen);
+        return `<div class="knowledge-folder-node"><button class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(nested ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${counts.get(folder.id) || 0}</span></button>${nested}</div>`;
+      })
+      .join('');
+  return render();
+}
+
 function noteItem(note, active, folder, readOnly) {
   const author = mem(note.updatedBy || note.createdBy);
   return `<div class="knowledge-note-row ${active ? 'on' : ''}">
@@ -57,7 +79,13 @@ export function pageKnowledge() {
   const { notes, folders } = knowledgeData();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const { filtered, active } = knowledgeView(notes, { query: S.ui.knowledgeQuery, folder: folderFilter, activeId: S.ui.knowledgeActive });
+  const { visible, active, total, hasMore } = knowledgeView(notes, {
+    query: S.ui.knowledgeQuery,
+    folder: folderFilter,
+    activeId: S.ui.knowledgeActive,
+    sort: S.ui.knowledgeSort || 'updated',
+    limit: S.ui.knowledgeLimit || 200,
+  });
   S.ui.knowledgeActive = active?.id || null;
 
   return `<div class="knowledge-shell">
@@ -65,13 +93,14 @@ export function pageKnowledge() {
       <div class="knowledge-sidebar-head">
         <div class="row"><div class="grow"><h1>Knowledge base</h1><p>${notes.length} notes</p></div>${readOnly ? '' : `<label class="ibtn" aria-label="Import Markdown" data-tip="Import Markdown" style="cursor:pointer">${ic('file-up', 16)}<input type="file" accept=".md,.markdown,text/markdown,text/plain" multiple hidden data-in="importKnowledgeMarkdown"></label><button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div>
         <div class="inwrap">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search notes, tags, and content" aria-label="Search knowledge base"></div>
-        <label class="sr" for="knowledge-folder-filter">Filter by folder</label><select class="select" id="knowledge-folder-filter" data-in="knowledgeFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
+        <div class="knowledge-list-tools"><label class="sr" for="knowledge-folder-filter">Filter by folder</label><select class="select" id="knowledge-folder-filter" data-in="knowledgeFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="favorites" ${folderFilter === 'favorites' ? 'selected' : ''}>Favorites</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select><label class="sr" for="knowledge-sort">Sort notes</label><select class="select knowledge-sort" id="knowledge-sort" data-in="knowledgeSort"><option value="updated" ${(S.ui.knowledgeSort || 'updated') === 'updated' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Title</option></select></div>
+        <nav class="knowledge-folders" aria-label="Knowledge folders"><button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button><button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => note.favorite).length}</span></button><button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>${folderTree(folders, notes, folderFilter)}</nav>
         ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}
       </div>
       <div class="knowledge-list" data-keep="knowledge-list">
         ${
-          filtered.length
-            ? filtered
+          visible.length
+            ? visible
                 .map(note =>
                   noteItem(
                     note,
@@ -83,6 +112,7 @@ export function pageKnowledge() {
                 .join('')
             : `<div class="knowledge-list-empty">${ic('search-x', 18)}<span>No notes match your filters.</span></div>`
         }
+        ${hasMore ? `<button class="btn btn-ghost btn-block knowledge-load-more" data-a="loadMoreKnowledge">${ic('chevrons-down', 14)}Show more <span class="muted">(${visible.length} / ${total})</span></button>` : ''}
       </div>
     </aside>
     <div class="knowledge-main">

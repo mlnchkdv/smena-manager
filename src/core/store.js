@@ -132,6 +132,8 @@ export const S = {
     knowledgeQuery: '',
     knowledgeFolder: 'all',
     knowledgeActive: null,
+    knowledgeSort: 'updated',
+    knowledgeLimit: 200,
     knowledgeImportStatus: '',
     bookmarkQuery: '',
     bookmarkFolder: 'all',

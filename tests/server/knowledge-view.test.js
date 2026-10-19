@@ -24,3 +24,25 @@ test('knowledge selection preserves a matching note and sorting does not mutate 
   );
   assert.equal(input[0].id, 'invalid');
 });
+
+test('knowledge view limits large lists without losing the active note', () => {
+  const many = Array.from({ length: 240 }, (_, index) => ({ id: `n${index}`, title: `Note ${String(index).padStart(3, '0')}`, updatedAt: `2026-10-${String((index % 9) + 1).padStart(2, '0')}` }));
+  const result = knowledgeView(many, { limit: 20, activeId: 'n239' });
+  assert.equal(result.total, 240);
+  assert.equal(result.hasMore, true);
+  assert.equal(result.visible.length, 21);
+  assert.equal(result.active.id, 'n239');
+  assert.ok(result.visible.some(note => note.id === 'n239'));
+});
+
+test('favorites and title sorting compose with search filters', () => {
+  const result = knowledgeView(
+    [
+      { id: 'a', title: 'Zeta', favorite: true, updatedAt: '2026-10-18' },
+      { id: 'b', title: 'Alpha', favorite: true, updatedAt: '2026-10-17' },
+      { id: 'c', title: 'Alpha', favorite: false, updatedAt: '2026-10-19' },
+    ],
+    { folder: 'favorites', sort: 'title' },
+  );
+  assert.deepEqual(result.filtered.map(note => note.id), ['b', 'a']);
+});

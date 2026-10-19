@@ -507,6 +507,16 @@ A.toggleKnowledgeFavorite = el => {
     if (note) note.favorite = !note.favorite;
   });
 };
+A.setKnowledgeFolder = el => {
+  S.ui.knowledgeFolder = el.dataset.folder || 'all';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
+A.loadMoreKnowledge = () => {
+  S.ui.knowledgeLimit = Math.min(1000, (S.ui.knowledgeLimit || 200) + 200);
+  render();
+};
 A.newKnowledgeFolder = () => {
   if (S.ui.currentUser?.role === 'viewer') return;
   openModal({
@@ -556,6 +566,13 @@ IN.knowledgeQuery = el => {
 };
 IN.knowledgeFolder = el => {
   S.ui.knowledgeFolder = el.value;
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeLimit = 200;
+  render();
+};
+IN.knowledgeSort = el => {
+  S.ui.knowledgeSort = el.value === 'title' ? 'title' : 'updated';
+  S.ui.knowledgeActive = null;
   render();
 };
 IN.knowledgeField = el => {
