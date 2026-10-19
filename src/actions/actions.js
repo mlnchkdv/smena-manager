@@ -512,6 +512,31 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';
+  if (S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder)) {
+    const folders = knowledgeCollections().folders;
+    const collapsed = { ...(S.ui.knowledgeCollapsedFolders || {}) };
+    let current = folders.find(folder => folder.id === S.ui.knowledgeFolder);
+    while (current) {
+      delete collapsed[current.id];
+      current = folders.find(folder => folder.id === current.parentId);
+    }
+    S.ui.knowledgeCollapsedFolders = collapsed;
+  }
+  render();
+};
+A.toggleKnowledgeFolder = el => {
+  const id = el.dataset.folder;
+  if (!id) return;
+  const collapsed = S.ui.knowledgeCollapsedFolders || {};
+  S.ui.knowledgeCollapsedFolders = { ...collapsed, [id]: !collapsed[id] };
+  render();
+};
+A.expandKnowledgeFolders = () => {
+  S.ui.knowledgeCollapsedFolders = {};
+  render();
+};
+A.collapseKnowledgeFolders = () => {
+  S.ui.knowledgeCollapsedFolders = Object.fromEntries(knowledgeCollections().folders.map(folder => [folder.id, true]));
   render();
 };
 A.loadMoreKnowledge = () => {

@@ -135,6 +135,7 @@ export const S = {
     knowledgeSort: 'updated',
     knowledgeLimit: 200,
     knowledgeTag: '',
+    knowledgeCollapsedFolders: {},
     knowledgeImportStatus: '',
     bookmarkQuery: '',
     bookmarkFolder: 'all',

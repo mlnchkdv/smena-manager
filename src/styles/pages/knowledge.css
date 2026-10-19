@@ -55,6 +55,23 @@
   overflow: auto;
   padding: 2px 0 4px;
 }
+.knowledge-folder-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 24px;
+  color: var(--text-3);
+}
+.knowledge-folder-toolbar .label {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.knowledge-folder-toolbar .ibtn {
+  width: 24px;
+  height: 24px;
+  color: var(--text-3);
+}
 .knowledge-folder-node {
   min-width: 0;
 }
@@ -62,6 +79,19 @@
   display: flex;
   min-width: 0;
   align-items: center;
+}
+.knowledge-folder-toggle,
+.knowledge-folder-toggle-spacer {
+  width: 22px;
+  height: 28px;
+  flex: 0 0 22px;
+  display: grid;
+  place-items: center;
+  color: var(--text-4);
+}
+.knowledge-folder-toggle:hover {
+  color: var(--text);
+  background: var(--surface);
 }
 .knowledge-folder-line > .knowledge-folder {
   flex: 1 1 auto;
@@ -100,7 +130,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  padding-left: calc(8px + (var(--folder-depth, 0) * 16px));
+  padding-left: calc(4px + (var(--folder-depth, 0) * 16px));
   border-radius: var(--r-sm);
   color: var(--text-2);
   text-align: left;
