@@ -362,6 +362,32 @@
   right: 9px;
   bottom: 8px;
 }
+.knowledge-note-actions {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.knowledge-note-row:hover .knowledge-note-actions,
+.knowledge-note-row:focus-within .knowledge-note-actions {
+  opacity: 1;
+}
+.knowledge-note-actions .ibtn {
+  width: 24px;
+  height: 24px;
+}
+.knowledge-note-actions .knowledge-star {
+  position: static;
+}
+@media (max-width: 640px) {
+  .knowledge-note-actions {
+    opacity: 1;
+  }
+}
 .knowledge-list-empty {
   display: flex;
   flex-direction: column;

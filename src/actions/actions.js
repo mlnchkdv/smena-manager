@@ -513,6 +513,16 @@ A.openKnowledgeNote = el => {
     if (drawer && !drawer.contains(document.activeElement)) drawer.focus({ preventScroll: true });
   }
 };
+A.previewKnowledgeNote = el => {
+  if (!el.dataset.id) return;
+  S.ui.knowledgeDrawer = el.dataset.id;
+  S.ui.knowledgeDrawerView = 'preview';
+  S.ui.knowledgeActive = null;
+  S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
+  render();
+  const drawer = $('.knowledge-drawer');
+  if (drawer) drawer.focus({ preventScroll: true });
+};
 A.goKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
   if (S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640)) {

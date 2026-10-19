@@ -758,6 +758,7 @@ const RU = {
   'Column options': 'Параметры колонки',
   'Quick edit': 'Быстрое редактирование',
   'Edit note': 'Редактировать заметку',
+  'Quick preview': 'Быстрый просмотр',
   'Show connections': 'Показать связи',
   'No content yet.': 'Содержимое пока не добавлено.',
   Columns: 'Столбцы',
