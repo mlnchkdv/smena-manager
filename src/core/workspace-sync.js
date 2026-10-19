@@ -1,5 +1,5 @@
 import { putWorkspace, putWorkspaceDocument } from './api.js';
-import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { DOCUMENT_NAMES, serializeWorkspaceWrite, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { workspacePayload } from './workspace-snapshot.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 import { createDraftJournal } from './offline-drafts.js';
@@ -243,20 +243,25 @@ export function configureDocumentWorkspaceSync(name, revision, role, data, conte
   documentSyncs[name].configure(revision, role, workspaceDocumentData(name, data), { ...context, scope: name });
 }
 export function queueScopedWorkspaceSync(scope, data) {
-  return scope === 'workspace' ? workspaceSync.queue(workspaceCoreData(data)) : documentSyncs[scope].queue(workspaceDocumentData(scope, data));
+  return serializeWorkspaceWrite(() =>
+    scope === 'workspace' ? workspaceSync.queue(workspaceCoreData(data)) : documentSyncs[scope].queue(workspaceDocumentData(scope, data)),
+  );
 }
 export function disableWorkspaceSync() {
   workspaceSync.disable();
   for (const sync of Object.values(documentSyncs)) sync.disable();
 }
 export function queueWorkspaceSync(data) {
-  return Promise.all([
-    workspaceSync.queue(workspaceCoreData(data)),
-    ...DOCUMENT_NAMES.map(name => documentSyncs[name].queue(workspaceDocumentData(name, data))),
-  ]);
+  return serializeWorkspaceWrite(async () => {
+    await workspaceSync.queue(workspaceCoreData(data));
+    for (const name of DOCUMENT_NAMES) await documentSyncs[name].queue(workspaceDocumentData(name, data));
+  });
 }
 export function retryWorkspaceSync() {
-  return Promise.all([workspaceSync.retry(), ...Object.values(documentSyncs).map(sync => sync.retry())]);
+  return serializeWorkspaceWrite(async () => {
+    await workspaceSync.retry();
+    for (const sync of Object.values(documentSyncs)) await sync.retry();
+  });
 }
 export function workspaceSyncState() {
   const core = workspaceSync.state();

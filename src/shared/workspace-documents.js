@@ -6,6 +6,16 @@ export const WORKSPACE_DOCUMENTS = Object.freeze({
 export const DOCUMENT_NAMES = Object.freeze(Object.keys(WORKSPACE_DOCUMENTS));
 export const DOCUMENT_FIELDS = Object.freeze(Object.values(WORKSPACE_DOCUMENTS).flat());
 
+// Core and document snapshots share one Drive aggregate. Serialize client-side
+// writes so a fast edit cannot make sibling PUTs race on the same revision.
+let serializedWrite = Promise.resolve();
+
+export function serializeWorkspaceWrite(task) {
+  const next = serializedWrite.catch(() => undefined).then(task);
+  serializedWrite = next.catch(() => undefined);
+  return next;
+}
+
 export function workspaceCoreData(data = {}) {
   return Object.fromEntries(Object.entries(data).filter(([key]) => !DOCUMENT_FIELDS.includes(key) && !key.startsWith('_')));
 }
