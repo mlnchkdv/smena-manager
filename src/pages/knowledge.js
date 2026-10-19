@@ -42,10 +42,11 @@ function folderTree(folders, notes, activeId, readOnly) {
 
 function noteItem(note, active, folder, readOnly) {
   const author = mem(note.updatedBy || note.createdBy);
+  const tags = (note.tags || []).filter(Boolean).slice(0, 2);
   return `<div class="knowledge-note-row ${active ? 'on' : ''}">
     <button class="knowledge-note" data-a="openKnowledgeNote" data-id="${note.id}" ${active ? 'aria-current="page"' : ''}>
       <span class="knowledge-note-icon">${ic('file-text', 15)}</span>
-      <span class="grow"><b class="trunc" ${note.title ? 'translate="no"' : ''}>${esc(note.title || 'Untitled note')}</b><span class="trunc" ${note.summary || folder?.name ? 'translate="no"' : ''}>${esc(note.summary || folder?.name || 'No summary')}</span></span>
+      <span class="grow"><b class="trunc" ${note.title ? 'translate="no"' : ''}>${esc(note.title || 'Untitled note')}</b><span class="trunc" ${note.summary || folder?.name ? 'translate="no"' : ''}>${esc(note.summary || folder?.name || 'No summary')}</span>${tags.length ? `<span class="knowledge-note-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</span>
       <span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span>
     </button>
     ${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}

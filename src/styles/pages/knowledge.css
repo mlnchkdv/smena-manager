@@ -180,6 +180,24 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
+.knowledge-note-tags {
+  display: flex !important;
+  gap: 4px;
+  margin-top: 5px !important;
+  overflow: hidden;
+}
+.knowledge-tag {
+  max-width: 92px;
+  overflow: hidden;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent) !important;
+  font-size: var(--fs-2xs) !important;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .knowledge-note-time {
   align-self: flex-start;
   flex-shrink: 0;
