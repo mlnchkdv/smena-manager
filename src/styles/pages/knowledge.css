@@ -110,7 +110,10 @@
   gap: 2px;
   max-height: min(34vh, 360px);
   overflow: auto;
-  padding: 2px 0 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--sunken);
 }
 .knowledge-folder-toolbar {
   display: flex;
@@ -249,14 +252,17 @@
 }
 .knowledge-note-row {
   position: relative;
+  margin-bottom: 4px;
   border-radius: var(--r);
+  border: 1px solid transparent;
   content-visibility: auto;
   contain-intrinsic-size: 70px;
 }
 .knowledge-note-row:hover,
 .knowledge-note-row.on {
   background: var(--surface);
-  box-shadow: 0 0 0 1px var(--border);
+  border-color: var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
 }
 .knowledge-note {
   width: 100%;
@@ -295,10 +301,31 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
-.knowledge-note-tags {
+.knowledge-note-context {
   display: flex !important;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   margin-top: 5px !important;
+}
+.knowledge-note-folder {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 3px;
+  max-width: 110px;
+  overflow: hidden;
+  color: var(--text-4) !important;
+  font-size: var(--fs-2xs) !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.knowledge-note-folder .i {
+  color: var(--accent);
+}
+.knowledge-note-tags {
+  display: inline-flex !important;
+  gap: 4px;
+  min-width: 0;
   overflow: hidden;
 }
 .knowledge-tag {
@@ -312,6 +339,10 @@
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.knowledge-tag-more {
+  background: var(--surface-3);
+  color: var(--text-3) !important;
 }
 .knowledge-note-time {
   align-self: flex-start;
@@ -396,6 +427,14 @@
   gap: 16px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
+}
+.knowledge-editor-section-title {
+  margin-top: 2px;
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 .knowledge-title {
   width: 100%;
@@ -577,6 +616,9 @@ button.knowledge-relation:hover {
   .knowledge-list {
     max-height: 320px;
   }
+  .knowledge-list-summary {
+    padding-top: 2px;
+  }
   .knowledge-folders {
     max-height: 180px;
   }
@@ -599,5 +641,14 @@ button.knowledge-relation:hover {
   }
   .knowledge-body {
     min-height: 300px;
+  }
+  .knowledge-editor {
+    gap: 16px;
+  }
+  .knowledge-editor-head {
+    gap: 10px;
+  }
+  .knowledge-title {
+    font-size: 25px;
   }
 }

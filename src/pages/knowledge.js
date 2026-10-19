@@ -71,10 +71,11 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
 function noteItem(note, active, folder, readOnly) {
   const author = mem(note.updatedBy || note.createdBy);
   const tags = (note.tags || []).filter(Boolean).slice(0, 2);
+  const extraTags = Math.max(0, (note.tags || []).filter(Boolean).length - tags.length);
   return `<div class="knowledge-note-row ${active ? 'on' : ''}">
     <button class="knowledge-note" data-a="openKnowledgeNote" data-id="${note.id}" ${active ? 'aria-current="page"' : ''}>
       <span class="knowledge-note-icon">${ic('file-text', 15)}</span>
-      <span class="grow"><b class="trunc" ${note.title ? 'translate="no"' : ''}>${esc(note.title || 'Untitled note')}</b><span class="trunc" ${note.summary || folder?.name ? 'translate="no"' : ''}>${esc(note.summary || folder?.name || 'No summary')}</span>${tags.length ? `<span class="knowledge-note-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</span>
+      <span class="grow"><b class="trunc" ${note.title ? 'translate="no"' : ''}>${esc(note.title || 'Untitled note')}</b><span class="trunc knowledge-note-summary" ${note.summary ? 'translate="no"' : ''}>${esc(note.summary || 'No summary')}</span><span class="knowledge-note-context">${folder ? `<span class="knowledge-note-folder" translate="no">${ic('folder', 11)}${esc(folder.name)}</span>` : `<span class="knowledge-note-folder">${ic('folder-open', 11)}No folder</span>`}${tags.length ? `<span class="knowledge-note-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}${extraTags ? `<span class="knowledge-tag knowledge-tag-more">+${extraTags}</span>` : ''}</span>` : ''}</span></span>
       <span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span>
     </button>
     ${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}
@@ -86,7 +87,7 @@ export function pageKnowledge() {
   const { notes, folders } = knowledgeData();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const drawerMode = S.ui.knowledgePresentation === 'drawer';
+  const drawerMode = S.ui.knowledgePresentation === 'drawer' || !!S.ui.knowledgeDrawer;
   const { visible, active: selected, total, hasMore } = knowledgeView(notes, {
     query: S.ui.knowledgeQuery,
     folder: folderFilter,

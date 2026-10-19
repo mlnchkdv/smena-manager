@@ -493,7 +493,8 @@ IN.importKnowledgeMarkdown = async el => {
   }
 };
 A.openKnowledgeNote = el => {
-  if (S.ui.knowledgePresentation === 'drawer') {
+  const usePanel = S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640);
+  if (usePanel) {
     if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
     S.ui.knowledgeDrawer = el.dataset.id;
     S.ui.knowledgeActive = null;
@@ -512,7 +513,7 @@ A.openKnowledgeNote = el => {
 };
 A.goKnowledgeNote = el => {
   S.ui.knowledgeActive = el.dataset.id;
-  if (S.ui.knowledgePresentation === 'drawer') S.ui.knowledgeDrawer = el.dataset.id;
+  if (S.ui.knowledgePresentation === 'drawer' || (typeof window !== 'undefined' && window.innerWidth <= 640)) S.ui.knowledgeDrawer = el.dataset.id;
   S.ui.knowledgeQuery = '';
   S.ui.knowledgeFolder = 'all';
   go('knowledge');

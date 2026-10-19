@@ -352,6 +352,8 @@ const RU = {
   'Create the first note for your team knowledge base.': 'Создайте первую заметку для базы знаний команды.',
   'Note editor': 'Редактор заметки',
   'Note title': 'Название заметки',
+  Details: 'Детали',
+  Content: 'Содержание',
   'Untitled note': 'Без названия',
   'No summary': 'Нет описания',
   'View only': 'Только просмотр',
