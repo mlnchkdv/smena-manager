@@ -20,11 +20,18 @@
   gap: 10px;
   padding: 20px 16px 14px;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
 }
 .knowledge-sidebar-head h1 {
   margin: 0;
   font-size: var(--fs-lg);
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .knowledge-sidebar-head p {
   margin: 2px 0 0;
@@ -77,6 +84,8 @@
 }
 .knowledge-folder-node {
   min-width: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: 32px;
 }
 .knowledge-folder-line {
   display: flex;
@@ -191,6 +200,8 @@
 .knowledge-note-row {
   position: relative;
   border-radius: var(--r);
+  content-visibility: auto;
+  contain-intrinsic-size: 70px;
 }
 .knowledge-note-row:hover,
 .knowledge-note-row.on {
@@ -464,6 +475,9 @@ button.knowledge-relation:hover {
   }
   .knowledge-sidebar-head {
     padding: 16px;
+  }
+  .knowledge-sidebar-head h1 {
+    font-size: var(--fs-md);
   }
   .knowledge-sidebar-head .grow {
     flex-basis: auto;
