@@ -4,7 +4,7 @@ import { smokeDeployment, smokeOrigin } from '../../scripts/smoke-deployment.js'
 
 function response(path) {
   if (path === '/') return new Response('<html><script type="module" src="/assets/app.js"></script></html>', { headers: { 'Content-Type': 'text/html' } });
-  if (path === '/api/workspace') return new Response('{}', { status: 401 });
+  if (['/api/workspace', '/api/workspace/revision', '/api/files/policy'].includes(path)) return new Response('{}', { status: 401 });
   return new Response(
     JSON.stringify(
       path === '/api/health' ? { status: 'ok', service: 'smena-manager' } : { deploymentReady: true, googleAuthEnabled: true, workspaceStorageAvailable: true },
@@ -21,11 +21,11 @@ test('deployment smoke only performs public GETs, never sends credentials and re
     assert.ok(options.signal);
     return response(new URL(url).pathname);
   };
-  assert.equal((await smokeDeployment('https://smena-manager.vercel.app', { fetch })).length, 4);
+  assert.equal((await smokeDeployment('https://smena-manager.vercel.app', { fetch })).length, 6);
   await assert.rejects(
     smokeDeployment('smena-manager.vercel.app', {
       fetch: async url =>
-        new URL(url).pathname === '/api/workspace'
+        ['/api/workspace', '/api/workspace/revision', '/api/files/policy'].includes(new URL(url).pathname)
           ? new Response('{}')
           : fetch(url, { method: 'GET', credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(1000) }),
     }),

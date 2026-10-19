@@ -38,7 +38,7 @@ export async function smokeDeployment(input, options = {}) {
   const origin = smokeOrigin(input);
   const request = options.fetch || fetch;
   const results = [];
-  for (const path of ['/', '/api/health', '/api/auth/config', '/api/workspace']) {
+  for (const path of ['/', '/api/health', '/api/auth/config', '/api/workspace', '/api/workspace/revision', '/api/files/policy']) {
     const response = await request(`${origin}${path}`, {
       method: 'GET',
       redirect: 'manual',
@@ -46,12 +46,12 @@ export async function smokeDeployment(input, options = {}) {
       cache: 'no-store',
       signal: AbortSignal.timeout(10000),
     });
-    const expected = path === '/api/workspace' ? 401 : 200;
+    const expected = ['/api/workspace', '/api/workspace/revision', '/api/files/policy'].includes(path) ? 401 : 200;
     if (response.status !== expected) {
       await response.body?.cancel().catch(() => {});
       throw new Error(`${path}: expected HTTP ${expected}, received ${response.status}.`);
     }
-    if (path === '/api/workspace') await response.body?.cancel().catch(() => {});
+    if (expected === 401) await response.body?.cancel().catch(() => {});
     else {
       const text = await boundedText(response);
       if (path === '/') {
