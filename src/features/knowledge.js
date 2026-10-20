@@ -18,7 +18,11 @@ A.restoreKnowledgeVersion = el => {
     ok: 'Restore version',
     run: () =>
       mutate(() => {
-        Object.assign(note, historyContent(version, D().knowledgeFolders), { updatedAt: new Date().toISOString(), updatedBy: D().me });
+        Object.assign(note, historyContent(version, D().knowledgeFolders), {
+          updatedAt: new Date().toISOString(),
+          updatedBy: D().me,
+          restoreFromVersion: version.id,
+        });
       }),
   });
 };

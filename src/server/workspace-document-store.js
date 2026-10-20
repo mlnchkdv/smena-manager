@@ -53,6 +53,7 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
             const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
             for (const note of incoming.knowledgeNotes) {
               note.history = noteHistory(previous.get(note.id), note);
+              delete note.restoreFromVersion;
               const references = previous.get(note.id)?.wikiRefs;
               if (!Object.hasOwn(note, 'wikiRefs') && references) note.wikiRefs = structuredClone(references);
             }
