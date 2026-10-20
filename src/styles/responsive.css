@@ -326,6 +326,10 @@
   .drawer.full .drawer-b {
     padding: 16px 16px 40px;
   }
+  .drawer.full.enter {
+    /* Desktop centering must not survive as an animation fill on phones. */
+    animation-name: drawerIn;
+  }
   .modal-wrap {
     padding: 0;
     align-items: flex-end;

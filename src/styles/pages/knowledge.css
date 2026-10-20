@@ -1,4 +1,38 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-drawer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.knowledge-quick-preview-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  margin-bottom: 16px;
+}
+.knowledge-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+@media (max-width: 640px) {
+  .knowledge-drawer-brand > span {
+    display: none;
+  }
+  .knowledge-quick-actions .btn {
+    flex: 1 1 100%;
+  }
+  .knowledge-quick-content {
+    font-size: var(--fs-sm);
+  }
+}
 .knowledge-sort-filter {
   display: flex;
   width: 160px;
