@@ -277,6 +277,7 @@ const RU = {
   'Import Markdown': 'Импортировать Markdown',
   'Import notes': 'Импорт заметок',
   'Import valid notes': 'Импортировать корректные',
+  'Importing notes…': 'Импортируем заметки…',
   'Some files could not be read. Only the valid notes below will be imported.':
     'Часть файлов не удалось прочитать. Будут импортированы только корректные заметки из списка ниже.',
   'Ready to import': 'Готово к импорту',

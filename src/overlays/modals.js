@@ -70,7 +70,7 @@ export function modalHtml(m) {
                 .join('')}</div>`
             : ''
         }
-        </div><div class="modal-f"><button class="btn btn-secondary" data-a="downloadImportReport">Download report</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${preview.busy ? 'disabled' : ''}>Cancel</button><button class="btn btn-primary" data-a="confirmPortableImport" ${preview.busy || !canImport ? 'disabled' : ''}>${invalidFiles ? 'Import valid notes' : 'Import'}</button></div>`,
+        </div><div class="modal-f"><button class="btn btn-secondary" data-a="downloadImportReport">Download report</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${preview.busy ? 'disabled' : ''}>Cancel</button><button class="btn btn-primary" data-a="confirmPortableImport" ${preview.busy || !canImport ? 'disabled' : ''}>${preview.busy ? 'Importing notes…' : invalidFiles ? 'Import valid notes' : 'Import'}</button></div>`,
       );
     }
     case 'task':

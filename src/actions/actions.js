@@ -413,11 +413,20 @@ A.confirmPortableImport = async () => {
   const preview = S.ui.importPreview;
   if (!preview || preview.busy || !['admin', 'editor'].includes(S.ui.currentUser?.role)) return;
   if (!['notes', 'links', 'knowledgeFolders', 'linkFolders'].some(key => preview.result.counts[key] > 0)) return;
-  if (!workspaceSyncIsClean(S.data)) return toast('Wait until all changes are saved before importing.', { kind: 'info' });
+  const owner = S.ui.currentUser.id;
+  const workspace = D().ws.id || D().ws.url;
   preview.busy = true;
   S.ui.atomicOperation = true;
   render();
   try {
+    if (!workspaceSyncIsClean(S.data)) {
+      // Include pre-debounce edits (and legacy defaults materialized by the UI).
+      // The atomic-operation guard keeps the reviewed batch stable while saving.
+      save();
+      await queueWorkspaceSync(S.data);
+      if (!workspaceSyncIsClean(S.data)) throw new Error('Wait until all changes are saved before importing.');
+    }
+    if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) throw new Error('The signed-in account changed. Sign in again.');
     const result = await commitPortableImport(preview.payload, S.ui.workspaceRevision, preview.policy);
     await refreshWorkspaceFromServer({ force: true });
     if (preview.entries) {
