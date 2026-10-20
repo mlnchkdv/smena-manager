@@ -112,6 +112,12 @@ A.toggleKnowledgeMobileFolders = () => {
   if (S.ui.knowledgeMobileFolders) document.querySelector('[data-in="knowledgeFolderQuery"]')?.focus();
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };
+window.addEventListener('resize', () => {
+  if (S.ui.knowledgeMobileFolders && window.innerWidth > 640) {
+    S.ui.knowledgeMobileFolders = false;
+    render();
+  }
+});
 A.filterKnowledgePreviewTag = el => {
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = 'all';

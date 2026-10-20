@@ -249,7 +249,7 @@ function refreshThumbnails() {
 
 export function afterRender() {
   const shell = document.querySelector('.shell');
-  if (shell) shell.inert = !!S.ui.knowledgeDrawer;
+  if (shell) shell.inert = !!document.querySelector('.knowledge-drawer');
   const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && matchMedia('(max-width:640px)').matches;
   const knowledgeMain = document.querySelector('.knowledge-main');
   if (knowledgeMain) knowledgeMain.inert = !!mobileFolders;

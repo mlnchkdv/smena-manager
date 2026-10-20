@@ -1,4 +1,9 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-save-status {
+  margin-left: auto;
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
 .knowledge-folder-bulk {
   display: flex;
   flex-wrap: wrap;
