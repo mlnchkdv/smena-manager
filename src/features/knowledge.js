@@ -291,6 +291,12 @@ IN.knowledgeFolderCardQuery = el => {
   S.ui.knowledgeFolderCardOffset = 0;
   render();
 };
+A.clearKnowledgeFolderCardQuery = () => {
+  S.ui.knowledgeFolderCardQuery = '';
+  S.ui.knowledgeFolderCardOffset = 0;
+  render();
+  (document.getElementById('knowledge-subfolder-search') || document.querySelector('.knowledge-folder-card'))?.focus();
+};
 A.knowledgeFolderCardPage = el => {
   S.ui.knowledgeFolderCardOffset = Math.max(0, Number(el.dataset.offset) || 0);
   render();

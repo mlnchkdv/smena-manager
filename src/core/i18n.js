@@ -16,6 +16,7 @@ export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
   'Move note': 'Переместить заметку',
+  'Clear folder search': 'Очистить поиск папок',
   'Folder actions': 'Действия с папкой',
   'This folder changed. Reopen its actions.': 'Папка изменилась. Откройте её действия заново.',
   'Rename conflicting subfolders before deleting this folder.': 'Перед удалением переименуйте вложенные папки с совпадающими именами.',

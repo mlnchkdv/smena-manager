@@ -28,6 +28,10 @@ export function knowledgeMovePicker(m) {
   const destination = path.map(item => item.name).join(' / ') || t('No folder');
   return `<div class="modal-b">
     <p class="hint"><span>Selected notes</span>: ${selected.length}</p>
+    <ul class="knowledge-move-note-titles">${selected
+      .slice(0, 3)
+      .map(note => `<li translate="no">${esc(note.title || t('Untitled note'))}</li>`)
+      .join('')}${selected.length > 3 ? `<li class="hint">+${selected.length - 3}</li>` : ''}</ul>
     <nav class="knowledge-move-crumbs" aria-label="Destination folder"><button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="">${ic('folder-open', 14)}No folder</button>${path.map(item => `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="${esc(item.id)}" translate="no">${esc(item.name)}</button>`).join('')}</nav>
     <label class="field"><span class="sr">Find destination folder</span><input class="input" id="knowledge-move-search" data-in="knowledgeMoveQuery" value="${esc(m.query || '')}" placeholder="Find destination folder" autofocus></label>
     <div class="knowledge-move-folders">${
