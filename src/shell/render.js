@@ -154,7 +154,14 @@ export function render() {
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';
   const prevOv = render._ov || {};
-  const ov = { pop: !!S.ui.pop, modals: S.ui.modals.length, drawer: S.ui.drawer, knowledgeDrawer: S.ui.knowledgeDrawer, pal: !!S.ui.palette, sub: !!S.ui.subOpen };
+  const ov = {
+    pop: !!S.ui.pop,
+    modals: S.ui.modals.length,
+    drawer: S.ui.drawer,
+    knowledgeDrawer: S.ui.knowledgeDrawer,
+    pal: !!S.ui.palette,
+    sub: !!S.ui.subOpen,
+  };
   // Entrances animate only on the render where the surface first appears.
   const fx = S.ui.fx || (S.ui.fx = {});
   if (ov.drawer && prevOv.drawer !== ov.drawer) fx.drawer = true;
@@ -241,6 +248,16 @@ function refreshThumbnails() {
 }
 
 export function afterRender() {
+  const shell = document.querySelector('.shell');
+  if (shell) shell.inert = !!S.ui.knowledgeDrawer;
+  const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && matchMedia('(max-width:640px)').matches;
+  const knowledgeMain = document.querySelector('.knowledge-main');
+  if (knowledgeMain) knowledgeMain.inert = !!mobileFolders;
+  if (mobileFolders) {
+    const sidebar = document.querySelector('.knowledge-sidebar');
+    sidebar?.setAttribute('role', 'dialog');
+    sidebar?.setAttribute('aria-modal', 'true');
+  }
   refreshThumbnails();
   selectMenu.close();
   enhanceSelects();

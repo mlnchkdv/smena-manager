@@ -10,7 +10,7 @@ export const matchesKnowledgeSearch = (note, query) => {
 };
 export function knowledgeExcerpt(note, query, length = 180) {
   const text = String(note.summary || note.formatted_markdown || '')
-    .replace(/[#>*_`~\[\]]/g, '')
+    .replace(/[#>*_`~[\]]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
   const index =
