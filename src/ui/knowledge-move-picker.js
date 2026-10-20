@@ -26,7 +26,7 @@ export function knowledgeMovePicker(m) {
   const selected = D().knowledgeNotes.filter(note => m.ids.includes(note.id));
   const canMove = selected.length === m.ids.length && selected.some(note => (note.folderId || null) !== m.folder) && (!m.folder || index.byId.has(m.folder));
   const destination = path.map(item => item.name).join(' / ') || t('No folder');
-  return `<div class="modal-b">
+  return `<div class="modal-b" data-keep="${esc(`knowledge-move:${m.folder || ''}:${m.query || ''}:${start}`)}">
     <p class="hint"><span>Selected notes</span>: ${selected.length}</p>
     <ul class="knowledge-move-note-titles">${selected
       .slice(0, 3)

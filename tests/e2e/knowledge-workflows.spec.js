@@ -82,6 +82,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    await page.locator('.knowledge-folder-card-options summary').first().click();
+    await page.locator('[data-in="knowledgeSelect"]').last().focus();
+    const scrollBeforeSelection = await page.locator('.knowledge-main').evaluate(el => el.scrollTop);
+    expect(scrollBeforeSelection).toBeGreaterThan(0);
+    await page.locator('[data-in="knowledgeSelect"]').last().press('Space');
+    expect(await page.locator('.knowledge-main').evaluate(el => el.scrollTop)).toBeGreaterThanOrEqual(scrollBeforeSelection - 2);
+    await expect(page.locator('.knowledge-folder-card-options').first()).toHaveAttribute('open', '');
+    await page.locator('.knowledge-folder-card-options summary').first().click();
+    await page.locator('[data-a="clearKnowledgeSelection"]').click();
     await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toBeVisible();
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');

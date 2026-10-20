@@ -13,6 +13,7 @@ import { t } from '../core/i18n.js';
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
+import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -152,7 +153,7 @@ export function pageKnowledge() {
         ${
           S.ui.knowledgeFolderNavOpen === false
             ? ''
-            : `<nav class="knowledge-folders" aria-label="Knowledge folders">
+            : `<nav class="knowledge-folders" data-keep="${esc(`knowledge-folders:${S.ui.knowledgeFolderQuery || ''}:${S.ui.knowledgeFolderNavOffset || 0}`)}" aria-label="Knowledge folders">
           <button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button>
           <button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => note.favorite).length}</span></button>
           <button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>
@@ -163,10 +164,10 @@ export function pageKnowledge() {
         ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}
       </div>
     </aside>
-    <div class="knowledge-main">
+    <div class="knowledge-main" data-keep="${esc(`knowledge-main:${folderFilter}:${S.ui.knowledgeQuery || ''}:${S.ui.knowledgeTag || ''}:${S.ui.knowledgeSort || ''}:${start}`)}">
       <section class="knowledge-content" aria-label="Knowledge notes">
         <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span></button>
-        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options"><summary>Folder options</summary>${folderMove}</details>` : ''}
+        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options" ${knowledgeDisclosure(`folder:${folderFilter}`, 'settings')}><summary>Folder options</summary>${folderMove}</details>` : ''}
         <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeFolderCards" aria-pressed="${S.ui.knowledgeShowFolders !== false}" title="Show folders on the right">${ic('folder', 14)}Show folders</button><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
         <div class="knowledge-content-head"><div><h1 ${activeFolder ? 'translate="no"' : ''}>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span></p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-secondary btn-sm" data-a="chooseKnowledgeFiles" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}Import notes</button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         ${readOnly ? '' : `<p class="knowledge-import-hint" role="status" data-knowledge-import-progress>${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</p>`}
