@@ -33,6 +33,7 @@ import './features/subtasks.js';
 import './actions/teams.js';
 import './actions/subtasks.js';
 import './actions/archive.js';
+import './features/knowledge.js';
 import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';

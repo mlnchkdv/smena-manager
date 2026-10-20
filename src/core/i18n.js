@@ -1352,6 +1352,10 @@ const RU = {
   Color: 'Цвет',
 
   // Authentication and onboarding
+  'Move folder to': 'Переместить папку в',
+  'Root folder': 'Корень',
+  'Note pages': 'Страницы заметок',
+  'Cannot move a folder into itself or a descendant.': 'Невозможно переместить папку: проверьте вложенность и совпадения имён.',
   'Toggle theme': 'Переключить тему',
   'Show password': 'Показать пароль',
   'Hide password': 'Скрыть пароль',

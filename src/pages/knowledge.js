@@ -3,6 +3,7 @@ import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
+import { folderTrail } from '../shared/knowledge-tools.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -73,7 +74,7 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
         const toggle = hasChildren
           ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
           : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
-        return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${toggle}<button class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${counts.get(folder.id) || 0}</span></button>${actions}</div>${nested}</div>`;
+        return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${counts.get(folder.id) || 0}</span></button>${actions}</div>${nested}</div>`;
       })
       .join('');
   return render();
@@ -87,7 +88,7 @@ function notePreviewCard(note, folder, readOnly) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 180);
-  return `<article class="knowledge-preview-card"><button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
+  return `<article class="knowledge-preview-card" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}"><button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong class="trunc" translate="no">${esc(note.title || 'Untitled note')}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     <p class="knowledge-preview-excerpt" ${excerpt ? 'translate="no"' : ''}>${esc(excerpt || 'No summary')}</p>
     <div class="knowledge-preview-meta">${folder ? `<span translate="no">${ic('folder', 11)}${esc(folder.name)}</span>` : `<span>${ic('folder-open', 11)}No folder</span>`}${tags.length ? `<span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</div>
@@ -149,6 +150,20 @@ export function pageKnowledge() {
     )
     .join('');
   const activeFolder = folders.find(folder => folder.id === folderFilter);
+  const folderMove =
+    activeFolder && !readOnly
+      ? `<label class="knowledge-folder-move"><span>Move folder to</span><select class="select" data-in="knowledgeMoveFolder" data-id="${activeFolder.id}"><option value="">Root folder</option>${folders
+          .filter(folder => !folderTrail(folder.id, folders).some(item => item.id === activeFolder.id))
+          .map(
+            folder =>
+              `<option value="${esc(folder.id)}" ${activeFolder.parentId === folder.id ? 'selected' : ''} translate="no">${esc(
+                folderTrail(folder.id, folders)
+                  .map(item => item.name)
+                  .join(' / '),
+              )}</option>`,
+          )
+          .join('')}</select></label>`
+      : '';
 
   return `<div class="knowledge-shell">
     <aside class="knowledge-sidebar">
@@ -163,7 +178,7 @@ export function pageKnowledge() {
     </aside>
     <div class="knowledge-main">
       <section class="knowledge-content" aria-label="Knowledge notes">
-        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>
+        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove}
         <div class="knowledge-content-head"><div><h1>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span>${activeFolder ? ` · <span translate="no">${esc(activeFolder.name)}</span>` : ''}</p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
           ...new Set(notes.flatMap(note => note.tags || [])),
