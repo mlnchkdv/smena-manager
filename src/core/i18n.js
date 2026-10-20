@@ -1354,6 +1354,8 @@ const RU = {
   // Authentication and onboarding
   'Move folder to': 'Переместить папку в',
   'Save search': 'Сохранить поиск',
+  'Note context': 'Контекст заметки',
+  'Linked notes': 'Связанные заметки',
   'Saved locally': 'Сохранено на устройстве',
   'Resolve the saved conflict before editing this note.': 'Перед редактированием разрешите конфликт. Локальная версия сохранена для восстановления.',
   'Export recovery copy': 'Скачать копию для восстановления',

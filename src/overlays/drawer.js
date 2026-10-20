@@ -16,6 +16,7 @@ import { safeRichText } from '../ui/rich-text.js';
 import { relationsPanel } from '../ui/relations.js';
 import { noteEditor } from '../ui/knowledge-editor.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
+import { knowledgeContext } from '../ui/knowledge-context.js';
 
 export function renderLayer() {
   const u = S.ui;
@@ -42,7 +43,7 @@ export function knowledgeDrawerHtml(note) {
   const previewBody = `<section class="knowledge-quick-preview"><div class="knowledge-quick-preview-meta">${ic('clock-3', 13)}<span>Updated ${ago(note.updatedAt)}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>${note.summary ? `<p class="knowledge-quick-summary" translate="no">${esc(note.summary)}</p>` : ''}<div class="knowledge-quick-content" translate="no">${previewMarkup ? `<p>${previewMarkup}</p>` : '<p class="faint">No content yet.</p>'}</div><div class="knowledge-quick-actions">${readOnly ? '' : `<button class="btn btn-primary" data-a="editKnowledgeNote">${ic('pencil', 14)}Edit note</button>`}<button class="btn btn-secondary" data-a="showGraph" data-key="note:${note.id}">${ic('network', 14)}Show connections</button></div></section>`;
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
     <div class="drawer-h"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span>${readOnly ? '' : `<button class="ibtn ibtn-sm" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`}<button class="ibtn ibtn-sm" data-a="closeKnowledgeDrawer" data-tip="Close  Esc" aria-label="Close">${ic('x', 16)}</button></div>
-    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${preview ? previewBody : noteEditor(note, folders, readOnly)}</div>
+    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${preview ? previewBody + knowledgeContext(note) : noteEditor(note, folders, readOnly)}</div>
   </aside>`;
 }
 

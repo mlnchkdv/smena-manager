@@ -6,6 +6,13 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+A.filterKnowledgePreviewTag = el => {
+  S.ui.knowledgeDrawer = null;
+  S.ui.knowledgeFolder = 'all';
+  S.ui.knowledgeTag = el.dataset.tag;
+  S.ui.knowledgeOffset = 0;
+  render();
+};
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 A.toggleKnowledgeEditorPreview = () => {
