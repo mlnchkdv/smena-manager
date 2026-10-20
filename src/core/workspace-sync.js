@@ -280,6 +280,9 @@ export function workspaceSyncState() {
 export function workspaceSyncIsClean(data) {
   return workspaceSync.isClean(workspaceCoreData(data)) && DOCUMENT_NAMES.every(name => documentSyncs[name].isClean(workspaceDocumentData(name, data)));
 }
+export function workspaceDocumentSyncIsClean(name, data) {
+  return documentSyncs[name]?.isClean(workspaceDocumentData(name, data)) || false;
+}
 export function workspaceSyncConflict() {
   const core = workspaceSync.getConflict();
   if (core) return { ...core, scope: 'workspace' };
