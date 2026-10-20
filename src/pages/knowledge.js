@@ -3,7 +3,7 @@ import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
-import { folderTrail } from '../shared/knowledge-tools.js';
+import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
 import { knowledgePreferences } from '../core/knowledge-preferences.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
@@ -126,14 +126,15 @@ export function pageKnowledge() {
     )
     .join('');
   const activeFolder = folders.find(folder => folder.id === folderFilter);
+  const excludedDestinations = activeFolder ? folderDescendants(activeFolder.id, folders) : new Set();
   const folderMove =
     activeFolder && !readOnly
       ? `<label class="knowledge-folder-move"><span>Move folder to</span><select class="select" data-in="knowledgeMoveFolder" data-id="${activeFolder.id}"><option value="">Root folder</option>${folders
-          .filter(folder => !folderTrail(folder.id, folders).some(item => item.id === activeFolder.id))
+          .filter(folder => !excludedDestinations.has(folder.id))
           .map(
             folder =>
               `<option value="${esc(folder.id)}" ${activeFolder.parentId === folder.id ? 'selected' : ''} translate="no">${esc(
-                folderTrail(folder.id, folders)
+                folderTrail(folder.id, folderIndex.byId)
                   .map(item => item.name)
                   .join(' / '),
               )}</option>`,

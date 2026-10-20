@@ -1,4 +1,16 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-select-search {
+  position: sticky;
+  top: 0;
+  padding: 6px;
+  background: var(--surface);
+  z-index: 1;
+}
+.knowledge-select-hint {
+  padding: 0 10px;
+  max-width: 300px;
+  white-space: normal;
+}
 .knowledge-head-main .knowledge-head-actions {
   margin-left: auto;
 }

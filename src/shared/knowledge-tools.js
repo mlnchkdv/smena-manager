@@ -1,14 +1,14 @@
 export function folderTrail(id, folders) {
-  const byId = new Map(folders.map(folder => [folder.id, folder]));
+  const byId = folders instanceof Map ? folders : new Map(folders.map(folder => [folder.id, folder]));
   const result = [];
   const seen = new Set();
   while (byId.has(id) && !seen.has(id)) {
     seen.add(id);
     const folder = byId.get(id);
-    result.unshift(folder);
+    result.push(folder);
     id = folder.parentId;
   }
-  return result;
+  return result.reverse();
 }
 export function folderDescendants(id, folders) {
   const children = new Map();

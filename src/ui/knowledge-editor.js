@@ -15,6 +15,7 @@ export function noteEditor(note, folders, readOnly) {
   const conflict = knowledgeEditBlocked();
   const disabled = readOnly || conflict ? 'disabled' : '';
   const categories = [...new Set([...DEFAULT_CATEGORIES, note.category].filter(Boolean))];
+  const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
   return `<section class="knowledge-editor" aria-label="Note editor">
     <div class="knowledge-editor-head">
       <div class="grow">
@@ -31,7 +32,7 @@ export function noteEditor(note, folders, readOnly) {
         .map(
           folder =>
             `<option value="${folder.id}" ${note.folderId === folder.id ? 'selected' : ''} translate="no">${esc(
-              folderTrail(folder.id, folders)
+              folderTrail(folder.id, folderIndex)
                 .map(item => item.name)
                 .join(' / '),
             )}</option>`,

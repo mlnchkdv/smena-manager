@@ -1385,6 +1385,8 @@ const RU = {
   'Show folders': 'Показывать папки',
   'Show folders on the right': 'Показывать папки в правой части',
   'Find a subfolder': 'Найти подпапку',
+  'Search options': 'Поиск вариантов',
+  'Refine the search to see more options.': 'Уточните поиск, чтобы увидеть остальные варианты.',
   'Note count includes subfolders': 'Количество заметок включает подпапки',
   'No subfolders here.': 'Вложенных папок пока нет.',
   'No matching folders.': 'Подходящих папок не найдено.',

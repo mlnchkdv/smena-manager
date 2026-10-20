@@ -4,6 +4,7 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 export function knowledgeBulkToolbar(visible) {
   if (S.ui.currentUser?.role === 'viewer') return '';
   const selected = (S.ui.knowledgeSelection || []).filter(id => D().knowledgeNotes.some(note => note.id === id));
+  const folderIndex = new Map(D().knowledgeFolders.map(folder => [folder.id, folder]));
   if (!visible.length && !selected.length) return '';
   return `<div class="knowledge-bulk" role="group" aria-label="Note selection"><button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" ${!visible.length ? 'disabled' : ''}>Select page</button>${
     selected.length
@@ -11,7 +12,7 @@ export function knowledgeBulkToolbar(visible) {
           .knowledgeFolders.map(
             folder =>
               `<option value="${esc(folder.id)}" translate="no">${esc(
-                folderTrail(folder.id, D().knowledgeFolders)
+                folderTrail(folder.id, folderIndex)
                   .map(f => f.name)
                   .join(' / '),
               )}</option>`,
@@ -23,14 +24,15 @@ export function knowledgeBulkToolbar(visible) {
 export function knowledgeFolderBulk() {
   if (S.ui.currentUser?.role === 'viewer') return '';
   const ids = S.ui.knowledgeFolderSelection || [];
+  const folderIndex = new Map(D().knowledgeFolders.map(folder => [folder.id, folder]));
   return `<div class="knowledge-folder-bulk"><button class="btn btn-ghost btn-sm" data-a="organizeKnowledgeFolders" aria-pressed="${!!S.ui.knowledgeOrganize}">Organize folders</button>${
     S.ui.knowledgeOrganize && ids.length
       ? `<label><span class="sr">Move selected folders</span><select class="select" data-in="knowledgeBulkFolderMove"><option value="" disabled selected>Move selected folders</option><option value="root">Root folder</option>${D()
-          .knowledgeFolders.filter(folder => !folderTrail(folder.id, D().knowledgeFolders).some(item => ids.includes(item.id)))
+          .knowledgeFolders.filter(folder => !folderTrail(folder.id, folderIndex).some(item => ids.includes(item.id)))
           .map(
             folder =>
               `<option value="${esc(folder.id)}" translate="no">${esc(
-                folderTrail(folder.id, D().knowledgeFolders)
+                folderTrail(folder.id, folderIndex)
                   .map(f => f.name)
                   .join(' / '),
               )}</option>`,

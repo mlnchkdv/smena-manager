@@ -6,6 +6,8 @@
    ===================================================================== */
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
+import { t } from '../core/i18n.js';
+import { knowledgeSelectOptions } from '../shared/knowledge-select-options.js';
 
 export function enhanceSelects(root = document) {
   for (const sel of root.querySelectorAll('select.select:not([data-enhanced])')) {
@@ -61,14 +63,36 @@ export const selectMenu = {
     menu.className = 'pop select-menu enter';
     menu.setAttribute('role', 'listbox');
     menu.setAttribute('data-pop-root', '');
-    menu.innerHTML = [...sel.options]
-      .map(
-        (o, i) =>
-          `<button type="button" class="mi" role="option" data-i="${i}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow">${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
-      )
-      .join('');
+    const searchable = !!sel.closest('.knowledge-shell,.knowledge-drawer') && sel.options.length > 15;
+    const optionHtml = options =>
+      options
+        .map(
+          o =>
+            `<button type="button" class="mi" role="option" data-i="${o.index}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow">${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+        )
+        .join('');
+    if (searchable) {
+      menu.classList.add('knowledge-select-menu');
+      menu.removeAttribute('role');
+      menu.innerHTML = `<div class="knowledge-select-search"><input class="input" aria-label="${esc(t('Search options'))}" placeholder="${esc(t('Search options'))}"></div><div role="listbox" class="knowledge-select-results"></div><p class="hint knowledge-select-hint" role="status"></p>`;
+      const update = () => {
+        const result = knowledgeSelectOptions(sel.options, menu.querySelector('input').value);
+        menu.querySelector('.knowledge-select-results').innerHTML = optionHtml(result.options);
+        menu.querySelector('.knowledge-select-hint').textContent =
+          result.total > 100 ? t('Refine the search to see more options.') : result.total ? '' : t('No results found');
+        menu.scrollTop = 0;
+        this.position();
+      };
+      menu.addEventListener('input', update);
+      update();
+    } else
+      menu.innerHTML = optionHtml(
+        Array.from(sel.options, (option, index) => ({ text: option.text, selected: option.selected, disabled: option.disabled, index })),
+      );
     document.body.appendChild(menu);
-    menu.addEventListener('mousedown', e => e.preventDefault());
+    menu.addEventListener('mousedown', e => {
+      if (!e.target.closest('input')) e.preventDefault();
+    });
     menu.addEventListener('click', e => {
       const it = e.target.closest('.mi');
       if (!it) return;
@@ -93,7 +117,9 @@ export const selectMenu = {
     Object.assign(this, { el: menu, sel, btn });
     this.position();
     btn.setAttribute('aria-expanded', 'true');
-    (menu.querySelector('[aria-selected="true"]:not(:disabled)') || menu.querySelector('.mi:not(:disabled)'))?.focus({ preventScroll: true });
+    (menu.querySelector('input') || menu.querySelector('[aria-selected="true"]:not(:disabled)') || menu.querySelector('.mi:not(:disabled)'))?.focus({
+      preventScroll: true,
+    });
   },
   position() {
     if (!this.el) return;

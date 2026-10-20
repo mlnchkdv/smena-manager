@@ -597,10 +597,13 @@ A.setKnowledgeFolder = el => {
   if (S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder)) {
     const folders = knowledgeCollections().folders;
     const collapsed = { ...(S.ui.knowledgeCollapsedFolders || {}) };
-    let current = folders.find(folder => folder.id === S.ui.knowledgeFolder);
-    while (current) {
+    const byId = new Map(folders.map(folder => [folder.id, folder]));
+    const seen = new Set();
+    let current = byId.get(S.ui.knowledgeFolder);
+    while (current && !seen.has(current.id)) {
+      seen.add(current.id);
       delete collapsed[current.id];
-      current = folders.find(folder => folder.id === current.parentId);
+      current = byId.get(current.parentId);
     }
     S.ui.knowledgeCollapsedFolders = collapsed;
   }
