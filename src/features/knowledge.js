@@ -1,4 +1,4 @@
-import { A, IN } from '../actions/actions.js';
+import { A, IN, confirmDlg, moveToTrash } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder } from '../shared/knowledge-tools.js';
@@ -6,6 +6,55 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+IN.knowledgeSelect = el => {
+  const set = new Set(S.ui.knowledgeSelection || []);
+  el.checked ? set.add(el.dataset.id) : set.delete(el.dataset.id);
+  S.ui.knowledgeSelection = [...set];
+  render();
+};
+A.selectKnowledgePage = el => {
+  S.ui.knowledgeSelection = (el.dataset.ids || '').split(',').filter(Boolean);
+  render();
+};
+A.clearKnowledgeSelection = () => {
+  S.ui.knowledgeSelection = [];
+  render();
+};
+IN.knowledgeBulkMove = el => {
+  if (knowledgeEditBlocked()) return;
+  const folder = el.value === 'root' ? null : el.value;
+  if (folder && !D().knowledgeFolders.some(item => item.id === folder)) return;
+  mutate(() => {
+    const ids = new Set(S.ui.knowledgeSelection || []);
+    D().knowledgeNotes.forEach(note => {
+      if (ids.has(note.id)) {
+        note.folderId = folder;
+        note.updatedAt = new Date().toISOString();
+        note.updatedBy = D().me;
+      }
+    });
+    S.ui.knowledgeSelection = [];
+  });
+};
+A.trashKnowledgeSelection = () => {
+  if (knowledgeEditBlocked()) return;
+  const ids = new Set(S.ui.knowledgeSelection || []);
+  if (!ids.size) return;
+  confirmDlg({
+    title: 'Move selected notes to trash?',
+    body: 'Selected notes can be restored from trash.',
+    ok: 'Move to trash',
+    danger: true,
+    run: () =>
+      mutate(() => {
+        D()
+          .knowledgeNotes.filter(note => ids.has(note.id))
+          .forEach(note => moveToTrash('note', note.title, { note: structuredClone(note) }));
+        D().knowledgeNotes = D().knowledgeNotes.filter(note => !ids.has(note.id));
+        S.ui.knowledgeSelection = [];
+      }),
+  });
+};
 A.toggleKnowledgeMobileFolders = () => {
   S.ui.knowledgeMobileFolders = !S.ui.knowledgeMobileFolders;
   S.ui.knowledgeFolderNavOpen = true;

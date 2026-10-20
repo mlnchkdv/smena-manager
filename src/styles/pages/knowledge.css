@@ -1,4 +1,34 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-bulk {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.knowledge-bulk label {
+  max-width: 100%;
+  min-width: 0;
+}
+.knowledge-bulk select {
+  max-width: 240px;
+  width: 100%;
+}
+.knowledge-note-select {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  z-index: 1;
+}
+.knowledge-note-select input {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
 .knowledge-mobile-folder-button,
 .knowledge-folder-scrim {
   display: none;
