@@ -129,6 +129,7 @@ export function pageKnowledge() {
     limit: 60,
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],
+    folders,
   });
   const indexed = knowledgeServerPage({
     query: S.ui.knowledgeQuery || '',

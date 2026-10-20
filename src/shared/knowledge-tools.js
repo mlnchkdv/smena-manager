@@ -10,6 +10,22 @@ export function folderTrail(id, folders) {
   }
   return result;
 }
+export function folderDescendants(id, folders) {
+  const children = new Map();
+  for (const folder of folders) {
+    if (!children.has(folder.parentId)) children.set(folder.parentId, []);
+    children.get(folder.parentId).push(folder.id);
+  }
+  const result = new Set([id]),
+    queue = [id];
+  for (let index = 0; index < queue.length; index++)
+    for (const child of children.get(queue[index]) || [])
+      if (!result.has(child)) {
+        result.add(child);
+        queue.push(child);
+      }
+  return result;
+}
 
 export function moveKnowledgeFolder(folders, id, parentId) {
   const folder = folders.find(item => item.id === id);

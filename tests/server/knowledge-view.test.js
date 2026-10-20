@@ -6,6 +6,17 @@ const notes = [
   { id: 'a', title: 'Review', folderId: 'work', updatedAt: '2026-10-18' },
   { id: 'b', title: 'Регламент', summary: 'Команда', tags: ['процесс'], updatedAt: '2026-10-17' },
 ];
+test('parent folder includes descendants consistently with navigation counts', () => {
+  const folders = [{ id: 'parent' }, { id: 'child', parentId: 'parent' }];
+  const notes = [
+    { id: 'a', folderId: 'child' },
+    { id: 'b', folderId: 'other' },
+  ];
+  assert.deepEqual(
+    knowledgeView(notes, { folder: 'parent', folders }).visible.map(note => note.id),
+    ['a'],
+  );
+});
 test('search composes words in any order and quoted phrases', () => {
   assert.equal(knowledgeView([{ id: 'a', title: 'Команда', formatted_markdown: 'Новый процесс работы' }], { query: 'процесс команда' }).total, 1);
   assert.equal(knowledgeView([{ id: 'a', title: 'Team', formatted_markdown: 'new work process' }], { query: '"work process" team' }).total, 1);

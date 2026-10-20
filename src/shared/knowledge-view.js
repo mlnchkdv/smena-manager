@@ -1,5 +1,10 @@
 import { matchesKnowledgeSearch } from './knowledge-search.js';
-export function knowledgeView(notes, { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0, recent = [] } = {}) {
+import { folderDescendants } from './knowledge-tools.js';
+export function knowledgeView(
+  notes,
+  { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0, recent = [], folders = [] } = {},
+) {
+  const folderIds = folderDescendants(folder, folders);
   const selectedTag = String(tag).trim().toLocaleLowerCase();
   const time = note => {
     const value = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
@@ -16,7 +21,7 @@ export function knowledgeView(notes, { query = '', folder = 'all', tag = '', act
             ? !!note.favorite
             : folder === 'root'
               ? !note.folderId
-              : note.folderId === folder),
+              : folderIds.has(note.folderId)),
     )
     .filter(note => !selectedTag || (note.tags || []).some(value => String(value).trim().toLocaleLowerCase() === selectedTag))
     .sort((a, b) => {
