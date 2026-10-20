@@ -180,7 +180,7 @@ export function pageKnowledge() {
           .join('')}</select></label>`
       : '';
 
-  return `<div class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}">
+  return `<div class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
     ${S.ui.knowledgeMobileFolders ? '<button class="knowledge-folder-scrim" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders"></button>' : ''}
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">
@@ -197,7 +197,7 @@ export function pageKnowledge() {
     <div class="knowledge-main">
       <section class="knowledge-content" aria-label="Knowledge notes">
         <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span></button>
-        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove}
+        <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options"><summary>Folder options</summary>${folderMove}</details>` : ''}
         <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
         <div class="knowledge-content-head"><div><h1 ${activeFolder ? 'translate="no"' : ''}>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span></p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-secondary btn-sm" data-a="chooseKnowledgeFiles" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}Import notes</button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         ${readOnly ? '' : `<p class="knowledge-import-hint" role="status">${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</p>`}

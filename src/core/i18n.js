@@ -1369,6 +1369,7 @@ const RU = {
   'Recently opened': 'Недавно открытые',
   'Version history': 'История версий',
   'Note properties': 'Свойства заметки',
+  'Folder options': 'Действия с папкой',
   'This version is no longer available. Reopen version history.': 'Эта версия больше недоступна. Откройте историю версий заново.',
   'Restore version': 'Восстановить версию',
   'Restore this note version?': 'Восстановить эту версию заметки?',
