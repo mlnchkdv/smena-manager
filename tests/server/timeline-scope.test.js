@@ -8,11 +8,17 @@ test('timeline milestones stay within the projects represented by filtered tasks
     { id: 'p2', milestones: [{ id: 'm2', name: 'Foreign' }] },
   ];
   const result = timelineMilestones([{ id: 't1', project: 'p1' }], projects);
-  assert.deepEqual(result.map(milestone => milestone.id), ['m1']);
+  assert.deepEqual(
+    result.map(milestone => milestone.id),
+    ['m1'],
+  );
 });
 
 test('project timeline keeps milestones for the explicitly selected project', () => {
   const selected = { id: 'p2', milestones: [{ id: 'm2', name: 'Selected' }] };
   const result = timelineMilestones([], [{ id: 'p1', milestones: [{ id: 'm1' }] }], selected);
-  assert.deepEqual(result.map(milestone => milestone.id), ['m2']);
+  assert.deepEqual(
+    result.map(milestone => milestone.id),
+    ['m2'],
+  );
 });

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength, workspaceCapacity, workspaceFitsTransport, workspaceTransportBytes } from '../../src/shared/workspace-size.js';
+import {
+  WORKSPACE_TRANSPORT_MAX_BYTES,
+  jsonByteLength,
+  workspaceCapacity,
+  workspaceFitsTransport,
+  workspaceTransportBytes,
+} from '../../src/shared/workspace-size.js';
 
 test('JSON byte length measures UTF-8 data instead of JavaScript characters', () => {
   assert.equal(jsonByteLength('a'), 3);
