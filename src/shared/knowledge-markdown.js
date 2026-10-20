@@ -1,4 +1,9 @@
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+export function knowledgeReadingSource(note) {
+  const source = String(note.formatted_markdown || '');
+  const heading = source.match(/^\s{0,3}#\s+([^\r\n]+)(?:\r?\n|$)/);
+  return heading && heading[1].replace(/\s+#+\s*$/, '').trim() === String(note.title || '').trim() ? source.slice(heading[0].length) : source;
+}
 function inline(text) {
   const tokens = /`([^`]+)`|\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^\s)]+)\)/g;
   let out = '',
