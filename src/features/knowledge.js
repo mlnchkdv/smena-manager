@@ -1,11 +1,14 @@
 import { A, IN } from '../actions/actions.js';
-import { D, S } from '../core/store.js';
+import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder } from '../shared/knowledge-tools.js';
 import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+window.addEventListener('pagehide', () => {
+  if (S.ui.knowledgeDirty && S.ui.currentUser) flushLocalSave();
+});
 
 A.saveKnowledgeView = () =>
   openModal({

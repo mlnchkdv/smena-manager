@@ -191,14 +191,17 @@ export function save() {
   migrateMilestoneIds(S.data);
   guardWorkspaceData();
   clearTimeout(_saveT);
-  _saveT = setTimeout(() => {
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ data: S.data, prefs: S.prefs, views: S.views, collapsed: S.ui.collapsed }));
-    } catch {
-      /* storage full or blocked: keep working in memory */
-    }
-    void queueWorkspaceSync(S.data);
-  }, 150);
+  _saveT = setTimeout(flushLocalSave, 150);
+}
+
+export function flushLocalSave() {
+  clearTimeout(_saveT);
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ data: S.data, prefs: S.prefs, views: S.views, collapsed: S.ui.collapsed }));
+  } catch {
+    /* storage full or blocked: keep working in memory */
+  }
+  void queueWorkspaceSync(S.data);
 }
 
 /* ---------- lookups ---------- */

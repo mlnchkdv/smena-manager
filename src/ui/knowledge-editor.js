@@ -2,6 +2,7 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { mem } from '../core/store.js';
 import { relationsPanel } from './relations.js';
+import { knowledgeSaveLabel } from './knowledge-save-status.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
@@ -17,6 +18,7 @@ export function noteEditor(note, folders, readOnly) {
       </div>
       ${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<button class="btn btn-danger-ghost btn-sm" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button>`}
     </div>
+    <span class="knowledge-save-status" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
     <div class="knowledge-editor-section-title">Details</div><div class="knowledge-fields">
       <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders.map(folder => `<option value="${folder.id}" ${note.folderId === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select></div>

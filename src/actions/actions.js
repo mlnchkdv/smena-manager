@@ -61,6 +61,7 @@ import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspace
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
+import {updateKnowledgeSaveStatus} from '../ui/knowledge-save-status.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
 import { graphView } from '../shared/graph-view.js';
@@ -749,6 +750,8 @@ IN.knowledgeField = el => {
   if (!note) return;
   bindWikiReferences(D().knowledgeNotes);
   const field = el.dataset.field;
+  const before = field === 'tags' ? (note.tags || []).join(', ') : note[field] || '';
+  if (before === el.value) return;
   if (field === 'tags')
     note.tags = [
       ...new Set(
@@ -763,7 +766,9 @@ IN.knowledgeField = el => {
   if (field === 'formatted_markdown') bindWikiReferences(D().knowledgeNotes);
   note.updatedAt = new Date().toISOString();
   note.updatedBy = D().me;
+  S.ui.knowledgeDirty = true;
   save();
+  updateKnowledgeSaveStatus();
   if (el.matches('select')) render();
 };
 BLUR.knowledgeField = el => {
