@@ -123,14 +123,83 @@
   grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
   gap: 8px;
 }
+.knowledge-folder-tile {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+}
+.knowledge-folder-tile:has(.knowledge-folder-card-options[open]) {
+  grid-column: 1 / -1;
+}
+.knowledge-folder-card-options {
+  position: absolute;
+  top: 8px;
+  right: 5px;
+}
+.knowledge-folder-card-options summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 36px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--r);
+  color: var(--text-3);
+}
+.knowledge-folder-card-options summary::-webkit-details-marker {
+  display: none;
+}
+.knowledge-folder-card-options summary:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.knowledge-folder-card-options[open] {
+  position: static;
+  padding: 0 8px 8px;
+}
+.knowledge-folder-card-options[open] summary {
+  position: absolute;
+  top: 8px;
+  right: 5px;
+}
+.knowledge-folder-card-options > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.knowledge-folder-card-options button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 8px;
+  text-align: left;
+  border-radius: var(--r);
+  font-size: var(--fs-xs);
+}
+.knowledge-folder-card-options button:hover {
+  background: var(--bg);
+}
+.knowledge-folder-receive {
+  width: 100%;
+  white-space: normal;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--r) var(--r);
+}
 .knowledge-folder-card {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
   text-align: left;
-  padding: 10px;
-  border: 1px solid var(--border);
+  padding: 10px 40px 10px 10px;
+  width: 100%;
+  border: 0;
   border-radius: var(--r);
   background: var(--surface);
 }
@@ -188,8 +257,19 @@
   }
   .knowledge-folder-card {
     gap: 6px;
-    padding: 10px 8px;
+    padding: 10px 38px 10px 8px;
     min-height: 58px;
+  }
+  .knowledge-folder-card-options summary,
+  .knowledge-folder-card-options button,
+  .knowledge-folder-receive {
+    min-height: 44px;
+  }
+  .knowledge-folder-card-options {
+    top: 3px;
+  }
+  .knowledge-folder-card-options[open] summary {
+    top: 3px;
   }
   .knowledge-folder-card > svg:last-child {
     display: none;

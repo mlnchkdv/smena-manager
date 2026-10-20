@@ -16,6 +16,11 @@ export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
   'Move note': 'Переместить заметку',
+  'Folder actions': 'Действия с папкой',
+  'Parent folder': 'Родительская папка',
+  'New subfolder': 'Новая вложенная папка',
+  'Move selected here': 'Перенести выбранные сюда',
+  'The destination folder no longer exists.': 'Папка назначения больше не существует.',
   'Move notes': 'Перемещение заметок',
   'Choose a destination, then confirm the move.': 'Выберите папку назначения и подтвердите перенос.',
   'Selected notes': 'Выбрано заметок',

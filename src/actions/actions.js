@@ -658,8 +658,10 @@ A.knowledgePage = el => {
   render();
   document.querySelector('.knowledge-main')?.scrollTo(0, 0);
 };
-A.newKnowledgeFolder = () => {
+A.newKnowledgeFolder = el => {
   if (S.ui.currentUser?.role === 'viewer') return;
+  const requestedParent = el?.dataset?.parent ?? S.ui.knowledgeFolder;
+  const parentId = knowledgeCollections().folders.some(folder => folder.id === requestedParent) ? requestedParent : null;
   openModal({
     type: 'prompt',
     title: 'New knowledge folder',
@@ -670,7 +672,7 @@ A.newKnowledgeFolder = () => {
       if (!name) return;
       mutate(() => {
         const { folders } = knowledgeCollections();
-        const parentId = knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null;
+        if (parentId && !folders.some(folder => folder.id === parentId)) return toast('The destination folder no longer exists.', { kind: 'err' });
         if (folders.some(folder => (folder.parentId || null) === parentId && folder.name.toLowerCase() === name.toLowerCase()))
           return toast('A folder with this name already exists here.', { kind: 'err' });
         const folder = { id: uid('kf'), name, parentId, createdAt: new Date().toISOString() };
