@@ -311,7 +311,9 @@ window.addEventListener('smena:session-account-changed', () => {
   S.ui.currentUser = null;
   S.ui.authSessions = S.ui.pop = S.ui.palette = S.ui.drawer = null;
   S.ui.modals = [];
-  S.ui.auth = 'login';
+  // Keep the login form hidden while the HttpOnly cookie is being checked.
+  // This prevents a brief sign-in flash on reloads before the session is restored.
+  S.ui.auth = 'restoring';
   S.ui.errors = { login: 'The account changed in another tab. Reload this page to continue.' };
   render();
 });

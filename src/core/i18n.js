@@ -1363,6 +1363,8 @@ const RU = {
   'Hide Access ID': 'Скрыть идентификатор доступа',
   'Your administrator provides this key.': 'Этот ключ выдаёт администратор.',
   'Connecting…': 'Подключение…',
+  'Restoring your session…': 'Восстанавливаем вашу сессию…',
+  'Checking your secure workspace connection.': 'Проверяем защищённое подключение к рабочему пространству.',
   'Invalid Access ID.': 'Неверный идентификатор доступа.',
   'The server is unavailable.': 'Сервер недоступен.',
   'Workspace storage is unavailable.': 'Хранилище рабочего пространства временно недоступно. Попробуйте ещё раз.',

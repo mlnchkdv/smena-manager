@@ -24,6 +24,18 @@ export function renderAuth() {
   const e = S.ui.errors;
   const f = S.ui.af || (S.ui.af = { email: 'hello@example.com', name: '' });
   if (s === 'onboarding') return renderOnboarding();
+  if (s === 'restoring')
+    return authShell(
+      `<div class="auth-card auth-card-loading" role="status" aria-live="polite">
+        <div style="display:flex;justify-content:center">${LOGO(30)}</div>
+        <h1>${templateText('Restoring your session…')}</h1>
+        <p class="sub">${templateText('Checking your secure workspace connection.')}</p>
+        <div class="panel" style="padding:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <span class="sk" style="width:8px;height:8px;border-radius:50%;animation-duration:1.1s"></span>
+          <span class="muted">${templateText('Connecting…')}</span>
+        </div>
+      </div>`,
+    );
   if (s === 'login')
     return authShell(
       `<form class="auth-card${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doLogin" novalidate>
