@@ -21,6 +21,12 @@ export function openModal(m) {
   setTimeout(() => {
     const all = $$('.modal');
     const last = all[all.length - 1];
+    if (m.type === 'knowledgeMove' && matchMedia('(max-width:640px)').matches) {
+      const heading = last?.querySelector('h2');
+      heading?.setAttribute('tabindex', '-1');
+      heading?.focus({ preventScroll: true });
+      return;
+    }
     const af = last?.querySelector('[autofocus]');
     (af || last?.querySelector('input,textarea,button'))?.focus();
   }, 30);

@@ -1282,4 +1282,21 @@
     min-width: 44px;
     min-height: 44px;
   }
+  .knowledge-move-dialog .modal-f .btn,
+  .knowledge-move-dialog .knowledge-move-crumbs .btn {
+    min-height: 44px;
+    white-space: normal;
+  }
+  .knowledge-move-dialog .modal-f .btn {
+    flex: 1;
+  }
+  .knowledge-move-dialog .modal-h .ibtn,
+  .knowledge-sidebar .knowledge-mobile-folder-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .knowledge-move-dialog #knowledge-move-search,
+  .knowledge-sidebar [data-in='knowledgeFolderQuery'] {
+    font-size: 16px;
+  }
 }

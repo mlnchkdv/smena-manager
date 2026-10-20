@@ -175,7 +175,7 @@ A.toggleKnowledgeMobileFolders = () => {
   S.ui.knowledgeMobileFolders = !S.ui.knowledgeMobileFolders;
   S.ui.knowledgeFolderNavOpen = true;
   render();
-  if (S.ui.knowledgeMobileFolders) document.querySelector('[data-in="knowledgeFolderQuery"]')?.focus();
+  if (S.ui.knowledgeMobileFolders) document.querySelector('.knowledge-sidebar .knowledge-mobile-folder-button')?.focus({ preventScroll: true });
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };
 let compactKnowledge = window.innerWidth <= 640;

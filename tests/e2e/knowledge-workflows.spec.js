@@ -93,6 +93,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('[data-a="clearKnowledgeSelection"]').click();
     await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toBeVisible();
+    await expect(page.locator('[data-in="knowledgeFolderQuery"]')).not.toBeFocused();
+    await expect(page.locator('.knowledge-sidebar')).toHaveAttribute('aria-label', folderLabel);
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
     await page.locator('.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="kb-child"]').click();
     await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
@@ -107,10 +109,13 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.screenshot({ path: `output/playwright/knowledge-preview-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
     await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
     await page.locator('.knowledge-preview-move').click();
+    await expect(page.locator('#knowledge-move-search')).not.toBeFocused();
+    await expect(page.locator('#mt-knowledgeMove')).toBeFocused();
     await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeDisabled();
     await expect(page.locator('.knowledge-move-dialog')).toContainText(language === 'Русский' ? 'Перемещение заметок' : 'Move notes');
     await page.locator('[data-a="browseKnowledgeMove"][data-folder=""]').click();
     await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeEnabled();
+    expect((await page.locator('[data-a="confirmKnowledgeMove"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
     const moveBox = await page.locator('.knowledge-move-dialog').boundingBox();
     expect(moveBox.x).toBeGreaterThanOrEqual(-1);
     expect(moveBox.x + moveBox.width).toBeLessThanOrEqual(321);

@@ -260,6 +260,7 @@ export function afterRender() {
     const sidebar = document.querySelector('.knowledge-sidebar');
     sidebar?.setAttribute('role', 'dialog');
     sidebar?.setAttribute('aria-modal', 'true');
+    sidebar?.setAttribute('aria-label', tr('Folders'));
   }
   refreshThumbnails();
   selectMenu.close();
