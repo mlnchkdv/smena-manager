@@ -25,7 +25,13 @@ import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
 import { cleanupPushSubscriptions, publicPushConfig, removePushSubscription, upsertPushSubscription } from './push-subscriptions.js';
 import { emailAuthorizationStatus, runDailyEmailDigest } from './email-notifications.js';
-import { claimNotificationTestCooldown, deliverWorkspaceNotifications, retryNotificationOutbox, notificationDeliveryStatus, recordNotificationCronRun } from './notification-delivery.js';
+import {
+  claimNotificationTestCooldown,
+  deliverWorkspaceNotifications,
+  retryNotificationOutbox,
+  notificationDeliveryStatus,
+  recordNotificationCronRun,
+} from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { DOCUMENT_NAMES, workspaceCoreData } from '../shared/workspace-documents.js';
@@ -43,6 +49,7 @@ import { applyPersonalSettings } from '../shared/personal-settings.js';
 import { writeRecoveryBundle } from './recovery-bundle.js';
 import { sendOwnTestNotification } from './test-notification.js';
 import { workspaceRevisionEtag } from '../shared/revision-etag.js';
+import { indexedKnowledgePage } from './knowledge-index.js';
 
 export const app = express();
 
@@ -430,6 +437,25 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
       );
     }
     response.json({ data: workspaceCoreData(data) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/knowledge/search', async (request, response, next) => {
+  try {
+    const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0' } = request.query;
+    if (
+      [q, folder, tag, sort, offset].some(value => typeof value !== 'string') ||
+      q.length > 500 ||
+      tag.length > 180 ||
+      folder.length > 180 ||
+      !/^\d{1,7}$/.test(offset)
+    )
+      return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
+    response.json(
+      indexedKnowledgePage(await getWorkspaceDatabase(), { query: q, folder, tag, sort: sort === 'title' ? 'title' : 'updated', offset: Number(offset) }),
+    );
   } catch (error) {
     next(error);
   }

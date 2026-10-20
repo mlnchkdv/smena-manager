@@ -8,6 +8,7 @@ import { knowledgePreferences } from '../core/knowledge-preferences.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar } from '../ui/knowledge-bulk.js';
+import { knowledgeServerPage } from '../core/knowledge-server-search.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -120,13 +121,7 @@ export function pageKnowledge() {
   const { notes, folders } = knowledgeData();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const {
-    visible,
-    active: selected,
-    total,
-    hasMore,
-    start,
-  } = knowledgeView(notes, {
+  const view = knowledgeView(notes, {
     query: S.ui.knowledgeQuery,
     folder: folderFilter,
     tag: S.ui.knowledgeTag,
@@ -135,6 +130,17 @@ export function pageKnowledge() {
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],
   });
+  const indexed = knowledgeServerPage({
+    query: S.ui.knowledgeQuery || '',
+    folder: folderFilter,
+    tag: S.ui.knowledgeTag || '',
+    sort: S.ui.knowledgeSort || 'updated',
+    offset: view.start,
+  });
+  const { active: selected } = view;
+  const byId = new Map(notes.map(note => [note.id, note]));
+  const { total, hasMore, start } = indexed || view;
+  const visible = indexed ? indexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
   const active = selected;
   S.ui.knowledgeActive = active?.id || null;
   const currentPath = folderFilter !== 'all' && folderFilter !== 'root' && folderFilter !== 'favorites' ? folderPath(folderFilter, folders) : [];

@@ -186,6 +186,9 @@ export async function getWorkspaceDocument(name) {
   const result = await request(`/api/workspace-documents/${encodeURIComponent(name)}`, {}, true);
   return result.data;
 }
+export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0 } = {}) {
+  return request(`/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, offset: String(offset) })}`, {}, true);
+}
 
 export async function putWorkspaceDocument(name, data, revision) {
   const actualBytes = workspaceTransportBytes(data, revision);
