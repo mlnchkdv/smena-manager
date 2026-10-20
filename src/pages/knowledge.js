@@ -11,6 +11,7 @@ import { knowledgeBulkToolbar, knowledgeFolderBulk } from '../ui/knowledge-bulk.
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
 import { t } from '../core/i18n.js';
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
+import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -22,73 +23,31 @@ const knowledgeData = () => ({
   folders: Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [],
 });
 
-function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = '') {
-  const directCounts = new Map(folders.map(folder => [folder.id, 0]));
-  notes.forEach(note => note.folderId && directCounts.set(note.folderId, (directCounts.get(note.folderId) || 0) + 1));
-  const children = new Map();
-  const byId = new Map(folders.map(folder => [folder.id, folder]));
-  folders.forEach(folder => {
-    const parent = byId.has(folder.parentId) ? folder.parentId : '';
-    if (!children.has(parent)) children.set(parent, []);
-    children.get(parent).push(folder);
-  });
-  for (const list of children.values()) list.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }));
-  const counts = new Map();
-  const normalizedQuery = String(query || '')
-    .trim()
-    .toLocaleLowerCase();
-  const countDescendants = (id, seen = new Set()) => {
-    if (counts.has(id)) return counts.get(id);
-    if (seen.has(id)) return 0;
-    const nextSeen = new Set(seen).add(id);
-    const total = (directCounts.get(id) || 0) + (children.get(id) || []).reduce((sum, child) => sum + countDescendants(child.id, nextSeen), 0);
-    counts.set(id, total);
-    return total;
-  };
-  folders.forEach(folder => countDescendants(folder.id));
-  const matching = new Map();
-  const branchMatches = (id, seen = new Set()) => {
-    if (matching.has(id)) return matching.get(id);
-    if (seen.has(id)) return false;
-    const nextSeen = new Set(seen).add(id);
-    const folder = byId.get(id);
-    if (
-      !normalizedQuery ||
-      String(folder?.name || '')
-        .toLocaleLowerCase()
-        .includes(normalizedQuery)
-    ) {
-      matching.set(id, true);
-      return true;
-    }
-    const result = (children.get(id) || []).some(child => branchMatches(child.id, nextSeen));
-    matching.set(id, result);
-    return result;
-  };
-  const render = (parent = '', depth = 0, seen = new Set()) =>
-    (children.get(parent) || [])
-      .filter(folder => !seen.has(folder.id) && branchMatches(folder.id, seen))
-      .map(folder => {
-        const nextSeen = new Set(seen).add(folder.id);
-        const childFolders = (children.get(folder.id) || []).filter(child => !nextSeen.has(child.id));
-        const hasChildren = childFolders.length > 0;
-        // While filtering, keep matching descendants visible so a deep folder can be found.
-        const isCollapsed = !normalizedQuery && collapsed[folder.id] === true;
-        const nested = !isCollapsed ? render(folder.id, depth + 1, nextSeen) : '';
-        const actions = readOnly
-          ? ''
-          : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="Rename folder" title="Rename folder">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="Delete folder" title="Delete folder">${ic('trash-2', 12)}</button></span>`;
-        const toggle = hasChildren
-          ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
-          : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
-        const selectFolder =
-          !readOnly && S.ui.knowledgeOrganize
-            ? `<input type="checkbox" data-in="knowledgeFolderSelect" data-id="${esc(folder.id)}" aria-label="Select folder" ${(S.ui.knowledgeFolderSelection || []).includes(folder.id) ? 'checked' : ''}>`
-            : '';
-        return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${selectFolder}${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${counts.get(folder.id) || 0}</span></button>${actions}</div>${nested}</div>`;
-      })
-      .join('');
-  return render();
+function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
+  const page = knowledgeFolderRows(index, { query, collapsed, offset: S.ui.knowledgeFolderNavOffset || 0, revealId: S.ui.knowledgeRevealFolder });
+  S.ui.knowledgeFolderNavOffset = page.start;
+  S.ui.knowledgeRevealFolder = null;
+  const html = page.rows
+    .map(({ folder, depth, hasChildren, isCollapsed }) => {
+      const actions = readOnly
+        ? ''
+        : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="Rename folder" title="Rename folder">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="Delete folder" title="Delete folder">${ic('trash-2', 12)}</button></span>`;
+      const toggle = hasChildren
+        ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
+        : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
+      const selectFolder =
+        !readOnly && S.ui.knowledgeOrganize
+          ? `<input type="checkbox" data-in="knowledgeFolderSelect" data-id="${esc(folder.id)}" aria-label="Select folder" ${(S.ui.knowledgeFolderSelection || []).includes(folder.id) ? 'checked' : ''}>`
+          : '';
+      return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${selectFolder}${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${index.counts.get(folder.id) || 0}</span></button>${actions}</div></div>`;
+    })
+    .join('');
+  return (
+    html +
+    (page.total > 200
+      ? `<div class="knowledge-folder-pages" role="group" aria-label="Folder pages"><button class="ibtn" data-a="knowledgeFolderNavPage" data-offset="${Math.max(0, page.start - 200)}" aria-label="Previous folders" ${!page.start ? 'disabled' : ''}>${ic('chevron-left', 14)}</button><span class="num">${page.start + 1}–${page.start + page.rows.length} / ${page.total}</span><button class="ibtn" data-a="knowledgeFolderNavPage" data-offset="${page.start + 200}" aria-label="Next folders" ${!page.hasMore ? 'disabled' : ''}>${ic('chevron-right', 14)}</button></div>`
+      : '')
+  );
 }
 
 function notePreviewCard(note, folder, readOnly) {
@@ -125,6 +84,7 @@ function folderLabel(folderFilter, folders) {
 export function pageKnowledge() {
   knowledgePreferences();
   const { notes, folders } = knowledgeData();
+  const folderIndex = createKnowledgeFolderIndex(folders, notes);
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const view = knowledgeView(notes, {
@@ -188,7 +148,15 @@ export function pageKnowledge() {
         ${readOnly ? '' : `<div class="knowledge-head-actions"><button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button></div>`}
         <div class="knowledge-folder-toolbar"><button class="ibtn ibtn-xs knowledge-folder-section-toggle" data-a="toggleKnowledgeFolderNav" aria-label="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}" aria-expanded="${S.ui.knowledgeFolderNavOpen !== false}" title="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}">${ic(S.ui.knowledgeFolderNavOpen === false ? 'chevron-right' : 'chevron-down', 13)}</button><span class="label">Knowledge folders</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="expandKnowledgeFolders" aria-label="Expand all" title="Expand all">${ic('chevron-down', 13)}</button><button class="ibtn ibtn-xs" data-a="collapseKnowledgeFolders" aria-label="Collapse all" title="Collapse all">${ic('chevron-up', 13)}</button></div>
         ${S.ui.knowledgeFolderNavOpen === false ? '' : `<div class="inwrap knowledge-folder-search">${ic('search', 13)}<input class="input" data-in="knowledgeFolderQuery" value="${esc(S.ui.knowledgeFolderQuery || '')}" placeholder="Filter folders" aria-label="Filter folders"></div>`}
-        ${S.ui.knowledgeFolderNavOpen === false ? '' : `<nav class="knowledge-folders" aria-label="Knowledge folders"><button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button><button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => note.favorite).length}</span></button><button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>${folderTree(folders, notes, folderFilter, readOnly, S.ui.knowledgeCollapsedFolders || {}, S.ui.knowledgeFolderQuery || '')}</nav>`}
+        ${
+          S.ui.knowledgeFolderNavOpen === false
+            ? ''
+            : `<nav class="knowledge-folders" aria-label="Knowledge folders">
+          <button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button>
+          <button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => note.favorite).length}</span></button>
+          <button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>
+          ${folderTree(folderIndex, folderFilter, readOnly, S.ui.knowledgeCollapsedFolders || {}, S.ui.knowledgeFolderQuery || '')}</nav>`
+        }
         <button class="knowledge-folder${folderFilter === 'recent' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="recent">${ic('history', 14)}Recently opened</button>
         ${knowledgeFolderBulk()}
         ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}

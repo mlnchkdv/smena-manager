@@ -220,6 +220,12 @@ IN.knowledgeMoveFolder = el =>
 let dragged = null;
 
 A.chooseKnowledgeFiles = () => document.getElementById('knowledge-import-files')?.click();
+A.knowledgeFolderNavPage = el => {
+  S.ui.knowledgeFolderNavOffset = Math.max(0, Number(el.dataset.offset) || 0);
+  S.ui.knowledgeRevealFolder = null;
+  render();
+  document.querySelector('.knowledge-folders')?.scrollTo(0, 0);
+};
 const isFileDrag = event => [...(event.dataTransfer?.types || [])].includes('Files');
 // Capture external files before the generic task-attachment handlers.
 document.addEventListener(

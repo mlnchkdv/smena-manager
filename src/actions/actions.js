@@ -584,6 +584,7 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeMobileFolders = false;
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
+  S.ui.knowledgeRevealFolder = S.ui.knowledgeFolder;
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';
@@ -703,6 +704,8 @@ IN.knowledgeFolder = el => {
 };
 IN.knowledgeFolderQuery = el => {
   S.ui.knowledgeFolderQuery = el.value;
+  S.ui.knowledgeFolderNavOffset = 0;
+  S.ui.knowledgeRevealFolder = null;
   render();
   requestAnimationFrame(() => {
     const input = document.querySelector('[data-in="knowledgeFolderQuery"]');

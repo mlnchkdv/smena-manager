@@ -1,4 +1,12 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-folder-pages {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  padding-top: 8px;
+}
 .knowledge-shell .knowledge-sidebar-head {
   flex: 1;
   min-height: 0;
