@@ -1,7 +1,7 @@
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
-import { moveKnowledgeFolder, moveKnowledgeFolders } from '../shared/knowledge-tools.js';
+import { moveKnowledgeFolder, moveKnowledgeFolders, folderDescendants } from '../shared/knowledge-tools.js';
 import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { moveKnowledgeNotes } from '../shared/knowledge-note-move.js';
@@ -335,16 +335,45 @@ document.addEventListener(
 );
 document.addEventListener('dragstart', event => {
   const target = event.target.closest?.('[data-knowledge-drag]');
-  if (!target || S.ui.currentUser?.role === 'viewer') return;
-  dragged = { id: target.dataset.id || target.dataset.folder, kind: target.dataset.knowledgeDrag };
-  event.dataTransfer.setData('application/x-smena-knowledge', JSON.stringify(dragged));
+  if (!target) return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked() || S.ui.atomicOperation) return event.preventDefault();
+  const id = target.dataset.id || target.dataset.folder;
+  const kind = target.dataset.knowledgeDrag;
+  const ids = kind === 'note' && S.ui.knowledgeSelection?.includes(id) ? [...S.ui.knowledgeSelection] : [id];
+  dragged = {
+    id,
+    ids,
+    kind,
+    owner: S.ui.currentUser?.id,
+    workspace: D().ws?.id,
+    excluded: kind === 'folder' ? folderDescendants(id, D().knowledgeFolders) : new Set(),
+  };
+  event.dataTransfer.setData('application/x-smena-knowledge', JSON.stringify({ id, kind }));
   event.dataTransfer.effectAllowed = 'move';
 });
+const clearKnowledgeDropMarks = () => document.querySelectorAll('.knowledge-drop-target').forEach(el => el.classList.remove('knowledge-drop-target'));
 document.addEventListener('dragend', () => {
   dragged = null;
+  clearKnowledgeDropMarks();
 });
 document.addEventListener('dragover', event => {
-  if (dragged && event.target.closest?.('[data-a="setKnowledgeFolder"]')) event.preventDefault();
+  if (!dragged) return;
+  const target = event.target.closest?.('[data-a="setKnowledgeFolder"]');
+  clearKnowledgeDropMarks();
+  if (!target) return;
+  const parent = target.dataset.folder;
+  const valid = parent === 'root' || D().knowledgeFolders.some(folder => folder.id === parent);
+  if (!valid || dragged.excluded.has(parent)) {
+    event.dataTransfer.dropEffect = 'none';
+    return;
+  }
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  target.classList.add('knowledge-drop-target');
+});
+document.addEventListener('dragleave', event => {
+  const target = event.target.closest?.('.knowledge-drop-target');
+  if (target && !target.contains(event.relatedTarget)) target.classList.remove('knowledge-drop-target');
 });
 document.addEventListener('drop', event => {
   const target = event.target.closest?.('[data-a="setKnowledgeFolder"]');
@@ -354,18 +383,19 @@ document.addEventListener('drop', event => {
   if (parent !== 'root' && !D().knowledgeFolders.some(folder => folder.id === parent)) return;
   const item = dragged;
   dragged = null;
-  if (knowledgeEditBlocked()) return;
+  clearKnowledgeDropMarks();
+  if (knowledgeEditBlocked() || item.owner !== S.ui.currentUser?.id || item.workspace !== D().ws?.id) return;
+  let moved = false;
   mutate(() => {
     if (item.kind === 'folder') {
       if (!moveKnowledgeFolder(D().knowledgeFolders, item.id, parent === 'root' ? null : parent))
         toast('Cannot move a folder into itself or a descendant.', { kind: 'err' });
     } else {
-      const note = D().knowledgeNotes.find(note => note.id === item.id);
-      if (note) {
-        note.folderId = parent === 'root' ? null : parent;
-        note.updatedAt = new Date().toISOString();
-        note.updatedBy = D().me;
-      }
+      const result = moveKnowledgeNotes(D().knowledgeNotes, D().knowledgeFolders, item.ids, parent === 'root' ? null : parent, D().me);
+      moved = result.ok && result.moved > 0;
+      if (!result.ok) toast('The notes or destination changed. Reopen the move dialog.', { kind: 'err' });
+      if (result.ok) S.ui.knowledgeSelection = (S.ui.knowledgeSelection || []).filter(id => !item.ids.includes(id));
     }
   });
+  if (moved) toast('Notes moved', { action: 'Open destination', onAction: () => A.setKnowledgeFolder({ dataset: { folder: parent } }) });
 });

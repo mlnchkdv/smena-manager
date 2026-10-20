@@ -212,6 +212,11 @@
   color: var(--accent);
   flex-shrink: 0;
 }
+.knowledge-shell .knowledge-drop-target {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background: var(--accent-soft);
+}
 .knowledge-folder-card > svg:last-child {
   margin-left: auto;
   color: var(--text-4);

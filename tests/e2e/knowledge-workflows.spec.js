@@ -97,6 +97,16 @@ test('knowledge reading editing history search and mobile folders work in Russia
     expect(await page.locator('.knowledge-drawer').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/knowledge-preview-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
     await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+    await page.locator('.knowledge-preview-move').click();
+    await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeDisabled();
+    await expect(page.locator('.knowledge-move-dialog')).toContainText(language === 'Русский' ? 'Перемещение заметок' : 'Move notes');
+    await page.locator('[data-a="browseKnowledgeMove"][data-folder=""]').click();
+    await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeEnabled();
+    const moveBox = await page.locator('.knowledge-move-dialog').boundingBox();
+    expect(moveBox.x).toBeGreaterThanOrEqual(-1);
+    expect(moveBox.x + moveBox.width).toBeLessThanOrEqual(321);
+    expect(await page.locator('.knowledge-move-dialog').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+    await page.locator('.knowledge-move-dialog [data-a="closeModal"]').first().click();
   }
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/e2e-team/knowledge');
@@ -109,6 +119,13 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.reload();
   const updated = await (await page.request.get('/api/workspace-documents/knowledge')).json();
   expect(updated.data.knowledgeNotes.find(note => note.id === 'kb-a').folderId).toBeNull();
+  await page.locator('[data-in="knowledgeSelect"][data-id="kb-a"]').check();
+  await page.locator('[data-in="knowledgeSelect"][data-id="kb-b"]').check();
+  await page.locator('.knowledge-preview-card[data-id="kb-a"]').dragTo(page.locator('.knowledge-folder-card[data-folder="kb-parent"]'));
+  await waitSaved(page);
+  await page.reload();
+  const dragged = await (await page.request.get('/api/workspace-documents/knowledge')).json();
+  expect(dragged.data.knowledgeNotes.every(note => note.folderId === 'kb-parent')).toBeTruthy();
   const indexed = await page.request.get('/api/knowledge/search?q=original%20knowledge&folder=all&offset=0');
   expect(indexed.ok()).toBeTruthy();
   expect((await indexed.json()).ids).toEqual(['kb-a']);
