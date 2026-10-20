@@ -1,4 +1,5 @@
-import { S } from '../core/store.js';
+import { S, D } from '../core/store.js';
+import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
 import { t } from '../core/i18n.js';
 export function knowledgeSaveLabel() {
@@ -18,7 +19,13 @@ export function updateKnowledgeSaveStatus() {
 }
 if (typeof window !== 'undefined') {
   window.addEventListener('smena:sync-status', event => {
-    if (event.detail.scope === 'knowledge' && event.detail.status === 'saved') S.ui.knowledgeDirty = false;
-    updateKnowledgeSaveStatus();
+    if (
+      event.detail.scope === 'knowledge' &&
+      event.detail.status === 'saved' &&
+      JSON.stringify(workspaceDocumentData('knowledge', D())) === JSON.stringify(event.detail.sentData)
+    )
+      S.ui.knowledgeDirty = false;
+    // The sync promise settles after its saved event has been dispatched.
+    queueMicrotask(updateKnowledgeSaveStatus);
   });
 }

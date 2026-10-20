@@ -199,9 +199,10 @@ document.addEventListener('drop', event => {
   if (!target || !dragged) return;
   event.preventDefault();
   const parent = target.dataset.folder;
-  if (['favorites', 'all'].includes(parent)) return;
+  if (parent !== 'root' && !D().knowledgeFolders.some(folder => folder.id === parent)) return;
   const item = dragged;
   dragged = null;
+  if (knowledgeEditBlocked()) return;
   mutate(() => {
     if (item.kind === 'folder') {
       if (!moveKnowledgeFolder(D().knowledgeFolders, item.id, parent === 'root' ? null : parent))

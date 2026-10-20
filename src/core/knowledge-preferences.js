@@ -7,12 +7,17 @@ export function knowledgePreferences() {
     loadedKey = next;
     let value = {};
     try {
-      value = JSON.parse(localStorage.getItem(next) || '{}');
+      const parsed = JSON.parse(localStorage.getItem(next) || '{}');
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) value = parsed;
     } catch {
       /* optional device preferences */
     }
-    S.ui.knowledgeSavedViews = Array.isArray(value.views) ? value.views.slice(0, 20) : [];
-    S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.slice(0, 50) : [];
+    S.ui.knowledgeSavedViews = Array.isArray(value.views)
+      ? value.views.filter(view => view && ['id', 'name', 'folder', 'query', 'tag', 'sort'].every(field => typeof view[field] === 'string')).slice(0, 20)
+      : [];
+    S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
+    S.ui.knowledgeSelection = [];
+    S.ui.knowledgeMobileFolders = false;
   }
 }
 export function saveKnowledgePreferences() {
