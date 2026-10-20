@@ -1368,6 +1368,8 @@ const RU = {
   'Note context': 'Контекст заметки',
   'Recently opened': 'Недавно открытые',
   'Version history': 'История версий',
+  'Note properties': 'Свойства заметки',
+  'This version is no longer available. Reopen version history.': 'Эта версия больше недоступна. Откройте историю версий заново.',
   'Restore version': 'Восстановить версию',
   'Restore this note version?': 'Восстановить эту версию заметки?',
   'No previous versions yet.': 'Предыдущих версий пока нет.',

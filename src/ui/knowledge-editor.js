@@ -7,6 +7,7 @@ import { S } from '../core/store.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeHistory } from './knowledge-history.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
+import { knowledgeDisclosure } from './knowledge-disclosure.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
@@ -24,7 +25,7 @@ export function noteEditor(note, folders, readOnly) {
       ${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<button class="btn btn-danger-ghost btn-sm" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button>`}
     </div>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
-    <div class="knowledge-editor-section-title">Details</div><div class="knowledge-fields">
+    <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body"><div class="knowledge-fields">
       <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders
         .map(
@@ -39,7 +40,7 @@ export function noteEditor(note, folders, readOnly) {
     </div>
     <div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
     <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div></div>
-    <div class="knowledge-editor-section-title">Content</div>
+    </div></details>
     <div class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[
       ['bold', 'bold', 'Bold'],
       ['heading', 'heading', 'Heading'],

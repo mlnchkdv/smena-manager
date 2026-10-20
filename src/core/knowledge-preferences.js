@@ -17,6 +17,7 @@ export function knowledgePreferences() {
       : [];
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
     S.ui.knowledgeSelection = [];
+    S.ui.knowledgeOpenSections = [];
     S.ui.knowledgeMobileFolders = false;
   }
 }

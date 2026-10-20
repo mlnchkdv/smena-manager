@@ -1,4 +1,35 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-properties {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+.knowledge-properties > summary {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  padding: 6px 0;
+}
+.knowledge-properties-body {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+@media (max-width: 640px) {
+  .knowledge-properties > summary {
+    min-height: 44px;
+    padding: 12px 0;
+  }
+  .knowledge-content-head {
+    flex-wrap: wrap;
+  }
+  .knowledge-content-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .knowledge-content-actions > .btn {
+    flex: 1;
+  }
+}
 .knowledge-import-hint {
   margin: -6px 0 16px;
   color: var(--text-3);

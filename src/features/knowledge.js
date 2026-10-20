@@ -16,14 +16,20 @@ A.restoreKnowledgeVersion = el => {
     title: 'Restore this note version?',
     body: 'The current content will become a previous version after synchronization.',
     ok: 'Restore version',
-    run: () =>
+    run: () => {
+      if (knowledgeEditBlocked()) return;
+      // A refresh may have replaced the document while confirmation was open.
+      const current = D().knowledgeNotes.find(item => item.id === note.id);
+      const saved = current?.history?.find(item => item.id === version.id);
+      if (!saved) return toast('This version is no longer available. Reopen version history.', { kind: 'info' });
       mutate(() => {
-        Object.assign(note, historyContent(version, D().knowledgeFolders), {
+        Object.assign(current, historyContent(saved, D().knowledgeFolders), {
           updatedAt: new Date().toISOString(),
           updatedBy: D().me,
-          restoreFromVersion: version.id,
+          restoreFromVersion: saved.id,
         });
-      }),
+      });
+    },
   });
 };
 for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNote']) {
