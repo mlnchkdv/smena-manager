@@ -276,6 +276,12 @@ const RU = {
   'New knowledge folder': 'Новая папка базы знаний',
   'Import Markdown': 'Импортировать Markdown',
   'Import notes': 'Импорт заметок',
+  'Import valid notes': 'Импортировать корректные',
+  'Some files could not be read. Only the valid notes below will be imported.':
+    'Часть файлов не удалось прочитать. Будут импортированы только корректные заметки из списка ниже.',
+  'Ready to import': 'Готово к импорту',
+  'Duplicate skipped': 'Дубликат пропущен',
+  'The file could not be read.': 'Не удалось прочитать файл.',
   Imported: 'Импортированные',
   'No recently opened notes': 'Недавно открытых заметок пока нет',
   'Open a note to find it here later.': 'Откройте заметку — она появится здесь для быстрого возврата.',

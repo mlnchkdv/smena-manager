@@ -9,6 +9,7 @@ import { focusKey, render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
 import { t as tr, templateText } from '../core/i18n.js';
 import { relationPicker, relationsPanel } from '../ui/relations.js';
+import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
 
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
@@ -53,11 +54,13 @@ export function modalHtml(m) {
     case 'portableImport': {
       const preview = S.ui.importPreview;
       const { counts, report } = preview.result;
+      const invalidFiles = preview.entries?.filter(entry => entry.error).length || 0;
+      const canImport = ['notes', 'links', 'knowledgeFolders', 'linkFolders'].some(key => counts[key] > 0);
       return wrap(
         '',
         `${H('Import preview', 'Existing content is never replaced. A backup is created before importing.')}
-        <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid}</b></div></div>
-        ${preview.files ? `<div class="knowledge-import-review"><p><span>Destination folder</span>: <strong translate="no">${esc(D().knowledgeFolders?.find(folder => folder.id === preview.destination)?.name || tr('No folder'))}</strong></p><ul>${preview.files.map((name, index) => `<li><span translate="no">${esc(name)}</span><span translate="no">${esc(preview.payload.notes[index]?.title || '')}</span></li>`).join('')}</ul><p class="hint">Each file becomes a note. Review duplicates before importing.</p></div>` : ''}
+        <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid + invalidFiles}</b></div></div>
+        ${knowledgeImportReview(preview, D().knowledgeFolders || [])}
         <label class="field"><span class="label">Conflicting notes</span><select class="select" data-in="importConflictPolicy" ${preview.busy ? 'disabled' : ''}><option value="copy" ${preview.policy === 'copy' ? 'selected' : ''}>Keep both copies</option><option value="skip" ${preview.policy === 'skip' ? 'selected' : ''}>Keep existing only</option></select></label>
         ${
           report.conflicts.length
@@ -67,7 +70,7 @@ export function modalHtml(m) {
                 .join('')}</div>`
             : ''
         }
-        </div><div class="modal-f"><button class="btn btn-secondary" data-a="downloadImportReport">Download report</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${preview.busy ? 'disabled' : ''}>Cancel</button><button class="btn btn-primary" data-a="confirmPortableImport" ${preview.busy ? 'disabled' : ''}>Import</button></div>`,
+        </div><div class="modal-f"><button class="btn btn-secondary" data-a="downloadImportReport">Download report</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${preview.busy ? 'disabled' : ''}>Cancel</button><button class="btn btn-primary" data-a="confirmPortableImport" ${preview.busy || !canImport ? 'disabled' : ''}>${invalidFiles ? 'Import valid notes' : 'Import'}</button></div>`,
       );
     }
     case 'task':

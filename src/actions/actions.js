@@ -66,10 +66,10 @@ import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
 import { graphView } from '../shared/graph-view.js';
 import { graphOptions } from '../ui/relations.js';
-import { prepareKnowledgeImport } from '../shared/knowledge-import.js';
+import { reviewKnowledgeImport } from '../shared/knowledge-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { isRussian, templateText } from '../core/i18n.js';
+import { isRussian, templateText, t } from '../core/i18n.js';
 import { resolveAppLocation, entityRouteKey } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
@@ -400,7 +400,9 @@ IN.importConflictPolicy = el => {
 A.downloadImportReport = () => {
   const report = S.ui.importPreview?.result;
   if (!report) return;
-  const url = URL.createObjectURL(new Blob([JSON.stringify({ counts: report.counts, report: report.report }, null, 2)], { type: 'application/json' }));
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify({ counts: report.counts, report: report.report, files: S.ui.importPreview.entries }, null, 2)], { type: 'application/json' }),
+  );
   const link = document.createElement('a');
   link.href = url;
   link.download = 'smena-import-report.json';
@@ -410,6 +412,7 @@ A.downloadImportReport = () => {
 A.confirmPortableImport = async () => {
   const preview = S.ui.importPreview;
   if (!preview || preview.busy || !['admin', 'editor'].includes(S.ui.currentUser?.role)) return;
+  if (!['notes', 'links', 'knowledgeFolders', 'linkFolders'].some(key => preview.result.counts[key] > 0)) return;
   if (!workspaceSyncIsClean(S.data)) return toast('Wait until all changes are saved before importing.', { kind: 'info' });
   preview.busy = true;
   S.ui.atomicOperation = true;
@@ -417,6 +420,15 @@ A.confirmPortableImport = async () => {
   try {
     const result = await commitPortableImport(preview.payload, S.ui.workspaceRevision, preview.policy);
     await refreshWorkspaceFromServer({ force: true });
+    if (preview.entries) {
+      Object.assign(S.ui, {
+        knowledgeFolder: D().knowledgeFolders.some(folder => folder.id === preview.destination) ? preview.destination : 'root',
+        knowledgeQuery: '',
+        knowledgeTag: '',
+        knowledgeOffset: 0,
+        knowledgeFolderQuery: '',
+      });
+    }
     S.ui.migrationStatus = `Imported ${result.counts.notes} notes, ${result.counts.links} bookmarks, and ${result.counts.knowledgeFolders + result.counts.linkFolders} folders. Skipped ${result.counts.skipped} duplicates.`;
     if (S.ui.modals.at(-1)?.type === 'portableImport') S.ui.modals.pop();
     toast('Import complete. A recovery backup was saved.');
@@ -478,12 +490,20 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
   S.ui.knowledgeImportStatus = '';
   render();
   try {
-    const payload = await prepareKnowledgeImport(files, { idFactory: uid, memberId: D().me, folderId: destination });
+    const { payload, entries } = await reviewKnowledgeImport(files, {
+      idFactory: uid,
+      memberId: D().me,
+      folderId: destination,
+      onProgress: (done, total) => {
+        if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
+        document.querySelector('[data-knowledge-import-progress]')?.replaceChildren(document.createTextNode(`${t('Reading note files…')} ${done} / ${total}`));
+      },
+    });
     if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
     S.ui.knowledgeMobileFolders = false;
     S.ui.importPreview = {
       payload,
-      files: Array.from(files, file => file.name),
+      entries,
       destination,
       policy: 'copy',
       result: mergePortableWorkspace(D(), payload),
