@@ -1,4 +1,73 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-preview-move {
+  position: absolute;
+  right: 36px;
+  bottom: 12px;
+}
+.knowledge-preview-meta {
+  padding-right: 26px;
+}
+.knowledge-move-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.knowledge-move-crumbs .btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.knowledge-move-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px;
+  text-align: left;
+  border-radius: var(--r);
+}
+.knowledge-move-row:hover,
+.knowledge-move-row:focus-visible {
+  background: var(--accent-soft);
+}
+.knowledge-move-row span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.knowledge-move-row svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.knowledge-move-destination {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--r);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .knowledge-preview-move,
+  .knowledge-preview-star {
+    width: 36px;
+    height: 36px;
+    bottom: 4px;
+  }
+  .knowledge-preview-move {
+    right: 44px;
+  }
+  .knowledge-preview-meta {
+    padding-right: 62px;
+  }
+  .knowledge-move-dialog .knowledge-folder-card-pages {
+    flex-wrap: wrap;
+  }
+}
 .knowledge-select-search {
   position: sticky;
   top: 0;

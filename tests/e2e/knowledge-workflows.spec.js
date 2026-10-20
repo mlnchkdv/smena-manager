@@ -101,9 +101,10 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-in="knowledgeSelect"][data-id="kb-a"]').check();
-  await page.locator('.knowledge-bulk .select-btn').click();
-  await expect(page.locator('.select-menu [role="option"]').first()).toBeDisabled();
-  await page.locator('.select-menu [role="option"]').filter({ hasText: 'No folder' }).click();
+  await page.locator('.knowledge-bulk [data-a="moveKnowledgeNote"]').click();
+  await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeDisabled();
+  await page.locator('[data-a="browseKnowledgeMove"][data-folder=""]').click();
+  await page.locator('[data-a="confirmKnowledgeMove"]').click();
   await waitSaved(page);
   await page.reload();
   const updated = await (await page.request.get('/api/workspace-documents/knowledge')).json();

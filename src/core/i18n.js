@@ -15,6 +15,16 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Move note': 'Переместить заметку',
+  'Move notes': 'Перемещение заметок',
+  'Choose a destination, then confirm the move.': 'Выберите папку назначения и подтвердите перенос.',
+  'Selected notes': 'Выбрано заметок',
+  'Find destination folder': 'Найти папку назначения',
+  'Choose a different destination folder.': 'Выберите другую папку назначения.',
+  'Move here': 'Переместить сюда',
+  'Notes moved': 'Заметки перемещены',
+  'Open destination': 'Открыть папку назначения',
+  'The notes or destination changed. Reopen the move dialog.': 'Заметки или папка назначения изменились. Откройте окно переноса заново.',
   Graph: 'Граф',
   Filters: 'Фильтры',
   'Material types': 'Типы материалов',

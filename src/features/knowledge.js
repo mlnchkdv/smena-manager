@@ -3,7 +3,8 @@ import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder, moveKnowledgeFolders } from '../shared/knowledge-tools.js';
 import { render } from '../shell/render.js';
-import { openModal } from '../overlays/modals.js';
+import { openModal, closeModal } from '../overlays/modals.js';
+import { moveKnowledgeNotes } from '../shared/knowledge-note-move.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { historyContent } from '../shared/knowledge-history.js';
@@ -98,6 +99,58 @@ IN.knowledgeBulkMove = el => {
     });
     S.ui.knowledgeSelection = [];
   });
+};
+const moveModal = () => (S.ui.modals.at(-1)?.type === 'knowledgeMove' ? S.ui.modals.at(-1) : null);
+A.moveKnowledgeNote = el => {
+  if (knowledgeEditBlocked() || S.ui.currentUser?.role === 'viewer') return;
+  const ids = [...new Set(el.dataset.id ? [el.dataset.id] : S.ui.knowledgeSelection || [])];
+  const notes = D().knowledgeNotes.filter(note => ids.includes(note.id));
+  if (!notes.length) return;
+  const initial = el.dataset.folder || notes[0].folderId;
+  openModal({
+    type: 'knowledgeMove',
+    ids: notes.map(note => note.id),
+    folder: D().knowledgeFolders.some(folder => folder.id === initial) ? initial : null,
+    query: '',
+    offset: 0,
+    owner: S.ui.currentUser?.id,
+    workspace: D().ws?.id,
+  });
+};
+A.browseKnowledgeMove = el => {
+  const m = moveModal();
+  if (!m) return;
+  if (el.dataset.folder && !D().knowledgeFolders.some(folder => folder.id === el.dataset.folder)) return;
+  Object.assign(m, { folder: el.dataset.folder || null, query: '', offset: 0 });
+  render();
+};
+IN.knowledgeMoveQuery = el => {
+  const m = moveModal();
+  if (!m) return;
+  Object.assign(m, { query: el.value, offset: 0 });
+  render();
+};
+A.pageKnowledgeMove = el => {
+  const m = moveModal();
+  if (!m) return;
+  m.offset = Math.max(0, Number(el.dataset.offset) || 0);
+  render();
+  document.querySelector('.knowledge-move-dialog .modal-b')?.scrollTo(0, 0);
+};
+A.confirmKnowledgeMove = () => {
+  const m = moveModal();
+  if (!m || knowledgeEditBlocked() || m.owner !== S.ui.currentUser?.id || m.workspace !== D().ws?.id) return;
+  let result;
+  if (
+    !mutate(() => {
+      result = moveKnowledgeNotes(D().knowledgeNotes, D().knowledgeFolders, m.ids, m.folder, D().me);
+    })
+  )
+    return;
+  if (!result.ok) return toast('The notes or destination changed. Reopen the move dialog.', { kind: 'err' });
+  S.ui.knowledgeSelection = (S.ui.knowledgeSelection || []).filter(id => !m.ids.includes(id));
+  closeModal();
+  if (result.moved) toast('Notes moved', { action: 'Open destination', onAction: () => A.setKnowledgeFolder({ dataset: { folder: m.folder || 'root' } }) });
 };
 A.trashKnowledgeSelection = () => {
   if (knowledgeEditBlocked()) return;

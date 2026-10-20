@@ -10,6 +10,7 @@ import { teamModal } from '../features/teams.js';
 import { t as tr, templateText } from '../core/i18n.js';
 import { relationPicker, relationsPanel } from '../ui/relations.js';
 import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
+import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
 
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
@@ -35,6 +36,8 @@ export function modalHtml(m) {
     `<div class="modal-h"><div><h2 id="mt-${m.type}">${title}</h2>${sub ? `<div class="muted" style="font-size:12.5px;margin-top:2px">${sub}</div>` : ''}</div><button class="ibtn ibtn-sm" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div>`;
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
+    case 'knowledgeMove':
+      return wrap('knowledge-move-dialog', H('Move notes', 'Choose a destination, then confirm the move.') + knowledgeMovePicker(m));
     case 'relations':
       return wrap('md', relationPicker(m).replace('<h2>', '<h2 id="mt-relations">'));
     case 'syncRecovery': {
