@@ -567,6 +567,10 @@
   max-width: 100%;
   min-width: 0;
 }
+.knowledge-selection-count {
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
 .knowledge-bulk select {
   max-width: 240px;
   width: 100%;

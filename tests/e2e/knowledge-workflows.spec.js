@@ -85,9 +85,11 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('.knowledge-folder-card-options summary').first().click();
     await page.locator('[data-in="knowledgeSelect"]').last().focus();
     const scrollBeforeSelection = await page.locator('.knowledge-main').evaluate(el => el.scrollTop);
+    const cardBeforeSelection = (await page.locator('.knowledge-preview-card').last().boundingBox()).y;
     expect(scrollBeforeSelection).toBeGreaterThan(0);
     await page.locator('[data-in="knowledgeSelect"]').last().press('Space');
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollTop)).toBeGreaterThanOrEqual(scrollBeforeSelection - 2);
+    expect(Math.abs((await page.locator('.knowledge-preview-card').last().boundingBox()).y - cardBeforeSelection)).toBeLessThanOrEqual(2);
     await expect(page.locator('.knowledge-folder-card-options').first()).toHaveAttribute('open', '');
     await page.locator('.knowledge-folder-card-options summary').first().click();
     await page.locator('[data-a="clearKnowledgeSelection"]').click();
@@ -135,6 +137,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   expect(updated.data.knowledgeNotes.find(note => note.id === 'kb-a').folderId).toBeNull();
   await page.locator('[data-in="knowledgeSelect"][data-id="kb-a"]').check();
   await page.locator('[data-in="knowledgeSelect"][data-id="kb-b"]').check();
+  await expect(page.locator('[data-a="selectKnowledgePage"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('.knowledge-preview-card[data-id="kb-a"]').dragTo(page.locator('.knowledge-folder-card[data-folder="kb-parent"]'));
   await waitSaved(page);
   await page.reload();

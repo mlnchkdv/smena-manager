@@ -5,6 +5,7 @@ import { moveKnowledgeFolder, moveKnowledgeFolders, folderDescendants } from '..
 import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { moveKnowledgeNotes } from '../shared/knowledge-note-move.js';
+import { toggleKnowledgePageSelection } from '../shared/knowledge-selection.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { historyContent } from '../shared/knowledge-history.js';
@@ -52,10 +53,17 @@ for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNot
   };
 }
 IN.knowledgeSelect = el => {
+  const card = el.closest('.knowledge-preview-card');
+  const top = card?.getBoundingClientRect().top;
   const set = new Set(S.ui.knowledgeSelection || []);
   el.checked ? set.add(el.dataset.id) : set.delete(el.dataset.id);
   S.ui.knowledgeSelection = [...set];
   render();
+  // Selection adds folder-receive buttons above the list. Keep the clicked card
+  // in place as well as preserving the scroller's offset across rerenders.
+  const current = document.querySelector(`.knowledge-preview-card[data-id="${CSS.escape(el.dataset.id)}"]`);
+  const scroller = current?.closest('.knowledge-main');
+  if (scroller && top != null) scroller.scrollTop += current.getBoundingClientRect().top - top;
 };
 A.organizeKnowledgeFolders = () => {
   S.ui.knowledgeOrganize = !S.ui.knowledgeOrganize;
@@ -77,7 +85,11 @@ IN.knowledgeBulkFolderMove = el => {
   });
 };
 A.selectKnowledgePage = el => {
-  S.ui.knowledgeSelection = (el.dataset.ids || '').split(',').filter(Boolean);
+  const known = new Set(D().knowledgeNotes.map(note => note.id));
+  S.ui.knowledgeSelection = toggleKnowledgePageSelection(
+    (S.ui.knowledgeSelection || []).filter(id => known.has(id)),
+    (el.dataset.ids || '').split(',').filter(id => known.has(id)),
+  );
   render();
 };
 A.clearKnowledgeSelection = () => {

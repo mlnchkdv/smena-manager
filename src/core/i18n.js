@@ -1430,6 +1430,8 @@ const RU = {
   'Insert link': 'Вставить ссылку',
   'Close folders': 'Закрыть папки',
   'Select page': 'Выбрать страницу',
+  'Deselect page': 'Снять выбор со страницы',
+  'outside this page': 'вне этой страницы',
   'Note selection': 'Выбор заметок',
   'Select note': 'Выбрать заметку',
   'Select folder': 'Выбрать папку',
