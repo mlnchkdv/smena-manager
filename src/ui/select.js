@@ -16,9 +16,14 @@ export function enhanceSelects(root = document) {
     btn.setAttribute('style', sel.getAttribute('style') || '');
     btn.setAttribute('aria-haspopup', 'listbox');
     btn.setAttribute('aria-expanded', 'false');
-    const accessibleLabel = sel.getAttribute('aria-label') || (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`)?.textContent) || 'Choose';
+    const accessibleLabel =
+      sel.getAttribute('aria-label') ||
+      (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`)?.textContent) ||
+      sel.closest('label')?.querySelector(':scope > span')?.textContent ||
+      'Choose';
     if (sel.id) btn.dataset.for = sel.id;
     const sync = () => {
+      btn.disabled = sel.disabled;
       const selectedText = sel.options[sel.selectedIndex]?.text || '';
       btn.innerHTML = `<span class="trunc">${esc(selectedText)}</span>`;
       btn.setAttribute('aria-label', `${accessibleLabel}: ${selectedText}`);
@@ -50,6 +55,7 @@ export const selectMenu = {
     this.sel === sel && this.el ? this.close() : this.open(sel, btn);
   },
   open(sel, btn) {
+    if (sel.disabled) return;
     this.close();
     const menu = document.createElement('div');
     menu.className = 'pop select-menu enter';
@@ -58,7 +64,7 @@ export const selectMenu = {
     menu.innerHTML = [...sel.options]
       .map(
         (o, i) =>
-          `<button type="button" class="mi" role="option" data-i="${i}" aria-selected="${o.selected}"><span class="trunc grow">${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+          `<button type="button" class="mi" role="option" data-i="${i}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow">${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
       )
       .join('');
     document.body.appendChild(menu);
@@ -70,7 +76,7 @@ export const selectMenu = {
       this.pick(+it.dataset.i);
     });
     menu.addEventListener('keydown', e => {
-      const items = [...menu.querySelectorAll('.mi')];
+      const items = [...menu.querySelectorAll('.mi:not(:disabled)')];
       const i = items.indexOf(document.activeElement);
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -87,7 +93,7 @@ export const selectMenu = {
     Object.assign(this, { el: menu, sel, btn });
     this.position();
     btn.setAttribute('aria-expanded', 'true');
-    (menu.querySelector('[aria-selected="true"]') || menu.querySelector('.mi'))?.focus({ preventScroll: true });
+    (menu.querySelector('[aria-selected="true"]:not(:disabled)') || menu.querySelector('.mi:not(:disabled)'))?.focus({ preventScroll: true });
   },
   position() {
     if (!this.el) return;
@@ -111,7 +117,7 @@ export const selectMenu = {
   pick(i) {
     const { sel, btn } = this;
     this.close(true);
-    if (!sel || sel.selectedIndex === i) return;
+    if (!sel || sel.disabled || !sel.options[i] || sel.options[i].disabled || sel.selectedIndex === i) return;
     sel.selectedIndex = i;
     sel.dispatchEvent(new Event('input', { bubbles: true }));
     sel.dispatchEvent(new Event('change', { bubbles: true }));
