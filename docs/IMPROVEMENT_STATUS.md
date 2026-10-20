@@ -4,25 +4,72 @@ This checklist records the 14-point hardening pass from October 2026. Code chang
 
 Этот список фиксирует 14-пунктовый этап улучшений за октябрь 2026 года. Изменения кода отправлены в `main`; проверки, которые требуют production-аккаунта, отмечены отдельно.
 
-| # | Area / Область | Result / Результат |
-|---:|---|---|
-| 1 | Production ACL isolation | Server-side project/file/comment/notification/graph projections and direct API checks are covered by tests; production two-account drill is read-only and documented. |
-| 2 | Backup/restore and attachments | Restore remains atomic; partial recovery uploads are deleted on failure; corruption and empty-destination checks are covered. |
-| 3 | Cron observability | Readiness now reports cron health and the next daily 04:00 UTC execution; HTTP 200 is not treated as proof of a successful run. |
-| 4 | Google OAuth/Gmail | Minimum scopes, token storage, rotation and revocation procedures are documented; provider status remains visible to administrators. |
-| 5 | Storage capacity | Workspace status exposes bytes, warning threshold, percentage and `ok`/`warning`/`over-limit` state. |
-| 6 | Synchronization | Revision polling supports conditional ETag requests, avoiding unchanged workspace payloads. |
-| 7 | Frontend performance | The initial bundle has a 600 KiB build budget; graph and PDF remain lazy-loaded. |
-| 8 | CI/E2E | CI runs the isolated Russian/English matrix across Chromium, Firefox and WebKit with per-run data and ports. |
-| 9 | Graph scale | Graph responses expose visible totals, edge totals, limit and truncation state; layout and 10k-node regressions are tested. |
-| 10 | File reliability | Range suffix, invalid range, resumable upload and safe preview paths are covered by server tests. |
-| 11 | Maintainability | Task-key allocation is extracted from the monolithic actions module; further domain extraction can continue without behavior changes. |
-| 12 | Schema migrations | Ordered pure migration registry is used before validation and rejects missing steps. |
-| 13 | Notification audit | Delivery totals/cron history are persisted; diagnostic test cooldown is claimed atomically across workers. |
-| 14 | Accessibility/responsive | WCAG routes, RU/EN flows, mobile sizes and 200% zoom settings are exercised in E2E. |
+|   # | Area / Область                 | Result / Результат                                                                                                                                                    |
+| --: | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1 | Production ACL isolation       | Server-side project/file/comment/notification/graph projections and direct API checks are covered by tests; production two-account drill is read-only and documented. |
+|   2 | Backup/restore and attachments | Restore remains atomic; partial recovery uploads are deleted on failure; corruption and empty-destination checks are covered.                                         |
+|   3 | Cron observability             | Readiness now reports cron health and the next daily 04:00 UTC execution; HTTP 200 is not treated as proof of a successful run.                                       |
+|   4 | Google OAuth/Gmail             | Minimum scopes, token storage, rotation and revocation procedures are documented; provider status remains visible to administrators.                                  |
+|   5 | Storage capacity               | Workspace status exposes bytes, warning threshold, percentage and `ok`/`warning`/`over-limit` state.                                                                  |
+|   6 | Synchronization                | Revision polling supports conditional ETag requests, avoiding unchanged workspace payloads.                                                                           |
+|   7 | Frontend performance           | The initial bundle has a 600 KiB build budget; graph and PDF remain lazy-loaded.                                                                                      |
+|   8 | CI/E2E                         | CI runs the isolated Russian/English matrix across Chromium, Firefox and WebKit with per-run data and ports.                                                          |
+|   9 | Graph scale                    | Graph responses expose visible totals, edge totals, limit and truncation state; layout and 10k-node regressions are tested.                                           |
+|  10 | File reliability               | Range suffix, invalid range, resumable upload and safe preview paths are covered by server tests.                                                                     |
+|  11 | Maintainability                | Task-key allocation is extracted from the monolithic actions module; further domain extraction can continue without behavior changes.                                 |
+|  12 | Schema migrations              | Ordered pure migration registry is used before validation and rejects missing steps.                                                                                  |
+|  13 | Notification audit             | Delivery totals/cron history are persisted; diagnostic test cooldown is claimed atomically across workers.                                                            |
+|  14 | Accessibility/responsive       | WCAG routes, RU/EN flows, mobile sizes and 200% zoom settings are exercised in E2E.                                                                                   |
 
 ## Remaining production evidence / Недостающие production-артефакты
 
 The following cannot be proven by a local build: a fresh Vercel cron execution and automatic backup, a two-account ACL drill against current team data, Gmail token revocation/rotation, and a real slow-network large-file transfer. Run `docs/PRODUCTION_ACCEPTANCE.md` during an approved maintenance window and attach redacted request IDs only.
 
 Локальная сборка не доказывает свежий Vercel cron и automatic backup, двухаккаунтную проверку ACL на текущих данных команды, отзыв/ротацию Gmail-токена и реальную передачу большого файла по медленной сети. Выполняйте `docs/PRODUCTION_ACCEPTANCE.md` в согласованное окно и прикладывайте только замаскированные request ID.
+
+## Knowledge base: 20 October 2026 / База знаний: 20 октября 2026
+
+All 14 knowledge improvements have implementations on `main`. Each implementation and follow-up correction has its own commit. The existing Drive aggregate and revision-based synchronization remain the source of truth.
+
+Все 14 улучшений базы знаний реализованы в `main`. Каждый этап и последующие исправления имеют отдельные коммиты. Источник общих данных — существующий агрегат Google Drive с проверкой версий при записи.
+
+|   # | Capability / Возможность                              | Implementation / Реализация                                                                                                                                                                                                                                                                              |
+| --: | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1 | Large lists / Большие списки                          | At most 60 cards per page, browser content visibility, no 1,000-note navigation ceiling. / До 60 карточек на странице, отложенная отрисовка браузером, доступ к заметкам за прежним пределом 1000.                                                                                                       |
+|   2 | Folders / Папки                                       | Nested paths, drag and drop, accessible move selectors, cycle and sibling-name checks. / Вложенные пути, перетаскивание, выбор назначения, защита от циклов и совпадения имён соседних папок.                                                                                                            |
+|   3 | Saved searches / Сохранённые поиски                   | Up to 20 named, pinned searches per account/workspace on this device. / До 20 именованных поисков для аккаунта и пространства на устройстве.                                                                                                                                                             |
+|   4 | Search / Поиск                                        | All words, quoted phrases, tags, escaped highlights and contextual excerpts. / Поиск всех слов, точных фраз и тегов, безопасная подсветка и фрагменты текста.                                                                                                                                            |
+|   5 | Autosave / Автосохранение                             | Coalesced writes, editor save status, local draft flush on page exit. / Объединённая отправка правок, статус редактора, сохранение локального черновика при уходе.                                                                                                                                       |
+|   6 | Concurrent editing / Совместное редактирование        | Revision checks and existing three-way merge; conflicting editors expose recovery controls. / Проверка версии и трёхстороннее объединение; при конфликте доступны средства восстановления.                                                                                                               |
+|   7 | Markdown editor / Markdown-редактор                   | Formatting toolbar, live preview, headings, lists, checklists, code blocks and safe links. Portable plain-text storage. / Панель форматирования, живой предпросмотр, заголовки, списки, задачи, код и безопасные ссылки. Хранение обычного текста.                                                       |
+|   8 | Quick reading / Быстрое чтение                        | Note preview includes tags, linked notes, backlinks and the connections panel. / В предпросмотре доступны теги, связанные заметки, обратные ссылки и панель связей.                                                                                                                                      |
+|   9 | Mobile folders / Мобильные папки                      | Bottom sheet with search; choosing a folder returns space to the cards. / Нижняя панель с поиском; после выбора папки экран освобождается для заметок.                                                                                                                                                   |
+|  10 | Keyboard / Клавиатура                                 | `/` search, `N` new note, Ctrl/Cmd+B formatting, Ctrl/Cmd+Enter preview, Ctrl/Cmd+S save, Escape and focus restoration. / Поиск, создание, форматирование, предпросмотр, сохранение и возврат фокуса с клавиатуры.                                                                                       |
+|  11 | Bulk operations / Массовые операции                   | Select notes, move or send to recoverable trash; move folder groups atomically while preserving selected subtrees. / Выбор, перенос и корзина заметок; атомарный перенос групп папок с сохранением поддеревьев.                                                                                          |
+|  12 | Accessibility and locales / Доступность и языки       | Focus containment, inactive backgrounds, labelled controls, RU/EN, bounded mobile dialog geometry. / Удержание фокуса, неактивный фон, подписи элементов, RU/EN, окна в границах мобильного экрана.                                                                                                      |
+|  13 | Reading and version history / История чтения и версий | 50 recent notes on this device; server-generated previous versions, previews and restoration. Autosave bursts are grouped. / 50 недавно открытых заметок на устройстве; серверная история, просмотр и восстановление версий с группировкой автосохранений.                                               |
+|  14 | Server search / Серверный поиск                       | Authenticated trigram index rebuilt by revision; 60 IDs per page, parameter validation, stale-session guards and local fallback. / Авторизованный индекс триграмм, обновляемый по версии; 60 идентификаторов на странице, проверка параметров, защита от устаревших ответов и локальный резервный поиск. |
+
+### Limits / Ограничения
+
+- Rendering is bounded through pagination and browser content visibility. It is not an infinite scrolling list. Full document snapshots are still loaded for graph, relations and conflict-safe writes; the existing 4 MB transport limit still applies. The process-local index is rebuilt on a server cold start and needs no PostgreSQL.
+- Saved searches and recently opened lists belong to the current device, account and workspace; they do not yet roam between devices.
+- Version history retains up to five snapshots for notes whose serialized editable content is at most 32,000 characters. Per-note history is capped at 64,000 characters and aggregate histories at 500,000 characters. Larger materials remain covered by workspace backups. The Markdown reader intentionally supports common portable syntax, not every Markdown extension.
+
+- Отрисовка ограничена страницами и возможностями браузера; бесконечной прокрутки нет. Для графа, связей и безопасной синхронизации загружается полный документ; сохраняется лимит передачи 4 МБ. Индекс пересоздаётся при холодном старте сервера и не требует PostgreSQL.
+- Сохранённые поиски и недавно открытые заметки привязаны к устройству, аккаунту и пространству; между устройствами пока не переносятся.
+- История содержит до пяти снимков для заметок с сериализованным редактируемым содержимым до 32 000 символов. История одной заметки ограничена 64 000 символов, всех заметок — 500 000. Большие материалы защищаются резервными копиями пространства. Просмотр Markdown поддерживает распространённый переносимый синтаксис, без гарантии всех расширений.
+
+### Verification / Проверка
+
+`tests/e2e/knowledge-workflows.spec.js` exercises saved searches, preview, editing, persistence, version recovery, RU/EN mobile folder navigation at 320 px, dialog bounds and bulk movement. `tests/server/knowledge-*.test.js` covers indexing, 1,600-note search, pagination beyond 1,000 notes, cycles, atomic folder moves, Markdown safety and history grouping. Search authorization and malformed parameters are checked by the session route suite.
+
+`tests/e2e/knowledge-workflows.spec.js` проверяет сохранённые поиски, чтение, редактирование, сохранение после обновления, восстановление версии, мобильные папки RU/EN при 320 px, границы окна и массовое перемещение. Серверные проверки покрывают индекс, поиск по 1600 заметкам, страницы за пределом 1000 заметок, циклы, атомарность переносов, безопасность Markdown и группировку версий. Проверки маршрутов контролируют авторизацию поиска и некорректные параметры.
+
+Production checks in this pass only read existing team material and exercised navigation/preview; destructive and recovery tests use isolated local data. A successful push alone is not evidence of a successful production deployment.
+
+На основном сайте в этом этапе проверялись чтение существующих материалов команды, навигация и предпросмотр. Удаление и восстановление проверяются на изолированных локальных данных. Сам по себе push не подтверждает успешную публикацию production.
+
+Acceptance result on 20 October: 286/286 server tests passed; the knowledge workflow passed in Chromium for Russian/English at 320 px, including save/reload, version restoration and bulk movement through the visible select menu. The existing workspace browser sweep passed five scenarios immediately; its persistence scenario passed after correcting the Russian shortcut caption. The production update was observed directly: cookie session restoration, new folder/navigation controls, quick preview and mobile folder selection. Mobile dialog animation was corrected after a screenshot exposed a 50% horizontal offset, and the regression now checks viewport-relative bounds.
+
+Результат 20 октября: серверные тесты — 286/286. Целевой сценарий базы знаний прошёл в Chromium на русском и английском при 320 px, включая сохранение/обновление, восстановление версии и массовое перемещение через видимое меню. Пять сценариев существующей браузерной проверки прошли сразу; сценарий сохранения прошёл после исправления русской подсказки клавиатуры. Обновление основного сайта проверено непосредственно: cookie-сессия, новые элементы папок, быстрый просмотр и мобильный выбор папки. По скриншоту обнаружено и исправлено смещение мобильного окна на 50%; регрессионный тест теперь проверяет его границы относительно экрана.
