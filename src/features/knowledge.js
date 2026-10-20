@@ -125,9 +125,14 @@ A.toggleKnowledgeMobileFolders = () => {
   if (S.ui.knowledgeMobileFolders) document.querySelector('[data-in="knowledgeFolderQuery"]')?.focus();
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };
+let compactKnowledge = window.innerWidth <= 640;
 window.addEventListener('resize', () => {
-  if (S.ui.knowledgeMobileFolders && window.innerWidth > 640) {
+  const compact = window.innerWidth <= 640;
+  const changed = compact !== compactKnowledge;
+  compactKnowledge = compact;
+  if ((S.ui.knowledgeMobileFolders && !compact) || (changed && S.ui.route === 'knowledge')) {
     S.ui.knowledgeMobileFolders = false;
+    S.ui.knowledgeFolderCardOffset = 0;
     render();
   }
 });
@@ -204,6 +209,9 @@ A.applyKnowledgeView = el => {
   const view = S.ui.knowledgeSavedViews?.find(view => view.id === el.dataset.id);
   if (!view) return;
   Object.assign(S.ui, { knowledgeFolder: view.folder, knowledgeQuery: view.query, knowledgeTag: view.tag, knowledgeSort: view.sort, knowledgeOffset: 0 });
+  S.ui.knowledgeFolderCardQuery = '';
+  S.ui.knowledgeFolderCardOffset = 0;
+  S.ui.knowledgeRevealFolder = view.folder;
   render();
 };
 A.removeKnowledgeView = el => {

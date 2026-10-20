@@ -177,7 +177,7 @@ export function pageKnowledge() {
           .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
           .join(
             '',
-          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Title</option></select></label></div>
+          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div>
         ${knowledgeFolderCards(folderIndex, folderFilter, readOnly)}
         ${S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || folderIndex.byId.has(folderFilter)) ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.byId.has(folderFilter) ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}
