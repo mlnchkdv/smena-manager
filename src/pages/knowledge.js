@@ -221,7 +221,13 @@ export function pageKnowledge() {
                   ),
                 )
                 .join('')}</div>`
-            : empty('search-x', 'No results found', 'No notes match your filters.')
+            : S.ui.knowledgeQuery || S.ui.knowledgeTag
+              ? empty('search-x', 'No results found', 'No notes match your filters.')
+              : folderFilter === 'recent'
+                ? empty('history', 'No recently opened notes', 'Open a note to find it here later.')
+                : folderFilter === 'favorites'
+                  ? empty('star', 'No favorites yet', 'Star useful notes to keep them close at hand.')
+                  : empty('file-text', 'No notes yet', 'Create a note or import TXT and Markdown files.')
         }
         ${total > 60 ? `<nav class="knowledge-pagination" aria-label="Note pages"><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${Math.max(0, start - 60)}" ${!start ? 'disabled' : ''}>Previous</button><span class="num">${start + 1}–${start + visible.length} / ${total}</span><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${start + 60}" ${!hasMore ? 'disabled' : ''}>Next</button></nav>` : ''}
       </section>

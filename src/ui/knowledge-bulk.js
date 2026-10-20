@@ -4,7 +4,8 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 export function knowledgeBulkToolbar(visible) {
   if (S.ui.currentUser?.role === 'viewer') return '';
   const selected = (S.ui.knowledgeSelection || []).filter(id => D().knowledgeNotes.some(note => note.id === id));
-  return `<div class="knowledge-bulk" role="group" aria-label="Note selection"><button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}">Select page</button>${
+  if (!visible.length && !selected.length) return '';
+  return `<div class="knowledge-bulk" role="group" aria-label="Note selection"><button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" ${!visible.length ? 'disabled' : ''}>Select page</button>${
     selected.length
       ? `<span class="num">${selected.length}</span><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection">Clear selection</button><label><span class="sr">Move selected notes</span><select class="select" data-in="knowledgeBulkMove"><option value="" disabled selected>Move selected notes</option><option value="root">No folder</option>${D()
           .knowledgeFolders.map(
