@@ -1,7 +1,45 @@
-import { IN } from '../actions/actions.js';
+import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder } from '../shared/knowledge-tools.js';
+import { render } from '../shell/render.js';
+import { openModal } from '../overlays/modals.js';
+import { uid } from '../core/utils.js';
+import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+
+A.saveKnowledgeView = () =>
+  openModal({
+    type: 'prompt',
+    title: 'Save search',
+    label: 'Name',
+    value: S.ui.knowledgeQuery || '',
+    run: name => {
+      if (!name.trim()) return;
+      const views = (S.ui.knowledgeSavedViews ||= []);
+      if (views.length >= 20) return toast('You can save up to 20 searches.', { kind: 'info' });
+      views.push({
+        id: uid('kv'),
+        name: name.trim().slice(0, 80),
+        folder: S.ui.knowledgeFolder,
+        query: S.ui.knowledgeQuery,
+        tag: S.ui.knowledgeTag,
+        sort: S.ui.knowledgeSort,
+      });
+      saveKnowledgePreferences();
+      render();
+    },
+  });
+A.applyKnowledgeView = el => {
+  const view = S.ui.knowledgeSavedViews?.find(view => view.id === el.dataset.id);
+  if (!view) return;
+  Object.assign(S.ui, { knowledgeFolder: view.folder, knowledgeQuery: view.query, knowledgeTag: view.tag, knowledgeSort: view.sort, knowledgeOffset: 0 });
+  render();
+};
+A.removeKnowledgeView = el => {
+  S.ui.knowledgeSavedViews = S.ui.knowledgeSavedViews.filter(view => view.id !== el.dataset.id);
+  saveKnowledgePreferences();
+  render();
+};
 
 IN.knowledgeMoveFolder = el =>
   mutate(() => {

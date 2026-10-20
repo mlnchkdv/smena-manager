@@ -1353,6 +1353,9 @@ const RU = {
 
   // Authentication and onboarding
   'Move folder to': 'Переместить папку в',
+  'Save search': 'Сохранить поиск',
+  'Remove saved search': 'Удалить сохранённый поиск',
+  'You can save up to 20 searches.': 'Можно сохранить до 20 поисковых запросов.',
   'Root folder': 'Корень',
   'Note pages': 'Страницы заметок',
   'Cannot move a folder into itself or a descendant.': 'Невозможно переместить папку: проверьте вложенность и совпадения имён.',

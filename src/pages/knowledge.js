@@ -4,6 +4,7 @@ import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
+import { knowledgePreferences } from '../core/knowledge-preferences.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -116,6 +117,7 @@ function folderLabel(folderFilter, folders) {
 }
 
 export function pageKnowledge() {
+  knowledgePreferences();
   const { notes, folders } = knowledgeData();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
@@ -179,6 +181,7 @@ export function pageKnowledge() {
     <div class="knowledge-main">
       <section class="knowledge-content" aria-label="Knowledge notes">
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove}
+        <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
         <div class="knowledge-content-head"><div><h1>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span>${activeFolder ? ` · <span translate="no">${esc(activeFolder.name)}</span>` : ''}</p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
           ...new Set(notes.flatMap(note => note.tags || [])),
