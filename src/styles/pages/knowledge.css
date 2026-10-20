@@ -1,4 +1,11 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-reader-title {
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
 .knowledge-properties {
   border-bottom: 1px solid var(--border);
   padding-bottom: 14px;
