@@ -1,7 +1,7 @@
 import { A, IN, confirmDlg, moveToTrash } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
-import { moveKnowledgeFolder } from '../shared/knowledge-tools.js';
+import { moveKnowledgeFolder, moveKnowledgeFolders } from '../shared/knowledge-tools.js';
 import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
@@ -42,6 +42,25 @@ IN.knowledgeSelect = el => {
   el.checked ? set.add(el.dataset.id) : set.delete(el.dataset.id);
   S.ui.knowledgeSelection = [...set];
   render();
+};
+A.organizeKnowledgeFolders = () => {
+  S.ui.knowledgeOrganize = !S.ui.knowledgeOrganize;
+  S.ui.knowledgeFolderSelection = [];
+  render();
+};
+IN.knowledgeFolderSelect = el => {
+  const selected = new Set(S.ui.knowledgeFolderSelection || []);
+  el.checked ? selected.add(el.dataset.id) : selected.delete(el.dataset.id);
+  S.ui.knowledgeFolderSelection = [...selected];
+  render();
+};
+IN.knowledgeBulkFolderMove = el => {
+  if (knowledgeEditBlocked()) return;
+  mutate(() => {
+    if (moveKnowledgeFolders(D().knowledgeFolders, S.ui.knowledgeFolderSelection || [], el.value === 'root' ? null : el.value))
+      S.ui.knowledgeFolderSelection = [];
+    else toast('Cannot move a folder into itself or a descendant.', { kind: 'err' });
+  });
 };
 A.selectKnowledgePage = el => {
   S.ui.knowledgeSelection = (el.dataset.ids || '').split(',').filter(Boolean);

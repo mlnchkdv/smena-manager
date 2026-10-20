@@ -627,8 +627,9 @@ A.newKnowledgeFolder = () => {
       if (!name) return;
       mutate(() => {
         const { folders } = knowledgeCollections();
-        if (folders.some(folder => folder.name.toLowerCase() === name.toLowerCase())) return;
         const parentId = knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null;
+        if (folders.some(folder => (folder.parentId || null) === parentId && folder.name.toLowerCase() === name.toLowerCase()))
+          return toast('A folder with this name already exists here.', { kind: 'err' });
         const folder = { id: uid('kf'), name, parentId, createdAt: new Date().toISOString() };
         folders.push(folder);
         S.ui.knowledgeFolder = folder.id;
@@ -714,7 +715,12 @@ A.renameKnowledgeFolder = el => {
       const name = value.trim();
       if (!name || name === folder.name) return;
       mutate(() => {
-        if (knowledgeCollections().folders.some(item => item.id !== folder.id && item.name.trim().toLowerCase() === name.toLowerCase())) return;
+        if (
+          knowledgeCollections().folders.some(
+            item => item.id !== folder.id && (item.parentId || null) === (folder.parentId || null) && item.name.trim().toLowerCase() === name.toLowerCase(),
+          )
+        )
+          return toast('A folder with this name already exists here.', { kind: 'err' });
         folder.name = name;
       });
     },

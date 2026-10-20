@@ -1,4 +1,25 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-folder-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.knowledge-folder-bulk label,
+.knowledge-folder-bulk select {
+  max-width: 100%;
+  min-width: 0;
+}
+.knowledge-bulk {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--sunken);
+  padding: 8px 0;
+}
+.knowledge-folder-line > input {
+  accent-color: var(--accent);
+  flex: 0 0 18px;
+}
 .knowledge-history-row {
   display: flex;
   gap: 12px;

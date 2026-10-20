@@ -41,3 +41,20 @@ export function moveKnowledgeFolder(folders, id, parentId) {
   folder.parentId = parent;
   return true;
 }
+export function moveKnowledgeFolders(folders, ids, parentId) {
+  const selected = new Set(ids);
+  const roots = folders.filter(
+    folder =>
+      selected.has(folder.id) &&
+      !folderTrail(folder.id, folders)
+        .slice(0, -1)
+        .some(item => selected.has(item.id)),
+  );
+  const candidate = structuredClone(folders);
+  if (!roots.length || !roots.every(folder => moveKnowledgeFolder(candidate, folder.id, parentId))) return false;
+  const parents = new Map(candidate.map(folder => [folder.id, folder.parentId]));
+  folders.forEach(folder => {
+    folder.parentId = parents.get(folder.id);
+  });
+  return true;
+}

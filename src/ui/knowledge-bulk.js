@@ -19,3 +19,22 @@ export function knowledgeBulkToolbar(visible) {
       : ''
   }</div>`;
 }
+export function knowledgeFolderBulk() {
+  if (S.ui.currentUser?.role === 'viewer') return '';
+  const ids = S.ui.knowledgeFolderSelection || [];
+  return `<div class="knowledge-folder-bulk"><button class="btn btn-ghost btn-sm" data-a="organizeKnowledgeFolders" aria-pressed="${!!S.ui.knowledgeOrganize}">Organize folders</button>${
+    S.ui.knowledgeOrganize && ids.length
+      ? `<label><span class="sr">Move selected folders</span><select class="select" data-in="knowledgeBulkFolderMove"><option value="" disabled selected>Move selected folders</option><option value="root">Root folder</option>${D()
+          .knowledgeFolders.filter(folder => !folderTrail(folder.id, D().knowledgeFolders).some(item => ids.includes(item.id)))
+          .map(
+            folder =>
+              `<option value="${esc(folder.id)}" translate="no">${esc(
+                folderTrail(folder.id, D().knowledgeFolders)
+                  .map(f => f.name)
+                  .join(' / '),
+              )}</option>`,
+          )
+          .join('')}</select></label>`
+      : ''
+  }</div>`;
+}
