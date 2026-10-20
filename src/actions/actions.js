@@ -552,6 +552,7 @@ A.toggleKnowledgeFavorite = el => {
   });
 };
 A.setKnowledgeFolder = el => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
   S.ui.knowledgeActive = null;
@@ -649,6 +650,7 @@ A.deleteKnowledgeNote = el => {
   });
 };
 IN.knowledgeQuery = el => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeQuery = el.value;
   render();
   requestAnimationFrame(() => {
@@ -683,6 +685,7 @@ IN.knowledgeSort = el => {
   render();
 };
 IN.knowledgeTag = el => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeTag = el.value || '';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
