@@ -67,6 +67,10 @@ import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, 
 import { graphView } from '../shared/graph-view.js';
 import { graphOptions } from '../ui/relations.js';
 import { reviewKnowledgeImport } from '../shared/knowledge-import.js';
+import {
+  renameKnowledgeFolder as renameKnowledgeFolderData,
+  deleteKnowledgeFolder as deleteKnowledgeFolderData,
+} from '../shared/knowledge-folder-operations.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText, t } from '../core/i18n.js';
@@ -659,7 +663,9 @@ A.knowledgePage = el => {
   document.querySelector('.knowledge-main')?.scrollTo(0, 0);
 };
 A.newKnowledgeFolder = el => {
-  if (S.ui.currentUser?.role === 'viewer') return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const owner = S.ui.currentUser?.id,
+    workspace = D().ws?.id;
   const requestedParent = el?.dataset?.parent ?? S.ui.knowledgeFolder;
   const parentId = knowledgeCollections().folders.some(folder => folder.id === requestedParent) ? requestedParent : null;
   openModal({
@@ -668,6 +674,7 @@ A.newKnowledgeFolder = el => {
     label: 'Folder name',
     value: '',
     run: value => {
+      if (knowledgeEditBlocked() || owner !== S.ui.currentUser?.id || workspace !== D().ws?.id) return;
       const name = value.trim();
       if (!name) return;
       mutate(() => {
@@ -678,6 +685,10 @@ A.newKnowledgeFolder = el => {
         const folder = { id: uid('kf'), name, parentId, createdAt: new Date().toISOString() };
         folders.push(folder);
         S.ui.knowledgeFolder = folder.id;
+        S.ui.knowledgeRevealFolder = folder.id;
+        S.ui.knowledgeFolderCardQuery = '';
+        S.ui.knowledgeFolderCardOffset = 0;
+        S.ui.knowledgeMobileFolders = false;
       });
     },
   });
@@ -751,7 +762,9 @@ A.setKnowledgeTag = el => {
   render();
 };
 A.renameKnowledgeFolder = el => {
-  if (S.ui.currentUser?.role === 'viewer') return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const owner = S.ui.currentUser?.id,
+    workspace = D().ws?.id;
   const folder = knowledgeCollections().folders.find(item => item.id === el.dataset.folder);
   if (!folder) return;
   openModal({
@@ -760,26 +773,25 @@ A.renameKnowledgeFolder = el => {
     label: 'Folder name',
     value: folder.name,
     run: value => {
+      if (knowledgeEditBlocked() || owner !== S.ui.currentUser?.id || workspace !== D().ws?.id) return;
       const name = value.trim();
-      if (!name || name === folder.name) return;
+      const current = knowledgeCollections().folders.find(item => item.id === folder.id);
+      if (!current) return toast('This folder changed. Reopen its actions.', { kind: 'info' });
+      if (!name || name === current.name) return;
       mutate(() => {
-        if (
-          knowledgeCollections().folders.some(
-            item => item.id !== folder.id && (item.parentId || null) === (folder.parentId || null) && item.name.trim().toLowerCase() === name.toLowerCase(),
-          )
-        )
-          return toast('A folder with this name already exists here.', { kind: 'err' });
-        folder.name = name;
+        const result = renameKnowledgeFolderData(knowledgeCollections().folders, current.id, name);
+        if (!result.ok) toast('A folder with this name already exists here.', { kind: 'err' });
       });
     },
   });
 };
 A.deleteKnowledgeFolder = el => {
-  if (S.ui.currentUser?.role === 'viewer') return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const owner = S.ui.currentUser?.id,
+    workspace = D().ws?.id;
   const { folders, notes } = knowledgeCollections();
   const folder = folders.find(item => item.id === el.dataset.folder);
   if (!folder) return;
-  const parentId = folders.some(item => item.id === folder.parentId) ? folder.parentId : null;
   const childCount = folders.filter(item => item.parentId === folder.id).length;
   const noteCount = notes.filter(note => note.folderId === folder.id).length;
   confirmDlg({
@@ -787,18 +799,20 @@ A.deleteKnowledgeFolder = el => {
     body: `<b>${esc(folder.name)}</b> will be removed. ${noteCount || childCount ? 'Notes and subfolders will move to its parent.' : ''}`,
     ok: 'Delete folder',
     danger: true,
-    run: () =>
+    run: () => {
+      if (knowledgeEditBlocked() || owner !== S.ui.currentUser?.id || workspace !== D().ws?.id) return;
       mutate(() => {
-        folders.forEach(item => {
-          if (item.parentId === folder.id) item.parentId = parentId;
-        });
-        notes.forEach(note => {
-          if (note.folderId === folder.id) note.folderId = parentId;
-        });
-        D().knowledgeFolders = folders.filter(item => item.id !== folder.id);
-        S.ui.knowledgeFolder = parentId || 'all';
+        const result = deleteKnowledgeFolderData(D(), folder.id, D().me);
+        if (!result.ok)
+          return toast(
+            result.reason === 'collision' ? 'Rename conflicting subfolders before deleting this folder.' : 'This folder changed. Reopen its actions.',
+            { kind: 'err' },
+          );
+        if (S.ui.knowledgeFolder === folder.id) S.ui.knowledgeFolder = result.parentId || 'all';
+        S.ui.knowledgeFolderCardOffset = 0;
         S.ui.knowledgeActive = null;
-      }),
+      });
+    },
   });
 };
 IN.knowledgeField = el => {
