@@ -685,6 +685,7 @@ IN.knowledgeFolderQuery = el => {
   });
 };
 IN.knowledgeSort = el => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeSort = el.value === 'title' ? 'title' : 'updated';
   S.ui.knowledgeActive = null;
   render();

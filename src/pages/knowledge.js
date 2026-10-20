@@ -9,6 +9,7 @@ import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk } from '../ui/knowledge-bulk.js';
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
+import { t } from '../core/i18n.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -194,16 +195,18 @@ export function pageKnowledge() {
     </aside>
     <div class="knowledge-main">
       <section class="knowledge-content" aria-label="Knowledge notes">
-        <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(folderLabel(folderFilter, folders))}</span></button>
+        <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span></button>
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove}
         <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
-        <div class="knowledge-content-head"><div><h1>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span>${activeFolder ? ` · <span translate="no">${esc(activeFolder.name)}</span>` : ''}</p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
+        <div class="knowledge-content-head"><div><h1 ${activeFolder ? 'translate="no"' : ''}>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span></p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
           ...new Set(notes.flatMap(note => note.tags || [])),
         ]
           .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-          .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''}>${esc(tag)}</option>`)
-          .join('')}</select></div></div>
+          .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
+          .join(
+            '',
+          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Title</option></select></label></div>
         ${knowledgeBulkToolbar(visible)}
         ${
           visible.length

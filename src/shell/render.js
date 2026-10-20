@@ -253,6 +253,9 @@ export function afterRender() {
   const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && matchMedia('(max-width:640px)').matches;
   const knowledgeMain = document.querySelector('.knowledge-main');
   if (knowledgeMain) knowledgeMain.inert = !!mobileFolders;
+  document.querySelectorAll('.side,.topbar,.bottomnav').forEach(el => {
+    el.inert = !!mobileFolders;
+  });
   if (mobileFolders) {
     const sidebar = document.querySelector('.knowledge-sidebar');
     sidebar?.setAttribute('role', 'dialog');

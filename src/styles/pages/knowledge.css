@@ -1,4 +1,39 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-sort-filter {
+  display: flex;
+  width: 160px;
+  min-width: 0;
+}
+.knowledge-sort-filter .select {
+  width: 100%;
+}
+@media (max-width: 1000px) {
+  .knowledge-content-toolbar {
+    flex-wrap: wrap;
+  }
+  .knowledge-content-toolbar .knowledge-main-search {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 640px) {
+  .knowledge-content-toolbar .knowledge-tag-filter,
+  .knowledge-content-toolbar .knowledge-sort-filter {
+    width: calc(50% - 5px);
+    flex: 1 1 120px;
+  }
+  .knowledge-content-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .knowledge-content-head > div:first-child {
+    min-width: 0;
+  }
+  .knowledge-content-head h1 {
+    overflow-wrap: anywhere;
+  }
+}
 .knowledge-save-status {
   margin-left: auto;
   color: var(--text-3);
