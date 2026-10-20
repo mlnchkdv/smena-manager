@@ -6,6 +6,36 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
+import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
+A.toggleKnowledgeEditorPreview = () => {
+  S.ui.knowledgeEditorPreview = !S.ui.knowledgeEditorPreview;
+  render();
+};
+A.formatKnowledge = el => {
+  const input = document.getElementById('knowledge-body');
+  if (!input || input.disabled || knowledgeEditBlocked()) return;
+  const selected = input.value.slice(input.selectionStart, input.selectionEnd);
+  const formats = {
+    bold: ['**', '**'],
+    heading: ['\n## ', ''],
+    list: ['\n- ', ''],
+    check: ['\n- [ ] ', ''],
+    code: ['\n```\n', '\n```'],
+    link: ['[', '](https://)'],
+  };
+  const [before, after] = formats[el.dataset.format] || ['', ''];
+  const start = input.selectionStart;
+  input.setRangeText(before + selected + after, start, input.selectionEnd, 'end');
+  IN.knowledgeField(input);
+  input.focus();
+  input.setSelectionRange(start + before.length, start + before.length + selected.length);
+};
+document.addEventListener('input', event => {
+  if (event.target.id !== 'knowledge-body') return;
+  const preview = document.querySelector('.knowledge-live-preview');
+  if (preview) preview.innerHTML = renderKnowledgeMarkdown(event.target.value);
+});
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 window.addEventListener('beforeunload', event => {
   if (S.ui.knowledgeDirty && S.ui.currentUser && !workspaceSyncIsClean(D())) {
