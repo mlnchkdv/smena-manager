@@ -60,6 +60,13 @@ test('authenticated users can inspect and revoke their active sessions', async t
 
   const desktopToken = await login('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/141.0.0.0 Safari/537.36');
   const phoneToken = await login('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Version/18.0 Mobile/15E148 Safari/604.1');
+  assert.equal((await fetch(`${origin}/api/knowledge/search?q=private`)).status, 401);
+  assert.equal((await fetch(`${origin}/api/knowledge/search?q[]=bad`, { headers: authorize(desktopToken) })).status, 400);
+  const search = await fetch(`${origin}/api/knowledge/search?q=team&offset=0`, { headers: authorize(desktopToken) });
+  assert.equal(search.status, 200);
+  const page = await search.json();
+  assert.ok(Array.isArray(page.ids));
+  assert.equal('knowledgeNotes' in page, false);
 
   const revisionBeforeMismatch = (await getWorkspaceDatabase()).revision;
   const mismatch = await fetch(`${origin}/api/preferences`, {
