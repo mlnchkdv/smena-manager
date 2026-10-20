@@ -7,8 +7,15 @@ import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { historyContent } from '../shared/knowledge-history.js';
+import { workspaceSyncIsClean } from '../core/workspace-sync.js';
+const canRestoreKnowledge = () => {
+  if (workspaceSyncIsClean(S.data)) return true;
+  flushLocalSave();
+  toast('Wait until all changes are saved before restoring a version.', { kind: 'info' });
+  return false;
+};
 A.restoreKnowledgeVersion = el => {
-  if (knowledgeEditBlocked()) return;
+  if (knowledgeEditBlocked() || !canRestoreKnowledge()) return;
   const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
   const version = note?.history?.find(version => version.id === el.dataset.version);
   if (!version) return;
@@ -17,7 +24,7 @@ A.restoreKnowledgeVersion = el => {
     body: 'The current content will become a previous version after synchronization.',
     ok: 'Restore version',
     run: () => {
-      if (knowledgeEditBlocked()) return;
+      if (knowledgeEditBlocked() || !canRestoreKnowledge()) return;
       // A refresh may have replaced the document while confirmation was open.
       const current = D().knowledgeNotes.find(item => item.id === note.id);
       const saved = current?.history?.find(item => item.id === version.id);
@@ -161,7 +168,6 @@ document.addEventListener('input', event => {
   const preview = document.querySelector('.knowledge-live-preview');
   if (preview) preview.innerHTML = renderKnowledgeMarkdown(event.target.value);
 });
-import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 window.addEventListener('beforeunload', event => {
   if (S.ui.knowledgeDirty && S.ui.currentUser && !workspaceSyncIsClean(D())) {
     event.preventDefault();

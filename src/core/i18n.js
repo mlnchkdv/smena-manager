@@ -1377,6 +1377,10 @@ const RU = {
   'Folder options': 'Действия с папкой',
   'This version is no longer available. Reopen version history.': 'Эта версия больше недоступна. Откройте историю версий заново.',
   'Restore version': 'Восстановить версию',
+  'Wait until all changes are saved before restoring a version.': 'Перед восстановлением версии дождитесь сохранения всех изменений.',
+  'Autosaves within two minutes are grouped into one version.': 'Автосохранения в течение двух минут объединяются в одну версию.',
+  'This note is too large for new individual versions. Use workspace backups for recovery.':
+    'Заметка слишком велика для новых отдельных версий. Для восстановления используйте резервные копии пространства.',
   'Restore this note version?': 'Восстановить эту версию заметки?',
   'No previous versions yet.': 'Предыдущих версий пока нет.',
   'The current content will become a previous version after synchronization.': 'После синхронизации текущее содержимое останется в истории версий.',
