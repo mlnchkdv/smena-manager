@@ -1355,6 +1355,7 @@ const RU = {
   'Move folder to': 'Переместить папку в',
   'Save search': 'Сохранить поиск',
   'Note context': 'Контекст заметки',
+  'Close folders': 'Закрыть папки',
   'Linked notes': 'Связанные заметки',
   'Saved locally': 'Сохранено на устройстве',
   'Resolve the saved conflict before editing this note.': 'Перед редактированием разрешите конфликт. Локальная версия сохранена для восстановления.',

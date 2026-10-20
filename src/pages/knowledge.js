@@ -164,10 +164,11 @@ export function pageKnowledge() {
           .join('')}</select></label>`
       : '';
 
-  return `<div class="knowledge-shell">
+  return `<div class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}">
+    ${S.ui.knowledgeMobileFolders ? '<button class="knowledge-folder-scrim" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders"></button>' : ''}
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">
-        <div class="knowledge-head-main"><div class="knowledge-title-block"><span class="knowledge-pane-kicker">Folders</span><p>${notes.length} notes · ${folders.length} folders</p></div></div>
+        <div class="knowledge-head-main"><div class="knowledge-title-block"><span class="knowledge-pane-kicker">Folders</span><p>${notes.length} notes · ${folders.length} folders</p></div><button class="ibtn knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders">${ic('x', 18)}</button></div>
         ${readOnly ? '' : `<div class="knowledge-head-actions"><label class="ibtn" aria-label="Import Markdown" data-tip="Import Markdown" style="cursor:pointer">${ic('file-up', 16)}<input type="file" accept=".md,.markdown,text/markdown,text/plain" multiple hidden data-in="importKnowledgeMarkdown"></label><button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button></div>`}
         <div class="knowledge-folder-toolbar"><button class="ibtn ibtn-xs knowledge-folder-section-toggle" data-a="toggleKnowledgeFolderNav" aria-label="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}" aria-expanded="${S.ui.knowledgeFolderNavOpen !== false}" title="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}">${ic(S.ui.knowledgeFolderNavOpen === false ? 'chevron-right' : 'chevron-down', 13)}</button><span class="label">Knowledge folders</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="expandKnowledgeFolders" aria-label="Expand all" title="Expand all">${ic('chevron-down', 13)}</button><button class="ibtn ibtn-xs" data-a="collapseKnowledgeFolders" aria-label="Collapse all" title="Collapse all">${ic('chevron-up', 13)}</button></div>
         ${S.ui.knowledgeFolderNavOpen === false ? '' : `<div class="inwrap knowledge-folder-search">${ic('search', 13)}<input class="input" data-in="knowledgeFolderQuery" value="${esc(S.ui.knowledgeFolderQuery || '')}" placeholder="Filter folders" aria-label="Filter folders"></div>`}
@@ -177,6 +178,7 @@ export function pageKnowledge() {
     </aside>
     <div class="knowledge-main">
       <section class="knowledge-content" aria-label="Knowledge notes">
+        <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(folderLabel(folderFilter, folders))}</span></button>
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove}
         <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
         <div class="knowledge-content-head"><div><h1>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span>${activeFolder ? ` · <span translate="no">${esc(activeFolder.name)}</span>` : ''}</p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>

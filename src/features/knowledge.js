@@ -6,6 +6,13 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+A.toggleKnowledgeMobileFolders = () => {
+  S.ui.knowledgeMobileFolders = !S.ui.knowledgeMobileFolders;
+  S.ui.knowledgeFolderNavOpen = true;
+  render();
+  if (S.ui.knowledgeMobileFolders) document.querySelector('[data-in="knowledgeFolderQuery"]')?.focus();
+  else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
+};
 A.filterKnowledgePreviewTag = el => {
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = 'all';

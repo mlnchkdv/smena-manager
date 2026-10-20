@@ -554,6 +554,7 @@ A.toggleKnowledgeFavorite = el => {
 };
 A.setKnowledgeFolder = el => {
   S.ui.knowledgeOffset = 0;
+  S.ui.knowledgeMobileFolders = false;
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
   S.ui.knowledgeActive = null;

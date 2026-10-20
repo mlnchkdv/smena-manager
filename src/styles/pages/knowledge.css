@@ -1,4 +1,48 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-mobile-folder-button,
+.knowledge-folder-scrim {
+  display: none;
+}
+@media (max-width: 640px) {
+  .knowledge-shell .knowledge-sidebar {
+    display: none;
+  }
+  .knowledge-shell.folders-open .knowledge-sidebar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 80dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-radius: 18px 18px 0 0;
+    z-index: 76;
+    box-shadow: var(--shadow-lg);
+    overflow: auto;
+  }
+  .knowledge-shell .knowledge-mobile-folder-button {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 14px;
+    max-width: 100%;
+  }
+  .knowledge-head-main .knowledge-mobile-folder-button {
+    margin: 0 0 0 auto;
+  }
+  .knowledge-shell .knowledge-folder-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
+    z-index: 75;
+  }
+  .knowledge-shell .knowledge-folders {
+    max-height: 45dvh;
+  }
+  .knowledge-shell .knowledge-main {
+    padding-top: 14px;
+  }
+}
 .knowledge-preview-context {
   padding: 16px 0;
   border-top: 1px solid var(--border);
