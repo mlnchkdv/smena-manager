@@ -1374,7 +1374,7 @@ const RU = {
   'Move selected notes': 'Переместить выбранные',
   'Move selected notes to trash?': 'Переместить выбранные заметки в корзину?',
   'Selected notes can be restored from trash.': 'Выбранные заметки можно восстановить из корзины.',
-  'Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save': 'Ctrl/⌘ B · Жирный / Ctrl/⌘ Enter · Предпросмотр / Ctrl/⌘ S · Сохранить',
+  'Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save': 'Ctrl/⌘ B · Жирный / Ctrl/⌘ ↵ · Предпросмотр / Ctrl/⌘ S · Сохранить',
   'Linked notes': 'Связанные заметки',
   'Saved locally': 'Сохранено на устройстве',
   'Resolve the saved conflict before editing this note.': 'Перед редактированием разрешите конфликт. Локальная версия сохранена для восстановления.',
