@@ -1,4 +1,124 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-head-main .knowledge-head-actions {
+  margin-left: auto;
+}
+.knowledge-shell .knowledge-head-main .knowledge-mobile-folder-button {
+  margin-left: 6px;
+}
+.knowledge-folder-browser {
+  margin: 18px 0 22px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+}
+.knowledge-folder-browser-head,
+.knowledge-notes-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 10px;
+}
+.knowledge-folder-browser-head h2,
+.knowledge-notes-section-head h2 {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.knowledge-folder-browser-head .num,
+.knowledge-notes-section-head > span {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-notes-section-head {
+  flex-wrap: wrap;
+}
+.knowledge-folder-card-search {
+  margin-bottom: 10px;
+}
+.knowledge-folder-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 8px;
+}
+.knowledge-folder-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  text-align: left;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+}
+.knowledge-folder-card:hover,
+.knowledge-folder-card:focus-visible {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.knowledge-folder-card > svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.knowledge-folder-card > svg:last-child {
+  margin-left: auto;
+  color: var(--text-4);
+}
+.knowledge-folder-card > span {
+  min-width: 0;
+}
+.knowledge-folder-card strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+}
+.knowledge-folder-card > span > span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-folder-browser-empty {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  margin: 0;
+}
+.knowledge-folder-card-pages {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 8px;
+}
+[data-a='toggleKnowledgeFolderCards'][aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 640px) {
+  .knowledge-folder-browser {
+    padding: 10px;
+  }
+  .knowledge-folder-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .knowledge-folder-card {
+    gap: 6px;
+    padding: 10px 8px;
+    min-height: 58px;
+  }
+  .knowledge-folder-card > svg:last-child {
+    display: none;
+  }
+  .knowledge-folder-card-pages .btn {
+    white-space: normal;
+    min-height: 44px;
+    flex: 1;
+  }
+}
 .knowledge-folder-pages {
   display: flex;
   align-items: center;

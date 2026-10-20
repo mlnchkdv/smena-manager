@@ -17,13 +17,20 @@ export function knowledgePreferences() {
       : [];
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
     S.ui.knowledgeSelection = [];
+    S.ui.knowledgeShowFolders = value.showFolders !== false;
+    S.ui.knowledgeFolderNavOffset = 0;
+    S.ui.knowledgeFolderCardOffset = 0;
+    S.ui.knowledgeFolderCardQuery = '';
     S.ui.knowledgeOpenSections = [];
     S.ui.knowledgeMobileFolders = false;
   }
 }
 export function saveKnowledgePreferences() {
   try {
-    localStorage.setItem(key(), JSON.stringify({ views: S.ui.knowledgeSavedViews || [], recent: S.ui.knowledgeRecent || [] }));
+    localStorage.setItem(
+      key(),
+      JSON.stringify({ views: S.ui.knowledgeSavedViews || [], recent: S.ui.knowledgeRecent || [], showFolders: S.ui.knowledgeShowFolders !== false }),
+    );
   } catch {
     /* optional device preferences */
   }

@@ -585,6 +585,8 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = el.dataset.folder || 'all';
   S.ui.knowledgeRevealFolder = S.ui.knowledgeFolder;
+  S.ui.knowledgeFolderCardQuery = '';
+  S.ui.knowledgeFolderCardOffset = 0;
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';

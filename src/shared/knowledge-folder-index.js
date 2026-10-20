@@ -74,3 +74,14 @@ export function knowledgeFolderRows(index, { query = '', collapsed = {}, offset 
   const start = Math.min(requested, Math.max(0, Math.ceil(rows.length / limit) - 1) * limit);
   return { rows: rows.slice(start, start + limit), total: rows.length, start, hasMore: start + limit < rows.length };
 }
+
+export function knowledgeFolderChildren(index, parentId, { query = '', offset = 0, limit = 6 } = {}) {
+  const text = String(query).trim().toLocaleLowerCase();
+  const filtered = (index.children.get(parentId || null) || []).filter(folder =>
+    String(folder.name || '')
+      .toLocaleLowerCase()
+      .includes(text),
+  );
+  const start = Math.min(Math.max(0, Number(offset) || 0), Math.max(0, Math.ceil(filtered.length / limit) - 1) * limit);
+  return { folders: filtered.slice(start, start + limit), total: filtered.length, start, hasMore: start + limit < filtered.length };
+}

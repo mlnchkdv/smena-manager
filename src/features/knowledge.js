@@ -220,6 +220,20 @@ IN.knowledgeMoveFolder = el =>
 let dragged = null;
 
 A.chooseKnowledgeFiles = () => document.getElementById('knowledge-import-files')?.click();
+A.toggleKnowledgeFolderCards = () => {
+  S.ui.knowledgeShowFolders = S.ui.knowledgeShowFolders === false;
+  saveKnowledgePreferences();
+  render();
+};
+IN.knowledgeFolderCardQuery = el => {
+  S.ui.knowledgeFolderCardQuery = el.value;
+  S.ui.knowledgeFolderCardOffset = 0;
+  render();
+};
+A.knowledgeFolderCardPage = el => {
+  S.ui.knowledgeFolderCardOffset = Math.max(0, Number(el.dataset.offset) || 0);
+  render();
+};
 A.knowledgeFolderNavPage = el => {
   S.ui.knowledgeFolderNavOffset = Math.max(0, Number(el.dataset.offset) || 0);
   S.ui.knowledgeRevealFolder = null;
