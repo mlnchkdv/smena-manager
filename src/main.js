@@ -311,9 +311,7 @@ window.addEventListener('smena:session-account-changed', () => {
   S.ui.currentUser = null;
   S.ui.authSessions = S.ui.pop = S.ui.palette = S.ui.drawer = null;
   S.ui.modals = [];
-  // Keep the login form hidden while the HttpOnly cookie is being checked.
-  // This prevents a brief sign-in flash on reloads before the session is restored.
-  S.ui.auth = 'restoring';
+  S.ui.auth = 'login';
   S.ui.errors = { login: 'The account changed in another tab. Reload this page to continue.' };
   render();
 });
@@ -354,7 +352,8 @@ window.addEventListener('popstate', () => {
   const h = (location.hash || '').slice(1);
   if (h && ROUTE_NAMES[h]) S.ui.route = h;
   else S.ui.route = S.prefs.home || 'home';
-  S.ui.auth = 'login';
+  // Restore the secure cookie before offering a new sign-in.
+  S.ui.auth = 'restoring';
   S.ui.authBusy = true;
   render();
   let user = null;
