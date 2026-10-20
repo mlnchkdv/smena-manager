@@ -6,6 +6,13 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+import { workspaceSyncIsClean } from '../core/workspace-sync.js';
+window.addEventListener('beforeunload', event => {
+  if (S.ui.knowledgeDirty && S.ui.currentUser && !workspaceSyncIsClean(D())) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
 window.addEventListener('pagehide', () => {
   if (S.ui.knowledgeDirty && S.ui.currentUser) flushLocalSave();
 });

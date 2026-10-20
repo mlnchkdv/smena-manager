@@ -1355,6 +1355,8 @@ const RU = {
   'Move folder to': 'Переместить папку в',
   'Save search': 'Сохранить поиск',
   'Saved locally': 'Сохранено на устройстве',
+  'Resolve the saved conflict before editing this note.': 'Перед редактированием разрешите конфликт. Локальная версия сохранена для восстановления.',
+  'Export recovery copy': 'Скачать копию для восстановления',
   'Remove saved search': 'Удалить сохранённый поиск',
   'You can save up to 20 searches.': 'Можно сохранить до 20 поисковых запросов.',
   'Root folder': 'Корень',

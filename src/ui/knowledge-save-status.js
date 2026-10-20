@@ -8,6 +8,9 @@ export function knowledgeSaveLabel() {
   if (state.hasPending || state.hasActive || S.ui.knowledgeDirty) return 'Saving…';
   return 'Saved';
 }
+export function knowledgeEditBlocked() {
+  return workspaceSyncState().documents.knowledge.hasConflict || (S.ui.syncRecovery?.scope === 'knowledge' && S.ui.syncRecovery.owner === S.ui.currentUser?.id);
+}
 export function updateKnowledgeSaveStatus() {
   document.querySelectorAll('[data-knowledge-save-status]').forEach(el => {
     el.textContent = t(knowledgeSaveLabel());

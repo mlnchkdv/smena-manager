@@ -61,7 +61,7 @@ import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspace
 import { workspaceHref } from '../shared/product.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
-import {updateKnowledgeSaveStatus} from '../ui/knowledge-save-status.js';
+import { updateKnowledgeSaveStatus, knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
 import { graphView } from '../shared/graph-view.js';
@@ -745,7 +745,7 @@ A.deleteKnowledgeFolder = el => {
   });
 };
 IN.knowledgeField = el => {
-  if (S.ui.currentUser?.role === 'viewer') return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
   const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
   if (!note) return;
   bindWikiReferences(D().knowledgeNotes);

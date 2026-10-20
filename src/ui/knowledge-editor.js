@@ -2,12 +2,13 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { mem } from '../core/store.js';
 import { relationsPanel } from './relations.js';
-import { knowledgeSaveLabel } from './knowledge-save-status.js';
+import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
 export function noteEditor(note, folders, readOnly) {
-  const disabled = readOnly ? 'disabled' : '';
+  const conflict = knowledgeEditBlocked();
+  const disabled = readOnly || conflict ? 'disabled' : '';
   const categories = [...new Set([...DEFAULT_CATEGORIES, note.category].filter(Boolean))];
   return `<section class="knowledge-editor" aria-label="Note editor">
     <div class="knowledge-editor-head">
@@ -19,6 +20,7 @@ export function noteEditor(note, folders, readOnly) {
       ${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<button class="btn btn-danger-ghost btn-sm" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button>`}
     </div>
     <span class="knowledge-save-status" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
+    ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="exportOfflineDraft">Export recovery copy</button></div>` : ''}
     <div class="knowledge-editor-section-title">Details</div><div class="knowledge-fields">
       <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders.map(folder => `<option value="${folder.id}" ${note.folderId === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select></div>
