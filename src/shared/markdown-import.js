@@ -47,7 +47,7 @@ function stringList(value) {
 
 function filenameTitle(filename) {
   const stem = text(filename)
-    .replace(/\.(?:md|markdown)$/i, '')
+    .replace(/\.(?:md|markdown|txt)$/i, '')
     .replace(/[-_]+/g, ' ')
     .trim();
   return stem || 'Imported note';
@@ -101,5 +101,22 @@ export function parseMarkdownNote(filename, source, options = {}) {
     updatedBy: options.memberId || null,
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+// TXT has no frontmatter: keep its text, including significant indentation.
+export function parseTextNote(filename, source, options = {}) {
+  const body = String(source || '')
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n?/g, '\n');
+  if (!body.trim()) throw new TypeError('The note file is empty.');
+  return {
+    ...parseMarkdownNote(filename, body, options),
+    title: filenameTitle(filename),
+    category: 'Imported',
+    summary: '',
+    tags: [],
+    extracted_skills: [],
+    formatted_markdown: body,
   };
 }

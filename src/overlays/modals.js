@@ -57,6 +57,7 @@ export function modalHtml(m) {
         '',
         `${H('Import preview', 'Existing content is never replaced. A backup is created before importing.')}
         <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid}</b></div></div>
+        ${preview.files ? `<div class="knowledge-import-review"><p><span>Destination folder</span>: <strong translate="no">${esc(D().knowledgeFolders?.find(folder => folder.id === preview.destination)?.name || tr('No folder'))}</strong></p><ul>${preview.files.map((name, index) => `<li><span translate="no">${esc(name)}</span><span translate="no">${esc(preview.payload.notes[index]?.title || '')}</span></li>`).join('')}</ul><p class="hint">Each file becomes a note. Review duplicates before importing.</p></div>` : ''}
         <label class="field"><span class="label">Conflicting notes</span><select class="select" data-in="importConflictPolicy" ${preview.busy ? 'disabled' : ''}><option value="copy" ${preview.policy === 'copy' ? 'selected' : ''}>Keep both copies</option><option value="skip" ${preview.policy === 'skip' ? 'selected' : ''}>Keep existing only</option></select></label>
         ${
           report.conflicts.length

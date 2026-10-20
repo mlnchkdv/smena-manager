@@ -1,4 +1,4 @@
-import { A, IN, confirmDlg, moveToTrash } from '../actions/actions.js';
+import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder, moveKnowledgeFolders } from '../shared/knowledge-tools.js';
@@ -206,6 +206,40 @@ IN.knowledgeMoveFolder = el =>
   });
 
 let dragged = null;
+
+A.chooseKnowledgeFiles = () => document.getElementById('knowledge-import-files')?.click();
+const isFileDrag = event => [...(event.dataTransfer?.types || [])].includes('Files');
+// Capture external files before the generic task-attachment handlers.
+document.addEventListener(
+  'dragover',
+  event => {
+    const shell = event.target.closest?.('.knowledge-shell');
+    if (!shell || !isFileDrag(event)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (!['admin', 'editor'].includes(S.ui.currentUser?.role)) return;
+    event.dataTransfer.dropEffect = 'copy';
+    shell.classList.add('knowledge-file-over');
+  },
+  true,
+);
+document.addEventListener('dragleave', event => {
+  const shell = event.target.closest?.('.knowledge-shell');
+  if (shell && !shell.contains(event.relatedTarget)) shell.classList.remove('knowledge-file-over');
+});
+document.addEventListener(
+  'drop',
+  event => {
+    const shell = event.target.closest?.('.knowledge-shell');
+    if (!shell || !isFileDrag(event)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    shell.classList.remove('knowledge-file-over');
+    const folder = event.target.closest?.('[data-a="setKnowledgeFolder"]')?.dataset.folder || S.ui.knowledgeFolder;
+    void importKnowledgeFiles(Array.from(event.dataTransfer.files), folder);
+  },
+  true,
+);
 document.addEventListener('dragstart', event => {
   const target = event.target.closest?.('[data-knowledge-drag]');
   if (!target || S.ui.currentUser?.role === 'viewer') return;

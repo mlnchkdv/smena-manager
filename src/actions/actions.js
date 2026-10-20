@@ -66,7 +66,7 @@ import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
 import { graphView } from '../shared/graph-view.js';
 import { graphOptions } from '../ui/relations.js';
-import { parseMarkdownNote } from '../shared/markdown-import.js';
+import { prepareKnowledgeImport } from '../shared/knowledge-import.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { isRussian, templateText } from '../core/i18n.js';
@@ -469,36 +469,41 @@ A.newKnowledgeNote = () => {
     S.ui.knowledgeQuery = '';
   });
 };
-IN.importKnowledgeMarkdown = async el => {
-  const files = [...(el.files || [])];
-  if (!files.length || S.ui.currentUser?.role === 'viewer') return;
+export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolder) {
+  if (!files?.length || !['admin', 'editor'].includes(S.ui.currentUser?.role) || S.ui.knowledgeImportReading || knowledgeEditBlocked()) return;
+  const owner = S.ui.currentUser.id;
+  const workspace = D().ws.id || D().ws.url;
+  const destination = knowledgeCollections().folders.some(folder => folder.id === folderId) ? folderId : null;
+  S.ui.knowledgeImportReading = true;
+  S.ui.knowledgeImportStatus = '';
+  render();
   try {
-    if (files.some(file => file.size > WORKSPACE_TRANSPORT_MAX_BYTES)) throw new Error('Each Markdown file must be smaller than 4 MB.');
-    const imported = [];
-    for (const file of files) {
-      const note = parseMarkdownNote(file.name, await file.text(), {
-        idFactory: uid,
-        memberId: D().me,
-        folderId:
-          S.ui.knowledgeFolder &&
-          !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) &&
-          knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder)
-            ? S.ui.knowledgeFolder
-            : null,
-      });
-      imported.push(note);
-    }
-    const payload = { notes: imported };
-    if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
-    S.ui.importPreview = { payload, policy: 'copy', result: mergePortableWorkspace(D(), payload), busy: false };
+    const payload = await prepareKnowledgeImport(files, { idFactory: uid, memberId: D().me, folderId: destination });
+    if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
+    S.ui.knowledgeMobileFolders = false;
+    S.ui.importPreview = {
+      payload,
+      files: Array.from(files, file => file.name),
+      destination,
+      policy: 'copy',
+      result: mergePortableWorkspace(D(), payload),
+      busy: false,
+    };
     openModal({ type: 'portableImport' });
   } catch (error) {
-    S.ui.knowledgeImportStatus = error instanceof Error ? error.message : 'Markdown files could not be imported.';
-    toast(S.ui.knowledgeImportStatus, { kind: 'error', ms: 6000 });
-    render();
+    if (owner === S.ui.currentUser?.id && workspace === (D().ws.id || D().ws.url)) {
+      S.ui.knowledgeImportStatus = error instanceof Error ? error.message : 'Note files could not be imported.';
+      toast(S.ui.knowledgeImportStatus, { kind: 'err', ms: 6000 });
+    }
   } finally {
-    el.value = '';
+    S.ui.knowledgeImportReading = false;
+    render();
   }
+}
+IN.importKnowledgeMarkdown = el => {
+  const files = [...(el.files || [])];
+  el.value = '';
+  return importKnowledgeFiles(files);
 };
 A.openKnowledgeNote = el => {
   if (!S.ui.knowledgeDrawer) S.ui.knowledgeDrawerOpener = el.isConnected ? focusKey(el) : S.ui.knowledgeDrawerOpener;
