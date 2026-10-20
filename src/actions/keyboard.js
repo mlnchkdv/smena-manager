@@ -7,12 +7,47 @@ import { closeModal } from '../overlays/modals.js';
 import { closePop } from '../overlays/popovers.js';
 import { A, KEY } from './actions.js';
 import { moveTabFocus } from '../ui/tabs.js';
+import { flushLocalSave } from '../core/store.js';
 
 export let gPending = 0;
 document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
   const t = e.target;
   const typing = t.matches?.('input, textarea, select, [contenteditable="true"]');
+  if (S.ui.route === 'knowledge' && !S.ui.auth) {
+    if (mod && e.key.toLowerCase() === 's' && S.ui.knowledgeDrawer) {
+      e.preventDefault();
+      flushLocalSave();
+      return;
+    }
+    if (mod && e.key.toLowerCase() === 'b' && t.id === 'knowledge-body') {
+      e.preventDefault();
+      A.formatKnowledge({ dataset: { format: 'bold' } });
+      return;
+    }
+    if (mod && e.key === 'Enter' && t.closest('.knowledge-editor')) {
+      e.preventDefault();
+      A.toggleKnowledgeEditorPreview();
+      return;
+    }
+    if (!typing && !mod && !S.ui.knowledgeDrawer && !S.ui.modals.length && !S.ui.palette) {
+      if (e.key === '/') {
+        e.preventDefault();
+        document.querySelector('[data-in="knowledgeQuery"]')?.focus();
+        return;
+      }
+      if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        if (S.ui.currentUser?.role !== 'viewer') A.newKnowledgeNote();
+        return;
+      }
+    }
+    if (e.key === 'Escape' && S.ui.knowledgeMobileFolders && !S.ui.modals.length) {
+      e.preventDefault();
+      A.toggleKnowledgeMobileFolders();
+      return;
+    }
+  }
   const pl = S.ui.palette;
   if (moveTabFocus(e)) return;
   if (mod && e.key.toLowerCase() === 'k') {

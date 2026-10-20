@@ -541,10 +541,12 @@ A.setKnowledgePresentation = () => {
 A.closeKnowledgeDrawer = () => {
   S.ui.knowledgeDrawer = null;
   render();
+  if (!document.activeElement || document.activeElement === document.body) document.querySelector('[data-in="knowledgeQuery"]')?.focus();
 };
 A.editKnowledgeNote = () => {
   S.ui.knowledgeDrawerView = 'edit';
   render();
+  document.getElementById('knowledge-title')?.focus();
 };
 A.toggleKnowledgeFavorite = el => {
   mutate(() => {

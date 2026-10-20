@@ -1356,6 +1356,7 @@ const RU = {
   'Save search': 'Сохранить поиск',
   'Note context': 'Контекст заметки',
   'Close folders': 'Закрыть папки',
+  'Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save': 'Ctrl/⌘ B · Жирный / Ctrl/⌘ Enter · Предпросмотр / Ctrl/⌘ S · Сохранить',
   'Linked notes': 'Связанные заметки',
   'Saved locally': 'Сохранено на устройстве',
   'Resolve the saved conflict before editing this note.': 'Перед редактированием разрешите конфликт. Локальная версия сохранена для восстановления.',
