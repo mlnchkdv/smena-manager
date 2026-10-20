@@ -9,12 +9,19 @@ export const matchesKnowledgeSearch = (note, query) => {
   return searchTerms(query).every(term => text.includes(term));
 };
 export function knowledgeExcerpt(note, query, length = 180) {
-  const text = String(note.summary || note.formatted_markdown || '')
-    .replace(/[#>*_`~[\]]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const clean = value =>
+    String(value || '')
+      .replace(/[#>*_`~[\]]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const terms = searchTerms(query);
+  const summary = clean(note.summary);
+  const body = clean(note.formatted_markdown);
+  const score = text => terms.filter(term => text.toLocaleLowerCase().includes(term)).length;
+  // A summary must not hide a match that was found only in the full text.
+  const text = !summary || score(body) > score(summary) ? body : summary;
   const index =
-    searchTerms(query)
+    terms
       .map(term => text.toLocaleLowerCase().indexOf(term))
       .filter(index => index >= 0)
       .sort((a, b) => a - b)[0] || 0;
