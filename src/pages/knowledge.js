@@ -26,7 +26,9 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
   });
   for (const list of children.values()) list.sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }));
   const counts = new Map();
-  const normalizedQuery = String(query || '').trim().toLocaleLowerCase();
+  const normalizedQuery = String(query || '')
+    .trim()
+    .toLocaleLowerCase();
   const countDescendants = (id, seen = new Set()) => {
     if (counts.has(id)) return counts.get(id);
     if (seen.has(id)) return 0;
@@ -42,7 +44,12 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
     if (seen.has(id)) return false;
     const nextSeen = new Set(seen).add(id);
     const folder = byId.get(id);
-    if (!normalizedQuery || String(folder?.name || '').toLocaleLowerCase().includes(normalizedQuery)) {
+    if (
+      !normalizedQuery ||
+      String(folder?.name || '')
+        .toLocaleLowerCase()
+        .includes(normalizedQuery)
+    ) {
       matching.set(id, true);
       return true;
     }
@@ -60,8 +67,12 @@ function folderTree(folders, notes, activeId, readOnly, collapsed = {}, query = 
         // While filtering, keep matching descendants visible so a deep folder can be found.
         const isCollapsed = !normalizedQuery && collapsed[folder.id] === true;
         const nested = !isCollapsed ? render(folder.id, depth + 1, nextSeen) : '';
-        const actions = readOnly ? '' : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="Rename folder" title="Rename folder">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="Delete folder" title="Delete folder">${ic('trash-2', 12)}</button></span>`;
-        const toggle = hasChildren ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>` : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
+        const actions = readOnly
+          ? ''
+          : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="Rename folder" title="Rename folder">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="Delete folder" title="Delete folder">${ic('trash-2', 12)}</button></span>`;
+        const toggle = hasChildren
+          ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
+          : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
         return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${toggle}<button class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${counts.get(folder.id) || 0}</span></button>${actions}</div>${nested}</div>`;
       })
       .join('');
@@ -107,19 +118,36 @@ export function pageKnowledge() {
   const { notes, folders } = knowledgeData();
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const { visible, active: selected, total, hasMore } = knowledgeView(notes, {
+  const {
+    visible,
+    active: selected,
+    total,
+    hasMore,
+    start,
+  } = knowledgeView(notes, {
     query: S.ui.knowledgeQuery,
     folder: folderFilter,
-    activeId: S.ui.knowledgeActive,
     tag: S.ui.knowledgeTag,
     sort: S.ui.knowledgeSort || 'updated',
-    limit: S.ui.knowledgeLimit || 200,
+    limit: 60,
+    offset: S.ui.knowledgeOffset || 0,
   });
   const active = selected;
   S.ui.knowledgeActive = active?.id || null;
   const currentPath = folderFilter !== 'all' && folderFilter !== 'root' && folderFilter !== 'favorites' ? folderPath(folderFilter, folders) : [];
-  const crumbs = [{ label: 'Knowledge base', folder: 'all', translate: true }, ...(folderFilter === 'favorites' ? [{ label: 'Favorites', folder: 'favorites', translate: true }] : folderFilter === 'root' ? [{ label: 'No folder', folder: 'root', translate: true }] : currentPath.map(folder => ({ label: folder.name, folder: folder.id, translate: false })))]
-    .map((crumb, index, all) => `${index === all.length - 1 ? '<span class="knowledge-crumb-current"' : `<button class="knowledge-crumb" data-a="setKnowledgeFolder" data-folder="${crumb.folder}"`} ${crumb.translate ? '' : 'translate="no"'}>${esc(crumb.label)}${index === all.length - 1 ? '</span>' : '</button>'}${index === all.length - 1 ? '' : `<span class="knowledge-crumb-sep">${ic('chevron-right', 13)}</span>`}`).join('');
+  const crumbs = [
+    { label: 'Knowledge base', folder: 'all', translate: true },
+    ...(folderFilter === 'favorites'
+      ? [{ label: 'Favorites', folder: 'favorites', translate: true }]
+      : folderFilter === 'root'
+        ? [{ label: 'No folder', folder: 'root', translate: true }]
+        : currentPath.map(folder => ({ label: folder.name, folder: folder.id, translate: false }))),
+  ]
+    .map(
+      (crumb, index, all) =>
+        `${index === all.length - 1 ? '<span class="knowledge-crumb-current"' : `<button class="knowledge-crumb" data-a="setKnowledgeFolder" data-folder="${crumb.folder}"`} ${crumb.translate ? '' : 'translate="no"'}>${esc(crumb.label)}${index === all.length - 1 ? '</span>' : '</button>'}${index === all.length - 1 ? '' : `<span class="knowledge-crumb-sep">${ic('chevron-right', 13)}</span>`}`,
+    )
+    .join('');
   const activeFolder = folders.find(folder => folder.id === folderFilter);
 
   return `<div class="knowledge-shell">
@@ -137,9 +165,26 @@ export function pageKnowledge() {
       <section class="knowledge-content" aria-label="Knowledge notes">
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>
         <div class="knowledge-content-head"><div><h1>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span>${activeFolder ? ` · <span translate="no">${esc(activeFolder.name)}</span>` : ''}</p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
-        <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[...new Set(notes.flatMap(note => note.tags || []))].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })).map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''}>${esc(tag)}</option>`).join('')}</select></div></div>
-        ${visible.length ? `<div class="knowledge-preview-grid">${visible.map(note => notePreviewCard(note, folders.find(folder => folder.id === note.folderId), readOnly)).join('')}</div>` : empty('search-x', 'No results found', 'No notes match your filters.')}
-        ${hasMore ? `<button class="btn btn-ghost knowledge-load-more" data-a="loadMoreKnowledge">${ic('chevrons-down', 14)}Show more <span class="muted">(${visible.length} / ${total})</span></button>` : ''}
+        <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
+          ...new Set(notes.flatMap(note => note.tags || [])),
+        ]
+          .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+          .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''}>${esc(tag)}</option>`)
+          .join('')}</select></div></div>
+        ${
+          visible.length
+            ? `<div class="knowledge-preview-grid">${visible
+                .map(note =>
+                  notePreviewCard(
+                    note,
+                    folders.find(folder => folder.id === note.folderId),
+                    readOnly,
+                  ),
+                )
+                .join('')}</div>`
+            : empty('search-x', 'No results found', 'No notes match your filters.')
+        }
+        ${total > 60 ? `<nav class="knowledge-pagination" aria-label="Note pages"><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${Math.max(0, start - 60)}" ${!start ? 'disabled' : ''}>Previous</button><span class="num">${start + 1}–${start + visible.length} / ${total}</span><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${start + 60}" ${!hasMore ? 'disabled' : ''}>Next</button></nav>` : ''}
       </section>
     </div>
   </div>`;

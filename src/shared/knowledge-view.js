@@ -1,4 +1,4 @@
-export function knowledgeView(notes, { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200 } = {}) {
+export function knowledgeView(notes, { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0 } = {}) {
   const search = String(query).trim().toLocaleLowerCase();
   const selectedTag = String(tag).trim().toLocaleLowerCase();
   const time = note => {
@@ -16,7 +16,8 @@ export function knowledgeView(notes, { query = '', folder = 'all', tag = '', act
     });
   const safeLimit = Number.isFinite(limit) ? Math.min(1000, Math.max(20, Number(limit))) : filtered.length;
   const active = filtered.find(note => note.id === activeId) || filtered[0] || null;
-  const visible = filtered.slice(0, safeLimit);
-  if (active && !visible.some(note => note.id === active.id)) visible.push(active);
-  return { filtered, visible, active, total: filtered.length, hasMore: filtered.length > safeLimit };
+  const start = Math.min(Math.max(0, Number(offset) || 0), Math.max(0, Math.ceil(filtered.length / safeLimit) - 1) * safeLimit);
+  const visible = filtered.slice(start, start + safeLimit);
+  if (activeId && active && !visible.some(note => note.id === active.id)) visible.push(active);
+  return { filtered, visible, active, total: filtered.length, start, hasMore: filtered.length > start + safeLimit };
 }

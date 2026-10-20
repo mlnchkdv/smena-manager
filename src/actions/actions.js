@@ -449,7 +449,12 @@ A.newKnowledgeNote = () => {
       formatted_markdown: isRussian()
         ? '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.'
         : '# New note\n\nAdd team knowledge, guidelines, or working agreements here.',
-      folderId: S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) && knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null,
+      folderId:
+        S.ui.knowledgeFolder &&
+        !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) &&
+        knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder)
+          ? S.ui.knowledgeFolder
+          : null,
       favorite: false,
       createdBy: D().me,
       updatedBy: D().me,
@@ -473,7 +478,12 @@ IN.importKnowledgeMarkdown = async el => {
       const note = parseMarkdownNote(file.name, await file.text(), {
         idFactory: uid,
         memberId: D().me,
-        folderId: S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) && knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder) ? S.ui.knowledgeFolder : null,
+        folderId:
+          S.ui.knowledgeFolder &&
+          !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) &&
+          knowledgeCollections().folders.some(folder => folder.id === S.ui.knowledgeFolder)
+            ? S.ui.knowledgeFolder
+            : null,
       });
       imported.push(note);
     }
@@ -595,6 +605,11 @@ A.loadMoreKnowledge = () => {
   S.ui.knowledgeLimit = Math.min(1000, (S.ui.knowledgeLimit || 200) + 200);
   render();
 };
+A.knowledgePage = el => {
+  S.ui.knowledgeOffset = Math.max(0, Number(el.dataset.offset) || 0);
+  render();
+  document.querySelector('.knowledge-main')?.scrollTo(0, 0);
+};
 A.newKnowledgeFolder = () => {
   if (S.ui.currentUser?.role === 'viewer') return;
   openModal({
@@ -711,17 +726,18 @@ A.deleteKnowledgeFolder = el => {
     body: `<b>${esc(folder.name)}</b> will be removed. ${noteCount || childCount ? 'Notes and subfolders will move to its parent.' : ''}`,
     ok: 'Delete folder',
     danger: true,
-    run: () => mutate(() => {
-      folders.forEach(item => {
-        if (item.parentId === folder.id) item.parentId = parentId;
-      });
-      notes.forEach(note => {
-        if (note.folderId === folder.id) note.folderId = parentId;
-      });
-      D().knowledgeFolders = folders.filter(item => item.id !== folder.id);
-      S.ui.knowledgeFolder = parentId || 'all';
-      S.ui.knowledgeActive = null;
-    }),
+    run: () =>
+      mutate(() => {
+        folders.forEach(item => {
+          if (item.parentId === folder.id) item.parentId = parentId;
+        });
+        notes.forEach(note => {
+          if (note.folderId === folder.id) note.folderId = parentId;
+        });
+        D().knowledgeFolders = folders.filter(item => item.id !== folder.id);
+        S.ui.knowledgeFolder = parentId || 'all';
+        S.ui.knowledgeActive = null;
+      }),
   });
 };
 IN.knowledgeField = el => {

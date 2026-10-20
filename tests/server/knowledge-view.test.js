@@ -7,6 +7,15 @@ const notes = [
   { id: 'b', title: 'Регламент', summary: 'Команда', tags: ['процесс'], updatedAt: '2026-10-17' },
 ];
 
+test('bounded pages reach notes beyond the old 1000-item ceiling', () => {
+  const many = Array.from({ length: 1400 }, (_, i) => ({ id: String(i), title: String(i) }));
+  const page = knowledgeView(many, { limit: 60, offset: 1380 });
+  assert.equal(page.visible.length, 20);
+  assert.equal(page.start, 1380);
+  assert.equal(page.hasMore, false);
+  assert.equal(knowledgeView(many, { limit: 60, offset: 99999 }).start, 1380);
+});
+
 test('knowledge search and folder filters cannot leave an excluded note in the editor', () => {
   assert.equal(knowledgeView(notes, { query: ' ПРОЦЕСС ', activeId: 'a' }).active.id, 'b');
   assert.equal(knowledgeView(notes, { folder: 'root', activeId: 'a' }).active.id, 'b');
@@ -26,7 +35,11 @@ test('knowledge selection preserves a matching note and sorting does not mutate 
 });
 
 test('knowledge view limits large lists without losing the active note', () => {
-  const many = Array.from({ length: 240 }, (_, index) => ({ id: `n${index}`, title: `Note ${String(index).padStart(3, '0')}`, updatedAt: `2026-10-${String((index % 9) + 1).padStart(2, '0')}` }));
+  const many = Array.from({ length: 240 }, (_, index) => ({
+    id: `n${index}`,
+    title: `Note ${String(index).padStart(3, '0')}`,
+    updatedAt: `2026-10-${String((index % 9) + 1).padStart(2, '0')}`,
+  }));
   const result = knowledgeView(many, { limit: 20, activeId: 'n239' });
   assert.equal(result.total, 240);
   assert.equal(result.hasMore, true);
@@ -44,5 +57,8 @@ test('favorites and title sorting compose with search filters', () => {
     ],
     { folder: 'favorites', sort: 'title' },
   );
-  assert.deepEqual(result.filtered.map(note => note.id), ['b', 'a']);
+  assert.deepEqual(
+    result.filtered.map(note => note.id),
+    ['b', 'a'],
+  );
 });
