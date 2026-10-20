@@ -6,6 +6,33 @@ import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+import { historyContent } from '../shared/knowledge-history.js';
+A.restoreKnowledgeVersion = el => {
+  if (knowledgeEditBlocked()) return;
+  const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+  const version = note?.history?.find(version => version.id === el.dataset.version);
+  if (!version) return;
+  confirmDlg({
+    title: 'Restore this note version?',
+    body: 'The current content will become a previous version after synchronization.',
+    ok: 'Restore version',
+    run: () =>
+      mutate(() => {
+        Object.assign(note, historyContent(version, D().knowledgeFolders), { updatedAt: new Date().toISOString(), updatedBy: D().me });
+      }),
+  });
+};
+for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNote']) {
+  const original = A[name];
+  A[name] = (...args) => {
+    original(...args);
+    const id = S.ui.knowledgeDrawer;
+    if (id) {
+      S.ui.knowledgeRecent = [id, ...(S.ui.knowledgeRecent || []).filter(item => item !== id)].slice(0, 50);
+      saveKnowledgePreferences();
+    }
+  };
+}
 IN.knowledgeSelect = el => {
   const set = new Set(S.ui.knowledgeSelection || []);
   el.checked ? set.add(el.dataset.id) : set.delete(el.dataset.id);

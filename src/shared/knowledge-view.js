@@ -1,5 +1,5 @@
 import { matchesKnowledgeSearch } from './knowledge-search.js';
-export function knowledgeView(notes, { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0 } = {}) {
+export function knowledgeView(notes, { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0, recent = [] } = {}) {
   const selectedTag = String(tag).trim().toLocaleLowerCase();
   const time = note => {
     const value = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
@@ -7,9 +7,20 @@ export function knowledgeView(notes, { query = '', folder = 'all', tag = '', act
   };
   const filtered = notes
     .filter(note => matchesKnowledgeSearch(note, query))
-    .filter(note => folder === 'all' || (folder === 'favorites' ? !!note.favorite : folder === 'root' ? !note.folderId : note.folderId === folder))
+    .filter(
+      note =>
+        folder === 'all' ||
+        (folder === 'recent'
+          ? recent.includes(note.id)
+          : folder === 'favorites'
+            ? !!note.favorite
+            : folder === 'root'
+              ? !note.folderId
+              : note.folderId === folder),
+    )
     .filter(note => !selectedTag || (note.tags || []).some(value => String(value).trim().toLocaleLowerCase() === selectedTag))
     .sort((a, b) => {
+      if (folder === 'recent') return recent.indexOf(a.id) - recent.indexOf(b.id);
       if (Number(!!b.favorite) !== Number(!!a.favorite)) return Number(!!b.favorite) - Number(!!a.favorite);
       if (sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity: 'base' });
       return time(b) - time(a);

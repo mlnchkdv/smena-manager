@@ -2,6 +2,7 @@ import { DOCUMENT_NAMES, workspaceDocumentData } from '../shared/workspace-docum
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { bindWikiReferences } from '../shared/relations.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { noteHistory } from '../shared/knowledge-history.js';
 
 function assertName(name) {
   if (!DOCUMENT_NAMES.includes(name)) throw Object.assign(new Error('Workspace document not found.'), { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
@@ -51,10 +52,18 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
             bindWikiReferences(database.knowledgeNotes);
             const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
             for (const note of incoming.knowledgeNotes) {
+              note.history = noteHistory(previous.get(note.id), note);
               const references = previous.get(note.id)?.wikiRefs;
               if (!Object.hasOwn(note, 'wikiRefs') && references) note.wikiRefs = structuredClone(references);
             }
             bindWikiReferences(incoming.knowledgeNotes);
+            // Keep histories within the aggregate transport budget.
+            let historyChars = 0;
+            for (const note of incoming.knowledgeNotes) {
+              const size = JSON.stringify(note.history || []).length;
+              if (historyChars + size > 500000) note.history = [];
+              else historyChars += size;
+            }
           }
           Object.assign(database, incoming);
           database._documentRevisions = {

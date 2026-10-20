@@ -1,4 +1,19 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-history-row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+  flex-wrap: wrap;
+}
+.knowledge-history summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 0;
+}
 .knowledge-shell button:focus-visible,
 .knowledge-drawer button:focus-visible {
   outline: 2px solid var(--accent);
