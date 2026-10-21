@@ -114,6 +114,8 @@ Google Sign-In принимает только verified email, который с
 
 **База знаний.** Заметки и папки поддерживают Markdown, tags, summary, category и `[[wiki links]]`. Неоднозначные wiki-ссылки не угадываются; target выбирается явно. Переименование заметки сохраняет stable target ID.
 
+Новые файловые импорты сохраняют `sourceFormat: 'markdown' | 'text'` как признак происхождения. `formatted_markdown` остаётся полным исходником, включая YAML/frontmatter. `knowledgeDisplayParts` отделяет подтверждённый начальный блок метаданных только для отображения: чтение, карточки, предпросмотр редактора и история не показывают его в основном тексте, но дают сворачиваемый блок «Метаданные исходника». TXT с явным `sourceFormat: 'text'` никогда не очищается от похожих строк. Для старых заметок без признака формата применяется консервативное совпадение с сохранёнными полями; неоднозначный/незакрытый блок остаётся обычным текстом. Поиск по исходным полям сохраняется, экспорт не удаляет метаданные, отдельная миграция рабочих данных не выполняется.
+
 **Закладки.** Закладки имеют URL, описание, теги, папки, архив и связи. Архивная выборка сохраняется при редактировании, stale concurrent edit не воскрешает удалённую закладку.
 
 **Граф.** Узлы имеют typed keys `note:<id>`, `bookmark:<id>`, `file:<id>`, `project:<id>`, `task:<id>`. Manual relations хранятся в `relations` с tombstone deletion. Автоматические project/task/file associations и wiki links вычисляются, не дублируются в shared state. Граф поддерживает фильтры, поиск, connected-only, archive, depth 1/2, selection, local graph, JSON export и list alternative. Визуальное окно ограничено 250 узлами; export получает весь разрешённый filtered set. Для плотного графа (>80 узлов или >160 рёбер) на дальнем масштабе скрываются подписи, кроме выбранного узла, и ослабляются рёбра.
@@ -280,6 +282,9 @@ When changing shared state, test rapid sequential edits, reload, two tabs, and s
 - Inbox/notifications: recipient-scoped mentions, assignments, comments, deadlines, outbox, independent email/push delivery, retries, cleanup, and read state.
 - Files: resumable Drive uploads, stable physical identity, safe previews for bounded images/text/PDF, downloads for unsupported formats, delayed physical deletion.
 - Knowledge: Markdown notes, folders, tags, categories, summaries, stable `[[wiki links]]`, explicit resolution for ambiguous targets.
+
+New file imports retain `sourceFormat: 'markdown' | 'text'` as provenance. `formatted_markdown` remains the complete source, including YAML/frontmatter. `knowledgeDisplayParts` separates a recognized initial metadata block for display only: reading, card excerpts, live editor preview and historical previews keep it out of the main body and expose a collapsed “Source metadata” disclosure. Explicit TXT provenance always preserves frontmatter-like literal text. Older untyped notes require corroboration against stored fields; ambiguous or unclosed blocks stay visible. Source metadata remains searchable and exportable. No migration rewrites team content.
+
 - Bookmarks: URLs, descriptions, tags, folders, archive, stable identity, and relations.
 - Graph: typed node keys (`note:<id>`, `bookmark:<id>`, `file:<id>`, `project:<id>`, `task:<id>`), manual relation tombstones, computed associations, wiki links, filters, search, connected-only, archive, depth 1/2, selection, local graphs, JSON export, and accessible list mode.
 
