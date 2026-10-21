@@ -210,7 +210,8 @@ A.filterKnowledgePreviewTag = el => {
   S.ui.knowledgeOffset = 0;
   render();
 };
-import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
+import { knowledgeLivePreview } from '../ui/knowledge-live-preview.js';
+import { translateElement } from '../core/i18n.js';
 import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 A.toggleKnowledgeEditorPreview = () => {
   S.ui.knowledgeEditorPreview = !S.ui.knowledgeEditorPreview;
@@ -238,7 +239,11 @@ A.formatKnowledge = el => {
 document.addEventListener('input', event => {
   if (event.target.id !== 'knowledge-body') return;
   const preview = document.querySelector('.knowledge-live-preview');
-  if (preview) preview.innerHTML = renderKnowledgeMarkdown(event.target.value);
+  const note = D().knowledgeNotes.find(note => note.id === event.target.dataset.id);
+  if (preview && note) {
+    preview.innerHTML = knowledgeLivePreview({ ...note, formatted_markdown: event.target.value });
+    translateElement(preview);
+  }
 });
 window.addEventListener('beforeunload', event => {
   if (S.ui.knowledgeDirty && S.ui.currentUser && !workspaceSyncIsClean(D())) {

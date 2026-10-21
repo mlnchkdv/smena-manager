@@ -65,6 +65,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-frontmatter>summary').click();
   await page.locator('[data-a="editKnowledgeNote"]').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
+  await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
+  const originalSource = await page.locator('#knowledge-body').inputValue();
+  await page.locator('#knowledge-body').fill(originalSource + '\nPreview typing check');
+  await expect(page.locator('.knowledge-live-preview .knowledge-quick-content')).toContainText('Preview typing check');
+  await expect(page.locator('.knowledge-live-preview .knowledge-quick-content')).not.toContainText('metadata-only-marker');
+  await expect(page.locator('.knowledge-live-preview .knowledge-frontmatter>summary')).toHaveText('Метаданные исходника');
+  await expect(page.locator('.knowledge-live-preview .knowledge-quick-content')).toHaveAttribute('translate', 'no');
+  await page.locator('#knowledge-body').fill(originalSource);
+  await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
   await page.locator('.knowledge-properties>summary').click();
   await page.locator('#knowledge-title').fill('Renamed legacy Alpha');
   await page.locator('#knowledge-summary').fill('Edited legacy summary');

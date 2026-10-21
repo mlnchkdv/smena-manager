@@ -4,12 +4,10 @@ import { mem } from '../core/store.js';
 import { relationsPanel } from './relations.js';
 import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 import { S } from '../core/store.js';
-import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeHistory } from './knowledge-history.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
-import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
-import { knowledgeMetadata } from './knowledge-metadata.js';
+import { knowledgeLivePreview } from './knowledge-live-preview.js';
 
 const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
 
@@ -59,7 +57,7 @@ export function noteEditor(note, folders, readOnly) {
       .join(
         '',
       )}<span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!S.ui.knowledgeEditorPreview}">Preview</button></div>
-    <div class="knowledge-writing${S.ui.knowledgeEditorPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${S.ui.knowledgeEditorPreview ? `<div class="knowledge-live-preview"><div class="knowledge-quick-content" translate="no">${renderKnowledgeMarkdown(knowledgeDisplayParts(note).body)}</div>${knowledgeMetadata(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
+    <div class="knowledge-writing${S.ui.knowledgeEditorPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${S.ui.knowledgeEditorPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
     ${relationsPanel(`note:${note.id}`)}${knowledgeHistory(note, readOnly || conflict)}
   </section>`;
 }
