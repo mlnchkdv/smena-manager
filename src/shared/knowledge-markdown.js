@@ -21,6 +21,35 @@ function inline(text) {
   }
   return out + escape(text.slice(start));
 }
+
+function tableCells(line) {
+  const cells = [];
+  const source = line.trim();
+  let cell = '',
+    codeTicks = 0;
+  for (let i = 0; i < source.length; i++) {
+    if (source[i] === '\\' && source[i + 1] === '|') {
+      cell += '|';
+      i++;
+    } else if (source[i] === '`') {
+      let end = i + 1;
+      while (source[end] === '`') end++;
+      const count = end - i;
+      if (!codeTicks) codeTicks = count;
+      else if (codeTicks === count) codeTicks = 0;
+      cell += source.slice(i, end);
+      i = end - 1;
+    } else if (source[i] === '|' && !codeTicks) {
+      cells.push(cell.trim());
+      cell = '';
+    } else cell += source[i];
+  }
+  cells.push(cell.trim());
+  if (source.startsWith('|')) cells.shift();
+  if (cells.at(-1) === '' && source.endsWith('|')) cells.pop();
+  return cells;
+}
+
 export function renderKnowledgeMarkdown(markdown) {
   const lines = String(markdown || '')
     .replace(/\r/g, '')
@@ -34,7 +63,8 @@ export function renderKnowledgeMarkdown(markdown) {
       list = null;
     }
   };
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (/^\s*```/.test(line)) {
       closeList();
       if (code !== null) {
@@ -45,6 +75,21 @@ export function renderKnowledgeMarkdown(markdown) {
     }
     if (code !== null) {
       code.push(line);
+      continue;
+    }
+    const headers = line.includes('|') ? tableCells(line) : [];
+    const separators = headers.length && lines[i + 1]?.includes('|') ? tableCells(lines[i + 1]) : [];
+    if (headers.length && headers.length === separators.length && separators.every(value => /^:?-{3,}:?$/.test(value))) {
+      closeList();
+      const alignments = separators.map(value => (value.endsWith(':') ? (value.startsWith(':') ? 'center' : 'right') : 'left'));
+      const row = (cells, heading = false) => {
+        const tag = heading ? 'th' : 'td';
+        return `<tr>${headers.map((_, column) => `<${tag}${heading ? ' scope="col"' : ''} class="knowledge-table-${alignments[column]}">${inline(cells[column] || '')}</${tag}>`).join('')}</tr>`;
+      };
+      html += `<div class="knowledge-table-wrap" role="region" tabindex="0" aria-label="${escape(headers.join(' · ').slice(0, 160))}"><table><thead>${row(headers, true)}</thead><tbody>`;
+      i++;
+      while (lines[i + 1]?.includes('|') && !/^\s*```/.test(lines[i + 1])) html += row(tableCells(lines[++i]));
+      html += '</tbody></table></div>';
       continue;
     }
     const heading = line.match(/^(#{1,6})\s+(.+)$/);

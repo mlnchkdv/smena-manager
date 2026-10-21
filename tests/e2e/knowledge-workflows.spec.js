@@ -31,7 +31,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
       {
         id: 'kb-a',
         title: 'Knowledge Alpha',
-        formatted_markdown: '# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]',
+        formatted_markdown:
+          '# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]\n\n| Раздел / Area | Details |\n| --- | --- |\n| Команда | Team reference |',
         tags: ['team'],
         folderId: 'kb-child',
         updatedAt: new Date().toISOString(),
@@ -121,6 +122,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-content .knowledge-mobile-folder-button')).toContainText(folderLabel);
     await page.locator('.knowledge-preview-open').click();
     await expect(page.locator('[data-a="editKnowledgeNote"]')).toHaveText(editLabel);
+    await expect(page.locator('.knowledge-quick-content').first().getByRole('table')).toBeVisible();
+    await expect(page.locator('.knowledge-quick-content').first().getByRole('columnheader').first()).toHaveText('Раздел / Area');
     await expect.poll(async () => Math.abs((await page.locator('.knowledge-drawer').boundingBox()).x)).toBeLessThanOrEqual(1);
     const box = await page.locator('.knowledge-drawer').boundingBox();
     expect(box.x + box.width).toBeLessThanOrEqual(321);
