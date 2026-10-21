@@ -75,3 +75,32 @@ test('legacy imported metadata is recognized conservatively and incomplete block
   for (const raw of ['---\nUnrelated text\n---\nBody', '---\ntitle: Unclosed\nBody', '# Title\n---\ntitle: Later\n---'])
     assert.deepEqual(knowledgeDisplayParts({ formatted_markdown: raw, sourceFormat: 'markdown' }), { body: raw, metadata: '' });
 });
+
+test('legacy MD remains readable after title and summary changes using matching retained source metadata', () => {
+  const original = parseMarkdownNote('original.md', '---\ntitle: Original\nsummary: Initial summary\n---\n# Body\nText');
+  delete original.sourceFormat;
+  const renamed = { ...original, title: 'Renamed', summary: 'Edited summary', history: [{ ...original, id: 'v-original' }] };
+  const before = JSON.stringify(renamed);
+  assert.equal(knowledgeDisplayParts(renamed).body, '# Body\nText');
+  assert.equal(JSON.stringify(renamed), before);
+  const historical = { ...renamed, history: [original, renamed] };
+  assert.equal(knowledgeDisplayParts(historical).body, '# Body\nText');
+  assert.deepEqual(knowledgeDisplayParts({ ...renamed, sourceFormat: 'text' }), { body: original.formatted_markdown, metadata: '' });
+});
+
+test('unrelated, malformed and out-of-bound history never establishes legacy Markdown provenance', () => {
+  const source = '---\ntitle: Original\nsummary: Initial summary\n---\nBody';
+  const original = { title: 'Original', summary: 'Initial summary', category: 'Imported', formatted_markdown: source };
+  const renamed = { ...original, title: 'Renamed', summary: 'Changed' };
+  for (const history of [
+    null,
+    {},
+    [null, 3, {}],
+    [{ ...original, sourceFormat: 'text' }],
+    [{ ...original, formatted_markdown: '# Unrelated' }],
+    [{ ...original, formatted_markdown: source.replace('title: Original', 'title: Different') }],
+    [...Array(6).fill({}), original],
+  ]) {
+    assert.deepEqual(knowledgeDisplayParts({ ...renamed, history }), { body: source, metadata: '' });
+  }
+});

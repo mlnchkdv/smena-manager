@@ -31,9 +31,10 @@ test('knowledge reading editing history search and mobile folders work in Russia
       {
         id: 'kb-a',
         title: 'Knowledge Alpha',
-        sourceFormat: 'markdown',
+        category: 'Imported',
+        summary: 'Original import summary',
         formatted_markdown:
-          '---\ntitle: Knowledge Alpha\ninternal_key: metadata-only-marker\n---\n# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]\n\n| Раздел / Area | Details |\n| --- | --- |\n| Команда | Team reference |',
+          '---\ntitle: Knowledge Alpha\nsummary: Original import summary\ninternal_key: metadata-only-marker\n---\n# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]\n\n| Раздел / Area | Details |\n| --- | --- |\n| Команда | Team reference |',
         tags: ['team'],
         folderId: 'kb-child',
         updatedAt: new Date().toISOString(),
@@ -64,6 +65,26 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-frontmatter>summary').click();
   await page.locator('[data-a="editKnowledgeNote"]').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
+  await page.locator('.knowledge-properties>summary').click();
+  await page.locator('#knowledge-title').fill('Renamed legacy Alpha');
+  await page.locator('#knowledge-summary').fill('Edited legacy summary');
+  await page.locator('#knowledge-summary').press('Tab');
+  await waitSaved(page);
+  const renamedDocument = await (await page.request.get('/api/workspace-documents/knowledge')).json();
+  expect(renamedDocument.data.knowledgeNotes.find(note => note.id === 'kb-a').sourceFormat).toBe('markdown');
+  await page.reload();
+  await page.locator('.knowledge-preview-open').filter({ hasText: 'Renamed legacy Alpha' }).click();
+  await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
+  await expect(page.locator('.knowledge-frontmatter').first()).not.toHaveAttribute('open');
+  await page.locator('[data-a="editKnowledgeNote"]').click();
+  await page.locator('.knowledge-history>summary').click();
+  await page.locator('[data-a="restoreKnowledgeVersion"]').first().click();
+  await page.locator('[data-a="confirmOk"]').click();
+  await waitSaved(page);
+  await expect(page.locator('#knowledge-title')).toHaveValue('Knowledge Alpha');
+  await page.locator('.knowledge-history-row details>summary').first().click();
+  await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
+  await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await page.locator('#knowledge-body').fill('Updated knowledge body');
   await waitSaved(page);
   await expect(page.locator('[data-knowledge-save-status]')).toHaveText('Сохранено');
@@ -77,13 +98,16 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
   await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await expect(page.locator('[data-a="restoreKnowledgeVersion"]').first()).toBeVisible();
-  await page.locator('[data-a="restoreKnowledgeVersion"]').first().click();
+  // The rename/restore check adds a newer renamed snapshot; restore the
+  // original import explicitly rather than assuming the newest is original.
+  await page.locator('[data-a="restoreKnowledgeVersion"]').last().click();
   await page.locator('[data-a="confirmOk"]').click();
   await waitSaved(page);
   await page.reload();
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Alpha' }).click();
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Original knowledge content');
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+  expect(await page.locator('.knowledge-content-actions').evaluate(el => parseFloat(getComputedStyle(el).columnGap))).toBeGreaterThanOrEqual(8);
   for (const [language, folderLabel, editLabel] of [
     ['Русский', 'Папки', 'Редактировать заметку'],
     ['English (US)', 'Folders', 'Edit note'],
@@ -93,6 +117,12 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    const intakeGap = await page.locator('.knowledge-content-actions').evaluate(el => {
+      const a = el.querySelector('[data-a="chooseKnowledgeFiles"]').getBoundingClientRect();
+      const b = el.querySelector('[data-a="newKnowledgeNote"]').getBoundingClientRect();
+      return Math.abs(a.top - b.top) < 2 ? b.left - a.right : b.top - a.bottom;
+    });
+    expect(intakeGap).toBeGreaterThanOrEqual(7.5);
     await page.locator('#knowledge-import-files').setInputFiles(
       Array.from({ length: 4 }, (_, i) => ({
         name: `Mobile import ${i}.${i % 2 ? 'txt' : 'md'}`,

@@ -24,6 +24,7 @@ import {
   visibleProjects,
 } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
+import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { detachTaskFile } from '../shared/file-identity.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -828,6 +829,9 @@ IN.knowledgeField = el => {
   const field = el.dataset.field;
   const before = field === 'tags' ? (note.tags || []).join(', ') : note[field] || '';
   if (before === el.value) return;
+  // Preserve recognized legacy provenance on an actual edit, before changing
+  // its corroborating fields. Reading alone never migrates notes.
+  if (!note.sourceFormat && knowledgeDisplayParts(note).metadata) note.sourceFormat = 'markdown';
   if (field === 'tags')
     note.tags = [
       ...new Set(
