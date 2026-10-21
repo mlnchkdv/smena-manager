@@ -94,6 +94,26 @@
     0 2px 6px -2px rgba(0, 0, 0, 0.08),
     0 0 0 1px var(--border-strong);
 }
+/* Raise the whole card, not just its tooltip, above adjacent card layers. */
+.kcard:hover,
+.kcard:focus-within {
+  z-index: 1;
+}
+/* Keep assignee names inside the column instead of below the next card or
+   beyond the horizontally clipped edge. Keyboard focus gets the same hint. */
+.kcard .board-assignee::after {
+  top: auto;
+  bottom: calc(100% + 6px);
+  left: auto;
+  right: 0;
+  transform: none;
+  width: max-content;
+  max-width: min(220px, 65vw);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  text-align: left;
+}
 .kcard.dragging {
   opacity: 0.35;
 }

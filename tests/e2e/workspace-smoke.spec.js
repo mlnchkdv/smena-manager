@@ -411,6 +411,7 @@ test('large task views keep bounded pages and allow reaching later tasks', async
     title: `${prefix}${index}`,
     status: 'todo',
     priority: 'none',
+    assignee: snapshot.me,
     order: index + 1,
     labels: [],
     subtasks: [],
@@ -432,6 +433,31 @@ test('large task views keep bounded pages and allow reaching later tasks', async
     await expect(column.locator('.kcard')).toHaveCount(100);
     await column.locator('[data-a="listPage"][data-page="1"]').click();
     await expect(column.getByText(`${prefix}104`, { exact: true })).toBeVisible();
+    for (const language of ['Русский', 'English (US)']) {
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption(language);
+      await waitForSaved(page);
+      await page.goto('/e2e-team/tasks');
+      for (const width of [1440, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        const assignee = page.locator(`.kcard[data-drag-card^="${prefix}"] .board-assignee`).first();
+        await assignee.hover();
+        await expect(assignee).toHaveAttribute('data-tip', snapshot.members.find(member => member.id === snapshot.me).name);
+        expect(await assignee.locator('.av').getAttribute('data-tip')).toBeNull();
+        const hint = await assignee.evaluate(el => {
+          const style = getComputedStyle(el, '::after');
+          return { top: style.top, right: style.right, bottom: style.bottom, height: style.height, cardLayer: getComputedStyle(el.closest('.kcard')).zIndex };
+        });
+        expect(hint.right).toBe('0px');
+        expect(parseFloat(hint.bottom)).toBeGreaterThan(0);
+        expect(parseFloat(hint.top) + parseFloat(hint.height)).toBeLessThan(0);
+        expect(hint.cardLayer).toBe('1');
+        await assignee.focus();
+        await page.mouse.move(0, 0);
+        expect(await assignee.evaluate(el => getComputedStyle(el, '::after').content)).not.toBe('none');
+      }
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.locator('[data-a="setViewMode"][data-v="table"]').click();
     expect(await page.locator('table tr [data-a="openTask"]').count()).toBeLessThanOrEqual(100);
     await expect(page.locator('[data-a="listPage"][data-page="1"]').first()).toBeVisible();
