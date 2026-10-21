@@ -95,6 +95,7 @@ export function parseMarkdownNote(filename, source, options = {}) {
     tags: stringList(frontmatter.tags).map(tag => tag.replace(/^#/, '')),
     wikilinks: extractWikiLinks(markdown),
     formatted_markdown: markdown,
+    sourceFormat: 'markdown',
     folderId: options.folderId || null,
     favorite: false,
     createdBy: options.memberId || null,
@@ -118,5 +119,6 @@ export function parseTextNote(filename, source, options = {}) {
     tags: [],
     extracted_skills: [],
     formatted_markdown: body,
+    sourceFormat: 'text',
   };
 }

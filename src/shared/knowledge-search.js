@@ -1,3 +1,5 @@
+import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
+
 export const searchTerms = query =>
   (String(query || '').match(/"[^"]+"|\S+/g) || [])
     .slice(0, 16)
@@ -22,7 +24,7 @@ export function knowledgeExcerpt(note, query, length = 180) {
       .trim();
   const terms = searchTerms(query);
   const summary = clean(note.summary);
-  const body = clean(note.formatted_markdown);
+  const body = clean(knowledgeDisplayParts(note).body);
   const score = text => terms.filter(term => text.toLocaleLowerCase().includes(term)).length;
   // A summary must not hide a match that was found only in the full text.
   const text = !summary || score(body) > score(summary) ? body : summary;

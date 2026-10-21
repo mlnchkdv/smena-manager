@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderKnowledgeMarkdown, knowledgeReadingSource } from '../../src/shared/knowledge-markdown.js';
+import { knowledgeDisplayParts } from '../../src/shared/knowledge-frontmatter.js';
+import { parseMarkdownNote, parseTextNote } from '../../src/shared/markdown-import.js';
+import { buildPortableWorkspace, mergePortableWorkspace } from '../../src/shared/portable-workspace.js';
 test('portable Markdown renders lists, headings and fenced code safely', () => {
   const html = renderKnowledgeMarkdown('# Title\n- Item\n1. Next\n```html\n<script>alert(1)</script>\n```\n[bad](javascript:alert)\n[ok](https://example.com)');
   assert.match(html, /<h2>Title<\/h2>/);
@@ -38,4 +41,37 @@ test('tables support optional edge pipes and incomplete rows without consuming f
   assert.match(html, /<pre><code>X \| Y\n--- \| ---<\/code><\/pre>/);
   assert.equal((html.match(/<table>/g) || []).length, 1);
   assert.doesNotMatch(renderKnowledgeMarkdown('A | B\n-- | ---\nC | D'), /<table>/);
+});
+
+test('imported MD metadata is separated for reading while raw source and provenance survive portable round trips', () => {
+  const source = '---\ntitle: Команда\nsummary: Кратко\ncustom_key: <script>not executable</script>\n---\n# Команда\n\nПолезный текст';
+  const note = parseMarkdownNote('team.md', source, { idFactory: () => 'md' });
+  const before = JSON.stringify(note);
+  assert.equal(note.sourceFormat, 'markdown');
+  assert.equal(knowledgeReadingSource(note), '\nПолезный текст');
+  assert.match(knowledgeDisplayParts(note).metadata, /custom_key:/);
+  assert.equal(JSON.stringify(note), before);
+  const roundTrip = mergePortableWorkspace({ knowledgeNotes: [] }, buildPortableWorkspace({ knowledgeNotes: [note] })).data.knowledgeNotes[0];
+  assert.equal(roundTrip.sourceFormat, 'markdown');
+  assert.equal(roundTrip.formatted_markdown, source);
+  assert.equal(knowledgeReadingSource(roundTrip), '\nПолезный текст');
+});
+
+test('TXT frontmatter-like text remains visible even when all metadata fields match', () => {
+  const source = '---\ntitle: Literal\nsummary: Same summary\ncategory: Processes\n---\nBody';
+  const note = { ...parseTextNote('Literal.txt', source), summary: 'Same summary', category: 'Processes' };
+  assert.equal(note.sourceFormat, 'text');
+  assert.deepEqual(knowledgeDisplayParts(note), { body: source, metadata: '' });
+  assert.equal(knowledgeReadingSource(note), source);
+});
+
+test('legacy imported metadata is recognized conservatively and incomplete blocks stay visible', () => {
+  const source = '\uFEFF---\r\ntitle: Legacy\r\nsummary: Stored summary\r\n---\r\n# Legacy\r\n\r\nBody';
+  const legacy = { title: 'Legacy', summary: 'Stored summary', category: 'Imported', formatted_markdown: source };
+  assert.equal(knowledgeReadingSource(legacy), '\r\nBody');
+  assert.match(knowledgeDisplayParts(legacy).metadata, /title: Legacy/);
+  const ambiguous = { title: 'Plain text', formatted_markdown: source };
+  assert.deepEqual(knowledgeDisplayParts(ambiguous), { body: source, metadata: '' });
+  for (const raw of ['---\nUnrelated text\n---\nBody', '---\ntitle: Unclosed\nBody', '# Title\n---\ntitle: Later\n---'])
+    assert.deepEqual(knowledgeDisplayParts({ formatted_markdown: raw, sourceFormat: 'markdown' }), { body: raw, metadata: '' });
 });

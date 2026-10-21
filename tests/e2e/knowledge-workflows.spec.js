@@ -31,8 +31,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
       {
         id: 'kb-a',
         title: 'Knowledge Alpha',
+        sourceFormat: 'markdown',
         formatted_markdown:
-          '# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]\n\n| Раздел / Area | Details |\n| --- | --- |\n| Команда | Team reference |',
+          '---\ntitle: Knowledge Alpha\ninternal_key: metadata-only-marker\n---\n# Guide\n\nOriginal knowledge content\n\n[[Knowledge Beta]]\n\n| Раздел / Area | Details |\n| --- | --- |\n| Команда | Team reference |',
         tags: ['team'],
         folderId: 'kb-child',
         updatedAt: new Date().toISOString(),
@@ -56,7 +57,13 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-open').click();
   await expect(page.locator('.knowledge-drawer')).toContainText('Knowledge Beta');
   await expect(page.locator('.shell')).toHaveAttribute('inert', '');
+  await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
+  await expect(page.locator('.knowledge-frontmatter')).not.toHaveAttribute('open');
+  await page.locator('.knowledge-frontmatter>summary').click();
+  await expect(page.locator('.knowledge-frontmatter pre')).toContainText('metadata-only-marker');
+  await page.locator('.knowledge-frontmatter>summary').click();
   await page.locator('[data-a="editKnowledgeNote"]').click();
+  await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
   await page.locator('#knowledge-body').fill('Updated knowledge body');
   await waitSaved(page);
   await expect(page.locator('[data-knowledge-save-status]')).toHaveText('Сохранено');
@@ -66,6 +73,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Updated knowledge body');
   await page.locator('[data-a="editKnowledgeNote"]').click();
   await page.locator('.knowledge-history>summary').click();
+  await page.locator('.knowledge-history-row details>summary').first().click();
+  await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
+  await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await expect(page.locator('[data-a="restoreKnowledgeVersion"]').first()).toBeVisible();
   await page.locator('[data-a="restoreKnowledgeVersion"]').first().click();
   await page.locator('[data-a="confirmOk"]').click();
@@ -122,6 +132,12 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-content .knowledge-mobile-folder-button')).toContainText(folderLabel);
     await page.locator('.knowledge-preview-open').click();
     await expect(page.locator('[data-a="editKnowledgeNote"]')).toHaveText(editLabel);
+    await expect(page.locator('.knowledge-frontmatter>summary')).toHaveText(language === 'Русский' ? 'Метаданные исходника' : 'Source metadata');
+    await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
+    await page.locator('.knowledge-frontmatter>summary').click();
+    await expect(page.locator('.knowledge-frontmatter pre')).toBeVisible();
+    expect((await page.locator('.knowledge-frontmatter>summary').boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await page.locator('.knowledge-frontmatter>summary').click();
     await expect(page.locator('.knowledge-quick-content').first().getByRole('table')).toBeVisible();
     await expect(page.locator('.knowledge-quick-content').first().getByRole('columnheader').first()).toHaveText('Раздел / Area');
     await expect.poll(async () => Math.abs((await page.locator('.knowledge-drawer').boundingBox()).x)).toBeLessThanOrEqual(1);

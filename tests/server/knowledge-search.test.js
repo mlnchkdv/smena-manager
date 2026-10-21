@@ -16,6 +16,14 @@ test('excerpts remain plain text and bounded for long Markdown sources', () => {
   assert.equal(knowledgeExcerpt({}, 'none'), '');
 });
 
+test('card excerpts omit MD service metadata while metadata remains searchable and TXT stays literal', () => {
+  const note = { sourceFormat: 'markdown', formatted_markdown: '---\ninternal_key: service-only-marker\n---\nUseful team body' };
+  assert.equal(knowledgeExcerpt(note, ''), 'Useful team body');
+  assert.equal(createKnowledgeMatcher('service-only-marker')(note), true);
+  assert.equal(knowledgeExcerpt(note, 'service-only-marker'), 'Useful team body');
+  assert.match(knowledgeExcerpt({ ...note, sourceFormat: 'text' }, ''), /internalkey: service-only-marker/);
+});
+
 test('blank searches on large collections never scan note bodies', () => {
   const notes = Array.from({ length: 3000 }, (_, i) => ({
     id: String(i),

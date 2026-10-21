@@ -15,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Source metadata': 'Метаданные исходника',
+  'Hidden from reading. Preserved in the source and exports.': 'Скрыты при чтении. Сохранены в исходнике и при экспорте.',
   'Move note': 'Переместить заметку',
   'Clear folder search': 'Очистить поиск папок',
   'Folder actions': 'Действия с папкой',
