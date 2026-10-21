@@ -180,7 +180,7 @@ export function pageKnowledge() {
             '',
           )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div>
         ${knowledgeFolderCards(folderIndex, folderFilter, readOnly)}
-        ${S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || folderIndex.byId.has(folderFilter)) ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.byId.has(folderFilter) ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
+        ${S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || folderIndex.byId.has(folderFilter)) ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}
         ${
           visible.length

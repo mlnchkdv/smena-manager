@@ -93,6 +93,18 @@
   border-radius: var(--r-lg);
   background: var(--bg);
 }
+.knowledge-folder-browser.knowledge-folder-browser-compact {
+  padding: 4px 10px;
+  margin: 12px 0;
+}
+.knowledge-folder-browser-compact .knowledge-folder-browser-head {
+  margin-bottom: 0;
+  min-height: 44px;
+}
+.knowledge-folder-browser-compact .ibtn {
+  min-width: 44px;
+  min-height: 44px;
+}
 .knowledge-folder-browser-head,
 .knowledge-notes-section-head {
   display: flex;

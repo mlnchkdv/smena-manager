@@ -203,6 +203,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('[data-in="knowledgeFolderQuery"]').fill(`${parent} "Subfolder ${target}"`);
     await page.locator(`.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="scale-folder-${target}"]`).click();
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
+    await expect(page.locator('.knowledge-folder-browser')).toHaveClass(/knowledge-folder-browser-compact/);
+    expect((await page.locator('.knowledge-folder-browser').boundingBox()).height).toBeLessThanOrEqual(64);
+    await expect(page.locator('.knowledge-notes-section-head>span')).toHaveCount(0);
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/knowledge-scale-move-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
     await page.locator('.knowledge-breadcrumbs [data-a="setKnowledgeFolder"]').first().click();
