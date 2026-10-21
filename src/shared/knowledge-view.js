@@ -1,4 +1,4 @@
-import { matchesKnowledgeSearch } from './knowledge-search.js';
+import { createKnowledgeMatcher } from './knowledge-search.js';
 import { folderDescendants } from './knowledge-tools.js';
 export function knowledgeView(
   notes,
@@ -6,12 +6,12 @@ export function knowledgeView(
 ) {
   const folderIds = folderDescendants(folder, folders);
   const selectedTag = String(tag).trim().toLocaleLowerCase();
+  const matches = createKnowledgeMatcher(query);
   const time = note => {
     const value = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
     return Number.isFinite(value) ? value : 0;
   };
   const filtered = notes
-    .filter(note => matchesKnowledgeSearch(note, query))
     .filter(
       note =>
         folder === 'all' ||
@@ -24,6 +24,7 @@ export function knowledgeView(
               : folderIds.has(note.folderId)),
     )
     .filter(note => !selectedTag || (note.tags || []).some(value => String(value).trim().toLocaleLowerCase() === selectedTag))
+    .filter(matches)
     .sort((a, b) => {
       if (folder === 'recent') return recent.indexOf(a.id) - recent.indexOf(b.id);
       if (Number(!!b.favorite) !== Number(!!a.favorite)) return Number(!!b.favorite) - Number(!!a.favorite);

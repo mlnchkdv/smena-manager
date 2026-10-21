@@ -642,12 +642,14 @@ A.collapseKnowledgeFolders = () => {
   render();
 };
 A.clearKnowledgeTag = () => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeTag = '';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   render();
 };
 A.clearKnowledgeQuery = () => {
+  S.ui.knowledgeOffset = 0;
   S.ui.knowledgeQuery = '';
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;

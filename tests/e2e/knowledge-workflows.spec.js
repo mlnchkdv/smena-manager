@@ -183,6 +183,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('.knowledge-pagination [data-offset="60"]').click();
     await page.locator('[data-a="selectKnowledgePage"]').click();
     await expect(page.locator('.knowledge-selection-count b')).toHaveText('120');
+    await page.locator('[data-a="clearKnowledgeQuery"]').click();
+    await expect(page.locator('.knowledge-pagination .num')).toContainText('1–60');
+    await expect(page.locator('.knowledge-selection-count b')).toHaveText('120');
     await page.locator('.knowledge-bulk [data-a="moveKnowledgeNote"]').click();
     await page.locator('#knowledge-move-search').fill(`${parent} "Subfolder ${target}"`);
     await expect(page.locator('.knowledge-move-row')).toHaveCount(1);
