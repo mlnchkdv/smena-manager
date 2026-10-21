@@ -116,7 +116,8 @@ const moveModal = () => (S.ui.modals.at(-1)?.type === 'knowledgeMove' ? S.ui.mod
 A.moveKnowledgeNote = el => {
   if (knowledgeEditBlocked() || S.ui.currentUser?.role === 'viewer') return;
   const ids = [...new Set(el.dataset.id ? [el.dataset.id] : S.ui.knowledgeSelection || [])];
-  const notes = D().knowledgeNotes.filter(note => ids.includes(note.id));
+  const selected = new Set(ids);
+  const notes = D().knowledgeNotes.filter(note => selected.has(note.id));
   if (!notes.length) return;
   const initial = el.dataset.folder || notes[0].folderId;
   openModal({
@@ -160,7 +161,8 @@ A.confirmKnowledgeMove = () => {
   )
     return;
   if (!result.ok) return toast('The notes or destination changed. Reopen the move dialog.', { kind: 'err' });
-  S.ui.knowledgeSelection = (S.ui.knowledgeSelection || []).filter(id => !m.ids.includes(id));
+  const movedIds = new Set(m.ids);
+  S.ui.knowledgeSelection = (S.ui.knowledgeSelection || []).filter(id => !movedIds.has(id));
   closeModal();
   if (result.moved) toast('Notes moved', { action: 'Open destination', onAction: () => A.setKnowledgeFolder({ dataset: { folder: m.folder || 'root' } }) });
 };

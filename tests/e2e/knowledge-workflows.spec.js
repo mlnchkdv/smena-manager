@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-test.setTimeout(180000);
+test.setTimeout(240000);
 const waitSaved = async page => {
   await page.waitForTimeout(500);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
@@ -146,4 +146,65 @@ test('knowledge reading editing history search and mobile folders work in Russia
   const indexed = await page.request.get('/api/knowledge/search?q=original%20knowledge&folder=all&offset=0');
   expect(indexed.ok()).toBeTruthy();
   expect((await indexed.json()).ids).toEqual(['kb-a']);
+
+  // Exercise bounded rendering, cross-page selection and path search at scale.
+  const scaleSnapshot = await (await page.request.get('/api/workspace-documents/knowledge')).json();
+  const scaleFolders = Array.from({ length: 550 }, (_, i) => ({
+    id: `scale-folder-${i}`,
+    name: i < 50 ? `Раздел ${String(i).padStart(3, '0')} / Section ${String(i).padStart(3, '0')}` : `Подпапка ${i} / Subfolder ${i}`,
+    parentId: i < 50 ? null : `scale-folder-${(i - 50) % 50}`,
+  }));
+  const scaleNotes = Array.from({ length: 3000 }, (_, i) => ({
+    id: `scale-note-${i}`,
+    title: `Материал ${i} / Team note`,
+    formatted_markdown: `Large batch marker. Материал команды. unique-${i}`,
+    folderId: `scale-folder-${i % 550}`,
+    updatedAt: '2026-10-20T00:00:00.000Z',
+  }));
+  expect(
+    (
+      await page.request.put('/api/workspace-documents/knowledge', {
+        data: { revision: scaleSnapshot.data.revision, data: { knowledgeFolders: scaleFolders, knowledgeNotes: scaleNotes } },
+      })
+    ).ok(),
+  ).toBeTruthy();
+  for (const [language, target, parent] of [
+    ['Русский', 549, '049'],
+    ['English (US)', 548, '048'],
+  ]) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitSaved(page);
+    await page.setViewportSize({ width: 320, height: 740 });
+    await page.goto('/e2e-team/knowledge');
+    await page.locator('[data-in="knowledgeQuery"]').fill('"Large batch marker"');
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
+    await page.locator('[data-a="selectKnowledgePage"]').click();
+    await page.locator('.knowledge-pagination [data-offset="60"]').click();
+    await page.locator('[data-a="selectKnowledgePage"]').click();
+    await expect(page.locator('.knowledge-selection-count b')).toHaveText('120');
+    await page.locator('.knowledge-bulk [data-a="moveKnowledgeNote"]').click();
+    await page.locator('#knowledge-move-search').fill(`${parent} "Subfolder ${target}"`);
+    await expect(page.locator('.knowledge-move-row')).toHaveCount(1);
+    await page.locator(`.knowledge-move-row[data-folder="scale-folder-${target}"]`).click();
+    await page.locator('[data-a="confirmKnowledgeMove"]').click();
+    await waitSaved(page);
+    await page.reload();
+    const movedScale = await (await page.request.get('/api/workspace-documents/knowledge')).json();
+    expect(movedScale.data.knowledgeNotes).toHaveLength(3000);
+    expect(movedScale.data.knowledgeNotes.filter(note => note.folderId === `scale-folder-${target}`)).toHaveLength(125);
+    expect(
+      movedScale.data.knowledgeNotes.filter(note => Number(note.id.replace('scale-note-', '')) < 120).every(note => note.folderId === `scale-folder-${target}`),
+    ).toBeTruthy();
+    await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
+    await page.locator('[data-in="knowledgeFolderQuery"]').fill(`${parent} "Subfolder ${target}"`);
+    await page.locator(`.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="scale-folder-${target}"]`).click();
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
+    expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+    await page.screenshot({ path: `output/playwright/knowledge-scale-move-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
+    await page.locator('.knowledge-breadcrumbs [data-a="setKnowledgeFolder"]').first().click();
+    await page.locator('[data-in="knowledgeQuery"]').fill('"unique-2999"');
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(1);
+    await expect(page.locator('.knowledge-preview-card')).toHaveAttribute('data-id', 'scale-note-2999');
+  }
 });

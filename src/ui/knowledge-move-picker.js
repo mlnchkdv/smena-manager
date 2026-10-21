@@ -2,28 +2,16 @@ import { D } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
-import { createKnowledgeFolderIndex, knowledgeFolderChildren } from '../shared/knowledge-folder-index.js';
+import { createKnowledgeFolderIndex, knowledgeFolderDestinations } from '../shared/knowledge-folder-index.js';
 import { t } from '../core/i18n.js';
 
 export function knowledgeMovePicker(m) {
   const index = createKnowledgeFolderIndex(D().knowledgeFolders);
   const path = folderTrail(m.folder, index.byId);
   const query = (m.query || '').trim().toLocaleLowerCase();
-  const matches = query
-    ? index.order
-        .map(id => index.byId.get(id))
-        .filter(folder =>
-          folderTrail(folder.id, index.byId)
-            .map(item => item.name)
-            .join(' / ')
-            .toLocaleLowerCase()
-            .includes(query),
-        )
-    : null;
-  const total = matches?.length ?? (index.children.get(m.folder || null) || []).length;
-  const start = Math.min(m.offset || 0, Math.max(0, Math.ceil(total / 60) - 1) * 60);
-  const folders = matches ? matches.slice(start, start + 60) : knowledgeFolderChildren(index, m.folder, { offset: start, limit: 60 }).folders;
-  const selected = D().knowledgeNotes.filter(note => m.ids.includes(note.id));
+  const { folders, total, start } = knowledgeFolderDestinations(index, m.folder, { query, offset: m.offset });
+  const ids = new Set(m.ids);
+  const selected = D().knowledgeNotes.filter(note => ids.has(note.id));
   const canMove = selected.length === m.ids.length && selected.some(note => (note.folderId || null) !== m.folder) && (!m.folder || index.byId.has(m.folder));
   const destination = path.map(item => item.name).join(' / ') || t('No folder');
   return `<div class="modal-b" data-keep="${esc(`knowledge-move:${m.folder || ''}:${m.query || ''}:${start}`)}">

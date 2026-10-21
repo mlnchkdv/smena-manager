@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createKnowledgeFolderIndex, knowledgeFolderRows, knowledgeFolderChildren } from '../../src/shared/knowledge-folder-index.js';
+import {
+  createKnowledgeFolderIndex,
+  knowledgeFolderRows,
+  knowledgeFolderChildren,
+  knowledgeFolderDestinations,
+} from '../../src/shared/knowledge-folder-index.js';
 test('large deep folder trees are counted and paginated without recursion', t => {
   const folders = Array.from({ length: 10000 }, (_, i) => ({ id: `f${i}`, name: `Folder ${i}`, parentId: i ? `f${i - 1}` : null }));
   const notes = folders.map(folder => ({ folderId: folder.id }));
@@ -60,4 +65,38 @@ test('cycles and orphan folders remain reachable without mutating original paren
   assert.equal(new Set(index.order).size, 3);
   assert.equal(folders[0].parentId, 'b');
   assert.equal(index.counts.get('a'), 1);
+});
+
+test('folder search combines RU/EN words across ancestor paths and preserves exact phrases', () => {
+  const index = createKnowledgeFolderIndex([
+    { id: 'p', name: 'Раздел 049 / Team Docs' },
+    { id: 'a', name: 'Подпапка 549 / Field Guide', parentId: 'p' },
+    { id: 'b', name: 'Guide Field', parentId: 'p' },
+  ]);
+  assert.deepEqual(
+    knowledgeFolderDestinations(index, null, { query: '549 Раздел 049' }).folders.map(f => f.id),
+    ['a'],
+  );
+  assert.deepEqual(
+    knowledgeFolderDestinations(index, null, { query: 'docs "field guide"' }).folders.map(f => f.id),
+    ['a'],
+  );
+  assert.equal(knowledgeFolderDestinations(index, null, { query: '"Team Docs / Подпапка"' }).folders[0].id, 'a');
+  assert.deepEqual(
+    knowledgeFolderRows(index, { query: '549 раздел' }).rows.map(row => row.folder.id),
+    ['p', 'a'],
+  );
+  assert.equal(knowledgeFolderChildren(index, 'p', { query: '549 Подпапка' }).folders[0].id, 'a');
+});
+
+test('deep path search stays iterative and destination results remain paginated', t => {
+  const folders = Array.from({ length: 10000 }, (_, i) => ({ id: `f${i}`, name: i ? `Child ${i}` : 'Root', parentId: i ? `f${i - 1}` : null }));
+  const index = createKnowledgeFolderIndex(folders);
+  const started = performance.now();
+  assert.equal(knowledgeFolderDestinations(index, null, { query: 'root "child 9999"' }).folders[0].id, 'f9999');
+  const last = knowledgeFolderDestinations(index, null, { query: 'root', offset: 999999 });
+  assert.equal(last.start, 9960);
+  assert.equal(last.folders.length, 40);
+  assert.equal(last.hasMore, false);
+  t.diagnostic(`10,000 deep folder path search: ${Math.round(performance.now() - started)} ms`);
 });

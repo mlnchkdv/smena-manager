@@ -1,3 +1,5 @@
+import { searchTerms } from './knowledge-search.js';
+
 // Iterative forest traversal avoids stack overflow for imported, deeply nested folders.
 export function createKnowledgeFolderIndex(folders, notes = []) {
   const byId = new Map(folders.map(folder => [folder.id, folder]));
@@ -45,17 +47,43 @@ export function createKnowledgeFolderIndex(folders, notes = []) {
   return { byId, parents, children, order, depths, counts };
 }
 
+// Inherit matched terms, not complete path strings. Keep only enough path suffix
+// to recognize a quoted phrase crossing a separator, even in very deep trees.
+export function knowledgeFolderMatches(index, query) {
+  const terms = searchTerms(query);
+  if (!terms.length) return new Set(index.order);
+  const full = (1 << terms.length) - 1;
+  const suffixLength = Math.max(...terms.map(term => term.length)) - 1;
+  const masks = new Map(),
+    suffixes = new Map(),
+    matches = new Set();
+  for (const id of index.order) {
+    const parent = index.parents.get(id);
+    const context = (parent ? (suffixes.get(parent) || '') + ' / ' : '') + String(index.byId.get(id).name || '').toLocaleLowerCase();
+    let mask = masks.get(parent) || 0;
+    terms.forEach((term, i) => {
+      if (context.includes(term)) mask |= 1 << i;
+    });
+    masks.set(id, mask);
+    suffixes.set(id, suffixLength ? context.slice(-suffixLength) : '');
+    if (mask === full) matches.add(id);
+  }
+  return matches;
+}
+
+export function knowledgeFolderDestinations(index, parentId, { query = '', offset = 0, limit = 60 } = {}) {
+  if (!searchTerms(query).length) return knowledgeFolderChildren(index, parentId, { offset, limit });
+  const matches = knowledgeFolderMatches(index, query);
+  const folders = index.order.filter(id => matches.has(id)).map(id => index.byId.get(id));
+  const start = Math.min(Math.max(0, Number(offset) || 0), Math.max(0, Math.ceil(folders.length / limit) - 1) * limit);
+  return { folders: folders.slice(start, start + limit), total: folders.length, start, hasMore: start + limit < folders.length };
+}
+
 export function knowledgeFolderRows(index, { query = '', collapsed = {}, offset = 0, limit = 200, revealId } = {}) {
   const text = String(query).trim().toLocaleLowerCase();
-  const matches = new Set();
+  const matches = text ? knowledgeFolderMatches(index, query) : new Set();
   if (text)
     for (const id of index.order.slice().reverse()) {
-      if (
-        String(index.byId.get(id).name || '')
-          .toLocaleLowerCase()
-          .includes(text)
-      )
-        matches.add(id);
       if (matches.has(id)) matches.add(index.parents.get(id));
     }
   const rows = [];
@@ -76,12 +104,11 @@ export function knowledgeFolderRows(index, { query = '', collapsed = {}, offset 
 }
 
 export function knowledgeFolderChildren(index, parentId, { query = '', offset = 0, limit = 6 } = {}) {
-  const text = String(query).trim().toLocaleLowerCase();
-  const filtered = (index.children.get(parentId || null) || []).filter(folder =>
-    String(folder.name || '')
-      .toLocaleLowerCase()
-      .includes(text),
-  );
+  const terms = searchTerms(query);
+  const filtered = (index.children.get(parentId || null) || []).filter(folder => {
+    const text = String(folder.name || '').toLocaleLowerCase();
+    return terms.every(term => text.includes(term));
+  });
   const start = Math.min(Math.max(0, Number(offset) || 0), Math.max(0, Math.ceil(filtered.length / limit) - 1) * limit);
   return { folders: filtered.slice(start, start + limit), total: filtered.length, start, hasMore: start + limit < filtered.length };
 }
