@@ -160,6 +160,34 @@ Post-deployment confirmation: GitHub recorded successful production deployment o
 
 После публикации GitHub подтвердил успешный production-деплой `a322263`, браузер загрузил `index-DoUGebCj.js`. На русском и английском поиск по родительскому пути и выбор мобильной папки закрыли панель, перевели фокус на `knowledge-view-title` с нужным именем папки и не дали горизонтального переполнения. Русский язык и обычный размер окна восстановлены. Итоговый скриншот: `output/playwright/knowledge-production-mobile-final-ru-20261021.jpg`.
 
+### Production TXT/MD, preview and history: 21 October 2026 / TXT/MD, предпросмотр и история на основном сайте: 21 октября 2026
+
+With explicit authorization, four small disposable files (`ТЕСТ ИМПОРТА 21.10 A.txt`, `B.md`, `C.txt`, `D.markdown`, all with the same test prefix) were imported together through the mobile file chooser. Reload confirmed all four notes alongside the unchanged four original notes. Cyrillic, TXT indentation, literal TXT frontmatter-like text, Markdown tags/summary and the chosen root destination survived. Reopening the same four-file batch in English and Russian reported four skipped duplicates, zero new notes and a disabled import button; no duplicate write was submitted. The 50-file ceiling and mixed/invalid batch handling remain covered by isolated unit tests, not a 50-file production load.
+
+On the live site, a Markdown note was edited/restored in Russian and a TXT note in English. Reloads confirmed the original bodies, including TXT indentation, while the edited bodies remained available as the latest historical versions. Restore only touched these authorized notes. Quick reading did not open editable inputs. No synchronization conflict was observed during these sequential checks; this is not proof of arbitrary concurrent editing.
+
+Two corrections were committed/pushed separately and verified after successful production deployments:
+
+- `762289d`: mobile import buttons/close control and conflict selector have 44 px targets; counts use two columns, and the file list uses the modal body's single scroller instead of a nested scroll area.
+- `1d00dfb`: pipe tables with header separators render as semantic tables in quick reading, live editor preview and historical previews. Alignment, optional edge pipes, escaped pipes/inline code and incomplete rows are handled; HTML remains escaped and unsafe links are not activated. Wide tables scroll within their own keyboard-focusable region, not the entire note/page. This remains a deliberately limited Markdown renderer, not full CommonMark/GFM support.
+
+Live RU/EN mobile checks confirmed table headers/rows in all three surfaces, zero drawer horizontal overflow and 44 px import controls (approximately 43.994 px reported under browser scaling). The in-app browser reported 400 CSS px for the requested 320 px override; exact 320 px evidence comes from isolated Chromium. The existing RU/EN workflow passed after each correction (1.7 and 1.8 minutes), including import review, note reading/editing/history and 3,000-note/550-folder checks. All 315 server tests, ESLint, formatting and production build passed; initial JavaScript is 573.5 KiB against the 600 KiB budget. Screenshots: `output/playwright/knowledge-import-mobile-en-20261021.jpg`, `output/playwright/knowledge-table-preview-mobile-ru-20261021.jpg`.
+
+All four authorized test notes were moved to recoverable trash. The retained test folders and original team notes were not edited or deleted; Russian and the default viewport were restored. No notification or manual backup/restore API test was sent; the application's normal pre-import backup was part of the confirmed import workflow.
+
+С отдельного разрешения четыре небольших файла `ТЕСТ ИМПОРТА 21.10 A.txt/B.md/C.txt/D.markdown` (каждый с общим тестовым префиксом) загружены одним пакетом через мобильный выбор файлов. После обновления сохранились все четыре заметки и четыре исходных материала. Проверены кириллица, отступы TXT, обычный TXT-текст, похожий на frontmatter, теги/описание Markdown и назначение «Без папки». Повторное открытие пакета на английском и русском показало четыре пропущенных дубля, ноль новых заметок и недоступное подтверждение; повторная запись не запускалась. Лимит 50 файлов и смешанные/некорректные пакеты проверяются изолированными тестами, а не нагрузкой из 50 файлов на production.
+
+На основном сайте изменена/восстановлена Markdown-заметка на русском и TXT-заметка на английском. Перезагрузка подтвердила исходные тексты, включая отступы TXT; изменённые тексты остались последними историческими версиями. Восстановление касалось только согласованных заметок. Быстрый просмотр не открывал редактируемые поля. В этих последовательных проверках конфликтов синхронизации не было; это не доказательство любых сценариев одновременного редактирования.
+
+Обе правки закоммичены/отправлены отдельно и повторно проверены после успешной публикации:
+
+- `762289d`: мобильные кнопки импорта/закрытия и выбор политики конфликтов имеют цели 44 px; счётчики занимают две колонки, список файлов использует общую прокрутку тела окна вместо вложенной.
+- `1d00dfb`: Markdown-таблицы с заголовком и строкой-разделителем отображаются семантическими таблицами в быстром чтении, предпросмотре редактора и истории. Поддержаны выравнивание, необязательные крайние `|`, экранированные разделители, код внутри ячеек и неполные строки; HTML экранируется, небезопасные ссылки не активируются. Широкие таблицы прокручиваются внутри доступного с клавиатуры блока, а не растягивают заметку/страницу. Это ограниченный Markdown-рендерер, не полная реализация CommonMark/GFM.
+
+На основном сайте при RU/EN проверены заголовки/строки таблиц во всех трёх видах, отсутствие горизонтального переполнения карточки и цели импорта 44 px (из-за масштаба браузер сообщил около 43,994 px). Фактическая ширина встроенного браузера — 400 CSS px при запрошенных 320 px; точные 320 px проверены изолированным Chromium. Существующий RU/EN-сценарий прошёл после каждой правки за 1,7 и 1,8 минуты: импорт, чтение/редактирование/история и набор 3000 заметок/550 папок. Прошли 315 серверных тестов, ESLint, форматирование и production-сборка; стартовый JavaScript — 573,5 КиБ при бюджете 600 КиБ. Скриншоты: `output/playwright/knowledge-import-mobile-en-20261021.jpg`, `output/playwright/knowledge-table-preview-mobile-ru-20261021.jpg`.
+
+Все четыре согласованные заметки убраны в восстанавливаемую корзину. Оставленные папки и исходные материалы команды не редактировались/не удалялись; русский язык и обычный размер окна восстановлены. Тестовые уведомления и ручной API-запуск резервного копирования/восстановления не выполнялись; штатная копия перед импортом входила в подтверждённый сценарий приложения.
+
 ### Follow-up: TXT/MD intake and production workflows / Продолжение: импорт TXT/MD и production
 
 20 October 2026:
