@@ -66,9 +66,9 @@ export function modalHtml(m) {
       const invalidFiles = preview.entries?.filter(entry => entry.error).length || 0;
       const canImport = ['notes', 'links', 'knowledgeFolders', 'linkFolders'].some(key => counts[key] > 0);
       return wrap(
-        '',
+        'knowledge-import-dialog',
         `${H('Import preview', 'Existing content is never replaced. A backup is created before importing.')}
-        <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid + invalidFiles}</b></div></div>
+        <div class="modal-b" aria-busy="${preview.busy}"><div class="grid2 knowledge-import-counts"><div>Notes: <b>${counts.notes}</b></div><div>Bookmarks: <b>${counts.links}</b></div><div>Skipped: <b>${counts.skipped}</b></div><div>Invalid: <b>${counts.invalid + invalidFiles}</b></div></div>
         ${knowledgeImportReview(preview, D().knowledgeFolders || [])}
         <label class="field"><span class="label">Conflicting notes</span><select class="select" data-in="importConflictPolicy" ${preview.busy ? 'disabled' : ''}><option value="copy" ${preview.policy === 'copy' ? 'selected' : ''}>Keep both copies</option><option value="skip" ${preview.policy === 'skip' ? 'selected' : ''}>Keep existing only</option></select></label>
         ${

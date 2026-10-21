@@ -427,6 +427,37 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
+.knowledge-import-dialog .knowledge-import-review {
+  margin-top: 0;
+}
+.knowledge-import-dialog .knowledge-import-review ul {
+  max-height: none;
+  overflow: visible;
+}
+@media (max-width: 640px) {
+  .knowledge-import-dialog .knowledge-import-counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .knowledge-import-dialog .modal-f {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .knowledge-import-dialog .modal-f .sp {
+    display: none;
+  }
+  .knowledge-import-dialog .modal-f [data-a='downloadImportReport'] {
+    grid-column: 1 / -1;
+  }
+  .knowledge-import-dialog .modal-f .btn,
+  .knowledge-import-dialog .select {
+    min-height: 44px;
+  }
+  .knowledge-import-dialog .modal-h .ibtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .knowledge-drawer-brand {
   display: inline-flex;
   align-items: center;

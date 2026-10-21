@@ -82,6 +82,20 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    await page.locator('#knowledge-import-files').setInputFiles(
+      Array.from({ length: 4 }, (_, i) => ({
+        name: `Mobile import ${i}.${i % 2 ? 'txt' : 'md'}`,
+        mimeType: 'text/plain',
+        buffer: Buffer.from(`# Mobile import ${i}\n\nТекст / Team content ${i}`),
+      })),
+    );
+    await expect(page.locator('.knowledge-import-review li')).toHaveCount(4);
+    await expect(page.locator('.knowledge-import-dialog')).toContainText(language === 'Русский' ? 'Готово к импорту' : 'Ready to import');
+    for (const button of await page.locator('.knowledge-import-dialog .modal-f button').all())
+      expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect((await page.locator('.knowledge-import-counts').boundingBox()).height).toBeLessThan(80);
+    expect(await page.locator('.knowledge-import-dialog').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+    await page.locator('.knowledge-import-dialog .modal-f [data-a="closeModal"]').click();
     await page.locator('.knowledge-folder-card-options summary').first().click();
     await page.locator('[data-in="knowledgeSelect"]').last().focus();
     const scrollBeforeSelection = await page.locator('.knowledge-main').evaluate(el => el.scrollTop);
