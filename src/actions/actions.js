@@ -621,6 +621,9 @@ A.setKnowledgeFolder = el => {
     S.ui.knowledgeCollapsedFolders = collapsed;
   }
   render();
+  // The mobile folder sheet disappears after navigation. Move focus to the
+  // destination instead of leaving keyboard/screen-reader users on the body.
+  if (typeof window !== 'undefined' && window.innerWidth <= 640) document.getElementById('knowledge-view-title')?.focus({ preventScroll: true });
 };
 A.toggleKnowledgeFolder = el => {
   const id = el.dataset.folder;

@@ -99,6 +99,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-sidebar')).toHaveAttribute('aria-label', folderLabel);
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
     await page.locator('.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="kb-child"]').click();
+    await expect(page.locator('#knowledge-view-title')).toBeFocused();
+    await expect(page.locator('#knowledge-view-title')).toHaveText('Guides');
+    await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toHaveCount(0);
     await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await expect(page.locator('.knowledge-content .knowledge-mobile-folder-button')).toContainText(folderLabel);
@@ -202,6 +205,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
     await page.locator('[data-in="knowledgeFolderQuery"]').fill(`${parent} "Subfolder ${target}"`);
     await page.locator(`.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="scale-folder-${target}"]`).click();
+    await expect(page.locator('#knowledge-view-title')).toBeFocused();
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     await expect(page.locator('.knowledge-folder-browser')).toHaveClass(/knowledge-folder-browser-compact/);
     expect((await page.locator('.knowledge-folder-browser').boundingBox()).height).toBeLessThanOrEqual(64);
