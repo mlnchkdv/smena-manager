@@ -140,6 +140,7 @@ export function pageFiles() {
   const projectCount = new Set(allFiles.map(file => file.project)).size;
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
+  const searched = Boolean(query || typeFilter !== 'all');
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
   return `<div class="files-page">
@@ -201,16 +202,20 @@ export function pageFiles() {
           ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
           : fileTable(window.items)
         : empty(
-            filtered ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
-            filtered ? 'No files found' : projects.length ? 'No files yet' : 'Create a project first',
-            filtered
+            searched ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
+            searched ? 'No files found' : currentFolder ? 'This folder is empty' : projects.length ? 'No files yet' : 'Create a project first',
+            searched
               ? 'Try changing the search or filters.'
               : projects.length
                 ? readOnly
                   ? 'Editors can upload the first shared file.'
-                  : 'Upload the first document, design, or team asset.'
+                  : currentFolder
+                    ? 'Upload files here or move existing project files into this folder.'
+                    : 'Upload the first document, design, or team asset.'
                 : 'Files are organized by project, so create one before uploading.',
-            !filtered && !readOnly && !projects.length ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>` : '',
+            !searched && S.ui.currentUser?.role !== 'viewer' && !projects.length
+              ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
+              : '',
             '',
             1,
           )

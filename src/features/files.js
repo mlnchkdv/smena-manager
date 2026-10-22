@@ -128,5 +128,12 @@ A.confirmFileMove = () => {
   if (!change(() => moveFilesToFolder(D(), modal.ids, modal.projectId, modal.folderId, S.ui.currentUser?.role))) return;
   S.ui.fileSelection = (S.ui.fileSelection || []).filter(id => !modal.ids.includes(id));
   closeModal();
-  toast('Files moved.');
+  toast('Files moved.', {
+    action: 'Open destination',
+    onAction: () => {
+      const current = owner();
+      if (modal.owner === current.owner && modal.workspace === current.workspace)
+        A.openFileFolder({ dataset: { project: modal.projectId, folder: modal.folderId || '' } });
+    },
+  });
 };

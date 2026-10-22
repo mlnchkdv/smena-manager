@@ -15,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'This folder is empty': 'В этой папке пока нет файлов',
+  'Upload files here or move existing project files into this folder.': 'Загрузите файлы сюда или перенесите существующие файлы проекта в эту папку.',
   'Select file': 'Выбрать файл',
   'File selection': 'Выбор файлов',
   'Choose editable files from one project.': 'Выберите доступные для редактирования файлы одного проекта.',

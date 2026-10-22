@@ -662,6 +662,10 @@
 .file-move-dialog {
   width: min(560px, calc(100vw - 24px));
 }
+.file-move-destination {
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
 .file-move-folders {
   max-height: min(42dvh, 360px);
   overflow: auto;

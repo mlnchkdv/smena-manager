@@ -45,5 +45,13 @@ export function fileMoveForm(modal, H) {
     )
     .join(
       '',
-    )}${!folders.length ? '<p class="hint">No matching folders.</p>' : ''}</div>${folders.length > 20 ? `<div class="files-folder-pages"><button class="btn btn-ghost btn-sm" data-a="fileMovePage" data-offset="${Math.max(0, start - 20)}" ${!start ? 'disabled' : ''}>Previous folders</button><span class="num">${start + 1}–${Math.min(start + 20, folders.length)} / ${folders.length}</span><button class="btn btn-ghost btn-sm" data-a="fileMovePage" data-offset="${start + 20}" ${start + 20 >= folders.length ? 'disabled' : ''}>Next folders</button></div>` : ''}<p class="hint">File links and task attachments will stay intact.</p></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn btn-primary" data-a="confirmFileMove" ${!allowed || !targetValid || !changed ? 'disabled' : ''}>Move here</button></div>`;
+    )}${!folders.length ? '<p class="hint">No matching folders.</p>' : ''}</div>${folders.length > 20 ? `<div class="files-folder-pages"><button class="btn btn-ghost btn-sm" data-a="fileMovePage" data-offset="${Math.max(0, start - 20)}" ${!start ? 'disabled' : ''}>Previous folders</button><span class="num">${start + 1}–${Math.min(start + 20, folders.length)} / ${folders.length}</span><button class="btn btn-ghost btn-sm" data-a="fileMovePage" data-offset="${start + 20}" ${start + 20 >= folders.length ? 'disabled' : ''}>Next folders</button></div>` : ''}<p class="file-move-destination"><span>Destination folder</span>: ${
+    modal.folderId
+      ? `<strong translate="no">${esc(
+          fileFolderPath(project, modal.folderId)
+            .map(folder => folder.name)
+            .join(' / '),
+        )}</strong>`
+      : '<strong>No folder</strong>'
+  }</p><p class="hint">File links and task attachments will stay intact.</p></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn btn-primary" data-a="confirmFileMove" ${!allowed || !targetValid || !changed ? 'disabled' : ''}>Move here</button></div>`;
 }

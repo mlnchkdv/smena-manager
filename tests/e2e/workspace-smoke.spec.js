@@ -479,6 +479,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await waitForSaved(page);
   };
   await createFolder('E2E Files A');
+  await expect(page.getByRole('heading', { name: 'В этой папке пока нет файлов', exact: true })).toBeVisible();
   const pickerEvent = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"]').click();
   await (await pickerEvent).setFiles({ name: 'e2e-folder-file.txt', mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
@@ -486,9 +487,10 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' })).toContainText('E2E Files A');
-  await page.locator('.files-folder-crumbs [data-folder=""]').click();
+  await page.locator('.files-folder-crumbs [data-project="all"]').click();
+  await expect(page.locator('#workspace-file-project')).toHaveValue('all');
   await createFolder('E2E Files B');
-  await page.locator('.files-folder-crumbs [data-folder=""]').click();
+  await page.locator('.files-folder-crumbs [data-project="all"]').click();
   await page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' }).locator('[data-a="ctxBtn"]').click();
   await page.locator('[data-a="moveFileToFolder"]').click();
   await page.locator('.file-move-row', { hasText: 'E2E Files B' }).click();
@@ -509,7 +511,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await expect(page.locator('.files-folder-tile', { hasText: 'E2E Files A' })).toBeVisible();
     await page.locator('.files-folder-tile', { hasText: 'E2E Files A' }).locator('[data-a="restoreFileFolder"]').click();
     await waitForSaved(page);
-    await page.locator('.files-folder-crumbs [data-folder=""]').click();
+    await page.locator('.files-folder-crumbs [data-project="all"]').click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     if (language === 'Русский') await expectRussianUi(page, 'File folder browser');
     await page.screenshot({ path: `output/playwright/file-folders-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
