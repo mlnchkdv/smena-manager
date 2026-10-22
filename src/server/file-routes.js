@@ -22,6 +22,7 @@ import { fileCatalogPage } from '../shared/file-catalog.js';
 import { projectWorkspace } from './workspace-policy.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
 import { streamFileArchive } from './file-archive-stream.js';
+import { fileCatalogVersion } from './file-catalog-version.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -203,6 +204,8 @@ fileRouter.get('/catalog', async (request, response, next) => {
         revision: Number(request.query.revision),
         offset: Number(request.query.offset || 0),
         project: request.query.project || 'all',
+        token: request.query.token,
+        expectedToken: request.query.token ? fileCatalogVersion(data.files) : undefined,
       }),
     );
   } catch (error) {

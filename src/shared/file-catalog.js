@@ -3,8 +3,8 @@
 export const FILE_CATALOG_PAGE_SIZE = 100;
 export const FILE_CATALOG_MAX_BYTES = 32 * 1024 * 1024;
 
-export function fileCatalogPage(data, { revision, offset = 0, project = 'all' } = {}) {
-  if (!Number.isSafeInteger(revision) || revision !== data.revision)
+export function fileCatalogPage(data, { revision, offset = 0, project = 'all', token, expectedToken } = {}) {
+  if (!Number.isSafeInteger(revision) || revision < 0 || (token ? token !== expectedToken : revision !== data.revision))
     throw Object.assign(new Error('The workspace changed after it was loaded. Refresh and retry.'), {
       statusCode: 409,
       code: 'REVISION_CONFLICT',
@@ -12,11 +12,20 @@ export function fileCatalogPage(data, { revision, offset = 0, project = 'all' } 
     });
   if (!Number.isSafeInteger(offset) || offset < 0 || typeof project !== 'string') throw new TypeError('Invalid file catalog page.');
   const files = (data.files || []).filter(file => project === 'all' || file.project === project);
+  const page = [];
+  let bytes = 0;
+  for (const file of files.slice(offset, offset + FILE_CATALOG_PAGE_SIZE)) {
+    const size = new TextEncoder().encode(JSON.stringify(file)).byteLength;
+    if (size > 2 * 1024 * 1024) throw Object.assign(new Error('File metadata exceeds the catalog page limit.'), { statusCode: 413 });
+    if (bytes + size > 2 * 1024 * 1024) break;
+    bytes += size;
+    page.push(file);
+  }
   return {
     revision,
-    files: files.slice(offset, offset + FILE_CATALOG_PAGE_SIZE),
+    files: page,
     total: files.length,
-    nextOffset: offset + FILE_CATALOG_PAGE_SIZE < files.length ? offset + FILE_CATALOG_PAGE_SIZE : null,
+    nextOffset: offset + page.length < files.length ? offset + page.length : null,
   };
 }
 

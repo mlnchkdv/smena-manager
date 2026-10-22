@@ -13,6 +13,8 @@ test('catalog pages are bounded, scoped by project and pinned to one revision', 
   assert.equal(fileCatalogPage(data, { revision: 8, project: 'b', offset: 100 }).nextOffset, null);
   assert.throws(() => fileCatalogPage(data, { revision: 7 }), { code: 'REVISION_CONFLICT' });
   for (const offset of [-1, 0.5, NaN]) assert.throws(() => fileCatalogPage(data, { revision: 8, offset }));
+  assert.equal(fileCatalogPage(data, { revision: 7, token: 'same', expectedToken: 'same' }).files.length, 100);
+  assert.throws(() => fileCatalogPage(data, { revision: 8, token: 'old', expectedToken: 'new' }), { code: 'REVISION_CONFLICT' });
 });
 
 test('catalog delta reconstructs complete data before ACL validation; hidden files survive', () => {
@@ -60,4 +62,19 @@ test('transport never publishes an incomplete catalog or reuses another session 
     hydrateFileCatalog({ data, fileCatalog: { total: 2 } }, async () => ({ revision: 3, total: 2, files: [files[0]], nextOffset: null }), 3),
   );
   assert.equal(catalogWrite({ ...data, files }, 3, 3).fileChanges, undefined);
+});
+
+test('unchanged metadata can be reused across core revisions without sharing a mutable baseline', async () => {
+  const result = { data: { revision: 1 }, fileCatalog: { total: 1, token: 'stable' } };
+  const first = await hydrateFileCatalog(result, async () => ({ revision: 1, total: 1, files: [{ id: 'a', name: 'Original' }], nextOffset: null }), 44);
+  first.files[0].name = 'Local';
+  const reused = await hydrateFileCatalog(
+    { ...result, data: { revision: 2 } },
+    () => {
+      throw Error('Must reuse');
+    },
+    44,
+  );
+  assert.equal(reused.files[0].name, 'Original');
+  assert.deepEqual(catalogWrite(reused, 2, 44).fileChanges, { upsert: [], remove: [] });
 });

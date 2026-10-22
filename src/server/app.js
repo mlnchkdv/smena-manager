@@ -42,6 +42,7 @@ import { evaluateAutomationRun, evaluateOperationalHealth } from './operational-
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { applyFileCatalogChanges } from '../shared/file-catalog.js';
+import { fileCatalogVersion } from './file-catalog-version.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
@@ -128,7 +129,7 @@ app.use('/api', (request, response, next) => {
       body = { ...body, data: projectWorkspace(workspaceCoreData(bindAccessProfiles(body.data, getAccessProfiles())), request.user) };
       if (request.query.fileCatalog === 'pages' || request.get('x-smena-file-catalog') === 'pages') {
         const { files, ...core } = body.data;
-        body = { ...body, data: core, fileCatalog: { total: files.length } };
+        body = { ...body, data: core, fileCatalog: { total: files.length, token: fileCatalogVersion(files) } };
       }
     }
     return send(body);
