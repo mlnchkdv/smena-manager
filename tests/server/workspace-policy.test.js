@@ -4,6 +4,27 @@ import { mergeClientWorkspace, projectWorkspace } from '../../src/server/workspa
 import { sanitizeDescription } from '../../src/server/content-security.js';
 import { validateDocumentInput, validateWorkspaceData } from '../../src/shared/workspace-schema.js';
 import { createEmptyDatabase } from '../../src/server/workspace-store.js';
+import { canEditFile, canRemoveFile } from '../../src/shared/file-access.js';
+
+test('file actions match project permissions and deletion ownership', () => {
+  const data = fixture();
+  data.me = 'editor';
+  const file = data.files[0];
+  for (const permission of ['Can view', 'Can comment']) {
+    data.projects[0].perms = { editor: permission };
+    assert.equal(canEditFile(file, data, 'editor'), false);
+    assert.equal(canRemoveFile(file, data, 'editor'), false);
+  }
+  data.projects[0].perms.editor = 'Can edit';
+  assert.equal(canEditFile(file, data, 'editor'), true);
+  assert.equal(canRemoveFile(file, data, 'editor'), true);
+  file.by = 'owner';
+  assert.equal(canEditFile(file, data, 'editor'), true);
+  assert.equal(canRemoveFile(file, data, 'editor'), false);
+  assert.equal(canRemoveFile(file, data, 'admin'), true);
+  assert.equal(canEditFile(file, data, 'viewer'), false);
+  assert.equal(canEditFile({ project: 'secret' }, data, 'editor'), false);
+});
 
 function fixture() {
   return {

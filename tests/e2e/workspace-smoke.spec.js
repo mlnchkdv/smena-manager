@@ -23,9 +23,9 @@ async function finishOnboarding(page) {
   await page.locator('[data-a="onbFinish"]').click();
 }
 
-async function signIn(page) {
+async function signIn(page, accessId = 'e2e-access-id-2026-secure') {
   await page.goto('/');
-  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
+  await page.locator('#l-access').fill(accessId);
   await page.locator('#login-btn').click();
   await finishOnboarding(page);
   await expect(page.locator('.shell')).toBeVisible();
@@ -466,6 +466,51 @@ test('large task views keep bounded pages and allow reaching later tasks', async
     const latest = (await (await page.request.get('/api/workspace')).json()).data;
     latest.tasks = latest.tasks.filter(task => !task.id.startsWith(prefix));
     expect((await page.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } })).status()).toBe(200);
+  }
+});
+
+test('file actions follow project view comment edit permissions', async ({ page, browser }) => {
+  await signIn(page);
+  const editorContext = await browser.newContext();
+  try {
+    const editorPage = await editorContext.newPage();
+    await signIn(editorPage, 'e2e-editor-access-id-2026-secure');
+    let current = (await (await page.request.get('/api/workspace')).json()).data;
+    const editor = current.members.find(member => member.email === 'editor@example.test');
+    expect(editor).toBeTruthy();
+    const projectId = current.projects[0].id;
+    const response = await page.request.post('/api/files/upload', {
+      multipart: {
+        file: { name: 'acl-file.txt', mimeType: 'text/plain', buffer: Buffer.from('ACL test') },
+        revision: String(current.revision),
+        project: projectId,
+      },
+    });
+    expect(response.status()).toBe(201);
+    const file = (await response.json()).file;
+    for (const permission of ['Can view', 'Can comment', 'Can edit']) {
+      current = (await (await page.request.get('/api/workspace')).json()).data;
+      for (const project of current.projects) {
+        project.members = [...new Set([...(project.members || []), editor.id])];
+        project.perms = { ...project.perms, [editor.id]: project.id === projectId ? permission : 'Can view' };
+      }
+      expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+      await editorPage.setViewportSize({ width: 320, height: 844 });
+      await editorPage.goto('/e2e-team/files');
+      await expect(editorPage.locator('.files-page')).toBeVisible();
+      await expect(editorPage.locator('[data-a="chooseStoredFiles"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      if (permission === 'Can edit') await expect(editorPage.locator('#files-upload-project option')).toHaveCount(1);
+      await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] [data-a="ctxBtn"]`).click();
+      await expect(editorPage.locator('[data-a="renameFile"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('[data-a="delFile"]')).toHaveCount(0);
+      await expect(editorPage.locator('[data-a="downloadStoredFile"]')).toBeVisible();
+      await editorPage.goto('/e2e-team/files');
+      await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] .workspace-file-project`).click();
+      await expect(editorPage.locator('.files-toolbar')).toBeVisible();
+      await expect(editorPage.locator('[data-a="chooseStoredFiles"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+    }
+  } finally {
+    await editorContext.close();
   }
 });
 

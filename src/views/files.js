@@ -1,13 +1,15 @@
 /* ---------- FILES ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S, mem, task } from '../core/store.js';
+import { D, S, mem, proj, task } from '../core/store.js';
+import { canEditProject } from '../shared/project-access.js';
 import { FT, av, empty, filePrev, fileType, fsize } from '../ui/helpers.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 
 export function filesHtml(pid) {
   const u = S.ui;
+  const writable = canEditProject(proj(pid), D().me, S.ui.currentUser?.role);
   const q = (u.fileQ || '').toLowerCase();
   const ft = u.fileType || 'all';
   const sort = u.fileSort || 'date';
@@ -40,10 +42,10 @@ export function filesHtml(pid) {
       ]
         .map(([k, i]) => `<button class="${view === k ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${k}" aria-label="${k} view">${ic(i, 13)}</button>`)
         .join('')}</div>
-      <button class="btn btn-primary btn-sm" data-a="chooseStoredFiles" data-picker="project-files-upload">${ic('upload', 13)}Upload</button><input id="project-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${pid}">
+      ${writable ? `<button class="btn btn-primary btn-sm" data-a="chooseStoredFiles" data-picker="project-files-upload">${ic('upload', 13)}Upload</button><input id="project-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${pid}">` : ''}
     </div>
     <div class="page wide" style="padding-top:16px">
-      <label class="dropzone" data-dropzone="${pid}" style="margin-bottom:16px">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${fsize(u.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024)} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${pid}"></label>
+      ${writable ? `<label class="dropzone" data-dropzone="${pid}" style="margin-bottom:16px">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${fsize(u.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024)} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${pid}"></label>` : ''}
       ${ups.length ? `<div class="col" style="gap:6px;margin-bottom:16px">${ups.map(x => `<div class="upl"><span class="ftype" style="--c:${FT[fileType(x.name)].c}">${ic(FT[fileType(x.name)].i, 14)}</span><div class="grow"><div class="row"><span class="trunc" style="font-weight:500" translate="no">${esc(x.name)}</span><span class="sp"></span><span class="faint num" style="font-size:11.5px" id="upct-${x.id}">${x.pct}%</span><button class="ibtn ibtn-xs" data-a="cancelUpload" data-id="${x.id}" aria-label="Cancel upload">${ic('x', 13)}</button></div><div class="prog" style="margin-top:6px"><i id="upbar-${x.id}" style="--p:${x.pct / 100}"></i></div></div></div>`).join('')}</div>` : ''}
       ${
         !fs.length

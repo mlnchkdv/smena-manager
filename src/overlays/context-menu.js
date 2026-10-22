@@ -2,6 +2,7 @@
 import { ic } from '../core/icons.js';
 import { ST } from '../core/constants.js';
 import { D, S, mem, proj, task, visibleProjects } from '../core/store.js';
+import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 
 export function ctxMenu(p) {
   const I = (act, icon, label, extra = '', r = '') =>
@@ -79,13 +80,14 @@ export function ctxMenu(p) {
   }
   if (p.ctx === 'file') {
     const file = D().files.find(item => item.id === p.id);
+    if (!file) return '';
+    const writable = canEditFile(file, D(), S.ui.currentUser?.role);
     return (
       I('previewFile', 'eye', 'Preview') +
-      I('renameFile', 'pencil', 'Rename') +
+      (writable ? I('renameFile', 'pencil', 'Rename') : '') +
       I('copyLink', 'link', 'Copy link') +
-      (file?.storageName ? I('downloadStoredFile', 'download', 'Download') : I('dupFile', 'copy', 'Duplicate')) +
-      sep +
-      I('delFile', 'trash-2', 'Delete', 'danger')
+      (file.storageName ? I('downloadStoredFile', 'download', 'Download') : writable ? I('dupFile', 'copy', 'Duplicate') : '') +
+      (canRemoveFile(file, D(), S.ui.currentUser?.role) ? sep + I('delFile', 'trash-2', 'Delete', 'danger') : '')
     );
   }
   if (p.ctx === 'savedview') {

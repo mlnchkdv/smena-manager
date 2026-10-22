@@ -5,6 +5,7 @@ import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { t as tr } from '../core/i18n.js';
+import { canEditProject } from '../shared/project-access.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -66,6 +67,8 @@ function uploadsHtml() {
 export function pageFiles() {
   const projects = visibleProjects().filter(canSee);
   const projectIds = new Set(projects.map(project => project.id));
+  const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
+  const writableIds = new Set(writable.map(project => project.id));
   const allFiles = (D().files || []).filter(file => projectIds.has(file.project));
   const query = String(S.ui.fileQ || '')
     .trim()
@@ -74,7 +77,11 @@ export function pageFiles() {
   const projectFilter = projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all';
   const sort = S.ui.fileSort || 'date';
   const view = S.ui.fileView || 'grid';
-  const uploadProject = projectIds.has(S.ui.fileUploadProject) ? S.ui.fileUploadProject : projectFilter !== 'all' ? projectFilter : projects[0]?.id || '';
+  const uploadProject = writableIds.has(S.ui.fileUploadProject)
+    ? S.ui.fileUploadProject
+    : writableIds.has(projectFilter)
+      ? projectFilter
+      : writable[0]?.id || '';
   S.ui.fileUploadProject = uploadProject;
 
   const files = allFiles
@@ -102,7 +109,7 @@ export function pageFiles() {
   const window = listWindow(files, S.ui.listPages?.[pageKey]);
   const totalBytes = allFiles.reduce((sum, file) => sum + Number(file.bytes || 0), 0);
   const projectCount = new Set(allFiles.map(file => file.project)).size;
-  const readOnly = S.ui.currentUser?.role === 'viewer';
+  const readOnly = !writable.length;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
@@ -111,7 +118,7 @@ export function pageFiles() {
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></div>`
+          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></div>`
       }
     </header>
 

@@ -26,6 +26,7 @@ import {
 import { fileType, fsize } from '../ui/helpers.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { detachTaskFile } from '../shared/file-identity.js';
+import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
@@ -1840,7 +1841,7 @@ export async function handleFiles(files, ctx) {
     toast("Upload failed — you're offline.", { kind: 'err', action: 'Try again', onAction: () => {} });
     return;
   }
-  if (S.ui.currentUser?.role === 'viewer') {
+  if (!canEditProject(proj(ctx.project), D().me, S.ui.currentUser?.role)) {
     window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['files'], role: 'viewer' } }));
     return;
   }
@@ -1896,7 +1897,7 @@ export async function handleFiles(files, ctx) {
 }
 A.chooseStoredFiles = el => {
   const input = document.getElementById(el.dataset.picker);
-  if (input?.matches('input[type="file"][data-in="uploadFiles"]')) input.click();
+  if (input?.matches('input[type="file"][data-in="uploadFiles"]') && canEditProject(proj(input.dataset.project), D().me, S.ui.currentUser?.role)) input.click();
 };
 IN.uploadFiles = el => {
   void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
@@ -2960,6 +2961,7 @@ A.clearFileQuery = () => {
 A.renameFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
+  if (!canEditFile(f, D(), S.ui.currentUser?.role)) return render();
   openModal({
     type: 'prompt',
     title: 'Rename file',
@@ -2968,8 +2970,10 @@ A.renameFile = el => {
     run: v => {
       if (v)
         mutate(() => {
-          f.name = v;
-          f.type = fileType(v);
+          const current = D().files.find(item => item.id === f.id);
+          if (!canEditFile(current, D(), S.ui.currentUser?.role)) return;
+          current.name = v;
+          if (!current.storageName) current.type = fileType(v);
         });
     },
   });
@@ -2977,6 +2981,7 @@ A.renameFile = el => {
 A.dupFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
+  if (!canEditFile(f, D(), S.ui.currentUser?.role)) return render();
   mutate(() => {
     const i = D().files.indexOf(f);
     D().files.splice(i + 1, 0, { ...f, id: uid('f'), name: f.name.replace(/(\.[^.]+)$/, ' copy$1'), at: Date.now(), by: D().me });
@@ -2986,7 +2991,7 @@ A.dupFile = el => {
 A.delFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
-  if (!f) return;
+  if (!canRemoveFile(f, D(), S.ui.currentUser?.role)) return render();
   confirmDlg({
     title: 'Delete file?',
     body: `<b>${esc(f.name)}</b> will be removed from the project${f.task ? ' and its task' : ''}.`,
@@ -2994,7 +2999,7 @@ A.delFile = el => {
     danger: true,
     run: () => {
       const currentFile = D().files.find(item => item.id === f.id);
-      if (!currentFile) return;
+      if (!canRemoveFile(currentFile, D(), S.ui.currentUser?.role)) return;
       const snap = snapshot();
       if (
         mutate(() => {
