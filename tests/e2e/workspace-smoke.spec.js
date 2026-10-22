@@ -219,6 +219,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-a="newKnowledgeNote"]').first().click();
   await page.locator('#knowledge-title').fill(noteTitle);
+  await page.locator('.knowledge-properties>summary').click();
   await page.locator('#knowledge-summary').fill('Проверка сохранения общей базы знаний');
   await page.locator('#knowledge-body').fill('Содержимое заметки сохраняется между сеансами.');
   await expectRussianUi(page, 'knowledge editor');
@@ -471,6 +472,7 @@ test('large task views keep bounded pages and allow reaching later tasks', async
 test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {
   await signIn(page);
   const current = (await (await page.request.get('/api/workspace')).json()).data;
+  const expectedFileCount = current.files.length + 3;
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (globalThis.__pdfPreviewExecuted=true;) >> >>',
     '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -541,13 +543,13 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('.files-filter-summary b')).toHaveText('1');
     await page.locator('[data-a="clearFileQuery"]').click();
     await expect(page.locator('#workspace-file-q')).toBeFocused();
-    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
     await page.locator('#workspace-file-type').selectOption('pdf');
     await expect(page.locator('.workspace-file-card')).toHaveCount(1);
     await page.locator('[data-a="clearFileFilters"]').click();
     await expect(page.locator('#workspace-file-type')).toHaveValue('all');
     await expect(page.locator('#workspace-file-q')).toBeFocused();
-    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
     await page.locator('.files-view-switch [data-v="list"]').click();
     for (const width of [320, 768, 1024, 1366]) {
       await page.setViewportSize({ width, height: 844 });
