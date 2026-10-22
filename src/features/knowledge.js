@@ -330,6 +330,9 @@ A.clearKnowledgeFolderCardQuery = () => {
 A.knowledgeFolderCardPage = el => {
   S.ui.knowledgeFolderCardOffset = Math.max(0, Number(el.dataset.offset) || 0);
   render();
+  const firstFolder = document.querySelector('.knowledge-folder-card');
+  firstFolder?.focus({ preventScroll: true });
+  firstFolder?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 };
 A.knowledgeFolderNavPage = el => {
   S.ui.knowledgeFolderNavOffset = Math.max(0, Number(el.dataset.offset) || 0);

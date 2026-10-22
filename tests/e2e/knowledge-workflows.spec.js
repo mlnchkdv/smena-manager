@@ -304,6 +304,26 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
     await page.locator('[data-in="knowledgeFolderLayout"]').selectOption(language === 'Русский' ? 'block' : 'inline');
+    // Paging must remain usable when the activated navigation button becomes disabled.
+    await expect(page.locator('.knowledge-folder-card')).toHaveCount(4);
+    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
+    await expect(page.locator('.knowledge-folder-card').first()).toBeFocused();
+    await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', 'scale-folder-4');
+    await page.locator('#knowledge-subfolder-search').fill('"Section 04"');
+    await expect(page.locator('.knowledge-folder-card')).toHaveCount(4);
+    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
+    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
+    await expect(page.locator('.knowledge-folder-card')).toHaveCount(2);
+    await expect(page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]')).toBeDisabled();
+    await expect(page.locator('.knowledge-folder-card').first()).toBeFocused();
+    const pagedFolder = await page.locator('.knowledge-folder-card').first().boundingBox();
+    expect(pagedFolder.y).toBeGreaterThanOrEqual(0);
+    expect(pagedFolder.y + pagedFolder.height).toBeLessThanOrEqual(740);
+    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="previous"]').press('Enter');
+    await expect(page.locator('.knowledge-folder-card').first()).toBeFocused();
+    await page.locator('[data-a="clearKnowledgeFolderCardQuery"]').click();
+    await expect(page.locator('#knowledge-subfolder-search')).toBeFocused();
+    await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', 'scale-folder-0');
     await page.locator('[data-in="knowledgeQuery"]').fill('"Large batch marker"');
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     await page.locator('[data-a="selectKnowledgePage"]').click();
