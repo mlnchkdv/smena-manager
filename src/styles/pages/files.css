@@ -1,4 +1,5 @@
 .files-page {
+  container: workspace-files / inline-size;
   width: min(1500px, 100%);
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
@@ -215,7 +216,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .files-upload-actions .btn {
-    min-height: 40px;
+    min-height: 44px;
   }
   .files-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -235,11 +236,25 @@
     font-size: var(--fs-sm);
   }
   .workspace-files-toolbar {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 8px;
   }
   .workspace-file-search {
-    grid-column: auto;
+    grid-column: 1 / -1;
+  }
+  .workspace-files-toolbar .select,
+  .workspace-file-search .input,
+  .files-upload-actions .select,
+  .files-view-switch button,
+  .workspace-file-card-foot .ibtn,
+  .workspace-file-actions .ibtn {
+    min-width: 0;
+    min-height: 44px;
+  }
+  .workspace-file-card-foot .ibtn,
+  .workspace-file-actions .ibtn {
+    width: 44px;
+    flex-shrink: 0;
   }
   .files-view-switch {
     justify-self: stretch;
@@ -273,14 +288,22 @@
   }
   .workspace-file-card .fi {
     align-self: center;
-    padding: 12px 10px 38px;
+    padding: 12px 10px 60px;
+  }
+  .workspace-file-card .fn,
+  .workspace-file-name .trunc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
   .workspace-file-card-foot {
     position: absolute;
     bottom: 0;
     right: 0;
     left: 112px;
-    padding: 4px 8px 9px 10px;
+    padding: 4px 8px 4px 10px;
     border-top: 0;
   }
   .workspace-file-table-wrap {
@@ -306,6 +329,7 @@
   }
   .workspace-file-table td {
     display: flex;
+    grid-column: 1 / -1;
     min-width: 0;
     align-items: center;
     gap: 8px;
@@ -315,7 +339,7 @@
   }
   .workspace-file-table td::before {
     content: attr(data-label);
-    width: 78px;
+    width: 88px;
     flex: 0 0 auto;
     color: var(--text-3);
   }
@@ -333,7 +357,23 @@
     width: auto;
   }
   .workspace-file-name {
+    min-width: 0;
+    min-height: 44px;
     padding-right: 38px;
+  }
+  .workspace-file-author {
+    min-width: 0;
+  }
+}
+@container workspace-files (min-width: 641px) and (max-width: 900px) {
+  .workspace-files-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .workspace-file-search {
+    grid-column: 1 / -1;
+  }
+  .files-view-switch {
+    justify-self: end;
   }
 }
 .file-preview-content {

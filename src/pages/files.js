@@ -4,6 +4,7 @@ import { D, S, canSee, mem, pColor, proj, task, visibleProjects } from '../core/
 import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
+import { t as tr } from '../core/i18n.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -35,7 +36,7 @@ function fileCard(file) {
   return `<article class="fcard workspace-file-card" data-ctx="file" data-id="${file.id}">
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
       ${filePrev(file)}
-      <span class="fi"><span class="fn trunc" translate="no">${esc(file.name)}</span><span class="fm trunc">${esc(author?.name || 'Unknown member')} · ${ago(file.at)}</span></span>
+      <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${ago(file.at)}</span></span>
     </button>
     <div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
   </article>`;
@@ -46,7 +47,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="Name"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button></td><td data-label="Project">${projectChip(file) || '—'}</td><td data-label="Type" class="muted">${esc(meta.n)}</td><td data-label="Size" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="Uploaded by"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc">${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="Date" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }

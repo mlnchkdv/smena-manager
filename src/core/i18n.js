@@ -872,6 +872,7 @@ const RU = {
   'No files yet': 'Файлов пока нет',
   'No files match your search.': 'Нет файлов, соответствующих запросу.',
   'File name': 'Имя файла',
+  'Rename file': 'Переименовать файл',
   'Copy email': 'Копировать адрес эл. почты',
   'Email copied': 'Адрес эл. почты скопирован',
   'Manage roles': 'Управление ролями',

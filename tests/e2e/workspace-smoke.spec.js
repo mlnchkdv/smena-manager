@@ -534,7 +534,26 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await waitForSaved(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/e2e-team/files');
+    await page.locator('.files-view-switch [data-v="grid"]').click();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
+    await page.locator('.files-view-switch [data-v="list"]').click();
+    for (const width of [320, 768, 1024, 1366]) {
+      await page.setViewportSize({ width, height: 844 });
+      const geometry = await page.locator('.files-page').evaluate(el => ({
+        page: el.scrollWidth - el.clientWidth,
+        toolbar: document.querySelector('.workspace-files-toolbar').scrollWidth - document.querySelector('.workspace-files-toolbar').clientWidth,
+        rows: [...document.querySelectorAll('.workspace-file-table tbody tr')].map(row => row.scrollWidth - row.clientWidth),
+      }));
+      expect(Math.max(geometry.page, geometry.toolbar, ...geometry.rows), `${language} at ${width}px: ${JSON.stringify(geometry)}`).toBeLessThanOrEqual(2);
+    }
+    await expect(page.locator('.workspace-file-table tbody tr').first().locator('td').nth(1)).toHaveAttribute(
+      'data-label',
+      language === 'Русский' ? 'Проект' : 'Project',
+    );
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.locator('.workspace-file-table').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `output/playwright/files-list-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();
     const image = page.locator('.modal .file-preview-image');
     await expect(image).toBeVisible({ timeout: 30000 });
