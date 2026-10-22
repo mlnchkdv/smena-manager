@@ -85,7 +85,7 @@ export function pageFiles() {
       const linkedProject = proj(file.project);
       const linkedTask = file.task ? task(file.task) : null;
       const author = mem(file.by);
-      return [file.name, linkedProject?.name, linkedTask?.title, linkedTask?.key, author?.name, fileMeta(file).n]
+      return [file.name, linkedProject?.name, linkedTask?.title, linkedTask?.key, author?.name, fileMeta(file).n, tr(fileMeta(file).n)]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
@@ -122,7 +122,7 @@ export function pageFiles() {
     </section>
 
     <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
-      <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files"></div>
+      <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
       <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
@@ -149,6 +149,8 @@ export function pageFiles() {
         .join('')}</div>
     </section>
 
+    ${filtered ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${files.length}</b> / ${allFiles.length}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
+
     ${
       readOnly || !projects.length
         ? ''
@@ -170,11 +172,7 @@ export function pageFiles() {
                   ? 'Editors can upload the first shared file.'
                   : 'Upload the first document, design, or team asset.'
                 : 'Files are organized by project, so create one before uploading.',
-            filtered
-              ? `<button class="btn btn-secondary" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button>`
-              : !readOnly && !projects.length
-                ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
-                : '',
+            !filtered && !readOnly && !projects.length ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>` : '',
             '',
             1,
           )

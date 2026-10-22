@@ -2950,6 +2950,12 @@ A.clearFileFilters = () => {
   S.ui.fileType = 'all';
   S.ui.fileProject = 'all';
   render();
+  document.getElementById('workspace-file-q')?.focus({ preventScroll: true });
+};
+A.clearFileQuery = () => {
+  S.ui.fileQ = '';
+  render();
+  document.getElementById('workspace-file-q')?.focus({ preventScroll: true });
 };
 A.renameFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);

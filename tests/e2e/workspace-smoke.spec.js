@@ -536,6 +536,18 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.goto('/e2e-team/files');
     await page.locator('.files-view-switch [data-v="grid"]').click();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
+    await page.locator('#workspace-file-q').fill(language === 'Русский' ? 'изображение' : 'image');
+    await expect(page.locator('.workspace-file-card')).toHaveCount(1);
+    await expect(page.locator('.files-filter-summary b')).toHaveText('1');
+    await page.locator('[data-a="clearFileQuery"]').click();
+    await expect(page.locator('#workspace-file-q')).toBeFocused();
+    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await page.locator('#workspace-file-type').selectOption('pdf');
+    await expect(page.locator('.workspace-file-card')).toHaveCount(1);
+    await page.locator('[data-a="clearFileFilters"]').click();
+    await expect(page.locator('#workspace-file-type')).toHaveValue('all');
+    await expect(page.locator('#workspace-file-q')).toBeFocused();
+    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     await page.locator('.files-view-switch [data-v="list"]').click();
     for (const width of [320, 768, 1024, 1366]) {
       await page.setViewportSize({ width, height: 844 });
@@ -557,6 +569,10 @@ test('PDF previews render pages locally without document scripts in Russian and 
     const actionsBox = await firstRow.locator('.workspace-file-actions').boundingBox();
     expect(Math.abs(nameBox.y - actionsBox.y)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `output/playwright/files-list-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
+    await page.locator('.workspace-file-table tbody tr').filter({ hasText: 'e2e-keyboard-upload.txt' }).locator('[data-a="ctxBtn"]').click();
+    await page.locator('[data-a="renameFile"]').click();
+    await expect(page.locator('#mt-prompt')).toHaveText(language === 'Русский' ? 'Переименовать файл' : 'Rename file');
+    await page.locator('.modal-f [data-a="closeModal"]').click();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();
     const image = page.locator('.modal .file-preview-image');

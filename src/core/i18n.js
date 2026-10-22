@@ -841,6 +841,7 @@ const RU = {
   'Storage used': 'Использовано места',
   'Projects with files': 'Проектов с файлами',
   'File filters': 'Фильтры файлов',
+  'Files found': 'Найдено файлов',
   'Search files, projects, and people': 'Искать файлы, проекты и участников',
   'Filter by project': 'Фильтр по проекту',
   'Other files': 'Другие файлы',
