@@ -18,6 +18,7 @@ export function knowledgePreferences() {
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
     S.ui.knowledgeSelection = [];
     S.ui.knowledgeShowFolders = value.showFolders !== false;
+    S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
     S.ui.knowledgeFolderNavOffset = 0;
     S.ui.knowledgeFolderCardOffset = 0;
     S.ui.knowledgeFolderCardQuery = '';
@@ -29,7 +30,12 @@ export function saveKnowledgePreferences() {
   try {
     localStorage.setItem(
       key(),
-      JSON.stringify({ views: S.ui.knowledgeSavedViews || [], recent: S.ui.knowledgeRecent || [], showFolders: S.ui.knowledgeShowFolders !== false }),
+      JSON.stringify({
+        views: S.ui.knowledgeSavedViews || [],
+        recent: S.ui.knowledgeRecent || [],
+        showFolders: S.ui.knowledgeShowFolders !== false,
+        folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
+      }),
     );
   } catch {
     /* optional device preferences */

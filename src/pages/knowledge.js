@@ -127,6 +127,9 @@ export function pageKnowledge() {
     )
     .join('');
   const activeFolder = folders.find(folder => folder.id === folderFilter);
+  const foldersAvailable = S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || !!activeFolder);
+  const inlineFolders = foldersAvailable && S.ui.knowledgeFolderLayout === 'inline';
+  const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders });
   const excludedDestinations = activeFolder ? folderDescendants(activeFolder.id, folders) : new Set();
   const folderMove =
     activeFolder && !readOnly
@@ -168,7 +171,7 @@ export function pageKnowledge() {
       <section class="knowledge-content" aria-label="Knowledge notes">
         <button class="btn btn-secondary knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}">${ic('folder', 16)}Folders<span class="trunc" translate="no"> · ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span></button>
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options" ${knowledgeDisclosure(`folder:${folderFilter}`, 'settings')}><summary>Folder options</summary>${folderMove}</details>` : ''}
-        <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeFolderCards" aria-pressed="${S.ui.knowledgeShowFolders !== false}" title="Show folders on the right">${ic('folder', 14)}Show folders</button><button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
+        <div class="knowledge-saved-views"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeFolderCards" aria-label="Show folders" aria-pressed="${S.ui.knowledgeShowFolders !== false}" title="Show folders on the right">${ic('folder', 14)}<span class="hide-m">Show folders</span></button>${foldersAvailable ? `<label class="knowledge-folder-layout"><span class="sr">Folder display</span><select class="select" data-in="knowledgeFolderLayout" aria-label="Folder display"><option value="block" ${!inlineFolders ? 'selected' : ''}>Separate block</option><option value="inline" ${inlineFolders ? 'selected' : ''}>Together with notes</option></select></label>` : ''}<button class="btn btn-ghost btn-sm" data-a="saveKnowledgeView">${ic('bookmark-plus', 14)}Save search</button>${(S.ui.knowledgeSavedViews || []).map(view => `<span class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="Remove saved search">${ic('x', 12)}</button></span>`).join('')}</div>
         <div class="knowledge-content-head"><div><h1 id="knowledge-view-title" tabindex="-1" ${activeFolder ? 'translate="no"' : ''}>${esc(folderLabel(folderFilter, folders))}</h1><p><span>${visible.length} of ${total} notes</span></p></div><div class="knowledge-content-actions">${S.ui.knowledgeQuery ? `<button class="btn btn-ghost btn-sm" data-a="clearKnowledgeQuery">${ic('x', 13)}Clear search</button>` : ''}${readOnly ? '' : `<button class="btn btn-secondary btn-sm" data-a="chooseKnowledgeFiles" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}Import notes</button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote">${ic('plus', 14)}New note</button>`}</div></div>
         ${readOnly ? '' : `<p class="knowledge-import-hint" role="status" data-knowledge-import-progress>${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</p>`}
         <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="Search in this folder" aria-label="Search knowledge base"></div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
@@ -179,12 +182,12 @@ export function pageKnowledge() {
           .join(
             '',
           )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div>
-        ${knowledgeFolderCards(folderIndex, folderFilter, readOnly)}
-        ${S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || folderIndex.byId.has(folderFilter)) ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
+        ${inlineFolders ? '' : folderCards}
+        ${foldersAvailable && !inlineFolders ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}
         ${
-          visible.length
-            ? `<div class="knowledge-preview-grid">${visible
+          visible.length || inlineFolders
+            ? `<div class="knowledge-preview-grid${inlineFolders ? ' knowledge-mixed-grid' : ''}">${inlineFolders ? folderCards : ''}${visible
                 .map(note =>
                   notePreviewCard(
                     note,
@@ -193,6 +196,11 @@ export function pageKnowledge() {
                   ),
                 )
                 .join('')}</div>`
+            : ''
+        }
+        ${
+          visible.length
+            ? ''
             : S.ui.knowledgeQuery || S.ui.knowledgeTag
               ? empty('search-x', 'No results found', 'No notes match your filters.')
               : folderFilter === 'recent'

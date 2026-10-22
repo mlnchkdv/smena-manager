@@ -117,6 +117,17 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Original knowledge content');
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
   expect(await page.locator('.knowledge-content-actions').evaluate(el => parseFloat(getComputedStyle(el).columnGap))).toBeGreaterThanOrEqual(8);
+  await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
+  await page.reload();
+  await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
+  await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-tile')).toHaveCount(1);
+  await expect(page.locator('.knowledge-mixed-grid .knowledge-preview-card')).toHaveCount(2);
+  await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toHaveCount(0);
+  await page.screenshot({ path: 'output/playwright/knowledge-mixed-local-desktop-20261022.png' });
+  await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
+  await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveCount(0);
+  await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
+  await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
   for (const [language, folderLabel, editLabel] of [
     ['Русский', 'Папки', 'Редактировать заметку'],
     ['English (US)', 'Folders', 'Edit note'],
@@ -126,6 +137,16 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveAttribute(
+      'aria-label',
+      language === 'Русский' ? 'Отображение папок' : 'Folder display',
+    );
+    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('block');
+    await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toBeVisible();
+    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
+    await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-card')).toBeVisible();
+    expect(await page.locator('html').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
+    await page.screenshot({ path: `output/playwright/knowledge-mixed-local-mobile-${language === 'Русский' ? 'ru' : 'en'}-20261022.png` });
     const intakeGap = await page.locator('.knowledge-content-actions').evaluate(el => {
       const a = el.querySelector('[data-a="chooseKnowledgeFiles"]').getBoundingClientRect();
       const b = el.querySelector('[data-a="newKnowledgeNote"]').getBoundingClientRect();
@@ -252,6 +273,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption(language === 'Русский' ? 'block' : 'inline');
     await page.locator('[data-in="knowledgeQuery"]').fill('"Large batch marker"');
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     await page.locator('[data-a="selectKnowledgePage"]').click();
@@ -280,7 +302,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('#knowledge-view-title')).toBeFocused();
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     await expect(page.locator('.knowledge-folder-browser')).toHaveClass(/knowledge-folder-browser-compact/);
-    expect((await page.locator('.knowledge-folder-browser').boundingBox()).height).toBeLessThanOrEqual(64);
+    const compactFolders = language === 'Русский' ? page.locator('.knowledge-folder-browser') : page.locator('.knowledge-folder-browser-head');
+    expect((await compactFolders.boundingBox()).height).toBeLessThanOrEqual(64);
     await expect(page.locator('.knowledge-notes-section-head>span')).toHaveCount(0);
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/knowledge-scale-move-${language === 'Русский' ? 'ru' : 'en'}-320.png` });

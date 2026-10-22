@@ -305,6 +305,11 @@ A.toggleKnowledgeFolderCards = () => {
   saveKnowledgePreferences();
   render();
 };
+IN.knowledgeFolderLayout = el => {
+  S.ui.knowledgeFolderLayout = el.value === 'inline' ? 'inline' : 'block';
+  saveKnowledgePreferences();
+  render();
+};
 IN.knowledgeFolderCardQuery = el => {
   S.ui.knowledgeFolderCardQuery = el.value;
   S.ui.knowledgeFolderCardOffset = 0;
