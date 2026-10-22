@@ -4,6 +4,18 @@ const waitSaved = async page => {
   await page.waitForTimeout(500);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
 };
+const expectFolderTileBounds = async page => {
+  const overflow = await page.locator('.knowledge-folder-tile').evaluateAll(tiles =>
+    tiles.map(tile => {
+      const action = tile.querySelector('.knowledge-folder-receive');
+      return Math.max(tile.scrollHeight - tile.clientHeight, action ? action.getBoundingClientRect().bottom - tile.getBoundingClientRect().bottom : 0);
+    }),
+  );
+  expect(
+    overflow.every(value => value <= 2),
+    `Folder content exceeds its tile: ${overflow}`,
+  ).toBeTruthy();
+};
 test('knowledge reading editing history search and mobile folders work in Russian and English', async ({ page }) => {
   await page.goto('/');
   await page.locator('#l-access').fill('e2e-access-id-2026-secure');
@@ -176,7 +188,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollTop)).toBeGreaterThanOrEqual(scrollBeforeSelection - 2);
     expect(Math.abs((await page.locator('.knowledge-preview-card').last().boundingBox()).y - cardBeforeSelection)).toBeLessThanOrEqual(2);
     await expect(page.locator('.knowledge-folder-card-options').first()).toHaveAttribute('open', '');
+    await expectFolderTileBounds(page);
     await page.locator('.knowledge-folder-card-options summary').first().click();
+    await expectFolderTileBounds(page);
     await page.locator('[data-a="clearKnowledgeSelection"]').click();
     await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toBeVisible();

@@ -21,17 +21,22 @@
   margin: 0;
 }
 .knowledge-mixed-grid .knowledge-folder-tile {
+  display: flex;
+  flex-direction: column;
   border-radius: var(--r-lg);
   background: var(--bg);
 }
 .knowledge-mixed-grid .knowledge-folder-card {
   min-height: 148px;
-  height: 100%;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   padding: 20px 42px 20px 16px;
   background: transparent;
+}
+.knowledge-mixed-grid .knowledge-folder-receive {
+  flex-shrink: 0;
 }
 .knowledge-mixed-grid .knowledge-folder-card > svg {
   width: 38px;
