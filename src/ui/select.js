@@ -27,7 +27,8 @@ export function enhanceSelects(root = document) {
     const sync = () => {
       btn.disabled = sel.disabled;
       const selectedText = sel.options[sel.selectedIndex]?.text || '';
-      btn.innerHTML = `<span class="trunc">${esc(selectedText)}</span>`;
+      const authored = sel.options[sel.selectedIndex]?.closest('[translate="no"]');
+      btn.innerHTML = `<span class="trunc" ${authored ? 'translate="no"' : ''}>${esc(selectedText)}</span>`;
       btn.setAttribute('aria-label', `${accessibleLabel}: ${selectedText}`);
     };
     sync();
@@ -68,7 +69,7 @@ export const selectMenu = {
       options
         .map(
           o =>
-            `<button type="button" class="mi" role="option" data-i="${o.index}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow">${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+            `<button type="button" class="mi" role="option" data-i="${o.index}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow" ${sel.options[o.index]?.closest('[translate="no"]') ? 'translate="no"' : ''}>${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
         )
         .join('');
     if (searchable) {
