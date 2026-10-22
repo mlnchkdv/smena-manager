@@ -15,6 +15,12 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Stream ZIP': 'ZIP потоком',
+  'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.':
+    'ZIP потоком: до 500 файлов / 250 МБ, 45 секунд. Без хранения всего архива в памяти.',
+  'A streamed ZIP can contain up to 500 files and 250 MB. Select a smaller batch.': 'Потоковый ZIP вмещает до 500 файлов и 250 МБ. Выберите меньший набор.',
+  'Manage streamed downloads in your browser. If interrupted, use smaller batches.':
+    'Потоковым скачиванием управляет браузер. При обрыве выберите меньший набор.',
   'Download ZIP': 'Скачать ZIP',
   'Preparing ZIP': 'Подготовка ZIP',
   'Cancel ZIP download': 'Отменить скачивание ZIP',

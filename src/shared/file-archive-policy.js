@@ -3,10 +3,14 @@ import { createFileIndex } from './file-index.js';
 export const FILE_ZIP_MAX_FILES = 100;
 export const FILE_ZIP_MAX_BYTES = 50 * 1024 * 1024;
 export const ZIP_LIMIT_MESSAGE = 'A ZIP can contain up to 100 files and 50 MB. Select a smaller batch.';
-export function archiveSelectionIssue(files) {
+export const STREAM_ZIP_POLICY = {
+  maxFiles: 500,
+  maxBytes: 250 * 1024 * 1024,
+  limitMessage: 'A streamed ZIP can contain up to 500 files and 250 MB. Select a smaller batch.',
+};
+export function archiveSelectionIssue(files, { maxFiles = FILE_ZIP_MAX_FILES, maxBytes = FILE_ZIP_MAX_BYTES, limitMessage = ZIP_LIMIT_MESSAGE } = {}) {
   if (!files.length) return 'Select files to download.';
-  if (files.length > FILE_ZIP_MAX_FILES || files.reduce((sum, file) => sum + Math.max(0, Number(file.bytes) || 0), 0) > FILE_ZIP_MAX_BYTES)
-    return ZIP_LIMIT_MESSAGE;
+  if (files.length > maxFiles || files.reduce((sum, file) => sum + Math.max(0, Number(file.bytes) || 0), 0) > maxBytes) return limitMessage;
   if (files.some(file => !file.storageName)) return 'Some selected files have no stored content. Remove them from the selection.';
   return '';
 }
@@ -24,11 +28,11 @@ export function safeArchiveSegment(value) {
   const extension = name.match(/\.[^.]{1,16}$/u)?.[0] || '';
   return characters.slice(0, 100 - Array.from(extension).length).join('') + extension;
 }
-export function createFileArchivePlan(data, ids, role) {
+export function createFileArchivePlan(data, ids, role, limits) {
   const selected = new Set(ids);
   const files = (data.files || []).filter(file => selected.has(file.id));
   if (!selected.size || files.length !== selected.size) throw Error('The selected files changed. Select them again.');
-  const issue = archiveSelectionIssue(files);
+  const issue = archiveSelectionIssue(files, limits);
   if (issue) throw Error(issue);
   const projects = (data.projects || []).filter(project => !project.archived && canReadProject(project, data.me, role));
   const index = createFileIndex({ ...data, files }, projects);

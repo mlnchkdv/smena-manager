@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
+import { unzipSync, strFromU8 } from 'fflate';
 import { app } from '../../src/server/app.js';
 import { createTrackedSession, getAccessProfiles } from '../../src/server/auth.js';
 import { resetStorageProvider } from '../../src/server/storage/index.js';
@@ -108,6 +109,25 @@ test('authenticated editors can upload and range-download a workspace file', asy
   assert.equal((await getWorkspaceDatabase()).files[0].name, 'renamed.txt');
   assert.equal((await fetch(`${origin}/api/files/catalog?revision=${manifest.data.revision}`, { headers })).status, 409);
   uploaded.data.revision = patched.data.revision;
+  const archive = await fetch(`${origin}/api/files/archive?account=m1`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ids: [uploaded.file.id], revision: patched.data.revision }),
+  });
+  assert.equal(archive.status, 200);
+  assert.match(archive.headers.get('content-disposition'), /attachment/);
+  const exported = unzipSync(new Uint8Array(await archive.arrayBuffer()));
+  assert.equal(strFromU8(exported['Проект/A/renamed.txt']), '0123456789');
+  assert.equal(
+    (
+      await fetch(`${origin}/api/files/archive?account=other`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ ids: [uploaded.file.id], revision: patched.data.revision }),
+      })
+    ).status,
+    409,
+  );
 
   const deletedResponse = await fetch(`${origin}/api/files/${uploaded.file.id}`, {
     method: 'DELETE',

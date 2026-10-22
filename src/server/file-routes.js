@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { Router } from 'express';
+import { Router, urlencoded } from 'express';
 import multer from 'multer';
 import { requireRole } from './auth.js';
 import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload, multipartFilename } from './file-policy.js';
@@ -20,6 +20,8 @@ import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { assertFileFolder } from '../shared/file-organization.js';
 import { fileCatalogPage } from '../shared/file-catalog.js';
 import { projectWorkspace } from './workspace-policy.js';
+import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
+import { streamFileArchive } from './file-archive-stream.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -114,6 +116,84 @@ function contentDisposition(filename, attachment) {
 }
 
 export const fileRouter = Router();
+const activeArchives = new Set();
+fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parameterLimit: 5 }), async (request, response, next) => {
+  const controller = new AbortController();
+  let timer,
+    claimed = false;
+  const abort = () => {
+    if (!response.writableFinished) controller.abort(new Error('Archive download interrupted.'));
+  };
+  try {
+    if (request.get('sec-fetch-site') === 'cross-site' || !request.query.account || request.query.account !== request.user.id)
+      throw Object.assign(new Error('The account changed in another tab. Reload this page to continue.'), { statusCode: 403 });
+    if (activeArchives.has(request.user.id) || activeArchives.size >= 8)
+      throw Object.assign(new Error('Another archive is being downloaded. Try again later.'), { statusCode: 429 });
+    activeArchives.add(request.user.id);
+    claimed = true;
+    const database = await getWorkspaceDatabase();
+    if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
+    const ids = typeof request.body.ids === 'string' ? JSON.parse(request.body.ids) : request.body.ids;
+    if (!Array.isArray(ids) || ids.some(id => typeof id !== 'string')) throw new TypeError('Invalid file selection.');
+    const data = { ...database, me: memberIdFor(database, request.user) };
+    const plan = createFileArchivePlan(data, ids, request.user.role, STREAM_ZIP_POLICY);
+    timer = setTimeout(() => controller.abort(new Error('Archive time limit reached. Download a smaller batch.')), 45000);
+    response.once('close', abort);
+    response.setHeader('Content-Type', 'application/zip');
+    response.setHeader('Content-Disposition', 'attachment; filename="smena-files-stream.zip"');
+    response.setHeader('X-Accel-Buffering', 'no');
+    await streamFileArchive(
+      plan,
+      response,
+      (file, signal) => {
+        const pending = getStorageProvider().openDownloadStream(file.storageName, file.storageFileId);
+        return new Promise((resolve, reject) => {
+          const cancel = () => reject(signal.reason);
+          signal.addEventListener('abort', cancel, { once: true });
+          pending.then(
+            result => {
+              signal.removeEventListener('abort', cancel);
+              if (signal.aborted) {
+                result?.stream?.destroy();
+                reject(signal.reason);
+              } else resolve(result);
+            },
+            error => {
+              signal.removeEventListener('abort', cancel);
+              reject(error);
+            },
+          );
+        });
+      },
+      {
+        signal: controller.signal,
+        validate: async file => {
+          const latest = await getWorkspaceDatabase();
+          const current = latest.files?.find(item => item.id === file.id);
+          const visible = projectWorkspace(latest, request.user);
+          if (
+            !visible.files?.some(item => item.id === file.id) ||
+            !current ||
+            current.storageName !== file.storageName ||
+            current.storageFileId !== file.storageFileId
+          )
+            throw Object.assign(new Error('The selected files changed. Select them again.'), { statusCode: 403 });
+        },
+      },
+    );
+  } catch (error) {
+    if (response.headersSent) response.destroy(error);
+    else {
+      response.removeHeader('Content-Disposition');
+      response.removeHeader('Content-Type');
+      next(error);
+    }
+  } finally {
+    clearTimeout(timer);
+    response.removeListener('close', abort);
+    if (claimed) activeArchives.delete(request.user.id);
+  }
+});
 
 fileRouter.get('/catalog', async (request, response, next) => {
   try {

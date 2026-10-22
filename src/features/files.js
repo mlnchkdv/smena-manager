@@ -28,7 +28,7 @@ const change = run => {
   }
 };
 
-A.downloadSelectedFiles = async () => {
+const downloadSelection = async stream => {
   const initial = owner(),
     generation = getSessionGeneration(),
     ids = [...(S.ui.fileSelection || [])];
@@ -36,11 +36,13 @@ A.downloadSelectedFiles = async () => {
     const module = await import('../core/file-download.js');
     const current = owner();
     if (initial.owner === current.owner && initial.workspace === current.workspace && generation === getSessionGeneration())
-      await module.downloadSelectedFiles(ids);
+      await (stream ? module.streamSelectedFiles(ids) : module.downloadSelectedFiles(ids));
   } catch {
     toast('Unable to create the ZIP.', { kind: 'err' });
   }
 };
+A.downloadSelectedFiles = () => downloadSelection(false);
+A.streamSelectedFiles = () => downloadSelection(true);
 A.cancelFileZip = () => S.ui.fileDownload?.controller.abort();
 
 A.openFileFolder = el => {
