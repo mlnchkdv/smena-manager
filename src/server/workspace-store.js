@@ -20,6 +20,7 @@ import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { migrateWorkspaceSchema } from '../shared/workspace-schema-migrations.js';
+import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -309,8 +310,11 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     createdAt: current.createdAt,
     updatedAt: now,
   });
-  const transportBytes = workspaceTransportBytes(workspaceCoreData(next), next.revision);
+  const { files, ...core } = workspaceCoreData(next);
+  const transportBytes = workspaceTransportBytes(core, next.revision);
   if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
+  if (workspaceTransportBytes({ files }, next.revision) > FILE_CATALOG_MAX_BYTES)
+    throw new WorkspaceSizeError(workspaceTransportBytes({ files }, next.revision));
   for (const name of DOCUMENT_NAMES) {
     const bytes = workspaceTransportBytes(workspaceDocumentData(name, next), Number(next._documentRevisions?.[name]?.revision || 0));
     if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);

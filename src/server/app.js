@@ -41,6 +41,7 @@ import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
 import { evaluateAutomationRun, evaluateOperationalHealth } from './operational-health.js';
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
+import { applyFileCatalogChanges } from '../shared/file-catalog.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
@@ -125,6 +126,10 @@ app.use('/api', (request, response, next) => {
   response.json = body => {
     if (body?.data && Array.isArray(body.data.projects) && Array.isArray(body.data.tasks)) {
       body = { ...body, data: projectWorkspace(workspaceCoreData(bindAccessProfiles(body.data, getAccessProfiles())), request.user) };
+      if (request.query.fileCatalog === 'pages' || request.get('x-smena-file-catalog') === 'pages') {
+        const { files, ...core } = body.data;
+        body = { ...body, data: core, fileCatalog: { total: files.length } };
+      }
     }
     return send(body);
   };
@@ -422,6 +427,13 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
   try {
     let nextData = workspaceCoreData(request.body?.data);
     const stored = await getWorkspaceDatabase();
+    if (request.body?.fileChanges) {
+      if (stored.revision !== request.body?.revision) throw new RevisionConflictError(stored.revision);
+      if (Object.hasOwn(nextData, 'files')) throw new TypeError('Do not mix a complete catalog and file changes.');
+      // Reconstruct only this account's readable catalog; policy preserves hidden files.
+      const visible = projectWorkspace(stored, request.user);
+      nextData.files = applyFileCatalogChanges(visible.files || [], request.body.fileChanges);
+    }
     const knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
     const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
     if (request.user.role === 'editor') {

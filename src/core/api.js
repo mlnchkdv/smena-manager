@@ -1,5 +1,6 @@
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';
+import { hydrateFileCatalog, catalogWrite } from './file-catalog-transport.js';
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
@@ -67,11 +68,12 @@ function addAccountHeader(headers) {
 
 async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
-  const { returnMeta = false, allowCookieOnly = false, ...fetchOptions } = options;
+  const { returnMeta = false, allowCookieOnly = false, catalogHydration = true, ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers || {});
   headers.set('Accept', 'application/json');
   if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (authenticated) {
+    headers.set('X-Smena-File-Catalog', 'pages');
     const token = getSessionToken();
     if (!token && !allowCookieOnly) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
     if (token !== 'cookie') headers.set('Authorization', `Bearer ${token}`);
@@ -103,6 +105,11 @@ async function request(path, options = {}, authenticated = false) {
     const error = new ApiError(message, response.status, code, body);
     if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
     throw error;
+  }
+  if (catalogHydration && body.fileCatalog) {
+    body.data = await readCatalogSnapshot(body);
+    delete body.fileCatalog;
+    if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   }
   return returnMeta ? { body, headers: response.headers, notModified } : body;
 }
@@ -166,8 +173,21 @@ export async function revokeCurrentAuthSession() {
 }
 
 export async function getWorkspace() {
-  const result = await request('/api/workspace', {}, true);
-  return result.data;
+  return (await request('/api/workspace', {}, true)).data;
+}
+
+async function readCatalogSnapshot(result) {
+  const generation = sessionGeneration;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
+    try {
+      const snapshot = result || (await request('/api/workspace', { catalogHydration: false }, true));
+      return await hydrateFileCatalog(snapshot, path => request(path, {}, true), generation);
+    } catch (error) {
+      if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
+      result = null;
+    }
+  }
 }
 
 export async function getWorkspaceRevision() {
@@ -249,7 +269,8 @@ export async function clearReadNotifications(revision) {
 
 export async function putWorkspace(data, revision) {
   const coreData = workspaceCoreData(data);
-  const actualBytes = workspaceTransportBytes(coreData, revision);
+  const payload = catalogWrite(coreData, revision, sessionGeneration);
+  const actualBytes = new TextEncoder().encode(JSON.stringify({ ...payload, revision })).byteLength;
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
     throw new ApiError('Workspace data exceeds the 4 MB synchronization limit.', 413, 'WORKSPACE_TOO_LARGE', {
       maxBytes: WORKSPACE_TRANSPORT_MAX_BYTES,
@@ -260,7 +281,7 @@ export async function putWorkspace(data, revision) {
     '/api/workspace',
     {
       method: 'PUT',
-      body: JSON.stringify({ data: coreData, revision }),
+      body: JSON.stringify({ ...payload, revision }),
     },
     true,
   );

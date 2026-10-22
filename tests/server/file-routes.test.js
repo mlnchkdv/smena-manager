@@ -90,6 +90,25 @@ test('authenticated editors can upload and range-download a workspace file', asy
   assert.equal(invalidRangeResponse.status, 416);
   assert.equal(invalidRangeResponse.headers.get('content-range'), 'bytes */10');
 
+  const headers = { Authorization: `Bearer ${token}`, 'X-Smena-File-Catalog': 'pages', 'Content-Type': 'application/json' };
+  const manifest = await (await fetch(`${origin}/api/workspace`, { headers })).json();
+  assert.equal(manifest.data.files, undefined);
+  assert.equal(manifest.fileCatalog.total, 1);
+  const catalog = await (await fetch(`${origin}/api/files/catalog?revision=${manifest.data.revision}`, { headers })).json();
+  assert.equal(catalog.files[0].id, uploaded.file.id);
+  const changed = { ...uploaded.file, name: 'renamed.txt' };
+  const patchResponse = await fetch(`${origin}/api/workspace`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ data: manifest.data, revision: manifest.data.revision, fileChanges: { upsert: [changed], remove: [] } }),
+  });
+  assert.equal(patchResponse.status, 200);
+  const patched = await patchResponse.json();
+  assert.equal(patched.data.files, undefined);
+  assert.equal((await getWorkspaceDatabase()).files[0].name, 'renamed.txt');
+  assert.equal((await fetch(`${origin}/api/files/catalog?revision=${manifest.data.revision}`, { headers })).status, 409);
+  uploaded.data.revision = patched.data.revision;
+
   const deletedResponse = await fetch(`${origin}/api/files/${uploaded.file.id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -97,7 +116,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
   assert.equal(deletedResponse.status, 200);
   const deleted = await deletedResponse.json();
-  assert.equal(deleted.data.revision, prepared.revision + 2);
+  assert.equal(deleted.data.revision, prepared.revision + 3);
   assert.equal(deleted.data.files.length, 0);
 
   const missingResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {

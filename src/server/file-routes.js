@@ -18,6 +18,8 @@ import { reportProviderError } from './provider-safety.js';
 import { registerFileMetadata } from './file-registry.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { assertFileFolder } from '../shared/file-organization.js';
+import { fileCatalogPage } from '../shared/file-catalog.js';
+import { projectWorkspace } from './workspace-policy.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -112,6 +114,21 @@ function contentDisposition(filename, attachment) {
 }
 
 export const fileRouter = Router();
+
+fileRouter.get('/catalog', async (request, response, next) => {
+  try {
+    const data = projectWorkspace(await getWorkspaceDatabase(), request.user);
+    response.json(
+      fileCatalogPage(data, {
+        revision: Number(request.query.revision),
+        offset: Number(request.query.offset || 0),
+        project: request.query.project || 'all',
+      }),
+    );
+  } catch (error) {
+    next(error);
+  }
+});
 
 fileRouter.get('/policy', (_request, response) => {
   const policy = getFileUploadPolicy();
