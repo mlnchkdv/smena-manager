@@ -1894,6 +1894,10 @@ export async function handleFiles(files, ctx) {
     }
   }
 }
+A.chooseStoredFiles = el => {
+  const input = document.getElementById(el.dataset.picker);
+  if (input?.matches('input[type="file"][data-in="uploadFiles"]')) input.click();
+};
 IN.uploadFiles = el => {
   void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
   el.value = '';

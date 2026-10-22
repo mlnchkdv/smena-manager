@@ -518,6 +518,16 @@ test('PDF previews render pages locally without document scripts in Russian and 
   });
   expect(thumbnailUpload.status()).toBe(201);
   const thumbnail = (await thumbnailUpload.json()).file;
+  await page.goto('/e2e-team/files');
+  const chooser = page.waitForEvent('filechooser');
+  await page.locator('[data-a="chooseStoredFiles"]').press('Enter');
+  const picker = await chooser;
+  expect(picker.isMultiple()).toBeTruthy();
+  await picker.setFiles({ name: 'e2e-keyboard-upload.txt', mimeType: 'text/plain', buffer: Buffer.from('Keyboard upload / Загрузка с клавиатуры') });
+  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-keyboard-upload.txt' })).toBeVisible();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-keyboard-upload.txt' })).toBeVisible();
   for (const language of ['Русский', 'English (US)']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);

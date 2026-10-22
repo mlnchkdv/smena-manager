@@ -40,7 +40,7 @@ export function filesHtml(pid) {
       ]
         .map(([k, i]) => `<button class="${view === k ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${k}" aria-label="${k} view">${ic(i, 13)}</button>`)
         .join('')}</div>
-      <label class="btn btn-primary btn-sm" style="cursor:pointer">${ic('upload', 13)}Upload<input type="file" multiple hidden data-in="uploadFiles" data-project="${pid}"></label>
+      <button class="btn btn-primary btn-sm" data-a="chooseStoredFiles" data-picker="project-files-upload">${ic('upload', 13)}Upload</button><input id="project-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${pid}">
     </div>
     <div class="page wide" style="padding-top:16px">
       <label class="dropzone" data-dropzone="${pid}" style="margin-bottom:16px">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${fsize(u.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024)} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${pid}"></label>

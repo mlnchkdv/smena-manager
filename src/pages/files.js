@@ -110,7 +110,7 @@ export function pageFiles() {
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><label class="btn btn-primary" style="cursor:pointer">${ic('upload', 14)}Upload files<input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label></div>`
+          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${projects.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></div>`
       }
     </header>
 
