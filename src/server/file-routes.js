@@ -23,6 +23,7 @@ import { projectWorkspace } from './workspace-policy.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
 import { streamFileArchive } from './file-archive-stream.js';
 import { fileCatalogVersion } from './file-catalog-version.js';
+import { assertArchiveFileAccess } from './file-archive-access.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -117,21 +118,22 @@ function contentDisposition(filename, attachment) {
 }
 
 export const fileRouter = Router();
-const activeArchives = new Set();
+const activeArchives = new Map();
 fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parameterLimit: 5 }), async (request, response, next) => {
   const controller = new AbortController();
   let timer,
-    claimed = false;
+    lease = null;
   const abort = () => {
     if (!response.writableFinished) controller.abort(new Error('Archive download interrupted.'));
   };
   try {
+    for (const [id, expires] of activeArchives) if (expires <= Date.now()) activeArchives.delete(id);
     if (request.get('sec-fetch-site') === 'cross-site' || !request.query.account || request.query.account !== request.user.id)
       throw Object.assign(new Error('The account changed in another tab. Reload this page to continue.'), { statusCode: 403 });
     if (activeArchives.has(request.user.id) || activeArchives.size >= 8)
       throw Object.assign(new Error('Another archive is being downloaded. Try again later.'), { statusCode: 429 });
-    activeArchives.add(request.user.id);
-    claimed = true;
+    lease = Date.now() + 55000;
+    activeArchives.set(request.user.id, lease);
     const database = await getWorkspaceDatabase();
     if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
     const ids = typeof request.body.ids === 'string' ? JSON.parse(request.body.ids) : request.body.ids;
@@ -170,15 +172,7 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
         signal: controller.signal,
         validate: async file => {
           const latest = await getWorkspaceDatabase();
-          const current = latest.files?.find(item => item.id === file.id);
-          const visible = projectWorkspace(latest, request.user);
-          if (
-            !visible.files?.some(item => item.id === file.id) ||
-            !current ||
-            current.storageName !== file.storageName ||
-            current.storageFileId !== file.storageFileId
-          )
-            throw Object.assign(new Error('The selected files changed. Select them again.'), { statusCode: 403 });
+          assertArchiveFileAccess(latest, request.user, file);
         },
       },
     );
@@ -192,7 +186,7 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
   } finally {
     clearTimeout(timer);
     response.removeListener('close', abort);
-    if (claimed) activeArchives.delete(request.user.id);
+    if (lease && activeArchives.get(request.user.id) === lease) activeArchives.delete(request.user.id);
   }
 });
 

@@ -4,6 +4,23 @@ import { Readable, Writable } from 'node:stream';
 import { unzipSync, strFromU8 } from 'fflate';
 import { streamFileArchive } from '../../src/server/file-archive-stream.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../../src/shared/file-archive-policy.js';
+import { assertArchiveFileAccess } from '../../src/server/file-archive-access.js';
+
+test('archive reads recheck current membership, role, project archive and storage identity', () => {
+  const file = { id: 'f', project: 'p', storageName: 'one', storageFileId: 'physical' };
+  const data = { members: [{ id: 'm', role: 'admin' }], files: [file], projects: [{ id: 'p', private: true, members: [] }] };
+  assert.equal(assertArchiveFileAccess(data, { id: 'm', role: 'admin' }, file), file);
+  data.members[0].role = 'editor';
+  assert.throws(() => assertArchiveFileAccess(data, { id: 'm', role: 'admin' }, file), { statusCode: 403 });
+  data.projects[0].members = ['m'];
+  assert.equal(assertArchiveFileAccess(data, { id: 'm', role: 'admin' }, file), file);
+  assert.throws(() => assertArchiveFileAccess(data, { id: 'm' }, { ...file, storageFileId: 'other' }));
+  data.projects[0].archived = true;
+  assert.throws(() => assertArchiveFileAccess(data, { id: 'm' }, file));
+  data.projects[0].archived = false;
+  data.members[0].status = 'removed';
+  assert.throws(() => assertArchiveFileAccess(data, { id: 'm' }, file));
+});
 
 test('streamed archives exceed browser count limits and preserve Unicode paths', async () => {
   const data = {
