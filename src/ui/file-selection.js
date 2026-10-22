@@ -5,8 +5,8 @@ import { t } from '../core/i18n.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { archiveSelectionIssue } from '../shared/file-archive-policy.js';
 
-export function syncFileSelection(files) {
-  const scope = `${S.ui.currentUser?.id || ''}:${D().ws?.id || D().ws?.url || ''}`;
+export function syncFileSelection(files, projectId = null) {
+  const scope = JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, projectId]);
   if (S.ui.fileSelectionScope !== scope) S.ui.fileSelection = [];
   S.ui.fileSelectionScope = scope;
   const available = new Set(files.map(file => file.id));

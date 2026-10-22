@@ -81,20 +81,21 @@ function uploadsHtml() {
     .join('')}</div>`;
 }
 
-export function pageFiles() {
+export function pageFiles(projectId = null) {
   filePreferences();
-  const projects = visibleProjects().filter(canSee);
+  const projects = visibleProjects().filter(project => canSee(project) && (!projectId || project.id === projectId));
   const projectIds = new Set(projects.map(project => project.id));
   const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
   const writableIds = new Set(writable.map(project => project.id));
   const index = createFileIndex(D(), projects, Object.fromEntries(Object.entries(FT).map(([key, meta]) => [key, `${meta.n} ${tr(meta.n)}`])));
   const allFiles = index.files;
-  syncFileSelection(allFiles);
+  syncFileSelection(allFiles, projectId);
   const query = String(S.ui.fileQ || '')
     .trim()
     .toLowerCase();
   const typeFilter = S.ui.fileType || 'all';
-  const projectFilter = projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all';
+  const projectFilter = projectId || (projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all');
+  S.ui.fileProject = projectFilter;
   const currentFolder = activeFileFolder(proj(projectFilter), S.ui.fileFolder);
   if (!currentFolder) S.ui.fileFolder = null;
   const sort = S.ui.fileSort || 'date';
@@ -121,7 +122,7 @@ export function pageFiles() {
   const searched = Boolean(query || typeFilter !== 'all');
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
-  return `<div class="files-page">
+  return `<div class="files-page ${projectId ? 'project-files-page' : ''}">
     <header class="page-head files-page-head"><div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>
       ${
         readOnly || !projects.length
@@ -138,7 +139,7 @@ export function pageFiles() {
 
     <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
-      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>
+      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject" ${projectId ? 'disabled' : ''}>${projectId ? '' : '<option value="all">All projects</option>'}${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
       )
