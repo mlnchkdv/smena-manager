@@ -849,7 +849,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.reload();
       await page.locator('[data-in="fileFilterPreset"]').selectOption({ label: 'E2E saved tree' });
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
-      await page.locator('.files-selection-bar [data-a="selectFilePage"]').nth(1).click();
+      await page.locator('.files-selection-bar [data-a="selectFileResults"]').click();
       await expect(page.locator('.files-selected-count b')).toHaveText('2');
       if (language === 'Русский') await expectRussianUi(page, 'Recursive folder filters');
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

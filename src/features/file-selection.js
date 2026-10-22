@@ -32,6 +32,7 @@ A.selectFilePage = el => {
   S.ui.fileSelection = [...selected];
   render();
 };
+A.selectFileResults = A.selectFilePage;
 A.clearFileSelection = () => {
   S.ui.fileSelection = [];
   render();
