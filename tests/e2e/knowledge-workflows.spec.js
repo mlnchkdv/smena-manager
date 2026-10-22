@@ -282,7 +282,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   }));
   const scaleNotes = Array.from({ length: 3000 }, (_, i) => ({
     id: `scale-note-${i}`,
-    title: `Материал ${i} / Team note`,
+    title: `Материал ${i} / Team note — подробный регламент команды с длинным названием / detailed team reference with a long title`,
     formatted_markdown: `Large batch marker. Материал команды. unique-${i}`,
     folderId: `scale-folder-${i % 550}`,
     updatedAt: '2026-10-20T00:00:00.000Z',
@@ -326,6 +326,23 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', 'scale-folder-0');
     await page.locator('[data-in="knowledgeQuery"]').fill('"Large batch marker"');
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
+    const title = page.locator('.knowledge-preview-head strong').first();
+    await expect(title).toHaveAttribute('title', scaleNotes[0].title);
+    // Indexed search can replace the local result while offscreen cards are skipped.
+    await expect(async () => {
+      await page.locator('[data-a="focusKnowledgeNotes"]').click();
+      const titleBox = await title.boundingBox();
+      const timeBox = await page.locator('.knowledge-note-time').first().boundingBox();
+      expect(titleBox?.width).toBeGreaterThan(150);
+      expect(titleBox.height).toBeLessThanOrEqual(46);
+      expect(timeBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height - 1);
+      expect(
+        await page
+          .locator('.knowledge-preview-card')
+          .first()
+          .evaluate(el => el.scrollWidth - el.clientWidth),
+      ).toBeLessThanOrEqual(2);
+    }).toPass({ timeout: 10000 });
     await page.locator('[data-a="selectKnowledgePage"]').click();
     await page.locator('.knowledge-pagination [data-offset="60"]').click();
     await page.locator('[data-a="selectKnowledgePage"]').click();
