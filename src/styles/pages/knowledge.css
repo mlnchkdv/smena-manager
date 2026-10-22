@@ -45,6 +45,18 @@
 .knowledge-mixed-grid .knowledge-folder-card > span {
   width: 100%;
 }
+.knowledge-mixed-grid .knowledge-folder-card strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+.knowledge-folder-jump {
+  min-width: 44px;
+  min-height: 44px;
+}
 .knowledge-mixed-grid .knowledge-folder-card:hover,
 .knowledge-mixed-grid .knowledge-folder-card:focus-visible {
   background: var(--accent-soft);
@@ -58,7 +70,23 @@
     min-height: 44px;
   }
   .knowledge-mixed-grid .knowledge-folder-card {
-    min-height: 120px;
+    min-height: 112px;
+    padding: 12px;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card > svg {
+    width: 28px;
+    height: 28px;
+  }
+  .knowledge-preview-grid.knowledge-mixed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .knowledge-mixed-grid > .knowledge-preview-card {
+    grid-column: 1 / -1;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card-options summary {
+    width: 44px;
   }
 }
 .knowledge-preview-move {

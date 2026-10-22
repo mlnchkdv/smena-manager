@@ -129,7 +129,7 @@ export function pageKnowledge() {
   const activeFolder = folders.find(folder => folder.id === folderFilter);
   const foldersAvailable = S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || !!activeFolder);
   const inlineFolders = foldersAvailable && S.ui.knowledgeFolderLayout === 'inline';
-  const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders });
+  const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders, hasNotes: visible.length > 0 });
   const excludedDestinations = activeFolder ? folderDescendants(activeFolder.id, folders) : new Set();
   const folderMove =
     activeFolder && !readOnly

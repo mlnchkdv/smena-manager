@@ -1408,6 +1408,7 @@ const RU = {
   'Folder display': 'Отображение папок',
   'Separate block': 'Отдельный блок',
   'Together with notes': 'Вместе с заметками',
+  'Jump to notes': 'К заметкам',
   'Find a subfolder': 'Найти подпапку',
   'Search options': 'Поиск вариантов',
   'Refine the search to see more options.': 'Уточните поиск, чтобы увидеть остальные варианты.',

@@ -310,6 +310,12 @@ IN.knowledgeFolderLayout = el => {
   saveKnowledgePreferences();
   render();
 };
+A.focusKnowledgeNotes = () => {
+  const note = document.querySelector('.knowledge-preview-open');
+  if (!note) return;
+  note.focus({ preventScroll: true });
+  note.scrollIntoView({ block: 'start', inline: 'nearest' });
+};
 IN.knowledgeFolderCardQuery = el => {
   S.ui.knowledgeFolderCardQuery = el.value;
   S.ui.knowledgeFolderCardOffset = 0;

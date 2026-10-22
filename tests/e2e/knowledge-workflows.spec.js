@@ -38,6 +38,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     knowledgeFolders: [
       { id: 'kb-parent', name: 'Documentation' },
       { id: 'kb-child', name: 'Guides', parentId: 'kb-parent' },
+      { id: 'kb-long', name: 'Архив регламентов / Team reference folder with a long title' },
     ],
     knowledgeNotes: [
       {
@@ -132,7 +133,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
   await page.reload();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
-  await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-tile')).toHaveCount(1);
+  await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-tile')).toHaveCount(2);
   await expect(page.locator('.knowledge-mixed-grid .knowledge-preview-card')).toHaveCount(2);
   await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toHaveCount(0);
   await page.screenshot({ path: 'output/playwright/knowledge-mixed-local-desktop-20261022.png' });
@@ -155,10 +156,25 @@ test('knowledge reading editing history search and mobile folders work in Russia
     );
     await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('block');
     await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toBeVisible();
+    await page.locator('[data-a="focusKnowledgeNotes"]').press('Enter');
+    await expect(page.locator('.knowledge-preview-open').first()).toBeFocused();
+    await expect(page.locator('.knowledge-drawer')).toHaveCount(0);
     await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
-    await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-card')).toBeVisible();
+    await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-card').first()).toBeVisible();
+    const folderBoxes = await page.locator('.knowledge-mixed-grid .knowledge-folder-tile').evaluateAll(tiles =>
+      tiles.map(el => {
+        const box = el.getBoundingClientRect();
+        return { x: box.x, y: box.y, width: box.width };
+      }),
+    );
+    expect(Math.abs(folderBoxes[0].y - folderBoxes[1].y)).toBeLessThan(2);
+    expect(folderBoxes[1].x).toBeGreaterThan(folderBoxes[0].x + folderBoxes[0].width);
+    expect((await page.locator('.knowledge-preview-card').first().boundingBox()).width).toBeGreaterThan(280);
     expect(await page.locator('html').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/knowledge-mixed-local-mobile-${language === 'Русский' ? 'ru' : 'en'}-20261022.png` });
+    await expect(page.locator('[data-a="focusKnowledgeNotes"]')).toHaveAttribute('aria-label', language === 'Русский' ? 'К заметкам' : 'Jump to notes');
+    await page.locator('[data-a="focusKnowledgeNotes"]').press('Enter');
+    await expect(page.locator('.knowledge-preview-open').first()).toBeFocused();
     const intakeGap = await page.locator('.knowledge-content-actions').evaluate(el => {
       const a = el.querySelector('[data-a="chooseKnowledgeFiles"]').getBoundingClientRect();
       const b = el.querySelector('[data-a="newKnowledgeNote"]').getBoundingClientRect();
