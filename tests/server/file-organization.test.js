@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   archiveFileFolder,
+  fileBatchTargets,
   fileFolderPath,
   moveFilesToFolder,
   restoredFileFolder,
@@ -93,6 +94,26 @@ test('empty folders can be archived and restored without permanent deletion', ()
   assert.equal(data.projects[0].fileFolders.find(folder => folder.id === 'b').parentId, null);
   assert.equal(data.projects[0].fileFolders.length, 2);
   assert.equal(restoredFileFolder({ project: 'p', folderId: 'a' }, data).folderId, null);
+});
+
+test('bulk file preflight rejects partial and over-limit batches and respects ownership on deletion', () => {
+  const data = fixture();
+  data.files.push({ ...data.files[0], id: 'other', by: 'owner' });
+  assert.equal(fileBatchTargets(data, ['f', 'other'], 'editor').length, 2);
+  assert.throws(() => fileBatchTargets(data, ['f', 'other'], 'editor', true), { code: 'FILE_FOLDER_INVALID' });
+  assert.equal(fileBatchTargets(data, ['f', 'other'], 'admin', true).length, 2);
+  assert.throws(() => fileBatchTargets(data, ['f', 'gone'], 'admin', true), { code: 'FILE_FOLDER_INVALID' });
+  assert.throws(
+    () =>
+      fileBatchTargets(
+        data,
+        Array.from({ length: 501 }, (_, i) => `f${i}`),
+        'admin',
+      ),
+    { code: 'FILE_FOLDER_INVALID' },
+  );
+  data.projects[0].perms.m = 'Can view';
+  assert.throws(() => fileBatchTargets(data, ['f'], 'editor', true), { code: 'FILE_FOLDER_INVALID' });
 });
 
 test('folder mutations and folder-bearing file snapshots cannot bypass project permissions', () => {

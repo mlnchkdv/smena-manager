@@ -15,6 +15,17 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Select file': 'Выбрать файл',
+  'File selection': 'Выбор файлов',
+  'Choose editable files from one project.': 'Выберите доступные для редактирования файлы одного проекта.',
+  'Deleting files requires edit access and ownership, or an administrator role.':
+    'Удалять можно свои файлы в доступных для редактирования проектах. Администратор может удалять чужие файлы.',
+  'Selection is kept when filters change. Up to 500 files.': 'Выбор сохраняется при смене фильтров. Не более 500 файлов.',
+  'Select up to 500 files at a time.': 'За один раз можно выбрать не более 500 файлов.',
+  'Move selected files to trash?': 'Переместить выбранные файлы в корзину?',
+  'Files can be restored from the workspace trash. Task attachments will be removed too.':
+    'Файлы можно восстановить из корзины рабочего пространства. Вложения задач также будут убраны.',
+  'Files moved to trash.': 'Файлы перемещены в корзину.',
   'File folders': 'Папки файлов',
   'File location': 'Расположение файлов',
   'All files': 'Все файлы',

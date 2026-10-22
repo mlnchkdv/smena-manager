@@ -411,6 +411,116 @@
 }
 
 /* Logical project folders share the same quiet surfaces as file cards. */
+.workspace-file-card {
+  position: relative;
+}
+.file-select {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text-3);
+  background: var(--surface);
+}
+.workspace-file-card > .file-select {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  left: 6px;
+}
+.file-select.on {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+.workspace-file-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.workspace-file-title .workspace-file-folder {
+  margin: 4px 0 0;
+}
+.files-selection-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: var(--fs-xs);
+}
+.files-selection-bar.active {
+  position: sticky;
+  top: 70px;
+  z-index: 6;
+  padding: 10px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.files-selection-bar .hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--fs-2xs);
+}
+.files-selection-bar .btn,
+.files-selection-bar .ibtn {
+  min-height: 44px;
+}
+.files-selected-count {
+  color: var(--text-3);
+}
+.file-batch-preview {
+  padding-left: 20px;
+  max-height: 180px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+}
+@media (max-width: 900px) {
+  .files-selection-bar.active {
+    top: 0;
+  }
+}
+@media (max-width: 640px) {
+  .file-select {
+    width: 44px;
+    height: 44px;
+  }
+  .files-selection-bar.active {
+    gap: 6px;
+  }
+  .files-selection-bar .sp {
+    display: none;
+  }
+  .files-selection-bar.active > .btn-secondary {
+    flex: 1 1 auto;
+    justify-content: center;
+    white-space: normal;
+  }
+  .workspace-file-title {
+    align-items: flex-start;
+  }
+  .workspace-file-title .workspace-file-name {
+    padding-right: 34px;
+  }
+  .files-folders-head h2 {
+    flex: 1;
+  }
+  .files-folders-head > .sp {
+    display: none;
+  }
+  .files-folders-head > .btn {
+    flex: 0 0 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
 .files-folders {
   margin: 0 0 20px;
 }

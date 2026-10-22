@@ -1,5 +1,5 @@
 import { canEditProject } from './project-access.js';
-import { canEditFile } from './file-access.js';
+import { canEditFile, canRemoveFile } from './file-access.js';
 
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const fail = message => {
@@ -92,12 +92,20 @@ export function restoreFileFolder(data, projectId, id, role) {
   project.fileFolders = candidate;
 }
 
+export function fileBatchTargets(data, ids, role, remove = false) {
+  const unique = new Set(ids);
+  const files = (data.files || []).filter(file => unique.has(file.id));
+  const allowed = remove ? canRemoveFile : canEditFile;
+  if (!unique.size || unique.size > 500 || files.length !== unique.size || files.some(file => !allowed(file, data, role)))
+    fail('The selected files changed. Select them again.');
+  return files;
+}
+
 export function moveFilesToFolder(data, ids, projectId, folderId, role) {
   const project = writableProject(data, projectId, role);
   const unique = new Set(ids);
-  const files = (data.files || []).filter(file => unique.has(file.id));
-  if (!unique.size || unique.size > 500 || files.length !== unique.size || files.some(file => file.project !== projectId || !canEditFile(file, data, role)))
-    fail('The selected files changed. Select them again.');
+  const files = fileBatchTargets(data, ids, role);
+  if (files.some(file => file.project !== projectId)) fail('The selected files changed. Select them again.');
   const target = assertFileFolder(project, folderId);
   // Complete every validation before changing any file or task attachment.
   for (const file of files) file.folderId = target;

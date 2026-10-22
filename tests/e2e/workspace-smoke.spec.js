@@ -546,9 +546,11 @@ test('file actions follow project view comment edit permissions', async ({ page,
       await editorPage.goto('/e2e-team/files');
       await expect(editorPage.locator('.files-page')).toBeVisible();
       await expect(editorPage.locator('[data-a="chooseStoredFiles"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('[data-a="newFileFolder"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
       if (permission === 'Can edit') await expect(editorPage.locator('#files-upload-project option')).toHaveCount(1);
       await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] [data-a="ctxBtn"]`).click();
       await expect(editorPage.locator('[data-a="renameFile"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('[data-a="moveFileToFolder"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
       await expect(editorPage.locator('[data-a="delFile"]')).toHaveCount(0);
       await expect(editorPage.locator('[data-a="downloadStoredFile"]')).toBeVisible();
       await editorPage.goto('/e2e-team/files');
@@ -559,6 +561,85 @@ test('file actions follow project view comment edit permissions', async ({ page,
   } finally {
     await editorContext.close();
   }
+});
+
+test('bulk files move atomically across searchable folder pages and go to recoverable trash in both languages', async ({ page }) => {
+  await signIn(page);
+  let current = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = current.projects[0];
+  project.fileFolders = [
+    ...(project.fileFolders || []),
+    { id: 'batch-a', name: 'Массовый перенос A' },
+    { id: 'batch-b', name: 'Массовый перенос B' },
+    ...Array.from({ length: 65 }, (_, i) => ({
+      id: `page-folder-${i}`,
+      name: `Папка / Folder ${String(i).padStart(3, '0')} — длинное название для мобильной проверки`,
+    })),
+  ];
+  expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  const ids = [];
+  for (let i = 1; i <= 3; i++) {
+    current = (await (await page.request.get('/api/workspace')).json()).data;
+    const upload = await page.request.post('/api/files/upload', {
+      multipart: {
+        file: { name: `e2e-batch-${i}.txt`, mimeType: 'text/plain', buffer: Buffer.from(`Batch ${i}`) },
+        revision: String(current.revision),
+        project: project.id,
+        folderId: 'batch-a',
+      },
+    });
+    expect(upload.status()).toBe(201);
+    ids.push((await upload.json()).file.id);
+  }
+  for (const [language, target] of [
+    ['English (US)', 'batch-b'],
+    ['Русский', 'batch-a'],
+  ]) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.goto('/e2e-team/files');
+    await page.setViewportSize({ width: 320, height: 844 });
+    await expect(page.locator('.files-folder-tile')).toHaveCount(4);
+    await page.locator('#files-folder-query').fill('Массовый перенос');
+    await expect(page.locator('.files-folder-tile')).toHaveCount(2);
+    await page.locator(`.files-folder-open[data-folder="${target === 'batch-b' ? 'batch-a' : 'batch-b'}"]`).click();
+    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await page.locator('[data-a="selectFilePage"]').click();
+    await expect(page.locator('.files-selected-count b')).toHaveText('3');
+    await page.locator('.files-view-switch [data-v="list"]').click();
+    await expect(page.locator('.workspace-file-table .file-select[aria-pressed="true"]')).toHaveCount(3);
+    await page.locator('.files-selection-bar [data-a="moveFileToFolder"]').click();
+    await page.locator('#file-move-query').fill(target === 'batch-b' ? 'перенос B' : 'перенос A');
+    await page.locator(`[data-a="selectFileMoveTarget"][data-folder="${target}"]`).click();
+    if (language === 'Русский') await expectRussianUi(page, 'Bulk move dialog');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `output/playwright/file-bulk-picker-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
+    await page.locator('[data-a="confirmFileMove"]').click();
+    await waitForSaved(page);
+    await page.reload();
+    current = (await (await page.request.get('/api/workspace')).json()).data;
+    expect(current.files.filter(file => ids.includes(file.id)).map(file => file.folderId)).toEqual([target, target, target]);
+    await page.locator('#workspace-file-q').fill('e2e-batch-');
+    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    if (language === 'Русский') await expectRussianUi(page, 'Bulk file browser');
+    for (const width of [320, 768, 1366]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+  }
+  await page.locator('[data-a="selectFilePage"]').click();
+  await page.locator('[data-a="trashSelectedFiles"]').click();
+  await confirmDialog(page);
+  await waitForSaved(page);
+  await page.reload();
+  current = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(current.files.some(file => ids.includes(file.id))).toBeFalsy();
+  expect(current.trash.filter(item => ids.includes(item.data?.file?.id))).toHaveLength(3);
+  await openTrash(page);
+  await page.locator('.mini', { hasText: 'e2e-batch-1.txt' }).locator('[data-a="restoreTrash"]').click();
+  await waitForSaved(page);
+  await page.goto('/e2e-team/files');
+  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-batch-1.txt' })).toContainText('Массовый перенос A');
 });
 
 test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {
@@ -629,6 +710,8 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/e2e-team/files');
     await page.locator('.files-view-switch [data-v="grid"]').click();
+    // Folder pages can place file cards below the fold; thumbnails load on visibility.
+    await page.locator(`[data-file-thumb="${thumbnail.id}"]`).scrollIntoViewIfNeeded();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
     await page.locator('#workspace-file-q').fill(language === 'Русский' ? 'изображение' : 'image');
     await expect(page.locator('.workspace-file-card')).toHaveCount(1);

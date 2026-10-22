@@ -8,6 +8,7 @@ import { t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
+import { fileSelectButton, fileSelectionBar, syncFileSelection } from '../ui/file-selection.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -46,6 +47,7 @@ function fileCard(file) {
   const author = mem(file.by);
   const linkedTask = file.task ? task(file.task) : null;
   return `<article class="fcard workspace-file-card" data-ctx="file" data-id="${file.id}">
+    ${fileSelectButton(file)}
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
       ${filePrev(file)}
       <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${ago(file.at)}</span></span>
@@ -59,7 +61,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}</div></div></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }
@@ -81,6 +83,7 @@ export function pageFiles() {
   const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
   const writableIds = new Set(writable.map(project => project.id));
   const allFiles = (D().files || []).filter(file => projectIds.has(file.project));
+  syncFileSelection(allFiles);
   const query = String(S.ui.fileQ || '')
     .trim()
     .toLowerCase();
@@ -191,6 +194,7 @@ export function pageFiles() {
     }
     ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0)}
     ${uploadsHtml()}
+    ${fileSelectionBar(window.items)}
     ${
       files.length
         ? view === 'grid'
