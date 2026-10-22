@@ -3,6 +3,7 @@ import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
+import { archiveSelectionIssue } from '../shared/file-archive-policy.js';
 
 export function syncFileSelection(files) {
   const scope = `${S.ui.currentUser?.id || ''}:${D().ws?.id || D().ws?.url || ''}`;
@@ -17,6 +18,12 @@ export function fileSelectButton(file) {
   return `<button class="file-select ${selected ? 'on' : ''}" data-a="toggleFileSelection" data-id="${esc(file.id)}" aria-pressed="${selected}" aria-label="${esc(t('Select file'))}: ${esc(file.name)}">${ic(selected ? 'square-check' : 'square', 17)}</button>`;
 }
 
+export function fileDownloadProgress() {
+  const state = S.ui.fileDownload;
+  if (!state) return '';
+  return `<section class="files-download-progress" role="status" aria-label="Preparing ZIP"><div class="row"><strong>Preparing ZIP</strong><span class="sp"></span><span class="files-download-count num">${state.done} / ${state.total}</span><button class="ibtn" data-a="cancelFileZip" aria-label="Cancel ZIP download" title="Cancel ZIP download">${ic('x', 16)}</button></div><progress max="${state.total}" value="${state.done}" aria-label="Preparing ZIP"></progress></section>`;
+}
+
 export function fileSelectionBar(page) {
   const ids = S.ui.fileSelection || [];
   const files = D().files.filter(file => ids.includes(file.id));
@@ -25,5 +32,6 @@ export function fileSelectionBar(page) {
   const movable = files.length > 0 && sameProject && files.every(file => canEditFile(file, D(), S.ui.currentUser?.role));
   const removable = files.length > 0 && files.every(file => canRemoveFile(file, D(), S.ui.currentUser?.role));
   const checked = page.length > 0 && page.every(file => ids.includes(file.id));
-  return `<section class="files-selection-bar ${files.length ? 'active' : ''}" aria-label="File selection"><button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button><span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b></span>${files.length ? `<span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button><button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button><button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection" title="Clear selection">${ic('x', 16)}</button><p class="hint">Selection is kept when filters change. Up to 500 files.</p>` : ''}</section>`;
+  const downloadIssue = archiveSelectionIssue(files);
+  return `<section class="files-selection-bar ${files.length ? 'active' : ''}" aria-label="File selection"><button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button><span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b></span>${files.length ? `<span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || S.ui.fileDownload ? 'disabled' : ''} title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span>Download ZIP</span></button><button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button><button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button><button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection" title="Clear selection">${ic('x', 16)}</button><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p>` : ''}</section>`;
 }

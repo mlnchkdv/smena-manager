@@ -295,6 +295,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     if (sessionBlocked) return reject(accountChanged());
     const form = new FormData();
     form.append('file', file);
+    form.append('name', file.name);
     form.append('revision', String(metadata.revision));
     form.append('project', metadata.project || '');
     if (metadata.folderId) form.append('folderId', metadata.folderId);
@@ -461,7 +462,12 @@ export async function downloadWorkspaceFile(id, download = false, options = {}) 
     throw new ApiError(body.error || 'Unable to open the file.', response.status, body.code || 'FILE_ERROR', body);
   }
   let blob;
-  if (options.maxBytes && response.body?.getReader) {
+  const bounded = Number.isFinite(options.maxBytes) && options.maxBytes >= 0;
+  if (bounded && Number(response.headers.get('content-length')) > options.maxBytes) {
+    await response.body?.cancel().catch(() => {});
+    throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
+  }
+  if (bounded && response.body?.getReader) {
     const reader = response.body.getReader();
     const chunks = [];
     let total = 0;
@@ -475,13 +481,14 @@ export async function downloadWorkspaceFile(id, download = false, options = {}) 
           throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
         }
         chunks.push(value);
+        options.onProgress?.(total);
       }
     } finally {
       reader.releaseLock();
     }
     blob = new Blob(chunks, { type: response.headers.get('content-type') || 'application/octet-stream' });
   } else blob = await response.blob();
-  if (options.maxBytes && blob.size > options.maxBytes) throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
+  if (bounded && blob.size > options.maxBytes) throw new ApiError('This file is too large to preview. Download it instead.', 413, 'PREVIEW_TOO_LARGE');
   if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   return { blob, disposition: response.headers.get('content-disposition') || '' };
 }

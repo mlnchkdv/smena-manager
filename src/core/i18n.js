@@ -15,6 +15,16 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Download ZIP': 'Скачать ZIP',
+  'Preparing ZIP': 'Подготовка ZIP',
+  'Cancel ZIP download': 'Отменить скачивание ZIP',
+  'ZIP: up to 100 files / 50 MB. Folder paths are preserved.': 'ZIP: до 100 файлов / 50 МБ. Структура папок сохраняется.',
+  'A ZIP can contain up to 100 files and 50 MB. Select a smaller batch.': 'В ZIP можно включить до 100 файлов и 50 МБ. Выберите меньший набор.',
+  'Select files to download.': 'Выберите файлы для скачивания.',
+  'Some selected files have no stored content. Remove them from the selection.': 'У части выбранных файлов нет сохранённого содержимого. Уберите их из выбора.',
+  'Unable to create the ZIP.': 'Не удалось создать ZIP.',
+  'ZIP download started.': 'Скачивание ZIP началось.',
+  'ZIP download cancelled.': 'Скачивание ZIP отменено.',
   'Files per page': 'Файлов на странице',
   'Go to page': 'Перейти к странице',
   'Go to file page': 'Перейти к странице файлов',

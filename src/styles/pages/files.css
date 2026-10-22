@@ -4,6 +4,33 @@
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
 }
+.files-download-progress {
+  position: sticky;
+  top: 0;
+  z-index: 7;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  font-size: var(--fs-xs);
+}
+.files-download-progress .row {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.files-download-progress .ibtn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.files-download-progress progress {
+  width: 100%;
+  height: 6px;
+  accent-color: var(--accent);
+}
+.files-download-count {
+  font-size: var(--fs-2xs);
+}
 .files-pagination,
 .files-page-size {
   display: flex;

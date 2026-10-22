@@ -5,6 +5,8 @@ const key = () => fileViewKey(S.ui.currentUser?.id, D().ws?.id || D().ws?.url);
 export function filePreferences() {
   const next = key();
   if (next === loadedKey) return;
+  S.ui.fileDownload?.controller.abort();
+  S.ui.fileDownload = null;
   loadedKey = next;
   let storage;
   try {

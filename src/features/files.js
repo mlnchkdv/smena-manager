@@ -7,6 +7,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
 import { saveFilePreferences } from '../core/file-preferences.js';
+import { getSessionGeneration } from '../core/api.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
 
 const owner = () => ({ owner: S.ui.currentUser?.id, workspace: D().ws?.id || D().ws?.url });
@@ -23,6 +24,21 @@ const change = run => {
     return false;
   }
 };
+
+A.downloadSelectedFiles = async () => {
+  const initial = owner(),
+    generation = getSessionGeneration(),
+    ids = [...(S.ui.fileSelection || [])];
+  try {
+    const module = await import('../core/file-download.js');
+    const current = owner();
+    if (initial.owner === current.owner && initial.workspace === current.workspace && generation === getSessionGeneration())
+      await module.downloadSelectedFiles(ids);
+  } catch {
+    toast('Unable to create the ZIP.', { kind: 'err' });
+  }
+};
+A.cancelFileZip = () => S.ui.fileDownload?.controller.abort();
 
 A.openFileFolder = el => {
   S.ui.fileProject = el.dataset.project || 'all';

@@ -9,7 +9,7 @@ import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
 import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
-import { fileSelectButton, fileSelectionBar, syncFileSelection } from '../ui/file-selection.js';
+import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences } from '../core/file-preferences.js';
 
 function formatBytes(value) {
@@ -171,6 +171,7 @@ export function pageFiles() {
     }
     ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index)}
     ${uploadsHtml()}
+    ${fileDownloadProgress()}
     ${fileSelectionBar(window.items)}
     ${
       files.length

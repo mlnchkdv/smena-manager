@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { unzipSync, strFromU8 } from 'fflate';
 
 test.setTimeout(180_000);
 
@@ -644,6 +646,75 @@ test('bulk files move atomically across searchable folder pages and go to recove
   await waitForSaved(page);
   await page.goto('/e2e-team/files');
   await expect(page.locator('.workspace-file-card', { hasText: 'e2e-batch-1.txt' })).toContainText('Массовый перенос A');
+});
+
+test('file ZIP downloads preserve Unicode and duplicates and never publish failed or cancelled batches', async ({ page }) => {
+  await signIn(page);
+  let current = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = current.projects[0];
+  project.fileFolders = [...(project.fileFolders || []), { id: 'zip-folder', name: 'E2E ZIP folder' }];
+  expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  const ids = [];
+  for (const [i, name] of ['архив.txt', 'АРХИВ.txt', 'Дополнение.md'].entries()) {
+    current = (await (await page.request.get('/api/workspace')).json()).data;
+    const upload = await page.request.post('/api/files/upload', {
+      multipart: {
+        file: { name, mimeType: 'text/plain', buffer: Buffer.from(`ZIP fixture ${i} / русский текст`) },
+        revision: String(current.revision),
+        project: project.id,
+        folderId: 'zip-folder',
+      },
+    });
+    expect(upload.status()).toBe(201);
+    ids.push((await upload.json()).file.id);
+  }
+  let downloads = 0;
+  page.on('download', () => downloads++);
+  for (const language of ['English (US)', 'Русский']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.goto('/e2e-team/files');
+    await page.locator('#workspace-file-q').fill('E2E ZIP folder');
+    await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await page.locator('[data-a="selectFilePage"]').click();
+    if (language === 'Русский') await expectRussianUi(page, 'ZIP selection toolbar');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    const event = page.waitForEvent('download');
+    await page.locator('[data-a="downloadSelectedFiles"]').click();
+    const download = await event;
+    const unpacked = unzipSync(new Uint8Array(await readFile(await download.path())));
+    const names = Object.keys(unpacked);
+    expect(names).toHaveLength(3);
+    expect(new Set(names.map(name => name.toLocaleLowerCase())).size).toBe(3);
+    expect(names.some(name => name.endsWith('АРХИВ (2).txt') || name.endsWith('архив (2).txt'))).toBeTruthy();
+    expect(names.every(name => name.includes('/E2E ZIP folder/'))).toBeTruthy();
+    expect(
+      Object.values(unpacked)
+        .map(bytes => strFromU8(bytes))
+        .sort(),
+    ).toEqual([0, 1, 2].map(i => `ZIP fixture ${i} / русский текст`));
+    await expect(page.locator('.files-download-progress')).toHaveCount(0);
+    await page.screenshot({ path: `output/playwright/files-zip-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
+  }
+  const endpoint = `**/api/files/${ids[0]}/content?download=1`;
+  await page.route(endpoint, route =>
+    route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Unable to create the ZIP.', code: 'FILE_UNAVAILABLE' }) }),
+  );
+  await page.locator('[data-a="downloadSelectedFiles"]').click();
+  await expect(page.locator('.toast').filter({ hasText: 'Не удалось создать ZIP.' })).toBeVisible();
+  expect(downloads).toBe(2);
+  await page.unroute(endpoint);
+  await page.route(endpoint, async route => {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await route.fulfill({ status: 200, body: 'late' }).catch(() => {});
+  });
+  await page.locator('[data-a="downloadSelectedFiles"]').click();
+  await expect(page.locator('.files-download-progress')).toBeVisible();
+  await page.locator('[data-a="cancelFileZip"]').click();
+  await expect(page.locator('.files-download-progress')).toHaveCount(0);
+  expect(downloads).toBe(2);
+  await page.unroute(endpoint);
 });
 
 test('large file collections keep bounded pages and remember device view preferences in both languages', async ({ page }) => {
