@@ -9,6 +9,7 @@ import { purgeWorkspaceTrash } from '../core/api.js';
 import { applyWorkspaceSnapshot } from '../core/bootstrap.js';
 import { queueWorkspaceSync } from '../core/workspace-sync.js';
 import { render } from '../shell/render.js';
+import { restoredFileFolder } from '../shared/file-organization.js';
 
 A.restoreTask = el => {
   const t = task(el.dataset.id);
@@ -43,12 +44,13 @@ function restoreTrash(item) {
     D().projOrder.splice(index, 0, data.project.id);
     D().tasks.push(...(data.tasks || []));
     D().comments.push(...(data.comments || []));
-    D().files.push(...(data.files || []));
+    D().files.push(...(data.files || []).map(file => restoredFileFolder(file, D())));
   } else if (item.kind === 'task') {
     if (!D().projects.some(project => project.id === data.task?.project) || D().tasks.some(existing => existing.id === data.task?.id)) return false;
+    data.task.attachments = (data.task.attachments || []).map(file => restoredFileFolder(file, D()));
     D().tasks.push(data.task);
     D().comments.push(...(data.comments || []));
-    D().files.push(...(data.files || []));
+    D().files.push(...(data.files || []).map(file => restoredFileFolder(file, D())));
     for (const id of data.dependentTaskIds || []) {
       const dependent = D().tasks.find(existing => existing.id === id);
       if (dependent && !dependent.deps.includes(data.task.id)) dependent.deps.push(data.task.id);
@@ -61,9 +63,9 @@ function restoreTrash(item) {
     D().links.push(data.link);
   } else if (item.kind === 'file') {
     if (!D().projects.some(project => project.id === data.file?.project) || D().files.some(file => file.id === data.file?.id)) return false;
-    D().files.push(data.file);
+    D().files.push(restoredFileFolder(data.file, D()));
     const parentTask = data.file.task ? D().tasks.find(existing => existing.id === data.file.task) : null;
-    if (parentTask && data.attachment) parentTask.attachments.push(data.attachment);
+    if (parentTask && data.attachment) parentTask.attachments.push(restoredFileFolder(data.attachment, D()));
   } else return false;
   D().trash = D().trash.filter(entry => entry.id !== item.id);
   return true;

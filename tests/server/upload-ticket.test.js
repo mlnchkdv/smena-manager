@@ -14,12 +14,13 @@ test.after(() => {
 });
 
 test('upload tickets preserve trusted metadata and reject tampering or expiry', () => {
-  const ticket = createUploadTicket({ profileId: 'm1', filename: 'stored.pdf', size: 42 }, 1_000);
+  const ticket = createUploadTicket({ profileId: 'm1', filename: 'stored.pdf', size: 42, folderId: 'folder-a' }, 1_000);
   assert.deepEqual(verifyUploadTicket(ticket, 2_000), {
     version: 1,
     profileId: 'm1',
     filename: 'stored.pdf',
     size: 42,
+    folderId: 'folder-a',
     expiresAt: 86_401_000,
   });
   assert.throws(() => verifyUploadTicket(`${ticket}x`, 2_000), /invalid/);

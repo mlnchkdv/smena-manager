@@ -17,6 +17,7 @@ import { retainDetachedFile } from './file-retention.js';
 import { reportProviderError } from './provider-safety.js';
 import { registerFileMetadata } from './file-registry.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { assertFileFolder } from '../shared/file-organization.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -48,7 +49,7 @@ function memberIdFor(database, user) {
   return memberForProfile(database, user)?.id || user.id;
 }
 
-function assertFileTarget(database, user, projectId, taskId) {
+function assertFileTarget(database, user, projectId, taskId, folderId = null) {
   const project = database.projects?.find(item => item.id === projectId);
   if (!project) throw new TypeError('Unknown project.');
   const memberId = memberIdFor(database, user);
@@ -57,16 +58,18 @@ function assertFileTarget(database, user, projectId, taskId) {
     throw Object.assign(new Error('You do not have access to this project.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
   }
   if (taskId && !database.tasks?.some(task => task.id === taskId && task.project === projectId)) throw new TypeError('Unknown task.');
+  assertFileFolder(project, folderId);
 }
 
-function appendFileRecord(database, user, metadata, stored, projectId, taskId) {
-  assertFileTarget(database, user, projectId, taskId);
+function appendFileRecord(database, user, metadata, stored, projectId, taskId, folderId = null) {
+  assertFileTarget(database, user, projectId, taskId, folderId);
   const existing = database.files?.find(item => item.storageFileId === stored.fileId);
   if (existing) return existing;
   const fileRecord = {
     id: `file-${crypto.randomUUID()}`,
     project: projectId,
     task: taskId,
+    folderId,
     name: metadata.name,
     type: filePresentationType(metadata.name),
     size: formatFileSize(metadata.size),
@@ -134,13 +137,14 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     const revision = expectedRevision(request.body?.revision);
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;
+    const folderId = request.body?.folderId || null;
     const filename = storageFilename(metadata.name);
-    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId);
+    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId, folderId);
     stored = await getStorageProvider().uploadFile(filename, { path: request.file.path, size: metadata.size }, metadata.mimeType);
     let fileRecord;
     const data = await mutateWorkspaceDatabase(
       database => {
-        fileRecord = appendFileRecord(database, request.user, metadata, stored, projectId, taskId);
+        fileRecord = appendFileRecord(database, request.user, metadata, stored, projectId, taskId, folderId);
         return database;
       },
       revision,
@@ -167,7 +171,8 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
     });
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;
-    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId);
+    const folderId = request.body?.folderId || null;
+    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId, folderId);
     const storage = getStorageProvider();
     if (typeof storage.createResumableUpload !== 'function') {
       throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
@@ -182,13 +187,23 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
       try {
         await mutateWorkspaceDatabase(
           database => {
-            assertFileTarget(database, request.user, projectId, taskId);
+            assertFileTarget(database, request.user, projectId, taskId, folderId);
             const pending = database._pendingUploads || [];
             if (pending.length >= 500)
               throw Object.assign(new Error('Too many pending uploads. Try again later.'), { statusCode: 429, code: 'UPLOAD_QUEUE_FULL' });
             database._pendingUploads = [
               ...pending,
-              { filename, marker, size: metadata.size, mimeType: metadata.mimeType, ownerId: request.user.id, projectId, taskId, createdAt: Date.now() },
+              {
+                filename,
+                marker,
+                size: metadata.size,
+                mimeType: metadata.mimeType,
+                ownerId: request.user.id,
+                projectId,
+                taskId,
+                folderId,
+                createdAt: Date.now(),
+              },
             ];
             return database;
           },
@@ -211,6 +226,7 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
       profileId: request.user.id,
       projectId,
       taskId,
+      folderId,
       name: metadata.name,
       size: metadata.size,
       mimeType: metadata.mimeType,
@@ -250,7 +266,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
     let data;
     for (let attempt = 0; attempt < 3; attempt++) {
       const current = await getWorkspaceDatabase();
-      assertFileTarget(current, request.user, ticket.projectId, ticket.taskId);
+      assertFileTarget(current, request.user, ticket.projectId, ticket.taskId, ticket.folderId);
       const existing = current.files?.find(item => item.storageFileId === stored.fileId);
       if (existing) {
         fileRecord = existing;
@@ -260,7 +276,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
       try {
         data = await mutateWorkspaceDatabase(
           database => {
-            fileRecord = appendFileRecord(database, request.user, metadata, stored, ticket.projectId, ticket.taskId);
+            fileRecord = appendFileRecord(database, request.user, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
             return database;
           },
           current.revision,

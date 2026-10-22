@@ -36,7 +36,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
       ws: { name: 'Команда' },
       me: 'm1',
       members: [{ id: 'm1', name: 'Editor', email: 'editor@example.test' }],
-      projects: [{ id: 'p1', name: 'Проект', members: ['m1'] }],
+      projects: [{ id: 'p1', name: 'Проект', members: ['m1'], fileFolders: [{ id: 'folder-a', name: 'A' }] }],
       tasks: [],
       files: [],
     },
@@ -53,6 +53,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   form.append('file', new Blob(['0123456789'], { type: 'text/plain' }), 'notes.txt');
   form.append('revision', String(prepared.revision));
   form.append('project', 'p1');
+  form.append('folderId', 'folder-a');
   const uploadedResponse = await fetch(`${origin}/api/files/upload`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
@@ -62,6 +63,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   const uploaded = await uploadedResponse.json();
   assert.equal(uploaded.file.name, 'notes.txt');
   assert.equal(uploaded.file.bytes, 10);
+  assert.equal(uploaded.file.folderId, 'folder-a');
   assert.equal(uploaded.data.revision, prepared.revision + 1);
   assert.ok(uploaded.file.storageFileId);
 

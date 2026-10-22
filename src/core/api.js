@@ -297,6 +297,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     form.append('file', file);
     form.append('revision', String(metadata.revision));
     form.append('project', metadata.project || '');
+    if (metadata.folderId) form.append('folderId', metadata.folderId);
     if (metadata.task) form.append('task', metadata.task);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
@@ -412,6 +413,7 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
         size: file.size,
         mimeType: file.type || 'application/octet-stream',
         project: metadata.project || '',
+        folderId: metadata.folderId || null,
         task: metadata.task || '',
       }),
     },

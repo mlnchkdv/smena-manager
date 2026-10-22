@@ -1,4 +1,5 @@
 import { ENTITY_COLLECTIONS, RELATION_TYPES } from './relations.js';
+import { assertFileFolder, validateProjectFileFolders } from './file-organization.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -116,6 +117,11 @@ export function validateWorkspaceData(value) {
   }
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
     if (!isObject(project)) continue;
+    try {
+      validateProjectFileFolders(project);
+    } catch {
+      invalid.push('projects.fileFolders');
+    }
     if (project.seq != null && (!Number.isSafeInteger(project.seq) || project.seq < 0)) invalid.push('projects.seq');
     if (
       project.perms != null &&
@@ -163,6 +169,24 @@ export function validateWorkspaceData(value) {
   }
   for (const member of Array.isArray(value.members) ? value.members : [])
     if (member?.c != null && (typeof member.c !== 'string' || !/^#[\da-f]{6}$/iu.test(member.c))) invalid.push('members.c');
+  const organizedFiles = [
+    ...(Array.isArray(value.files) ? value.files : []),
+    ...(Array.isArray(value.tasks) ? value.tasks : [])
+      .filter(isObject)
+      .flatMap(task =>
+        (Array.isArray(task.attachments) ? task.attachments : []).filter(isObject).map(file => ({ ...file, project: file.project || task.project })),
+      ),
+  ];
+  for (const file of organizedFiles) {
+    try {
+      assertFileFolder(
+        value.projects?.find(project => project.id === file.project),
+        file.folderId,
+      );
+    } catch {
+      invalid.push('files.folderId');
+    }
+  }
   if (invalid.length) throw new WorkspaceValidationError([...new Set(invalid)]);
   validateDocumentInput('knowledge', value);
   validateDocumentInput('bookmarks', value);
