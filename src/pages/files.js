@@ -6,6 +6,8 @@ import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
+import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
+import { fileFolderBrowser } from '../ui/file-folders.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -31,6 +33,15 @@ function projectChip(file) {
     : '';
 }
 
+function folderChip(file) {
+  const folder = activeFileFolder(proj(file.project), file.folderId);
+  if (!folder) return '';
+  const path = fileFolderPath(proj(file.project), folder.id)
+    .map(item => item.name)
+    .join(' / ');
+  return `<button class="workspace-file-folder trunc" data-a="openFileFolder" data-project="${esc(file.project)}" data-folder="${esc(folder.id)}" title="${esc(path)}">${ic('folder', 12)}<span class="trunc" translate="no">${esc(folder.name)}</span></button>`;
+}
+
 function fileCard(file) {
   const author = mem(file.by);
   const linkedTask = file.task ? task(file.task) : null;
@@ -39,7 +50,7 @@ function fileCard(file) {
       ${filePrev(file)}
       <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${ago(file.at)}</span></span>
     </button>
-    <div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
+    ${folderChip(file)}<div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
   </article>`;
 }
 
@@ -75,24 +86,39 @@ export function pageFiles() {
     .toLowerCase();
   const typeFilter = S.ui.fileType || 'all';
   const projectFilter = projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all';
+  const currentFolder = activeFileFolder(proj(projectFilter), S.ui.fileFolder);
+  if (!currentFolder) S.ui.fileFolder = null;
   const sort = S.ui.fileSort || 'date';
   const view = S.ui.fileView || 'grid';
-  const uploadProject = writableIds.has(S.ui.fileUploadProject)
-    ? S.ui.fileUploadProject
-    : writableIds.has(projectFilter)
-      ? projectFilter
-      : writable[0]?.id || '';
+  const uploadProject =
+    currentFolder || projectFilter !== 'all'
+      ? writableIds.has(projectFilter)
+        ? projectFilter
+        : ''
+      : writableIds.has(S.ui.fileUploadProject)
+        ? S.ui.fileUploadProject
+        : writable[0]?.id || '';
   S.ui.fileUploadProject = uploadProject;
 
   const files = allFiles
     .filter(file => projectFilter === 'all' || file.project === projectFilter)
+    .filter(file => !currentFolder || file.folderId === currentFolder.id)
     .filter(file => typeFilter === 'all' || file.type === typeFilter)
     .filter(file => {
       if (!query) return true;
       const linkedProject = proj(file.project);
       const linkedTask = file.task ? task(file.task) : null;
       const author = mem(file.by);
-      return [file.name, linkedProject?.name, linkedTask?.title, linkedTask?.key, author?.name, fileMeta(file).n, tr(fileMeta(file).n)]
+      return [
+        file.name,
+        linkedProject?.name,
+        ...fileFolderPath(linkedProject, file.folderId).map(folder => folder.name),
+        linkedTask?.title,
+        linkedTask?.key,
+        author?.name,
+        fileMeta(file).n,
+        tr(fileMeta(file).n),
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
@@ -105,11 +131,11 @@ export function pageFiles() {
       return Number(right.at || 0) - Number(left.at || 0);
     });
 
-  const pageKey = `files:${projectFilter}:${typeFilter}:${sort}:${query}`;
+  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${typeFilter}:${sort}:${query}`;
   const window = listWindow(files, S.ui.listPages?.[pageKey]);
   const totalBytes = allFiles.reduce((sum, file) => sum + Number(file.bytes || 0), 0);
   const projectCount = new Set(allFiles.map(file => file.project)).size;
-  const readOnly = !writable.length;
+  const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
@@ -118,7 +144,7 @@ export function pageFiles() {
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></div>`
+          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></div>`
       }
     </header>
 
@@ -161,8 +187,9 @@ export function pageFiles() {
     ${
       readOnly || !projects.length
         ? ''
-        : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}"></label>`
+        : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
+    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0)}
     ${uploadsHtml()}
     ${
       files.length

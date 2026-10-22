@@ -1872,6 +1872,7 @@ export async function handleFiles(files, ctx) {
           revision: S.ui.workspaceRevision,
           project: ctx.project,
           task: ctx.task,
+          folderId: ctx.folderId || null,
           direct: S.ui.filePolicy?.directUploadEnabled === true,
           signal: up.controller.signal,
         },
@@ -1900,7 +1901,7 @@ A.chooseStoredFiles = el => {
   if (input?.matches('input[type="file"][data-in="uploadFiles"]') && canEditProject(proj(input.dataset.project), D().me, S.ui.currentUser?.role)) input.click();
 };
 IN.uploadFiles = el => {
-  void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task });
+  void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task, folderId: el.dataset.folder });
   el.value = '';
 };
 A.cancelUpload = el => {
@@ -2939,6 +2940,10 @@ IN.fileSort = el => {
 };
 IN.fileProject = el => {
   S.ui.fileProject = el.value;
+  S.ui.fileFolder = null;
+  S.ui.fileFolderQuery = '';
+  S.ui.fileFolderOffset = 0;
+  S.ui.fileFoldersArchived = false;
   if (el.value !== 'all') S.ui.fileUploadProject = el.value;
   render();
 };
@@ -2950,6 +2955,10 @@ A.clearFileFilters = () => {
   S.ui.fileQ = '';
   S.ui.fileType = 'all';
   S.ui.fileProject = 'all';
+  S.ui.fileFolder = null;
+  S.ui.fileFolderQuery = '';
+  S.ui.fileFolderOffset = 0;
+  S.ui.fileFoldersArchived = false;
   render();
   document.getElementById('workspace-file-q')?.focus({ preventScroll: true });
 };

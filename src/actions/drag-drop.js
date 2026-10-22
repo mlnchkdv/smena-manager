@@ -121,7 +121,7 @@ document.addEventListener('drop', e => {
     if (!dz) return;
     e.preventDefault();
     clearDropMarks();
-    if (dz.dataset.dropzone) handleFiles(files, { project: dz.dataset.dropzone });
+    if (dz.dataset.dropzone) handleFiles(files, { project: dz.dataset.dropzone, folderId: dz.dataset.folder });
     else {
       const t = task(dz.dataset.dropzoneTask || S.ui.drawer);
       if (t) handleFiles(files, { project: t.project, task: t.id });
