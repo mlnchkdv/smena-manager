@@ -5,6 +5,8 @@ import {
   fileBatchTargets,
   fileFolderPath,
   moveFilesToFolder,
+  moveFileFolder,
+  planFileFolderMove,
   restoredFileFolder,
   restoreFileFolder,
   saveFileFolder,
@@ -36,6 +38,29 @@ function fixture() {
     tasks: [{ id: 't', project: 'p', attachments: [{ id: 'f', project: 'p', folderId: 'a', storageName: 'stored.txt' }] }],
   };
 }
+
+test('folder tree relocation previews affected items and validates before any mutation', () => {
+  const data = fixture();
+  data.projects[0].fileFolders.push({ id: 'c', name: 'C' });
+  const beforeFiles = structuredClone(data.files),
+    beforeTasks = structuredClone(data.tasks);
+  const preview = planFileFolderMove(data, 'p', 'a', 'c', 'editor');
+  assert.equal(preview.folderCount, 2);
+  assert.equal(preview.fileCount, 1);
+  assert.equal(data.projects[0].fileFolders[0].parentId, undefined);
+  assert.ok(moveFileFolder(data, 'p', 'a', 'c', 'editor'));
+  assert.deepEqual(
+    fileFolderPath(data.projects[0], 'b').map(folder => folder.id),
+    ['c', 'a', 'b'],
+  );
+  assert.deepEqual(data.files, beforeFiles);
+  assert.deepEqual(data.tasks, beforeTasks);
+  const before = structuredClone(data);
+  for (const parent of ['a', 'b', 'missing']) assert.throws(() => moveFileFolder(data, 'p', 'a', parent, 'editor'));
+  assert.deepEqual(data, before);
+  data.projects[0].perms.m = 'Can view';
+  assert.throws(() => moveFileFolder(data, 'p', 'a', null, 'editor'));
+});
 
 test('file folders remain project scoped and preserve physical identity on a move', () => {
   const data = fixture();

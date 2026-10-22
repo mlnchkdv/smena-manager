@@ -4,6 +4,31 @@
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
 }
+.files-presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: var(--fs-xs);
+}
+.files-presets .select {
+  width: auto;
+  min-width: 0;
+  max-width: 220px;
+}
+@media (max-width: 640px) {
+  .files-presets .select {
+    flex: 1;
+    max-width: 100%;
+  }
+  .files-presets .btn {
+    min-height: 44px;
+  }
+  .files-presets .hint {
+    flex-basis: 100%;
+  }
+}
 .files-download-progress {
   position: sticky;
   top: 0;

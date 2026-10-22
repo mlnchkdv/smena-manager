@@ -110,10 +110,10 @@ export function pageFiles(projectId = null) {
         : writable[0]?.id || '';
   S.ui.fileUploadProject = uploadProject;
 
-  const files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, type: typeFilter, query, sort });
+  const files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, recursive: S.ui.fileRecursive, type: typeFilter, query, sort });
 
   const pageSize = S.ui.filePageSize || 100;
-  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${typeFilter}:${sort}:${query}:${pageSize}`;
+  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
   const window = listWindow(files, S.ui.listPages?.[pageKey], pageSize);
   const totalBytes = index.totalBytes;
   const projectCount = index.projectsWithFiles.size;
@@ -136,6 +136,8 @@ export function pageFiles(projectId = null) {
       <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${formatBytes(totalBytes)}</b></span></div>
       <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
     </section>
+
+    <section class="files-presets" aria-label="Saved file filters"><button class="btn btn-ghost btn-sm" data-a="saveFileFilter">${ic('bookmark-plus', 15)}Save file filters</button>${S.ui.fileFilterPresets?.length ? `<select class="select" data-in="fileFilterPreset" aria-label="Saved file filters"><option value="">Saved file filters</option>${S.ui.fileFilterPresets.map(preset => `<option value="${esc(preset.id)}" ${S.ui.fileSelectedPreset === preset.id ? 'selected' : ''} translate="no">${esc(preset.name)}</option>`).join('')}</select>${S.ui.fileSelectedPreset ? `<button class="ibtn" data-a="removeFileFilter" aria-label="Remove saved file filter" title="Remove saved file filter">${ic('x', 15)}</button>` : ''}` : ''}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>
 
     <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
@@ -175,7 +177,7 @@ export function pageFiles(projectId = null) {
     ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index)}
     ${uploadsHtml()}
     ${fileDownloadProgress()}
-    ${fileSelectionBar(window.items)}
+    ${fileSelectionBar(window.items, files)}
     ${
       files.length
         ? view === 'grid'

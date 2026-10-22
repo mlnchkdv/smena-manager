@@ -118,3 +118,38 @@ export function restoredFileFolder(file, data) {
   const project = data.projects?.find(item => item.id === file.project);
   return activeFileFolder(project, file.folderId) ? file : { ...file, folderId: null };
 }
+
+export function planFileFolderMove(data, projectId, id, parentId, role) {
+  const project = writableProject(data, projectId, role);
+  const folder = activeFileFolder(project, id);
+  if (!folder) fail('This file folder is no longer available.');
+  const target = assertFileFolder(project, parentId);
+  const candidate = fileFolders(project).map(item => (item.id === id ? { ...item, parentId: target } : item));
+  // Includes cycle, depth, archived parent and duplicate sibling validation.
+  validateProjectFileFolders({ fileFolders: candidate });
+  const children = new Map();
+  for (const item of fileFolders(project)) {
+    if (!children.has(item.parentId)) children.set(item.parentId, []);
+    children.get(item.parentId).push(item.id);
+  }
+  const descendants = new Set(),
+    pending = [id];
+  while (pending.length) {
+    const current = pending.pop();
+    if (!descendants.has(current)) {
+      descendants.add(current);
+      pending.push(...(children.get(current) || []));
+    }
+  }
+  return {
+    folders: candidate,
+    folderCount: descendants.size,
+    fileCount: (data.files || []).filter(file => file.project === projectId && descendants.has(file.folderId)).length,
+  };
+}
+
+export function moveFileFolder(data, projectId, id, parentId, role) {
+  const plan = planFileFolderMove(data, projectId, id, parentId, role);
+  writableProject(data, projectId, role).fileFolders = plan.folders;
+  return true;
+}

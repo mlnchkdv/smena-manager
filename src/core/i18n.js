@@ -15,6 +15,24 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Move folder': 'Переместить папку',
+  'Folder moved.': 'Папка перемещена.',
+  'Folders in this tree': 'Папок в этой ветке',
+  'Files in this tree': 'Файлов в этой ветке',
+  'Direct files': 'Файлов в папке',
+  'The whole folder tree moves within this project. Access permissions stay unchanged.':
+    'Вся ветка папок перемещается внутри проекта. Права доступа не меняются.',
+  'Include subfolders': 'Включить вложенные папки',
+  'Showing this folder tree.': 'Показаны файлы всей ветки папок.',
+  'Showing direct files only.': 'Показаны только файлы текущей папки.',
+  'Save file filters': 'Сохранить фильтры файлов',
+  'Saved file filters': 'Сохранённые фильтры файлов',
+  'Remove saved file filter': 'Удалить сохранённый фильтр файлов',
+  'Save up to 12 file filters. Remove an unused filter first.': 'Можно сохранить до 12 фильтров файлов. Сначала удалите ненужный фильтр.',
+  'This saved filter is unavailable in the current project or folder.': 'Этот фильтр недоступен в текущем проекте или папке.',
+  'Device storage is unavailable. Filters will not survive reload.': 'Локальное хранилище недоступно. Фильтры не сохранятся после обновления.',
+  'Select results': 'Выбрать найденное',
+  'Narrow the filters to select up to 500 files.': 'Уточните фильтры, чтобы выбрать до 500 файлов.',
   'Stream ZIP': 'ZIP потоком',
   'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.':
     'ZIP потоком: до 500 файлов / 250 МБ, 45 секунд. Без хранения всего архива в памяти.',

@@ -80,13 +80,13 @@ export function createFileIndex(data, projects, typeNames = {}) {
   };
 }
 
-export function filterIndexedFiles(index, { project = 'all', folder = null, type = 'all', query = '', sort = 'date' } = {}) {
+export function filterIndexedFiles(index, { project = 'all', folder = null, recursive = false, type = 'all', query = '', sort = 'date' } = {}) {
   const terms = normalizeFileSearch(query).trim().split(/\s+/).filter(Boolean);
   return index.files
     .filter(
       file =>
         (project === 'all' || file.project === project) &&
-        (!folder || file.folderId === folder) &&
+        (!folder || file.folderId === folder || (recursive && index.folderPath(file.project, file.folderId).some(item => item.id === folder))) &&
         (type === 'all' || file.type === type) &&
         terms.every(term => index.search.get(file.id).includes(term)),
     )

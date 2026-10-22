@@ -3,7 +3,8 @@ import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
-import { fileFolders, fileFolderPath, activeFileFolder } from '../shared/file-organization.js';
+import { fileFolders, fileFolderPath, activeFileFolder, planFileFolderMove } from '../shared/file-organization.js';
+import { createFileIndex } from '../shared/file-index.js';
 
 export function fileFolderForm(modal, H) {
   const projects = visibleProjects().filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
@@ -17,6 +18,8 @@ export function fileFolderForm(modal, H) {
 
 export function fileMoveForm(modal, H) {
   const project = proj(modal.projectId);
+  const source = activeFileFolder(project, modal.folderMoveId);
+  const index = createFileIndex({ files: [] }, project ? [project] : []);
   const selected = new Set(modal.ids);
   const files = D().files.filter(file => selected.has(file.id));
   const terms = String(modal.query || '')
@@ -24,10 +27,11 @@ export function fileMoveForm(modal, H) {
     .split(/\s+/)
     .filter(Boolean);
   const folders = fileFolders(project)
-    .filter(folder => !folder.archived)
+    .filter(folder => !folder.archived && (!source || !index.folderPath(project.id, folder.id).some(parent => parent.id === source.id)))
     .map(folder => ({
       folder,
-      path: fileFolderPath(project, folder.id)
+      path: index
+        .folderPath(project.id, folder.id)
         .map(item => item.name)
         .join(' / '),
     }))
@@ -35,9 +39,19 @@ export function fileMoveForm(modal, H) {
     .sort((a, b) => a.path.localeCompare(b.path));
   const start = Math.min(modal.offset || 0, Math.max(0, Math.ceil(folders.length / 20) - 1) * 20);
   const targetValid = !modal.folderId || activeFileFolder(project, modal.folderId);
-  const changed = files.some(file => (file.folderId || null) !== (modal.folderId || null));
-  const allowed = files.length === selected.size && files.every(file => file.project === project?.id && canEditFile(file, D(), S.ui.currentUser?.role));
-  return `${H('Move files')}<div class="modal-b col" style="gap:12px"><p class="hint"><span>Selected files</span>: ${selected.size} · <span translate="no">${esc(project?.name || '')}</span></p><div class="inwrap">${ic('search', 14)}<input class="input" id="file-move-query" data-in="fileMoveQuery" value="${esc(modal.query || '')}" placeholder="Find destination folder" aria-label="Find destination folder"></div><div class="file-move-folders"><button class="file-move-row ${modal.folderId ? '' : 'on'}" data-a="selectFileMoveTarget" data-folder="" aria-pressed="${!modal.folderId}">${ic('folder-open', 18)}<span>No folder</span></button>${folders
+  const changed = source ? (source.parentId || null) !== (modal.folderId || null) : files.some(file => (file.folderId || null) !== (modal.folderId || null));
+  let preview;
+  if (source) {
+    try {
+      preview = planFileFolderMove(D(), project.id, source.id, modal.folderId, S.ui.currentUser?.role);
+    } catch {
+      /* Invalid destinations cannot be confirmed. */
+    }
+  }
+  const allowed = modal.folderMoveId
+    ? Boolean(source && preview)
+    : files.length === selected.size && files.every(file => file.project === project?.id && canEditFile(file, D(), S.ui.currentUser?.role));
+  return `${H(modal.folderMoveId ? 'Move folder' : 'Move files')}<div class="modal-b col" style="gap:12px">${source ? `<p translate="no"><strong>${esc(source.name)}</strong></p>${preview ? `<p class="hint"><span>Folders in this tree</span>: ${preview.folderCount} · <span>Files in this tree</span>: ${preview.fileCount}</p>` : ''}<p class="hint">The whole folder tree moves within this project. Access permissions stay unchanged.</p>` : `<p class="hint"><span>Selected files</span>: ${selected.size} · <span translate="no">${esc(project?.name || '')}</span></p>`}<div class="inwrap">${ic('search', 14)}<input class="input" id="file-move-query" data-in="fileMoveQuery" value="${esc(modal.query || '')}" placeholder="Find destination folder" aria-label="Find destination folder"></div><div class="file-move-folders"><button class="file-move-row ${modal.folderId ? '' : 'on'}" data-a="selectFileMoveTarget" data-folder="" aria-pressed="${!modal.folderId}">${ic('folder-open', 18)}<span>No folder</span></button>${folders
     .slice(start, start + 20)
     .map(
       ({ folder, path }) =>

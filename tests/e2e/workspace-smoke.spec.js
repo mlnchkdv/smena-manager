@@ -801,6 +801,78 @@ test('large file collections keep bounded pages and remember device view prefere
   }
 });
 
+test('folder trees move safely and saved recursive filters survive reload in both languages on mobile', async ({ page }) => {
+  await signIn(page);
+  let current = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = current.projects[0];
+  project.fileFolders = [
+    ...(project.fileFolders || []),
+    { id: 'tree-a', name: 'E2E Tree A' },
+    { id: 'tree-child', name: 'E2E Child', parentId: 'tree-a' },
+    { id: 'tree-b', name: 'E2E Tree B' },
+  ];
+  current.files.push(
+    ...['tree-a', 'tree-child'].map((folderId, i) => ({
+      id: `tree-file-${i}`,
+      project: project.id,
+      name: `Tree file ${i}.txt`,
+      folderId,
+      type: 'doc',
+      by: current.me,
+      at: i,
+    })),
+  );
+  expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  try {
+    for (const language of ['English (US)', 'Русский']) {
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption(language);
+      await page.setViewportSize({ width: 320, height: 844 });
+      // Direct project entry must load all file handlers without visiting workspace Files first.
+      await page.goto(`/e2e-team/project/${project.id}/files`);
+      await expect(page.locator('#workspace-file-project')).toBeDisabled();
+      await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
+      await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
+      await expect(page.locator('.file-move-row', { hasText: 'E2E Child' })).toHaveCount(0);
+      await page.locator('.file-move-row', { hasText: 'E2E Tree B' }).click();
+      await page.locator('[data-a="confirmFileMove"]').click();
+      await waitForSaved(page);
+      await page.reload();
+      await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
+      await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('[data-a="openFileFolder"]').click();
+      await expect(page.locator('.workspace-file-card')).toHaveCount(1);
+      await page.locator('[data-a="toggleFileRecursive"]').click();
+      await expect(page.locator('.workspace-file-card')).toHaveCount(2);
+      await page.locator('[data-a="saveFileFilter"]').click();
+      await page.locator('#prompt-in').fill('E2E saved tree');
+      await page.locator('[data-a="promptSubmit"]').click();
+      await page.reload();
+      await page.locator('[data-in="fileFilterPreset"]').selectOption({ label: 'E2E saved tree' });
+      await expect(page.locator('.workspace-file-card')).toHaveCount(2);
+      await page.locator('.files-selection-bar [data-a="selectFilePage"]').nth(1).click();
+      await expect(page.locator('.files-selected-count b')).toHaveText('2');
+      if (language === 'Русский') await expectRussianUi(page, 'Recursive folder filters');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await page.locator('[data-a="removeFileFilter"]').click();
+      // Move A back to the project root through the same picker for the next locale.
+      await page.locator('.files-folder-crumbs [data-project="all"]').click();
+      await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
+      await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
+      await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
+      await page.locator('.file-move-row[data-folder=""]').click();
+      await page.locator('[data-a="confirmFileMove"]').click();
+      await waitForSaved(page);
+    }
+  } finally {
+    current = (await (await page.request.get('/api/workspace')).json()).data;
+    current.projects.find(item => item.id === project.id).fileFolders = current.projects
+      .find(item => item.id === project.id)
+      .fileFolders.filter(folder => !folder.id.startsWith('tree-'));
+    current.files = current.files.filter(file => !file.id.startsWith('tree-file-'));
+    expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  }
+});
+
 test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {
   await signIn(page);
   const current = (await (await page.request.get('/api/workspace')).json()).data;

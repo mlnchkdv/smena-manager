@@ -3,6 +3,29 @@ import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { createFileIndex, filterIndexedFiles } from '../../src/shared/file-index.js';
 
+test('direct and recursive folder results are explicit and cannot leak other projects', () => {
+  const project = {
+    id: 'p',
+    name: 'P',
+    fileFolders: [
+      { id: 'a', name: 'A' },
+      { id: 'b', name: 'B', parentId: 'a' },
+    ],
+  };
+  const index = createFileIndex(
+    {
+      files: [
+        { id: 'one', name: 'one', project: 'p', folderId: 'a' },
+        { id: 'two', name: 'two', project: 'p', folderId: 'b' },
+        { id: 'hidden', name: 'hidden', project: 'other', folderId: 'a' },
+      ],
+    },
+    [project],
+  );
+  assert.equal(filterIndexedFiles(index, { project: 'p', folder: 'a' }).length, 1);
+  assert.equal(filterIndexedFiles(index, { project: 'p', folder: 'a', recursive: true }).length, 2);
+});
+
 test('file index scopes projects, resolves paths, counts direct children and tokenizes multilingual queries', () => {
   const project = {
     id: 'p',

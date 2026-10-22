@@ -1,5 +1,6 @@
 import { D, S } from './store.js';
 import { fileViewKey, readFileView, writeFileView } from '../shared/file-view.js';
+import { readFilePresets, writeFilePresets } from '../shared/file-presets.js';
 let loadedKey;
 const key = () => fileViewKey(S.ui.currentUser?.id, D().ws?.id || D().ws?.url);
 export function filePreferences() {
@@ -15,6 +16,9 @@ export function filePreferences() {
     /* Storage can be disabled. */
   }
   const value = readFileView(storage, next);
+  S.ui.fileFilterPresets = readFilePresets(storage, next);
+  S.ui.fileSelectedPreset = '';
+  S.ui.fileRecursive = false;
   S.ui.fileView = value.view;
   S.ui.fileSort = value.sort;
   S.ui.filePageSize = value.pageSize;
@@ -27,6 +31,13 @@ export function filePreferences() {
   S.ui.fileType = 'all';
   S.ui.fileQ = '';
   S.ui.fileSelection = [];
+}
+export function saveFileFilterPresets() {
+  try {
+    return writeFilePresets(localStorage, key(), S.ui.fileFilterPresets);
+  } catch {
+    return false;
+  }
 }
 export function saveFilePreferences() {
   try {
