@@ -2,13 +2,16 @@ import { A, IN, KEY } from '../actions/actions.js';
 import { D, S, proj, visibleProjects } from '../core/store.js';
 import { uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
-import { openModal, closeModal } from '../overlays/modals.js';
+import { openModal, closeModal, fileModalRenderers } from '../overlays/modals.js';
+import { fileFolderForm, fileMoveForm } from '../ui/file-organization-modals.js';
 import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
 import { saveFilePreferences } from '../core/file-preferences.js';
 import { getSessionGeneration } from '../core/api.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
+
+Object.assign(fileModalRenderers, { fileFolderForm, fileMove: fileMoveForm });
 
 const owner = () => ({ owner: S.ui.currentUser?.id, workspace: D().ws?.id || D().ws?.url });
 const modalFor = type => {

@@ -11,7 +11,8 @@ import { t as tr, templateText } from '../core/i18n.js';
 import { relationPicker, relationsPanel } from '../ui/relations.js';
 import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
 import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
-import { fileFolderForm, fileMoveForm } from '../ui/file-organization-modals.js';
+// Registered by the lazy file feature before a file dialog can be opened.
+export const fileModalRenderers = {};
 
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
@@ -44,9 +45,9 @@ export function modalHtml(m) {
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
     case 'fileFolderForm':
-      return wrap('sm', fileFolderForm(m, H));
+      return wrap('sm', fileModalRenderers.fileFolderForm(m, H));
     case 'fileMove':
-      return wrap('file-move-dialog', fileMoveForm(m, H));
+      return wrap('file-move-dialog', fileModalRenderers.fileMove(m, H));
     case 'knowledgeMove':
       return wrap('knowledge-move-dialog', H('Move notes', 'Choose a destination, then confirm the move.') + knowledgeMovePicker(m));
     case 'relations':

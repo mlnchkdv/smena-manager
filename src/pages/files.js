@@ -11,6 +11,8 @@ import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences } from '../core/file-preferences.js';
+import '../features/files.js';
+import '../features/file-selection.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);

@@ -6,6 +6,8 @@ import { canEditProject } from '../shared/project-access.js';
 import { FT, av, empty, filePrev, fileType, fsize } from '../ui/helpers.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
+import '../features/files.js';
+import '../features/file-selection.js';
 
 export function filesHtml(pid) {
   const u = S.ui;
