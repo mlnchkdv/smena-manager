@@ -2,27 +2,18 @@ import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { canEditProject } from '../shared/project-access.js';
-import { fileFolders, fileFolderPath } from '../shared/file-organization.js';
+import { normalizeFileSearch } from '../shared/file-index.js';
 
-export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles) {
+export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, index) {
   const scope = projects.filter(project => projectId === 'all' || project.id === projectId);
   const archived = Boolean(S.ui.fileFoldersArchived);
-  const query = String(S.ui.fileFolderQuery || '')
-    .trim()
-    .toLocaleLowerCase();
+  const query = normalizeFileSearch(S.ui.fileFolderQuery).trim();
   const terms = query.split(/\s+/).filter(Boolean);
-  const all = scope.flatMap(project => fileFolders(project).map(folder => ({ folder, project })));
+  const all = index.folderEntries.filter(entry => projectId === 'all' || entry.project.id === projectId);
   const entries = all
-    .filter(({ folder, project }) => {
+    .filter(({ folder, search }) => {
       if (Boolean(folder.archived) !== archived) return false;
-      if (query)
-        return terms.every(term =>
-          `${project.name} ${fileFolderPath(project, folder.id)
-            .map(item => item.name)
-            .join(' ')}`
-            .toLocaleLowerCase()
-            .includes(term),
-        );
+      if (query) return terms.every(term => search.includes(term));
       return archived || (folder.parentId || null) === (currentFolder?.id || null);
     })
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
@@ -32,7 +23,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles) 
   const page = entries.slice(start, start + limit);
   const writable = scope.some(project => canEditProject(project, D().me, S.ui.currentUser?.role));
   const currentProject = scope.find(project => project.id === projectId);
-  const crumbs = currentFolder ? fileFolderPath(currentProject, currentFolder.id) : [];
+  const crumbs = currentFolder ? index.folderPath(currentProject.id, currentFolder.id) : [];
   return `<section class="files-folders" aria-label="File folders">
     <nav class="files-folder-crumbs" aria-label="File location"><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="all" data-folder="">All files</button>${currentProject ? `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="${esc(projectId)}" data-folder="" translate="no">${esc(currentProject.name)}</button>` : ''}${crumbs.map(folder => `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="${esc(projectId)}" data-folder="${esc(folder.id)}" translate="no">${esc(folder.name)}</button>`).join('')}</nav>
     <div class="files-folders-head"><h2>${archived ? 'Archived folders' : 'Folders'}</h2><span class="num faint">${entries.length ? `${start + 1}–${start + page.length} / ${entries.length}` : '0'}</span><span class="sp"></span>${hasFiles ? `<button class="ibtn" data-a="focusFileResults" aria-label="Jump to files" title="Jump to files">${ic('arrow-down', 16)}</button>` : ''}<button class="ibtn" data-a="toggleFileFolderArchive" aria-pressed="${archived}" aria-label="Archived folders" title="Archived folders">${ic('archive', 16)}</button>${writable && !archived ? `<button class="btn btn-secondary btn-sm" data-a="newFileFolder">${ic('folder-plus', 15)}<span>New folder</span></button>` : ''}</div>
@@ -42,13 +33,12 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles) 
         ? `<div class="files-folder-grid">${page
             .map(({ folder, project }) => {
               const writable = canEditProject(project, D().me, S.ui.currentUser?.role);
-              const nonempty =
-                fileFolders(project).some(item => !item.archived && item.parentId === folder.id) ||
-                D().files.some(file => file.project === project.id && file.folderId === folder.id);
-              const count = D().files.filter(file => file.project === project.id && file.folderId === folder.id).length;
+              const count = index.count(project.id, folder.id);
+              const nonempty = index.hasChildren(project.id, folder.id) || count > 0;
               const context = [
                 project.name,
-                ...fileFolderPath(project, folder.id)
+                ...index
+                  .folderPath(project.id, folder.id)
                   .slice(0, -1)
                   .map(item => item.name),
               ].join(' / ');

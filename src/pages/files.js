@@ -7,6 +7,7 @@ import { paginationHtml } from '../ui/pagination.js';
 import { t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
+import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection } from '../ui/file-selection.js';
 
@@ -82,7 +83,8 @@ export function pageFiles() {
   const projectIds = new Set(projects.map(project => project.id));
   const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
   const writableIds = new Set(writable.map(project => project.id));
-  const allFiles = (D().files || []).filter(file => projectIds.has(file.project));
+  const index = createFileIndex(D(), projects, Object.fromEntries(Object.entries(FT).map(([key, meta]) => [key, `${meta.n} ${tr(meta.n)}`])));
+  const allFiles = index.files;
   syncFileSelection(allFiles);
   const query = String(S.ui.fileQ || '')
     .trim()
@@ -103,41 +105,12 @@ export function pageFiles() {
         : writable[0]?.id || '';
   S.ui.fileUploadProject = uploadProject;
 
-  const files = allFiles
-    .filter(file => projectFilter === 'all' || file.project === projectFilter)
-    .filter(file => !currentFolder || file.folderId === currentFolder.id)
-    .filter(file => typeFilter === 'all' || file.type === typeFilter)
-    .filter(file => {
-      if (!query) return true;
-      const linkedProject = proj(file.project);
-      const linkedTask = file.task ? task(file.task) : null;
-      const author = mem(file.by);
-      return [
-        file.name,
-        linkedProject?.name,
-        ...fileFolderPath(linkedProject, file.folderId).map(folder => folder.name),
-        linkedTask?.title,
-        linkedTask?.key,
-        author?.name,
-        fileMeta(file).n,
-        tr(fileMeta(file).n),
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-        .includes(query);
-    })
-    .sort((left, right) => {
-      if (sort === 'name') return left.name.localeCompare(right.name);
-      if (sort === 'size') return Number(right.bytes || 0) - Number(left.bytes || 0);
-      if (sort === 'project') return (proj(left.project)?.name || '').localeCompare(proj(right.project)?.name || '');
-      return Number(right.at || 0) - Number(left.at || 0);
-    });
+  const files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, type: typeFilter, query, sort });
 
   const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${typeFilter}:${sort}:${query}`;
   const window = listWindow(files, S.ui.listPages?.[pageKey]);
-  const totalBytes = allFiles.reduce((sum, file) => sum + Number(file.bytes || 0), 0);
-  const projectCount = new Set(allFiles.map(file => file.project)).size;
+  const totalBytes = index.totalBytes;
+  const projectCount = index.projectsWithFiles.size;
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const searched = Boolean(query || typeFilter !== 'all');
@@ -193,7 +166,7 @@ export function pageFiles() {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0)}
+    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index)}
     ${uploadsHtml()}
     ${fileSelectionBar(window.items)}
     ${
