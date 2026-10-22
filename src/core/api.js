@@ -323,6 +323,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     if (metadata.task) form.append('task', metadata.task);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
+    xhr.setRequestHeader('X-Smena-File-Catalog', 'pages');
     xhr.withCredentials = true;
     if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     if (sessionAccount) xhr.setRequestHeader('X-Smena-Account', encodeURIComponent(sessionAccount));
@@ -337,12 +338,23 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     };
     xhr.onerror = () => reject(new ApiError('The server is unavailable.', 0, 'NETWORK_ERROR'));
     xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
-    xhr.onload = () => {
+    xhr.onload = async () => {
       if (generation !== sessionGeneration)
         return reject(new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true }));
       const body = xhr.response || {};
-      if (xhr.status >= 200 && xhr.status < 300) resolve(body);
-      else {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          if (body.fileCatalog) {
+            body.data = await readCatalogSnapshot(body);
+            delete body.fileCatalog;
+          }
+          if (generation !== sessionGeneration)
+            throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
+          resolve(body);
+        } catch (error) {
+          reject(error);
+        }
+      } else {
         if (body.code === 'SESSION_ACCOUNT_CHANGED') return reject(accountChanged());
         if (xhr.status === 401) clearSession();
         reject(new ApiError(body.error || `Upload failed (${xhr.status}).`, xhr.status, body.code || 'UPLOAD_FAILED', body));
