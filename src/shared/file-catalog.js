@@ -39,7 +39,7 @@ export function fileCatalogChanges(before, after) {
 }
 
 export function applyFileCatalogChanges(files, changes) {
-  if (!changes || !Array.isArray(changes.upsert) || !Array.isArray(changes.remove) || changes.upsert.length + changes.remove.length > 1000)
+  if (!changes || !Array.isArray(changes.upsert) || !Array.isArray(changes.remove) || changes.upsert.length + changes.remove.length > 100000)
     throw new TypeError('Invalid file catalog changes.');
   const upsert = new Map();
   const remove = new Set(changes.remove);

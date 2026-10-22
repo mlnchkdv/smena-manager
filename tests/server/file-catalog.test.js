@@ -78,3 +78,8 @@ test('unchanged metadata can be reused across core revisions without sharing a m
   assert.equal(reused.files[0].name, 'Original');
   assert.deepEqual(catalogWrite(reused, 2, 44).fileChanges, { upsert: [], remove: [] });
 });
+
+test('a project-level operation can remove a large catalog without the UI selection cap truncating it', () => {
+  const files = Array.from({ length: 1200 }, (_, i) => ({ id: `f${i}`, project: 'p' }));
+  assert.deepEqual(applyFileCatalogChanges(files, fileCatalogChanges(files, [])), []);
+});
