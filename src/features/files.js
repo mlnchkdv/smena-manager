@@ -1,4 +1,4 @@
-import { A, IN } from '../actions/actions.js';
+import { A, IN, KEY } from '../actions/actions.js';
 import { D, S, proj, visibleProjects } from '../core/store.js';
 import { uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
@@ -6,6 +6,7 @@ import { openModal, closeModal } from '../overlays/modals.js';
 import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
+import { saveFilePreferences } from '../core/file-preferences.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
 
 const owner = () => ({ owner: S.ui.currentUser?.id, workspace: D().ws?.id || D().ws?.url });
@@ -34,10 +35,32 @@ A.openFileFolder = el => {
   document.querySelector('.files-folder-crumbs button')?.focus({ preventScroll: true });
 };
 A.toggleFileFolderArchive = () => {
+  S.ui.fileFoldersCollapsed = false;
   S.ui.fileFoldersArchived = !S.ui.fileFoldersArchived;
   S.ui.fileFolder = null;
   S.ui.fileFolderOffset = 0;
   S.ui.fileFolderQuery = '';
+  render();
+};
+IN.filePageSize = el => {
+  S.ui.filePageSize = [25, 50, 100].includes(Number(el.value)) ? Number(el.value) : 100;
+  saveFilePreferences();
+  render();
+};
+A.filePageJump = el => A.listPage({ dataset: { key: el.dataset.key, page: Math.max(0, Number(el.value) - 1) } });
+A.fileFolderJump = el => A.fileFolderPage({ dataset: { offset: Math.max(0, Number(el.value) - 1) * Number(el.dataset.size) } });
+KEY.filePageJump = A.filePageJump;
+KEY.fileFolderJump = A.fileFolderJump;
+KEY.saveFileFolder = () => A.saveFileFolder();
+A.toggleFileFolderLayout = () => {
+  S.ui.fileFolderLayout = S.ui.fileFolderLayout === 'compact' ? 'tiles' : 'compact';
+  S.ui.fileFolderOffset = 0;
+  saveFilePreferences();
+  render();
+};
+A.toggleFileFolders = () => {
+  S.ui.fileFoldersCollapsed = !S.ui.fileFoldersCollapsed;
+  saveFilePreferences();
   render();
 };
 IN.fileFolderQuery = el => {

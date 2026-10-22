@@ -621,6 +621,8 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await page.reload();
     current = (await (await page.request.get('/api/workspace')).json()).data;
     expect(current.files.filter(file => ids.includes(file.id)).map(file => file.folderId)).toEqual([target, target, target]);
+    await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('.files-view-switch [data-v="grid"]').click();
     await page.locator('#workspace-file-q').fill('e2e-batch-');
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     if (language === 'Русский') await expectRussianUi(page, 'Bulk file browser');
@@ -642,6 +644,84 @@ test('bulk files move atomically across searchable folder pages and go to recove
   await waitForSaved(page);
   await page.goto('/e2e-team/files');
   await expect(page.locator('.workspace-file-card', { hasText: 'e2e-batch-1.txt' })).toContainText('Массовый перенос A');
+});
+
+test('large file collections keep bounded pages and remember device view preferences in both languages', async ({ page }) => {
+  await signIn(page);
+  let current = (await (await page.request.get('/api/workspace')).json()).data;
+  current.projects.push({
+    id: 'scale-files',
+    name: 'Большая коллекция',
+    members: [current.me],
+    fileFolders: Array.from({ length: 600 }, (_, i) => ({ id: `scale-folder-${i}`, name: `Папка ${String(i).padStart(3, '0')}` })),
+  });
+  current.projOrder.push('scale-files');
+  current.files.push(
+    ...Array.from({ length: 1200 }, (_, i) => ({
+      id: `scale-file-${i}`,
+      name: `Большой файл ${i}.txt`,
+      project: 'scale-files',
+      folderId: `scale-folder-${i % 600}`,
+      type: 'doc',
+      by: current.me,
+      at: i,
+    })),
+  );
+  expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  try {
+    await page.goto('/e2e-team/files');
+    await expect(page.locator('#workspace-file-project option[value="scale-files"]')).toHaveCount(1);
+    await page.locator('#workspace-file-project').selectOption('scale-files');
+    await page.locator('#files-page-size').selectOption('25');
+    await page.locator('#workspace-file-sort').selectOption('name');
+    await page.locator('.files-view-switch [data-v="list"]').click();
+    await expect(page.locator('.workspace-file-table tbody tr')).toHaveCount(25);
+    await page.locator('#files-page-jump').fill('48');
+    await page.locator('#files-page-jump').press('Enter');
+    await expect(page.locator('#files-page-jump')).toHaveValue('48');
+    await expect(page.locator('.files-pagination nav .hint')).toContainText('48 / 48');
+    await page.locator('[data-a="toggleFileFolderLayout"]').click();
+    await expect(page.locator('.files-folder-tile')).toHaveCount(16);
+    await page.locator('#files-folder-page-jump').fill('38');
+    await page.locator('#files-folder-page-jump').press('Enter');
+    await expect(page.locator('.files-folder-tile')).toHaveCount(8);
+    await page.reload();
+    await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#files-page-size')).toHaveValue('25');
+    await expect(page.locator('#workspace-file-sort')).toHaveValue('name');
+    await expect(page.locator('.files-folder-grid')).toHaveClass(/compact/);
+    for (const language of ['English (US)', 'Русский']) {
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption(language);
+      await page.setViewportSize({ width: 320, height: 844 });
+      await page.goto('/e2e-team/files');
+      await page.locator('#workspace-file-project').selectOption('scale-files');
+      await expect(page.locator('.files-folder-tile')).toHaveCount(8);
+      await page.locator('#files-folder-query').fill('ПАПКА 599');
+      await expect(page.locator('.files-folder-tile')).toHaveCount(1);
+      await page.locator('#workspace-file-q').fill('Большой ПАПКА 599');
+      await expect(page.locator('.workspace-file-table tbody tr')).toHaveCount(2);
+      await page.locator('[data-a="toggleFileFolders"]').click();
+      await expect(page.locator('.files-folder-tile')).toHaveCount(0);
+      if (language === 'Русский') await expectRussianUi(page, 'Large file collections');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await page.screenshot({ path: `output/playwright/files-scale-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
+      await page.reload();
+      await expect(page.locator('[data-a="toggleFileFolders"]')).toHaveAttribute('aria-expanded', 'false');
+      await page.locator('[data-a="toggleFileFolders"]').click();
+    }
+  } finally {
+    await page.goto('/e2e-team/files');
+    await page.locator('#files-page-size').selectOption('100');
+    await page.locator('#workspace-file-sort').selectOption('date');
+    await page.locator('.files-view-switch [data-v="grid"]').click();
+    if (await page.locator('.files-folder-grid.compact').count()) await page.locator('[data-a="toggleFileFolderLayout"]').click();
+    current = (await (await page.request.get('/api/workspace')).json()).data;
+    current.projects = current.projects.filter(project => project.id !== 'scale-files');
+    current.projOrder = current.projOrder.filter(id => id !== 'scale-files');
+    current.files = current.files.filter(file => file.project !== 'scale-files');
+    expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  }
 });
 
 test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {

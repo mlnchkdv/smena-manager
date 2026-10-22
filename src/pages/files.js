@@ -10,6 +10,7 @@ import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js
 import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection } from '../ui/file-selection.js';
+import { filePreferences } from '../core/file-preferences.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -79,6 +80,7 @@ function uploadsHtml() {
 }
 
 export function pageFiles() {
+  filePreferences();
   const projects = visibleProjects().filter(canSee);
   const projectIds = new Set(projects.map(project => project.id));
   const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
@@ -107,8 +109,9 @@ export function pageFiles() {
 
   const files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, type: typeFilter, query, sort });
 
-  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${typeFilter}:${sort}:${query}`;
-  const window = listWindow(files, S.ui.listPages?.[pageKey]);
+  const pageSize = S.ui.filePageSize || 100;
+  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${typeFilter}:${sort}:${query}:${pageSize}`;
+  const window = listWindow(files, S.ui.listPages?.[pageKey], pageSize);
   const totalBytes = index.totalBytes;
   const projectCount = index.projectsWithFiles.size;
   const readOnly = !uploadProject;
@@ -193,6 +196,6 @@ export function pageFiles() {
             1,
           )
     }
-    ${paginationHtml(window, pageKey)}
+    <div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>
   </div>`;
 }

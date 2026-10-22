@@ -26,6 +26,7 @@ import {
 import { fileType, fsize } from '../ui/helpers.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { detachTaskFile } from '../shared/file-identity.js';
+import { saveFilePreferences } from '../core/file-preferences.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -308,6 +309,7 @@ A.set = el => {
   if (k === 'inboxSel' && !v) v = null;
   if (k === 'inboxCat') S.ui.inboxSel = null;
   S.ui[k] = v;
+  if (k === 'fileView') saveFilePreferences();
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;
   render();
 };
@@ -2936,6 +2938,7 @@ IN.fileType = el => {
 };
 IN.fileSort = el => {
   S.ui.fileSort = el.value;
+  saveFilePreferences();
   render();
 };
 IN.fileProject = el => {
