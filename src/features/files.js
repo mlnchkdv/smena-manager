@@ -4,6 +4,7 @@ import { uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
 import { openModal, closeModal, fileModalRenderers } from '../overlays/modals.js';
 import { fileFolderForm, fileMoveForm } from '../ui/file-organization-modals.js';
+import { streamSelectedFiles } from '../core/file-stream-download.js';
 import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
@@ -28,7 +29,7 @@ const change = run => {
   }
 };
 
-const downloadSelection = async stream => {
+A.downloadSelectedFiles = async () => {
   const initial = owner(),
     generation = getSessionGeneration(),
     ids = [...(S.ui.fileSelection || [])];
@@ -36,13 +37,12 @@ const downloadSelection = async stream => {
     const module = await import('../core/file-download.js');
     const current = owner();
     if (initial.owner === current.owner && initial.workspace === current.workspace && generation === getSessionGeneration())
-      await (stream ? module.streamSelectedFiles(ids) : module.downloadSelectedFiles(ids));
+      await module.downloadSelectedFiles(ids);
   } catch {
     toast('Unable to create the ZIP.', { kind: 'err' });
   }
 };
-A.downloadSelectedFiles = () => downloadSelection(false);
-A.streamSelectedFiles = () => downloadSelection(true);
+A.streamSelectedFiles = streamSelectedFiles;
 A.cancelFileZip = () => S.ui.fileDownload?.controller.abort();
 A.toggleFileRecursive = () => {
   S.ui.fileRecursive = !S.ui.fileRecursive;

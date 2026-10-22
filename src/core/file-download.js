@@ -2,31 +2,10 @@ import { D, S } from './store.js';
 import { downloadWorkspaceFile, getSessionGeneration } from './api.js';
 import { render } from '../shell/render.js';
 import { toast } from '../ui/toast.js';
-import { createFileArchivePlan, ZIP_LIMIT_MESSAGE, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
+import { createFileArchivePlan, ZIP_LIMIT_MESSAGE } from '../shared/file-archive-policy.js';
 import { buildFileZip } from '../shared/file-zip.js';
 
 const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, getSessionGeneration()]);
-export function streamSelectedFiles(ids) {
-  try {
-    createFileArchivePlan(D(), ids, S.ui.currentUser?.role, STREAM_ZIP_POLICY);
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `/api/files/archive?account=${encodeURIComponent(S.ui.currentUser.id)}`;
-    for (const [name, value] of Object.entries({ ids: JSON.stringify(ids), revision: String(S.ui.workspaceRevision) })) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value;
-      form.append(input);
-    }
-    document.body.append(form);
-    form.submit();
-    form.remove();
-    toast('Manage streamed downloads in your browser. If interrupted, use smaller batches.');
-  } catch (error) {
-    toast(error.message, { kind: 'err' });
-  }
-}
 export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])]) {
   if (S.ui.fileDownload) return;
   const owner = scope();
