@@ -552,6 +552,10 @@ test('PDF previews render pages locally without document scripts in Russian and 
     );
     await page.setViewportSize({ width: 320, height: 844 });
     await page.locator('.workspace-file-table').scrollIntoViewIfNeeded();
+    const firstRow = page.locator('.workspace-file-table tbody tr').first();
+    const nameBox = await firstRow.locator('td').first().boundingBox();
+    const actionsBox = await firstRow.locator('.workspace-file-actions').boundingBox();
+    expect(Math.abs(nameBox.y - actionsBox.y)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `output/playwright/files-list-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();

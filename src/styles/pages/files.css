@@ -345,6 +345,7 @@
   }
   .workspace-file-table td:first-child {
     grid-column: 1 / -1;
+    grid-row: 1;
   }
   .workspace-file-table td:first-child::before,
   .workspace-file-table .workspace-file-actions::before {
