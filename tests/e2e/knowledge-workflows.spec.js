@@ -136,6 +136,10 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-tile')).toHaveCount(2);
   await expect(page.locator('.knowledge-mixed-grid .knowledge-preview-card')).toHaveCount(2);
   await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toHaveCount(0);
+  const folderIconTops = await page
+    .locator('.knowledge-mixed-grid .knowledge-folder-card > svg')
+    .evaluateAll(icons => icons.map(icon => icon.getBoundingClientRect().top));
+  expect(Math.abs(folderIconTops[0] - folderIconTops[1])).toBeLessThanOrEqual(1);
   await page.screenshot({ path: 'output/playwright/knowledge-mixed-local-desktop-20261022.png' });
   await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveCount(0);
