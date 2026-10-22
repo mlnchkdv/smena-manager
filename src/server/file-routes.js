@@ -6,7 +6,7 @@ import { pipeline } from 'node:stream/promises';
 import { Router } from 'express';
 import multer from 'multer';
 import { requireRole } from './auth.js';
-import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload } from './file-policy.js';
+import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload, multipartFilename } from './file-policy.js';
 import { getStorageProvider } from './storage/index.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
@@ -133,7 +133,11 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
   let stored = null;
   try {
     if (!request.file) throw new TypeError('No file was uploaded.');
-    const metadata = validateFileUpload(request.file, process.env, { proxy: true });
+    const metadata = validateFileUpload(
+      { ...request.file, originalname: typeof request.body?.name === 'string' ? request.body.name : multipartFilename(request.file.originalname) },
+      process.env,
+      { proxy: true },
+    );
     const revision = expectedRevision(request.body?.revision);
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;

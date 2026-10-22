@@ -6,6 +6,18 @@ const SAFE_INLINE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'pd
 const ACTIVE_CONTENT_EXTENSIONS = new Set(['html', 'htm', 'xhtml', 'svg', 'js', 'mjs', 'cjs']);
 const ACTIVE_CONTENT_MIME_TYPES = new Set(['text/html', 'application/xhtml+xml', 'image/svg+xml', 'text/javascript', 'application/javascript']);
 
+// Busboy's legacy filename parameter defaults to Latin-1. Modern browsers
+// send UTF-8 bytes; decode strictly without damaging actual Latin-1 names.
+export function multipartFilename(value) {
+  const name = String(value || '');
+  if ([...name].some(character => character.codePointAt(0) > 255)) return name;
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(Buffer.from(name, 'latin1'));
+  } catch {
+    return name;
+  }
+}
+
 function extensionOf(filename) {
   return path
     .extname(String(filename || ''))
