@@ -19,7 +19,7 @@ export function installDeploymentRecovery(buildId) {
       sync: workspaceSyncState(),
       personal: personalPreferenceSyncState(),
       uploads: S.ui.uploads,
-      transfer: S.ui.fileDownload,
+      transfer: S.ui.fileDownload || (['preparing', 'ready'].includes(S.ui.fileNativeTransfer?.phase) && S.ui.fileNativeTransfer),
       forms: S.ui.modals?.length || S.ui.drawer || S.ui.knowledgeDrawer || S.ui.pop || S.ui.palette,
       drafts: Object.values(S.ui.drafts || {}).some(value => Boolean(value)),
       loading: S.ui.loading,

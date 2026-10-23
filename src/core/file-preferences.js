@@ -9,6 +9,8 @@ export function filePreferences() {
   S.ui.fileDownload?.dispose?.();
   S.ui.fileDownload?.controller.abort();
   S.ui.fileDownload = null;
+  S.ui.fileNativeTransfer?.controller.abort();
+  S.ui.fileNativeTransfer = null;
   loadedKey = next;
   let storage;
   try {

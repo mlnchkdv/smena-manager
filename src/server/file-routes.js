@@ -119,6 +119,19 @@ function contentDisposition(filename, attachment) {
 
 export const fileRouter = Router();
 const activeArchives = new Map();
+fileRouter.post('/archive/preflight', async (request, response, next) => {
+  try {
+    const database = await getWorkspaceDatabase();
+    if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
+    const plan = createFileArchivePlan({ ...database, me: memberIdFor(database, request.user) }, request.body.ids, request.user.role, STREAM_ZIP_POLICY);
+    for (const item of plan) assertArchiveFileAccess(database, request.user, item.file);
+    if (activeArchives.get(request.user.id) > Date.now() || [...activeArchives.values()].filter(expiry => expiry > Date.now()).length >= 8)
+      throw Object.assign(new Error('Another archive is being downloaded. Try again later.'), { statusCode: 429 });
+    response.json({ revision: database.revision, files: plan.length, bytes: plan.reduce((sum, item) => sum + item.file.bytes, 0) });
+  } catch (error) {
+    next(error);
+  }
+});
 fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parameterLimit: 5 }), async (request, response, next) => {
   const controller = new AbortController();
   let timer,

@@ -30,7 +30,8 @@
   }
 }
 .files-download-progress,
-.files-download-ready {
+.files-download-ready,
+.files-native-transfer {
   position: sticky;
   top: 0;
   z-index: 7;
@@ -42,7 +43,8 @@
   font-size: var(--fs-xs);
 }
 .files-download-progress .row,
-.files-download-ready .row {
+.files-download-ready .row,
+.files-native-transfer .row {
   flex-wrap: wrap;
   gap: 8px;
 }

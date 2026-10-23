@@ -702,8 +702,11 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     await page.locator('.files-download-ready a[download]').click();
     const manual = unzipSync(new Uint8Array(await readFile(await (await manualEvent).path())));
     expect(Object.keys(manual)).toEqual(names);
-    const streamedEvent = page.waitForEvent('download');
     await page.locator('[data-a="streamSelectedFiles"]').click();
+    await expect(page.locator('[data-a="startPreparedFileStream"]')).toBeVisible();
+    if (language === 'Русский') await expectRussianUi(page, 'Native ZIP preflight');
+    const streamedEvent = page.waitForEvent('download');
+    await page.locator('[data-a="startPreparedFileStream"]').click();
     const streamed = unzipSync(new Uint8Array(await readFile(await (await streamedEvent).path())));
     expect(Object.keys(streamed)).toEqual(names);
     expect(Object.values(streamed).map(bytes => strFromU8(bytes))).toEqual(Object.values(unpacked).map(bytes => strFromU8(bytes)));

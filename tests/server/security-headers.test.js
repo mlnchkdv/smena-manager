@@ -28,6 +28,6 @@ test('application security headers restrict active and privileged browser conten
 
 test('Vercel static responses use the same security headers as the API', () => {
   const config = JSON.parse(fs.readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'));
-  const configured = Object.fromEntries(config.headers[0].headers.map(header => [header.key, header.value]));
+  const configured = Object.fromEntries(config.headers.find(rule => rule.source === '/(.*)').headers.map(header => [header.key, header.value]));
   assert.deepEqual(configured, HTTP_SECURITY_HEADERS);
 });

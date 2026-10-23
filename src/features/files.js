@@ -4,7 +4,7 @@ import { uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
 import { openModal, closeModal, fileModalRenderers } from '../overlays/modals.js';
 import { fileFolderForm, fileMoveForm } from '../ui/file-organization-modals.js';
-import { streamSelectedFiles } from '../core/file-stream-download.js';
+import { streamSelectedFiles, startPreparedFileStream, cancelFileStream } from '../core/file-stream-download.js';
 import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
@@ -44,6 +44,9 @@ A.downloadSelectedFiles = async () => {
   }
 };
 A.streamSelectedFiles = streamSelectedFiles;
+A.startPreparedFileStream = startPreparedFileStream;
+A.cancelFileStream = cancelFileStream;
+A.retryFileStream = () => streamSelectedFiles(S.ui.fileNativeTransfer?.ids);
 A.cancelFileZip = () => {
   const state = S.ui.fileDownload;
   if (state?.phase === 'ready') {

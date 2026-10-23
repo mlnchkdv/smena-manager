@@ -15,6 +15,18 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Checking download access…': 'Проверяем доступ к скачиванию…',
+  'Download checked. Ready to start.': 'Проверка завершена. Можно начать скачивание.',
+  'Start browser download': 'Начать скачивание в браузере',
+  'Check and retry': 'Проверить и повторить',
+  'Browser download requested. Check downloads in your browser; completion cannot be verified here.':
+    'Запрос на скачивание передан браузеру. Проверьте его загрузки: здесь нельзя определить завершение.',
+  'Download preparation expired. Check again before downloading.': 'Срок проверки истёк. Перед скачиванием проверьте ещё раз.',
+  'Unable to prepare the download. Check connection and access, or select a smaller batch.':
+    'Не удалось подготовить скачивание. Проверьте подключение и права или выберите меньше файлов.',
+  'Another archive is being downloaded. Try again later.': 'Другой архив ещё скачивается. Повторите позднее.',
+  'If interrupted, select fewer files or use Download ZIP. Closing this panel does not cancel a browser-managed download.':
+    'При обрыве выберите меньше файлов или обычное скачивание ZIP. Закрытие панели не отменяет загрузку в браузере.',
   'Data capacity': 'Ёмкость данных',
   'Each data limit is independent of Google Drive free space.': 'У каждого раздела свой лимит данных, не связанный со свободным местом на Google Диске.',
   'Workspace core': 'Основные данные пространства',

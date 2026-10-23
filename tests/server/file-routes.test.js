@@ -109,6 +109,19 @@ test('authenticated editors can upload and range-download a workspace file', asy
   assert.equal((await getWorkspaceDatabase()).files[0].name, 'renamed.txt');
   assert.equal((await fetch(`${origin}/api/files/catalog?revision=${manifest.data.revision}`, { headers })).status, 409);
   uploaded.data.revision = patched.data.revision;
+  const preflight = await fetch(`${origin}/api/files/archive/preflight`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ids: [uploaded.file.id], revision: patched.data.revision }),
+  });
+  assert.equal(preflight.status, 200);
+  assert.deepEqual(await preflight.json(), { revision: patched.data.revision, files: 1, bytes: 10 });
+  const stalePreflight = await fetch(`${origin}/api/files/archive/preflight`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ids: [uploaded.file.id], revision: patched.data.revision - 1 }),
+  });
+  assert.equal(stalePreflight.status, 409);
   const archive = await fetch(`${origin}/api/files/archive?account=m1`, {
     method: 'POST',
     headers,
