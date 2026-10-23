@@ -1,5 +1,6 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'Export checkpoints': 'Состояние заданий экспорта',
   'Prepared ZIP expired. Select files and prepare a new ZIP.': 'Срок готового ZIP истёк. Выберите файлы и подготовьте новый архив.',
   'Resumable exports': 'Возобновляемый экспорт',
   'Prepare selected files': 'Подготовить выбранные файлы',

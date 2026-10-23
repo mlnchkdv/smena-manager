@@ -6,6 +6,7 @@ test('data guards remain independently visible when catalog dwarfs core/document
   assert.ok(result.core.bytes < 100);
   assert.equal(result.catalog.maxBytes, 32 * 1024 * 1024);
   assert.equal(result.knowledge.maxBytes, 4 * 1024 * 1024);
+  assert.equal(result.exports.maxBytes, 8 * 1024 * 1024);
 });
 test('storage accounting distinguishes aliases, retained bytes and unknown backup usage', () => {
   const file = { storageFileId: 'active', storageName: 'a', bytes: 12 };

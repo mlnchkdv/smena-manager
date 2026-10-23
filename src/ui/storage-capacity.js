@@ -5,7 +5,7 @@ import { fsize } from './helpers.js';
 export function storageCapacityPanel() {
   const status = S.ui.systemStatus;
   if (!status?.capacities) return '';
-  const labels = { core: 'Workspace core', catalog: 'File catalog', knowledge: 'Knowledge base', bookmarks: 'Bookmarks' };
+  const labels = { core: 'Workspace core', catalog: 'File catalog', exports: 'Export checkpoints', knowledge: 'Knowledge base', bookmarks: 'Bookmarks' };
   const storage = status.fileStorage,
     counters = status.providerFailures;
   return `<section class="sblock storage-capacity"><h2>Data capacity</h2><p class="muted">Each data limit is independent of Google Drive free space.</p><dl>${Object.entries(

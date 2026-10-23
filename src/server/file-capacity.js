@@ -1,6 +1,6 @@
 import { physicalFileKey } from './file-registry.js';
 import { workspaceCoreData, workspaceDocumentData, DOCUMENT_NAMES } from '../shared/workspace-documents.js';
-import { workspaceCapacity, workspaceTransportBytes } from '../shared/workspace-size.js';
+import { workspaceCapacity, workspaceTransportBytes, jsonByteLength } from '../shared/workspace-size.js';
 import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
 
 export function workspaceCapacities(data, documents) {
@@ -8,6 +8,7 @@ export function workspaceCapacities(data, documents) {
   const capacities = {
     core: workspaceCapacity(workspaceTransportBytes(core, data.revision)),
     catalog: workspaceCapacity(workspaceTransportBytes({ files }, data.revision), FILE_CATALOG_MAX_BYTES),
+    exports: workspaceCapacity(jsonByteLength(data._fileExportJobs || []), 8 * 1024 * 1024),
   };
   for (const name of DOCUMENT_NAMES)
     capacities[name] = workspaceCapacity(workspaceTransportBytes(workspaceDocumentData(name, documents[name]), documents[name]?.revision || 0));
