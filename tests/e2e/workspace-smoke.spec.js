@@ -1071,6 +1071,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('.modal .file-preview-image')).toBeVisible({ timeout: 30000 });
     await expect(page).toHaveURL(new RegExp(`/file/${file.id}$`));
     await page.locator('.modal-f [data-a="closeModal"]').click();
+    await page.setViewportSize({ width: 320, height: 844 });
     let failedContextCalls = 0;
     await page.route('**/api/files/catalog/query', route => {
       failedContextCalls++;
