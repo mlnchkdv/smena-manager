@@ -335,6 +335,10 @@
   .files-page-head {
     gap: 14px;
   }
+  .files-page-head p,
+  .workspace-files-dropzone {
+    display: none;
+  }
   .files-upload-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -349,12 +353,11 @@
   .files-summary > div {
     flex-direction: column;
     align-items: flex-start;
-    gap: 7px;
-    padding: 11px;
+    gap: 0;
+    padding: 8px 10px;
   }
   .files-summary-icon {
-    width: 28px;
-    height: 28px;
+    display: none;
   }
   .files-summary b {
     font-size: var(--fs-sm);
