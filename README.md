@@ -8,13 +8,17 @@
 
 A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
 files, members, teams, activity and settings. The interface is being adapted into the Smena team's
-own workspace and prepared for later KMS modules such as knowledge, files and bookmarks.
+own workspace, with knowledge notes, project files, bookmarks and material connections already available.
 
 The interface supports English and Russian. Change the language in **Settings → Language**;
-the preference is saved locally and also updates localized dates and accessibility labels.
+the preference is synchronized with the user's account and cached locally. It also updates localized dates and accessibility labels.
 
 Built with plain JavaScript ES modules and CSS, bundled by [Vite](https://vite.dev). There is no
-UI framework and no runtime dependency.
+UI framework. The Express server uses runtime dependencies for Drive, authentication and notifications;
+graph and PDF libraries are loaded on demand in the browser.
+
+Current audit findings, delivered fixes and verification limits / Текущий аудит, исправления и границы проверок:
+[`docs/IMPROVEMENT_STATUS.md`](docs/IMPROVEMENT_STATUS.md).
 
 ![Smena Manager home dashboard](docs/preview.png)
 
@@ -52,7 +56,7 @@ silently replace newer team data.
 - `GET /api/workspace` returns the current versioned JSON snapshot.
 - `PUT /api/workspace` validates and updates the snapshot for editors and administrators when its revision still matches. Omitted top-level collections are preserved.
 - Local development stores the JSON database in `.data/smena-manager-data.json`.
-- Production stores one versioned `smena-manager-data.json` file in Google Drive.
+- Production stores a versioned `smena-manager-data.json` root and immutable project catalog parts in Google Drive.
 - Redis stores no workspace content; it is used only as a short distributed write lock between
   concurrent Vercel Functions.
 - The browser's `localStorage` is an offline cache, not the shared source of truth.
@@ -75,11 +79,15 @@ write concurrency. The account menu reports the active write-protection mode and
 lock is reachable, without exposing connection credentials.
 
 The API exposes three independently revisioned documents: workspace core, knowledge and bookmarks.
-Each has a 4 MiB transport budget. Storage schema 2 persists them together in one aggregate JSON
-with a single ETag-protected write, so restore, deletion and portable imports cannot partially replace
-the documents. Old separate content files are read during migration and retained as rollback sources;
-they are not the source of truth after the first aggregate write. Binary files remain separate Drive
-objects. This design favors consistency for a small team and does not reduce the bytes written per save.
+Each has a 4 MiB transport budget; the file catalog has its own 32 MiB logical budget. Storage schema 3
+keeps core/knowledge/bookmarks and a compact catalog manifest in the root, with complete file records
+in immutable project parts. Parts are checksum-verified and the root is published last with one
+ETag-protected write. Initial bootstrap does not fetch full catalog records; file browsing resolves
+bounded pages on demand. Unchanged parts are reused, including after global reordering.
+Legacy aggregate/separate-document layouts remain readable. Binary files remain separate Drive
+objects. Whole-workspace writes/backups and the explicitly opened full graph still materialize
+records; this is not independent per-project transaction storage. See the context document for
+rollback, retention and concurrency limitations.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
 projects/tasks/files but not membership or workspace settings, and `viewer` cannot change shared content.
