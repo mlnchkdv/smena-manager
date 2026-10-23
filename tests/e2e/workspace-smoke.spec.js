@@ -31,6 +31,7 @@ async function signIn(page, accessId = 'e2e-access-id-2026-secure') {
   await page.locator('#login-btn').click();
   await finishOnboarding(page);
   await expect(page.locator('.shell')).toBeVisible();
+  await waitForSaved(page);
 }
 
 async function waitForSaved(page) {
@@ -804,7 +805,9 @@ test('large file collections keep bounded pages and remember device view prefere
 test('folder trees move safely and saved recursive filters survive reload in both languages on mobile', async ({ page }) => {
   await signIn(page);
   let current = (await (await page.request.get('/api/workspace')).json()).data;
-  const project = current.projects[0];
+  const project = { id: 'tree-project', name: 'E2E tree project', members: [current.me] };
+  current.projects.push(project);
+  current.projOrder.push(project.id);
   project.fileFolders = [
     ...(project.fileFolders || []),
     { id: 'tree-a', name: 'E2E Tree A' },
@@ -865,9 +868,8 @@ test('folder trees move safely and saved recursive filters survive reload in bot
     }
   } finally {
     current = (await (await page.request.get('/api/workspace')).json()).data;
-    current.projects.find(item => item.id === project.id).fileFolders = current.projects
-      .find(item => item.id === project.id)
-      .fileFolders.filter(folder => !folder.id.startsWith('tree-'));
+    current.projects = current.projects.filter(item => item.id !== project.id);
+    current.projOrder = current.projOrder.filter(id => id !== project.id);
     current.files = current.files.filter(file => !file.id.startsWith('tree-file-'));
     expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
   }

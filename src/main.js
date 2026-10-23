@@ -347,6 +347,8 @@ window.addEventListener('popstate', () => {
     const l = document.createElement('div');
     l.id = 'sr-live';
     l.className = 'sr';
+    // pageTitle already localizes UI labels and preserves authored entity names.
+    l.setAttribute('translate', 'no');
     l.setAttribute('aria-live', 'polite');
     document.body.appendChild(l);
   }
