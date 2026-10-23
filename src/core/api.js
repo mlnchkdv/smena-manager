@@ -407,7 +407,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   });
 }
 
-function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) {
+function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal, generation) {
   return new Promise((resolve, reject) => {
     let start = 0;
     let failures = 0;
@@ -419,6 +419,10 @@ function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) 
       xhr.timeout = 120000;
     };
     const cancelled = () => {
+      if (generation !== sessionGeneration) {
+        reject(new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true }));
+        return true;
+      }
       if (!signal?.aborted) return false;
       reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
       return true;
@@ -433,6 +437,7 @@ function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) 
       attachAbort(xhr);
       xhr.onerror = xhr.ontimeout = () => setTimeout(probe, 1000);
       xhr.onload = () => {
+        if (cancelled()) return;
         if (xhr.status >= 200 && xhr.status < 300) return resolve(xhr.response || {});
         if (xhr.status !== 308) return reject(new ApiError(`Google Drive rejected the upload (${xhr.status}).`, xhr.status, 'DIRECT_UPLOAD_FAILED'));
         const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
@@ -457,6 +462,7 @@ function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) 
       };
       xhr.onerror = xhr.ontimeout = probe;
       xhr.onload = () => {
+        if (cancelled()) return;
         if (xhr.status === 308) {
           const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
           const next = accepted ? Number(accepted[1]) + 1 : 0;
@@ -480,6 +486,7 @@ function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal) 
 }
 
 async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
+  const generation = sessionGeneration;
   const session = await request(
     '/api/files/upload-session',
     {
@@ -496,7 +503,9 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
     },
     true,
   );
-  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress, metadata.signal);
+  assertSessionGeneration(generation);
+  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress, metadata.signal, generation);
+  assertSessionGeneration(generation);
   return request(
     '/api/files/upload-complete',
     {

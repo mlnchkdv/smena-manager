@@ -51,6 +51,48 @@ test('multipart uploads resolve only the uploaded identity instead of hydrating 
   }
 });
 
+test('direct uploads cannot continue chunks or finalize through a newly signed-in account', async () => {
+  const originalFetch = globalThis.fetch,
+    originalXHR = globalThis.XMLHttpRequest;
+  let started, xhr;
+  globalThis.XMLHttpRequest = class {
+    upload = {};
+    open() {}
+    setRequestHeader() {}
+    send() {
+      xhr = this;
+      started();
+    }
+  };
+  let requests = 0;
+  globalThis.fetch = async path => {
+    requests++;
+    assert.equal(path, '/api/files/upload-session', 'No completion request may use the new account');
+    return new Response(JSON.stringify({ uploadUrl: 'https://example.test/upload', ticket: 'test-ticket', chunkSizeBytes: 2 }));
+  };
+  try {
+    for (const status of [200, 308]) {
+      setSessionToken('old-owner');
+      const ready = new Promise(resolve => {
+        started = resolve;
+      });
+      const pending = uploadWorkspaceFile(new File(['abcdef'], 'test.txt'), { direct: true, project: 'p' });
+      await ready;
+      setSessionToken('new-owner');
+      xhr.status = status;
+      xhr.response = { id: 'uploaded-id' };
+      xhr.getResponseHeader = () => 'bytes=0-1';
+      xhr.onload();
+      await assert.rejects(pending, { code: 'SESSION_CHANGED', staleSession: true });
+    }
+    assert.equal(requests, 2);
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+    globalThis.XMLHttpRequest = originalXHR;
+  }
+});
+
 test('lazy catalog imports cannot send an old workspace through a new account', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = () => assert.fail('No request may be sent after the account changes during an import');
