@@ -1,5 +1,25 @@
 # Improvement status / Статус улучшений
 
+## Cold search and ancillary catalog reads — 24 October 2026 / Холодный поиск и служебные чтения
+
+This follow-up supersedes the older "no persistent search index / export reads materialize everything" limitation below. / Этот этап уточняет прежнее ограничение об отсутствии постоянного поискового индекса и полных чтениях экспортов.
+
+- `6cb034b`: export list/result/validation use a single fresh root and scoped canonical parts for live owned jobs only; expired/cancelled/foreign jobs trigger no part reads. Ownership, ACL, storage identity, size and expiry checks remain. / Экспорты читают только нужные живым собственным заданиям файлы из согласованного снимка, проверки сохранены.
+- `b06c93c`: optional v1 search descriptors in the v3 manifest publish immutable compact metadata parts alongside canonical parts, before the conditional root write. SHA-256/bytes/count/order/project/root-key validation and legacy fallback are tested. History-only edits reuse the index; canonical materialization now also uses the verified 8 MiB LRU. / Компактные индексные части ускоряют холодный поиск; неизменённый индекс переиспользуется, старые каталоги остаются читаемыми.
+- `450a8e9`: streamed ZIP preflight/download/continuation resolve selected IDs instead of unrelated files. / Потоковый ZIP больше не собирает весь каталог для каждой проверки.
+- `88c62bd`: knowledge search, outbox queue diagnostics and push/test member lookup use metadata reads. / Служебные пути не требуют истории файлов.
+- `00bc948`: GET preferences reuses its own auth-middleware root; it no longer performs a second Drive root read. Other users' preferences remain private. / Настройки читаются из уже проверенного снимка без повторного обращения к Drive и без раскрытия чужих настроек.
+
+Verification / Проверки:
+
+- 400/400 server/shared tests passed after all code changes; lint, formatting and build passed, initial JS remains 599.8/600 KiB. / Серверные тесты, lint, форматирование и сборка пройдены, бюджет не повышался.
+- The cold-index regression uses 120 files with 50,000-character histories: search bytes are less than 1% of canonical bytes, with equivalent RU/EN queries, sorting and folder counts. It also covers missing/corrupt/mismatched indexes, old layouts, revoked ACLs, history-only reuse and interrupted publication. This is a synthetic byte-volume comparison, not a production latency benchmark. / Сравнение объёма синтетическое, не замер задержки production.
+- The unmodified 1200-file/600-folder RU/EN/mobile/reload scenario passed in Chromium, Firefox and WebKit (3/3, 2.2 minutes), recorded in `output/cold-search-engines.log`. / Масштабный браузерный сценарий прошёл во всех трёх движках.
+- Production briefly returned a storage error during bootstrap. Vercel recorded one `/api/preferences` error after 15,041 ms without a specific provider status. `/api/auth/me` and the next reload succeeded without another sign-in; redundant preference loading was then removed. No claim that all provider timeouts are solved. / Зафиксирован единичный сбой; повторный вход не понадобился, дублирующее чтение устранено, полное устранение внешних таймаутов не заявляется.
+- Production RU/EN checks covered search results/empty results, mobile folder B navigation, the retained TXT preview and export-ready status. Graph loaded 15 materials/6 connections, including after a mobile reload without another login. Actual widths 320/941 CSS px had zero document overflow; Russian and the normal viewport were restored. The latest inspected production alias was Ready; its bounded 15-minute runtime-error query returned zero records (not an uptime guarantee). Evidence: `output/playwright/cold-search-production-en-320.png`, `output/playwright/cold-search-production-final-ru.png`, `output/cold-search-production-final-errors.log`. / Проверены поиск, мобильная папка, предпросмотр, граф и сохранение входа; материалы команды не изменены. Отсутствие ошибок в ограниченном журнале не означает отсутствие любых будущих сбоев.
+
+Remaining / Ограничения: cold queries scan all readable **compact index parts**, not an inverted index; old roots use canonical fallback until a normal save. The number of parts/root size still matters. Whole-workspace mutations, backup/restore and detailed capacity accounting remain canonical full reads. Independent project transactions, immutable metadata GC, physical iOS/Android background/lock-screen acceptance remain separate work. / Холодный поиск ещё линейный по разрешённым индексным частям; большие root, общие записи/копии, подробный учёт ёмкости, GC и реальные телефоны требуют следующих этапов. Production team materials are not modified by this audit; no cron, cleanup, recovery or delivery test is triggered. / Данные команды не изменяются, cron/очистка/восстановление/рассылка не запускаются.
+
 ## Graph/catalog loading follow-up — 23–24 October 2026 / Оптимизация загрузки графа и каталога
 
 Implemented / Выполнено:
