@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { Readable } from 'node:stream';
 import { createHash } from 'node:crypto';
 import { rememberStorageVersion } from './version-token.js';
-import { configureProviderTimeout } from '../provider-safety.js';
+import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -754,8 +754,9 @@ export class GoogleDriveStorageProvider {
     try {
       const response = await this.client.about.get({ fields: 'storageQuota' });
       storageQuota = response.data?.storageQuota || null;
-    } catch {
+    } catch (error) {
       // Shared drives and restricted service accounts may not expose account quota.
+      recordProviderFailure(error);
     }
     const numericQuota = value => {
       const number = Number(value);

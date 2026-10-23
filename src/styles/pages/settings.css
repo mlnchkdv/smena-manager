@@ -465,3 +465,23 @@
     grid-template-columns: 1fr;
   }
 }
+.storage-capacity dl {
+  margin: 12px 0;
+}
+.capacity-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.capacity-row dt,
+.capacity-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.capacity-row[data-state='warning'],
+.capacity-row[data-state='over-limit'] {
+  color: var(--red);
+}

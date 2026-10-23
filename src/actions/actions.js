@@ -334,7 +334,8 @@ A.loadWorkspaceBackups = async () => {
   S.ui.backupsError = '';
   render();
   try {
-    S.ui.backups = await getWorkspaceBackups();
+    const [backups] = await Promise.all([getWorkspaceBackups(), refreshSystemStatus()]);
+    S.ui.backups = backups;
   } catch (error) {
     S.ui.backupsError =
       error.code === 'DRIVE_BOOTSTRAP_REQUIRED'

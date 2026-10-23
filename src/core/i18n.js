@@ -15,6 +15,20 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Data capacity': 'Ёмкость данных',
+  'Each data limit is independent of Google Drive free space.': 'У каждого раздела свой лимит данных, не связанный со свободным местом на Google Диске.',
+  'Workspace core': 'Основные данные пространства',
+  'File catalog': 'Каталог файлов',
+  'Active logical file bytes': 'Объём активных файлов (со ссылками)',
+  'Unique active stored bytes': 'Уникальное содержимое активных файлов',
+  'Known retained bytes': 'Известный объём удерживаемых файлов',
+  'File aliases': 'Повторные ссылки на содержимое',
+  'Known metadata only. Backup-only objects and other Drive content are excluded; unknown sizes are not zero.':
+    'Учтены только известные размеры. Файлы только в резервных копиях и прочее содержимое Диска не включены; неизвестный размер не означает нулевой.',
+  'Files with unknown size': 'Файлы с неизвестным размером',
+  'Reported provider errors in this server instance': 'Зарегистрированные ошибки провайдера в этом процессе сервера',
+  Timeouts: 'Тайм-ауты',
+  'Quota errors': 'Ошибки квот',
   'Modified filter': 'Фильтр изменён',
   'Manage filter': 'Настроить фильтр',
   'Update with current filters': 'Сохранить текущие условия',

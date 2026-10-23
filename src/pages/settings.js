@@ -11,6 +11,7 @@ import { SHORTCUTS } from '../overlays/modals.js';
 import { LANGUAGES, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
+import { storageCapacityPanel } from '../ui/storage-capacity.js';
 
 export const SET_NAV = [
   [
@@ -326,6 +327,7 @@ export function settingsBody(sec, title) {
     case 'data-transfer':
       return (
         H('Full workspace backups and KMS Brain data transfer.') +
+        storageCapacityPanel() +
         `<div class="sblock" style="margin-top:0"><div class="row" style="gap:8px;flex-wrap:wrap"><div class="grow"><h2 style="margin-bottom:4px">Backups</h2><p class="lead" style="font-size:13px;margin:0">Automatic backups require a working daily schedule. Check the copies below to confirm successful runs. The latest 30 automatic copies are retained; manual copies are kept until you restore or remove them.</p></div><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div>
         ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : S.ui.backupsError ? `<div class="alert warn" role="alert" style="margin-top:14px">${ic('triangle-alert', 15)}<span>${esc(tr(S.ui.backupsError))}</span></div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backupDisplayLabel(backup.label)), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
         </div>
