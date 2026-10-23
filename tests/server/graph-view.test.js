@@ -48,3 +48,23 @@ test('large graph views expose truncation metadata for progressive rendering', (
   assert.equal(view.truncated, true);
   assert.equal(view.limit, 250);
 });
+
+test('bounded global graphs keep late project anchors rather than falsely displaying isolated files', () => {
+  const files = Array.from({ length: 1000 }, (_, i) => ({ key: `file:${i}`, kind: 'file', title: `File ${i}`, project: 'p' }));
+  const graph = {
+    nodes: [...files, { key: 'project:p', kind: 'project', title: 'Project', project: 'p' }],
+    edges: files.map(node => ({ from: node.key, to: 'project:p' })),
+    unresolved: [],
+  };
+  const view = graphView(graph);
+  assert.equal(view.nodes[0].key, 'project:p');
+  assert.equal(view.nodes.length, 250);
+  assert.equal(view.edges.length, 249);
+  assert.equal(view.total, 1001);
+  assert.equal(graphView(graph, { center: 'file:999' }).nodes[0].key, 'file:999', 'The selected local center retains first priority');
+  assert.equal(
+    graphView(graph, { kind: 'file' }).nodes.every(node => node.kind === 'file'),
+    true,
+    'Anchor priority must not override explicit filters',
+  );
+});

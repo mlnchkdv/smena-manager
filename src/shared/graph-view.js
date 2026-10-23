@@ -11,7 +11,9 @@ export function graphView(graph, { center = '', depth = 1, query = '', kind = ''
       (!connectedOnly || connected.has(node.key)) &&
       [node.title, ...(node.tags || []), node.item?.url].join(' ').toLocaleLowerCase().includes(q),
   );
-  matching.sort((a, b) => Number(b.key === center) - Number(a.key === center));
+  // Keep project anchors in a bounded global window. Otherwise a large file
+  // collection fills the window before its project node and hides every edge.
+  matching.sort((a, b) => Number(b.key === center) - Number(a.key === center) || Number(b.kind === 'project') - Number(a.kind === 'project'));
   const nodes = matching.slice(0, Number.isFinite(limit) ? Math.min(500, Math.max(1, limit)) : matching.length);
   const keys = new Set(nodes.map(node => node.key));
   const edges = local.edges.filter(edge => keys.has(edge.from) && keys.has(edge.to));
