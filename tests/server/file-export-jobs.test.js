@@ -5,6 +5,7 @@ import { unzipSync } from 'fflate';
 import { createFileExportService, EXPORT_PART_BYTES, EXPORT_TTL } from '../../src/server/file-export-jobs.js';
 import { exportZipLayout, updateCrc32, exportDigest, readExportPart } from '../../src/server/file-export-zip.js';
 import { exportRange } from '../../src/server/file-export-routes.js';
+import { fileExportReadIds } from '../../src/server/file-export-read.js';
 function fixture(size = EXPORT_PART_BYTES + 19) {
   const source = Buffer.alloc(size, 123),
     bytes = new Map([['source', source]]);
@@ -46,6 +47,71 @@ function fixture(size = EXPORT_PART_BYTES + 19) {
   return { options, bytes, source, data: () => data, setTime: value => (time = value) };
 }
 const user = { id: 'm', role: 'admin' };
+
+test('read-only export operations use scoped snapshots, preserving identity, size and membership checks', async () => {
+  const f = fixture(10);
+  const writer = createFileExportService(f.options);
+  const job = await writer.create(user, ['f']);
+  await writer.advance(user, job.id);
+  const calls = [];
+  const reader = createFileExportService({
+    ...f.options,
+    load: () => assert.fail('Read-only export checks must not hydrate the complete catalog'),
+    loadRead: async (account, id) => {
+      calls.push([account.id, id]);
+      const data = structuredClone(f.data());
+      const ids = new Set(fileExportReadIds(data, account, id, f.options.now()));
+      return { ...data, files: data.files.filter(file => ids.has(file.id)) };
+    },
+  });
+  assert.equal((await reader.list(user))[0].phase, 'ready');
+  await reader.result(user, job.id);
+  await reader.validate(user, job.id);
+  assert.deepEqual(calls, [
+    ['m', undefined],
+    ['m', job.id],
+    ['m', job.id],
+  ]);
+  assert.deepEqual(await reader.list({ ...user, id: 'other' }), []);
+  await assert.rejects(reader.result({ ...user, id: 'other' }, job.id), { statusCode: 404 });
+  for (const change of [
+    file => {
+      file.bytes++;
+    },
+    file => {
+      file.storageFileId = 'replacement';
+    },
+  ]) {
+    const original = structuredClone(f.data().files[0]);
+    change(f.data().files[0]);
+    assert.equal((await reader.list(user))[0].phase, 'unavailable');
+    await assert.rejects(reader.validate(user, job.id), { statusCode: 403 });
+    f.data().files[0] = original;
+  }
+  f.data().members[0].status = 'deactivated';
+  await assert.rejects(reader.result(user, job.id), { statusCode: 403 });
+  f.data().members[0].status = 'active';
+  f.setTime(EXPORT_TTL + 101);
+  assert.equal((await reader.list(user))[0].phase, 'expired');
+  assert.deepEqual(fileExportReadIds(f.data(), user, undefined, f.options.now()), []);
+});
+
+test('export scopes exclude other owners, workspaces, expired/cancelled jobs and deduplicate selected identities', () => {
+  const job = { id: 'job', owner: 'm', workspace: 'workspace', phase: 'ready', expiresAt: 200, entries: [{ file: { id: 'f' } }, { file: { id: 'f' } }] };
+  const data = {
+    ws: { id: 'workspace' },
+    _fileExportJobs: [
+      job,
+      { ...job, id: 'other', owner: 'other', entries: [{ file: { id: 'private' } }] },
+      { ...job, workspace: 'elsewhere', entries: [{ file: { id: 'foreign' } }] },
+      { ...job, phase: 'cancelled', entries: [{ file: { id: 'cancelled' } }] },
+      { ...job, expiresAt: 100, entries: [{ file: { id: 'expired' } }] },
+    ],
+  };
+  assert.deepEqual(fileExportReadIds(data, user, undefined, 100), ['f']);
+  assert.deepEqual(fileExportReadIds(data, user, 'missing', 100), []);
+  assert.deepEqual(fileExportReadIds({ ...data, _fileExportJobs: [] }, user), []);
+});
 test('export checkpoints survive service restart; deterministic ZIP has correct CRC, paths and bytes', async () => {
   const f = fixture(),
     service = createFileExportService(f.options),

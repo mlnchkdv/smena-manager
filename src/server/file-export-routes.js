@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { once } from 'node:events';
-import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { getWorkspaceDatabase, getWorkspaceExportSnapshot, mutateWorkspaceDatabase } from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
 import { createFileExportService } from './file-export-jobs.js';
 import { exportDigest, readExportPart } from './file-export-zip.js';
 
 export const fileExportRouter = Router();
-const service = () => createFileExportService({ load: getWorkspaceDatabase, mutate: mutateWorkspaceDatabase, storage: getStorageProvider() });
+const service = () =>
+  createFileExportService({ load: getWorkspaceDatabase, loadRead: getWorkspaceExportSnapshot, mutate: mutateWorkspaceDatabase, storage: getStorageProvider() });
 fileExportRouter.get('/', async (request, response, next) => {
   try {
     response.json({ jobs: await service().list(request.user) });

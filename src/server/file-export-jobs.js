@@ -13,7 +13,7 @@ const fail = (message, statusCode = 409, code = 'EXPORT_UNAVAILABLE') => Object.
 const workspace = data => data.ws?.id || data.ws?.url || data.workspace?.id || 'workspace';
 const live = (job, now) => job.expiresAt > now && job.phase !== 'cancelled';
 
-export function createFileExportService({ load, mutate, storage, now = Date.now }) {
+export function createFileExportService({ load, loadRead = load, mutate, storage, now = Date.now }) {
   async function write(change) {
     for (let attempt = 0; attempt < 4; attempt++) {
       const data = await load();
@@ -60,7 +60,7 @@ export function createFileExportService({ load, mutate, storage, now = Date.now 
   });
   return {
     async list(user) {
-      const data = await load();
+      const data = await loadRead(user);
       return (data._fileExportJobs || [])
         .filter(job => job.owner === user.id && job.workspace === workspace(data))
         .map(job => {
@@ -214,7 +214,7 @@ export function createFileExportService({ load, mutate, storage, now = Date.now 
       );
     },
     async result(user, id) {
-      const data = await load(),
+      const data = await loadRead(user, id),
         job = owned(data, user, id);
       validate(data, user, job);
       if (job.phase !== 'ready') throw fail('Export is not ready.');
@@ -223,7 +223,7 @@ export function createFileExportService({ load, mutate, storage, now = Date.now 
       return { job, layout };
     },
     async validate(user, id) {
-      const data = await load();
+      const data = await loadRead(user, id);
       validate(data, user, owned(data, user, id));
     },
   };

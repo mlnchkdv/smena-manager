@@ -28,6 +28,7 @@ import { catalogQuery, currentCatalogUser } from './file-catalog-query.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
 import { queryGraph, validateGraphQuery } from './graph-query.js';
+import { fileExportReadIds } from './file-export-read.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -228,6 +229,16 @@ export async function getWorkspaceFileSnapshot(user, id) {
     const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', [id]));
     if (!data) throw new Error('The configured storage does not contain a workspace database.');
     data.files = data.files.filter(file => file.id === id);
+    return data;
+  }
+  return getWorkspaceDatabase();
+}
+
+export async function getWorkspaceExportSnapshot(user, id) {
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseCatalog === 'function') {
+    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', fileExportReadIds(core, user, id)));
+    if (!data) throw new Error('The configured storage does not contain a workspace database.');
     return data;
   }
   return getWorkspaceDatabase();
