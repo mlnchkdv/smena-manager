@@ -649,11 +649,13 @@ test('bulk files move atomically across searchable folder pages and go to recove
   await expect(page.locator('.workspace-file-card', { hasText: 'e2e-batch-1.txt' })).toContainText('Массовый перенос A');
 });
 
-test('file ZIP downloads preserve Unicode and duplicates and never publish failed or cancelled batches', async ({ page }) => {
+test('file ZIP downloads preserve Unicode and duplicates and never publish failed or cancelled batches', async ({ page, browserName }) => {
   await signIn(page);
   let current = (await (await page.request.get('/api/workspace')).json()).data;
   const project = current.projects[0];
-  project.fileFolders = [...(project.fileFolders || []), { id: 'zip-folder', name: 'E2E ZIP folder' }];
+  const folderId = `zip-folder-${browserName}`,
+    folderName = `E2E ZIP folder ${browserName}`;
+  project.fileFolders = [...(project.fileFolders || []), { id: folderId, name: folderName }];
   expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
   const ids = [];
   for (const [i, name] of ['архив.txt', 'АРХИВ.txt', 'Дополнение.md'].entries()) {
@@ -663,7 +665,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
         file: { name, mimeType: 'text/plain', buffer: Buffer.from(`ZIP fixture ${i} / русский текст`) },
         revision: String(current.revision),
         project: project.id,
-        folderId: 'zip-folder',
+        folderId,
       },
     });
     expect(upload.status()).toBe(201);
@@ -676,7 +678,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     await page.locator('select[data-k="lang"]').selectOption(language);
     await page.setViewportSize({ width: 320, height: 844 });
     await page.goto('/e2e-team/files');
-    await page.locator('#workspace-file-q').fill('E2E ZIP folder');
+    await page.locator('#workspace-file-q').fill(folderName);
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     await page.locator('[data-a="selectFilePage"]').click();
     if (language === 'Русский') await expectRussianUi(page, 'ZIP selection toolbar');
@@ -689,7 +691,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     expect(names).toHaveLength(3);
     expect(new Set(names.map(name => name.toLocaleLowerCase())).size).toBe(3);
     expect(names.some(name => name.endsWith('АРХИВ (2).txt') || name.endsWith('архив (2).txt'))).toBeTruthy();
-    expect(names.every(name => name.includes('/E2E ZIP folder/'))).toBeTruthy();
+    expect(names.every(name => name.includes(`/${folderName}/`))).toBeTruthy();
     expect(
       Object.values(unpacked)
         .map(bytes => strFromU8(bytes))
@@ -724,7 +726,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     expect(Object.keys(persistent)).toEqual(names);
     expect(Object.values(persistent).map(bytes => strFromU8(bytes))).toEqual(Object.values(unpacked).map(bytes => strFromU8(bytes)));
     await exportRow.locator('[data-a="cancelFileExport"]').click();
-    await page.locator('#workspace-file-q').fill('E2E ZIP folder');
+    await page.locator('#workspace-file-q').fill(folderName);
     await page.locator('[data-a="selectFilePage"]').click();
     await expect(page.locator('.files-page')).toBeVisible();
     await page.screenshot({ path: `output/playwright/files-zip-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
