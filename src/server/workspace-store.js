@@ -25,7 +25,7 @@ import { workspaceCapacities, fileStorageAccounting } from './file-capacity.js';
 import { providerFailureCounters } from './provider-safety.js';
 import { createCatalogReader } from './file-catalog-reader.js';
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 let database = null;
 let initializationPromise = null;

@@ -5,6 +5,7 @@ import { Readable } from 'node:stream';
 import { createHash } from 'node:crypto';
 import { rememberStorageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
+import { writeCatalogShards, materializeCatalog } from './file-catalog-shards.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -61,6 +62,7 @@ export class GoogleDriveStorageProvider {
   rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim() || null;
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
   databaseEtag = null;
+  catalogRoot = null;
   documentFileIds = {
     knowledge: process.env.GOOGLE_DRIVE_KNOWLEDGE_FILE_ID?.trim() || null,
     bookmarks: process.env.GOOGLE_DRIVE_BOOKMARKS_FILE_ID?.trim() || null,
@@ -220,9 +222,16 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
     const response = await this.readVersionedJson(fileId);
-    this.databaseEtag = responseHeader(response, 'etag');
+    const etag = responseHeader(response, 'etag');
+    this.databaseEtag = etag;
     this.lastSyncAt = new Date().toISOString();
-    return rememberStorageVersion(typeof response.data === 'string' ? JSON.parse(response.data) : response.data, this.databaseEtag);
+    const root = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    this.catalogRoot = root;
+    const data = await materializeCatalog(root, async id => {
+      const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+      return part.data;
+    });
+    return rememberStorageVersion(data, etag);
   }
 
   async getDatabaseVersion() {
@@ -262,9 +271,27 @@ export class GoogleDriveStorageProvider {
   async saveDatabase(data, options = {}) {
     await this.init();
     const fileId = await this.findDatabaseFile();
+    // Validate CAS before any staging uploads. Old deployed readers reject the
+    // schema-3 root rather than flattening or overwriting a partial catalog.
+    if (fileId) conditionalWriteOptions(options, this.databaseEtag);
+    let stored = data;
+    if (data.schemaVersion >= 3 && Array.isArray(data.files)) {
+      if (fileId && !this.catalogRoot?._fileCatalog) {
+        await this.createDatabaseBackup(this.catalogRoot || data, 'Before file catalog sharding');
+      }
+      stored = await writeCatalogShards(data, this.catalogRoot?._fileCatalog, async (text, hash) => {
+        const created = await this.client.files.create({
+          requestBody: { name: `smena-catalog-${hash}.json`, parents: [this.rootFolderId], mimeType: 'application/json' },
+          media: { mimeType: 'application/json', body: Readable.from([text]) },
+          fields: 'id',
+          supportsAllDrives: true,
+        });
+        return created.data.id;
+      });
+    }
     const media = {
       mimeType: 'application/json',
-      body: Readable.from([JSON.stringify(data, null, 2)]),
+      body: Readable.from([JSON.stringify(stored, null, 2)]),
     };
 
     if (fileId) {
@@ -296,6 +323,7 @@ export class GoogleDriveStorageProvider {
       this.databaseEtag = responseHeader(created, 'etag');
     }
     this.lastSyncAt = new Date().toISOString();
+    this.catalogRoot = stored;
     rememberStorageVersion(data, this.databaseEtag);
   }
 

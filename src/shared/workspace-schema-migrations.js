@@ -10,6 +10,9 @@ export const WORKSPACE_SCHEMA_MIGRATIONS = Object.freeze({
     delete next.notifications;
     return next;
   },
+  // Storage may split the catalog only after all readers support schema 3.
+  // The logical, materialized shape (including portable backups) is unchanged.
+  2: value => ({ ...value }),
 });
 
 export function migrateWorkspaceSchema(value, targetVersion) {

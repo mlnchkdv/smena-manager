@@ -5,6 +5,54 @@ import test from 'node:test';
 import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDriveMatch } from '../../src/server/storage/google-drive.js';
 import { storageVersion } from '../../src/server/storage/version-token.js';
 
+test('schema 3 publishes immutable catalog parts before one fenced root update and backs up legacy data', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  provider.initialized = true;
+  provider.rootFolderId = 'root';
+  provider.databaseFileId = 'db';
+  provider.databaseEtag = '"old"';
+  provider.catalogRoot = { schemaVersion: 2, revision: 1, files: [{ id: 'f', project: 'p', name: 'Old' }] };
+  const parts = new Map();
+  let root,
+    backups = 0,
+    failRoot = false;
+  provider.createDatabaseBackup = async data => {
+    assert.equal(data.files[0].name, 'Old');
+    backups += 1;
+  };
+  provider.client = {
+    files: {
+      create: async params => {
+        const id = `part-${parts.size}`;
+        const chunks = [];
+        for await (const chunk of params.media.body) chunks.push(Buffer.from(chunk));
+        parts.set(id, Buffer.concat(chunks).toString());
+        return { data: { id } };
+      },
+      update: async (params, options) => {
+        assert.equal(options.headers['If-Match'], '"old"');
+        if (failRoot) throw Object.assign(new Error('CAS conflict'), { statusCode: 412 });
+        const chunks = [];
+        for await (const chunk of params.media.body) chunks.push(Buffer.from(chunk));
+        root = JSON.parse(Buffer.concat(chunks).toString());
+        for (const part of root._fileCatalog.shards) assert.ok(parts.has(part.id));
+        assert.equal(root.files, undefined);
+        return { headers: { etag: '"new"' } };
+      },
+      get: async ({ fileId }) => ({ data: fileId === 'db' ? JSON.stringify(root) : parts.get(fileId), headers: { etag: '"new"' } }),
+    },
+  };
+  const data = { schemaVersion: 3, revision: 2, files: [{ id: 'f', project: 'p', name: 'New' }] };
+  await provider.saveDatabase(data, { expectedEtag: '"old"' });
+  assert.equal(backups, 1);
+  assert.deepEqual((await provider.loadDatabase()).files, data.files);
+  const published = structuredClone(root);
+  failRoot = true;
+  await assert.rejects(provider.saveDatabase({ ...data, revision: 3, files: [] }, { expectedEtag: '"old"' }), { statusCode: 412 });
+  assert.deepEqual(root, published);
+  assert.equal(backups, 1);
+});
+
 test('production JSON stores bind V2 ETags to exact V3 bytes and write conditionally through V2', async () => {
   const cases = [
     ['databaseFileId', p => p.loadDatabase(), (p, value, options) => p.saveDatabase(value, options), { revision: 1, title: 'Проверка' }],
