@@ -1,5 +1,6 @@
 import { canEditProject, canReadProject, entityProjectId } from './project-access.js';
-import { extractWikiLinks } from './knowledge-links.js';
+import { bindWikiReferences } from './knowledge-links.js';
+export { bindWikiReferences } from './knowledge-links.js';
 
 export const ENTITY_COLLECTIONS = Object.freeze({ note: 'knowledgeNotes', bookmark: 'links', file: 'files', project: 'projects', task: 'tasks' });
 export const RELATION_TYPES = Object.freeze({ related: 'Related to', source: 'Source', example: 'Example', used: 'Used in' });
@@ -19,34 +20,6 @@ export function entityAllowed(data, key, { role = 'viewer', memberId = data.me }
   if (!projectId) return true;
   const project = (data.projects || []).find(item => item.id === projectId);
   return (write ? canEditProject : canReadProject)(project, memberId, role);
-}
-
-const normalized = title =>
-  String(title || '')
-    .trim()
-    .toLocaleLowerCase('ru-RU');
-export function bindWikiReferences(notes = []) {
-  const titles = new Map();
-  for (const note of notes) {
-    const key = normalized(note.title);
-    if (key) titles.set(key, [...(titles.get(key) || []), note.id]);
-  }
-  for (const note of notes) {
-    const previous = Array.isArray(note.wikiRefs) ? note.wikiRefs : [];
-    const labels = [
-      ...new Set([
-        ...extractWikiLinks(note.formatted_markdown),
-        ...(Array.isArray(note.wikilinks) ? note.wikilinks.filter(label => typeof label === 'string') : []),
-      ]),
-    ];
-    if (!labels.length && !Object.hasOwn(note, 'wikiRefs')) continue;
-    note.wikiRefs = labels.map(label => {
-      const bound = previous.find(ref => normalized(ref.label) === normalized(label));
-      const matches = titles.get(normalized(label)) || [];
-      return { label, target: bound?.target || (matches.length === 1 ? matches[0] : '') };
-    });
-  }
-  return notes;
 }
 
 export function workspaceGraph(data, options = {}) {

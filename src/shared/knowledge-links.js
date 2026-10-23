@@ -29,14 +29,34 @@ function linksForNote(note) {
   });
 }
 
+export function bindWikiReferences(notes = []) {
+  const titles = new Map();
+  for (const note of notes) {
+    const key = normalizedTitle(note.title);
+    if (key) titles.set(key, [...(titles.get(key) || []), note.id]);
+  }
+  for (const note of notes) {
+    const previous = Array.isArray(note.wikiRefs) ? note.wikiRefs : [];
+    const labels = linksForNote(note);
+    if (!labels.length && !Object.hasOwn(note, 'wikiRefs')) continue;
+    note.wikiRefs = labels.map(label => {
+      const bound = previous.find(ref => normalizedTitle(ref.label) === normalizedTitle(label));
+      const matches = titles.get(normalizedTitle(label)) || [];
+      return { label, target: bound?.target || (matches.length === 1 ? matches[0] : '') };
+    });
+  }
+  return notes;
+}
+
 export function knowledgeRelations(notes, activeNote) {
   const collection = Array.isArray(notes) ? notes : [];
   if (!activeNote) return { outgoing: [], backlinks: [] };
-  const byTitle = new Map(collection.map(note => [normalizedTitle(note.title), note]).filter(([title]) => title));
-  const outgoing = linksForNote(activeNote).map(title => ({ title, note: byTitle.get(normalizedTitle(title)) || null }));
-  const activeTitle = normalizedTitle(activeNote.title);
-  const backlinks = activeTitle
-    ? collection.filter(note => note.id !== activeNote.id && linksForNote(note).some(title => normalizedTitle(title) === activeTitle))
-    : [];
+  // Match the graph's persisted identity semantics, without mutating the note
+  // or cloning every large Markdown body on each preview render.
+  const bound = bindWikiReferences(collection.map(note => ({ ...note })));
+  const byId = new Map(collection.map(note => [note.id, note]));
+  const source = bound.find(note => note.id === activeNote.id);
+  const outgoing = (source?.wikiRefs || []).map(ref => ({ title: ref.label, note: byId.get(ref.target) || null }));
+  const backlinks = bound.filter(note => note.id !== activeNote.id && note.wikiRefs?.some(ref => ref.target === activeNote.id)).map(note => byId.get(note.id));
   return { outgoing, backlinks };
 }

@@ -1,6 +1,29 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { cleanWikiTitle, extractWikiLinks, knowledgeRelations } from '../../src/shared/knowledge-links.js';
+import { workspaceGraph } from '../../src/shared/relations.js';
+
+test('preview context agrees with stable graph IDs after renames and never guesses duplicate titles', () => {
+  const notes = [
+    { id: 'a', title: 'Главная', formatted_markdown: '[[Старое имя]] [[Одинаковое]]', wikiRefs: [{ label: 'Старое имя', target: 'b' }] },
+    { id: 'b', title: 'Новое имя' },
+    { id: 'c', title: 'Одинаковое' },
+    { id: 'd', title: 'одинаковое' },
+  ];
+  const before = structuredClone(notes);
+  const context = knowledgeRelations(notes, notes[0]);
+  assert.equal(context.outgoing[0].note.id, 'b');
+  assert.equal(context.outgoing[1].note, null);
+  assert.deepEqual(
+    knowledgeRelations(notes, notes[1]).backlinks.map(note => note.id),
+    ['a'],
+  );
+  assert.deepEqual(knowledgeRelations(notes, notes[2]).backlinks, []);
+  const graph = workspaceGraph({ knowledgeNotes: notes });
+  assert.ok(graph.edges.some(edge => edge.from === 'note:a' && edge.to === 'note:b'));
+  assert.equal(graph.unresolved[0].label, 'Одинаковое');
+  assert.deepEqual(notes, before, 'Reading context must not mutate persisted wikiRefs');
+});
 
 test('wiki links are cleaned and extracted without case-insensitive duplicates', () => {
   assert.equal(cleanWikiTitle(' [[Команда и роли]] '), 'Команда и роли');
