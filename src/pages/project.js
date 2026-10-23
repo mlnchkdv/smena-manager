@@ -45,7 +45,7 @@ export function pageProject() {
   else if (tab === 'activity') body = projActivity(p);
   else body = taskViewBody(tab, applyView(ts, viewOf(key)), key, p);
 
-  return `<div class="page flush">
+  return `<div class="page flush${tab === 'files' ? ' project-file-context' : ''}">
     <div class="proj-h">
       <div class="t">
         ${pIcon(p, 'lg', 18)}

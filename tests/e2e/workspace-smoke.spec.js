@@ -839,7 +839,8 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.setViewportSize({ width: 320, height: 844 });
       // Direct project entry must load all file handlers without visiting workspace Files first.
       await page.goto(`/e2e-team/project/${project.id}/files`);
-      await expect(page.locator('#workspace-file-project')).toBeDisabled();
+      await expect(page.locator('#workspace-file-project')).toHaveCount(0);
+      await expect(page.locator('.files-context-summary')).toBeVisible();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
       await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
       await expect(page.locator('.file-move-row', { hasText: 'E2E Child' })).toHaveCount(0);

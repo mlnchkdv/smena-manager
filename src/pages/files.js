@@ -124,24 +124,28 @@ export function pageFiles(projectId = null) {
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
   return `<div class="files-page ${projectId ? 'project-files-page' : ''}">
-    <header class="page-head files-page-head"><div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>
+    <header class="page-head files-page-head">${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><b>${allFiles.length}</b> <span>Total files</span></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : '<div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>'}
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions"><label class="sr" for="files-upload-project">Upload to project</label><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select><button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></div>`
+          : `<div class="files-upload-actions">${projectId ? '' : `<label class="sr" for="files-upload-project">Upload to project</label><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}Upload files</button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></div>`
       }
     </header>
 
-    <section class="files-summary" aria-label="File summary">
+    ${
+      projectId
+        ? ''
+        : `<section class="files-summary" aria-label="File summary">
       <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allFiles.length}</b></span></div>
       <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${formatBytes(totalBytes)}</b></span></div>
       <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
-    </section>
+    </section>`
+    }
 
 
     <section class="files-toolbar workspace-files-toolbar" aria-label="File filters">
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
-      <label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject" ${projectId ? 'disabled' : ''}>${projectId ? '' : '<option value="all">All projects</option>'}${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>
+      ${projectId ? '' : `<label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
       )
@@ -168,7 +172,7 @@ export function pageFiles(projectId = null) {
     </section>
 
     <section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>
-    ${filtered ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${files.length}</b> / ${allFiles.length}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
+    ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${files.length}</b> / ${allFiles.length}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${
       readOnly || !projects.length

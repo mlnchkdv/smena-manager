@@ -912,3 +912,43 @@
     min-height: 44px;
   }
 }
+.files-context-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+.project-files-page .files-page-head {
+  align-items: center;
+  margin-bottom: 16px;
+}
+.project-files-page .workspace-files-dropzone {
+  display: none;
+}
+.project-files-page .workspace-files-toolbar {
+  grid-template-columns: minmax(140px, 1fr) auto auto auto;
+}
+@media (max-width: 640px) {
+  .project-file-context .proj-h {
+    padding-top: 12px;
+  }
+  .project-file-context .proj-h .t {
+    margin-bottom: 8px;
+  }
+  .project-files-page .files-page-head {
+    gap: 8px;
+  }
+  .project-files-page .files-upload-actions {
+    width: auto;
+  }
+  .project-files-page .files-upload-actions .btn {
+    min-height: 44px;
+  }
+  .project-files-page .workspace-files-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .project-files-page .workspace-file-search {
+    grid-column: 1 / -1;
+  }
+}
