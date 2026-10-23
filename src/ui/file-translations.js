@@ -57,7 +57,7 @@ registerRussianLabels({
   'File aliases': 'Повторные ссылки на содержимое',
   'Known metadata only. Backup-only objects and other Drive content are excluded; unknown sizes are not zero.':
     'Учтены только известные размеры. Файлы только в резервных копиях и прочее содержимое Диска не включены; неизвестный размер не означает нулевой.',
-  'Files with unknown size': 'Файлы с неизвестным размером',
+  'Unknown sizes (logical / active / retained)': 'Неизвестный размер (записи / активные / удерживаемые)',
   'Reported provider errors in this server instance': 'Зарегистрированные ошибки провайдера в этом процессе сервера',
   Timeouts: 'Тайм-ауты',
   'Quota errors': 'Ошибки квот',
