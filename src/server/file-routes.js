@@ -12,6 +12,7 @@ import {
   getWorkspaceDatabase,
   getWorkspaceFileCatalogPage,
   getWorkspaceFileSnapshot,
+  getWorkspaceFilesSnapshot,
   queryWorkspaceFileCatalog,
   mutateWorkspaceDatabase,
   RevisionConflictError,
@@ -125,7 +126,7 @@ export const fileRouter = Router();
 const activeArchives = new Map();
 fileRouter.post('/archive/preflight', async (request, response, next) => {
   try {
-    const database = await getWorkspaceDatabase();
+    const database = await getWorkspaceFilesSnapshot(request.user, request.body.ids);
     if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
     const plan = createFileArchivePlan({ ...database, me: memberIdFor(database, request.user) }, request.body.ids, request.user.role, STREAM_ZIP_POLICY);
     for (const item of plan) assertArchiveFileAccess(database, request.user, item.file);
@@ -151,10 +152,9 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
       throw Object.assign(new Error('Another archive is being downloaded. Try again later.'), { statusCode: 429 });
     lease = Date.now() + 55000;
     activeArchives.set(request.user.id, lease);
-    const database = await getWorkspaceDatabase();
-    if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
     const ids = typeof request.body.ids === 'string' ? JSON.parse(request.body.ids) : request.body.ids;
-    if (!Array.isArray(ids) || ids.some(id => typeof id !== 'string')) throw new TypeError('Invalid file selection.');
+    const database = await getWorkspaceFilesSnapshot(request.user, ids);
+    if (database.revision !== expectedRevision(request.body.revision)) throw new RevisionConflictError(database.revision);
     const data = { ...database, me: memberIdFor(database, request.user) };
     const plan = createFileArchivePlan(data, ids, request.user.role, STREAM_ZIP_POLICY);
     timer = setTimeout(() => controller.abort(new Error('Archive time limit reached. Download a smaller batch.')), 45000);
@@ -188,7 +188,7 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
       {
         signal: controller.signal,
         validate: async file => {
-          const latest = await getWorkspaceDatabase();
+          const latest = await getWorkspaceFileSnapshot(request.user, file.id);
           assertArchiveFileAccess(latest, request.user, file);
         },
       },

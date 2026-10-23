@@ -223,15 +223,22 @@ export async function queryWorkspaceGraph(user, input) {
   return queryGraph(database, user, options);
 }
 
-export async function getWorkspaceFileSnapshot(user, id) {
+export async function getWorkspaceFilesSnapshot(user, ids) {
+  if (!Array.isArray(ids) || ids.length > 500 || ids.some(id => typeof id !== 'string' || !id)) throw new TypeError('Invalid file selection.');
   const storage = getStorageProvider();
+  const selected = new Set(ids);
   if (typeof storage.loadDatabaseCatalog === 'function') {
-    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', [id]));
+    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', ids));
     if (!data) throw new Error('The configured storage does not contain a workspace database.');
-    data.files = data.files.filter(file => file.id === id);
+    data.files = data.files.filter(file => selected.has(file.id));
     return data;
   }
-  return getWorkspaceDatabase();
+  const data = await getWorkspaceDatabase();
+  return { ...data, files: data.files.filter(file => selected.has(file.id)) };
+}
+
+export async function getWorkspaceFileSnapshot(user, id) {
+  return getWorkspaceFilesSnapshot(user, [id]);
 }
 
 export async function getWorkspaceExportSnapshot(user, id) {
