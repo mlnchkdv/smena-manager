@@ -25,7 +25,13 @@ export function createCatalogReader(database) {
       cache.set(key, entry);
       if (cache.size > 64) cache.delete(cache.keys().next().value);
     }
-    const files = !options.project || options.project === 'all' ? entry.files : entry.projects.get(options.project) || [];
+    let files = !options.project || options.project === 'all' ? entry.files : entry.projects.get(options.project) || [];
+    if (options.ids) {
+      if (!Array.isArray(options.ids) || options.ids.length > 100 || options.ids.some(id => typeof id !== 'string'))
+        throw new TypeError('Invalid file identities.');
+      const ids = new Set(options.ids);
+      files = files.filter(file => ids.has(file.id));
+    }
     return structuredClone(fileCatalogPage({ revision: database.revision, files }, { ...options, project: 'all', expectedToken: entry.token }));
   };
 }

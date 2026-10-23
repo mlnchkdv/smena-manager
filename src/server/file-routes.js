@@ -8,7 +8,13 @@ import multer from 'multer';
 import { requireRole } from './auth.js';
 import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload, multipartFilename } from './file-policy.js';
 import { getStorageProvider } from './storage/index.js';
-import { getWorkspaceDatabase, getWorkspaceFileCatalogPage, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import {
+  getWorkspaceDatabase,
+  getWorkspaceFileCatalogPage,
+  queryWorkspaceFileCatalog,
+  mutateWorkspaceDatabase,
+  RevisionConflictError,
+} from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { detachTaskFile } from '../shared/file-identity.js';
 import { memberForProfile } from '../shared/member-identity.js';
@@ -197,6 +203,29 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
     clearTimeout(timer);
     response.removeListener('close', abort);
     if (lease && activeArchives.get(request.user.id) === lease) activeArchives.delete(request.user.id);
+  }
+});
+
+fileRouter.post('/catalog/query', async (request, response, next) => {
+  try {
+    response.json(await queryWorkspaceFileCatalog(request.user, request.body));
+  } catch (error) {
+    next(error);
+  }
+});
+
+fileRouter.post('/catalog/resolve', async (request, response, next) => {
+  try {
+    if (!Array.isArray(request.body?.ids)) throw new TypeError('File identities are required.');
+    response.json(
+      await getWorkspaceFileCatalogPage(request.user, {
+        revision: request.body.revision,
+        token: request.body.token,
+        ids: request.body.ids,
+      }),
+    );
+  } catch (error) {
+    next(error);
   }
 });
 

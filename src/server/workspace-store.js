@@ -24,6 +24,7 @@ import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
 import { workspaceCapacities, fileStorageAccounting } from './file-capacity.js';
 import { providerFailureCounters } from './provider-safety.js';
 import { createCatalogReader } from './file-catalog-reader.js';
+import { catalogQuery } from './file-catalog-query.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -163,6 +164,12 @@ export async function getWorkspaceFileCatalogPage(user, options) {
     catalogReaders.set(database, read);
   }
   return read(user, options);
+}
+
+export async function queryWorkspaceFileCatalog(user, options) {
+  if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
+  else await initWorkspaceStore();
+  return catalogQuery(database, user, options);
 }
 
 export async function getWorkspaceRevisionStatus() {
