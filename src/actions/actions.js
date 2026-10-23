@@ -67,8 +67,7 @@ import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portab
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { updateKnowledgeSaveStatus, knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
-import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity, workspaceGraph } from '../shared/relations.js';
-import { graphView } from '../shared/graph-view.js';
+import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity } from '../shared/relations.js';
 import { graphOptions } from '../ui/relations.js';
 import { reviewKnowledgeImport } from '../shared/knowledge-import.js';
 import {
@@ -865,7 +864,20 @@ BLUR.knowledgeField = el => {
 };
 
 /* ---------- shared bookmarks ---------- */
-A.addRelationPicker = el => {
+async function hydrateRelatedFiles(keys) {
+  const ids = keys.filter(key => key.startsWith('file:') && !resolveGraphEntity(D(), key)).map(key => key.slice(5));
+  if (!ids.length) return true;
+  const session = getSessionGeneration();
+  try {
+    await (await import('../features/file-catalog-demand.js')).ensureFileIdentities(ids);
+    return session === getSessionGeneration();
+  } catch {
+    if (session === getSessionGeneration()) toast('Unable to load files. Check connection and retry.');
+    return false;
+  }
+}
+A.addRelationPicker = async el => {
+  if (!(await hydrateRelatedFiles([el.dataset.key]))) return;
   if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;
   openModal({ type: 'relations', source: el.dataset.key, query: '', kind: '', relationType: 'related' });
 };
@@ -884,11 +896,12 @@ IN.relationKind = el => {
 IN.relationType = el => {
   S.ui.modals.at(-1).relationType = el.value;
 };
-A.createRelation = el => {
+A.createRelation = async el => {
   const modal = S.ui.modals.at(-1);
   if (modal?.type !== 'relations' || !Object.hasOwn(RELATION_TYPES, modal.relationType)) return;
   const from = modal.source,
     to = el.dataset.key;
+  if (!(await hydrateRelatedFiles([from, to])) || S.ui.modals.at(-1) !== modal) return;
   if (from === to || ![from, to].every(key => entityAllowed(D(), key, graphOptions(), true))) return;
   if (modal.wikiLabel && (!from.startsWith('note:') || !to.startsWith('note:'))) return;
   mutate(() => {
@@ -906,15 +919,18 @@ A.createRelation = el => {
     S.ui.modals.pop();
   });
 };
-A.removeRelation = el => {
-  const edge = D().relations?.find(item => item.id === el.dataset.id);
+A.removeRelation = async el => {
+  let edge = D().relations?.find(item => item.id === el.dataset.id);
+  if (!edge || !(await hydrateRelatedFiles([edge.from, edge.to]))) return;
+  edge = D().relations?.find(item => item.id === el.dataset.id);
   if (!edge || ![edge.from, edge.to].every(key => entityAllowed(D(), key, graphOptions(), true))) return;
   mutate(() => {
     edge.deletedAt = new Date().toISOString();
   });
 };
-A.openRelatedEntity = el => {
+A.openRelatedEntity = async el => {
   const key = el.dataset.key;
+  if (!(await hydrateRelatedFiles([key]))) return;
   if (!entityAllowed(D(), key, graphOptions())) return;
   const entity = resolveGraphEntity(D(), key);
   S.ui.modals = [];
@@ -939,41 +955,6 @@ A.showGraph = el => {
   S.ui.drawer = null;
   go('graph', S.ui.graphCenter ? { center: S.ui.graphCenter } : {});
 };
-IN.graphQuery = el => {
-  S.ui.graphQuery = el.value;
-  render();
-};
-IN.graphFilter = el => {
-  if (['graphKind', 'graphProject', 'graphDepth'].includes(el.dataset.field)) S.ui[el.dataset.field] = el.value;
-  render();
-};
-IN.graphCheck = el => {
-  if (['graphConnected', 'graphArchive'].includes(el.dataset.field)) S.ui[el.dataset.field] = el.checked ? 'yes' : '';
-  render();
-};
-A.resetGraphFilters = () => {
-  S.ui.graphQuery = '';
-  S.ui.graphKind = '';
-  S.ui.graphProject = '';
-  S.ui.graphConnected = '';
-  S.ui.graphArchive = '';
-  render();
-};
-A.selectGraphNode = el => {
-  S.ui.graphSelectionClosed = false;
-  S.ui.graphSelected = el.dataset.key;
-  render();
-};
-A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control', { detail: el.dataset.command }));
-A.toggleGraphFilters = () => {
-  S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
-  render();
-};
-A.clearGraphSelection = () => {
-  S.ui.graphSelected = '';
-  S.ui.graphSelectionClosed = true;
-  render();
-};
 A.searchInGraph = () => {
   S.ui.graphQuery = S.ui.searchQ || '';
   S.ui.graphKind = '';
@@ -981,31 +962,7 @@ A.searchInGraph = () => {
   S.ui.graphConnected = '';
   go('graph');
 };
-A.exportGraph = () => {
-  const graph = graphView(workspaceGraph(D(), { ...graphOptions(), includeArchived: S.ui.graphArchive === 'yes' }), {
-    limit: Infinity,
-    center: S.ui.params.center,
-    depth: S.ui.graphDepth || 1,
-    query: S.ui.graphQuery,
-    kind: S.ui.graphKind,
-    project: S.ui.graphProject,
-    connectedOnly: S.ui.graphConnected === 'yes',
-  });
-  const payload = {
-    format: 'smena-graph',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    total: graph.total,
-    nodes: graph.nodes.map(({ key, kind, id, title }) => ({ key, kind, id, title })),
-    edges: graph.edges,
-  };
-  const href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
-  const a = document.createElement('a');
-  a.href = href;
-  a.download = 'smena-graph.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(href), 1000);
-};
+A.exportGraph = async () => (await import('../features/graph-export.js')).exportGraph();
 A.newBookmark = () => {
   S.ui.bookmarkEditing = null;
   S.ui.bookmarkDraft = emptyBookmarkDraft(S.ui.bookmarkFolder !== 'all' && S.ui.bookmarkFolder !== 'root' ? S.ui.bookmarkFolder : '');

@@ -8,6 +8,8 @@ import { graphView } from '../shared/graph-view.js';
 import { GRAPH_KINDS } from '../shared/graph-layout.js';
 import { mountGraph } from '../features/graph-renderer.js';
 import { render } from '../shell/render.js';
+import { graphReadModel } from '../core/graph-query-state.js';
+import '../features/graph-actions.js';
 
 function graphFilters(ui, center) {
   return `<div class="graph-filter-panel" id="graph-filters" ${ui.graphFiltersOpen ? '' : 'hidden'}>
@@ -37,15 +39,17 @@ function graphDetails(node) {
 export function pageGraph() {
   const ui = S.ui,
     center = ui.params.center || '';
-  const graph = workspaceGraph(D(), { ...graphOptions(), includeArchived: ui.graphArchive === 'yes' });
-  const view = graphView(graph, {
-    center,
-    depth: ui.graphDepth || 1,
-    query: ui.graphQuery,
-    kind: ui.graphKind,
-    project: ui.graphProject,
-    connectedOnly: ui.graphConnected === 'yes',
-  });
+  const remote = graphReadModel('view');
+  const view = remote
+    ? remote.view || { nodes: [], edges: [], total: 0 }
+    : graphView(workspaceGraph(D(), { ...graphOptions(), includeArchived: ui.graphArchive === 'yes' }), {
+        center,
+        depth: ui.graphDepth || 1,
+        query: ui.graphQuery,
+        kind: ui.graphKind,
+        project: ui.graphProject,
+        connectedOnly: ui.graphConnected === 'yes',
+      });
   const selected = view.nodes.find(node => node.key === ui.graphSelected) || (!ui.graphSelectionClosed && view.nodes.find(node => node.key === center)) || null;
   const list = ui.graphView === 'list';
   const activeFilters = [ui.graphKind, ui.graphProject, ui.graphConnected, ui.graphArchive].filter(Boolean).length;
@@ -66,8 +70,9 @@ export function pageGraph() {
     <header class="graph-head"><div><h1>Graph</h1><p>Explore connections between your team's materials.</p></div><div class="row">${center ? `<button class="btn btn-secondary btn-sm" data-a="showGraph">${ic('arrow-left', 14)}All materials</button>` : ''}<button class="btn btn-secondary btn-sm graph-export" data-a="exportGraph" aria-label="Export graph">${ic('download', 14)}<span>Export graph</span></button></div></header>
     <div class="graph-toolbar"><label class="graph-search"><span class="sr">Search graph</span><input id="graph-search" class="input" data-in="graphQuery" value="${esc(ui.graphQuery || '')}" placeholder="Search materials and tags" aria-label="Search graph"></label><button class="btn btn-secondary btn-sm graph-filter-toggle ${activeFilters ? 'is-active' : ''}" data-a="toggleGraphFilters" aria-expanded="${!!ui.graphFiltersOpen}" aria-controls="graph-filters">${ic('sliders-horizontal', 14)}<span>Filters</span>${activeFilters ? `<span class="cnt">${activeFilters}</span>` : ''}</button><div class="seg" role="group" aria-label="Graph view"><button data-a="set" data-k="graphView" data-v="graph" class="${!list ? 'on' : ''}" aria-pressed="${!list}" aria-label="Graph">${ic('network', 14)}<span>Graph</span></button><button data-a="set" data-k="graphView" data-v="list" class="${list ? 'on' : ''}" aria-pressed="${list}" aria-label="List">${ic('list', 14)}<span>List</span></button></div></div>
     ${graphFilters(ui, center)}
+    ${remote && !remote.view ? `<div class="catalog-context-status" role="status"><span>${esc(remote.error || 'Loading file connections…')}</span>${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</div>` : ''}
     <div class="graph-meta"><div class="graph-legend" aria-label="Material types">${legend}</div><div class="graph-summary" role="status"><span>Materials</span>: ${view.total}<span class="graph-meta-dot">·</span><span>Connections</span>: ${view.edges.length}</div></div>
     ${view.total > view.nodes.length ? '<p class="hint" role="status">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}
-    ${!view.nodes.length ? empty('network', 'No matching materials.', center ? 'The selected material is unavailable or excluded by filters.' : 'Add materials or change the filters to explore connections.') : `<div class="graph-layout ${selected ? 'has-detail' : ''}"><section class="graph-stage" aria-label="Graph navigation">${list ? `<div class="graph-list">${view.nodes.map(node => `<button class="graph-list-item ${selected?.key === node.key ? 'on' : ''}" data-a="selectGraphNode" data-key="${esc(node.key)}" aria-pressed="${selected?.key === node.key}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="trunc" translate="no">${esc(node.title)}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`).join('')}</div>` : `${controls}<div id="knowledge-graph-canvas" role="img" aria-label="Interactive material graph. Use List view for keyboard navigation."></div><p class="graph-help">Select a node to see its connections. Drag to move; pinch or scroll to zoom.</p>`}</section>${graphDetails(selected)}</div>`}
+    ${!view.nodes.length ? (remote && !remote.view ? '' : empty('network', 'No matching materials.', center ? 'The selected material is unavailable or excluded by filters.' : 'Add materials or change the filters to explore connections.')) : `<div class="graph-layout ${selected ? 'has-detail' : ''}"><section class="graph-stage" aria-label="Graph navigation">${list ? `<div class="graph-list">${view.nodes.map(node => `<button class="graph-list-item ${selected?.key === node.key ? 'on' : ''}" data-a="selectGraphNode" data-key="${esc(node.key)}" aria-pressed="${selected?.key === node.key}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="trunc" translate="no">${esc(node.title)}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`).join('')}</div>` : `${controls}<div id="knowledge-graph-canvas" role="img" aria-label="Interactive material graph. Use List view for keyboard navigation."></div><p class="graph-help">Select a node to see its connections. Drag to move; pinch or scroll to zoom.</p>`}</section>${graphDetails(selected)}</div>`}
   </div>`;
 }

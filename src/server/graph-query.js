@@ -35,13 +35,13 @@ export function queryGraph(data, user, input) {
   if (data.revision !== options.revision || Object.keys(documents).some(name => documents[name] !== options.documents[name]))
     throw Object.assign(new Error('The workspace changed. Retry loading files.'), { statusCode: 409, code: 'REVISION_CONFLICT' });
   const access = { role: user.role, memberId: memberForProfile(data, user)?.id || user.id };
+  const writable = new Set(data.projects.filter(project => canEditProject(project, access.memberId, access.role)).map(project => project.id));
   const graph = workspaceGraph(data, { ...access, includeArchived: options.mode === 'candidates' || options.includeArchived === true });
   let view;
   if (options.mode === 'candidates') {
     if (!options.source || !entityAllowed(data, options.source, access, true))
       throw Object.assign(new Error('You do not have permission to change this item.'), { statusCode: 403, code: 'ENTITY_FORBIDDEN' });
     const query = (options.query || '').trim().toLocaleLowerCase();
-    const writable = new Set(data.projects.filter(project => canEditProject(project, access.memberId, access.role)).map(project => project.id));
     const nodes = graph.nodes.filter(
       node =>
         node.key !== options.source &&
@@ -54,5 +54,13 @@ export function queryGraph(data, user, input) {
   } else {
     view = graphView(graph, { ...options, limit: options.mode === 'export' ? Infinity : 250 });
   }
-  return { ...view, nodes: view.nodes.map(publicNode), revision: data.revision, documents };
+  return {
+    ...view,
+    nodes: view.nodes.map(node => ({
+      ...publicNode(node),
+      writable: ['admin', 'editor'].includes(access.role) && (!node.project || writable.has(node.project)),
+    })),
+    revision: data.revision,
+    documents,
+  };
 }

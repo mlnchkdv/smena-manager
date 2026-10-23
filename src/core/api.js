@@ -208,6 +208,7 @@ async function readCatalogSnapshot(result, generation = sessionGeneration) {
 }
 
 export const queryFileCatalog = options => request('/api/files/catalog/query', { method: 'POST', body: JSON.stringify(options) }, true);
+export const queryWorkspaceGraph = options => request('/api/graph/query', { method: 'POST', body: JSON.stringify(options) }, true);
 export async function loadFileIdentities(ids, replace = false) {
   const generation = sessionGeneration;
   const { requestFileIdentities } = await import('./file-catalog-transport.js');
