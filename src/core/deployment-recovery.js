@@ -7,7 +7,8 @@ import { t } from './i18n.js';
 export function installDeploymentRecovery(buildId) {
   let changed = false,
     failed = false,
-    checking = false;
+    checking = false,
+    presentation = '';
   const root = document.createElement('aside');
   root.className = 'deployment-update';
   root.hidden = true;
@@ -27,17 +28,23 @@ export function installDeploymentRecovery(buildId) {
     });
   function paint() {
     if (!changed && !failed) return;
+    const canReload = safe();
+    const next = JSON.stringify([changed, failed, canReload, S.prefs.lang]);
+    if (next === presentation) return;
+    presentation = next;
     root.hidden = false;
     root.replaceChildren();
     const text = document.createElement('span');
     text.setAttribute('role', 'status');
     text.textContent = t(changed ? 'A new app version is available.' : 'This section could not load. Check for an app update.');
     const hint = document.createElement('small');
-    hint.textContent = t(safe() ? 'Your saved data and current address will be kept.' : 'Save changes, close open forms and finish transfers before updating.');
+    hint.textContent = t(
+      canReload ? 'Your saved data and current address will be kept.' : 'Save changes, close open forms and finish transfers before updating.',
+    );
     const button = document.createElement('button');
     button.className = 'btn btn-secondary btn-sm';
     button.textContent = t(changed ? 'Update app' : 'Check for update');
-    button.disabled = changed && !safe();
+    button.disabled = changed && !canReload;
     button.addEventListener('click', () => {
       if (!changed) return void check();
       // Recheck at the actual click, not just when the banner was rendered.

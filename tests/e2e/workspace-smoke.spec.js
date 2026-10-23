@@ -866,6 +866,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await expect(page.locator('.files-selected-count b')).toHaveText('2');
       if (language === 'Русский') await expectRussianUi(page, 'Recursive folder filters');
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await page.locator('.files-preset-manage summary').click();
       await page.locator('[data-a="removeFileFilter"]').click();
       // Move A back to the project root through the same picker for the next locale.
       await page.locator('.files-folder-crumbs [data-project="all"]').click();
