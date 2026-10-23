@@ -27,6 +27,7 @@ import { createCatalogReader } from './file-catalog-reader.js';
 import { catalogQuery, currentCatalogUser } from './file-catalog-query.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
+import { queryGraph, validateGraphQuery } from './graph-query.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -202,6 +203,23 @@ function catalogReadScope(data, user, project = 'all', ids) {
     projects: new Set(data.projects.filter(p => (project === 'all' || p.id === project) && canReadProject(p, member, user.role)).map(p => p.id)),
     ...(ids ? { ids: new Set(ids) } : {}),
   };
+}
+
+export async function queryWorkspaceGraph(user, input) {
+  const options = validateGraphQuery(input);
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseCatalogIndex === 'function') {
+    // Typed non-file candidates need no catalog parts at all, except when the
+    // source itself is a file (its write access must be checked on real data).
+    const needsFiles =
+      options.mode !== 'candidates' || ((!options.kind || options.kind === 'file') && !options.wikiOnly) || options.source?.startsWith('file:');
+    const stored = needsFiles ? await storage.loadDatabaseCatalogIndex(core => catalogReadScope(core, user)) : await storage.loadDatabaseCore();
+    if (!stored) throw new Error('The configured storage does not contain a workspace database.');
+    return queryGraph(await loadAggregate(storage, stored), user, options);
+  }
+  if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
+  else await initWorkspaceStore();
+  return queryGraph(database, user, options);
 }
 
 export async function getWorkspaceFileSnapshot(user, id) {

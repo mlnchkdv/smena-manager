@@ -13,6 +13,7 @@ import {
   replaceWorkspaceDatabase,
   restoreWorkspaceBackup,
   RevisionConflictError,
+  queryWorkspaceGraph,
 } from './workspace-store.js';
 import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
@@ -145,6 +146,14 @@ app.use('/api', (request, response, next) => {
 });
 app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
+
+app.post('/api/graph/query', async (request, response, next) => {
+  try {
+    response.json(await queryWorkspaceGraph(request.user, request.body));
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/api/auth/me', (request, response) => {
   response.json({ user: request.user });
