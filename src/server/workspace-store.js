@@ -480,8 +480,15 @@ export async function replaceWorkspaceDatabase(nextData, expectedRevision, optio
 }
 
 export async function getWorkspaceStatus() {
-  const data = await initWorkspaceStore();
   const storage = getStorageProvider();
+  let snapshot;
+  if (typeof storage.loadDatabaseStatus === 'function') {
+    snapshot = await storage.loadDatabaseStatus();
+    if (!snapshot) throw new Error('The configured storage does not contain a workspace database.');
+  }
+  // A status read must neither reuse a stale worker database nor install an
+  // identity-only catalog as the next mutation's canonical baseline.
+  const data = snapshot ? await loadAggregate(storage, snapshot.data) : await getWorkspaceDatabase();
   const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name, data)])));
   const redis = await getRedisHealth();
   const coordination = redis.configured
@@ -489,11 +496,13 @@ export async function getWorkspaceStatus() {
     : process.env.VERCEL
       ? { mode: 'drive-etag', healthy: directDriveWritesEnabled(), latencyMs: null }
       : { mode: 'local-queue', healthy: true, latencyMs: null };
-  const capacities = workspaceCapacities(data, documentSnapshots);
+  const capacities = workspaceCapacities(data, documentSnapshots, snapshot?.accounting?.catalogBytes);
   const workspaceBytes = Object.values(capacities).reduce((total, item) => total + item.bytes, 0);
   const workspaceMaxBytes = Object.values(capacities).reduce((total, item) => total + item.maxBytes, 0);
+  const storageStatus = await storage.getStatus();
+  if (snapshot?.catalog) storageStatus.fileCatalog = snapshot.catalog;
   return {
-    storage: await storage.getStatus(),
+    storage: storageStatus,
     coordination,
     schemaVersion: data.schemaVersion,
     revision: data.revision,
@@ -502,7 +511,8 @@ export async function getWorkspaceStatus() {
     workspaceMaxBytes,
     workspaceCapacity: workspaceCapacity(workspaceBytes, workspaceMaxBytes),
     capacities,
-    fileStorage: fileStorageAccounting(data),
+    fileStorage: snapshot?.accounting?.fileStorage || fileStorageAccounting(data),
+    catalogAccounting: { source: snapshot?.accounting ? 'manifest' : 'canonical', revision: data.revision },
     providerFailures: providerFailureCounters(),
     workspaceWarningBytes: Object.values(capacities).reduce((total, item) => total + item.warningBytes, 0),
     documents: Object.fromEntries(

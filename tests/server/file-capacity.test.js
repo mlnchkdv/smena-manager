@@ -8,6 +8,14 @@ test('data guards remain independently visible when catalog dwarfs core/document
   assert.equal(result.knowledge.maxBytes, 4 * 1024 * 1024);
   assert.equal(result.exports.maxBytes, 8 * 1024 * 1024);
 });
+
+test('summary capacity preserves the exact canonical envelope, without serializing partial catalog stubs', () => {
+  const data = { revision: 10, projects: [], files: [{ id: 'stub', bytes: 0 }] };
+  const result = workspaceCapacities(data, {}, 1234567);
+  assert.equal(result.catalog.bytes, 1234567);
+  assert.equal(result.catalog.maxBytes, 32 * 1024 * 1024);
+  assert.deepEqual(result.core, workspaceCapacities(data, {}).core);
+});
 test('storage accounting distinguishes aliases, retained bytes and unknown backup usage', () => {
   const file = { storageFileId: 'active', storageName: 'a', bytes: 12 };
   const value = fileStorageAccounting({
