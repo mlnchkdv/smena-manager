@@ -109,3 +109,22 @@ test('on-demand bootstrap reads no catalog and deltas never remove unloaded rows
   const fresh = await hydrateFileCatalog(snapshot, () => assert.fail('Another account must not reuse identities'), 151);
   assert.deepEqual(fresh.files, []);
 });
+
+test('on-demand metadata follows byte-budget continuations and stale page baselines cannot delete new scopes', async () => {
+  const snapshot = { data: { revision: 30, trash: [] }, fileCatalog: { mode: 'demand', total: 9000 } };
+  requestFileIdentities(['one', 'two'], 160, true);
+  let calls = 0;
+  const first = await hydrateFileCatalog(
+    snapshot,
+    async (_path, options) => {
+      const { offset } = JSON.parse(options.body);
+      calls += 1;
+      return { revision: 30, total: 2, files: [{ id: offset ? 'two' : 'one' }], nextOffset: offset ? null : 1 };
+    },
+    160,
+  );
+  assert.equal(calls, 2);
+  requestFileIdentities(['three'], 160, true);
+  await hydrateFileCatalog(snapshot, async () => ({ revision: 30, total: 1, files: [{ id: 'three' }], nextOffset: null }), 160);
+  assert.deepEqual(catalogWrite(first, 30, 160).fileChanges.remove, [], 'A late snapshot from the previous scope cannot delete the current scope');
+});

@@ -173,4 +173,31 @@ test('authenticated editors can upload and range-download a workspace file', asy
     headers: { Authorization: `Bearer ${token}` },
   });
   assert.equal(missingResponse.status, 404);
+  const latest = await getWorkspaceDatabase();
+  latest.projects.push({ id: 'private-project', name: 'Private', private: true, members: ['another-member'] });
+  const privateFile = { id: 'private-file', name: 'Private metadata', project: 'private-project', type: 'doc' };
+  latest.files.push(privateFile);
+  const privateData = await replaceWorkspaceDatabase(latest, latest.revision);
+  const demandHeaders = { ...headers, 'X-Smena-File-Catalog': 'demand' };
+  const bootstrap = await (await fetch(`${origin}/api/workspace`, { headers: demandHeaders })).json();
+  assert.equal(bootstrap.data.files, undefined);
+  assert.equal(bootstrap.fileCatalog.mode, 'demand');
+  assert.equal(bootstrap.fileCatalog.total, 0);
+  for (const [route, body] of [
+    ['query', { revision: privateData.revision, project: 'private-project' }],
+    ['resolve', { revision: privateData.revision, ids: ['private-file'] }],
+  ]) {
+    const result = await fetch(`${origin}/api/files/catalog/${route}`, { method: 'POST', headers: demandHeaders, body: JSON.stringify(body) });
+    assert.equal(result.status, 200);
+    const value = await result.json();
+    assert.deepEqual(value.files, []);
+    assert.equal(JSON.stringify(value).includes('Private metadata'), false);
+  }
+  const forbiddenChange = await fetch(`${origin}/api/workspace`, {
+    method: 'PUT',
+    headers: demandHeaders,
+    body: JSON.stringify({ revision: privateData.revision, data: bootstrap.data, fileChanges: { upsert: [{ ...privateFile, name: 'Tampered' }], remove: [] } }),
+  });
+  assert.equal(forbiddenChange.status, 403);
+  assert.equal((await getWorkspaceDatabase()).files[0].name, 'Private metadata');
 });
