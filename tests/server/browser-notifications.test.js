@@ -1,6 +1,49 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { browserNotificationContent, browserNotificationPreferenceKey, canDeliverBrowserNotification } from '../../src/core/browser-notifications.js';
+import {
+  browserNotificationContent,
+  browserNotificationPreferenceKey,
+  canDeliverBrowserNotification,
+  deliverBrowserNotification,
+} from '../../src/core/browser-notifications.js';
+
+test('a rejected browser notification never interrupts successful workspace refresh handling', () => {
+  const previous = globalThis.Notification;
+  try {
+    globalThis.Notification = class {
+      static permission = 'granted';
+      constructor() {
+        throw new TypeError('Use service worker notification delivery on this device');
+      }
+    };
+    assert.equal(deliverBrowserNotification({ id: 'n', type: 'mention' }, {}, { push_mention: true }), null);
+    let opened = false,
+      closed = false;
+    globalThis.Notification = class {
+      static permission = 'granted';
+      close() {
+        closed = true;
+      }
+    };
+    const alert = deliverBrowserNotification(
+      { id: 'n', type: 'mention' },
+      {},
+      { push_mention: true },
+      {
+        onOpen: () => {
+          opened = true;
+        },
+      },
+    );
+    assert.ok(alert);
+    alert.onclick();
+    assert.equal(opened, true);
+    assert.equal(closed, true);
+  } finally {
+    if (previous === undefined) delete globalThis.Notification;
+    else globalThis.Notification = previous;
+  }
+});
 
 test('browser notification categories use independent personal preferences', () => {
   assert.equal(browserNotificationPreferenceKey({ type: 'mention' }), 'push_mention');

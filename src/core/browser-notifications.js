@@ -35,11 +35,18 @@ export function browserNotificationContent(notification, data, translate = value
 export function deliverBrowserNotification(notification, data, preferences, options = {}) {
   if (!canDeliverBrowserNotification(notification, preferences)) return null;
   const content = browserNotificationContent(notification, data, options.translate);
-  const alert = new Notification(content.title, {
-    body: content.body,
-    icon: '/favicon.svg',
-    tag: `smena-notification-${notification.id}`,
-  });
+  let alert;
+  try {
+    alert = new Notification(content.title, {
+      body: content.body,
+      icon: '/favicon.svg',
+      tag: `smena-notification-${notification.id}`,
+    });
+  } catch {
+    // Some mobile browsers expose permission but reject the constructor.
+    // Optional delivery must not turn a successful workspace refresh offline.
+    return null;
+  }
   alert.onclick = () => {
     options.onOpen?.(notification);
     alert.close();
