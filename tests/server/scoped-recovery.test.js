@@ -24,6 +24,10 @@ test('recovering a core conflict preserves an active knowledge write and its loc
   remote.tasks[1].title = 'Remote independent edit';
   let coreWrites = 0;
   let releaseKnowledge;
+  let knowledgeStarted;
+  const started = new Promise(resolve => {
+    knowledgeStarted = resolve;
+  });
   const response = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
   setSessionToken('synthetic-token');
   globalThis.fetch = async (path, options = {}) => {
@@ -36,12 +40,13 @@ test('recovering a core conflict preserves an active knowledge write and its loc
     if (path === '/api/workspace-documents/knowledge')
       return new Promise(resolve => {
         releaseKnowledge = () => resolve(response({ data: { ...JSON.parse(options.body).data, revision: 1 } }));
+        knowledgeStarted();
       });
     throw new Error(`Unexpected test request: ${path}`);
   };
   try {
     const queued = queueWorkspaceSync(S.data);
-    await new Promise(resolve => setImmediate(resolve));
+    await started;
     assert.equal(workspaceSyncConflict().scope, 'workspace');
     assert.equal(workspaceSyncState().documents.knowledge.hasActive, true);
     const recovered = await recoverWorkspaceConflict();

@@ -1,5 +1,13 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'Catalog storage': 'Хранение каталога',
+  'Project shards': 'Части по проектам',
+  Aggregate: 'Общий JSON',
+  'Catalog parts': 'Частей каталога',
+  'Loading files…': 'Загрузка файлов…',
+  'Save changes before loading another file page.': 'Сохраните изменения перед загрузкой другой страницы файлов.',
+  'The workspace changed. Retry loading files.': 'Данные пространства изменились. Повторите загрузку файлов.',
+  'Unable to load files.': 'Не удалось загрузить файлы.',
   'Export checkpoints': 'Состояние заданий экспорта',
   'Prepared ZIP expired. Select files and prepare a new ZIP.': 'Срок готового ZIP истёк. Выберите файлы и подготовьте новый архив.',
   'Resumable exports': 'Возобновляемый экспорт',

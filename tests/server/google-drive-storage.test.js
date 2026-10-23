@@ -4,6 +4,31 @@ import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDriveMatch } from '../../src/server/storage/google-drive.js';
 import { storageVersion } from '../../src/server/storage/version-token.js';
+import { rememberStorageVersion } from '../../src/server/storage/version-token.js';
+
+test('operator rollback materializes the latest edits, creates a backup and fences the layout-only write', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  const latest = rememberStorageVersion({ schemaVersion: 3, revision: 19, files: [{ id: 'new-after-migration', project: 'p', name: 'Latest' }] }, '"latest"');
+  provider.loadDatabase = async () => latest;
+  let backedUp = false,
+    written;
+  provider.createDatabaseBackup = async data => {
+    assert.deepEqual(data, latest);
+    backedUp = true;
+    return { id: 'backup' };
+  };
+  provider.saveDatabase = async (data, options) => {
+    assert.equal(backedUp, true);
+    assert.equal(options.expectedEtag, '"latest"');
+    written = data;
+  };
+  await assert.rejects(provider.setFileCatalogLayout('aggregate', 18), { code: 'REVISION_CONFLICT' });
+  assert.equal(backedUp, false);
+  await provider.setFileCatalogLayout('aggregate', 19);
+  assert.deepEqual(written.files, latest.files);
+  assert.equal(written._catalogLayout, 'aggregate');
+  assert.equal(written.schemaVersion, 3, 'Old deployed writers must remain rejected after rollback');
+});
 
 test('schema 3 publishes immutable catalog parts before one fenced root update and backs up legacy data', async () => {
   const provider = new GoogleDriveStorageProvider();
@@ -13,6 +38,7 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
   provider.databaseEtag = '"old"';
   provider.catalogRoot = { schemaVersion: 2, revision: 1, files: [{ id: 'f', project: 'p', name: 'Old' }] };
   const parts = new Map();
+  const reads = [];
   let root,
     backups = 0,
     failRoot = false;
@@ -39,13 +65,32 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
         assert.equal(root.files, undefined);
         return { headers: { etag: '"new"' } };
       },
-      get: async ({ fileId }) => ({ data: fileId === 'db' ? JSON.stringify(root) : parts.get(fileId), headers: { etag: '"new"' } }),
+      get: async ({ fileId }) => {
+        reads.push(fileId);
+        return { data: fileId === 'db' ? JSON.stringify(root) : parts.get(fileId), headers: { etag: '"new"' } };
+      },
     },
   };
-  const data = { schemaVersion: 3, revision: 2, files: [{ id: 'f', project: 'p', name: 'New' }] };
+  const data = {
+    schemaVersion: 3,
+    revision: 2,
+    files: [
+      { id: 'f', project: 'p', name: 'New' },
+      { id: 'private', project: 'secret', name: 'Hidden' },
+    ],
+  };
   await provider.saveDatabase(data, { expectedEtag: '"old"' });
   assert.equal(backups, 1);
   assert.deepEqual((await provider.loadDatabase()).files, data.files);
+  reads.length = 0;
+  const core = await provider.loadDatabaseCore();
+  assert.deepEqual(reads, ['db'], 'Core/auth must not download catalog parts');
+  assert.equal(core.files[0].name, undefined);
+  reads.length = 0;
+  const scoped = await provider.loadDatabaseCatalog(() => ({ projects: new Set(['p']), ids: new Set(['f']) }));
+  assert.deepEqual(scoped.files, [data.files[0]]);
+  assert.equal(reads.length, 2);
+  assert.equal(reads.includes(root._fileCatalog.shards.find(part => part.project === 'secret').id), false, 'Private project part must not even be read');
   const published = structuredClone(root);
   failRoot = true;
   await assert.rejects(provider.saveDatabase({ ...data, revision: 3, files: [] }, { expectedEtag: '"old"' }), { statusCode: 412 });

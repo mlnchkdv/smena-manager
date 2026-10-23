@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileCatalogPage, fileCatalogChanges, applyFileCatalogChanges } from '../../src/shared/file-catalog.js';
 import { projectWorkspace, mergeClientWorkspace } from '../../src/server/workspace-policy.js';
-import { hydrateFileCatalog, catalogWrite } from '../../src/core/file-catalog-transport.js';
+import { hydrateFileCatalog, catalogWrite, requestFileIdentities } from '../../src/core/file-catalog-transport.js';
 
 test('catalog pages are bounded, scoped by project and pinned to one revision', () => {
   const data = { revision: 8, files: Array.from({ length: 321 }, (_, i) => ({ id: `f${i}`, project: i < 220 ? 'a' : 'b' })) };
@@ -82,4 +82,30 @@ test('unchanged metadata can be reused across core revisions without sharing a m
 test('a project-level operation can remove a large catalog without the UI selection cap truncating it', () => {
   const files = Array.from({ length: 1200 }, (_, i) => ({ id: `f${i}`, project: 'p' }));
   assert.deepEqual(applyFileCatalogChanges(files, fileCatalogChanges(files, [])), []);
+});
+
+test('on-demand bootstrap reads no catalog and deltas never remove unloaded rows', async () => {
+  const snapshot = { data: { revision: 20 }, fileCatalog: { mode: 'demand', total: 10000, token: 'a' } };
+  const initial = await hydrateFileCatalog(snapshot, () => assert.fail('Bootstrap must not read any catalog page'), 150);
+  assert.deepEqual(initial.files, []);
+  requestFileIdentities(['one'], 150, true);
+  const loaded = await hydrateFileCatalog(
+    snapshot,
+    async (path, options) => {
+      assert.equal(path, '/api/files/catalog/resolve');
+      assert.deepEqual(JSON.parse(options.body).ids, ['one']);
+      return { revision: 20, files: [{ id: 'one', project: 'p', name: 'One' }] };
+    },
+    150,
+  );
+  assert.deepEqual(catalogWrite({ ...loaded, files: [] }, 20, 150).fileChanges.remove, [], 'Evicting a loaded page is not deletion');
+  const payload = catalogWrite({ ...loaded, files: [], trash: [{ id: 'trash-one', kind: 'file', data: { file: loaded.files[0] } }] }, 20, 150);
+  assert.deepEqual(payload.fileChanges, { upsert: [], remove: ['one'] });
+  assert.equal(payload.data.files, undefined);
+  const full = [{ id: 'unloaded', project: 'q' }, ...loaded.files];
+  assert.deepEqual(applyFileCatalogChanges(full, payload.fileChanges), [full[0]]);
+  const next = await hydrateFileCatalog({ ...snapshot, data: { revision: 21 } }, () => assert.fail('Removed identities are not refetched'), 150);
+  assert.deepEqual(next.files, []);
+  const fresh = await hydrateFileCatalog(snapshot, () => assert.fail('Another account must not reuse identities'), 151);
+  assert.deepEqual(fresh.files, []);
 });

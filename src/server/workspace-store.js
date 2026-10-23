@@ -25,6 +25,8 @@ import { workspaceCapacities, fileStorageAccounting } from './file-capacity.js';
 import { providerFailureCounters } from './provider-safety.js';
 import { createCatalogReader } from './file-catalog-reader.js';
 import { catalogQuery } from './file-catalog-query.js';
+import { memberForProfile } from '../shared/member-identity.js';
+import { canReadProject } from '../shared/project-access.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -149,6 +151,12 @@ export async function reloadWorkspaceStore(options = {}) {
 }
 
 export async function getWorkspaceDatabase(options = {}) {
+  const storage = getStorageProvider();
+  if ((options.fields || options.catalog === 'metadata') && typeof storage.loadDatabaseCore === 'function') {
+    const stored = await storage.loadDatabaseCore();
+    const core = await loadAggregate(storage, stored);
+    return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, core[field]])) : core);
+  }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2_000 });
   else await initWorkspaceStore();
   return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, database[field]])) : database);
@@ -156,6 +164,12 @@ export async function getWorkspaceDatabase(options = {}) {
 
 const catalogReaders = new WeakMap();
 export async function getWorkspaceFileCatalogPage(user, options) {
+  const storage = getStorageProvider();
+  if (!options.token && typeof storage.loadDatabaseCatalog === 'function') {
+    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, options.project, options.ids));
+    if (!data) throw new Error('The configured storage does not contain a workspace database.');
+    return createCatalogReader(data)(user, options);
+  }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
   else await initWorkspaceStore();
   let read = catalogReaders.get(database);
@@ -167,9 +181,25 @@ export async function getWorkspaceFileCatalogPage(user, options) {
 }
 
 export async function queryWorkspaceFileCatalog(user, options) {
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseCatalog === 'function') {
+    const data = await storage.loadDatabaseCatalog(core =>
+      catalogReadScope(core, user, options.context !== 'all' && options.context ? options.context : options.project),
+    );
+    if (!data) throw new Error('The configured storage does not contain a workspace database.');
+    return catalogQuery(data, user, options);
+  }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
   else await initWorkspaceStore();
   return catalogQuery(database, user, options);
+}
+
+function catalogReadScope(data, user, project = 'all', ids) {
+  const member = memberForProfile(data, user)?.id || user.id;
+  return {
+    projects: new Set(data.projects.filter(p => (project === 'all' || p.id === project) && canReadProject(p, member, user.role)).map(p => p.id)),
+    ...(ids ? { ids: new Set(ids) } : {}),
+  };
 }
 
 export async function getWorkspaceRevisionStatus() {

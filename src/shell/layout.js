@@ -9,6 +9,7 @@ import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
 import { t as tr } from '../core/i18n.js';
+import { fileCatalogInfo } from '../core/file-catalog-state.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -153,7 +154,7 @@ export function renderSidebar() {
       .filter(canSee)
       .map(project => project.id),
   );
-  const fileCount = (d.files || []).filter(file => fileProjectIds.has(file.project)).length;
+  const fileCount = fileCatalogInfo()?.total ?? (d.files || []).filter(file => fileProjectIds.has(file.project)).length;
   const projs = visibleProjects().filter(p => p.status !== 'complete');
   const inProj = u.route === 'project' ? u.params.id : null;
   return `<nav class="side" aria-label="Main">

@@ -4,6 +4,22 @@ import { ic } from '../core/icons.js';
 import { canEditProject } from '../shared/project-access.js';
 import { normalizeFileSearch } from '../shared/file-index.js';
 
+export function visibleFileFolderKeys(projectId, currentFolder, index) {
+  const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
+  const archived = Boolean(S.ui.fileFoldersArchived);
+  const entries = index.folderEntries
+    .filter(
+      entry =>
+        (projectId === 'all' || entry.project.id === projectId) &&
+        Boolean(entry.folder.archived) === archived &&
+        (terms.length ? terms.every(term => entry.search.includes(term)) : archived || (entry.folder.parentId || null) === (currentFolder?.id || null)),
+    )
+    .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
+  const limit = S.ui.fileFolderLayout === 'compact' ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
+  const start = Math.min(Math.max(0, Number(S.ui.fileFolderOffset) || 0), Math.max(0, Math.ceil(entries.length / limit) - 1) * limit);
+  return entries.slice(start, start + limit).map(entry => [entry.project.id, entry.folder.id]);
+}
+
 export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, index) {
   const scope = projects.filter(project => projectId === 'all' || project.id === projectId);
   const archived = Boolean(S.ui.fileFoldersArchived);
@@ -38,7 +54,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
               .map(({ folder, project }) => {
                 const writable = canEditProject(project, D().me, S.ui.currentUser?.role);
                 const count = index.count(project.id, folder.id);
-                const nonempty = index.hasChildren(project.id, folder.id) || count > 0;
+                const nonempty = index.hasChildren(project.id, folder.id) || count !== 0;
                 const context = [
                   project.name,
                   ...index

@@ -9,7 +9,7 @@ import { t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
 import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
-import { fileFolderBrowser } from '../ui/file-folders.js';
+import { fileFolderBrowser, visibleFileFolderKeys } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences } from '../core/file-preferences.js';
 import { filePresetsHtml } from '../ui/file-presets.js';
@@ -17,6 +17,7 @@ import { fileTransferPanel } from '../ui/file-transfer.js';
 import { fileExportsPanel } from '../ui/file-exports.js';
 import '../features/files.js';
 import '../features/file-selection.js';
+import { demandFilePage, filePagePending } from '../features/file-catalog-demand.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -114,20 +115,37 @@ export function pageFiles(projectId = null) {
         : writable[0]?.id || '';
   S.ui.fileUploadProject = uploadProject;
 
-  const files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, recursive: S.ui.fileRecursive, type: typeFilter, query, sort });
+  let files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, recursive: S.ui.fileRecursive, type: typeFilter, query, sort });
 
   const pageSize = S.ui.filePageSize || 100;
   const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
-  const window = listWindow(files, S.ui.listPages?.[pageKey], pageSize);
-  const totalBytes = index.totalBytes;
-  const projectCount = index.projectsWithFiles.size;
+  const remote = demandFilePage({
+    context: projectId || 'all',
+    project: projectFilter,
+    folder: currentFolder?.id || '',
+    recursive: Boolean(S.ui.fileRecursive),
+    type: typeFilter,
+    query,
+    sort,
+    limit: pageSize,
+    offset: (S.ui.listPages?.[pageKey] || 0) * pageSize,
+    countFolders: visibleFileFolderKeys(projectFilter, currentFolder, index),
+  });
+  if (remote) files = (remote.files || []).map(file => D().files.find(item => item.id === file.id)).filter(Boolean);
+  const window = remote
+    ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
+    : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
+  const allTotal = remote?.allTotal ?? allFiles.length;
+  const totalBytes = remote?.totalBytes ?? index.totalBytes;
+  const projectCount = remote?.projectCount ?? index.projectsWithFiles.size;
+  if (remote) index.count = (project, folder) => remote.folderCounts?.find(row => row[0] === project && row[1] === folder)?.[2] ?? '—';
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const searched = Boolean(query || typeFilter !== 'all');
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
   return `<div class="files-page ${projectId ? 'project-files-page' : ''}">
-    <header class="page-head files-page-head">${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allFiles.length}</b></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : '<div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>'}
+    <header class="page-head files-page-head">${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : '<div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>'}
       ${
         readOnly || !projects.length
           ? ''
@@ -139,7 +157,7 @@ export function pageFiles(projectId = null) {
       projectId
         ? ''
         : `<section class="files-summary" aria-label="File summary">
-      <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allFiles.length}</b></span></div>
+      <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allTotal}</b></span></div>
       <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${formatBytes(totalBytes)}</b></span></div>
       <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
     </section>`
@@ -175,7 +193,7 @@ export function pageFiles(projectId = null) {
     </section>
 
     <section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>
-    ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${files.length}</b> / ${allFiles.length}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
+    ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${window.total}</b> / ${allTotal}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${
       readOnly || !projects.length
@@ -187,30 +205,32 @@ export function pageFiles(projectId = null) {
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
     ${fileExportsPanel()}
-    ${fileSelectionBar(window.items, files)}
+    ${fileSelectionBar(window.items, files, remote)}
     ${
-      files.length
-        ? view === 'grid'
-          ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
-          : fileTable(window.items)
-        : empty(
-            searched ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
-            searched ? 'No files found' : currentFolder ? 'This folder is empty' : projects.length ? 'No files yet' : 'Create a project first',
-            searched
-              ? 'Try changing the search or filters.'
-              : projects.length
-                ? readOnly
-                  ? 'Editors can upload the first shared file.'
-                  : currentFolder
-                    ? 'Upload files here or move existing project files into this folder.'
-                    : 'Upload the first document, design, or team asset.'
-                : 'Files are organized by project, so create one before uploading.',
-            !searched && S.ui.currentUser?.role !== 'viewer' && !projects.length
-              ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
-              : '',
-            '',
-            1,
-          )
+      remote?.loading
+        ? filePagePending(remote)
+        : files.length
+          ? view === 'grid'
+            ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
+            : fileTable(window.items)
+          : empty(
+              searched ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
+              searched ? 'No files found' : currentFolder ? 'This folder is empty' : projects.length ? 'No files yet' : 'Create a project first',
+              searched
+                ? 'Try changing the search or filters.'
+                : projects.length
+                  ? readOnly
+                    ? 'Editors can upload the first shared file.'
+                    : currentFolder
+                      ? 'Upload files here or move existing project files into this folder.'
+                      : 'Upload the first document, design, or team asset.'
+                  : 'Files are organized by project, so create one before uploading.',
+              !searched && S.ui.currentUser?.role !== 'viewer' && !projects.length
+                ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
+                : '',
+              '',
+              1,
+            )
     }
     <div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>
   </div>`;

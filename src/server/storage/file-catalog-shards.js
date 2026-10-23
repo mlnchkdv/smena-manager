@@ -28,7 +28,14 @@ export async function writeCatalogShards(data, previous, write) {
       const old = reusable.get(sha256);
       const id = old?.project === project ? old.id : await write(text, sha256);
       if (typeof id !== 'string' || !id) throw invalid();
-      shards.push({ id, project, sha256, bytes: Buffer.byteLength(text), count: batch.length });
+      shards.push({
+        id,
+        project,
+        sha256,
+        bytes: Buffer.byteLength(text),
+        count: batch.length,
+        keys: batch.map(([, file]) => [file.id, file.folderId || '', Math.max(0, Number(file.bytes) || 0), file.task || '']),
+      });
       batch = [];
       bytes = 2;
     };
@@ -44,13 +51,13 @@ export async function writeCatalogShards(data, previous, write) {
   const { files: _files, _fileCatalog: _catalog, ...core } = data;
   void _files;
   void _catalog;
-  return { ...core, _fileCatalog: { version: 1, total: data.files.length, shards } };
+  return { ...core, _fileCatalog: { version: 2, total: data.files.length, shards } };
 }
 
 export function validateCatalogManifest(manifest) {
   if (
     !manifest ||
-    manifest.version !== 1 ||
+    ![1, 2].includes(manifest.version) ||
     !Number.isSafeInteger(manifest.total) ||
     manifest.total < 0 ||
     manifest.total > MAX_FILES ||
@@ -60,6 +67,7 @@ export function validateCatalogManifest(manifest) {
     throw invalid();
   let count = 0;
   const ids = new Set();
+  const fileIds = new Set();
   for (const part of manifest.shards) {
     if (
       !part ||
@@ -77,6 +85,24 @@ export function validateCatalogManifest(manifest) {
     )
       throw invalid();
     ids.add(part.id);
+    if (manifest.version === 2) {
+      if (!Array.isArray(part.keys) || part.keys.length !== part.count) throw invalid();
+      for (const key of part.keys) {
+        if (
+          !Array.isArray(key) ||
+          key.length !== 4 ||
+          typeof key[0] !== 'string' ||
+          !key[0] ||
+          fileIds.has(key[0]) ||
+          typeof key[1] !== 'string' ||
+          !Number.isFinite(key[2]) ||
+          key[2] < 0 ||
+          typeof key[3] !== 'string'
+        )
+          throw invalid();
+        fileIds.add(key[0]);
+      }
+    }
     count += part.count;
   }
   if (count !== manifest.total) throw invalid();
@@ -90,7 +116,9 @@ export async function readCatalogShards(root, read, project) {
     ids = new Set(),
     positions = new Set();
   for (const part of manifest.shards) {
-    if (project !== undefined && part.project !== project) continue;
+    if (typeof project === 'string' && part.project !== project) continue;
+    if (project?.projects && !project.projects.has(part.project)) continue;
+    if (project?.ids && part.keys && !part.keys.some(key => project.ids.has(key[0]))) continue;
     const text = await read(part.id);
     if (typeof text !== 'string' || Buffer.byteLength(text) !== part.bytes || digest(text) !== part.sha256) throw invalid();
     let batch;
@@ -100,7 +128,7 @@ export async function readCatalogShards(root, read, project) {
       throw invalid();
     }
     if (!Array.isArray(batch) || batch.length !== part.count) throw invalid();
-    for (const row of batch) {
+    for (const [ordinal, row] of batch.entries()) {
       if (!Array.isArray(row) || row.length !== 2) throw invalid();
       const [index, file] = row;
       if (
@@ -114,6 +142,9 @@ export async function readCatalogShards(root, read, project) {
         (file.project || '') !== part.project
       )
         throw invalid();
+      const key = part.keys?.[ordinal];
+      if (key && (key[0] !== file.id || key[1] !== (file.folderId || '') || key[2] !== Math.max(0, Number(file.bytes) || 0) || key[3] !== (file.task || '')))
+        throw invalid();
       positions.add(index);
       ids.add(file.id);
       rows.push(row);
@@ -121,6 +152,19 @@ export async function readCatalogShards(root, read, project) {
   }
   rows.sort((a, b) => a[0] - b[0]);
   return rows.map(row => row[1]);
+}
+
+export function catalogCore(root) {
+  const manifest = validateCatalogManifest(root._fileCatalog);
+  if (manifest.version !== 2 || Object.hasOwn(root, 'files')) throw invalid();
+  const { _fileCatalog: _manifest, ...core } = root;
+  void _manifest;
+  return {
+    ...core,
+    files: manifest.shards.flatMap(part =>
+      part.keys.map(([id, folderId, bytes, task]) => ({ id, project: part.project, folderId: folderId || undefined, bytes, task: task || undefined })),
+    ),
+  };
 }
 
 export async function materializeCatalog(root, read) {

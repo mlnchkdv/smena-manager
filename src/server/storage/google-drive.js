@@ -3,9 +3,9 @@ import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
 import { createHash } from 'node:crypto';
-import { rememberStorageVersion } from './version-token.js';
+import { rememberStorageVersion, storageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
-import { writeCatalogShards, materializeCatalog } from './file-catalog-shards.js';
+import { writeCatalogShards, materializeCatalog, catalogCore, readCatalogShards } from './file-catalog-shards.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -217,7 +217,7 @@ export class GoogleDriveStorageProvider {
     return this.databaseFileId;
   }
 
-  async loadDatabase() {
+  async readDatabaseRoot() {
     await this.init();
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
@@ -227,11 +227,34 @@ export class GoogleDriveStorageProvider {
     this.lastSyncAt = new Date().toISOString();
     const root = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     this.catalogRoot = root;
-    const data = await materializeCatalog(root, async id => {
-      const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
-      return part.data;
-    });
-    return rememberStorageVersion(data, etag);
+    return rememberStorageVersion(root, etag);
+  }
+
+  async readCatalogPart(id) {
+    const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    return part.data;
+  }
+
+  async loadDatabase() {
+    const root = await this.readDatabaseRoot();
+    if (!root) return null;
+    return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
+  }
+
+  async loadDatabaseCore() {
+    const root = await this.readDatabaseRoot();
+    if (!root) return null;
+    const core = root._fileCatalog?.version === 2 ? catalogCore(root) : await materializeCatalog(root, id => this.readCatalogPart(id));
+    return rememberStorageVersion(core, storageVersion(root));
+  }
+
+  async loadDatabaseCatalog(select) {
+    const root = await this.readDatabaseRoot();
+    if (!root) return null;
+    if (root._fileCatalog?.version !== 2) return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
+    const core = catalogCore(root);
+    const files = await readCatalogShards(root, id => this.readCatalogPart(id), select(core));
+    return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
   }
 
   async getDatabaseVersion() {
@@ -275,7 +298,7 @@ export class GoogleDriveStorageProvider {
     // schema-3 root rather than flattening or overwriting a partial catalog.
     if (fileId) conditionalWriteOptions(options, this.databaseEtag);
     let stored = data;
-    if (data.schemaVersion >= 3 && Array.isArray(data.files)) {
+    if (data.schemaVersion >= 3 && Array.isArray(data.files) && data._catalogLayout !== 'aggregate') {
       if (fileId && !this.catalogRoot?._fileCatalog) {
         await this.createDatabaseBackup(this.catalogRoot || data, 'Before file catalog sharding');
       }
@@ -325,6 +348,20 @@ export class GoogleDriveStorageProvider {
     this.lastSyncAt = new Date().toISOString();
     this.catalogRoot = stored;
     rememberStorageVersion(data, this.databaseEtag);
+  }
+
+  async setFileCatalogLayout(layout, expectedRevision) {
+    if (!['aggregate', 'project-shards'].includes(layout) || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
+      throw new TypeError('Invalid catalog layout operation.');
+    // Always materialize the latest root. Replaying the pre-migration backup
+    // here would silently discard subsequent team edits.
+    const data = await this.loadDatabase();
+    if (!data || data.revision !== expectedRevision)
+      throw Object.assign(new Error('Reload the workspace before changing catalog layout.'), { code: 'REVISION_CONFLICT', statusCode: 409 });
+    if (Number(data.schemaVersion || 1) > 3) throw new Error('The workspace uses a newer schema.');
+    const backup = await this.createDatabaseBackup(data, 'Before file catalog layout change');
+    await this.saveDatabase({ ...data, schemaVersion: 3, _catalogLayout: layout }, { expectedEtag: storageVersion(data) });
+    return { layout, revision: data.revision, backupId: backup.id };
   }
 
   async findDocumentFile(name) {
@@ -802,6 +839,11 @@ export class GoogleDriveStorageProvider {
       persistent: true,
       credentialType: this.credentialType,
       databaseReady: Boolean(await this.findDatabaseFile()),
+      fileCatalog: {
+        layout: this.catalogRoot?._fileCatalog ? 'project-shards' : 'aggregate',
+        version: this.catalogRoot?._fileCatalog?.version || 0,
+        parts: this.catalogRoot?._fileCatalog?.shards?.length || 0,
+      },
       uploadsFolderId: this.uploadsFolderId,
       uploadsReady: Boolean(this.uploadsFolderId),
       lastSyncAt: this.lastSyncAt,

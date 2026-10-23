@@ -236,6 +236,7 @@ export function render() {
   syncBrowserLocation();
 }
 let thumbnailModule;
+let catalogContextModule;
 function refreshThumbnails() {
   if (!thumbnailModule && !document.querySelector('[data-file-thumb]')) return;
   thumbnailModule ||= import('../core/file-thumbnails.js');
@@ -248,6 +249,21 @@ function refreshThumbnails() {
 }
 
 export function afterRender() {
+  if (
+    S.ui.currentUser &&
+    (S.ui.route === 'graph' ||
+      S.ui.route === 'search' ||
+      S.ui.palette?.q ||
+      document.querySelector('[data-catalog-key]') ||
+      S.ui.modals.some(modal => modal.file || modal.type === 'relations'))
+  ) {
+    catalogContextModule ||= import('../features/catalog-context.js');
+    void catalogContextModule
+      .then(module => module.refreshCatalogContext())
+      .catch(() => {
+        catalogContextModule = null;
+      });
+  }
   const shell = document.querySelector('.shell');
   if (shell) shell.inert = !!document.querySelector('.knowledge-drawer');
   const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && matchMedia('(max-width:640px)').matches;

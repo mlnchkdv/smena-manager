@@ -222,6 +222,7 @@ fileRouter.post('/catalog/resolve', async (request, response, next) => {
         revision: request.body.revision,
         token: request.body.token,
         ids: request.body.ids,
+        offset: request.body.offset || 0,
       }),
     );
   } catch (error) {

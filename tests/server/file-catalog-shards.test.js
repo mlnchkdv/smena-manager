@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { writeCatalogShards, readCatalogShards, materializeCatalog } from '../../src/server/storage/file-catalog-shards.js';
+import { writeCatalogShards, readCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
 
 test('immutable project parts preserve ordering, checksums, scoped reads and unchanged identities', async () => {
   const parts = new Map();
@@ -18,6 +18,10 @@ test('immutable project parts preserve ordering, checksums, scoped reads and unc
   assert.equal(root.files, undefined);
   assert.equal(root._fileCatalog.shards.length, 4);
   assert.deepEqual(await materializeCatalog(root, id => parts.get(id)), data);
+  const core = catalogCore(root);
+  assert.equal(core.files.length, 4501);
+  assert.equal(core.files[0].name, undefined);
+  assert.equal(core.files[0].id, 'f0');
   const reads = [];
   const scoped = await readCatalogShards(
     root,
@@ -32,6 +36,17 @@ test('immutable project parts preserve ordering, checksums, scoped reads and unc
     data.files.filter(file => file.project === 'b'),
   );
   assert.equal(reads.length, 2);
+  const selectedReads = [];
+  const selected = await readCatalogShards(
+    root,
+    id => {
+      selectedReads.push(id);
+      return parts.get(id);
+    },
+    { projects: new Set(['b']), ids: new Set(['f1']) },
+  );
+  assert.equal(selectedReads.length, 1);
+  assert.ok(selected.every(file => file.project === 'b'));
   const again = await writeCatalogShards({ ...data, revision: 9 }, root._fileCatalog, () => assert.fail('Unchanged parts must be reused'));
   assert.deepEqual(again._fileCatalog, root._fileCatalog);
   const changed = structuredClone(data);
@@ -51,6 +66,12 @@ test('missing, corrupt or mixed catalogs fail closed instead of becoming an empt
   for (const read of [() => undefined, () => `${text} `, () => text.replace('one', 'two')]) {
     await assert.rejects(materializeCatalog(root, read), { code: 'FILE_CATALOG_CORRUPT' });
   }
+  const corruptIndex = structuredClone(root);
+  corruptIndex._fileCatalog.shards[0].keys[0][0] = 'wrong-id';
+  await assert.rejects(
+    materializeCatalog(corruptIndex, () => text),
+    { code: 'FILE_CATALOG_CORRUPT' },
+  );
   await assert.rejects(
     materializeCatalog({ ...root, files: [] }, () => text),
     { code: 'FILE_CATALOG_CORRUPT' },

@@ -135,7 +135,7 @@ app.use('/api', (request, response, next) => {
         body = {
           ...body,
           data: core,
-          fileCatalog: { total: files.length, token: fileCatalogVersion(files), ...(catalogMode === 'demand' ? { mode: 'demand' } : {}) },
+          fileCatalog: { total: files.length, ...(catalogMode === 'demand' ? { mode: 'demand' } : { token: fileCatalogVersion(files) }) },
         };
       }
     }
@@ -405,9 +405,9 @@ app.delete('/api/trash/:id', requireRole('admin', 'editor'), async (request, res
   }
 });
 
-app.get('/api/workspace', async (_request, response, next) => {
+app.get('/api/workspace', async (request, response, next) => {
   try {
-    const database = await getWorkspaceDatabase();
+    const database = await getWorkspaceDatabase(request.get('x-smena-file-catalog') === 'demand' ? { catalog: 'metadata' } : {});
     response.json({ data: workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())) });
   } catch (error) {
     next(error);
@@ -485,7 +485,7 @@ app.get('/api/knowledge/search', async (request, response, next) => {
 app.get('/api/workspace-documents/:name', async (request, response, next) => {
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
-    const legacy = await getWorkspaceDatabase();
+    const legacy = await getWorkspaceDatabase({ catalog: 'metadata' });
     response.json({ data: await getWorkspaceDocument(request.params.name, legacy) });
   } catch (error) {
     next(error);

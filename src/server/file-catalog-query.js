@@ -27,6 +27,7 @@ export function catalogQuery(database, user, options = {}) {
     offset < 0 ||
     ![25, 50, 100].includes(limit) ||
     typeof query !== 'string' ||
+    typeof recursive !== 'boolean' ||
     query.length > 500 ||
     !['date', 'name', 'size', 'project'].includes(sort) ||
     ![project, context, folder, type].every(value => typeof value === 'string') ||
@@ -38,28 +39,32 @@ export function catalogQuery(database, user, options = {}) {
   const member = memberForProfile(database, user)?.id || user.id;
   const projects = database.projects.filter(p => !p.archived && canReadProject(p, member, user.role) && (context === 'all' || context === p.id));
   const index = createFileIndex(database, projects, {
-    image: 'Image Изображение',
-    document: 'Document Документ',
+    img: 'Image Изображение',
+    doc: 'Document Документ Text Текст',
     pdf: 'PDF',
     video: 'Video Видео',
     audio: 'Audio Аудио',
-    archive: 'Archive Архив',
+    zip: 'Archive Архив',
+    sheet: 'Spreadsheet Таблица',
+    code: 'Code Код',
+    fig: 'Figma',
     text: 'Text Текст',
     other: 'Other files Другие файлы',
   });
   const results = filterIndexedFiles(index, { project, folder, recursive, type, query, sort });
+  const summary = database._catalogIndex ? createFileIndex({ ...database, files: database._catalogIndex }, projects) : index;
   const pages = Math.max(1, Math.ceil(results.length / limit));
   const page = Math.min(Math.floor(offset / limit), pages - 1);
   return structuredClone({
     revision,
-    files: results.slice(page * limit, (page + 1) * limit),
+    files: results.slice(page * limit, (page + 1) * limit).map(file => ({ id: file.id })),
     page,
     pages,
     total: results.length,
-    allTotal: index.files.length,
-    totalBytes: index.totalBytes,
-    projectCount: index.projectsWithFiles.size,
-    folderCounts: countFolders.map(([p, f]) => [p, f, index.count(p, f)]),
+    allTotal: summary.files.length,
+    totalBytes: summary.totalBytes,
+    projectCount: summary.projectsWithFiles.size,
+    folderCounts: countFolders.map(([p, f]) => [p, f, summary.count(p, f)]),
     resultIds: results.length <= 500 ? results.map(file => file.id) : null,
   });
 }

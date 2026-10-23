@@ -32,7 +32,18 @@ A.selectFilePage = el => {
   S.ui.fileSelection = [...selected];
   render();
 };
-A.selectFileResults = A.selectFilePage;
+A.selectFileResults = async el => {
+  const ids = (el.dataset.ids || '').split(',').filter(Boolean);
+  if (ids.some(id => !D().files.some(file => file.id === id))) {
+    try {
+      const { ensureFileIdentities } = await import('./file-catalog-demand.js');
+      await ensureFileIdentities(ids);
+    } catch (error) {
+      return toast(error.message, { kind: 'err' });
+    }
+  }
+  A.selectFilePage(el);
+};
 A.clearFileSelection = () => {
   S.ui.fileSelection = [];
   render();

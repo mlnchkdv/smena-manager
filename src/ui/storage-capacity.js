@@ -8,7 +8,7 @@ export function storageCapacityPanel() {
   const labels = { core: 'Workspace core', catalog: 'File catalog', exports: 'Export checkpoints', knowledge: 'Knowledge base', bookmarks: 'Bookmarks' };
   const storage = status.fileStorage,
     counters = status.providerFailures;
-  return `<section class="sblock storage-capacity"><h2>Data capacity</h2><p class="muted">Each data limit is independent of Google Drive free space.</p><dl>${Object.entries(
+  return `<section class="sblock storage-capacity"><h2>Data capacity</h2><p class="muted">Each data limit is independent of Google Drive free space.</p>${status.storage?.fileCatalog ? `<p class="hint"><span>Catalog storage</span>: <span>${status.storage.fileCatalog.layout === 'project-shards' ? 'Project shards' : 'Aggregate'}</span> · <span>Catalog parts</span>: ${status.storage.fileCatalog.parts}</p>` : ''}<dl>${Object.entries(
     status.capacities,
   )
     .map(

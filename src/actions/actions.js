@@ -1912,7 +1912,7 @@ A.cancelUpload = el => {
 };
 
 A.downloadStoredFile = async el => {
-  const file = D().files.find(item => item.id === el.dataset.id);
+  const file = D().files.find(item => item.id === el.dataset.id) || S.ui.modals.find(modal => modal.file?.id === el.dataset.id)?.file;
   if (!file?.storageName) return toast('This legacy file has no stored content.', { kind: 'err' });
   if (getSessionToken() === 'cookie') {
     const anchor = document.createElement('a');

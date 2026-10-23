@@ -1,6 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getCurrentUser, getSessionToken, setSessionToken, getAuthConfig, savePersonalSettings } from '../../src/core/api.js';
+import { getCurrentUser, getSessionToken, setSessionToken, getAuthConfig, savePersonalSettings, putWorkspace, loadFileIdentities } from '../../src/core/api.js';
+
+test('lazy catalog imports cannot send an old workspace through a new account', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = () => assert.fail('No request may be sent after the account changes during an import');
+  try {
+    for (const operation of [() => putWorkspace({ files: [], projects: [], tasks: [] }, 1), () => loadFileIdentities(['old-private-id'])]) {
+      setSessionToken('old');
+      const pending = operation();
+      setSessionToken('new');
+      await assert.rejects(pending, { code: 'SESSION_CHANGED', staleSession: true });
+    }
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('a cookie switched by another tab cannot write through the previous account context or sign out the new account', async () => {
   const originalFetch = globalThis.fetch;

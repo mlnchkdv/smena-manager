@@ -781,8 +781,19 @@ test('large file collections keep bounded pages and remember device view prefere
     })),
   );
   expect((await page.request.put('/api/workspace', { data: { revision: current.revision, data: current } })).ok()).toBeTruthy();
+  const catalogRequests = [];
+  const observeCatalog = request => {
+    if (new URL(request.url()).pathname.startsWith('/api/files/catalog')) catalogRequests.push(request);
+  };
+  page.on('request', observeCatalog);
   try {
+    await page.goto('/e2e-team/home');
+    await expect(page.locator('.shell')).toBeVisible();
+    await waitForSaved(page);
+    expect(catalogRequests, 'Home bootstrap must not hydrate the file catalog').toHaveLength(0);
+    const firstQuery = page.waitForResponse(response => response.url().includes('/api/files/catalog/query') && response.ok());
     await page.goto('/e2e-team/files');
+    expect((await (await firstQuery).json()).files.length).toBeLessThanOrEqual(100);
     await expect(page.locator('#workspace-file-project option[value="scale-files"]')).toHaveCount(1);
     await page.locator('#workspace-file-project').selectOption('scale-files');
     await page.locator('#files-page-size').selectOption('25');
@@ -824,6 +835,7 @@ test('large file collections keep bounded pages and remember device view prefere
       await page.locator('[data-a="toggleFileFolders"]').click();
     }
   } finally {
+    page.off('request', observeCatalog);
     await page.goto('/e2e-team/files');
     await page.locator('#files-page-size').selectOption('100');
     await page.locator('#workspace-file-sort').selectOption('date');
