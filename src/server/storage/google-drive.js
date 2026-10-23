@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import { rememberStorageVersion, storageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
 import { writeCatalogShards, materializeCatalog, catalogCore, readCatalogShards } from './file-catalog-shards.js';
+import { fileCatalogIndex } from '../file-catalog-index.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -248,14 +249,20 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(core, storageVersion(root));
   }
 
-  async loadDatabaseCatalog(select) {
+  async loadDatabaseCatalog(select, projectFile) {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
-    if (![2, 3].includes(root._fileCatalog?.version))
-      return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
+    if (![2, 3].includes(root._fileCatalog?.version)) {
+      const data = await materializeCatalog(root, id => this.readCatalogPart(id));
+      return rememberStorageVersion(projectFile ? { ...data, files: data.files.map(projectFile) } : data, storageVersion(root));
+    }
     const core = catalogCore(root);
-    const files = await readCatalogShards(root, id => this.readCatalogPart(id), select(core));
+    const files = await readCatalogShards(root, id => this.readCatalogPart(id), select(core), projectFile);
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
+  }
+
+  async loadDatabaseCatalogIndex(select) {
+    return this.loadDatabaseCatalog(select, fileCatalogIndex);
   }
 
   async getDatabaseVersion() {

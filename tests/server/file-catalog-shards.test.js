@@ -2,6 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { writeCatalogShards, readCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
+import { fileCatalogIndex } from '../../src/server/file-catalog-index.js';
+
+test('search projection drops heavy/private metadata only after validating the original part', async () => {
+  let text;
+  const file = { id: 'f', name: 'Файл.md', project: 'p', tags: ['tag'], bytes: 12, storageFileId: 'private-drive-id', versions: ['x'.repeat(200000)] };
+  const root = await writeCatalogShards({ files: [file] }, null, async value => {
+    text = value;
+    return 'part';
+  });
+  const rows = await readCatalogShards(root, () => text, { projects: new Set(['p']) }, fileCatalogIndex);
+  assert.deepEqual(rows, [{ id: 'f', name: 'Файл.md', project: 'p', tags: ['tag'], bytes: 12 }]);
+  assert.ok(JSON.stringify(rows).length < 150);
+  await assert.rejects(
+    readCatalogShards(root, () => text + ' ', undefined, fileCatalogIndex),
+    { code: 'FILE_CATALOG_CORRUPT' },
+  );
+  assert.deepEqual((await materializeCatalog(root, () => text)).files, [file], 'Canonical writes still receive complete records');
+});
 
 test('immutable project parts preserve ordering, checksums, scoped reads and unchanged identities', async () => {
   const parts = new Map();

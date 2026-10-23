@@ -91,6 +91,11 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
   assert.deepEqual(scoped.files, [data.files[0]]);
   assert.equal(reads.length, 2);
   assert.equal(reads.includes(root._fileCatalog.shards.find(part => part.project === 'secret').id), false, 'Private project part must not even be read');
+  reads.length = 0;
+  const index = await provider.loadDatabaseCatalogIndex(() => ({ projects: new Set(['p']) }));
+  assert.deepEqual(index.files, [{ id: 'f', project: 'p', name: 'New' }]);
+  assert.equal(index._catalogIndex.length, 2, 'Folder counts retain the compact manifest index');
+  assert.equal(reads.length, 2, 'Index projection must preserve project-scoped reads');
   const published = structuredClone(root);
   failRoot = true;
   await assert.rejects(provider.saveDatabase({ ...data, revision: 3, files: [] }, { expectedEtag: '"old"' }), { statusCode: 412 });

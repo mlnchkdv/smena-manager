@@ -182,8 +182,9 @@ export async function getWorkspaceFileCatalogPage(user, options) {
 
 export async function queryWorkspaceFileCatalog(user, options) {
   const storage = getStorageProvider();
-  if (typeof storage.loadDatabaseCatalog === 'function') {
-    const data = await storage.loadDatabaseCatalog(core =>
+  const loadIndex = storage.loadDatabaseCatalogIndex || storage.loadDatabaseCatalog;
+  if (typeof loadIndex === 'function') {
+    const data = await loadIndex.call(storage, core =>
       catalogReadScope(core, user, options.context !== 'all' && options.context ? options.context : options.project),
     );
     if (!data) throw new Error('The configured storage does not contain a workspace database.');

@@ -120,7 +120,7 @@ export function validateCatalogManifest(manifest) {
   return manifest;
 }
 
-export async function readCatalogShards(root, read, project) {
+export async function readCatalogShards(root, read, project, projectFile = file => file) {
   const manifest = validateCatalogManifest(root._fileCatalog);
   if (Object.hasOwn(root, 'files')) throw invalid();
   const rows = [],
@@ -130,7 +130,7 @@ export async function readCatalogShards(root, read, project) {
     if (typeof project === 'string' && part.project !== project) continue;
     if (project?.projects && !project.projects.has(part.project)) continue;
     if (project?.ids && part.keys && !part.keys.some(key => project.ids.has(key[0]))) continue;
-    const text = await read(part.id);
+    const text = await read(part.id, part);
     if (typeof text !== 'string' || Buffer.byteLength(text) !== part.bytes || digest(text) !== part.sha256) throw invalid();
     let batch;
     try {
@@ -160,7 +160,9 @@ export async function readCatalogShards(root, read, project) {
         throw invalid();
       positions.add(index);
       ids.add(file.id);
-      rows.push([index, file]);
+      // Validate the original record before projecting it. Search/graph readers
+      // retain only small index rows, not every file's history/storage metadata.
+      rows.push([index, projectFile(file)]);
     }
   }
   rows.sort((a, b) => a[0] - b[0]);
