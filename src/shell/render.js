@@ -152,6 +152,10 @@ export function makeFocusable() {
 }
 export function render() {
   S.ui.renderRevision = (S.ui.renderRevision || 0) + 1;
+  if (S.ui.auth || !S.ui.currentUser) {
+    for (const upload of S.ui.uploads || []) upload.controller?.abort();
+    S.ui.uploads = [];
+  }
   disposeClosedPreviews();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';

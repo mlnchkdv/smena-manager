@@ -1899,6 +1899,7 @@ export async function handleFiles(files, ctx) {
       toast(`Uploaded ${up.name}`);
     } catch (error) {
       S.ui.uploads = S.ui.uploads.filter(item => item !== up);
+      if (generation !== getSessionGeneration()) return;
       render();
       toast(error.message || `Upload failed: ${up.name}`, { kind: 'err', ms: 6000 });
     }
