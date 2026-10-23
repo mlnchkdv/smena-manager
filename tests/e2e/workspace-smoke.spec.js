@@ -983,11 +983,17 @@ test('PDF previews render pages locally without document scripts in Russian and 
   expect(thumbnailUpload.status()).toBe(201);
   const thumbnail = (await thumbnailUpload.json()).file;
   await page.goto('/e2e-team/files');
+  const originalPickerInput = await page.locator('input[type="file"][data-in="uploadFiles"]').elementHandle();
   const chooser = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"]').press('Enter');
   const picker = await chooser;
   expect(picker.isMultiple()).toBeTruthy();
+  // Resizing causes the same render as an arriving catalog response while the
+  // OS picker is open. Its original input must still deliver exactly one upload.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect.poll(() => originalPickerInput.evaluate(el => el.isConnected)).toBe(false);
   await picker.setFiles({ name: 'e2e-keyboard-upload.txt', mimeType: 'text/plain', buffer: Buffer.from('Keyboard upload / Загрузка с клавиатуры') });
+  await originalPickerInput.dispose();
   await expect(page.locator('.workspace-file-card', { hasText: 'e2e-keyboard-upload.txt' })).toBeVisible();
   await waitForSaved(page);
   await page.reload();
