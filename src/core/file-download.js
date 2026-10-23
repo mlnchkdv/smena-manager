@@ -7,7 +7,9 @@ import { buildFileZip } from '../shared/file-zip.js';
 
 const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, getSessionGeneration()]);
 export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])]) {
-  if (S.ui.fileDownload) return;
+  if (S.ui.fileDownload && S.ui.fileDownload.phase !== 'ready') return;
+  S.ui.fileDownload?.dispose?.();
+  S.ui.fileDownload = null;
   const owner = scope();
   const controller = new AbortController();
   let plan;
@@ -17,6 +19,11 @@ export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])
     return toast(error.message, { kind: 'err' });
   }
   const state = { controller, owner, done: 0, total: plan.length, bytes: 0 };
+  state.dispose = () => {
+    controller.abort();
+    clearTimeout(state.expiry);
+    if (state.href) URL.revokeObjectURL(state.href);
+  };
   S.ui.fileDownload = state;
   render();
   const validate = () => {
@@ -30,6 +37,7 @@ export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])
     )
       throw Error('The selected files changed. Select them again.');
   };
+  state.validate = validate;
   try {
     const blob = await buildFileZip(
       plan,
@@ -61,14 +69,24 @@ export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])
     validate();
     controller.signal.throwIfAborted();
     const href = URL.createObjectURL(blob);
+    Object.assign(state, { href, phase: 'ready', filename: `smena-files-${new Date().toISOString().slice(0, 10)}.zip` });
     const anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = `smena-files-${new Date().toISOString().slice(0, 10)}.zip`;
+    anchor.download = state.filename;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(href), 60000);
-    toast('ZIP download started.');
+    state.expiry = setTimeout(
+      () => {
+        state.dispose();
+        if (S.ui.fileDownload === state) {
+          S.ui.fileDownload = null;
+          render();
+        }
+      },
+      5 * 60 * 1000,
+    );
+    toast('ZIP is ready.');
   } catch (error) {
     if (scope() === owner)
       toast(controller.signal.aborted || error.name === 'AbortError' ? 'ZIP download cancelled.' : error.message || 'Unable to create the ZIP.', {
@@ -76,7 +94,10 @@ export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])
       });
   } finally {
     if (S.ui.fileDownload === state) {
-      S.ui.fileDownload = null;
+      if (state.phase !== 'ready') {
+        state.dispose();
+        S.ui.fileDownload = null;
+      }
       render();
     }
   }

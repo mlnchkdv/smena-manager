@@ -43,7 +43,14 @@ A.downloadSelectedFiles = async () => {
   }
 };
 A.streamSelectedFiles = streamSelectedFiles;
-A.cancelFileZip = () => S.ui.fileDownload?.controller.abort();
+A.cancelFileZip = () => {
+  const state = S.ui.fileDownload;
+  if (state?.phase === 'ready') {
+    state.dispose();
+    S.ui.fileDownload = null;
+    render();
+  } else state?.controller.abort();
+};
 A.toggleFileRecursive = () => {
   S.ui.fileRecursive = !S.ui.fileRecursive;
   render();

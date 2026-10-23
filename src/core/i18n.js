@@ -15,6 +15,11 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'ZIP is ready.': 'ZIP готов.',
+  'Save ZIP': 'Сохранить ZIP',
+  'Close ZIP download': 'Закрыть скачивание ZIP',
+  'If the download did not start, save the prepared ZIP here. Available for 5 minutes.':
+    'Если скачивание не началось, сохраните готовый ZIP здесь. Доступен 5 минут.',
   'Move folder': 'Переместить папку',
   'Folder moved.': 'Папка перемещена.',
   'Folders in this tree': 'Папок в этой ветке',

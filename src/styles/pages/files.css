@@ -29,7 +29,8 @@
     flex-basis: 100%;
   }
 }
-.files-download-progress {
+.files-download-progress,
+.files-download-ready {
   position: sticky;
   top: 0;
   z-index: 7;
@@ -40,7 +41,8 @@
   background: var(--surface);
   font-size: var(--fs-xs);
 }
-.files-download-progress .row {
+.files-download-progress .row,
+.files-download-ready .row {
   flex-wrap: wrap;
   gap: 8px;
 }

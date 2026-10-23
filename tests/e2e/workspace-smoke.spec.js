@@ -696,6 +696,12 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
         .sort(),
     ).toEqual([0, 1, 2].map(i => `ZIP fixture ${i} / русский текст`));
     await expect(page.locator('.files-download-progress')).toHaveCount(0);
+    await expect(page.locator('.files-download-ready')).toBeVisible();
+    if (language === 'Русский') await expectRussianUi(page, 'Prepared ZIP fallback');
+    const manualEvent = page.waitForEvent('download');
+    await page.locator('.files-download-ready a[download]').click();
+    const manual = unzipSync(new Uint8Array(await readFile(await (await manualEvent).path())));
+    expect(Object.keys(manual)).toEqual(names);
     const streamedEvent = page.waitForEvent('download');
     await page.locator('[data-a="streamSelectedFiles"]').click();
     const streamed = unzipSync(new Uint8Array(await readFile(await (await streamedEvent).path())));
@@ -710,7 +716,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
   );
   await page.locator('[data-a="downloadSelectedFiles"]').click();
   await expect(page.locator('.toast').filter({ hasText: 'Не удалось создать ZIP.' })).toBeVisible();
-  expect(downloads).toBe(4);
+  expect(downloads).toBe(6);
   await page.unroute(endpoint);
   await page.route(endpoint, async route => {
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -720,7 +726,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
   await expect(page.locator('.files-download-progress')).toBeVisible();
   await page.locator('[data-a="cancelFileZip"]').click();
   await expect(page.locator('.files-download-progress')).toHaveCount(0);
-  expect(downloads).toBe(4);
+  expect(downloads).toBe(6);
   await page.unroute(endpoint);
 });
 
