@@ -15,6 +15,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Modified filter': 'Фильтр изменён',
+  'Manage filter': 'Настроить фильтр',
+  'Update with current filters': 'Сохранить текущие условия',
+  'Rename filter': 'Переименовать фильтр',
+  'Move filter up': 'Поднять фильтр',
+  'Move filter down': 'Опустить фильтр',
+  'On this device only': 'Только на этом устройстве',
   'App update': 'Обновление приложения',
   'A new app version is available.': 'Доступна новая версия приложения.',
   'This section could not load. Check for an app update.': 'Не удалось загрузить раздел. Проверьте обновление приложения.',

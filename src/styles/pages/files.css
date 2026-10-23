@@ -881,3 +881,34 @@
   text-align: center;
   color: var(--muted);
 }
+.files-preset-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.files-preset-controls .select {
+  max-width: min(260px, 100%);
+}
+.files-preset-manage {
+  position: relative;
+}
+.files-preset-manage > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.files-preset-manage summary {
+  list-style: none;
+}
+@media (max-width: 640px) {
+  .files-preset-controls .btn,
+  .files-preset-controls .select {
+    min-height: 44px;
+  }
+}

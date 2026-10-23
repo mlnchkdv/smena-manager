@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFilePresets, writeFilePresets, normalizeFilePresets } from '../../src/shared/file-presets.js';
+import {
+  readFilePresets,
+  writeFilePresets,
+  normalizeFilePresets,
+  filePresetFilters,
+  filePresetModified,
+  reorderFilePreset,
+} from '../../src/shared/file-presets.js';
 import { fileViewKey } from '../../src/shared/file-view.js';
 test('file filter presets are bounded, normalized and isolated by device account/workspace', () => {
   const memory = new Map(),
@@ -35,4 +42,14 @@ test('file filter presets are bounded, normalized and isolated by device account
     false,
   );
   assert.equal(normalizeFilePresets(Array.from({ length: 40 }, (_, i) => ({ ...preset, id: `${i}` }))).length, 12);
+});
+test('presets track semantic changes and reorder without mutating saved values', () => {
+  const filters = filePresetFilters({});
+  assert.equal(filePresetModified({ ...filters }, filters), false);
+  for (const key of Object.keys(filters)) assert.equal(filePresetModified({ ...filters, [key]: 'different' }, filters), true, key);
+  const values = [{ id: 'a' }, { id: 'b' }];
+  assert.deepEqual(reorderFilePreset(values, 'b', -1), [{ id: 'b' }, { id: 'a' }]);
+  assert.deepEqual(values, [{ id: 'a' }, { id: 'b' }]);
+  assert.deepEqual(reorderFilePreset(values, 'a', -1), values);
+  assert.deepEqual(reorderFilePreset(values, 'b', 9), values);
 });

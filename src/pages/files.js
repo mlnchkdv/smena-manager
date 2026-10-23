@@ -11,6 +11,7 @@ import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences } from '../core/file-preferences.js';
+import { filePresetsHtml } from '../ui/file-presets.js';
 import '../features/files.js';
 import '../features/file-selection.js';
 
@@ -166,7 +167,7 @@ export function pageFiles(projectId = null) {
         .join('')}</div>
     </section>
 
-    <section class="files-presets" aria-label="Saved file filters"><button class="btn btn-ghost btn-sm" data-a="saveFileFilter">${ic('bookmark-plus', 15)}Save file filters</button>${S.ui.fileFilterPresets?.length ? `<select class="select" data-in="fileFilterPreset" aria-label="Saved file filters"><option value="">Saved file filters</option>${S.ui.fileFilterPresets.map(preset => `<option value="${esc(preset.id)}" ${S.ui.fileSelectedPreset === preset.id ? 'selected' : ''} translate="no">${esc(preset.name)}</option>`).join('')}</select>${S.ui.fileSelectedPreset ? `<button class="ibtn" data-a="removeFileFilter" aria-label="Remove saved file filter" title="Remove saved file filter">${ic('x', 15)}</button>` : ''}` : ''}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>
+    <section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>
     ${filtered ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${files.length}</b> / ${allFiles.length}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${

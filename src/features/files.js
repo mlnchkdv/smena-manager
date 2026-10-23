@@ -9,6 +9,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
 import { saveFilePreferences, saveFileFilterPresets } from '../core/file-preferences.js';
+import { filePresetFilters, reorderFilePreset } from '../shared/file-presets.js';
 import { getSessionGeneration } from '../core/api.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, moveFileFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
 
@@ -57,14 +58,7 @@ A.toggleFileRecursive = () => {
 };
 A.saveFileFilter = () => {
   const initial = owner();
-  const filters = {
-    project: S.ui.fileProject || 'all',
-    folder: S.ui.fileFolder || null,
-    query: String(S.ui.fileQ || '').slice(0, 200),
-    type: S.ui.fileType || 'all',
-    sort: S.ui.fileSort || 'date',
-    recursive: Boolean(S.ui.fileRecursive),
-  };
+  const filters = filePresetFilters(S.ui);
   openModal({
     type: 'prompt',
     title: 'Save file filters',
@@ -115,6 +109,38 @@ A.removeFileFilter = () => {
   S.ui.fileSelectedPreset = '';
   if (!saveFileFilterPresets()) toast('Device storage is unavailable. Filters will not survive reload.', { kind: 'err' });
   render();
+};
+const persistFilters = () => {
+  if (!saveFileFilterPresets()) toast('Device storage is unavailable. Filters will not survive reload.', { kind: 'err' });
+  render();
+};
+A.updateFileFilter = () => {
+  const preset = S.ui.fileFilterPresets?.find(item => item.id === S.ui.fileSelectedPreset);
+  if (!preset) return;
+  Object.assign(preset, filePresetFilters(S.ui));
+  persistFilters();
+};
+A.renameFileFilter = () => {
+  const preset = S.ui.fileFilterPresets?.find(item => item.id === S.ui.fileSelectedPreset),
+    initial = owner();
+  if (!preset) return;
+  openModal({
+    type: 'prompt',
+    title: 'Rename filter',
+    label: 'Name',
+    value: preset.name,
+    run: value => {
+      const current = owner();
+      if (current.owner !== initial.owner || current.workspace !== initial.workspace || !value.trim()) return;
+      const saved = S.ui.fileFilterPresets?.find(item => item.id === preset.id);
+      if (saved) saved.name = value.trim().slice(0, 60);
+      persistFilters();
+    },
+  });
+};
+A.reorderFileFilter = el => {
+  S.ui.fileFilterPresets = reorderFilePreset(S.ui.fileFilterPresets || [], S.ui.fileSelectedPreset, Number(el.dataset.direction));
+  persistFilters();
 };
 
 A.openFileFolder = el => {
