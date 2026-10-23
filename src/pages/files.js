@@ -127,7 +127,7 @@ export function pageFiles(projectId = null) {
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
 
   return `<div class="files-page ${projectId ? 'project-files-page' : ''}">
-    <header class="page-head files-page-head">${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><b>${allFiles.length}</b> <span>Total files</span></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : '<div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>'}
+    <header class="page-head files-page-head">${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allFiles.length}</b></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : '<div><h1>Files</h1><p>One place for project documents, designs, and shared team assets.</p></div>'}
       ${
         readOnly || !projects.length
           ? ''
