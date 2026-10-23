@@ -1,4 +1,5 @@
 import { ago, esc } from '../core/utils.js';
+import '../ui/file-translations.js';
 import { ic } from '../core/icons.js';
 import { D, S, canSee, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';

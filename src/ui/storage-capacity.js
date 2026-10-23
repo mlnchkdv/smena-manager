@@ -1,4 +1,5 @@
 import { S } from '../core/store.js';
+import './file-translations.js';
 import { esc } from '../core/utils.js';
 import { fsize } from './helpers.js';
 export function storageCapacityPanel() {
