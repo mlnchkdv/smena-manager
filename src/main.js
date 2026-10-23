@@ -57,6 +57,7 @@ void import('./core/deployment-recovery.js').then(module => module.installDeploy
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
 });
+window.addEventListener('smena:deployment-version', () => render());
 
 let conflictRecoveryPromise = null;
 setInterval(() => {

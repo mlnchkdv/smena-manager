@@ -58,7 +58,11 @@ function accountAvatarStatus(memberId, size = '') {
 }
 
 function lazyPage(route) {
-  if (lazyPages.has(route)) return lazyPages.get(route)();
+  if (lazyPages.has(route)) {
+    if (lazyPages.get(route) === stateFailed && S.ui.deploymentChanged)
+      return '<div class="fullstate"><div class="box"><h1>A new app version is available.</h1><p>Use the update panel to load this section safely.</p></div></div>';
+    return lazyPages.get(route)();
+  }
   if (!lazyPagePromises.has(route)) {
     const promise = lazyPageLoaders[route]()
       .then(page => {

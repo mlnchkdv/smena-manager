@@ -27,7 +27,15 @@ export function installDeploymentRecovery(buildId) {
       authBusy: S.ui.authBusy,
     });
   function paint() {
-    if (!changed && !failed) return;
+    if (Boolean(S.ui.deploymentChanged) !== changed) {
+      S.ui.deploymentChanged = changed;
+      window.dispatchEvent(new Event('smena:deployment-version'));
+    }
+    if (!changed && !failed) {
+      root.hidden = true;
+      presentation = '';
+      return;
+    }
     const canReload = safe();
     const next = JSON.stringify([changed, failed, canReload, S.prefs.lang]);
     if (next === presentation) return;
