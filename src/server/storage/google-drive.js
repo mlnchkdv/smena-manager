@@ -284,9 +284,10 @@ export class GoogleDriveStorageProvider {
   async loadDatabaseStatus() {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
-    const core = [2, 3].includes(root._fileCatalog?.version) ? catalogCore(root) : null;
-    const accounting = core ? readCatalogAccounting(root) : null;
-    const data = accounting ? core : await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part));
+    const accounting = [2, 3].includes(root._fileCatalog?.version) ? readCatalogAccounting(root) : null;
+    // Capacity needs neither full records nor an O(files) array of identity
+    // objects. Validate the manifest but retain no catalog rows in this model.
+    const data = accounting ? catalogCore(root, { identities: false }) : await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part));
     return {
       data: rememberStorageVersion(data, storageVersion(root)),
       accounting,

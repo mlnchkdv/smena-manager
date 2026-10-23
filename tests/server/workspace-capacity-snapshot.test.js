@@ -42,7 +42,11 @@ test('detailed status stays fresh without full reads and cannot poison the writa
   storage.loadDatabase = () => assert.fail('Status must not materialize the canonical catalog');
   storage.loadDatabaseStatus = async () => {
     reads++;
-    return { data: catalogCore(root), accounting: readCatalogAccounting(root), catalog: { layout: 'project-shards', version: 3, parts: 1 } };
+    return {
+      data: catalogCore(root, { identities: false }),
+      accounting: readCatalogAccounting(root),
+      catalog: { layout: 'project-shards', version: 3, parts: 1 },
+    };
   };
   storage.getStatus = async () => ({ provider: 'test', fileCatalog: { layout: 'aggregate', parts: 99 } });
   const first = await getWorkspaceStatus();

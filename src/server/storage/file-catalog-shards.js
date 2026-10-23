@@ -201,16 +201,18 @@ export async function readCatalogShards(root, read, project, projectFile = file 
   return rows.map(row => row[1]);
 }
 
-export function catalogCore(root) {
+export function catalogCore(root, { identities = true } = {}) {
   const manifest = validateCatalogManifest(root._fileCatalog);
   if (manifest.version < 2 || Object.hasOwn(root, 'files')) throw invalid();
   const { _fileCatalog: _manifest, ...core } = root;
   void _manifest;
   return {
     ...core,
-    files: manifest.shards.flatMap(part =>
-      part.keys.map(([id, folderId, bytes, task]) => ({ id, project: part.project, folderId: folderId || undefined, bytes, task: task || undefined })),
-    ),
+    files: identities
+      ? manifest.shards.flatMap(part =>
+          part.keys.map(([id, folderId, bytes, task]) => ({ id, project: part.project, folderId: folderId || undefined, bytes, task: task || undefined })),
+        )
+      : [],
   };
 }
 

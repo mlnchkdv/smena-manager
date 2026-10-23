@@ -70,7 +70,7 @@ test('cold detailed status reads root only, retaining version and canonical fall
   const result = await f.provider.loadDatabaseStatus();
   assert.deepEqual(f.reads, ['db']);
   assert.equal(storageVersion(result.data), '"9"');
-  assert.equal(result.data.files[0].storageFileId, undefined);
+  assert.deepEqual(result.data.files, [], 'Capacity snapshots retain no identity rows or partial write baseline');
   assert.equal(result.accounting.fileStorage.logical.unknownFiles, 2);
   assert.deepEqual(result.catalog, { layout: 'project-shards', version: 3, parts: 1 });
   delete f.root._fileCatalog.accounting;
@@ -162,4 +162,27 @@ test('failed root publication cannot update the prior accounting snapshot', asyn
   );
   assert.deepEqual(f.root, before);
   assert.deepEqual(readCatalogAccounting(f.root).fileStorage, fileStorageAccounting(data));
+});
+
+test('large catalogs have constant-size status snapshots with no full part reads or identity allocations', async () => {
+  const data = {
+    schemaVersion: 3,
+    revision: 100,
+    files: Array.from({ length: 5000 }, (_, i) => ({
+      id: `f-${i}`,
+      project: 'p',
+      name: `Файл ${i}`,
+      history: ['x'.repeat(2200)],
+      bytes: null,
+    })),
+  };
+  const f = await stored(data),
+    result = await f.provider.loadDatabaseStatus();
+  assert.deepEqual(f.reads, ['db']);
+  assert.deepEqual(result.data.files, []);
+  assert.equal(result.accounting.fileStorage.logical.files, 5000);
+  assert.equal(result.accounting.fileStorage.logical.unknownFiles, 5000);
+  assert.ok(result.accounting.catalogBytes > 10 * 1024 * 1024);
+  assert.ok(Buffer.byteLength(JSON.stringify(result)) < 2048, 'Status model size must not scale with the catalog');
+  assert.ok(f.root._fileCatalog.shards.length > 1);
 });
