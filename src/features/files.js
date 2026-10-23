@@ -49,7 +49,7 @@ A.cancelFileStream = cancelFileStream;
 A.retryFileStream = () => streamSelectedFiles(S.ui.fileNativeTransfer?.ids);
 A.cancelFileZip = () => {
   const state = S.ui.fileDownload;
-  if (state?.phase === 'ready') {
+  if (['ready', 'expired'].includes(state?.phase)) {
     state.dispose();
     S.ui.fileDownload = null;
     render();

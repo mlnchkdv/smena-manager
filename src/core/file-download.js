@@ -7,7 +7,7 @@ import { buildFileZip } from '../shared/file-zip.js';
 
 const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, getSessionGeneration()]);
 export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])]) {
-  if (S.ui.fileDownload && S.ui.fileDownload.phase !== 'ready') return;
+  if (S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase)) return;
   S.ui.fileDownload?.dispose?.();
   S.ui.fileDownload = null;
   const owner = scope();
@@ -80,7 +80,8 @@ export async function downloadSelectedFiles(ids = [...(S.ui.fileSelection || [])
       () => {
         state.dispose();
         if (S.ui.fileDownload === state) {
-          S.ui.fileDownload = null;
+          state.phase = 'expired';
+          delete state.href;
           render();
         }
       },

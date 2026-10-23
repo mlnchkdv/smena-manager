@@ -8,7 +8,7 @@ const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.
 export async function streamSelectedFiles(ids = [...(S.ui.fileSelection || [])]) {
   // An action handler may pass its clicked DOM element, not a file ID list.
   if (!Array.isArray(ids)) ids = [...(S.ui.fileSelection || [])];
-  if (S.ui.fileDownload && S.ui.fileDownload.phase !== 'ready') return;
+  if (S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase)) return;
   if (S.ui.fileNativeTransfer?.phase === 'preparing') return;
   const state = { ids, owner: scope(), controller: new AbortController(), phase: 'preparing' };
   S.ui.fileNativeTransfer = state;
