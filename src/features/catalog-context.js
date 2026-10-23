@@ -8,6 +8,7 @@ import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
 import { createContextLoadGuard } from '../shared/context-load-guard.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
+import { backgroundRender } from './background-render.js';
 import { t } from '../core/i18n.js';
 import '../ui/file-translations.js';
 
@@ -76,6 +77,6 @@ export async function refreshCatalogContext() {
   } finally {
     if (feedback?.key === key && !feedback.error) feedback = null;
     requests.end(key, failure);
-    render();
+    backgroundRender();
   }
 }

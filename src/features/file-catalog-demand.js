@@ -7,6 +7,7 @@ import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
 import { esc } from '../core/utils.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
+import { backgroundRender } from './background-render.js';
 
 let loaded,
   pending = '',
@@ -42,15 +43,17 @@ export function demandFilePage(options) {
         }
       } finally {
         pending = '';
-        const input = document.activeElement;
-        const draft = ['files-page-jump', 'files-folder-page-jump'].includes(input?.id) ? { id: input.id, value: input.value } : null;
-        render();
-        // A completed query must not erase a page number typed while the
-        // response was in flight, before the user presses Enter.
-        if (draft) {
-          const target = document.getElementById(draft.id);
-          if (target) target.value = draft.value;
-        }
+        backgroundRender(() => {
+          const input = document.activeElement;
+          const draft = ['files-page-jump', 'files-folder-page-jump'].includes(input?.id) ? { id: input.id, value: input.value } : null;
+          render();
+          // A completed query must not erase a page number typed while the
+          // response was in flight, before the user presses Enter.
+          if (draft) {
+            const target = document.getElementById(draft.id);
+            if (target) target.value = draft.value;
+          }
+        });
       }
     });
   }

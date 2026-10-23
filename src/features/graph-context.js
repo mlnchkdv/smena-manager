@@ -4,6 +4,7 @@ import { graphReads, graphReadKey, graphQueryOptions } from '../core/graph-query
 import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
+import { backgroundRender } from './background-render.js';
 
 A.retryGraphQuery = () => {
   graphReads.clear();
@@ -12,7 +13,7 @@ A.retryGraphQuery = () => {
 const pending = new Set();
 window.addEventListener('smena:sync-status', event => {
   if (event.detail.status === 'saved' && (S.ui.route === 'graph' || S.ui.modals.at(-1)?.type === 'relations' || document.querySelector('[data-catalog-key]')))
-    queueMicrotask(() => render());
+    queueMicrotask(() => backgroundRender());
 });
 export async function refreshGraphContext() {
   const scopes = [];
@@ -38,7 +39,7 @@ export async function refreshGraphContext() {
       pending.delete(slot);
       // Keep only a few bounded views; never retain a whole graph per visited material.
       while (graphReads.size > 6) graphReads.delete(graphReads.keys().next().value);
-      render();
+      backgroundRender();
     }
   }
 }
