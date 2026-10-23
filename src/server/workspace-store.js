@@ -23,6 +23,7 @@ import { migrateWorkspaceSchema } from '../shared/workspace-schema-migrations.js
 import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
 import { workspaceCapacities, fileStorageAccounting } from './file-capacity.js';
 import { providerFailureCounters } from './provider-safety.js';
+import { createCatalogReader } from './file-catalog-reader.js';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 
@@ -146,10 +147,22 @@ export async function reloadWorkspaceStore(options = {}) {
   }
 }
 
-export async function getWorkspaceDatabase() {
+export async function getWorkspaceDatabase(options = {}) {
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2_000 });
   else await initWorkspaceStore();
-  return clone(database);
+  return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, database[field]])) : database);
+}
+
+const catalogReaders = new WeakMap();
+export async function getWorkspaceFileCatalogPage(user, options) {
+  if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
+  else await initWorkspaceStore();
+  let read = catalogReaders.get(database);
+  if (!read) {
+    read = createCatalogReader(database);
+    catalogReaders.set(database, read);
+  }
+  return read(user, options);
 }
 
 export async function getWorkspaceRevisionStatus() {

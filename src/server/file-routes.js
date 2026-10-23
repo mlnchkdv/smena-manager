@@ -8,7 +8,7 @@ import multer from 'multer';
 import { requireRole } from './auth.js';
 import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload, multipartFilename } from './file-policy.js';
 import { getStorageProvider } from './storage/index.js';
-import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
+import { getWorkspaceDatabase, getWorkspaceFileCatalogPage, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { detachTaskFile } from '../shared/file-identity.js';
 import { memberForProfile } from '../shared/member-identity.js';
@@ -18,11 +18,8 @@ import { reportProviderError } from './provider-safety.js';
 import { registerFileMetadata } from './file-registry.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { assertFileFolder } from '../shared/file-organization.js';
-import { fileCatalogPage } from '../shared/file-catalog.js';
-import { projectWorkspace } from './workspace-policy.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
 import { streamFileArchive } from './file-archive-stream.js';
-import { fileCatalogVersion } from './file-catalog-version.js';
 import { assertArchiveFileAccess } from './file-archive-access.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
@@ -205,14 +202,12 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
 
 fileRouter.get('/catalog', async (request, response, next) => {
   try {
-    const data = projectWorkspace(await getWorkspaceDatabase(), request.user);
     response.json(
-      fileCatalogPage(data, {
+      await getWorkspaceFileCatalogPage(request.user, {
         revision: Number(request.query.revision),
         offset: Number(request.query.offset || 0),
         project: request.query.project || 'all',
         token: request.query.token,
-        expectedToken: request.query.token ? fileCatalogVersion(data.files) : undefined,
       }),
     );
   } catch (error) {
