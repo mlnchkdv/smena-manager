@@ -650,6 +650,9 @@ test('bulk files move atomically across searchable folder pages and go to recove
 });
 
 test('file ZIP downloads preserve Unicode and duplicates and never publish failed or cancelled batches', async ({ page, browserName }) => {
+  // Eight real downloads plus two reloads/locales under video/trace are slower
+  // on WebKit. This is only a test budget, not a server/transfer deadline.
+  if (browserName === 'webkit') test.setTimeout(300_000);
   await signIn(page);
   let current = (await (await page.request.get('/api/workspace')).json()).data;
   const project = current.projects[0];
