@@ -5,14 +5,21 @@ import { applyExternalCoreSnapshot } from '../core/bootstrap.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { render } from '../shell/render.js';
+import { A } from '../actions/actions.js';
+import { createContextLoadGuard } from '../shared/context-load-guard.js';
 
-let running = false,
-  completed = '',
+const requests = createContextLoadGuard();
+let completed = '',
   completedIds = [];
+A.retryCatalogContext = () => {
+  requests.retry();
+  completed = '';
+  render();
+};
 // Full graph construction is an explicit consumer; ordinary file browsing and
 // searches never hydrate the entire catalog. Linked panels resolve endpoints.
 export async function refreshCatalogContext() {
-  if (running || fileCatalogInfo()?.mode !== 'demand' || !S.ui.currentUser || !workspaceSyncIsClean(S.data)) return;
+  if (fileCatalogInfo()?.mode !== 'demand' || !S.ui.currentUser || !workspaceSyncIsClean(S.data)) return;
   const session = getSessionGeneration();
   const query = S.ui.palette?.q || (S.ui.route === 'search' ? S.ui.searchQ : '');
   const full = S.ui.route === 'graph' || S.ui.modals.some(modal => modal.type === 'relations' && !modal.wikiLabel);
@@ -24,7 +31,8 @@ export async function refreshCatalogContext() {
   const key = JSON.stringify([session, S.ui.workspaceRevision, full, query, [...ids].sort()]);
   const cached = completedIds.every(id => S.data.files.some(file => file.id === id)) && (!full || S.data.files.length === fileCatalogInfo().total);
   if ((key === completed && cached) || (!full && !String(query).trim() && [...ids].every(id => S.data.files.some(file => file.id === id)))) return;
-  running = true;
+  if (!requests.begin(key)) return;
+  let failure = false;
   try {
     if (full) {
       const base = structuredClone(S.data);
@@ -41,9 +49,9 @@ export async function refreshCatalogContext() {
     completed = key;
     completedIds = S.data.files.map(file => file.id);
   } catch (error) {
-    if (!error.staleSession) completed = key;
+    failure = !error.staleSession;
   } finally {
-    running = false;
+    requests.end(key, failure);
     render();
   }
 }
