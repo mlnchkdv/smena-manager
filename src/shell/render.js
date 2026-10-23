@@ -69,6 +69,7 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
+  S.ui.restoringFilePath = null;
   if (route === 'project' && !params.tab) params.tab = 'board';
   if (!opt.back) S.ui.history.push({ route: S.ui.route, params: S.ui.params });
   const same = S.ui.route === route && JSON.stringify(S.ui.params) === JSON.stringify(params);
@@ -93,6 +94,7 @@ export function go(route, params = {}, opt = {}) {
 
 export function syncBrowserLocation(options = {}) {
   if (!S.ui.locationReady || S.ui.auth || typeof window === 'undefined') return;
+  if (S.ui.restoringFilePath === location.pathname) return;
   const path = appLocationPath(D(), S.ui);
   if (`${location.pathname}${location.search}` === path && !location.hash) return;
   window.history[options.push ? 'pushState' : 'replaceState']({ smena: true }, '', path);

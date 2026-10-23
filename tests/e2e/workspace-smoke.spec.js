@@ -1050,5 +1050,14 @@ test('PDF previews render pages locally without document scripts in Russian and 
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/pdf-preview-${language === 'Русский' ? 'ru' : 'en'}.png` });
     await page.locator('.modal-f [data-a="closeModal"]').click();
+    await page.locator('#workspace-file-q').fill('no-file-matches-history-eviction');
+    await expect(page.locator('.workspace-file-card,.workspace-file-table tbody tr')).toHaveCount(0);
+    await page.evaluate(id => {
+      history.pushState({ smena: true }, '', `/e2e-team/file/${encodeURIComponent(id)}`);
+      dispatchEvent(new PopStateEvent('popstate'));
+    }, file.id);
+    await expect(page.locator('.modal .file-preview-image')).toBeVisible({ timeout: 30000 });
+    await expect(page).toHaveURL(new RegExp(`/file/${file.id}$`));
+    await page.locator('.modal-f [data-a="closeModal"]').click();
   }
 });

@@ -39,7 +39,7 @@ import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
-import { resolveAppLocation } from './shared/app-location.js';
+import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
 import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
@@ -340,6 +340,21 @@ function loadRouteData() {
 }
 
 window.addEventListener('popstate', () => {
+  const target = parseAppLocation(location.pathname);
+  if (S.ui.currentUser && target.kind === 'file' && target.key && !D().files.some(file => file.id === target.key)) {
+    const path = (S.ui.restoringFilePath = location.pathname);
+    void import('./features/file-location.js')
+      .then(module => module.restoreFileHistory(target.key, path, applyBrowserLocation, loadRouteData))
+      .catch(() => {
+        if (S.ui.restoringFilePath !== path) return;
+        S.ui.restoringFilePath = null;
+        S.ui.loading = false;
+        applyBrowserLocation();
+        render();
+      });
+    return;
+  }
+  S.ui.restoringFilePath = null;
   applyBrowserLocation();
   render();
   loadRouteData();
