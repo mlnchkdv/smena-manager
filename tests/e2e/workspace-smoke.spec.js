@@ -1059,5 +1059,24 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('.modal .file-preview-image')).toBeVisible({ timeout: 30000 });
     await expect(page).toHaveURL(new RegExp(`/file/${file.id}$`));
     await page.locator('.modal-f [data-a="closeModal"]').click();
+    let failedContextCalls = 0;
+    await page.route('**/api/files/catalog/query', route => {
+      failedContextCalls++;
+      return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'private-provider-token' }) });
+    });
+    await page.goto('/e2e-team/search');
+    await page.locator('#search-page-q').fill('audit-context-failure');
+    const notice = page.locator('.catalog-context-status');
+    await expect(notice).toContainText(language === 'Русский' ? 'Проверьте подключение' : 'Check connection');
+    await expect(notice).not.toContainText('private-provider-token');
+    await page.waitForTimeout(400);
+    expect(failedContextCalls).toBe(1);
+    expect(await notice.locator('button').evaluate(el => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    await page.screenshot({ path: `output/playwright/audit-context-error-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
+    await notice.locator('button').click();
+    await expect.poll(() => failedContextCalls).toBe(2);
+    await page.unroute('**/api/files/catalog/query');
+    await notice.locator('button').click();
+    await expect(notice).toHaveCount(0);
   }
 });

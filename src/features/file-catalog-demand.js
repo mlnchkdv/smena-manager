@@ -6,6 +6,7 @@ import { workspaceSyncIsClean, queueWorkspaceSync } from '../core/workspace-sync
 import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
 import { esc } from '../core/utils.js';
+import { catalogLoadError } from '../shared/catalog-errors.js';
 
 let loaded,
   pending = '',
@@ -36,7 +37,7 @@ export function demandFilePage(options) {
         error = failed = '';
       } catch (cause) {
         if (!cause.staleSession) {
-          error = cause.message || 'Unable to load files.';
+          error = catalogLoadError(cause);
           failed = key;
         }
       } finally {

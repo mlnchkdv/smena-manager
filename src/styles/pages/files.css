@@ -4,6 +4,26 @@
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
 }
+.catalog-context-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+.catalog-context-status span {
+  flex: 1 1 180px;
+}
+.catalog-context-status .btn {
+  min-height: 44px;
+}
 .files-presets {
   display: flex;
   align-items: center;
