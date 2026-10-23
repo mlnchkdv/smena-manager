@@ -73,11 +73,20 @@ test('authenticated users can inspect and revoke their active sessions', async t
     savedCore = storage.loadDatabaseCore;
   const metadata = await getWorkspaceDatabase();
   metadata.knowledgeNotes = [{ id: 'metadata-note', title: 'Инструкция Guide', formatted_markdown: 'team команда' }];
+  metadata._userPrefs = { 'session-user': { lang: 'Русский' }, other: { lang: 'English (US)' } };
   metadata.revision++;
   resetWorkspaceStore();
   storage.loadDatabase = () => assert.fail('Knowledge search must not read canonical file parts');
-  storage.loadDatabaseCore = async () => structuredClone(metadata);
+  let metadataReads = 0;
+  storage.loadDatabaseCore = async () => {
+    metadataReads++;
+    return structuredClone(metadata);
+  };
   try {
+    const preferences = await fetch(`${origin}/api/preferences`, { headers: authorize(desktopToken) });
+    assert.equal(preferences.status, 200);
+    assert.deepEqual(await preferences.json(), { preferences: { lang: 'Русский' } });
+    assert.equal(metadataReads, 1, 'GET preferences reuses its own verified auth root without a second provider read');
     for (const query of ['инструкция', 'guide', 'команда', 'TEAM']) {
       const response = await fetch(`${origin}/api/knowledge/search?q=${encodeURIComponent(query)}`, { headers: authorize(desktopToken) });
       assert.equal(response.status, 200);
