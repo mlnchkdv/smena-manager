@@ -739,14 +739,19 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
   await expect(page.locator('.toast').filter({ hasText: 'Не удалось создать ZIP.' })).toBeVisible();
   expect(downloads).toBe(8);
   await page.unroute(endpoint);
+  let releaseDownload;
+  const blockedDownload = new Promise(resolve => {
+    releaseDownload = resolve;
+  });
   await page.route(endpoint, async route => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await blockedDownload;
     await route.fulfill({ status: 200, body: 'late' }).catch(() => {});
   });
   await page.locator('[data-a="downloadSelectedFiles"]').click();
   await expect(page.locator('.files-download-progress')).toBeVisible();
   await page.locator('[data-a="cancelFileZip"]').click();
   await expect(page.locator('.files-download-progress')).toHaveCount(0);
+  releaseDownload();
   expect(downloads).toBe(8);
   await page.unroute(endpoint);
 });
