@@ -22,11 +22,11 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('#login-btn').click();
   await page.locator('#o-ws:visible,.shell:visible').first().waitFor();
   if (await page.locator('#o-ws').isVisible()) {
-    await page.locator('#o-ws').fill('Knowledge review');
+    await page.locator('#o-ws').fill('E2E Команда');
     await page.locator('#o-url').fill('e2e-team');
     await page.locator('#onb-next').click();
     await page.locator('#onb-next').click();
-    await page.locator('#o-proj').fill('Knowledge');
+    await page.locator('#o-proj').fill('Проверка интерфейса');
     await page.locator('#onb-next').click();
     await page.locator('[data-a="onbNext"][data-skip="1"]').click();
     await page.locator('[data-a="onbFinish"]').click();

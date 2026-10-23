@@ -935,10 +935,11 @@ test('folder trees move safely and saved recursive filters survive reload in bot
   }
 });
 
-test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page }) => {
+test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page, browserName }) => {
   await signIn(page);
   const current = (await (await page.request.get('/api/workspace')).json()).data;
   const expectedFileCount = current.files.length + 3;
+  const keyboardName = `e2e-${browserName}-keyboard-upload.txt`;
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (globalThis.__pdfPreviewExecuted=true;) >> >>',
     '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -998,12 +999,12 @@ test('PDF previews render pages locally without document scripts in Russian and 
   // OS picker is open. Its original input must still deliver exactly one upload.
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => originalPickerInput.evaluate(el => el.isConnected)).toBe(false);
-  await picker.setFiles({ name: 'e2e-keyboard-upload.txt', mimeType: 'text/plain', buffer: Buffer.from('Keyboard upload / Загрузка с клавиатуры') });
+  await picker.setFiles({ name: keyboardName, mimeType: 'text/plain', buffer: Buffer.from('Keyboard upload / Загрузка с клавиатуры') });
   await originalPickerInput.dispose();
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-keyboard-upload.txt' })).toBeVisible();
+  await expect(page.locator('.workspace-file-card', { hasText: keyboardName })).toBeVisible();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-keyboard-upload.txt' })).toBeVisible();
+  await expect(page.locator('.workspace-file-card', { hasText: keyboardName })).toBeVisible();
   for (const language of ['Русский', 'English (US)']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
@@ -1047,7 +1048,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     const actionsBox = await firstRow.locator('.workspace-file-actions').boundingBox();
     expect(Math.abs(nameBox.y - actionsBox.y)).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `output/playwright/files-list-${language === 'Русский' ? 'ru' : 'en'}-320.png` });
-    await page.locator('.workspace-file-table tbody tr').filter({ hasText: 'e2e-keyboard-upload.txt' }).locator('[data-a="ctxBtn"]').click();
+    await page.locator('.workspace-file-table tbody tr').filter({ hasText: keyboardName }).locator('[data-a="ctxBtn"]').click();
     await page.locator('[data-a="renameFile"]').click();
     await expect(page.locator('#mt-prompt')).toHaveText(language === 'Русский' ? 'Переименовать файл' : 'Rename file');
     await page.locator('.modal-f [data-a="closeModal"]').click();
