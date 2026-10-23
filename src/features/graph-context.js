@@ -1,6 +1,7 @@
 import { S } from '../core/store.js';
 import { getSessionGeneration, queryWorkspaceGraph } from '../core/api.js';
-import { graphReads, graphReadKey, graphQueryOptions } from '../core/graph-query-state.js';
+import { graphReads, graphReadKey } from '../core/graph-query-state.js';
+import { graphQueryOptions } from './graph-query-options.js';
 import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';

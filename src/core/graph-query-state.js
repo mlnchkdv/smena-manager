@@ -3,26 +3,17 @@ import { getSessionGeneration } from './api.js';
 import { fileCatalogInfo } from './file-catalog-transport.js';
 
 export const graphReads = new Map();
-export function graphQueryOptions(mode, source = '') {
+export function graphReadKey(mode, source = '') {
   const ui = S.ui,
     modal = ui.modals.at(-1);
-  const options = { revision: ui.workspaceRevision, documents: ui.documentRevisions };
-  if (mode === 'candidates')
-    return { ...options, mode, source: modal?.source, query: modal?.query || '', kind: modal?.kind || '', wikiOnly: !!modal?.wikiLabel };
-  if (mode === 'connections') return { ...options, mode: 'view', center: source, depth: 1, includeArchived: true };
-  return {
-    ...options,
-    mode,
-    center: ui.params.center || '',
-    depth: Number(ui.graphDepth || 1),
-    query: ui.graphQuery || '',
-    kind: ui.graphKind || '',
-    project: ui.graphProject || '',
-    connectedOnly: ui.graphConnected === 'yes',
-    includeArchived: ui.graphArchive === 'yes',
-  };
+  const filters =
+    mode === 'candidates'
+      ? [modal?.source, modal?.query, modal?.kind, !!modal?.wikiLabel]
+      : mode === 'connections'
+        ? source
+        : [ui.params.center, ui.graphDepth, ui.graphQuery, ui.graphKind, ui.graphProject, ui.graphConnected, ui.graphArchive];
+  return JSON.stringify([getSessionGeneration(), S.data.ws?.id || S.data.ws?.url, ui.workspaceRevision, ui.documentRevisions, mode, filters]);
 }
-export const graphReadKey = (mode, source = '') => JSON.stringify([getSessionGeneration(), S.data.ws?.id || S.data.ws?.url, graphQueryOptions(mode, source)]);
 export function graphReadModel(mode, source = '') {
   if (fileCatalogInfo()?.mode !== 'demand') return null;
   const entry = graphReads.get(mode + source);

@@ -1,7 +1,8 @@
 import { D, S } from '../core/store.js';
 import { getSessionGeneration, queryWorkspaceGraph } from '../core/api.js';
 import { fileCatalogInfo } from '../core/file-catalog-transport.js';
-import { graphQueryOptions, graphReadKey } from '../core/graph-query-state.js';
+import { graphReadKey } from '../core/graph-query-state.js';
+import { graphQueryOptions } from './graph-query-options.js';
 import { workspaceGraph } from '../shared/relations.js';
 import { graphView } from '../shared/graph-view.js';
 import { graphOptions } from '../ui/relations.js';

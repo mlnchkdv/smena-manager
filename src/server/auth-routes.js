@@ -62,7 +62,7 @@ authRouter.get('/config', async (request, response) => {
   let workspaceStorageAvailable = false;
   try {
     configuredProfiles = getAccessProfiles().filter(profile => profile.active);
-    const database = await getWorkspaceDatabase().catch(() => null);
+    const database = await getWorkspaceDatabase({ catalog: 'metadata' }).catch(() => null);
     workspaceStorageAvailable = Boolean(database);
     profiles = mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
     profileCount = configuredProfiles.length;
@@ -87,7 +87,7 @@ authRouter.get('/config', async (request, response) => {
 
 authRouter.post('/google', rateLimit, async (request, response) => {
   try {
-    const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase());
+    const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase({ catalog: 'metadata' }));
     const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
     const token = await createTrackedSession(profile, request, 'google');
