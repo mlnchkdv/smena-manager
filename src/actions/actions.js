@@ -944,27 +944,8 @@ A.openRelatedEntity = async el => {
   else if (entity.kind === 'task') A.openTask({ dataset: { id: entity.id } });
   else go('project', { id: entity.id });
 };
-A.showGraph = el => {
-  S.ui.graphSelectionClosed = false;
-  S.ui.graphCenter = el.dataset.key || '';
-  S.ui.graphSelected = S.ui.graphCenter;
-  const target = resolveGraphEntity(D(), S.ui.graphCenter);
-  if (target) S.ui.graphArchive = target.item.archived || target.item.is_archived ? 'yes' : '';
-  S.ui.graphQuery = '';
-  S.ui.graphKind = '';
-  S.ui.graphProject = '';
-  S.ui.graphConnected = '';
-  S.ui.modals = [];
-  S.ui.drawer = null;
-  go('graph', S.ui.graphCenter ? { center: S.ui.graphCenter } : {});
-};
-A.searchInGraph = () => {
-  S.ui.graphQuery = S.ui.searchQ || '';
-  S.ui.graphKind = '';
-  S.ui.graphProject = '';
-  S.ui.graphConnected = '';
-  go('graph');
-};
+A.showGraph = async el => (await import('../features/graph-actions.js')).showGraph(el);
+A.searchInGraph = async () => (await import('../features/graph-actions.js')).searchInGraph();
 A.exportGraph = async () => (await import('../features/graph-export.js')).exportGraph();
 A.newBookmark = () => {
   S.ui.bookmarkEditing = null;

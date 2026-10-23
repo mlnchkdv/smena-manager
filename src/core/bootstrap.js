@@ -5,6 +5,7 @@ import {
   getPersonalPreferences,
   getFileUploadPolicy,
   getSessionToken,
+  getSessionGeneration,
   setSessionToken,
   getWorkspace,
   getWorkspaceDocument,
@@ -32,6 +33,7 @@ import { bindInitialAdministrator, memberForProfile } from '../shared/member-ide
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
+import { loadWorkspaceResources } from '../shared/workspace-load.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
 
@@ -74,9 +76,13 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
 }
 
 async function loadWorkspaceFor(user) {
+  const generation = getSessionGeneration();
   user = await getCurrentUser();
-  let snapshot = await getWorkspace();
-  const documentSnapshots = Object.fromEntries(await Promise.all(DOCUMENT_NAMES.map(async name => [name, await getWorkspaceDocument(name)])));
+  const resources = await loadWorkspaceResources({ getWorkspace, getWorkspaceDocument, getPersonalPreferences, getFileUploadPolicy });
+  if (generation !== getSessionGeneration())
+    throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
+  let { snapshot } = resources;
+  const { documentSnapshots, personal, filePolicy } = resources;
   if (isEmptyWorkspace(snapshot)) {
     if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
     const initialData = bindInitialAdministrator(emptyWorkspace(workspacePayload(snapshot)), user);
@@ -94,10 +100,9 @@ async function loadWorkspaceFor(user) {
   }
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
-  const personal = await getPersonalPreferences();
   Object.assign(S.prefs, DEFAULT_PREFS, personal.preferences);
   const recoveredPreferences = await configurePersonalPreferences(user.id, S.prefs, draftContext(user, S.data));
-  if (!recoveredPreferences || S.ui.currentUser?.id !== user.id)
+  if (!recoveredPreferences || S.ui.currentUser?.id !== user.id || generation !== getSessionGeneration())
     throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
   if (recoveredPreferences) Object.assign(S.prefs, recoveredPreferences);
   for (const scope of ['workspace', ...DOCUMENT_NAMES]) {
@@ -119,7 +124,7 @@ async function loadWorkspaceFor(user) {
       console.warn('[Recovery] Local draft could not be loaded:', error.name);
     }
   }
-  S.ui.filePolicy = await getFileUploadPolicy().catch(() => null);
+  S.ui.filePolicy = filePolicy;
   if (user.name) S.prefs.name = user.name;
   S.prefs.title = user.title || '';
   return user;

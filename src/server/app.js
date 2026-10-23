@@ -179,7 +179,7 @@ app.get('/api/readiness', requireRole('admin'), async (request, response, next) 
 
 app.get('/api/preferences', async (request, response, next) => {
   try {
-    const data = await getWorkspaceDatabase();
+    const data = await getWorkspaceDatabase({ catalog: 'metadata' });
     const member = memberForProfile(bindAccessProfiles(data, getAccessProfiles()), request.user);
     response.json({ preferences: data._userPrefs?.[member?.id] || {} });
   } catch (error) {
