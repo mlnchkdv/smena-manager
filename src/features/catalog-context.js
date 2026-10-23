@@ -50,10 +50,9 @@ export async function refreshCatalogContext() {
   const query = S.ui.palette?.q || (S.ui.route === 'search' ? S.ui.searchQ : '');
   const ids = new Set();
   for (const modal of S.ui.modals) if (modal.file?.id) ids.add(modal.file.id);
-  const panels = [...document.querySelectorAll('[data-catalog-key]')].map(el => el.dataset.catalogKey);
-  for (const key of panels) if (key.startsWith('file:')) ids.add(key.slice(5));
-  for (const edge of S.data.relations || [])
-    if (panels.includes(edge.from) || panels.includes(edge.to)) for (const key of [edge.from, edge.to]) if (key.startsWith('file:')) ids.add(key.slice(5));
+  // Connection panels already have bounded server read models. Do not resolve
+  // every endpoint of a high-degree node into editable file records here;
+  // opening/changing an individual connection resolves just its endpoints.
   const key = JSON.stringify([session, S.ui.workspaceRevision, query, [...ids].sort()]);
   paintFeedback(key);
   const cached = completedIds.every(id => S.data.files.some(file => file.id === id));
