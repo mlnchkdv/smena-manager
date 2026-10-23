@@ -273,7 +273,7 @@ app.post('/api/notifications/test', requireRole('admin'), async (request, respon
     if (!['email', 'push'].includes(channel)) return response.status(400).json({ error: 'Invalid notification channel.' });
     const key = `${request.user.id}:${channel}`;
     if (!(await claimNotificationTestCooldown(key))) return response.status(429).json({ error: 'Please wait one minute before another test.' });
-    const stored = await getWorkspaceDatabase();
+    const stored = await getWorkspaceDatabase({ catalog: 'metadata' });
     const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
     // Recipient is resolved from the authenticated profile, never accepted from the request body.
     if (!member || member.email?.toLowerCase() !== request.user.email?.toLowerCase()) throw permissionError('profile');
@@ -285,7 +285,7 @@ app.post('/api/notifications/test', requireRole('admin'), async (request, respon
 
 app.post('/api/push/subscriptions', async (request, response, next) => {
   try {
-    const stored = await getWorkspaceDatabase();
+    const stored = await getWorkspaceDatabase({ catalog: 'metadata' });
     const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
     if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
     const result = await upsertPushSubscription(member.id, request.user.id, request.body?.subscription, {
@@ -300,7 +300,7 @@ app.post('/api/push/subscriptions', async (request, response, next) => {
 
 app.delete('/api/push/subscriptions', async (request, response, next) => {
   try {
-    const stored = await getWorkspaceDatabase();
+    const stored = await getWorkspaceDatabase({ catalog: 'metadata' });
     const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
     if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
     response.json({ removed: await removePushSubscription(member.id, request.body?.endpoint) });
@@ -484,7 +484,13 @@ app.get('/api/knowledge/search', async (request, response, next) => {
     )
       return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
     response.json(
-      indexedKnowledgePage(await getWorkspaceDatabase(), { query: q, folder, tag, sort: sort === 'title' ? 'title' : 'updated', offset: Number(offset) }),
+      indexedKnowledgePage(await getWorkspaceDatabase({ fields: ['knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions'] }), {
+        query: q,
+        folder,
+        tag,
+        sort: sort === 'title' ? 'title' : 'updated',
+        offset: Number(offset),
+      }),
     );
   } catch (error) {
     next(error);

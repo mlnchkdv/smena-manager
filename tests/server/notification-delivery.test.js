@@ -9,7 +9,36 @@ import {
   recordNotificationDelivery,
   resetNotificationDeliveryForTests,
 } from '../../src/server/notification-delivery.js';
-import { resetStorageProvider } from '../../src/server/storage/index.js';
+import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
+import { resetWorkspaceStore } from '../../src/server/workspace-store.js';
+
+test('outbox diagnostics require metadata only, not full catalog parts', async t => {
+  resetStorageProvider();
+  resetWorkspaceStore();
+  const storage = getStorageProvider();
+  const load = storage.loadDatabase;
+  const core = storage.loadDatabaseCore;
+  const status = storage.loadNotificationDeliveryStatus;
+  t.after(() => {
+    storage.loadDatabase = load;
+    storage.loadDatabaseCore = core;
+    storage.loadNotificationDeliveryStatus = status;
+    resetStorageProvider();
+    resetWorkspaceStore();
+  });
+  storage.loadDatabase = () => assert.fail('Diagnostics must not hydrate the full catalog');
+  storage.loadNotificationDeliveryStatus = async () => null;
+  storage.loadDatabaseCore = async () => ({
+    schemaVersion: 3,
+    _aggregateVersion: 1,
+    revision: 10,
+    files: [],
+    _notificationOutbox: [{ id: 'job', createdAt: '2026-10-24', channels: { email: { status: 'pending', attempts: 1 } } }],
+  });
+  const result = await notificationDeliveryStatus();
+  assert.equal(result.outbox.pending, 1);
+  assert.equal(result.outbox.retrying, 1);
+});
 
 test('delivery diagnostics retain channel totals and the latest cron result', async t => {
   const testRoot = path.join(process.cwd(), '.data', 'tests');

@@ -140,7 +140,12 @@ export async function retryNotificationOutbox() {
 }
 
 export async function notificationDeliveryStatus() {
-  const [delivery, email, push, data] = await Promise.all([loadStatus(), emailAuthorizationStatus(), pushDeliveryStatus(), getWorkspaceDatabase()]);
+  const [delivery, email, push, data] = await Promise.all([
+    loadStatus(),
+    emailAuthorizationStatus(),
+    pushDeliveryStatus(),
+    getWorkspaceDatabase({ fields: ['_notificationOutbox'] }),
+  ]);
   const outbox = notificationQueueStatus(data);
   return { delivery, channels: { email, push }, outbox };
 }

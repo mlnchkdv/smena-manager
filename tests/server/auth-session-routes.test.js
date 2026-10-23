@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { app } from '../../src/server/app.js';
-import { resetStorageProvider } from '../../src/server/storage/index.js';
+import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, resetWorkspaceStore } from '../../src/server/workspace-store.js';
 
 test('authenticated users can inspect and revoke their active sessions', async t => {
@@ -67,6 +67,27 @@ test('authenticated users can inspect and revoke their active sessions', async t
   const page = await search.json();
   assert.ok(Array.isArray(page.ids));
   assert.equal('knowledgeNotes' in page, false);
+
+  const storage = getStorageProvider(),
+    savedLoad = storage.loadDatabase,
+    savedCore = storage.loadDatabaseCore;
+  const metadata = await getWorkspaceDatabase();
+  metadata.knowledgeNotes = [{ id: 'metadata-note', title: 'Инструкция Guide', formatted_markdown: 'team команда' }];
+  metadata.revision++;
+  resetWorkspaceStore();
+  storage.loadDatabase = () => assert.fail('Knowledge search must not read canonical file parts');
+  storage.loadDatabaseCore = async () => structuredClone(metadata);
+  try {
+    for (const query of ['инструкция', 'guide', 'команда', 'TEAM']) {
+      const response = await fetch(`${origin}/api/knowledge/search?q=${encodeURIComponent(query)}`, { headers: authorize(desktopToken) });
+      assert.equal(response.status, 200);
+      assert.deepEqual((await response.json()).ids, ['metadata-note']);
+    }
+  } finally {
+    storage.loadDatabase = savedLoad;
+    storage.loadDatabaseCore = savedCore;
+    resetWorkspaceStore();
+  }
 
   const revisionBeforeMismatch = (await getWorkspaceDatabase()).revision;
   const mismatch = await fetch(`${origin}/api/preferences`, {
