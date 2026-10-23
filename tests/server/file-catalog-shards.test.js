@@ -68,7 +68,8 @@ test('immutable project parts preserve ordering, checksums, scoped reads and unc
   assert.equal(selectedReads.length, 1);
   assert.ok(selected.every(file => file.project === 'b'));
   const again = await writeCatalogShards({ ...data, revision: 9 }, root._fileCatalog, () => assert.fail('Unchanged parts must be reused'));
-  assert.deepEqual(again._fileCatalog, root._fileCatalog);
+  assert.deepEqual(again._fileCatalog.shards, root._fileCatalog.shards);
+  assert.equal(again._fileCatalog.accounting.revision, 9, 'Accounting belongs to the new root even when parts are reused');
   const changed = structuredClone(data);
   changed.files[0].name = 'Изменено';
   const newer = await writeCatalogShards(changed, root._fileCatalog, write);

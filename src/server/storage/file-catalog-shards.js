@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { fileCatalogIndex } from '../file-catalog-index.js';
+import { createCatalogAccounting } from '../file-catalog-accounting.js';
 
 export const CATALOG_SHARD_BYTES = 2 * 1024 * 1024;
 const MAX_FILES = 100000;
@@ -69,7 +70,7 @@ export async function writeCatalogShards(data, previous, write) {
   const { files: _files, _fileCatalog: _catalog, ...core } = data;
   void _files;
   void _catalog;
-  return { ...core, _fileCatalog: { version: 3, total: data.files.length, shards } };
+  return { ...core, _fileCatalog: { version: 3, total: data.files.length, shards, accounting: createCatalogAccounting(data) } };
 }
 
 export function validateCatalogManifest(manifest) {

@@ -7,6 +7,7 @@ import { rememberStorageVersion, storageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
 import { writeCatalogShards, materializeCatalog, catalogCore, readCatalogShards } from './file-catalog-shards.js';
 import { fileCatalogIndex } from '../file-catalog-index.js';
+import { readCatalogAccounting } from '../file-catalog-accounting.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -278,6 +279,23 @@ export class GoogleDriveStorageProvider {
     if (!root) return null;
     const core = [2, 3].includes(root._fileCatalog?.version) ? catalogCore(root) : await materializeCatalog(root, id => this.readCatalogPart(id));
     return rememberStorageVersion(core, storageVersion(root));
+  }
+
+  async loadDatabaseStatus() {
+    const root = await this.readDatabaseRoot();
+    if (!root) return null;
+    const core = [2, 3].includes(root._fileCatalog?.version) ? catalogCore(root) : null;
+    const accounting = core ? readCatalogAccounting(root) : null;
+    const data = accounting ? core : await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part));
+    return {
+      data: rememberStorageVersion(data, storageVersion(root)),
+      accounting,
+      catalog: {
+        layout: root._fileCatalog ? 'project-shards' : 'aggregate',
+        version: root._fileCatalog?.version || 0,
+        parts: root._fileCatalog?.shards?.length || 0,
+      },
+    };
   }
 
   async loadDatabaseCatalog(select, projectFile, search = false) {
