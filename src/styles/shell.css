@@ -517,3 +517,32 @@ h3.sub {
 .role-viewer label:has([data-in='uploadFiles']) {
   display: none !important;
 }
+/* Non-disruptive deployment recovery; never auto-refresh an editing session. */
+.deployment-update {
+  position: fixed;
+  inset: auto 16px 20px auto;
+  z-index: 1100;
+  display: grid;
+  gap: 8px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 6px 24px #0002;
+}
+.deployment-update[hidden] {
+  display: none;
+}
+.deployment-update small {
+  color: var(--muted);
+}
+.deployment-update .btn {
+  justify-self: start;
+}
+@media (max-width: 640px) {
+  .deployment-update {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}

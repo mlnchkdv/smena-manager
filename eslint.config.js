@@ -6,7 +6,7 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.js'],
-    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.browser } },
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module', globals: { ...globals.browser, __SMENA_BUILD_ID__: 'readonly' } },
   },
   {
     files: ['vite.config.js', 'playwright.config.js', 'eslint.config.js', 'api/**/*.js', 'scripts/**/*.js', 'src/server/**/*.js', 'tests/**/*.js'],

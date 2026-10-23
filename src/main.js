@@ -52,6 +52,8 @@ import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
 import { createPollCoordinator } from './core/poll-coordinator.js';
 import { retryPersonalPreferences } from './core/personal-preferences.js';
 
+void import('./core/deployment-recovery.js').then(module => module.installDeploymentRecovery(__SMENA_BUILD_ID__));
+
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
 });

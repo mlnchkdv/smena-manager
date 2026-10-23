@@ -142,3 +142,4 @@ const sync = createPersonalPreferenceSync();
 export const configurePersonalPreferences = (...args) => sync.configure(...args);
 export const queuePersonalPreferences = (...args) => sync.queue(...args);
 export const retryPersonalPreferences = () => sync.retry();
+export const personalPreferenceSyncState = () => sync.state();

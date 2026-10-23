@@ -15,6 +15,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'App update': 'Обновление приложения',
+  'A new app version is available.': 'Доступна новая версия приложения.',
+  'This section could not load. Check for an app update.': 'Не удалось загрузить раздел. Проверьте обновление приложения.',
+  'Your saved data and current address will be kept.': 'Сохранённые данные и текущий адрес останутся на месте.',
+  'Save changes, close open forms and finish transfers before updating.': 'Перед обновлением сохраните изменения, закройте формы и завершите передачи файлов.',
+  'Update app': 'Обновить приложение',
+  'Check for update': 'Проверить обновление',
   'ZIP is ready.': 'ZIP готов.',
   'Save ZIP': 'Сохранить ZIP',
   'Close ZIP download': 'Закрыть скачивание ZIP',

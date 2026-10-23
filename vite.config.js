@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { icons as lucide } from 'lucide';
 
 /* `virtual:icons` exports only the Lucide icons the source actually names, as inline SVG markup,
@@ -47,9 +48,17 @@ function lucideSubset() {
   };
 }
 
+const buildId = process.env.VERCEL_GIT_COMMIT_SHA || randomUUID();
 export default defineConfig({
+  define: { __SMENA_BUILD_ID__: JSON.stringify(buildId) },
   build: { rollupOptions: { output: { manualChunks: { sanitizer: ['dompurify'] } } } },
   plugins: [
+    {
+      name: 'deployment-version',
+      generateBundle() {
+        this.emitFile({ type: 'asset', fileName: 'app-version.json', source: JSON.stringify({ version: buildId }) });
+      },
+    },
     lucideSubset(),
     {
       name: 'pdf-third-party-notices',
