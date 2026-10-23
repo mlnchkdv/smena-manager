@@ -710,6 +710,22 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     const streamed = unzipSync(new Uint8Array(await readFile(await (await streamedEvent).path())));
     expect(Object.keys(streamed)).toEqual(names);
     expect(Object.values(streamed).map(bytes => strFromU8(bytes))).toEqual(Object.values(unpacked).map(bytes => strFromU8(bytes)));
+    if (!(await page.locator('.files-exports').getAttribute('open'))) await page.locator('.files-exports summary').click();
+    await page.locator('[data-a="createFileExport"]').click();
+    await expect(page.locator('.files-export-job a[download]')).toBeVisible();
+    const exportId = await page.locator('.files-export-job').first().getAttribute('data-export');
+    await page.reload();
+    const exportRow = page.locator(`.files-export-job[data-export="${exportId}"]`);
+    await expect(exportRow.locator('a[download]')).toBeVisible();
+    if (language === 'Русский') await expectRussianUi(page, 'Resumable export after reload');
+    const persistentEvent = page.waitForEvent('download');
+    await exportRow.locator('a[download]').click();
+    const persistent = unzipSync(new Uint8Array(await readFile(await (await persistentEvent).path())));
+    expect(Object.keys(persistent)).toEqual(names);
+    expect(Object.values(persistent).map(bytes => strFromU8(bytes))).toEqual(Object.values(unpacked).map(bytes => strFromU8(bytes)));
+    await exportRow.locator('[data-a="cancelFileExport"]').click();
+    await page.locator('#workspace-file-q').fill('E2E ZIP folder');
+    await page.locator('[data-a="selectFilePage"]').click();
     await expect(page.locator('.files-page')).toBeVisible();
     await page.screenshot({ path: `output/playwright/files-zip-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });
   }
@@ -719,7 +735,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
   );
   await page.locator('[data-a="downloadSelectedFiles"]').click();
   await expect(page.locator('.toast').filter({ hasText: 'Не удалось создать ZIP.' })).toBeVisible();
-  expect(downloads).toBe(6);
+  expect(downloads).toBe(8);
   await page.unroute(endpoint);
   await page.route(endpoint, async route => {
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -729,7 +745,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
   await expect(page.locator('.files-download-progress')).toBeVisible();
   await page.locator('[data-a="cancelFileZip"]').click();
   await expect(page.locator('.files-download-progress')).toHaveCount(0);
-  expect(downloads).toBe(6);
+  expect(downloads).toBe(8);
   await page.unroute(endpoint);
 });
 
