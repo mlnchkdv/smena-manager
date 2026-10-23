@@ -2,12 +2,14 @@ import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
 import { fileCatalogPage } from '../shared/file-catalog.js';
 import { fileCatalogVersion } from './file-catalog-version.js';
+import { currentCatalogUser } from './file-catalog-query.js';
 
 // Cache references only inside one immutable server snapshot. Return page clones,
 // never mutable database objects or a shared user-independent visibility cache.
 export function createCatalogReader(database) {
   const cache = new Map();
   return (user, options) => {
+    user = currentCatalogUser(database, user);
     const member = memberForProfile(database, user)?.id || user.id,
       key = JSON.stringify([member, user.role]);
     let entry = cache.get(key);

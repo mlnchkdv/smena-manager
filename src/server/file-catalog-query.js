@@ -1,8 +1,17 @@
 import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { canReadProject } from '../shared/project-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
+import { workspaceMemberRole } from '../shared/workspace-access.js';
+
+export function currentCatalogUser(database, user) {
+  const member = memberForProfile(database, user);
+  if (member && ['removed', 'deactivated'].includes(member.status))
+    throw Object.assign(new Error('Account is unavailable.'), { statusCode: 401, code: 'AUTH_REQUIRED' });
+  return member?.role ? { ...user, role: workspaceMemberRole(member) } : user;
+}
 
 export function catalogQuery(database, user, options = {}) {
+  user = currentCatalogUser(database, user);
   const {
     revision,
     project = 'all',

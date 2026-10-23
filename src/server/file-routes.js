@@ -11,6 +11,7 @@ import { getStorageProvider } from './storage/index.js';
 import {
   getWorkspaceDatabase,
   getWorkspaceFileCatalogPage,
+  getWorkspaceFileSnapshot,
   queryWorkspaceFileCatalog,
   mutateWorkspaceDatabase,
   RevisionConflictError,
@@ -431,7 +432,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
 
 fileRouter.get('/:id/content', async (request, response, next) => {
   try {
-    const database = await getWorkspaceDatabase();
+    const database = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = database.files?.find(item => item.id === request.params.id);
     if (!file?.storageName) {
       response.status(404).json({ error: 'Stored file not found.', code: 'FILE_NOT_FOUND' });

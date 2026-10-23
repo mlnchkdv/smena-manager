@@ -24,7 +24,7 @@ import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
 import { workspaceCapacities, fileStorageAccounting } from './file-capacity.js';
 import { providerFailureCounters } from './provider-safety.js';
 import { createCatalogReader } from './file-catalog-reader.js';
-import { catalogQuery } from './file-catalog-query.js';
+import { catalogQuery, currentCatalogUser } from './file-catalog-query.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
 
@@ -195,11 +195,23 @@ export async function queryWorkspaceFileCatalog(user, options) {
 }
 
 function catalogReadScope(data, user, project = 'all', ids) {
+  user = currentCatalogUser(data, user);
   const member = memberForProfile(data, user)?.id || user.id;
   return {
     projects: new Set(data.projects.filter(p => (project === 'all' || p.id === project) && canReadProject(p, member, user.role)).map(p => p.id)),
     ...(ids ? { ids: new Set(ids) } : {}),
   };
+}
+
+export async function getWorkspaceFileSnapshot(user, id) {
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseCatalog === 'function') {
+    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', [id]));
+    if (!data) throw new Error('The configured storage does not contain a workspace database.');
+    data.files = data.files.filter(file => file.id === id);
+    return data;
+  }
+  return getWorkspaceDatabase();
 }
 
 export async function getWorkspaceRevisionStatus() {

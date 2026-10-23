@@ -66,3 +66,12 @@ test('partial-client deletion stores all unloaded project/task files in recovera
   const retained = completeCatalogCascade(current, { projects: current.projects, tasks: current.tasks, trash: [] }, current.files);
   assert.deepEqual(retained, current.files);
 });
+
+test('catalog reads recheck a role downgrade or deactivation after authentication', () => {
+  const db = data();
+  db.members[0].role = 'Member';
+  const staleAdmin = { id: 'm', role: 'admin' };
+  assert.equal(catalogQuery(db, staleAdmin, { revision: 7, project: 'secret' }).total, 0);
+  db.members[0].status = 'deactivated';
+  assert.throws(() => catalogQuery(db, staleAdmin, { revision: 7 }), { statusCode: 401 });
+});
