@@ -868,18 +868,21 @@ async function hydrateRelatedFiles(keys) {
   const ids = keys.filter(key => key.startsWith('file:') && !resolveGraphEntity(D(), key)).map(key => key.slice(5));
   if (!ids.length) return true;
   const session = getSessionGeneration();
+  const route = JSON.stringify([S.ui.route, S.ui.params]),
+    modal = S.ui.modals.at(-1);
   try {
     await (await import('../features/file-catalog-demand.js')).ensureFileIdentities(ids);
-    return session === getSessionGeneration();
+    return session === getSessionGeneration() && route === JSON.stringify([S.ui.route, S.ui.params]) && modal === S.ui.modals.at(-1);
   } catch {
     if (session === getSessionGeneration()) toast('Unable to load files. Check connection and retry.');
     return false;
   }
 }
 A.addRelationPicker = async el => {
-  if (!(await hydrateRelatedFiles([el.dataset.key]))) return;
-  if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;
-  openModal({ type: 'relations', source: el.dataset.key, query: '', kind: '', relationType: 'related' });
+  const key = el.dataset.key;
+  if (!(await hydrateRelatedFiles([key]))) return;
+  if (!entityAllowed(D(), key, graphOptions(), true)) return;
+  openModal({ type: 'relations', source: key, query: '', kind: '', relationType: 'related' });
 };
 A.resolveWikiReference = el => {
   if (!entityAllowed(D(), el.dataset.key, graphOptions(), true)) return;

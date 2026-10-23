@@ -16,7 +16,7 @@ let completed = '',
   completedIds = [],
   feedback = null;
 function paintFeedback(key) {
-  document.querySelectorAll('.catalog-context-status').forEach(el => el.remove());
+  document.querySelectorAll('.catalog-context-status:not(.graph-query-status)').forEach(el => el.remove());
   if (feedback?.key !== key) return;
   const anchor = document.querySelector('.palette .pal-in,.relation-picker > .input,.search-page > .inwrap,.graph-toolbar,.relations-panel > .relations-head');
   if (!anchor) return;
