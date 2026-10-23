@@ -85,8 +85,9 @@ in immutable project parts. Parts are checksum-verified and the root is publishe
 ETag-protected write. Initial bootstrap does not fetch full catalog records; file browsing resolves
 bounded pages on demand. Unchanged parts are reused, including after global reordering.
 Legacy aggregate/separate-document layouts remain readable. Binary files remain separate Drive
-objects. Whole-workspace writes/backups and the explicitly opened full graph still materialize
-records; this is not independent per-project transaction storage. See the context document for
+objects. Graphs and connection pickers now use revision-fenced server queries (250/50 nodes),
+without hydrating all file records in the browser; only explicit JSON export returns the full graph.
+Whole-workspace writes/backups still materialize records; this is not independent per-project transaction storage. See the context document for
 rollback, retention and concurrency limitations.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
