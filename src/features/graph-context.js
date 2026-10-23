@@ -10,6 +10,10 @@ A.retryGraphQuery = () => {
   render();
 };
 const pending = new Set();
+window.addEventListener('smena:sync-status', event => {
+  if (event.detail.status === 'saved' && (S.ui.route === 'graph' || S.ui.modals.at(-1)?.type === 'relations' || document.querySelector('[data-catalog-key]')))
+    queueMicrotask(() => render());
+});
 export async function refreshGraphContext() {
   const scopes = [];
   if (S.ui.route === 'graph') scopes.push(['view', '']);
