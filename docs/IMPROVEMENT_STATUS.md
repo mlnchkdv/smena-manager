@@ -1,5 +1,31 @@
 # Improvement status / Статус улучшений
 
+## Project audit — 23 October 2026 / Аудит проекта — 23 октября 2026
+
+Baseline: clean worktree, 373/373 server/shared tests and lint passed. This is a source/test audit with isolated browser acceptance; production team data is read-only. It is not a penetration test or physical-device certification.
+
+Исходная точка: чистый репозиторий, 373/373 серверных/модульных теста и lint без ошибок. Проверяются код и регрессии с изолированными браузерными сценариями; данные команды в production — только чтение. Это не пентест и не сертификация физических устройств.
+
+Implementation queue / Очередь внедрения:
+
+| #   | Priority | Finding / Проблема                                                                                                                                                  | Acceptance / Критерий                                                                                                                                                         |
+| --- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | P1       | Multipart upload still requests legacy full catalog hydration. / Обычная загрузка возвращает полный каталог.                                                        | Demand mode resolves only known/uploaded IDs; no catalog-page sweep. / Только нужные ID, без обхода всего каталога.                                                           |
+| 2   | P1       | Direct Drive transfer can finalize after the account changes. / Прямая загрузка может завершаться в контексте другого аккаунта.                                     | Session fence before chunk continuation and finalization; no new-account completion request. / Проверка сессии на продолжении и перед завершением.                            |
+| 3   | P1       | Browser history resolves a file against a partial cache. / История браузера не открывает файл вне текущего кэша.                                                    | Resolve requested identity on demand, preserve URL and session; inaccessible files fail closed. / Загрузка нужного ID без потери адреса, недоступные файлы не открываются.    |
+| 4   | P1       | Failed context loading can loop through render/retry or silently remain incomplete. / Ошибки графа и поиска приводят к повторам или неполной выдаче без объяснения. | One failed attempt per context; explicit retry and no automatic request storm. / Одна попытка, явный повтор без шторма запросов.                                              |
+| 5   | P2       | Raw catalog errors bypass useful localized recovery states. / Ошибки каталога не всегда понятны и локализованы.                                                     | Safe RU/EN error categories, loading/error/retry states for context consumers. / Понятные RU/EN состояния и повтор.                                                           |
+| 6   | P2       | A throwing browser Notification constructor interrupts refresh handling. / Исключение системного уведомления прерывает обработку обновления.                        | Unsupported/denied delivery returns safely; no synthetic delivery claim. / Безопасный отказ без ложного сообщения о доставке.                                                 |
+| 7   | P2       | Legacy note context resolves wiki links by title rather than persisted IDs. / Контекст заметки разрешает wiki-ссылки иначе, чем граф.                               | Stable bound IDs survive renames; duplicate titles are not resolved arbitrarily; backlinks agree. / Привязанные ID устойчивы к переименованию, неоднозначность не скрывается. |
+
+Dependency audit is **unverified**: the npm registry rejected the audit request (HTTP 400, invalid-tree advisory response). No package or lockfile is changed merely to bypass this response. Retry the supported registry audit before a release; do not interpret the failure as zero vulnerabilities.
+
+Аудит зависимостей **не подтверждён**: реестр npm отклонил запрос (HTTP 400). Пакеты и lockfile не меняются только ради обхода ответа. Перед релизом нужно получить успешный отчёт; ошибка не означает отсутствие уязвимостей.
+
+Already-known follow-ups remain distinct: whole-workspace writes/backups and explicit full graph materialize the catalog; immutable metadata-part collection needs retention-aware design; real iOS/Android/background-upload acceptance awaits the user. No automatic cleanup, permission expansion, production restore or test notification is authorized by this audit.
+
+Ранее известные ограничения остаются отдельными задачами: общие записи/копии и полный граф материализуют каталог; очистка частей требует учёта сроков хранения; реальные iOS/Android и фоновые загрузки ждут проверки пользователя. В этом аудите не запускаются очистка, расширение доступа, production-восстановление или тестовые уведомления.
+
 ## Files: eight-item implementation progress — 23 October 2026 / Файлы: внедрение восьми пунктов
 
 This is a progress record, not a claim that all eight items are complete. / Это промежуточный статус, а не утверждение о завершении всех восьми пунктов.
