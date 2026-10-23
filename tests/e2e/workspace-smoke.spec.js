@@ -568,10 +568,13 @@ test('file actions follow project view comment edit permissions', async ({ page,
   }
 });
 
-test('bulk files move atomically across searchable folder pages and go to recoverable trash in both languages', async ({ page }) => {
+test('bulk files move atomically across searchable folder pages and go to recoverable trash in both languages', async ({ page, browserName }) => {
   await signIn(page);
   let current = (await (await page.request.get('/api/workspace')).json()).data;
-  const project = current.projects[0];
+  const project = { id: `bulk-project-${browserName}`, name: `E2E bulk ${browserName}`, members: [current.me] };
+  current.projects.push(project);
+  current.projOrder.push(project.id);
+  const fileName = i => `e2e-batch-${browserName}-${i}.txt`;
   project.fileFolders = [
     ...(project.fileFolders || []),
     { id: 'batch-a', name: 'Массовый перенос A' },
@@ -587,7 +590,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     current = (await (await page.request.get('/api/workspace')).json()).data;
     const upload = await page.request.post('/api/files/upload', {
       multipart: {
-        file: { name: `e2e-batch-${i}.txt`, mimeType: 'text/plain', buffer: Buffer.from(`Batch ${i}`) },
+        file: { name: fileName(i), mimeType: 'text/plain', buffer: Buffer.from(`Batch ${i}`) },
         revision: String(current.revision),
         project: project.id,
         folderId: 'batch-a',
@@ -603,6 +606,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await page.goto('/e2e-team/files');
+    await page.locator('#workspace-file-project').selectOption(project.id);
     await page.setViewportSize({ width: 320, height: 844 });
     await expect(page.locator('.files-folder-tile')).toHaveCount(4);
     await page.locator('#files-folder-query').fill('Массовый перенос');
@@ -626,7 +630,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     expect(current.files.filter(file => ids.includes(file.id)).map(file => file.folderId)).toEqual([target, target, target]);
     await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
     await page.locator('.files-view-switch [data-v="grid"]').click();
-    await page.locator('#workspace-file-q').fill('e2e-batch-');
+    await page.locator('#workspace-file-q').fill(`e2e-batch-${browserName}-`);
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     if (language === 'Русский') await expectRussianUi(page, 'Bulk file browser');
     for (const width of [320, 768, 1366]) {
@@ -643,10 +647,13 @@ test('bulk files move atomically across searchable folder pages and go to recove
   expect(current.files.some(file => ids.includes(file.id))).toBeFalsy();
   expect(current.trash.filter(item => ids.includes(item.data?.file?.id))).toHaveLength(3);
   await openTrash(page);
-  await page.locator('.mini', { hasText: 'e2e-batch-1.txt' }).locator('[data-a="restoreTrash"]').click();
+  await page
+    .locator('.mini', { hasText: fileName(1) })
+    .locator('[data-a="restoreTrash"]')
+    .click();
   await waitForSaved(page);
   await page.goto('/e2e-team/files');
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-batch-1.txt' })).toContainText('Массовый перенос A');
+  await expect(page.locator('.workspace-file-card', { hasText: fileName(1) })).toContainText('Массовый перенос A');
 });
 
 test('file ZIP downloads preserve Unicode and duplicates and never publish failed or cancelled batches', async ({ page, browserName }) => {
