@@ -118,7 +118,7 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
   reads.length = 0;
   const scoped = await provider.loadDatabaseCatalog(() => ({ projects: new Set(['p']), ids: new Set(['f']) }));
   assert.deepEqual(scoped.files, [data.files[0]]);
-  assert.equal(reads.length, 2);
+  assert.deepEqual(reads, ['db'], 'Canonical reads also populate the verified immutable cache');
   assert.equal(reads.includes(root._fileCatalog.shards.find(part => part.project === 'secret').id), false, 'Private project part must not even be read');
   reads.length = 0;
   const index = await provider.loadDatabaseCatalogIndex(() => ({ projects: new Set(['p']) }));

@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { fileCatalogIndex } from '../file-catalog-index.js';
 
 export const CATALOG_SHARD_BYTES = 2 * 1024 * 1024;
 const MAX_FILES = 100000;
@@ -20,6 +21,9 @@ export async function writeCatalogShards(data, previous, write) {
     groups.get(project).push([file.id, file]);
   });
   const reusable = new Map((previous?.shards || []).map(part => [part.sha256, part]));
+  const reusableSearch = new Map(
+    (previous?.shards || []).filter(part => part.search?.version === 1).map(part => [`${part.project}:${part.search.sha256}`, part.search]),
+  );
   const shards = [];
   for (const [project, rows] of groups) {
     // Global ordering belongs to the root manifest, not immutable part content.
@@ -34,12 +38,20 @@ export async function writeCatalogShards(data, previous, write) {
       const old = reusable.get(sha256);
       const id = old?.project === project ? old.id : await write(text, sha256);
       if (typeof id !== 'string' || !id) throw invalid();
+      const index = batch.map(([identity, file]) => [identity, fileCatalogIndex(file)]);
+      // When full rows already contain only search fields, share their immutable
+      // bytes instead of uploading a duplicate. Otherwise omit history/storage.
+      const searchText = batch.every(([, file], i) => Object.keys(file).length === Object.keys(index[i][1]).length) ? text : JSON.stringify(index);
+      const searchHash = digest(searchText);
+      const searchId = searchText === text ? id : reusableSearch.get(`${project}:${searchHash}`)?.id || (await write(searchText, searchHash));
+      if (typeof searchId !== 'string' || !searchId) throw invalid();
       shards.push({
         id,
         project,
         sha256,
         bytes: Buffer.byteLength(text),
         count: batch.length,
+        search: { version: 1, id: searchId, sha256: searchHash, bytes: Buffer.byteLength(searchText) },
         keys: batch.map(([, file]) => [file.id, file.folderId || '', Math.max(0, Number(file.bytes) || 0), file.task || '', order.get(file.id)]),
       });
       batch = [];
@@ -92,6 +104,23 @@ export function validateCatalogManifest(manifest) {
     )
       throw invalid();
     ids.add(part.id);
+    if (part.search !== undefined) {
+      const search = part.search;
+      if (
+        manifest.version !== 3 ||
+        !search ||
+        search.version !== 1 ||
+        typeof search.id !== 'string' ||
+        !search.id ||
+        !/^[a-f0-9]{64}$/.test(search.sha256) ||
+        !Number.isSafeInteger(search.bytes) ||
+        search.bytes < 2 ||
+        search.bytes > CATALOG_SHARD_BYTES ||
+        (search.id === part.id ? search.sha256 !== part.sha256 || search.bytes !== part.bytes : ids.has(search.id))
+      )
+        throw invalid();
+      ids.add(search.id);
+    }
     if (manifest.version >= 2) {
       if (!Array.isArray(part.keys) || part.keys.length !== part.count) throw invalid();
       for (const key of part.keys) {
@@ -120,7 +149,7 @@ export function validateCatalogManifest(manifest) {
   return manifest;
 }
 
-export async function readCatalogShards(root, read, project, projectFile = file => file) {
+export async function readCatalogShards(root, read, project, projectFile = file => file, search = false) {
   const manifest = validateCatalogManifest(root._fileCatalog);
   if (Object.hasOwn(root, 'files')) throw invalid();
   const rows = [],
@@ -130,8 +159,9 @@ export async function readCatalogShards(root, read, project, projectFile = file 
     if (typeof project === 'string' && part.project !== project) continue;
     if (project?.projects && !project.projects.has(part.project)) continue;
     if (project?.ids && part.keys && !part.keys.some(key => project.ids.has(key[0]))) continue;
-    const text = await read(part.id, part);
-    if (typeof text !== 'string' || Buffer.byteLength(text) !== part.bytes || digest(text) !== part.sha256) throw invalid();
+    const descriptor = search && part.search ? part.search : part;
+    const text = await read(descriptor.id, descriptor);
+    if (typeof text !== 'string' || Buffer.byteLength(text) !== descriptor.bytes || digest(text) !== descriptor.sha256) throw invalid();
     let batch;
     try {
       batch = JSON.parse(text);
@@ -158,6 +188,7 @@ export async function readCatalogShards(root, read, project, projectFile = file 
         throw invalid();
       if (key && (key[0] !== file.id || key[1] !== (file.folderId || '') || key[2] !== Math.max(0, Number(file.bytes) || 0) || key[3] !== (file.task || '')))
         throw invalid();
+      if (search && part.search && Object.keys(file).length !== Object.keys(fileCatalogIndex(file)).length) throw invalid();
       positions.add(index);
       ids.add(file.id);
       // Validate the original record before projecting it. Search/graph readers

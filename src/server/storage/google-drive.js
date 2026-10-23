@@ -270,7 +270,7 @@ export class GoogleDriveStorageProvider {
   async loadDatabase() {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
-    return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
+    return rememberStorageVersion(await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)), storageVersion(root));
   }
 
   async loadDatabaseCore() {
@@ -280,7 +280,7 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(core, storageVersion(root));
   }
 
-  async loadDatabaseCatalog(select, projectFile) {
+  async loadDatabaseCatalog(select, projectFile, search = false) {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
     if (![2, 3].includes(root._fileCatalog?.version)) {
@@ -288,12 +288,12 @@ export class GoogleDriveStorageProvider {
       return rememberStorageVersion(projectFile ? { ...data, files: data.files.map(projectFile) } : data, storageVersion(root));
     }
     const core = catalogCore(root);
-    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), select(core), projectFile);
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), select(core), projectFile, search);
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
   }
 
   async loadDatabaseCatalogIndex(select) {
-    return this.loadDatabaseCatalog(select, fileCatalogIndex);
+    return this.loadDatabaseCatalog(select, fileCatalogIndex, true);
   }
 
   async getDatabaseVersion() {

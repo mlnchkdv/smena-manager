@@ -5,20 +5,21 @@ import { writeCatalogShards, readCatalogShards, materializeCatalog, catalogCore 
 import { fileCatalogIndex } from '../../src/server/file-catalog-index.js';
 
 test('search projection drops heavy/private metadata only after validating the original part', async () => {
-  let text;
+  const parts = new Map();
   const file = { id: 'f', name: 'Файл.md', project: 'p', tags: ['tag'], bytes: 12, storageFileId: 'private-drive-id', versions: ['x'.repeat(200000)] };
   const root = await writeCatalogShards({ files: [file] }, null, async value => {
-    text = value;
-    return 'part';
+    const id = `part-${parts.size}`;
+    parts.set(id, value);
+    return id;
   });
-  const rows = await readCatalogShards(root, () => text, { projects: new Set(['p']) }, fileCatalogIndex);
+  const rows = await readCatalogShards(root, id => parts.get(id), { projects: new Set(['p']) }, fileCatalogIndex);
   assert.deepEqual(rows, [{ id: 'f', name: 'Файл.md', project: 'p', tags: ['tag'], bytes: 12 }]);
   assert.ok(JSON.stringify(rows).length < 150);
   await assert.rejects(
-    readCatalogShards(root, () => text + ' ', undefined, fileCatalogIndex),
+    readCatalogShards(root, id => parts.get(id) + ' ', undefined, fileCatalogIndex),
     { code: 'FILE_CATALOG_CORRUPT' },
   );
-  assert.deepEqual((await materializeCatalog(root, () => text)).files, [file], 'Canonical writes still receive complete records');
+  assert.deepEqual((await materializeCatalog(root, id => parts.get(id))).files, [file], 'Canonical writes still receive complete records');
 });
 
 test('immutable project parts preserve ordering, checksums, scoped reads and unchanged identities', async () => {
