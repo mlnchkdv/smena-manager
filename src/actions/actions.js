@@ -43,6 +43,7 @@ import {
 } from '../core/bootstrap.js';
 import {
   clearSession,
+  getSessionGeneration,
   getSessionToken,
   commitPortableImport,
   createWorkspaceBackup,
@@ -1840,6 +1841,7 @@ A.previewFile = el => {
 };
 export async function handleFiles(files, ctx) {
   if (!files || !files.length) return;
+  const generation = getSessionGeneration();
   if (S.ui.offline) {
     toast("Upload failed — you're offline.", { kind: 'err', action: 'Try again', onAction: () => {} });
     return;
@@ -1850,6 +1852,7 @@ export async function handleFiles(files, ctx) {
   }
   S.ui.uploads = S.ui.uploads || [];
   for (const file of [...files]) {
+    if (generation !== getSessionGeneration()) return;
     if (S.ui.filePolicy?.maxFileSizeBytes && file.size > S.ui.filePolicy.maxFileSizeBytes) {
       toast(`File is too large. Maximum size: ${fsize(S.ui.filePolicy.maxFileSizeBytes)}.`, { kind: 'err' });
       continue;
@@ -1868,6 +1871,7 @@ export async function handleFiles(files, ctx) {
     render();
     try {
       await retryWorkspaceSync();
+      if (generation !== getSessionGeneration()) return;
       const uploadBase = structuredClone(S.data);
       const result = await uploadWorkspaceFile(
         file,
@@ -1887,6 +1891,7 @@ export async function handleFiles(files, ctx) {
           if (pc) pc.textContent = up.pct + '%';
         },
       );
+      if (generation !== getSessionGeneration()) return;
       applyExternalCoreSnapshot(result.data, uploadBase);
       save();
       S.ui.uploads = S.ui.uploads.filter(item => item !== up);
@@ -1902,10 +1907,15 @@ export async function handleFiles(files, ctx) {
 A.chooseStoredFiles = el => {
   const input = document.getElementById(el.dataset.picker);
   if (input?.matches('input[type="file"][data-in="uploadFiles"]') && canEditProject(proj(input.dataset.project), D().me, S.ui.currentUser?.role)) {
+    const generation = getSessionGeneration();
     // The catalog may rerender while the OS picker is open. A detached input
     // no longer bubbles change to the delegated document listener.
     input.onchange = event => {
       event.stopPropagation();
+      if (generation !== getSessionGeneration()) {
+        input.value = '';
+        return;
+      }
       IN.uploadFiles(input);
     };
     input.click();
