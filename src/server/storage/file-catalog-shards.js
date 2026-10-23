@@ -11,14 +11,20 @@ const invalid = () => Object.assign(new Error('The stored file catalog is incomp
 export async function writeCatalogShards(data, previous, write) {
   if (!Array.isArray(data.files) || data.files.length > MAX_FILES) throw invalid();
   const groups = new Map();
+  const order = new Map();
   data.files.forEach((file, index) => {
+    if (typeof file.id !== 'string' || !file.id || order.has(file.id)) throw invalid();
+    order.set(file.id, index);
     const project = file.project || '';
     if (!groups.has(project)) groups.set(project, []);
-    groups.get(project).push([index, file]);
+    groups.get(project).push([file.id, file]);
   });
   const reusable = new Map((previous?.shards || []).map(part => [part.sha256, part]));
   const shards = [];
   for (const [project, rows] of groups) {
+    // Global ordering belongs to the root manifest, not immutable part content.
+    // Inserting a file must not rewrite every unrelated project's parts.
+    rows.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
     let batch = [];
     let bytes = 2;
     const flush = async () => {
@@ -34,7 +40,7 @@ export async function writeCatalogShards(data, previous, write) {
         sha256,
         bytes: Buffer.byteLength(text),
         count: batch.length,
-        keys: batch.map(([, file]) => [file.id, file.folderId || '', Math.max(0, Number(file.bytes) || 0), file.task || '']),
+        keys: batch.map(([, file]) => [file.id, file.folderId || '', Math.max(0, Number(file.bytes) || 0), file.task || '', order.get(file.id)]),
       });
       batch = [];
       bytes = 2;
@@ -51,13 +57,13 @@ export async function writeCatalogShards(data, previous, write) {
   const { files: _files, _fileCatalog: _catalog, ...core } = data;
   void _files;
   void _catalog;
-  return { ...core, _fileCatalog: { version: 2, total: data.files.length, shards } };
+  return { ...core, _fileCatalog: { version: 3, total: data.files.length, shards } };
 }
 
 export function validateCatalogManifest(manifest) {
   if (
     !manifest ||
-    ![1, 2].includes(manifest.version) ||
+    ![1, 2, 3].includes(manifest.version) ||
     !Number.isSafeInteger(manifest.total) ||
     manifest.total < 0 ||
     manifest.total > MAX_FILES ||
@@ -68,6 +74,7 @@ export function validateCatalogManifest(manifest) {
   let count = 0;
   const ids = new Set();
   const fileIds = new Set();
+  const positions = new Set();
   for (const part of manifest.shards) {
     if (
       !part ||
@@ -85,12 +92,12 @@ export function validateCatalogManifest(manifest) {
     )
       throw invalid();
     ids.add(part.id);
-    if (manifest.version === 2) {
+    if (manifest.version >= 2) {
       if (!Array.isArray(part.keys) || part.keys.length !== part.count) throw invalid();
       for (const key of part.keys) {
         if (
           !Array.isArray(key) ||
-          key.length !== 4 ||
+          key.length !== (manifest.version === 3 ? 5 : 4) ||
           typeof key[0] !== 'string' ||
           !key[0] ||
           fileIds.has(key[0]) ||
@@ -101,6 +108,10 @@ export function validateCatalogManifest(manifest) {
         )
           throw invalid();
         fileIds.add(key[0]);
+        if (manifest.version === 3) {
+          if (!Number.isSafeInteger(key[4]) || key[4] < 0 || key[4] >= manifest.total || positions.has(key[4])) throw invalid();
+          positions.add(key[4]);
+        }
       }
     }
     count += part.count;
@@ -130,7 +141,9 @@ export async function readCatalogShards(root, read, project) {
     if (!Array.isArray(batch) || batch.length !== part.count) throw invalid();
     for (const [ordinal, row] of batch.entries()) {
       if (!Array.isArray(row) || row.length !== 2) throw invalid();
-      const [index, file] = row;
+      const [identity, file] = row;
+      const key = part.keys?.[ordinal];
+      const index = manifest.version === 3 ? key[4] : identity;
       if (
         !Number.isSafeInteger(index) ||
         index < 0 ||
@@ -138,16 +151,16 @@ export async function readCatalogShards(root, read, project) {
         positions.has(index) ||
         !file ||
         typeof file.id !== 'string' ||
+        (manifest.version === 3 && identity !== file.id) ||
         ids.has(file.id) ||
         (file.project || '') !== part.project
       )
         throw invalid();
-      const key = part.keys?.[ordinal];
       if (key && (key[0] !== file.id || key[1] !== (file.folderId || '') || key[2] !== Math.max(0, Number(file.bytes) || 0) || key[3] !== (file.task || '')))
         throw invalid();
       positions.add(index);
       ids.add(file.id);
-      rows.push(row);
+      rows.push([index, file]);
     }
   }
   rows.sort((a, b) => a[0] - b[0]);
@@ -156,7 +169,7 @@ export async function readCatalogShards(root, read, project) {
 
 export function catalogCore(root) {
   const manifest = validateCatalogManifest(root._fileCatalog);
-  if (manifest.version !== 2 || Object.hasOwn(root, 'files')) throw invalid();
+  if (manifest.version < 2 || Object.hasOwn(root, 'files')) throw invalid();
   const { _fileCatalog: _manifest, ...core } = root;
   void _manifest;
   return {

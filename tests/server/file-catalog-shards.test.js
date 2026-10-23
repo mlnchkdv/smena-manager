@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { writeCatalogShards, readCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
 
 test('immutable project parts preserve ordering, checksums, scoped reads and unchanged identities', async () => {
@@ -82,6 +83,44 @@ test('missing, corrupt or mixed catalogs fail closed instead of becoming an empt
   );
   const legacy = { schemaVersion: 2, files: [{ id: 'old' }] };
   assert.equal(await materializeCatalog(legacy, () => assert.fail()), legacy);
+});
+
+test('global reorder and insertion reuse unrelated project parts without losing file order', async () => {
+  const parts = new Map();
+  const write = async text => {
+    const id = `p${parts.size}`;
+    parts.set(id, text);
+    return id;
+  };
+  const files = [
+    { id: 'a', project: 'a' },
+    { id: 'b', project: 'b' },
+    { id: 'a2', project: 'a' },
+  ];
+  const root = await writeCatalogShards({ files }, null, write);
+  const reordered = await writeCatalogShards({ files: [...files].reverse() }, root._fileCatalog, () => assert.fail('Order must only change the root'));
+  assert.deepEqual((await materializeCatalog(reordered, id => parts.get(id))).files, [...files].reverse());
+  const inserted = [{ id: 'c', project: 'c' }, ...files];
+  const latest = await writeCatalogShards({ files: inserted }, root._fileCatalog, write);
+  assert.equal(parts.size, 3);
+  for (const previous of root._fileCatalog.shards) assert.ok(latest._fileCatalog.shards.some(part => part.id === previous.id));
+  assert.deepEqual((await materializeCatalog(latest, id => parts.get(id))).files, inserted);
+  const broken = structuredClone(latest);
+  broken._fileCatalog.shards[1].keys[0][4] = broken._fileCatalog.shards[0].keys[0][4];
+  await assert.rejects(
+    materializeCatalog(broken, id => parts.get(id)),
+    { code: 'FILE_CATALOG_CORRUPT' },
+  );
+});
+
+test('legacy manifest versions remain readable with numeric positions inside parts', async () => {
+  const files = [{ id: 'old', project: 'p' }];
+  const text = JSON.stringify([[0, files[0]]]);
+  const part = { id: 'legacy', project: 'p', count: 1, bytes: Buffer.byteLength(text), sha256: createHash('sha256').update(text).digest('hex') };
+  for (const version of [1, 2]) {
+    const descriptor = version === 2 ? { ...part, keys: [['old', '', 0, '']] } : part;
+    assert.deepEqual(await materializeCatalog({ _fileCatalog: { version, total: 1, shards: [descriptor] } }, () => text), { files });
+  }
 });
 
 test('an interrupted or failed root publication cannot change the previous manifest or its parts', async () => {

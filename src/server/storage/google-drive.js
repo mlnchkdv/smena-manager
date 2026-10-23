@@ -244,14 +244,15 @@ export class GoogleDriveStorageProvider {
   async loadDatabaseCore() {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
-    const core = root._fileCatalog?.version === 2 ? catalogCore(root) : await materializeCatalog(root, id => this.readCatalogPart(id));
+    const core = [2, 3].includes(root._fileCatalog?.version) ? catalogCore(root) : await materializeCatalog(root, id => this.readCatalogPart(id));
     return rememberStorageVersion(core, storageVersion(root));
   }
 
   async loadDatabaseCatalog(select) {
     const root = await this.readDatabaseRoot();
     if (!root) return null;
-    if (root._fileCatalog?.version !== 2) return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
+    if (![2, 3].includes(root._fileCatalog?.version))
+      return rememberStorageVersion(await materializeCatalog(root, id => this.readCatalogPart(id)), storageVersion(root));
     const core = catalogCore(root);
     const files = await readCatalogShards(root, id => this.readCatalogPart(id), select(core));
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
