@@ -22,6 +22,8 @@ export function createFileExportService({ load, mutate, storage, now = Date.now 
         await mutate(
           current => {
             result = change(current);
+            if (Buffer.byteLength(JSON.stringify(current._fileExportJobs || [])) > 8 * 1024 * 1024)
+              throw fail('Export metadata capacity reached. Cancel or expire older jobs.', 413, 'EXPORT_QUOTA');
             return current;
           },
           data.revision,

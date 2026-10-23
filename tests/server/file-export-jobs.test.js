@@ -113,3 +113,31 @@ test('an unknown upload outcome reuses its persisted staging object; changed sou
   await assert.rejects(service.advance(user, job.id), /source file changed/);
   assert.notEqual(f.data()._fileExportJobs[0].phase, 'ready');
 });
+test('a 260 MiB virtual source advances through bounded checkpoints beyond the native stream limit', async () => {
+  const f = fixture(0),
+    size = 260 * 1024 * 1024,
+    metadata = new Map();
+  f.data().files[0].bytes = size;
+  let largestRead = 0,
+    reads = 0;
+  f.options.storage.getUploadMetadata = async name =>
+    name === 'source' ? { id: 'source', name, size, version: 'immutable-source' } : metadata.get(name) || null;
+  f.options.storage.openDownloadStream = async (name, _id, range) => {
+    assert.equal(name, 'source');
+    const length = range.end - range.start + 1;
+    largestRead = Math.max(largestRead, length);
+    reads++;
+    return { size, stream: Readable.from(Buffer.alloc(length)) };
+  };
+  f.options.storage.uploadFile = async (name, bytes) => {
+    metadata.set(name, { id: name, name, size: bytes.length });
+    return { fileId: name, filename: name, size: bytes.length };
+  };
+  const service = createFileExportService(f.options);
+  let job = await service.create(user, ['f']);
+  while (job.phase !== 'ready') job = await createFileExportService(f.options).advance(user, job.id);
+  assert.equal(job.done, size);
+  assert.equal(reads, 65);
+  assert.equal(largestRead, EXPORT_PART_BYTES);
+  assert.ok((await service.result(user, job.id)).layout.bytes > size);
+});
