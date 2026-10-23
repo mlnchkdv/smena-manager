@@ -6,6 +6,35 @@ import { GoogleDriveStorageProvider, assertMetadataBootstrapAllowed, uniqueDrive
 import { storageVersion } from '../../src/server/storage/version-token.js';
 import { rememberStorageVersion } from '../../src/server/storage/version-token.js';
 
+test('immutable catalog cache is byte-bounded, checksum-keyed and never caches corrupt downloads', async () => {
+  const provider = new GoogleDriveStorageProvider();
+  let reads = 0,
+    corrupt = false;
+  const text = 'x'.repeat(2 * 1024 * 1024);
+  const part = { bytes: Buffer.byteLength(text), sha256: createHash('sha256').update(text).digest('hex') };
+  provider.client = {
+    files: {
+      get: async () => {
+        reads++;
+        return { data: corrupt ? 'bad' : text };
+      },
+    },
+  };
+  await Promise.all([provider.readCatalogPart('same', part), provider.readCatalogPart('same', part)]);
+  assert.equal(provider.catalogPartBytes, part.bytes, 'Concurrent reads cannot double-charge an entry');
+  await provider.readCatalogPart('same', part);
+  assert.equal(reads, 2);
+  for (let i = 0; i < 5; i++) await provider.readCatalogPart(`part-${i}`, part);
+  assert.equal(provider.catalogParts.size, 4);
+  assert.equal(provider.catalogPartBytes, 8 * 1024 * 1024);
+  corrupt = true;
+  const different = { ...part, sha256: '0'.repeat(64) };
+  await provider.readCatalogPart('part-4', different);
+  await provider.readCatalogPart('part-4', different);
+  assert.equal(reads, 9, 'Changed digest and corrupt responses must not reuse cached bytes');
+  assert.equal(provider.catalogParts.has(`part-4:${different.sha256}`), false);
+});
+
 test('operator rollback materializes the latest edits, creates a backup and fences the layout-only write', async () => {
   const provider = new GoogleDriveStorageProvider();
   const latest = rememberStorageVersion({ schemaVersion: 3, revision: 19, files: [{ id: 'new-after-migration', project: 'p', name: 'Latest' }] }, '"latest"');
@@ -95,7 +124,7 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
   const index = await provider.loadDatabaseCatalogIndex(() => ({ projects: new Set(['p']) }));
   assert.deepEqual(index.files, [{ id: 'f', project: 'p', name: 'New' }]);
   assert.equal(index._catalogIndex.length, 2, 'Folder counts retain the compact manifest index');
-  assert.equal(reads.length, 2, 'Index projection must preserve project-scoped reads');
+  assert.deepEqual(reads, ['db'], 'A verified immutable part is reused, but the root/ACL scope must be refreshed');
   const published = structuredClone(root);
   failRoot = true;
   await assert.rejects(provider.saveDatabase({ ...data, revision: 3, files: [] }, { expectedEtag: '"old"' }), { statusCode: 412 });

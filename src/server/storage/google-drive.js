@@ -64,6 +64,8 @@ export class GoogleDriveStorageProvider {
   databaseFileId = process.env.GOOGLE_DRIVE_DATABASE_FILE_ID?.trim() || null;
   databaseEtag = null;
   catalogRoot = null;
+  catalogParts = new Map();
+  catalogPartBytes = 0;
   documentFileIds = {
     knowledge: process.env.GOOGLE_DRIVE_KNOWLEDGE_FILE_ID?.trim() || null,
     bookmarks: process.env.GOOGLE_DRIVE_BOOKMARKS_FILE_ID?.trim() || null,
@@ -231,8 +233,37 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(root, etag);
   }
 
-  async readCatalogPart(id) {
+  async readCatalogPart(id, descriptor) {
+    const key = descriptor && `${id}:${descriptor.sha256}`;
+    if (key && this.catalogParts.has(key)) {
+      const text = this.catalogParts.get(key);
+      this.catalogParts.delete(key);
+      this.catalogParts.set(key, text);
+      return text;
+    }
     const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    // Only immutable, checksum-verified bytes enter this bounded process cache.
+    // Each request still reads the current root and checks project ACLs first.
+    if (
+      key &&
+      typeof part.data === 'string' &&
+      Buffer.byteLength(part.data) === descriptor.bytes &&
+      createHash('sha256').update(part.data).digest('hex') === descriptor.sha256
+    ) {
+      if (this.catalogParts.has(key)) {
+        this.catalogPartBytes -= Buffer.byteLength(this.catalogParts.get(key));
+        this.catalogParts.delete(key);
+      }
+      while (this.catalogPartBytes + descriptor.bytes > 8 * 1024 * 1024 && this.catalogParts.size) {
+        const oldest = this.catalogParts.keys().next().value;
+        this.catalogPartBytes -= Buffer.byteLength(this.catalogParts.get(oldest));
+        this.catalogParts.delete(oldest);
+      }
+      if (descriptor.bytes <= 8 * 1024 * 1024) {
+        this.catalogParts.set(key, part.data);
+        this.catalogPartBytes += descriptor.bytes;
+      }
+    }
     return part.data;
   }
 
@@ -257,7 +288,7 @@ export class GoogleDriveStorageProvider {
       return rememberStorageVersion(projectFile ? { ...data, files: data.files.map(projectFile) } : data, storageVersion(root));
     }
     const core = catalogCore(root);
-    const files = await readCatalogShards(root, id => this.readCatalogPart(id), select(core), projectFile);
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), select(core), projectFile);
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
   }
 
