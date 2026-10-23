@@ -1,6 +1,55 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getCurrentUser, getSessionToken, setSessionToken, getAuthConfig, savePersonalSettings, putWorkspace, loadFileIdentities } from '../../src/core/api.js';
+import {
+  getCurrentUser,
+  getSessionToken,
+  setSessionToken,
+  getAuthConfig,
+  savePersonalSettings,
+  putWorkspace,
+  loadFileIdentities,
+  uploadWorkspaceFile,
+} from '../../src/core/api.js';
+
+test('multipart uploads resolve only the uploaded identity instead of hydrating the whole catalog', async () => {
+  const originalFetch = globalThis.fetch,
+    originalXHR = globalThis.XMLHttpRequest;
+  const uploaded = { id: 'new-file', project: 'p', name: 'Тест.txt' };
+  globalThis.XMLHttpRequest = class {
+    upload = {};
+    headers = new Map();
+    open(method, url) {
+      assert.equal(method, 'POST');
+      assert.equal(url, '/api/files/upload');
+    }
+    setRequestHeader(key, value) {
+      this.headers.set(key, value);
+    }
+    send() {
+      assert.equal(this.headers.get('X-Smena-File-Catalog'), 'demand');
+      this.status = 200;
+      this.response = { file: uploaded, data: { revision: 10 }, fileCatalog: { mode: 'demand', total: 10000 } };
+      void this.onload();
+    }
+  };
+  let requests = 0;
+  globalThis.fetch = async (path, options) => {
+    requests++;
+    assert.equal(path, '/api/files/catalog/resolve');
+    assert.deepEqual(JSON.parse(options.body).ids, [uploaded.id]);
+    return new Response(JSON.stringify({ revision: 10, files: [uploaded], nextOffset: null }));
+  };
+  try {
+    setSessionToken('upload-owner');
+    const result = await uploadWorkspaceFile(new File(['text'], 'Тест.txt'), { revision: 9, project: 'p' });
+    assert.deepEqual(result.data.files, [uploaded]);
+    assert.equal(requests, 1);
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+    globalThis.XMLHttpRequest = originalXHR;
+  }
+});
 
 test('lazy catalog imports cannot send an old workspace through a new account', async () => {
   const originalFetch = globalThis.fetch;

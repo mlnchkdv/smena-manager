@@ -112,7 +112,6 @@ async function request(path, options = {}, authenticated = false) {
   if (catalogHydration && body.fileCatalog) {
     const { requestFileIdentities } = await import('./file-catalog-transport.js');
     assertSessionGeneration(generation);
-    if (body.file?.id) requestFileIdentities([body.file.id], generation);
     if (typeof location !== 'undefined') {
       const target = parseAppLocation(location.pathname);
       if (target.kind === 'file' && target.key) requestFileIdentities([target.key], generation);
@@ -193,7 +192,9 @@ export async function getWorkspace() {
 }
 
 async function readCatalogSnapshot(result, generation = sessionGeneration) {
-  const { hydrateFileCatalog } = await import('./file-catalog-transport.js');
+  const { hydrateFileCatalog, requestFileIdentities } = await import('./file-catalog-transport.js');
+  assertSessionGeneration(generation);
+  if (result?.file?.id) requestFileIdentities([result.file.id], generation);
   for (let attempt = 0; attempt < 3; attempt += 1) {
     if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
     try {
@@ -365,7 +366,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     if (metadata.task) form.append('task', metadata.task);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
-    xhr.setRequestHeader('X-Smena-File-Catalog', 'pages');
+    xhr.setRequestHeader('X-Smena-File-Catalog', 'demand');
     xhr.withCredentials = true;
     if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     if (sessionAccount) xhr.setRequestHeader('X-Smena-Account', encodeURIComponent(sessionAccount));
@@ -387,7 +388,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           if (body.fileCatalog) {
-            body.data = await readCatalogSnapshot(body);
+            body.data = await readCatalogSnapshot(body, generation);
             delete body.fileCatalog;
           }
           if (generation !== sessionGeneration)
