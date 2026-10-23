@@ -497,7 +497,7 @@
     min-width: 0;
   }
 }
-@container workspace-files (min-width: 641px) and (max-width: 900px) {
+@container workspace-files (max-width: 900px) {
   .workspace-files-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -506,6 +506,11 @@
   }
   .files-view-switch {
     justify-self: end;
+  }
+}
+@container workspace-files (max-width: 640px) {
+  .files-view-switch {
+    justify-self: stretch;
   }
 }
 .file-preview-content {

@@ -1015,7 +1015,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('#workspace-file-q')).toBeFocused();
     await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
     await page.locator('.files-view-switch [data-v="list"]').click();
-    for (const width of [320, 768, 1024, 1366]) {
+    for (const width of [320, 768, 941, 1024, 1366]) {
       await page.setViewportSize({ width, height: 844 });
       const geometry = await page.locator('.files-page').evaluate(el => ({
         page: el.scrollWidth - el.clientWidth,
