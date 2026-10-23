@@ -75,6 +75,10 @@ test('Russian workspace remains usable and responsive across breakpoints', async
   // Keep individual assertions bounded, but allow the complete sweep to finish on slower hosts.
   test.setTimeout(360_000);
   await signIn(page);
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский');
+  await waitForSaved(page);
+  await page.goto('/e2e-team');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   const untranslatedByRoute = [];
 
@@ -983,7 +987,9 @@ test('PDF previews render pages locally without document scripts in Russian and 
   expect(thumbnailUpload.status()).toBe(201);
   const thumbnail = (await thumbnailUpload.json()).file;
   await page.goto('/e2e-team/files');
-  const originalPickerInput = await page.locator('input[type="file"][data-in="uploadFiles"]').elementHandle();
+  await page.locator('.files-view-switch [data-v="grid"]').click();
+  await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount - 1);
+  const originalPickerInput = await page.locator('#workspace-files-upload').elementHandle();
   const chooser = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"]').press('Enter');
   const picker = await chooser;
