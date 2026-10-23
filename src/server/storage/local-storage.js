@@ -193,10 +193,10 @@ export class LocalStorageProvider {
     return path.join(this.uploadsPath, safeName);
   }
 
-  async uploadFile(filename, source, mimeType = 'application/octet-stream') {
+  async uploadFile(filename, source, mimeType = 'application/octet-stream', options = {}) {
     await this.init();
     const targetPath = this.filePath(filename);
-    if (Buffer.isBuffer(source)) await fs.promises.writeFile(targetPath, source);
+    if (Buffer.isBuffer(source)) await fs.promises.writeFile(targetPath, source, { signal: options.signal });
     else if (source?.path) await fs.promises.copyFile(source.path, targetPath);
     else throw new TypeError('Upload source must be a Buffer or a file path.');
     const stat = await fs.promises.stat(targetPath);
@@ -232,6 +232,16 @@ export class LocalStorageProvider {
       start,
       end,
     };
+  }
+
+  async getUploadMetadata(filename) {
+    try {
+      const stat = await fs.promises.stat(this.filePath(filename));
+      return { id: filename, name: filename, size: stat.size, version: `${stat.mtimeMs}:${stat.ctimeMs}` };
+    } catch (error) {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    }
   }
 
   async downloadFile(filename, fileId) {

@@ -116,6 +116,10 @@ async function request(path, options = {}, authenticated = false) {
 
 export const getAuthConfig = () => request('/api/auth/config');
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
+export const listFileExports = () => request('/api/files/exports', {}, true);
+export const createFileExport = ids => request('/api/files/exports', { method: 'POST', body: JSON.stringify({ ids }) }, true);
+export const advanceFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}/advance`, { method: 'POST' }, true);
+export const cancelFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}`, { method: 'DELETE' }, true);
 export const prepareFileArchive = (ids, revision, signal) =>
   request('/api/files/archive/preflight', { method: 'POST', body: JSON.stringify({ ids, revision }), signal }, true);
 export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);

@@ -142,6 +142,23 @@ test('authenticated editors can upload and range-download a workspace file', asy
     409,
   );
 
+  const jobResponse = await fetch(`${origin}/api/files/exports`, { method: 'POST', headers, body: JSON.stringify({ ids: [uploaded.file.id] }) });
+  assert.equal(jobResponse.status, 201);
+  const job = (await jobResponse.json()).job;
+  const advanced = await fetch(`${origin}/api/files/exports/${job.id}/advance`, { method: 'POST', headers });
+  assert.equal(advanced.status, 200);
+  assert.equal((await advanced.json()).job.phase, 'ready');
+  const resultUrl = `${origin}/api/files/exports/${job.id}/download?account=m1`;
+  const result = await fetch(resultUrl, { headers });
+  assert.equal(result.status, 200);
+  const resultBytes = new Uint8Array(await result.arrayBuffer());
+  assert.equal(strFromU8(unzipSync(resultBytes)['Проект/A/renamed.txt']), '0123456789');
+  const range = await fetch(resultUrl, { headers: { ...headers, Range: 'bytes=12-35', 'If-Range': result.headers.get('etag') } });
+  assert.equal(range.status, 206);
+  assert.deepEqual(new Uint8Array(await range.arrayBuffer()), resultBytes.slice(12, 36));
+  assert.equal((await fetch(`${origin}/api/files/exports/${job.id}`, { method: 'DELETE', headers })).status, 200);
+  assert.equal((await fetch(resultUrl, { headers })).status, 410);
+  uploaded.data.revision = (await getWorkspaceDatabase()).revision;
   const deletedResponse = await fetch(`${origin}/api/files/${uploaded.file.id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -149,7 +166,7 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
   assert.equal(deletedResponse.status, 200);
   const deleted = await deletedResponse.json();
-  assert.equal(deleted.data.revision, prepared.revision + 3);
+  assert.equal(deleted.data.revision, uploaded.data.revision + 1);
   assert.equal(deleted.data.files.length, 0);
 
   const missingResponse = await fetch(`${origin}/api/files/${uploaded.file.id}/content`, {

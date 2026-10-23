@@ -585,18 +585,21 @@ export class GoogleDriveStorageProvider {
     await this.client.files.delete({ fileId: id, supportsAllDrives: true });
   }
 
-  async uploadFile(filename, source, mimeType = 'application/octet-stream') {
+  async uploadFile(filename, source, mimeType = 'application/octet-stream', options = {}) {
     await this.init();
     const folderId = await this.ensureUploadsFolder();
     const isBuffer = Buffer.isBuffer(source);
     const body = isBuffer ? Readable.from(source) : source?.path ? fs.createReadStream(source.path) : null;
     if (!body) throw new TypeError('Upload source must be a Buffer or a file path.');
-    const uploaded = await this.client.files.create({
-      requestBody: { name: filename, parents: [folderId] },
-      media: { mimeType, body },
-      fields: 'id,name,size,mimeType,webViewLink',
-      supportsAllDrives: true,
-    });
+    const uploaded = await this.client.files.create(
+      {
+        requestBody: { name: filename, parents: [folderId] },
+        media: { mimeType, body },
+        fields: 'id,name,size,mimeType,webViewLink',
+        supportsAllDrives: true,
+      },
+      options.signal ? { signal: options.signal } : undefined,
+    );
     return {
       fileId: uploaded.data.id,
       filename: uploaded.data.name || filename,
@@ -694,12 +697,15 @@ export class GoogleDriveStorageProvider {
     return result.data.files?.[0] || null;
   }
 
-  async getUploadMetadata(filename, fileId) {
+  async getUploadMetadata(filename, fileId, options = {}) {
     await this.init();
     if (!fileId) return this.findUpload(filename);
     try {
       const folderId = await this.ensureUploadsFolder();
-      const result = await this.client.files.get({ fileId, fields: 'id,name,size,mimeType,trashed,parents', supportsAllDrives: true });
+      const result = await this.client.files.get(
+        { fileId, fields: 'id,name,size,mimeType,trashed,parents,md5Checksum,version', supportsAllDrives: true },
+        options.signal ? { signal: options.signal } : undefined,
+      );
       return result.data.trashed || result.data.name !== filename || !result.data.parents?.includes(folderId) ? null : result.data;
     } catch (error) {
       if (error?.code === 404 || error?.response?.status === 404) return null;

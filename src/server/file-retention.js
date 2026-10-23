@@ -80,6 +80,11 @@ export async function collectRetainedFiles(options) {
   const now = options.now || Date.now();
   if (!pending.some(item => item.notBefore <= now)) return { candidates: 0, removed: 0, failed: 0 };
   const references = referencedStorageFiles(current);
+  // Ready/pending export parts are hidden implementation records, but are live
+  // references until cancellation/expiry. Never sweep an in-progress result.
+  for (const job of current._fileExportJobs || [])
+    if (job.phase !== 'cancelled' && job.expiresAt > now)
+      for (const entry of job.entries || []) for (const part of entry.parts || []) if (key(part)) references.add(key(part));
   // Fail closed: if any backup cannot be inspected, no physical file is deleted.
   for (const backup of await options.storage.listDatabaseBackups()) {
     referencedStorageFiles(await options.storage.loadDatabaseBackup(backup.id), references);

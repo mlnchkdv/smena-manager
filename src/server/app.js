@@ -43,6 +43,7 @@ import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { permissionError, projectWorkspace } from './workspace-policy.js';
 import { applyFileCatalogChanges } from '../shared/file-catalog.js';
 import { fileCatalogVersion } from './file-catalog-version.js';
+import { fileExportRouter } from './file-export-routes.js';
 import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
@@ -136,6 +137,7 @@ app.use('/api', (request, response, next) => {
   };
   next();
 });
+app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
 
 app.get('/api/auth/me', (request, response) => {

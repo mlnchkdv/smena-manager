@@ -14,6 +14,7 @@ import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProg
 import { filePreferences } from '../core/file-preferences.js';
 import { filePresetsHtml } from '../ui/file-presets.js';
 import { fileTransferPanel } from '../ui/file-transfer.js';
+import { fileExportsPanel } from '../ui/file-exports.js';
 import '../features/files.js';
 import '../features/file-selection.js';
 
@@ -185,6 +186,7 @@ export function pageFiles(projectId = null) {
     ${uploadsHtml()}
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
+    ${fileExportsPanel()}
     ${fileSelectionBar(window.items, files)}
     ${
       files.length
