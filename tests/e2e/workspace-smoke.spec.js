@@ -940,6 +940,8 @@ test('PDF previews render pages locally without document scripts in Russian and 
   const current = (await (await page.request.get('/api/workspace')).json()).data;
   const expectedFileCount = current.files.length + 3;
   const keyboardName = `e2e-${browserName}-keyboard-upload.txt`;
+  const previousImages = current.files.filter(file => file.type === 'img').map(file => file.id);
+  const previousPdfs = current.files.filter(file => file.type === 'pdf').map(file => file.id);
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R /OpenAction << /S /JavaScript /JS (globalThis.__pdfPreviewExecuted=true;) >> >>',
     '<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>',
@@ -1016,13 +1018,19 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.locator(`[data-file-thumb="${thumbnail.id}"]`).scrollIntoViewIfNeeded();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
     await page.locator('#workspace-file-q').fill(language === 'Русский' ? 'изображение' : 'image');
-    await expect(page.locator('.workspace-file-card')).toHaveCount(1);
-    await expect(page.locator('.files-filter-summary b')).toHaveText('1');
+    await expect(page.locator('.workspace-file-card')).toHaveCount(previousImages.length + 1);
+    expect(await page.locator('.workspace-file-card').evaluateAll(cards => cards.map(card => card.dataset.id).sort())).toEqual(
+      [...previousImages, thumbnail.id].sort(),
+    );
+    await expect(page.locator('.files-filter-summary b')).toHaveText(String(previousImages.length + 1));
     await page.locator('[data-a="clearFileQuery"]').click();
     await expect(page.locator('#workspace-file-q')).toBeFocused();
     await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
     await page.locator('#workspace-file-type').selectOption('pdf');
-    await expect(page.locator('.workspace-file-card')).toHaveCount(1);
+    await expect(page.locator('.workspace-file-card')).toHaveCount(previousPdfs.length + 1);
+    expect(await page.locator('.workspace-file-card').evaluateAll(cards => cards.map(card => card.dataset.id).sort())).toEqual(
+      [...previousPdfs, file.id].sort(),
+    );
     await page.locator('[data-a="clearFileFilters"]').click();
     await expect(page.locator('#workspace-file-type')).toHaveValue('all');
     await expect(page.locator('#workspace-file-q')).toBeFocused();
