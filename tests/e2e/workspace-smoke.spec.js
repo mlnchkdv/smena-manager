@@ -70,125 +70,136 @@ async function expectRussianUi(page, context) {
   expect(await visibleUntranslatedUi(page), `${context} contains untranslated English UI text`).toEqual([]);
 }
 
-test('Russian workspace remains usable and responsive across breakpoints', async ({ page }) => {
-  // This sweep navigates every workspace section at four viewport sizes.
-  // Keep individual assertions bounded, but allow the complete sweep to finish on slower hosts.
-  test.setTimeout(360_000);
-  await signIn(page);
-  await page.goto('/e2e-team/settings/language');
-  await page.locator('select[data-k="lang"]').selectOption('Русский');
-  await waitForSaved(page);
-  await page.goto('/e2e-team');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
-  const untranslatedByRoute = [];
-
-  await page.locator('button[data-a="newTask"]:visible').first().click();
-  await page.locator('#f-title').fill('Сквозная проверка сохранения');
-  await page.locator('#f-submit').click();
-  await expect(page.getByText('Сквозная проверка сохранения', { exact: true }).first()).toBeVisible();
-  await expect(page.locator('#sync-indicator')).toContainText('Сохранено');
-
-  await page.reload();
-  await expect(page.locator('.shell')).toBeVisible();
-  await expect(page.getByText('Сквозная проверка сохранения', { exact: true }).first()).toBeVisible();
-  await page.getByText('Сквозная проверка сохранения', { exact: true }).first().click();
-  const taskKey = (await page.locator('.drawer .mono').first().textContent()).trim();
-  await page.goto(`/e2e-team/task/${encodeURIComponent(taskKey)}`);
-  await expect(page.locator('.drawer')).toContainText('Сквозная проверка сохранения');
-
-  const routes = [
-    ['', 'Главная'],
-    ['inbox', 'Входящие'],
-    ['mytasks', 'Мои задачи'],
-    ['favorites', 'Избранное'],
-    ['notifications', 'Уведомления'],
-    ['search', 'Поиск'],
-    ['overview', 'Обзор'],
-    ['projects', 'Проекты'],
-    ['files', 'Файлы'],
-    ['tasks', 'Задачи'],
-    ['calendar', 'Календарь'],
-    ['timeline', 'Хронология'],
-    ['members', 'Участники'],
-    ['teams', 'Команды'],
-    ['activity', 'Активность'],
-    ['knowledge', 'База знаний'],
-    ['bookmarks', 'Закладки'],
-    ['settings', 'Настройки'],
-    ['settings/workspace', 'Настройки'],
-    ['settings/appearance', 'Настройки'],
-    ['settings/language', 'Настройки'],
-    ['settings/datetime', 'Настройки'],
-    ['settings/data-transfer', 'Настройки'],
-    ['settings/members', 'Настройки'],
-    ['settings/teams', 'Настройки'],
-    ['settings/projects', 'Настройки'],
-    ['settings/permissions', 'Настройки'],
-    ['settings/notif-mentions', 'Настройки'],
-    ['settings/notif-assign', 'Настройки'],
-    ['settings/notif-push', 'Настройки'],
-    ['settings/profile', 'Настройки'],
-    ['settings/security', 'Настройки'],
-    ['settings/preferences', 'Настройки'],
-    ['settings/shortcuts', 'Настройки'],
-    ['archive', 'Архив'],
-  ];
-  const viewports = [
+test.describe('Russian workspace responsive sweep', () => {
+  // Recording every screenshot/DOM snapshot across 140 reloads can exhaust a
+  // small desktop host. Keep failure screenshots, and collect video + traces
+  // on retries; --trace retain-on-failure opts into a full diagnostic run.
+  test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
+  for (const viewport of [
     { name: 'desktop', width: 1440, height: 900 },
     { name: 'tablet-wide', width: 1024, height: 900 },
     { name: 'tablet', width: 768, height: 1024 },
     { name: 'mobile', width: 390, height: 844 },
-  ];
-  for (const viewport of viewports) {
-    await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    for (const [route, heading] of routes) {
-      await page.goto(`/e2e-team${route ? `/${route}` : ''}`);
-      await expect(page.locator('#main-content')).toBeVisible();
-      await expect(page.locator('.crumbs .cur')).toHaveText(heading);
-      await expect(page.locator('#main-content [aria-busy="true"]')).toHaveCount(0);
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow, `${viewport.name}/${route || 'home'} has horizontal page overflow`).toBeLessThanOrEqual(2);
-      await expect(page.locator('body')).not.toContainText('Something went wrong');
-      const accessibilityIssues = await page.evaluate(() => {
-        const visible = element => Boolean(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
-        const accessibleName = element => {
-          const labelledBy = element.getAttribute('aria-labelledby');
-          const labelledText = labelledBy
-            ? labelledBy
-                .split(/\s+/)
-                .map(id => document.getElementById(id)?.textContent || '')
-                .join(' ')
-            : '';
-          const label = element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`)?.textContent : '';
-          return [
-            element.getAttribute('aria-label'),
-            labelledText,
-            label,
-            element.closest('label')?.textContent,
-            element.title,
-            element.placeholder,
-            element.textContent,
-          ]
-            .join(' ')
-            .trim();
-        };
-        const duplicates = [...document.querySelectorAll('[id]')].map(element => element.id).filter((id, index, ids) => id && ids.indexOf(id) !== index);
-        const unnamed = [...document.querySelectorAll('button, [role="button"], input:not([type="hidden"]), select, textarea')]
-          .filter(element => visible(element) && !accessibleName(element))
-          .map(
-            element =>
-              `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${element.className ? `.${String(element.className).trim().replace(/\s+/g, '.')}` : ''}`,
-          );
-        return [...new Set([...duplicates.map(id => `duplicate-id:${id}`), ...unnamed.map(value => `unnamed:${value}`)])];
-      });
-      expect(accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
-      if (viewport.name === 'desktop') {
-        const untranslated = await visibleUntranslatedUi(page);
-        if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
+  ]) {
+    test(`Russian workspace remains usable and responsive across breakpoints: ${viewport.name}`, async ({ page }) => {
+      // Each viewport gets an independent context and failure artifact. The same
+      // 140 route/viewport checks no longer share a single six-minute deadline.
+      test.setTimeout(360_000);
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await signIn(page);
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption('Русский');
+      await waitForSaved(page);
+      await page.goto('/e2e-team');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+      const untranslatedByRoute = [];
+
+      await page.locator('button[data-a="newTask"]:visible').first().click();
+      const taskTitle = `Сквозная проверка сохранения ${viewport.width}`;
+      await page.locator('#f-title').fill(taskTitle);
+      await page.locator('#f-submit').click();
+      await expect(page.getByText(taskTitle, { exact: true }).first()).toBeVisible();
+      await expect(page.locator('#sync-indicator')).toContainText('Сохранено');
+
+      await page.reload();
+      await expect(page.locator('.shell')).toBeVisible();
+      await expect(page.getByText(taskTitle, { exact: true }).first()).toBeVisible();
+      await page.getByText(taskTitle, { exact: true }).first().click();
+      const taskKey = (await page.locator('.drawer .mono').first().textContent()).trim();
+      await page.goto(`/e2e-team/task/${encodeURIComponent(taskKey)}`);
+      await expect(page.locator('.drawer')).toContainText(taskTitle);
+
+      const routes = [
+        ['', 'Главная'],
+        ['inbox', 'Входящие'],
+        ['mytasks', 'Мои задачи'],
+        ['favorites', 'Избранное'],
+        ['notifications', 'Уведомления'],
+        ['search', 'Поиск'],
+        ['overview', 'Обзор'],
+        ['projects', 'Проекты'],
+        ['files', 'Файлы'],
+        ['tasks', 'Задачи'],
+        ['calendar', 'Календарь'],
+        ['timeline', 'Хронология'],
+        ['members', 'Участники'],
+        ['teams', 'Команды'],
+        ['activity', 'Активность'],
+        ['knowledge', 'База знаний'],
+        ['bookmarks', 'Закладки'],
+        ['settings', 'Настройки'],
+        ['settings/workspace', 'Настройки'],
+        ['settings/appearance', 'Настройки'],
+        ['settings/language', 'Настройки'],
+        ['settings/datetime', 'Настройки'],
+        ['settings/data-transfer', 'Настройки'],
+        ['settings/members', 'Настройки'],
+        ['settings/teams', 'Настройки'],
+        ['settings/projects', 'Настройки'],
+        ['settings/permissions', 'Настройки'],
+        ['settings/notif-mentions', 'Настройки'],
+        ['settings/notif-assign', 'Настройки'],
+        ['settings/notif-push', 'Настройки'],
+        ['settings/profile', 'Настройки'],
+        ['settings/security', 'Настройки'],
+        ['settings/preferences', 'Настройки'],
+        ['settings/shortcuts', 'Настройки'],
+        ['archive', 'Архив'],
+      ];
+      for (const [route, heading] of routes) {
+        await page.goto(`/e2e-team${route ? `/${route}` : ''}`);
+        await expect(page.locator('#main-content')).toBeVisible();
+        await expect(page.locator('.crumbs .cur')).toHaveText(heading);
+        await expect(page.locator('#main-content [aria-busy="true"]')).toHaveCount(0);
+        // Collect DOM-only audits in one round trip. Repeated full-body locator
+        // snapshots are particularly costly in WebKit's Windows tracing backend.
+        const audit = await page.evaluate(() => {
+          const visible = element => Boolean(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+          const accessibleName = element => {
+            const labelledBy = element.getAttribute('aria-labelledby');
+            const labelledText = labelledBy
+              ? labelledBy
+                  .split(/\s+/)
+                  .map(id => document.getElementById(id)?.textContent || '')
+                  .join(' ')
+              : '';
+            const label = element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`)?.textContent : '';
+            return [
+              element.getAttribute('aria-label'),
+              labelledText,
+              label,
+              element.closest('label')?.textContent,
+              element.title,
+              element.placeholder,
+              element.textContent,
+            ]
+              .join(' ')
+              .trim();
+          };
+          const duplicates = [...document.querySelectorAll('[id]')].map(element => element.id).filter((id, index, ids) => id && ids.indexOf(id) !== index);
+          const unnamed = [...document.querySelectorAll('button, [role="button"], input:not([type="hidden"]), select, textarea')]
+            .filter(element => visible(element) && !accessibleName(element))
+            .map(
+              element =>
+                `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${element.className ? `.${String(element.className).trim().replace(/\s+/g, '.')}` : ''}`,
+            );
+          return {
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+            applicationError: document.body.textContent.includes('Something went wrong'),
+            accessibilityIssues: [...new Set([...duplicates.map(id => `duplicate-id:${id}`), ...unnamed.map(value => `unnamed:${value}`)])],
+          };
+        });
+        expect(audit.overflow, `${viewport.name}/${route || 'home'} has horizontal page overflow`).toBeLessThanOrEqual(2);
+        expect(audit.applicationError, `${viewport.name}/${route || 'home'} has an application error`).toBe(false);
+        expect(audit.accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
+        if (viewport.name === 'desktop') {
+          const untranslated = await visibleUntranslatedUi(page);
+          if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
+        }
       }
-    }
+      expect(untranslatedByRoute, 'visible Russian routes contain untranslated English UI text').toEqual([]);
+    });
   }
-  expect(untranslatedByRoute, 'visible Russian routes contain untranslated English UI text').toEqual([]);
 });
 
 test('shared content, files, settings, and backups persist through core workflows', async ({ page }) => {
