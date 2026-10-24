@@ -8,6 +8,7 @@ import { configureProviderTimeout, recordProviderFailure } from '../provider-saf
 import { writeCatalogShards, materializeCatalog, catalogCore, readCatalogShards } from './file-catalog-shards.js';
 import { fileCatalogIndex } from '../file-catalog-index.js';
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
+import { metadataWriteBase, patchCatalogMetadata } from './catalog-metadata-write.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -66,6 +67,7 @@ export class GoogleDriveStorageProvider {
   databaseEtag = null;
   catalogRoot = null;
   catalogParts = new Map();
+  metadataRoots = new WeakMap();
   catalogPartBytes = 0;
   documentFileIds = {
     knowledge: process.env.GOOGLE_DRIVE_KNOWLEDGE_FILE_ID?.trim() || null,
@@ -281,6 +283,39 @@ export class GoogleDriveStorageProvider {
       ? catalogCore(root, { identities })
       : await materializeCatalog(root, id => this.readCatalogPart(id));
     return rememberStorageVersion(core, storageVersion(root));
+  }
+
+  async loadDatabaseMetadata() {
+    const root = await this.readDatabaseRoot();
+    const core = metadataWriteBase(root);
+    if (!core) return null; // Legacy storage must take the canonical write path.
+    const data = rememberStorageVersion(structuredClone(core), storageVersion(root));
+    this.metadataRoots.set(data, { root, fileId: this.databaseFileId, version: storageVersion(root) });
+    return data;
+  }
+
+  async saveDatabaseMetadata(next, baseline, { scope, memberId } = {}) {
+    // A projection, mutable provider cursor or client-supplied root cannot be
+    // substituted for the exact snapshot issued by loadDatabaseMetadata.
+    const snapshot = this.metadataRoots.get(baseline);
+    if (!snapshot || !snapshot.fileId || snapshot.version !== storageVersion(baseline))
+      throw Object.assign(new Error('Reload the metadata snapshot before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
+    const options = conditionalWriteOptions({ expectedEtag: snapshot.version });
+    const stored = patchCatalogMetadata(snapshot.root, baseline, next, scope, memberId);
+    const updated = await this.updateVersionedJson(
+      {
+        fileId: snapshot.fileId,
+        requestBody: { appProperties: { smenaRevision: String(next.revision) } },
+        media: { mimeType: 'application/json', body: Readable.from([JSON.stringify(stored, null, 2)]) },
+        supportsAllDrives: true,
+      },
+      options,
+    );
+    this.databaseEtag = responseHeader(updated, 'etag');
+    this.catalogRoot = stored;
+    this.lastSyncAt = new Date().toISOString();
+    rememberStorageVersion(next, this.databaseEtag);
+    this.metadataRoots.delete(baseline);
   }
 
   async loadDatabaseStatus() {

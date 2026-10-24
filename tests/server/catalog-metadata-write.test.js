@@ -5,6 +5,8 @@ import { metadataWriteBase, patchCatalogMetadata } from '../../src/server/storag
 import { createEmptyDatabase } from '../../src/server/workspace-store.js';
 import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
 import { createCatalogAccounting } from '../../src/server/file-catalog-accounting.js';
+import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
+import { rememberStorageVersion, storageVersion } from '../../src/server/storage/version-token.js';
 
 async function fixture(revision = 9) {
   const data = {
@@ -84,4 +86,56 @@ test('legacy roots opt out, while corrupt manifests/accounting fail closed', asy
     change(bad);
     assert.throws(() => metadataWriteBase(bad), { code: 'FILE_CATALOG_CORRUPT' });
   }
+});
+
+test('Drive metadata publication reads only the root, uses its bound ETag and cannot publish a forged snapshot', async () => {
+  const f = await fixture();
+  const provider = new GoogleDriveStorageProvider();
+  provider.databaseFileId = 'db';
+  let reads = 0,
+    writes = 0,
+    published;
+  provider.readDatabaseRoot = async () => {
+    reads++;
+    return rememberStorageVersion(structuredClone(f.root), '"root-9"');
+  };
+  provider.readCatalogPart = () => assert.fail('Metadata-only writes must not download file parts');
+  provider.updateVersionedJson = async (request, options) => {
+    assert.equal(options.headers['If-Match'], '"root-9"');
+    assert.equal(request.fileId, 'db');
+    let body = '';
+    for await (const chunk of request.media.body) body += chunk;
+    published = JSON.parse(body);
+    writes++;
+    return { headers: { etag: '"root-10"' } };
+  };
+  const baseline = await provider.loadDatabaseMetadata();
+  provider.databaseEtag = '"unrelated-cursor"';
+  provider.catalogRoot = { revision: 123 };
+  const next = applyPersonalSettings(nextRevision(baseline), 'me', { preferences: { lang: 'Русский' } });
+  await assert.rejects(provider.saveDatabaseMetadata(next, structuredClone(baseline), { scope: 'preferences', memberId: 'me' }), {
+    code: 'STORAGE_VERSION_MISSING',
+  });
+  await provider.saveDatabaseMetadata(next, baseline, { scope: 'preferences', memberId: 'me' });
+  assert.deepEqual({ reads, writes }, { reads: 1, writes: 1 });
+  assert.deepEqual(published._fileCatalog.shards, f.root._fileCatalog.shards);
+  assert.equal(Object.hasOwn(published, 'files'), false);
+  assert.equal(storageVersion(next), '"root-10"');
+  await assert.rejects(provider.saveDatabaseMetadata(next, baseline, { scope: 'preferences', memberId: 'me' }), { code: 'STORAGE_VERSION_MISSING' });
+});
+
+test('Drive propagates CAS failures without replacing the current root or exposing partial data', async () => {
+  const f = await fixture();
+  const provider = new GoogleDriveStorageProvider();
+  provider.databaseFileId = 'db';
+  provider.readDatabaseRoot = async () => rememberStorageVersion(structuredClone(f.root), '"old"');
+  const baseline = await provider.loadDatabaseMetadata();
+  const newer = { revision: 11 };
+  provider.catalogRoot = newer;
+  provider.updateVersionedJson = async () => {
+    throw Object.assign(new Error('Precondition failed'), { code: 412 });
+  };
+  await assert.rejects(provider.saveDatabaseMetadata(nextRevision(baseline), baseline, { scope: 'preferences', memberId: 'me' }), { code: 412 });
+  assert.equal(provider.catalogRoot, newer);
+  assert.equal(storageVersion(baseline), '"old"');
 });
