@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { writeCatalogShards, readCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
-import { writeFileMetadataParts, filePatchTasks } from '../../src/server/storage/catalog-file-write.js';
+import { writeFileMetadataParts, filePatchTasks, filePatchIds } from '../../src/server/storage/catalog-file-write.js';
 import { createCatalogAccounting } from '../../src/server/file-catalog-accounting.js';
 
 async function fixture() {
@@ -76,4 +76,27 @@ test('file metadata writer rejects forged identities, physical/ACL changes, miss
   await assert.rejects(writeFileMetadataParts(f.root, f.before, f.before, [{ ...f.root.tasks[0], title: 'Injected' }], 10, new Date().toISOString(), f.write), {
     code: 'FILE_PATCH_FORBIDDEN',
   });
+});
+
+test('500 Unicode metadata edits split a growing part without losing order or unchanged project pointers', async () => {
+  const f = await fixture();
+  assert.ok(f.before.length > 500);
+  const after = f.before.map((file, index) => (index < 500 ? { ...file, name: `${'Ж'.repeat(120)}-${index}.md` } : file));
+  const updates = after.slice(0, 500);
+  assert.equal(filePatchIds({ upsert: updates, remove: [] }).size, 500);
+  assert.equal(filePatchIds({ upsert: after.slice(0, 501), remove: [] }), null);
+  const root = await writeFileMetadataParts(f.root, f.before, after, filePatchTasks(catalogCore(f.root), after), 10, new Date().toISOString(), f.write);
+  assert.ok(root._fileCatalog.shards.length > f.root._fileCatalog.shards.length, 'Growing bytes split through the bounded canonical writer');
+  const full = await materializeCatalog(root, async id => f.parts.get(id));
+  const changed = new Map(updates.map(file => [file.id, file]));
+  assert.deepEqual(
+    full.files,
+    f.data.files.map(file => changed.get(file.id) || file),
+  );
+  assert.deepEqual(root._fileCatalog.accounting, createCatalogAccounting(full));
+  for (const old of f.root._fileCatalog.shards.filter(part => part.project === 'hidden'))
+    assert.deepEqual(
+      root._fileCatalog.shards.find(part => part.id === old.id),
+      old,
+    );
 });
