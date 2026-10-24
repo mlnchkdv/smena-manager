@@ -1,7 +1,7 @@
 /* ---------- toasts ---------- */
 import { $, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, save } from '../core/store.js';
+import { S, save, flushLocalSave } from '../core/store.js';
 import { render } from '../shell/render.js';
 import { translateElement } from '../core/i18n.js';
 import { completeUndo } from '../shared/undo.js';
@@ -41,6 +41,9 @@ export function mutate(fn, label) {
   fn();
   completeUndo(S.data);
   save();
+  // A committed command must enter recovery/sync before the next navigation;
+  // the 150 ms local debounce remains for ordinary form/input saves.
+  flushLocalSave();
   render();
   return true;
 }

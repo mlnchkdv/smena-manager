@@ -97,9 +97,17 @@ test.describe('Russian workspace responsive sweep', () => {
       await page.locator('button[data-a="newTask"]:visible').first().click();
       const taskTitle = `Сквозная проверка сохранения ${viewport.width}`;
       await page.locator('#f-title').fill(taskTitle);
+      const savedTask = page.waitForResponse(response => {
+        if (!response.url().endsWith('/api/workspace') || response.request().method() !== 'PUT') return false;
+        return response
+          .request()
+          .postDataJSON()
+          ?.data?.tasks?.some(task => task.title === taskTitle);
+      });
       await page.locator('#f-submit').click();
       await expect(page.getByText(taskTitle, { exact: true }).first()).toBeVisible();
-      await expect(page.locator('#sync-indicator')).toContainText('Сохранено');
+      expect((await savedTask).ok(), 'The task must be acknowledged by the server before reloading').toBe(true);
+      await waitForSaved(page);
 
       await page.reload();
       await expect(page.locator('.shell')).toBeVisible();
