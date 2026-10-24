@@ -217,12 +217,13 @@ test.describe('Russian workspace responsive sweep', () => {
 });
 
 test('shared content, files, settings, and backups persist through core workflows', async ({ page, browserName }) => {
+  const variant = { chromium: 1, firefox: 2, webkit: 3 }[browserName];
   await signIn(page);
   await page.setViewportSize({ width: 1440, height: 900 });
 
   await page.goto('/e2e-team/teams');
   await page.locator('[data-a="newTeam"]:visible').first().click();
-  const teamName = `Команда регрессии ${browserName} <strong>Review</strong>`;
+  const teamName = `Команда регрессии ${variant} <strong>Review</strong>`;
   await page.locator('#tm-name').fill(teamName);
   await page.locator('label.mi', { hasText: 'Тестовый администратор' }).locator('[data-a="tformMember"]').check();
   await page.locator('label.mi', { hasText: 'Проверка интерфейса' }).locator('[data-a="tformProject"]').check();
@@ -247,7 +248,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.getByRole('dialog').getByRole('button', { name: 'Отмена', exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 900 });
 
-  const noteTitle = `Регламент сквозной проверки ${browserName}`;
+  const noteTitle = `Регламент сквозной проверки ${variant}`;
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-a="newKnowledgeNote"]').first().click();
   await page.locator('#knowledge-title').fill(noteTitle);
@@ -273,7 +274,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/knowledge');
   await expect(page.getByText(noteTitle, { exact: true }).first()).toBeVisible();
 
-  const bookmarkTitle = `Справочник для команды ${browserName}`;
+  const bookmarkTitle = `Справочник для команды ${variant}`;
   await page.goto('/e2e-team/bookmarks');
   await page.locator('[data-a="newBookmark"]').first().click();
   await page.locator('#bookmark-url').fill(`https://example.com/team-guide-${browserName}`);
