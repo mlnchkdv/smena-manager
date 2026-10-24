@@ -3,6 +3,7 @@ import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { canEditProject } from '../shared/project-access.js';
 import { normalizeFileSearch } from '../shared/file-index.js';
+import { fileFolderMenu } from './file-folder-menu.js';
 
 export function visibleFileFolderKeys(projectId, currentFolder, index) {
   const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
@@ -65,7 +66,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
                 const target = `data-project="${esc(project.id)}" data-folder="${esc(folder.id)}"`;
                 const menu = archived
                   ? `<button class="btn btn-ghost btn-sm" data-a="restoreFileFolder" ${target}>${ic('rotate-ccw', 14)}Restore folder</button>`
-                  : `<details class="files-folder-menu"><summary aria-label="Folder actions" title="Folder actions">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="renameFileFolder" ${target}>${ic('pencil', 14)}Rename folder</button><button class="btn btn-ghost btn-sm" data-a="moveFileFolder" ${target}>${ic('folder-input', 14)}Move folder</button><button class="btn btn-ghost btn-sm" data-a="archiveFileFolder" ${target} ${nonempty ? 'disabled' : ''} title="Only an empty file folder can be archived.">${ic('archive', 14)}Archive folder</button></div></details>`;
+                  : `<details class="files-folder-menu" ${fileFolderMenu(project.id, folder.id)}><summary aria-label="Folder actions" title="Folder actions">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="renameFileFolder" ${target}>${ic('pencil', 14)}Rename folder</button><button class="btn btn-ghost btn-sm" data-a="moveFileFolder" ${target}>${ic('folder-input', 14)}Move folder</button><button class="btn btn-ghost btn-sm" data-a="archiveFileFolder" ${target} ${nonempty ? 'disabled' : ''} title="Only an empty file folder can be archived.">${ic('archive', 14)}Archive folder</button></div></details>`;
                 return `<article class="files-folder-tile"><${archived ? 'div' : 'button'} class="files-folder-open" ${archived ? '' : `data-a="openFileFolder" ${target}`} title="${esc(folder.name)}">${ic(archived ? 'archive' : 'folder', 24)}<strong translate="no">${esc(folder.name)}</strong><span class="faint" translate="no">${esc(context)}</span>${archived ? '' : `<small><span>Direct files</span>: ${count}</small>`}</${archived ? 'div' : 'button'}>${writable ? menu : ''}</article>`;
               })
               .join('')}</div>`

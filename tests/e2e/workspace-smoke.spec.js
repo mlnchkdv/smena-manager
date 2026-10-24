@@ -501,8 +501,14 @@ test('large task views keep bounded pages and allow reaching later tasks', async
   }
 });
 
-test('file folders preserve uploads and moves through reload and archive on mobile in both languages', async ({ page }) => {
+test('file folders preserve uploads and moves through reload and archive on mobile in both languages', async ({ page, browserName }) => {
+  const folderA = `E2E Files A ${browserName}`;
+  const folderB = `E2E Files B ${browserName}`;
+  const fileName = `e2e-folder-${browserName}.txt`;
   await signIn(page);
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский');
+  await waitForSaved(page);
   await page.goto('/e2e-team/files');
   const createFolder = async name => {
     await page.locator('[data-a="newFileFolder"]').click();
@@ -510,40 +516,50 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await page.locator('[data-a="saveFileFolder"]').click();
     await waitForSaved(page);
   };
-  await createFolder('E2E Files A');
+  await createFolder(folderA);
   await expect(page.getByRole('heading', { name: 'В этой папке пока нет файлов', exact: true })).toBeVisible();
   const pickerEvent = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"]').click();
-  await (await pickerEvent).setFiles({ name: 'e2e-folder-file.txt', mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' })).toBeVisible();
+  await (await pickerEvent).setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' })).toContainText('E2E Files A');
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA);
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
   await expect(page.locator('#workspace-file-project')).toHaveValue('all');
-  await createFolder('E2E Files B');
+  await createFolder(folderB);
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
-  await page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' }).locator('[data-a="ctxBtn"]').click();
+  await page.locator('.workspace-file-card', { hasText: fileName }).locator('[data-a="ctxBtn"]').click();
   await page.locator('[data-a="moveFileToFolder"]').click();
-  await page.locator('.file-move-row', { hasText: 'E2E Files B' }).click();
+  await page.locator('.file-move-row', { hasText: folderB }).click();
   await page.locator('[data-a="confirmFileMove"]').click();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: 'e2e-folder-file.txt' })).toContainText('E2E Files B');
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderB);
   for (const language of ['English (US)', 'Русский']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
     await page.goto('/e2e-team/files');
     await page.setViewportSize({ width: 320, height: 844 });
-    const folder = page.locator('.files-folder-tile', { hasText: 'E2E Files A' });
+    const folder = page.locator('.files-folder-tile', { hasText: folderA });
     await folder.locator('summary').click();
+    // Filtering and background catalog responses must not collapse an open menu.
+    await page.locator('#workspace-file-q').fill(fileName);
+    await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
+    await expect(folder.locator('details')).toHaveAttribute('open', '');
+    const menuBox = await folder.locator('details > div').boundingBox();
+    expect(menuBox.x).toBeGreaterThanOrEqual(7);
+    expect(menuBox.x + menuBox.width).toBeLessThanOrEqual(313);
+    expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(769);
     await folder.locator('[data-a="archiveFileFolder"]').click();
     await waitForSaved(page);
     await page.locator('[data-a="toggleFileFolderArchive"]').click();
-    await expect(page.locator('.files-folder-tile', { hasText: 'E2E Files A' })).toBeVisible();
-    await page.locator('.files-folder-tile', { hasText: 'E2E Files A' }).locator('[data-a="restoreFileFolder"]').click();
+    await expect(page.locator('.files-folder-tile', { hasText: folderA })).toBeVisible();
+    await page.locator('.files-folder-tile', { hasText: folderA }).locator('[data-a="restoreFileFolder"]').click();
     await waitForSaved(page);
     await page.locator('.files-folder-crumbs [data-project="all"]').click();
+    await page.locator('#workspace-file-q').fill('');
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     if (language === 'Русский') await expectRussianUi(page, 'File folder browser');
     await page.screenshot({ path: `output/playwright/file-folders-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });

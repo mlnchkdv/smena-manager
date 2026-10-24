@@ -757,6 +757,8 @@
   right: 0;
   width: 240px;
   max-width: 78vw;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
   padding: 6px;
   border-radius: var(--r-lg);
   background: var(--surface);
