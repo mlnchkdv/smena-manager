@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
 test.setTimeout(180_000);
+// This file includes the 140-route responsive audit. Record failure screenshots
+// on every failure; collect full video/DOM traces on retries to avoid exhausting
+// small desktop hosts. --trace retain-on-failure enables a diagnostic first run.
+test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
 
 async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
@@ -71,10 +75,6 @@ async function expectRussianUi(page, context) {
 }
 
 test.describe('Russian workspace responsive sweep', () => {
-  // Recording every screenshot/DOM snapshot across 140 reloads can exhaust a
-  // small desktop host. Keep failure screenshots, and collect video + traces
-  // on retries; --trace retain-on-failure opts into a full diagnostic run.
-  test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
   for (const viewport of [
     { name: 'desktop', width: 1440, height: 900 },
     { name: 'tablet-wide', width: 1024, height: 900 },
