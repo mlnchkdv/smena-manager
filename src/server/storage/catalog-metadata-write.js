@@ -15,6 +15,18 @@ const omit = (value, keys) => Object.fromEntries(Object.entries(value || {}).fil
 export function metadataWriteBase(root) {
   if (root?.schemaVersion !== 3 || root._aggregateVersion !== 1 || root._fileCatalog?.version !== 3) return null;
   const data = catalogCore(root, { identities: false }); // Validate all pointers/identities, retain no file rows.
+  // Retain the canonical ID/folder-reference checks without allocating complete
+  // file rows. Project/folder structure itself is validated by the store.
+  const folders = new Map(
+    (data.projects || []).map(project => [project.id, new Set((project.fileFolders || []).filter(folder => !folder.archived).map(folder => folder.id))]),
+  );
+  for (const part of root._fileCatalog.shards)
+    for (const [id, folder] of part.keys)
+      if (!/^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(id) || (folder && !folders.get(part.project)?.has(folder)))
+        throw Object.assign(new Error('The stored file catalog contains invalid identities or folder references.'), {
+          statusCode: 503,
+          code: 'FILE_CATALOG_CORRUPT',
+        });
   return readCatalogAccounting(root) ? data : null;
 }
 

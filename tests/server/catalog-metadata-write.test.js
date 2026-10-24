@@ -89,6 +89,22 @@ test('legacy roots opt out, while corrupt manifests/accounting fail closed', asy
   }
 });
 
+test('metadata snapshots enforce canonical file identity and active-folder references from manifest keys', async () => {
+  const f = await fixture();
+  f.root.projects = [{ id: 'p', fileFolders: [{ id: 'folder', name: 'Folder' }] }];
+  f.root._fileCatalog.shards[0].keys[0][1] = 'folder';
+  assert.ok(metadataWriteBase(f.root));
+  for (const change of [
+    root => (root.projects[0].fileFolders[0].archived = true),
+    root => (root._fileCatalog.shards[0].keys[0][1] = 'missing'),
+    root => (root._fileCatalog.shards[0].keys[0][0] = 'invalid file id'),
+  ]) {
+    const invalid = structuredClone(f.root);
+    change(invalid);
+    assert.throws(() => metadataWriteBase(invalid), { statusCode: 503, code: 'FILE_CATALOG_CORRUPT' });
+  }
+});
+
 test('Drive metadata publication reads only the root, uses its bound ETag and cannot publish a forged snapshot', async () => {
   const f = await fixture();
   const provider = new GoogleDriveStorageProvider();
