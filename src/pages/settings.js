@@ -76,7 +76,7 @@ function settingsTimestamp(value) {
 function backupDisplayLabel(value) {
   const label = String(value || 'Backup');
   const automaticPrefix = 'Automatic backup ';
-  return label.startsWith(automaticPrefix) ? `${tr('Automatic backup')} ${label.slice(automaticPrefix.length)}` : label;
+  return label.startsWith(automaticPrefix) ? `${tr('Automatic backup')} ${label.slice(automaticPrefix.length)}` : tr(label);
 }
 
 function deliveryStatusPanel() {

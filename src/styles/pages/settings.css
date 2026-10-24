@@ -468,6 +468,22 @@
 .storage-capacity dl {
   margin: 12px 0;
 }
+.storage-capacity-details {
+  margin-top: 12px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+.storage-capacity-details > summary {
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.storage-capacity-details > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
 .capacity-row {
   display: flex;
   flex-wrap: wrap;

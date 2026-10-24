@@ -46,6 +46,25 @@
   .topsearch .kbd {
     display: none;
   }
+  .set {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .set-nav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 8px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-nav .gh {
+    display: none;
+  }
+  .set-nav .sitem {
+    width: auto;
+    flex-shrink: 0;
+  }
 }
 @media (max-width: 900px) {
   #mnav-btn {
@@ -108,27 +127,6 @@
   }
   .stat:nth-child(n + 3) {
     border-top: 1px solid var(--border);
-  }
-  .set {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .set-nav {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    padding: 8px 12px;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .set-nav .gh {
-    display: none;
-  }
-  .set-nav .sitem {
-    width: auto;
-    flex-shrink: 0;
-  }
-  .set {
-    grid-template-rows: auto minmax(0, 1fr);
   }
   .set-in {
     padding: 20px 16px 96px;

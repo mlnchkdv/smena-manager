@@ -48,6 +48,10 @@ registerRussianLabels({
   'If interrupted, select fewer files or use Download ZIP. Closing this panel does not cancel a browser-managed download.':
     'При обрыве выберите меньше файлов или обычное скачивание ZIP. Закрытие панели не отменяет загрузку в браузере.',
   'Data capacity': 'Ёмкость данных',
+  'Storage details': 'Подробности хранения',
+  'Before portable import': 'Перед импортом данных',
+  'Before file catalog sharding': 'Перед разделением каталога файлов',
+  'Before file catalog layout change': 'Перед изменением структуры каталога файлов',
   'Each data limit is independent of Google Drive free space.': 'У каждого раздела свой лимит данных, не связанный со свободным местом на Google Диске.',
   'Workspace core': 'Основные данные пространства',
   'File catalog': 'Каталог файлов',
