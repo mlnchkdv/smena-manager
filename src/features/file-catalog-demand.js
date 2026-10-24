@@ -8,6 +8,7 @@ import { A } from '../actions/actions.js';
 import { esc } from '../core/utils.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
 import { backgroundRender } from './background-render.js';
+import { readCatalogWithRevisionRefresh } from '../shared/catalog-revision-retry.js';
 
 let loaded,
   pending = '',
@@ -25,17 +26,32 @@ export function demandFilePage(options) {
         await queueWorkspaceSync(S.data);
         if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
         const session = getSessionGeneration();
-        const page = await queryFileCatalog({ ...options, revision: S.ui.workspaceRevision });
-        if (session !== getSessionGeneration()) return;
-        const ids = [...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)])];
-        const base = structuredClone(S.data);
-        const snapshot = await loadFileIdentities(ids, true);
-        if (session !== getSessionGeneration()) return;
-        if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
-        if (snapshot.revision !== page.revision) throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
-        applyExternalCoreSnapshot(snapshot, base);
-        loaded = { key: JSON.stringify([context(), options]), page };
-        error = failed = '';
+        await readCatalogWithRevisionRefresh(
+          async () => {
+            const page = await queryFileCatalog({ ...options, revision: S.ui.workspaceRevision });
+            if (session !== getSessionGeneration()) return;
+            const ids = [
+              ...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)]),
+            ];
+            const base = structuredClone(S.data);
+            const snapshot = await loadFileIdentities(ids, true);
+            if (session !== getSessionGeneration()) return;
+            if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
+            if (snapshot.revision !== page.revision)
+              throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
+            applyExternalCoreSnapshot(snapshot, base);
+            loaded = { key: JSON.stringify([context(), options]), page };
+            error = failed = '';
+          },
+          async () => {
+            const base = structuredClone(S.data);
+            const snapshot = await loadFileIdentities([]);
+            if (session !== getSessionGeneration()) return;
+            if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
+            applyExternalCoreSnapshot(snapshot, base);
+          },
+          () => session === getSessionGeneration() && workspaceSyncIsClean(S.data),
+        );
       } catch (cause) {
         if (!cause.staleSession) {
           error = catalogLoadError(cause);
