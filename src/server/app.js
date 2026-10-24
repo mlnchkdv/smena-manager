@@ -41,7 +41,7 @@ import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
 import { evaluateAutomationRun, evaluateOperationalHealth } from './operational-health.js';
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
-import { permissionError, projectWorkspace } from './workspace-policy.js';
+import { mergeClientWorkspace, permissionError, projectWorkspace } from './workspace-policy.js';
 import { applyFileCatalogChanges } from '../shared/file-catalog.js';
 import { fileCatalogVersion } from './file-catalog-version.js';
 import { completeCatalogCascade } from './file-catalog-query.js';
@@ -443,21 +443,26 @@ app.get('/api/workspace/revision', async (request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    let nextData = workspaceCoreData(request.body?.data);
-    const stored = await getWorkspaceDatabase();
-    if (request.body?.fileChanges) {
-      if (stored.revision !== request.body?.revision) throw new RevisionConflictError(stored.revision);
-      if (Object.hasOwn(nextData, 'files')) throw new TypeError('Do not mix a complete catalog and file changes.');
-      // Reconstruct only this account's readable catalog; policy preserves hidden files.
-      const visible = projectWorkspace(stored, request.user);
-      nextData.files = completeCatalogCascade(visible, nextData, applyFileCatalogChanges(visible.files || [], request.body.fileChanges));
-    }
-    const knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
-    const actorMemberId = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user)?.id || request.user.id;
-    if (request.user.role === 'editor') {
-      nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
-    }
-    const data = await replaceWorkspaceDatabase(nextData, request.body?.revision, { role: request.user.role, actorMemberId, client: true });
+    const incoming = workspaceCoreData(request.body?.data);
+    const actorMemberId = memberForProfile(bindAccessProfiles(request.workspaceSnapshot, getAccessProfiles()), request.user)?.id || request.user.id;
+    let knownNotifications;
+    const data = await mutateWorkspaceDatabase(
+      stored => {
+        let nextData = incoming;
+        if (request.body?.fileChanges) {
+          if (Object.hasOwn(nextData, 'files')) throw new TypeError('Do not mix a complete catalog and file changes.');
+          // Reconstruct and authorize against the same canonical snapshot that
+          // will be written, not a second full read before the write boundary.
+          const visible = projectWorkspace(stored, request.user);
+          nextData = { ...nextData, files: completeCatalogCascade(visible, nextData, applyFileCatalogChanges(visible.files || [], request.body.fileChanges)) };
+        }
+        knownNotifications = new Set((stored.notifs || []).map(notification => notification.id));
+        if (request.user.role === 'editor') nextData = restoreUnauthorizedChanges(stored, nextData, request.user.role, actorMemberId).data;
+        return mergeClientWorkspace(stored, nextData, request.user.role, actorMemberId);
+      },
+      request.body?.revision,
+      { role: request.user.role, actorMemberId },
+    );
     const createdNotifications = (data.notifs || []).filter(notification => !knownNotifications.has(notification.id));
     // The events were persisted with the task. A provider outage must not turn
     // a successful task write into an HTTP failure or lose delivery work.

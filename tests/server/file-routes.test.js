@@ -5,7 +5,7 @@ import test from 'node:test';
 import { unzipSync, strFromU8 } from 'fflate';
 import { app } from '../../src/server/app.js';
 import { createTrackedSession, getAccessProfiles } from '../../src/server/auth.js';
-import { resetStorageProvider } from '../../src/server/storage/index.js';
+import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, resetWorkspaceStore } from '../../src/server/workspace-store.js';
 
 test('authenticated editors can upload and range-download a workspace file', async t => {
@@ -98,11 +98,33 @@ test('authenticated editors can upload and range-download a workspace file', asy
   const catalog = await (await fetch(`${origin}/api/files/catalog?revision=${manifest.data.revision}`, { headers })).json();
   assert.equal(catalog.files[0].id, uploaded.file.id);
   const changed = { ...uploaded.file, name: 'renamed.txt' };
-  const patchResponse = await fetch(`${origin}/api/workspace`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify({ data: manifest.data, revision: manifest.data.revision, fileChanges: { upsert: [changed], remove: [] } }),
-  });
+  // Model a cold Vercel worker: auth can read the root, but only the atomic
+  // mutation may materialize canonical file records. No second pre-write load.
+  const storage = getStorageProvider();
+  const load = storage.loadDatabase.bind(storage);
+  let fullReads = 0;
+  storage.loadDatabaseCore = async () => ({ ...(await load()), files: [] });
+  storage.loadDatabase = async () => {
+    fullReads++;
+    return load();
+  };
+  resetWorkspaceStore();
+  process.env.VERCEL = '1';
+  process.env.WORKSPACE_WRITE_MODE = 'drive';
+  let patchResponse;
+  try {
+    patchResponse = await fetch(`${origin}/api/workspace`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ data: manifest.data, revision: manifest.data.revision, fileChanges: { upsert: [changed], remove: [] } }),
+    });
+    assert.equal(fullReads, 1, 'A cold catalog delta save materializes the catalog exactly once');
+  } finally {
+    delete process.env.VERCEL;
+    delete process.env.WORKSPACE_WRITE_MODE;
+    storage.loadDatabase = load;
+    delete storage.loadDatabaseCore;
+  }
   assert.equal(patchResponse.status, 200);
   const patched = await patchResponse.json();
   assert.equal(patched.data.files, undefined);
