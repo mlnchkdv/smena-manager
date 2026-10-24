@@ -301,8 +301,8 @@ export class GoogleDriveStorageProvider {
     // Only an exact, freshly read root version can authorize reuse of a full
     // canonical snapshot. Revision numbers and mutable provider cursors cannot.
     const root = await this.readDatabaseRoot();
-    if (root && expectedEtag && storageVersion(root) === expectedEtag) {
-      catalogCore(root, { identities: false }); // Validate the manifest even on a cache hit.
+    if (root && expectedEtag && storageVersion(root) === expectedEtag && (!root._fileCatalog || [2, 3].includes(root._fileCatalog.version))) {
+      if (root._fileCatalog) catalogCore(root, { identities: false }); // Validate sharded manifests even on a cache hit.
       return { unchanged: true };
     }
     const data = root ? await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)) : null;

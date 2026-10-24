@@ -55,3 +55,13 @@ test('cold backup reads reject a corrupt part rather than publishing an incomple
   f.parts.set(id, '[]');
   await assert.rejects(f.provider.loadDatabaseForBackup(null), { code: 'FILE_CATALOG_CORRUPT' });
 });
+
+test('unchanged legacy aggregate snapshots remain eligible without requiring a shard manifest', async () => {
+  const storage = new GoogleDriveStorageProvider();
+  const data = { schemaVersion: 2, revision: 3, files: [{ id: 'legacy', name: 'Legacy.txt' }] };
+  storage.readDatabaseRoot = async () => rememberStorageVersion(structuredClone(data), 'aggregate-etag');
+  storage.readCatalogPart = () => assert.fail('Aggregate backups have no immutable parts');
+  assert.deepEqual(await storage.loadDatabaseForBackup('aggregate-etag'), { unchanged: true });
+  const loaded = await storage.loadDatabaseForBackup(null);
+  assert.deepEqual(loaded.data, data);
+});
