@@ -3,7 +3,7 @@
    ===================================================================== */
 import { $$ } from '../core/utils.js';
 import { S } from '../core/store.js';
-import { render } from '../shell/render.js';
+import { render, revealActiveSetting } from '../shell/render.js';
 import { placePop } from '../overlays/popovers.js';
 import { A, BLUR, DBL, IN } from './actions.js';
 
@@ -86,7 +86,10 @@ document.addEventListener('mouseover', e => {
 const repositionPop = () => {
   if (S.ui.pop) requestAnimationFrame(placePop);
 };
-addEventListener('resize', repositionPop);
+addEventListener('resize', () => {
+  repositionPop();
+  revealActiveSetting();
+});
 window.visualViewport?.addEventListener('resize', repositionPop);
 window.visualViewport?.addEventListener('scroll', repositionPop);
 try {

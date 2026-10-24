@@ -183,15 +183,21 @@ test.describe('Russian workspace responsive sweep', () => {
               element =>
                 `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${element.className ? `.${String(element.className).trim().replace(/\s+/g, '.')}` : ''}`,
             );
+          const setting = document.querySelector('.set-nav .sitem.on');
+          const nav = setting?.closest('.set-nav');
+          const navBox = nav?.getBoundingClientRect();
+          const settingBox = setting?.getBoundingClientRect();
           return {
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
             applicationError: document.body.textContent.includes('Something went wrong'),
             accessibilityIssues: [...new Set([...duplicates.map(id => `duplicate-id:${id}`), ...unnamed.map(value => `unnamed:${value}`)])],
+            activeSettingVisible: !nav || nav.scrollWidth <= nav.clientWidth || (settingBox.left >= navBox.left - 2 && settingBox.right <= navBox.right + 2),
           };
         });
         expect(audit.overflow, `${viewport.name}/${route || 'home'} has horizontal page overflow`).toBeLessThanOrEqual(2);
         expect(audit.applicationError, `${viewport.name}/${route || 'home'} has an application error`).toBe(false);
         expect(audit.accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
+        expect(audit.activeSettingVisible, `${viewport.name}/${route || 'home'} hides the selected settings tab`).toBe(true);
         if (viewport.name === 'desktop') {
           const untranslated = await visibleUntranslatedUi(page);
           if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
