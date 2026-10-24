@@ -468,6 +468,20 @@
 .storage-capacity dl {
   margin: 12px 0;
 }
+.settings-backup-head,
+.settings-backup-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings-backup-head h2 {
+  margin: 0;
+  font-size: var(--fs);
+  font-weight: 600;
+}
+.settings-backup-description {
+  margin: 12px 0 0;
+  font-size: var(--fs-sm);
+}
 .storage-capacity-details {
   margin-top: 12px;
   color: var(--text-2);
