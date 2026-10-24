@@ -89,6 +89,9 @@ storage identities. Legacy catalogs fall back to canonical parts until the next 
 the derived index. ZIP status/download validation and streamed archives read only selected identities;
 full workspace writes and backups still require canonical records. Detailed capacity uses a
 revision-bound root summary (with exact canonical fallback for older roots), not file-part downloads.
+Save preparation and pre-restore/import checkpoints now reuse the atomic mutation's canonical
+snapshot instead of preloading the full catalog again; standalone backups always refresh storage.
+This removes duplicate reads, not the complete validation needed for safe writes and recovery.
 Legacy aggregate/separate-document layouts remain readable. Binary files remain separate Drive
 objects. Graphs and connection pickers now use revision-fenced server queries (250/50 nodes),
 without hydrating all file records in the browser; only explicit JSON export returns the full graph.
