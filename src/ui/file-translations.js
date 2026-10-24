@@ -10,7 +10,6 @@ registerRussianLabels({
   'Unable to load files.': 'Не удалось загрузить файлы.',
   'Unable to load files. Check connection and retry.': 'Не удалось загрузить файлы. Проверьте подключение и повторите.',
   'Some file results may be missing.': 'Часть файлов и связей может не отображаться.',
-  'Loading file connections…': 'Загрузка файлов и связей…',
   'Sign in again to load files.': 'Войдите снова, чтобы загрузить файлы.',
   'Access to these files is unavailable.': 'Доступ к этим файлам отсутствует.',
   'The file catalog is too large to load.': 'Каталог файлов слишком велик для загрузки.',
