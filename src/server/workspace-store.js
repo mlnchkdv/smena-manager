@@ -270,10 +270,16 @@ export async function getWorkspaceRevisionStatus() {
 }
 
 export async function createWorkspaceBackup(label = '') {
-  const current = await getWorkspaceDatabase();
+  // A recovery point must describe a fresh, complete root, not the two-second
+  // UI read cache or a catalog metadata projection.
+  const current = process.env.VERCEL ? await reloadWorkspaceStore() : await initWorkspaceStore();
+  return backupSnapshot(current, label);
+}
+
+async function backupSnapshot(current, label) {
   const storage = getStorageProvider();
   if (typeof storage.createDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
-  return storage.createDatabaseBackup(current, label);
+  return storage.createDatabaseBackup(clone(current), label);
 }
 
 export async function listWorkspaceBackups() {
@@ -284,16 +290,14 @@ export async function listWorkspaceBackups() {
 
 export async function importPortableWorkspace(payload, expectedRevision, conflictPolicy = 'copy') {
   if (!['copy', 'skip'].includes(conflictPolicy)) throw new TypeError('Invalid import conflict policy.');
-  const current = await getWorkspaceDatabase();
-  if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
-  const preview = mergePortableWorkspace(current, payload, { conflictPolicy });
-  for (const name of DOCUMENT_NAMES) validateDocumentInput(name, workspaceDocumentData(name, preview.data));
-  const backup = await createWorkspaceBackup('Before portable import');
+  let backup;
   let counts;
   let report;
   const data = await mutateWorkspaceDatabase(
-    database => {
+    async database => {
       const result = mergePortableWorkspace(database, payload, { conflictPolicy });
+      for (const name of DOCUMENT_NAMES) validateDocumentInput(name, workspaceDocumentData(name, result.data));
+      backup = await backupSnapshot(database, 'Before portable import');
       counts = result.counts;
       report = result.report;
       database.relations = result.data.relations;
@@ -324,11 +328,8 @@ export async function restoreWorkspaceBackup(id, expectedRevision) {
   const storage = getStorageProvider();
   if (typeof storage.loadDatabaseBackup !== 'function') throw new Error('Workspace backups are not supported by the configured storage.');
   const backup = await storage.loadDatabaseBackup(id);
-  const current = await getWorkspaceDatabase();
-  if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
   const normalizedBackup = normalizeDatabase(backup);
-  await createWorkspaceBackup('Before restore');
-  return replaceWorkspaceDatabase(normalizedBackup, expectedRevision, { role: 'admin', replaceDocuments: true });
+  return replaceWorkspaceDatabase(normalizedBackup, expectedRevision, { role: 'admin', replaceDocuments: true, backupLabel: 'Before restore' });
 }
 
 export class RevisionConflictError extends Error {
@@ -422,6 +423,12 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   }
   const storage = getStorageProvider();
   await options.coordination?.assertOwnership?.();
+  if (options.backupLabel) {
+    // Snapshot the exact canonical revision being replaced. Failure stops the
+    // write; no additional catalog reload can change the recovery baseline.
+    await backupSnapshot(current, options.backupLabel);
+    await options.coordination?.assertOwnership?.();
+  }
   try {
     await storage.saveDatabase(next, { expectedEtag: storageVersion(current) });
   } catch (error) {

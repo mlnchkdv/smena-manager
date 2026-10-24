@@ -10,7 +10,6 @@ import {
   getWorkspaceStatus,
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
-  replaceWorkspaceDatabase,
   restoreWorkspaceBackup,
   RevisionConflictError,
   queryWorkspaceGraph,
@@ -524,13 +523,11 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
-    const current = await getWorkspaceDatabase();
-    if (current.revision !== request.body?.revision) throw new RevisionConflictError(current.revision);
-    await createWorkspaceBackup('Before workspace deletion');
-    const data = await replaceWorkspaceDatabase(emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())), request.body?.revision, {
-      role: request.user.role,
-      replaceDocuments: true,
-    });
+    const data = await mutateWorkspaceDatabase(
+      current => ({ ...current, ...emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())) }),
+      request.body?.revision,
+      { role: request.user.role, replaceDocuments: true, backupLabel: 'Before workspace deletion' },
+    );
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {
     next(error);
