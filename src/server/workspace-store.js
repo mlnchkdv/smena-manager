@@ -155,7 +155,7 @@ export async function reloadWorkspaceStore(options = {}) {
 export async function getWorkspaceDatabase(options = {}) {
   const storage = getStorageProvider();
   if ((options.fields || options.catalog === 'metadata') && typeof storage.loadDatabaseCore === 'function') {
-    const stored = await storage.loadDatabaseCore();
+    const stored = await storage.loadDatabaseCore({ identities: !options.fields || options.fields.includes('files') });
     const core = await loadAggregate(storage, stored);
     return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, core[field]])) : core);
   }

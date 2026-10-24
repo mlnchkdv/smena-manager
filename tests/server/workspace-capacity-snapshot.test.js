@@ -10,9 +10,10 @@ test('detailed status stays fresh without full reads and cannot poison the writa
   resetStorageProvider();
   resetWorkspaceStore();
   const storage = getStorageProvider();
-  const previous = { load: storage.loadDatabase, status: storage.loadDatabaseStatus, info: storage.getStatus };
+  const previous = { load: storage.loadDatabase, core: storage.loadDatabaseCore, status: storage.loadDatabaseStatus, info: storage.getStatus };
   t.after(() => {
     storage.loadDatabase = previous.load;
+    storage.loadDatabaseCore = previous.core;
     storage.loadDatabaseStatus = previous.status;
     storage.getStatus = previous.info;
     resetStorageProvider();
@@ -38,6 +39,14 @@ test('detailed status stays fresh without full reads and cannot poison the writa
   const canonical = await getWorkspaceDatabase(); // The worker's intentionally older write baseline.
   let next = { ...canonical, revision: 10, updatedAt: '2026-10-24T01:00:00Z' };
   let root = await writeCatalogShards(next, null, async (_text, hash) => `part-${hash}`);
+  const projections = [];
+  storage.loadDatabaseCore = async options => {
+    projections.push(options);
+    return catalogCore(root, options);
+  };
+  assert.equal((await getWorkspaceDatabase({ fields: ['members', 'revision'] })).revision, 10);
+  assert.equal((await getWorkspaceDatabase({ fields: ['files'] })).files.length, 2);
+  assert.deepEqual(projections, [{ identities: false }, { identities: true }]);
   let reads = 0;
   storage.loadDatabase = () => assert.fail('Status must not materialize the canonical catalog');
   storage.loadDatabaseStatus = async () => {

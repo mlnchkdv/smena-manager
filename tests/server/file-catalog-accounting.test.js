@@ -69,6 +69,12 @@ test('cold detailed status reads root only, retaining version and canonical fall
     f = await stored(data);
   const result = await f.provider.loadDatabaseStatus();
   assert.deepEqual(f.reads, ['db']);
+  f.reads.length = 0;
+  const authCore = await f.provider.loadDatabaseCore({ identities: false });
+  assert.deepEqual(authCore.files, []);
+  assert.equal(authCore.revision, 9);
+  assert.deepEqual(f.reads, ['db'], 'Field-only auth/diagnostic readers still validate a fresh root, without part reads');
+  assert.equal((await f.provider.loadDatabaseCore()).files.length, data.files.length, 'Ordinary core/catalog consumers retain their identity index');
   assert.equal(storageVersion(result.data), '"9"');
   assert.deepEqual(result.data.files, [], 'Capacity snapshots retain no identity rows or partial write baseline');
   assert.equal(result.accounting.fileStorage.logical.unknownFiles, 2);
