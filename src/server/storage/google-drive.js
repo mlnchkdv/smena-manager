@@ -9,6 +9,7 @@ import { writeCatalogShards, materializeCatalog, catalogCore, readCatalogShards 
 import { fileCatalogIndex } from '../file-catalog-index.js';
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
 import { metadataWriteBase, patchCatalogMetadata } from './catalog-metadata-write.js';
+import { backupJson } from './backup-json.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -694,7 +695,15 @@ export class GoogleDriveStorageProvider {
   async createDatabaseBackup(data, label = '') {
     const folderId = await this.ensureBackupsFolder();
     const createdAt = new Date().toISOString();
-    const body = JSON.stringify({ createdAt, label: String(label || ''), data }, null, 2);
+    let size = 0;
+    const body = Readable.from(
+      (function* () {
+        for (const text of backupJson(data, createdAt, label)) {
+          size += Buffer.byteLength(text);
+          yield text;
+        }
+      })(),
+    );
     const created = await this.client.files.create({
       requestBody: {
         name: `smena-manager-backup-${createdAt.replace(/[:.]/g, '-')}.json`,
@@ -702,7 +711,7 @@ export class GoogleDriveStorageProvider {
         mimeType: 'application/json',
         appProperties: { smenaBackup: 'true', label: String(label || '').slice(0, 120) },
       },
-      media: { mimeType: 'application/json', body: Readable.from([body]) },
+      media: { mimeType: 'application/json', body },
       fields: 'id,name,createdTime,size,appProperties',
       supportsAllDrives: true,
     });
@@ -710,7 +719,7 @@ export class GoogleDriveStorageProvider {
       id: created.data.id,
       createdAt: created.data.createdTime || createdAt,
       label: created.data.appProperties?.label || String(label || ''),
-      size: Number(created.data.size) || Buffer.byteLength(body),
+      size: Number(created.data.size) || size,
     };
   }
 
