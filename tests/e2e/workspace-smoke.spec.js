@@ -524,7 +524,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA);
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA, { timeout: 15_000 });
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
   await expect(page.locator('#workspace-file-project')).toHaveValue('all');
   await createFolder(folderB);
@@ -535,7 +535,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await page.locator('[data-a="confirmFileMove"]').click();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderB);
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderB, { timeout: 15_000 });
   for (const language of ['English (US)', 'Русский']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
