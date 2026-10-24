@@ -216,13 +216,13 @@ test.describe('Russian workspace responsive sweep', () => {
   }
 });
 
-test('shared content, files, settings, and backups persist through core workflows', async ({ page }) => {
+test('shared content, files, settings, and backups persist through core workflows', async ({ page, browserName }) => {
   await signIn(page);
   await page.setViewportSize({ width: 1440, height: 900 });
 
   await page.goto('/e2e-team/teams');
   await page.locator('[data-a="newTeam"]:visible').first().click();
-  const teamName = 'Команда регрессии <strong>Review</strong>';
+  const teamName = `Команда регрессии ${browserName} <strong>Review</strong>`;
   await page.locator('#tm-name').fill(teamName);
   await page.locator('label.mi', { hasText: 'Тестовый администратор' }).locator('[data-a="tformMember"]').check();
   await page.locator('label.mi', { hasText: 'Проверка интерфейса' }).locator('[data-a="tformProject"]').check();
@@ -247,7 +247,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.getByRole('dialog').getByRole('button', { name: 'Отмена', exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 900 });
 
-  const noteTitle = 'Регламент сквозной проверки';
+  const noteTitle = `Регламент сквозной проверки ${browserName}`;
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-a="newKnowledgeNote"]').first().click();
   await page.locator('#knowledge-title').fill(noteTitle);
@@ -273,10 +273,10 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/knowledge');
   await expect(page.getByText(noteTitle, { exact: true }).first()).toBeVisible();
 
-  const bookmarkTitle = 'Справочник для команды';
+  const bookmarkTitle = `Справочник для команды ${browserName}`;
   await page.goto('/e2e-team/bookmarks');
   await page.locator('[data-a="newBookmark"]').first().click();
-  await page.locator('#bookmark-url').fill('https://example.com/team-guide');
+  await page.locator('#bookmark-url').fill(`https://example.com/team-guide-${browserName}`);
   await page.locator('#bookmark-title').fill(bookmarkTitle);
   await page.locator('#bookmark-description').fill('Проверка общей коллекции ссылок');
   await expectRussianUi(page, 'bookmark editor');
@@ -297,7 +297,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/bookmarks');
   await expect(page.getByText(bookmarkTitle, { exact: true })).toBeVisible();
 
-  const fileName = 'e2e-team-note.txt';
+  const fileName = `e2e-team-${browserName}-note.txt`;
   await page.goto('/e2e-team/projects');
   await page.locator('[data-a="go"][data-r="project"][aria-label="Проверка интерфейса"]').click();
   await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
@@ -314,7 +314,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.reload();
   await page.goto('/e2e-team/files');
   await expect(page.getByRole('heading', { name: 'Файлы', exact: true })).toBeVisible();
-  await page.locator('#workspace-file-q').fill('e2e-team-note');
+  await page.locator('#workspace-file-q').fill(fileName);
   const fileCard = page.locator('.workspace-file-card', { hasText: fileName });
   await expect(fileCard).toBeVisible();
   await expect(fileCard).toContainText('Проверка интерфейса');
@@ -355,7 +355,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.getByRole('link', { name: 'Открыть настройки Google' })).toHaveAttribute('href', 'https://myaccount.google.com/security');
   await expect(page.getByRole('heading', { name: 'Активные сеансы', exact: true })).toBeVisible();
   await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText('Это устройство');
-  await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText('Windows');
+  await expect(page.locator('.auth-session-row[data-current="true"]')).toContainText(browserName === 'webkit' ? 'macOS' : 'Windows');
   await expectRussianUi(page, 'account security settings');
 
   await page.goto('/e2e-team/settings/language');
