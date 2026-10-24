@@ -7,6 +7,7 @@ import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
 import { createCatalogAccounting } from '../../src/server/file-catalog-accounting.js';
 import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
 import { rememberStorageVersion, storageVersion } from '../../src/server/storage/version-token.js';
+import { FILE_CATALOG_MAX_BYTES } from '../../src/shared/file-catalog.js';
 
 async function fixture(revision = 9) {
   const data = {
@@ -138,4 +139,22 @@ test('Drive propagates CAS failures without replacing the current root or exposi
   await assert.rejects(provider.saveDatabaseMetadata(nextRevision(baseline), baseline, { scope: 'preferences', memberId: 'me' }), { code: 412 });
   assert.equal(provider.catalogRoot, newer);
   assert.equal(storageVersion(baseline), '"old"');
+});
+
+test('revision digit growth cannot exceed the catalog limit and missing ETags cannot authorize a metadata write', async () => {
+  const f = await fixture(9);
+  f.root._fileCatalog.accounting.catalogBytes = FILE_CATALOG_MAX_BYTES;
+  assert.throws(() => patchCatalogMetadata(f.root, f.base, nextRevision(f.base), 'preferences', 'me'), {
+    code: 'WORKSPACE_TOO_LARGE',
+    statusCode: 413,
+    actualBytes: FILE_CATALOG_MAX_BYTES + 1,
+  });
+  const provider = new GoogleDriveStorageProvider();
+  provider.databaseFileId = 'db';
+  provider.readDatabaseRoot = async () => structuredClone(f.root);
+  provider.updateVersionedJson = () => assert.fail('No write without the snapshot ETag');
+  const baseline = await provider.loadDatabaseMetadata();
+  await assert.rejects(provider.saveDatabaseMetadata(nextRevision(baseline), baseline, { scope: 'preferences', memberId: 'me' }), {
+    code: 'STORAGE_VERSION_MISSING',
+  });
 });

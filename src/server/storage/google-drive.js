@@ -316,6 +316,10 @@ export class GoogleDriveStorageProvider {
     this.lastSyncAt = new Date().toISOString();
     rememberStorageVersion(next, this.databaseEtag);
     this.metadataRoots.delete(baseline);
+    // Preference responses pass through project ACL projection and demand
+    // catalog hydration. Identity rows preserve file relations/counts there;
+    // document responses need no identity allocation at all.
+    return rememberStorageVersion(catalogCore(stored, { identities: scope === 'preferences' }), this.databaseEtag);
   }
 
   async loadDatabaseStatus() {

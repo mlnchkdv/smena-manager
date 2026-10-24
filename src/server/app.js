@@ -10,6 +10,7 @@ import {
   getWorkspaceStatus,
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
+  mutateWorkspaceMetadata,
   restoreWorkspaceBackup,
   RevisionConflictError,
   queryWorkspaceGraph,
@@ -193,7 +194,12 @@ app.put('/api/preferences', async (request, response, next) => {
       const member = memberForProfile(bindAccessProfiles(current, getAccessProfiles()), request.user);
       if (!member) throw permissionError('profile');
       try {
-        const data = await mutateWorkspaceDatabase(database => applyPersonalSettings(database, member.id, request.body), current.revision, { role: 'admin' });
+        const mutate = request.get('x-smena-file-catalog') === 'demand' ? mutateWorkspaceMetadata : mutateWorkspaceDatabase;
+        const data = await mutate(database => applyPersonalSettings(database, member.id, request.body), current.revision, {
+          role: 'admin',
+          scope: 'preferences',
+          memberId: member.id,
+        });
         return response.json({ data, preferences: data._userPrefs?.[member.id] || {} });
       } catch (error) {
         if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;

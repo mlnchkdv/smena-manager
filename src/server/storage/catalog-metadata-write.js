@@ -36,7 +36,7 @@ function assertPersonalPatch(current, next, memberId) {
 // The only allowed copy-on-write operations leave every file pointer, task,
 // project, relation, registry/retention record and sibling document unchanged.
 export function patchCatalogMetadata(root, current, next, scope, memberId) {
-  const fields = SCOPES[scope];
+  const fields = Object.hasOwn(SCOPES, scope) && SCOPES[scope];
   if (!fields || !same(current, metadataWriteBase(root))) throw forbidden();
   const allowed = [...fields, 'revision', 'updatedAt'];
   if (!same(omit(current, allowed), omit(next, allowed))) throw forbidden();

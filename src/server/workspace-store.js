@@ -29,6 +29,7 @@ import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
 import { queryGraph, validateGraphQuery } from './graph-query.js';
 import { fileExportReadIds } from './file-export-read.js';
+import { isDeepStrictEqual } from 'node:util';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -412,15 +413,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     createdAt: current.createdAt,
     updatedAt: now,
   });
-  const { files, ...core } = workspaceCoreData(next);
-  const transportBytes = workspaceTransportBytes(core, next.revision);
-  if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
-  if (workspaceTransportBytes({ files }, next.revision) > FILE_CATALOG_MAX_BYTES)
-    throw new WorkspaceSizeError(workspaceTransportBytes({ files }, next.revision));
-  for (const name of DOCUMENT_NAMES) {
-    const bytes = workspaceTransportBytes(workspaceDocumentData(name, next), Number(next._documentRevisions?.[name]?.revision || 0));
-    if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);
-  }
+  validateTransportSize(next);
   const storage = getStorageProvider();
   await options.coordination?.assertOwnership?.();
   if (options.backupLabel) {
@@ -446,33 +439,83 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   return clone(next);
 }
 
+function validateTransportSize(next, canonicalCatalog = true) {
+  const { files, ...core } = workspaceCoreData(next);
+  const transportBytes = workspaceTransportBytes(core, next.revision);
+  if (transportBytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(transportBytes);
+  if (canonicalCatalog && workspaceTransportBytes({ files }, next.revision) > FILE_CATALOG_MAX_BYTES)
+    throw new WorkspaceSizeError(workspaceTransportBytes({ files }, next.revision));
+  for (const name of DOCUMENT_NAMES) {
+    const bytes = workspaceTransportBytes(workspaceDocumentData(name, next), Number(next._documentRevisions?.[name]?.revision || 0));
+    if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);
+  }
+}
+
 export async function mutateWorkspaceDatabase(mutator, expectedRevision, options = {}) {
   if (typeof mutator !== 'function') throw new TypeError('A workspace mutation function is required.');
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
     throw new TypeError('A non-negative expected revision is required.');
   }
 
+  return withWorkspaceWrite(async coordination => {
+    if (process.env.VERCEL) await reloadWorkspaceStore();
+    return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin', coordination });
+  });
+}
+
+async function withWorkspaceWrite(operation) {
   if (process.env.VERCEL) {
     if (hasSharedRedis()) {
-      return withRedisLock('smena:workspace:write:v1', async coordination => {
-        await reloadWorkspaceStore();
-        return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin', coordination });
-      });
+      return withRedisLock('smena:workspace:write:v1', operation);
     }
     if (!directDriveWritesEnabled()) {
       throw new WorkspaceCoordinationError('Workspace writes are not enabled for this deployment.');
     }
-    const result = localWriteQueue.then(async () => {
-      await reloadWorkspaceStore();
-      return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' });
-    });
-    localWriteQueue = result.catch(() => undefined);
-    return result;
   }
-
-  const result = localWriteQueue.then(() => mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin' }));
+  const result = localWriteQueue.then(() => operation(null));
   localWriteQueue = result.catch(() => undefined);
   return result;
+}
+
+export async function mutateWorkspaceMetadata(mutator, expectedRevision, options = {}) {
+  if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
+    throw new TypeError('A mutation function and a non-negative expected revision are required.');
+  if (![...DOCUMENT_NAMES, 'preferences'].includes(options.scope) || options.backupLabel || options.replaceDocuments || options.actorMemberId)
+    throw new TypeError('Invalid metadata-only mutation scope.');
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseMetadata !== 'function' || typeof storage.saveDatabaseMetadata !== 'function')
+    return mutateWorkspaceDatabase(mutator, expectedRevision, options);
+  return withWorkspaceWrite(async coordination => {
+    const baseline = await storage.loadDatabaseMetadata();
+    const current = baseline && (await loadAggregate(storage, clone(baseline)));
+    // Legacy/migration side effects require complete validation and reindexing.
+    // Never install an empty/identity-only catalog as a canonical cache entry.
+    if (!current || !isDeepStrictEqual(current, baseline)) {
+      if (process.env.VERCEL) await reloadWorkspaceStore();
+      return mutateInsideLock(mutator, expectedRevision, { ...options, role: options.role || 'admin', coordination });
+    }
+    if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
+    const changed = await mutator(clone(current));
+    if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('Workspace mutation must return a JSON object.');
+    const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
+    validateMembershipTransition(current, next);
+    // Catalog bytes are checked exactly by the provider's immutable-root patch;
+    // computing them from the intentionally absent file rows would be wrong.
+    validateTransportSize(next, false);
+    await coordination?.assertOwnership?.();
+    try {
+      const result = await storage.saveDatabaseMetadata(next, baseline, { scope: options.scope, memberId: options.memberId });
+      database = null;
+      lastLoadedAt = 0;
+      return clone(result);
+    } catch (error) {
+      if (Number(error?.response?.status || error?.code) !== 412) throw error;
+      database = null;
+      lastLoadedAt = 0;
+      const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
+      throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
+    }
+  });
 }
 
 export async function replaceWorkspaceDatabase(nextData, expectedRevision, options = {}) {

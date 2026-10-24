@@ -1,7 +1,7 @@
 import { DOCUMENT_NAMES, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { bindWikiReferences } from '../shared/relations.js';
-import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { getWorkspaceDatabase, mutateWorkspaceMetadata } from './workspace-store.js';
 import { noteHistory } from '../shared/knowledge-history.js';
 
 function assertName(name) {
@@ -42,10 +42,11 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new TypeError('A non-negative expected revision is required.');
   for (let attempt = 0; attempt < 3; attempt += 1) {
     // Only the aggregate revision is needed before entering the write boundary.
-    // Histories, wiki bindings and file records come from its canonical snapshot.
+    // Histories/wiki bindings come from the locked root snapshot. Unchanged
+    // immutable file records need not be downloaded for document-only writes.
     const current = await getWorkspaceDatabase({ fields: ['revision'] });
     try {
-      const saved = await mutateWorkspaceDatabase(
+      const saved = await mutateWorkspaceMetadata(
         database => {
           const document = projectDocument(name, database);
           if (document.revision !== expectedRevision) throw new WorkspaceDocumentConflictError(document.revision);
@@ -80,7 +81,7 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
           return database;
         },
         current.revision,
-        { role: 'admin' },
+        { role: 'admin', scope: name },
       );
       return structuredClone(projectDocument(name, saved));
     } catch (error) {
