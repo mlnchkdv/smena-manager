@@ -1950,11 +1950,11 @@ const PATTERNS = [
     'Импортировано заметок: $1, закладок: $2, папок: $3. Пропущено дублей: $4.',
   ],
   [
-    /^(\d+) notes · (\d+) folders$/u,
+    /^(\d+) notes? · (\d+) folders?$/u,
     (_match, notes, folders) => `${pluralRu(notes, 'заметка', 'заметки', 'заметок')} · ${pluralRu(folders, 'папка', 'папки', 'папок')}`,
   ],
   [
-    /^(\d+) bookmarks · (\d+) folders$/u,
+    /^(\d+) bookmarks? · (\d+) folders?$/u,
     (_match, bookmarks, folders) => `${pluralRu(bookmarks, 'закладка', 'закладки', 'закладок')} · ${pluralRu(folders, 'папка', 'папки', 'папок')}`,
   ],
   [/^Group: (.+)$/u, (_match, value) => `Группа: ${RU[value] || value}`],

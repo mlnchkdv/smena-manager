@@ -12,6 +12,7 @@ import { LANGUAGES, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 import { storageCapacityPanel } from '../ui/storage-capacity.js';
+import { contentCounts } from '../shared/content-counts.js';
 
 export const SET_NAV = [
   [
@@ -337,8 +338,8 @@ export function settingsBody(sec, title) {
         ${S.ui.migrationStatus ? `<div class="callout info" role="status" style="margin-top:16px">${ic('info', 15)}<span>${esc(S.ui.migrationStatus)}</span></div>` : ''}
         </div>
         <div class="sblock"><h2>Included data</h2>
-          ${srow('Knowledge base', `${d.knowledgeNotes?.length || 0} notes · ${d.knowledgeFolders?.length || 0} folders`, `<span class="badge">${ic('library-big', 12)}KMS compatible</span>`)}
-          ${srow('Bookmarks', `${d.links?.length || 0} bookmarks · ${d.linkFolders?.length || 0} folders`, `<span class="badge">${ic('bookmark', 12)}KMS compatible</span>`)}
+          ${srow('Knowledge base', contentCounts(d.knowledgeNotes?.length || 0, d.knowledgeFolders?.length || 0, 'note'), `<span class="badge">${ic('library-big', 12)}KMS compatible</span>`)}
+          ${srow('Bookmarks', contentCounts(d.links?.length || 0, d.linkFolders?.length || 0, 'bookmark'), `<span class="badge">${ic('bookmark', 12)}KMS compatible</span>`)}
         </div>`
       );
     case 'members':
