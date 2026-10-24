@@ -273,7 +273,20 @@ export async function getWorkspaceRevisionStatus() {
 export async function createWorkspaceBackup(label = '') {
   // A recovery point must describe a fresh, complete root, not the two-second
   // UI read cache or a catalog metadata projection.
-  const current = process.env.VERCEL ? await reloadWorkspaceStore() : await initWorkspaceStore();
+  const storage = getStorageProvider();
+  // Capture the complete snapshot before awaiting: another request may replace
+  // the worker cache while the provider checks the root's exact ETag.
+  const baseline = database;
+  let current;
+  if (process.env.VERCEL && typeof storage.loadDatabaseForBackup === 'function') {
+    const loaded = await storage.loadDatabaseForBackup(storageVersion(baseline));
+    if (loaded.unchanged && baseline) current = baseline;
+    else {
+      if (loaded.unchanged) throw new Error('A complete backup baseline is missing.');
+      if (!loaded.data) throw new Error('The workspace backup source is missing.');
+      current = await loadAggregate(storage, loaded.data);
+    }
+  } else current = process.env.VERCEL ? await reloadWorkspaceStore() : await initWorkspaceStore();
   return backupSnapshot(current, label);
 }
 

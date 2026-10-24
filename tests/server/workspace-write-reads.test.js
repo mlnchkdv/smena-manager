@@ -4,6 +4,7 @@ import { getStorageProvider, resetStorageProvider } from '../../src/server/stora
 import {
   createEmptyDatabase,
   createWorkspaceBackup,
+  getWorkspaceDatabase,
   importPortableWorkspace,
   resetWorkspaceStore,
   restoreWorkspaceBackup,
@@ -121,4 +122,31 @@ test('standalone backups refresh even an otherwise reusable worker snapshot', as
     [4, 5],
   );
   assert.deepEqual(f.backups[1].data.files[0].history, ['canonical metadata']);
+});
+
+test('fresh ETag confirmation reuses only the captured complete baseline, including during cache replacement', async t => {
+  const f = fixture(t);
+  await getWorkspaceDatabase();
+  f.storage.loadDatabaseForBackup = async expected => {
+    assert.equal(expected, 'v4');
+    // A second request reloads a newer snapshot while this backup is checking.
+    f.externalEdit();
+    const { reloadWorkspaceStore } = await import('../../src/server/workspace-store.js');
+    await reloadWorkspaceStore();
+    return { unchanged: true };
+  };
+  await createWorkspaceBackup('Captured');
+  assert.equal(f.backups[0].data.revision, 4);
+  assert.deepEqual(f.backups[0].data.files[0].history, ['canonical metadata']);
+});
+
+test('a cold conditional backup uses the returned full snapshot without a second catalog load', async t => {
+  const f = fixture(t);
+  f.storage.loadDatabaseForBackup = async expected => {
+    assert.equal(expected, null);
+    return { unchanged: false, data: rememberStorageVersion(f.data(), 'v4') };
+  };
+  await createWorkspaceBackup('Cold');
+  assert.equal(f.reads.full, 0);
+  assert.deepEqual(f.backups[0].data.files[0].history, ['canonical metadata']);
 });

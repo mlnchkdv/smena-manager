@@ -294,6 +294,18 @@ export class GoogleDriveStorageProvider {
     return data;
   }
 
+  async loadDatabaseForBackup(expectedEtag) {
+    // Only an exact, freshly read root version can authorize reuse of a full
+    // canonical snapshot. Revision numbers and mutable provider cursors cannot.
+    const root = await this.readDatabaseRoot();
+    if (root && expectedEtag && storageVersion(root) === expectedEtag) {
+      catalogCore(root, { identities: false }); // Validate the manifest even on a cache hit.
+      return { unchanged: true };
+    }
+    const data = root ? await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)) : null;
+    return { unchanged: false, data: data && rememberStorageVersion(data, storageVersion(root)) };
+  }
+
   async saveDatabaseMetadata(next, baseline, { scope, memberId } = {}) {
     // A projection, mutable provider cursor or client-supplied root cannot be
     // substituted for the exact snapshot issued by loadDatabaseMetadata.
