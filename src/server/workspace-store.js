@@ -30,6 +30,8 @@ import { canReadProject } from '../shared/project-access.js';
 import { queryGraph, validateGraphQuery } from './graph-query.js';
 import { fileExportReadIds } from './file-export-read.js';
 import { isDeepStrictEqual } from 'node:util';
+import { filePatchIds, fileMetadataChanges } from './storage/catalog-file-write.js';
+import { planFileMetadataPatch } from './file-metadata-patch.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -527,6 +529,45 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
       lastLoadedAt = 0;
       const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
       throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
+    }
+  });
+}
+
+// Returns null only when the operation requires the existing canonical path.
+// A partial catalog is never installed in the worker's complete database cache.
+export async function tryMutateWorkspaceFiles(incoming, changes, expectedRevision, user, profiles = []) {
+  const ids = filePatchIds(changes);
+  const storage = getStorageProvider();
+  if (!ids || typeof storage.loadDatabaseFilePatch !== 'function' || typeof storage.saveDatabaseFilePatch !== 'function') return null;
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new TypeError('A non-negative expected revision is required.');
+  return withWorkspaceWrite(async coordination => {
+    let plan;
+    const snapshot = await storage.loadDatabaseFilePatch(ids, async core => {
+      if (core.revision !== expectedRevision) throw new RevisionConflictError(core.revision);
+      // Migrations, sanitation or registry repairs require full canonical rows.
+      if (!isDeepStrictEqual(core, await loadAggregate(storage, clone(core)))) return false;
+      plan = planFileMetadataPatch(core, incoming, changes, user, profiles);
+      return !!plan;
+    });
+    if (!snapshot) return null;
+    const updates = new Map(changes.upsert.map(file => [file.id, file]));
+    const files = snapshot.files.map(file => updates.get(file.id) || file);
+    if (snapshot.files.some((file, index) => !fileMetadataChanges(file, files[index]))) return null;
+    const updatedAt = new Date().toISOString();
+    const next = { ...snapshot.data, files, tasks: plan.tasks, revision: snapshot.data.revision + 1, updatedAt };
+    if (!isDeepStrictEqual(next, normalizeDatabase(clone(next)))) return null;
+    validateTransportSize(next, false);
+    try {
+      const result = await storage.saveDatabaseFilePatch(snapshot, files, plan.tasks, next.revision, updatedAt, () => coordination?.assertOwnership?.());
+      database = null;
+      lastLoadedAt = 0;
+      return clone(result);
+    } catch (error) {
+      if (Number(error?.response?.status || error?.code) !== 412) throw error;
+      database = null;
+      lastLoadedAt = 0;
+      const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
+      throw new RevisionConflictError(Number(latest?.revision ?? snapshot.data.revision));
     }
   });
 }

@@ -10,6 +10,7 @@ import { fileCatalogIndex } from '../file-catalog-index.js';
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
 import { metadataWriteBase, patchCatalogMetadata } from './catalog-metadata-write.js';
 import { backupJson } from './backup-json.js';
+import { writeFileMetadataParts } from './catalog-file-write.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -69,6 +70,7 @@ export class GoogleDriveStorageProvider {
   catalogRoot = null;
   catalogParts = new Map();
   metadataRoots = new WeakMap();
+  fileWriteRoots = new WeakMap();
   catalogPartBytes = 0;
   documentFileIds = {
     knowledge: process.env.GOOGLE_DRIVE_KNOWLEDGE_FILE_ID?.trim() || null,
@@ -305,6 +307,53 @@ export class GoogleDriveStorageProvider {
     }
     const data = root ? await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)) : null;
     return { unchanged: false, data: data && rememberStorageVersion(data, storageVersion(root)) };
+  }
+
+  async loadDatabaseFilePatch(ids, authorize) {
+    const root = await this.readDatabaseRoot();
+    if (!metadataWriteBase(root)) return null;
+    const data = rememberStorageVersion(catalogCore(root), storageVersion(root));
+    // Authorization/classification happens against this exact latest root,
+    // before reading a single immutable record (including private projects).
+    if (!(await authorize(data))) return null;
+    conditionalWriteOptions({ expectedEtag: storageVersion(root) });
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), { ids });
+    const snapshot = { data, files };
+    this.fileWriteRoots.set(snapshot, { root, files: structuredClone(files), fileId: this.databaseFileId, version: storageVersion(root) });
+    return snapshot;
+  }
+
+  async saveDatabaseFilePatch(snapshot, files, tasks, revision, updatedAt, assertOwnership) {
+    const source = this.fileWriteRoots.get(snapshot);
+    if (!source?.fileId || source.version !== storageVersion(snapshot.data))
+      throw Object.assign(new Error('Reload the file snapshot before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
+    const options = conditionalWriteOptions({ expectedEtag: source.version });
+    const stored = await writeFileMetadataParts(source.root, source.files, files, tasks, revision, updatedAt, async (text, hash) => {
+      await assertOwnership?.();
+      const result = await this.client.files.create({
+        requestBody: { name: `smena-catalog-${hash}.json`, parents: [this.rootFolderId], mimeType: 'application/json' },
+        media: { mimeType: 'application/json', body: Readable.from([text]) },
+        fields: 'id',
+        supportsAllDrives: true,
+      });
+      return result.data.id;
+    });
+    // Staging may outlive a coordination lease; check again at publication.
+    await assertOwnership?.();
+    const result = await this.updateVersionedJson(
+      {
+        fileId: source.fileId,
+        requestBody: { appProperties: { smenaRevision: String(revision) } },
+        media: { mimeType: 'application/json', body: Readable.from([JSON.stringify(stored, null, 2)]) },
+        supportsAllDrives: true,
+      },
+      options,
+    );
+    this.databaseEtag = responseHeader(result, 'etag');
+    this.catalogRoot = stored;
+    this.lastSyncAt = new Date().toISOString();
+    this.fileWriteRoots.delete(snapshot);
+    return rememberStorageVersion(catalogCore(stored), this.databaseEtag);
   }
 
   async saveDatabaseMetadata(next, baseline, { scope, memberId } = {}) {

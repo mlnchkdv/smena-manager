@@ -11,6 +11,7 @@ import {
   listWorkspaceBackups,
   mutateWorkspaceDatabase,
   mutateWorkspaceMetadata,
+  tryMutateWorkspaceFiles,
   restoreWorkspaceBackup,
   RevisionConflictError,
   queryWorkspaceGraph,
@@ -450,6 +451,10 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
   try {
     const incoming = workspaceCoreData(request.body?.data);
     const actorMemberId = memberForProfile(bindAccessProfiles(request.workspaceSnapshot, getAccessProfiles()), request.user)?.id || request.user.id;
+    if (request.get('x-smena-file-catalog') === 'demand' && request.body?.fileChanges) {
+      const patched = await tryMutateWorkspaceFiles(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles());
+      if (patched) return response.json({ data: workspaceCoreData(patched) });
+    }
     let knownNotifications;
     const data = await mutateWorkspaceDatabase(
       stored => {
