@@ -41,7 +41,9 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
   validateDocumentInput(name, nextData);
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new TypeError('A non-negative expected revision is required.');
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const current = await getWorkspaceDatabase();
+    // Only the aggregate revision is needed before entering the write boundary.
+    // Histories, wiki bindings and file records come from its canonical snapshot.
+    const current = await getWorkspaceDatabase({ fields: ['revision'] });
     try {
       const saved = await mutateWorkspaceDatabase(
         database => {

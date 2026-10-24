@@ -190,7 +190,7 @@ app.get('/api/preferences', async (request, response, next) => {
 app.put('/api/preferences', async (request, response, next) => {
   try {
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const current = await getWorkspaceDatabase();
+      const current = await getWorkspaceDatabase({ fields: ['members', 'revision'] });
       const member = memberForProfile(bindAccessProfiles(current, getAccessProfiles()), request.user);
       if (!member) throw permissionError('profile');
       try {
@@ -515,10 +515,7 @@ app.get('/api/workspace-documents/:name', async (request, response, next) => {
 app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
-    const legacy = await getWorkspaceDatabase();
-    const data = await replaceWorkspaceDocument(request.params.name, validateDocumentInput(request.params.name, request.body?.data), request.body?.revision, {
-      legacyData: legacy,
-    });
+    const data = await replaceWorkspaceDocument(request.params.name, validateDocumentInput(request.params.name, request.body?.data), request.body?.revision);
     response.json({ data });
   } catch (error) {
     next(error);
