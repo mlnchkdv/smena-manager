@@ -6,7 +6,7 @@ test.setTimeout(180_000);
 // This file includes the 140-route responsive audit. Record failure screenshots
 // on every failure; collect full video/DOM traces on retries to avoid exhausting
 // small desktop hosts. --trace retain-on-failure enables a diagnostic first run.
-test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
+test.use({ trace: process.env.E2E_TRACE === 'true' ? 'retain-on-failure' : 'on-first-retry', video: 'on-first-retry', actionTimeout: 15000 });
 
 async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
@@ -46,6 +46,7 @@ async function waitForSaved(page) {
 }
 
 async function confirmDialog(page) {
+  await expect(page.locator('[data-a="confirmOk"]:visible').last()).toBeVisible();
   await page.locator('[data-a="confirmOk"]:visible').last().click();
 }
 
@@ -80,8 +81,9 @@ test.describe('Russian workspace responsive sweep', () => {
     { name: 'tablet-wide', width: 1024, height: 900 },
     { name: 'tablet', width: 768, height: 1024 },
     { name: 'mobile', width: 390, height: 844 },
+    { name: 'mobile-narrow', width: 320, height: 844 },
   ]) {
-    test(`Russian workspace remains usable and responsive across breakpoints: ${viewport.name}`, async ({ page }) => {
+    test(`Russian workspace remains usable and responsive across breakpoints: ${viewport.name}`, async ({ page, browserName }) => {
       // Each viewport gets an independent context and failure artifact. The same
       // 140 route/viewport checks no longer share a single six-minute deadline.
       test.setTimeout(360_000);
@@ -206,12 +208,52 @@ test.describe('Russian workspace responsive sweep', () => {
         expect(audit.applicationError, `${viewport.name}/${route || 'home'} has an application error`).toBe(false);
         expect(audit.accessibilityIssues, `${viewport.name}/${route || 'home'} has basic accessibility issues`).toEqual([]);
         expect(audit.activeSettingVisible, `${viewport.name}/${route || 'home'} hides the selected settings tab`).toBe(true);
+        if (route.startsWith('settings') && viewport.width <= 1100) {
+          await expect(page.locator('#settings-section')).toBeVisible();
+          await expect(page.locator('#settings-section')).toHaveValue(route.split('/')[1] || 'appearance');
+        }
         if (viewport.name === 'desktop') {
           const untranslated = await visibleUntranslatedUi(page);
           if (untranslated.length) untranslatedByRoute.push({ route: route || 'home', untranslated });
         }
       }
       expect(untranslatedByRoute, 'visible Russian routes contain untranslated English UI text').toEqual([]);
+      // Content-first collection layouts need more than an overflow-only check.
+      for (const language of ['English (US)', 'Русский']) {
+        await page.goto('/e2e-team/settings/language');
+        await page.locator('select[data-k="lang"]').selectOption(language);
+        await waitForSaved(page);
+        for (const theme of ['light', 'dark']) {
+          await page.goto('/e2e-team/settings/appearance');
+          await page.locator(`[data-a="setTheme"][data-v="${theme}"]`).click();
+          await waitForSaved(page);
+          for (const route of ['files', 'knowledge', 'bookmarks', 'search', 'settings/appearance']) {
+            await page.goto(`/e2e-team/${route}`);
+            await expect(page.locator('#main-content')).toBeVisible();
+            await expect(page.locator('#main-content [aria-busy="true"]')).toHaveCount(0);
+            await expect(page.locator('.topsearch')).toHaveAccessibleName(language === 'Русский' ? /Найти или перейти…/ : /Search or jump to…/);
+            expect(
+              await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
+              `${language}/${theme}/${viewport.name}/${route}`,
+            ).toBeLessThanOrEqual(2);
+            if (route === 'knowledge') {
+              const title = await page.locator('#knowledge-view-title').boundingBox();
+              expect(title.width, 'knowledge heading must not collapse to one letter per line').toBeGreaterThanOrEqual(80);
+              expect(title.height).toBeLessThanOrEqual(84);
+            }
+            if (route === 'knowledge' || route === 'files') {
+              const query = page.locator(route === 'files' ? '#workspace-file-q' : '#knowledge-search');
+              await query.fill('no-result-keyboard-check');
+              await query.press('Escape');
+              await expect(query).toHaveValue('');
+              await expect(query).toBeFocused();
+            }
+            await page.screenshot({
+              path: `output/playwright/ux18-${browserName}-${viewport.name}-${language === 'Русский' ? 'ru' : 'en'}-${theme}-${route.replace('/', '-')}.png`,
+            });
+          }
+        }
+      }
     });
   }
 });
@@ -286,6 +328,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.reload();
   const bookmarkCard = page.locator('.bookmark-card', { hasText: bookmarkTitle });
   await expect(bookmarkCard).toBeVisible();
+  await bookmarkCard.locator('.bookmark-action-menu summary').click();
   await bookmarkCard.locator('[data-a="deleteBookmark"]').click();
   await expectRussianUi(page, 'bookmark delete confirmation');
   await confirmDialog(page);
@@ -396,6 +439,16 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await waitForSaved(page);
+  await page.route('**/app-version.json', route => route.fulfill({ json: { version: 'e2e-next-deployment' } }));
+  await page.goto('/e2e-team/files');
+  await page.locator('#workspace-file-q').fill(fileName);
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
+  const update = page.locator('.deployment-update').getByRole('button', { name: 'Обновить приложение', exact: true });
+  await expect(update).toBeEnabled();
+  await Promise.all([page.waitForEvent('domcontentloaded'), update.click()]);
+  await expect(page.locator('#workspace-file-q')).toHaveValue(fileName);
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
+  await page.unroute('**/app-version.json');
 });
 
 test('signing out is synchronized across browser tabs', async ({ browser }) => {
@@ -527,6 +580,10 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA, { timeout: 15_000 });
+  // Reload restores the saved view, not a transient folder filter. Verify the
+  // persisted folder membership by entering it before returning via breadcrumbs.
+  await page.locator('.files-folder-tile', { hasText: folderA }).locator('.files-folder-open').click();
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
   await expect(page.locator('#workspace-file-project')).toHaveValue('all');
   await createFolder(folderB);
@@ -544,7 +601,9 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await waitForSaved(page);
     await page.goto('/e2e-team/files');
     await page.setViewportSize({ width: 320, height: 844 });
-    await expect(page.locator('.topsearch')).toHaveAccessibleName(language === 'Русский' ? 'Найти или перейти…' : 'Search or jump to…');
+    await expect(page.locator('.topsearch')).toHaveAccessibleName(language === 'Русский' ? /Найти или перейти…/ : /Search or jump to…/);
+    await expect(page.locator('[data-a="newFileFolder"]')).toHaveAccessibleName(language === 'Русский' ? 'Новая папка' : 'New folder');
+    await expect(page.locator('[data-a="chooseStoredFiles"]')).toHaveAccessibleName(language === 'Русский' ? 'Загрузить файлы' : 'Upload files');
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
     await page.locator('#mnav-btn').click();
     await expect(page.locator('.side')).toHaveAttribute('role', 'dialog');
@@ -783,6 +842,8 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     const exportId = await page.locator('.files-export-job').first().getAttribute('data-export');
     await page.reload();
     const exportRow = page.locator(`.files-export-job[data-export="${exportId}"]`);
+    if (!(await page.locator('.files-details').getAttribute('open'))) await page.locator('.files-details > summary').click();
+    if (!(await page.locator('.files-exports').getAttribute('open'))) await page.locator('.files-exports > summary').click();
     await expect(exportRow.locator('a[download]')).toBeVisible();
     if (language === 'Русский') await expectRussianUi(page, 'Resumable export after reload');
     const persistentEvent = page.waitForEvent('download');
@@ -954,12 +1015,14 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('[data-a="openFileFolder"]').click();
       await expect(page.locator('.workspace-file-card')).toHaveCount(1);
+      await page.locator('.files-details > summary').click();
       await page.locator('[data-a="toggleFileRecursive"]').click();
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
       await page.locator('[data-a="saveFileFilter"]').click();
       await page.locator('#prompt-in').fill('E2E saved tree');
       await page.locator('[data-a="promptSubmit"]').click();
       await page.reload();
+      await page.locator('.files-details > summary').click();
       await page.locator('[data-in="fileFilterPreset"]').selectOption({ label: 'E2E saved tree' });
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
       await page.locator('.files-selection-bar [data-a="selectFileResults"]').click();

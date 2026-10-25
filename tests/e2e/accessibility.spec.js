@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 test.setTimeout(180_000);
+test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
 
 async function signIn(page) {
   await page.goto('/');
@@ -73,6 +74,23 @@ test('key Russian and English workflows pass automated WCAG checks', async ({ pa
 
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(700);
+    for (const theme of ['light', 'dark']) {
+      await page.goto('/e2e-team/settings/appearance');
+      await page.locator(`[data-a="setTheme"][data-v="${theme}"]`).click();
+      await page.waitForTimeout(700);
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const route of ['files', 'knowledge', 'bookmarks', 'inbox', 'search', 'settings/appearance']) {
+        await page.goto(`/e2e-team/${route}`);
+        await expect(page.locator('#main-content')).toBeVisible();
+        await expect(page.locator('#main-content [aria-busy="true"]')).toHaveCount(0);
+        await expectNoWcagViolations(page, `${language}/${theme}/390/${route}`);
+      }
+    }
+  }
 });
 
 test('settings remain usable at 200% zoom on a narrow viewport in both locales', async ({ page }) => {
@@ -92,4 +110,17 @@ test('settings remain usable at 200% zoom on a narrow viewport in both locales',
       document.documentElement.style.zoom = '';
     });
   }
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/e2e-team/files');
+  await page.keyboard.press('Tab');
+  await page.locator('.topsearch').focus();
+  const focus = await page.locator('.topsearch').evaluate(el => ({
+    style: getComputedStyle(el).outlineStyle,
+    width: parseFloat(getComputedStyle(el).outlineWidth),
+  }));
+  expect(focus.style).not.toBe('none');
+  expect(focus.width).toBeGreaterThanOrEqual(2);
+  expect(await page.locator('[data-a="newFileFolder"]').evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
+  await page.screenshot({ path: 'output/playwright/ux18-forced-colors-mobile.png' });
+  await page.emulateMedia({ forcedColors: 'none' });
 });

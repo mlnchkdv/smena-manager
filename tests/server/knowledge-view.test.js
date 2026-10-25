@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { knowledgeFolderOverlay } from '../../src/shared/knowledge-layout.js';
+
+test('knowledge folder overlay follows usable width and sidebar collapse without changing the view', () => {
+  assert.equal(knowledgeFolderOverlay(1440), false);
+  assert.equal(knowledgeFolderOverlay(1024), true);
+  assert.equal(knowledgeFolderOverlay(1024, true), false);
+  assert.equal(knowledgeFolderOverlay(900, true), true);
+  assert.equal(knowledgeFolderOverlay(320), true);
+});
 import { knowledgeView } from '../../src/shared/knowledge-view.js';
 
 const notes = [

@@ -32,6 +32,36 @@ function fixture(write) {
   };
 }
 
+test('read coordination waits for an active preference write without starting another request', async () => {
+  let release, entered;
+  const started = new Promise(resolve => {
+    entered = resolve;
+  });
+  const gate = new Promise(resolve => {
+    release = resolve;
+  });
+  let writes = 0;
+  const f = fixture(async () => {
+    writes += 1;
+    entered();
+    await gate;
+  });
+  await f.sync.configure('alice', { theme: 'light' }, { workspace: 'team' });
+  await f.sync.settled();
+  const pending = f.sync.queue('alice', { theme: 'dark' });
+  await started;
+  let settled = false;
+  const waiting = f.sync.settled().then(() => {
+    settled = true;
+  });
+  await Promise.resolve();
+  assert.equal(settled, false);
+  release();
+  await Promise.all([pending, waiting]);
+  assert.equal(writes, 1);
+  assert.equal(f.sync.state().pending, false);
+});
+
 test('preferences retry without another edit and preserve only changed fields', async () => {
   const writes = [];
   let fails = true;
