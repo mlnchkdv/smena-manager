@@ -1,4 +1,15 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.graph-controls button {
+  min-width: 36px;
+  min-height: 36px;
+}
+@media (max-width: 640px) {
+  .graph-controls button,
+  .graph-detail-actions .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
 .inbox-grid {
   grid-template-columns: minmax(320px, 40%) minmax(0, 1fr);
 }

@@ -31,7 +31,7 @@ function graphDetails(node) {
   if (!node) return '';
   return `<aside class="graph-detail"><div class="graph-detail-head"><span class="badge">${ic(ENTITY_ICONS[node.kind], 12)}${ENTITY_LABELS[node.kind]}</span><button class="ibtn ibtn-sm" data-a="clearGraphSelection" aria-label="Close material details">${ic('x', 15)}</button></div>
     <h2 translate="no">${esc(node.title)}</h2>${node.item.summary || node.item.description || node.item.url ? `<p class="graph-description" translate="no">${esc(node.item.summary || node.item.description || node.item.url)}</p>` : ''}
-    <div class="graph-detail-actions"><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button></div>
+    <div class="graph-detail-actions"><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button><button class="btn btn-secondary btn-sm" data-a="graphControl" data-command="selection">Focus connections</button></div>
     ${relationsPanel(node.key)}
   </aside>`;
 }

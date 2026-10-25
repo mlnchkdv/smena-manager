@@ -83,9 +83,9 @@ export function mountGraph(graph, selected, center, onSelect) {
             shape: 'data(shape)',
             label: 'data(label)',
             color: css.getPropertyValue('--text').trim(),
-            'font-size': 12,
-            'font-family': 'Arial',
-            'min-zoomed-font-size': 6,
+            'font-size': 14,
+            'font-family': css.getPropertyValue('--font').trim(),
+            'min-zoomed-font-size': 9,
             'text-valign': 'bottom',
             'text-margin-y': 10,
             'text-wrap': 'wrap',
@@ -102,19 +102,24 @@ export function mountGraph(graph, selected, center, onSelect) {
             'background-opacity': 0.22,
             'border-width': 3,
             'font-weight': 600,
+            'font-size': 16,
+            'min-zoomed-font-size': 0,
+            'text-background-color': css.getPropertyValue('--surface').trim(),
+            'text-background-opacity': 0.95,
+            'text-background-padding': 4,
             'overlay-color': 'data(color)',
             'overlay-opacity': 0.08,
             'overlay-padding': 7,
           },
         },
-        { selector: 'node.muted', style: { opacity: 0.38 } },
+        { selector: 'node.muted', style: { opacity: 0.55 } },
         { selector: 'node.dense-hidden', style: { 'text-opacity': 0 } },
         { selector: 'node.dense-hidden:selected', style: { 'text-opacity': 1 } },
         {
           selector: 'edge',
           style: {
             width: 1.4,
-            'line-color': css.getPropertyValue('--border-strong').trim(),
+            'line-color': css.getPropertyValue('--text-3').trim(),
             'target-arrow-color': css.getPropertyValue('--text-3').trim(),
             'target-arrow-shape': 'triangle',
             'arrow-scale': 0.7,
@@ -122,7 +127,7 @@ export function mountGraph(graph, selected, center, onSelect) {
             opacity: 0.65,
           },
         },
-        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.45 } },
+        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.6 } },
         { selector: 'edge.dense', style: { opacity: 0.3, width: 1 } },
         {
           selector: 'edge.highlight',
@@ -202,7 +207,15 @@ export function mountGraph(graph, selected, center, onSelect) {
 window.addEventListener('smena:graph-control', event => {
   if (!instance) return;
   if (event.detail === 'fit') instance.fit(undefined, 35);
-  else
+  else if (event.detail === 'selection') {
+    const selected = instance.nodes(':selected');
+    if (!selected.length) return;
+    instance.fit(selected.closedNeighborhood(), 45);
+    if (instance.zoom() > 1.5) {
+      instance.zoom(1.5);
+      instance.center(selected.closedNeighborhood());
+    }
+  } else
     instance.zoom({
       level: Math.max(0.08, Math.min(3, instance.zoom() * (event.detail === 'in' ? 1.3 : 1 / 1.3))),
       renderedPosition: { x: instance.width() / 2, y: instance.height() / 2 },
