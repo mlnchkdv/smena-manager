@@ -7,6 +7,7 @@ import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-
 import { commentHtml, mentionPicker } from '../overlays/drawer-content.js';
 import { isRussian, t as tr } from '../core/i18n.js';
 import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
+import { inboxEventGroups } from '../shared/inbox-groups.js';
 
 export function pageInbox() {
   const cats = [
@@ -28,14 +29,32 @@ export function pageInbox() {
   if (S.ui.inboxUnread) ns = ns.filter(n => !n.read);
   const sel = myNotification(S.ui.inboxSel);
   return `<div class="page flush">
-    <div class="inbox-grid ${sel ? 'has-selection' : ''}">
+    <div class="inbox-grid ${innerWidth <= 900 || innerWidth - (S.ui.collapsed ? 56 : 252) < 760 ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''}">
       <div style="border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0">
         <div style="padding:18px var(--gutter) 0" class="row"><h1 style="font-size:var(--fs-xl);margin:0;font-weight:600;letter-spacing:-.015em">Inbox</h1><span class="sp"></span>
           <label class="row" style="font-size:12px;color:var(--text-2);gap:6px;cursor:pointer"><input type="checkbox" class="toggle" data-a="toggleUnreadOnly" ${S.ui.inboxUnread ? 'checked' : ''}>Unread</label>
           <button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div>
-        <div class="tabs inbox-tabs" role="tablist">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>
+        <div class="tabs inbox-tabs" role="tablist" aria-label="Inbox categories">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>
         <div class="inbox-list" data-keep="inbox-list">
-          ${ns.length ? ns.map(n => inboxItem(n, sel && sel.id === n.id)).join('') : empty('inbox', "You're all caught up.", S.ui.inboxUnread ? 'No unread notifications in this category.' : 'New mentions, assignments, and comments will show up here.', '', 'sm')}
+          ${
+            ns.length
+              ? inboxEventGroups(ns)
+                  .map(
+                    ({ notification, earlier }) =>
+                      inboxItem(notification, sel?.id === notification.id) +
+                      (earlier.length
+                        ? `<details class="inbox-system-history" ${earlier.some(n => sel?.id === n.id) ? 'open' : ''}><summary><span>Earlier system events</span> · ${earlier.length}${earlier.some(n => !n.read) ? ' · <span>Unread</span>' : ''}</summary>${earlier.map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
+                        : ''),
+                  )
+                  .join('')
+              : empty(
+                  'inbox',
+                  "You're all caught up.",
+                  S.ui.inboxUnread ? 'No unread notifications in this category.' : 'New mentions, assignments, and comments will show up here.',
+                  '',
+                  'sm',
+                )
+          }
         </div>
       </div>
       <div class="inbox-prev">${sel ? inboxPreview(sel) : `<div class="fullstate"><div class="box"><div class="empty-state" style="padding:0"><div class="glyph">${ic('mail-open', 20)}</div><h2 class="es-h">Select a notification</h2><p>Read the conversation and reply without leaving your inbox.</p></div></div></div>`}</div>
@@ -94,7 +113,7 @@ export function inboxPreview(n) {
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
   if (n.type === 'security' || n.type === 'system') {
     const isSystem = n.type === 'system';
-    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic(isSystem ? 'triangle-alert' : 'shield-alert', 16)}<div><b>${esc(tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="${isSystem ? 'notif-push' : 'security'}">${ic(isSystem ? 'activity' : 'monitor-smartphone', 14)}${isSystem ? 'Open diagnostics' : 'Review active sessions'}</button></div></div>`;
+    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic(isSystem ? 'triangle-alert' : 'shield-alert', 16)}<div><b>${esc(tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px" translate="no">${esc(notificationSnippet(n, isRussian() ? 'ru' : 'en'))}</div>` : ''}<p class="hint">${ago(n.at)}</p></div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="${isSystem ? 'notif-push' : 'security'}">${ic(isSystem ? 'activity' : 'monitor-smartphone', 14)}${isSystem ? 'Open diagnostics' : 'Review active sessions'}</button></div></div>`;
   }
   if (!t) {
     const missing = n.task ? 'The related task is no longer available.' : p ? '' : 'The related project is no longer available.';

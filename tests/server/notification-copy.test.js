@@ -3,6 +3,27 @@ import test from 'node:test';
 import { notificationAction, notificationLocale, notificationSnippet } from '../../src/shared/notification-copy.js';
 import { emailNotificationMessage } from '../../src/server/email-notifications.js';
 import { pushMessagePayload } from '../../src/server/push-subscriptions.js';
+import { inboxEventGroups } from '../../src/shared/inbox-groups.js';
+
+test('inbox groups only identical system events without losing unread rows or chronology', () => {
+  const rows = [
+    { id: 'new', type: 'system', text: 'warning', snippet: 'a', read: false },
+    { id: 'comment', type: 'comment', text: 'warning', snippet: 'a' },
+    { id: 'old', type: 'system', text: 'warning', snippet: 'a', read: false },
+    { id: 'different', type: 'system', text: 'warning', snippet: 'b' },
+  ];
+  const groups = inboxEventGroups(rows);
+  assert.deepEqual(
+    groups.map(row => row.notification.id),
+    ['new', 'comment', 'different'],
+  );
+  assert.deepEqual(
+    groups[0].earlier.map(row => row.id),
+    ['old'],
+  );
+  assert.equal(groups.flatMap(row => [row.notification, ...row.earlier]).length, rows.length);
+  assert.equal(rows[2].read, false);
+});
 
 test('historical system issue codes localize without translating comments or unknown diagnostics', () => {
   const event = {
