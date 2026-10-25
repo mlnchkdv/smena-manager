@@ -78,7 +78,13 @@
     padding-inline: 0;
   }
   .files-folders-head > .btn span {
-    display: none;
+    display: inline;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .files-folders-head [data-a='focusFileResults'] {
     display: none;
