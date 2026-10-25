@@ -11,16 +11,19 @@ test('inbox groups only identical system events without losing unread rows or ch
     { id: 'comment', type: 'comment', text: 'warning', snippet: 'a' },
     { id: 'old', type: 'system', text: 'warning', snippet: 'a', read: false },
     { id: 'different', type: 'system', text: 'warning', snippet: 'b' },
+    { id: 'read-new', type: 'system', text: 'warning', snippet: 'a', read: true },
+    { id: 'read-old', type: 'system', text: 'warning', snippet: 'a', read: true },
   ];
   const groups = inboxEventGroups(rows);
   assert.deepEqual(
     groups.map(row => row.notification.id),
-    ['new', 'comment', 'different'],
+    ['new', 'comment', 'old', 'different', 'read-new'],
   );
   assert.deepEqual(
-    groups[0].earlier.map(row => row.id),
-    ['old'],
+    groups[4].earlier.map(row => row.id),
+    ['read-old'],
   );
+  assert.ok(groups.every(group => group.earlier.every(row => row.read === true)));
   assert.equal(groups.flatMap(row => [row.notification, ...row.earlier]).length, rows.length);
   assert.equal(rows[2].read, false);
 });
