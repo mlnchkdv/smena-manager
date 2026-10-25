@@ -9,6 +9,7 @@ import { esc } from '../core/utils.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
 import { backgroundRender } from './background-render.js';
 import { readCatalogWithRevisionRefresh } from '../shared/catalog-revision-retry.js';
+import { waitForPersonalPreferences } from '../core/personal-preferences.js';
 
 let loaded,
   pending = '',
@@ -24,6 +25,7 @@ export function demandFilePage(options) {
     queueMicrotask(async () => {
       try {
         await queueWorkspaceSync(S.data);
+        await waitForPersonalPreferences();
         if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
         const session = getSessionGeneration();
         await readCatalogWithRevisionRefresh(

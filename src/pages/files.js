@@ -192,7 +192,7 @@ export function pageFiles(projectId = null) {
         .join('')}</div>
     </section>
 
-    ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite"><span>Files found</span>: <b>${window.total}</b> / ${allTotal}</span><button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
+    ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite">${remote?.loading ? 'Loading files…' : `<span>Files found</span>: <b>${window.total}</b> / ${allTotal}`}</span>${currentFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFiles">Search all folders</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${
       readOnly || !projects.length

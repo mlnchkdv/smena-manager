@@ -134,6 +134,7 @@ export function createPersonalPreferenceSync(options = {}) {
       if (current(run)) return flush();
     },
     retry: flush,
+    settled: () => active || Promise.resolve(),
     state: () => ({ owner, status, pending: Object.keys(changedFields(confirmed, desired)).length > 0 }),
   };
 }
@@ -143,3 +144,4 @@ export const configurePersonalPreferences = (...args) => sync.configure(...args)
 export const queuePersonalPreferences = (...args) => sync.queue(...args);
 export const retryPersonalPreferences = () => sync.retry();
 export const personalPreferenceSyncState = () => sync.state();
+export const waitForPersonalPreferences = () => sync.settled();

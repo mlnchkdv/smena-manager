@@ -2933,6 +2933,16 @@ A.clearFileQuery = () => {
   render();
   document.getElementById('workspace-file-q')?.focus({ preventScroll: true });
 };
+A.searchAllFiles = () => {
+  S.ui.fileProject = 'all';
+  S.ui.fileFolder = null;
+  render();
+};
+A.searchAllKnowledge = () => {
+  S.ui.knowledgeFolder = 'all';
+  S.ui.knowledgeOffset = 0;
+  render();
+};
 A.renameFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;

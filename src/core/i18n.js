@@ -17,6 +17,7 @@ export const isRussian = () => locale() === 'ru-RU';
 const RU = {
   'Close navigation': 'Закрыть навигацию',
   Later: 'Позже',
+  'Search all folders': 'Искать во всех папках',
   'Loading file connections…': 'Загрузка файлов и связей…',
   'Use the update panel to load this section safely.': 'Чтобы безопасно открыть раздел, воспользуйтесь панелью обновления приложения.',
   'App update': 'Обновление приложения',
