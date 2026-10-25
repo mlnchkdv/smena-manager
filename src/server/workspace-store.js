@@ -14,7 +14,7 @@ import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
-import { indexStoredFiles } from './file-registry.js';
+import { indexStoredFiles, physicalFileKey } from './file-registry.js';
 import { applyEntityDefaults } from '../shared/workspace-defaults.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
@@ -217,6 +217,23 @@ export async function mutateWorkspaceCatalogCommand(mutator, expectedRevision, o
     const changed = await mutator(clone(current), actor, snapshot.data);
     if (!changed && options.tryOnly) return null;
     const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
+    const originalIds = new Set(current.files.map(file => file.id));
+    const nextIds = new Set(next.files.map(file => file.id));
+    const targets = [...next.files.filter(file => !originalIds.has(file.id)), ...current.files.filter(file => !nextIds.has(file.id))];
+    const memberId = memberForProfile(current, actor)?.id;
+    if (
+      targets.some(
+        file =>
+          !canEditProject(
+            current.projects.find(project => project.id === file.project),
+            memberId,
+            actor.role,
+          ) ||
+          (options.project && file.project !== options.project) ||
+          (options.physicalKey && !originalIds.has(file.id) && physicalFileKey(file) !== options.physicalKey),
+      )
+    )
+      throw Object.assign(new Error('The file command changed its authorized target.'), { code: 'FILE_FORBIDDEN', statusCode: 403 });
     validateTaskTransitions(current, next);
     validateMembershipTransition(current, next);
     validateTransportSize(next, false);

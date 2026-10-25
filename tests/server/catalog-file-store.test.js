@@ -12,6 +12,7 @@ import {
 } from '../../src/server/workspace-store.js';
 import { tryMutateWorkspaceFileRemoval } from '../../src/server/file-removal-patch.js';
 import { registerFileMetadata } from '../../src/server/file-registry.js';
+import { retainDetachedFile } from '../../src/server/file-retention.js';
 import { writeCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
 import { rememberStorageVersion } from '../../src/server/storage/version-token.js';
 import { workspaceCoreData } from '../../src/shared/workspace-documents.js';
@@ -286,6 +287,47 @@ test('upload preflight skips parts only for provably new physical identities; re
   assert.equal(f.counts.part, 0);
   assert.deepEqual((await getWorkspaceUploadSnapshot('id:physical')).files[0].history, ['canonical']);
   assert.equal(f.counts.part, 2);
+});
+
+test('alias removal retains an active physical object, then accounts for retention after its final logical reference', async t => {
+  const f = await fixture(t);
+  const alias = { ...f.raw.files[0], id: 'alias', by: 'me' };
+  await mutateWorkspaceCatalogCommand(uploadCommand(alias), 9, { demand: true, user: f.user, role: 'editor', project: 'p' });
+  assert.equal(f.root()._fileCatalog.accounting.fileStorage.aliases, 1);
+  for (const id of ['alias', 'f']) {
+    await mutateWorkspaceCatalogCommand(
+      data => {
+        const file = data.files.find(file => file.id === id);
+        retainDetachedFile(data, file);
+        data.files = data.files.filter(file => file.id !== id);
+        return data;
+      },
+      f.root().revision,
+      { demand: true, user: f.user, role: 'editor', ids: [id] },
+    );
+    assert.deepEqual(f.root()._fileCatalog.accounting, createCatalogAccounting(await f.full()));
+  }
+  assert.equal(f.root()._fileCatalog.accounting.fileStorage.activePhysical.files, 0);
+  assert.equal(f.root()._fileCatalog.accounting.fileStorage.retainedPhysical.knownBytes, 12);
+});
+
+test('scoped delta publication retains latest target ACLs and never overwrites a concurrent root', async t => {
+  const f = await fixture(t);
+  const file = { id: 'new', name: 'New.txt', project: 'private', bytes: 3 };
+  await assert.rejects(mutateWorkspaceCatalogCommand(uploadCommand(file), 9, { demand: true, user: f.user, role: 'editor', project: 'p' }), {
+    code: 'FILE_FORBIDDEN',
+  });
+  assert.equal(f.counts.uploads, 0);
+  f.race(root => {
+    root.revision++;
+    root.projects[0].name = 'Concurrent';
+  });
+  await assert.rejects(
+    mutateWorkspaceCatalogCommand(uploadCommand({ ...file, project: 'p' }), 9, { demand: true, user: f.user, role: 'editor', project: 'p' }),
+    { code: 'REVISION_CONFLICT' },
+  );
+  assert.equal(f.root().projects[0].name, 'Concurrent');
+  assert.equal(f.counts.writes, 0);
 });
 
 test('legacy reference indexes use canonical fallback; stale/private commands and forged trash never publish', async t => {
