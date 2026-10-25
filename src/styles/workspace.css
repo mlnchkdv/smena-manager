@@ -1,4 +1,12 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.files-exports:not([open]) {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.files-folder-crumbs:has(> button:only-child) {
+  display: none;
+}
 @media (forced-colors: active) {
   :is(.btn, .select, .input, .workspace-file-card, .bookmark-card, .knowledge-preview-card, .knowledge-folder-tile) {
     border: 1px solid CanvasText;
@@ -13,6 +21,56 @@
   min-height: 36px;
 }
 @media (max-width: 640px) {
+  .files-page-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .files-page .files-upload-actions {
+    width: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .files-page .files-upload-actions .select {
+    min-width: 0;
+    width: min(40vw, 160px);
+  }
+  .files-page .files-upload-actions .btn {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+  .files-page .workspace-files-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .workspace-files-toolbar .workspace-file-search {
+    grid-column: 1 / 3;
+  }
+  .workspace-files-toolbar .files-view-switch {
+    grid-column: 3;
+    grid-row: 1;
+    padding: 2px;
+  }
+  .workspace-files-toolbar .files-view-switch button {
+    min-width: 0;
+    flex: 1;
+    padding-inline: 6px;
+  }
+  .files-folders-head > .btn {
+    flex: 0 0 44px;
+    width: 44px;
+    padding-inline: 0;
+  }
+  .files-folders-head > .btn span {
+    display: none;
+  }
+  .files-folders-head [data-a='focusFileResults'] {
+    display: none;
+  }
+  .files-folders-head {
+    gap: 6px;
+  }
   .graph-controls button,
   .graph-detail-actions .btn {
     min-height: 44px;

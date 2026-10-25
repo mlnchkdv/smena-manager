@@ -30,6 +30,13 @@ const change = run => {
   }
 };
 
+document.addEventListener(
+  'toggle',
+  event => {
+    if (event.target?.matches?.('.files-details') && event.target.isConnected) S.ui.fileDetailsOpen = event.target.open;
+  },
+  true,
+);
 A.downloadSelectedFiles = async () => {
   const initial = owner(),
     generation = getSessionGeneration(),
