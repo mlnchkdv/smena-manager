@@ -1,0 +1,44 @@
+/* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+:is(.files-page, .bookmarks-page, .knowledge-main) {
+  padding-inline: var(--gutter);
+}
+:is(.files-page-head, .bookmarks-head, .knowledge-content-head) {
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+  align-items: center;
+}
+:is(.files-page-head, .bookmarks-head, .knowledge-content-head) h1 {
+  margin: 0;
+  font-size: var(--fs-2xl);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+:is(.workspace-files-toolbar, .bookmark-toolbar, .knowledge-content-toolbar) {
+  gap: var(--s-2);
+  min-width: 0;
+  align-items: center;
+}
+:is(.workspace-file-card, .bookmark-card, .knowledge-preview-card, .knowledge-folder-tile) {
+  border-radius: var(--r-lg);
+  border-color: var(--border);
+}
+:is(.workspace-file-card, .bookmark-card, .knowledge-preview-card):focus-within {
+  border-color: var(--accent-line);
+}
+.modal {
+  max-width: var(--modal-width);
+}
+.modal.sm {
+  max-width: var(--modal-small);
+}
+.modal.lg {
+  max-width: var(--modal-large);
+}
+@media (max-width: 640px) {
+  :is(.files-page, .bookmarks-page, .knowledge-main) {
+    padding-inline: var(--s-4);
+  }
+  :is(.files-page-head, .bookmarks-head, .knowledge-content-head) {
+    flex-wrap: wrap;
+  }
+}
