@@ -857,10 +857,8 @@ IN.knowledgeField = el => {
 };
 BLUR.knowledgeField = el => {
   IN.knowledgeField(el);
-  // Let the browser finish focusing/clicking the next control before replacing the editor DOM.
-  requestAnimationFrame(() => {
-    if (!document.activeElement?.closest('.knowledge-editor')) render();
-  });
+  // WebKit may leave focus on body between pointerdown and click. Replacing the
+  // editor on blur cancels that click. Closing the reader renders the updated list.
 };
 
 /* ---------- shared bookmarks ---------- */
