@@ -377,4 +377,21 @@
   :is(.files-page-head, .bookmarks-head, .knowledge-content-head) {
     flex-wrap: wrap;
   }
+  .topbar {
+    height: auto;
+    min-height: var(--topbar-h);
+    flex-wrap: wrap;
+    padding-block: 4px;
+  }
+  .bottomnav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .bottomnav button {
+    min-width: 0;
+  }
+  .bottomnav button span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
 }
