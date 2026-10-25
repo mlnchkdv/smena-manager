@@ -1,4 +1,14 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+@media (min-width: 901px) {
+  :is(.files-page-head, .bookmarks-head) {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .files-upload-actions {
+    flex-shrink: 0;
+  }
+}
 .knowledge-create-short {
   display: none;
 }
