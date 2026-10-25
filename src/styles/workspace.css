@@ -1,4 +1,26 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.knowledge-quick-preview {
+  max-width: 85ch;
+  margin-inline: auto;
+}
+.knowledge-quick-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.knowledge-quick-content :is(pre, table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+:is(.modal-h, .drawer-h) {
+  flex-shrink: 0;
+  background: var(--surface);
+}
+:is(.modal-b, .knowledge-drawer-body) {
+  overscroll-behavior-y: contain;
+  min-height: 0;
+}
 .selection-policy {
   flex-basis: 100%;
   font-size: var(--fs-xs);
