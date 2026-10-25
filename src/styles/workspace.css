@@ -1,4 +1,13 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.selection-policy {
+  flex-basis: 100%;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.selection-policy summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
 .bookmark-action-menu {
   position: relative;
 }
@@ -69,6 +78,21 @@
   max-width: var(--modal-large);
 }
 @media (max-width: 640px) {
+  :is(.files-selection-bar, .knowledge-bulk).active {
+    position: fixed;
+    inset: auto 12px calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: var(--z-selection);
+    max-height: 38dvh;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+  }
+  :is(.files-page, .knowledge-main):has(:is(.files-selection-bar, .knowledge-bulk).active) {
+    padding-bottom: 330px;
+  }
   .knowledge-content-toolbar {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

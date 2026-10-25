@@ -39,6 +39,8 @@ export function fileDownloadProgress() {
 export function fileSelectionBar(page, results = page, remote = null) {
   const ids = S.ui.fileSelection || [];
   const files = D().files.filter(file => ids.includes(file.id));
+  const pageIds = new Set(page.map(file => file.id));
+  const hiddenCount = files.filter(file => !pageIds.has(file.id)).length;
   if (!page.length && !files.length) return '';
   const sameProject = new Set(files.map(file => file.project)).size === 1;
   const movable = files.length > 0 && sameProject && files.every(file => canEditFile(file, D(), S.ui.currentUser?.role));
@@ -49,5 +51,18 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const busy = S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase);
   const resultIds = remote ? remote.resultIds : results.length <= 500 ? results.map(file => file.id) : null;
   const selectResults = `<button class="btn btn-ghost btn-sm" data-a="selectFileResults" data-ids="${resultIds ? esc(resultIds.join(',')) : ''}" ${!resultIds?.length ? 'disabled' : ''} title="Narrow the filters to select up to 500 files.">Select results</button>`;
-  return `<section class="files-selection-bar ${files.length ? 'active' : ''}" aria-label="File selection"><button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${selectResults}<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b></span>${files.length ? `<span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || busy ? 'disabled' : ''} title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span>Download ZIP</span></button><button class="btn btn-secondary btn-sm" data-a="streamSelectedFiles" ${streamIssue || busy ? 'disabled' : ''} title="${esc(t(streamIssue || 'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.'))}">${ic('arrow-down-to-line', 15)}<span>Stream ZIP</span></button><button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button><button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button><button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection" title="Clear selection">${ic('x', 16)}</button><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p>` : ''}</section>`;
+  return `<section class="files-selection-bar ${files.length ? 'active' : ''}" aria-label="File selection">
+    <button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${selectResults}
+    ${
+      files.length
+        ? `<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b>${hiddenCount ? ` · ${hiddenCount} <span>outside this page</span>` : ''}</span><span class="sp"></span>
+    <button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || busy ? 'disabled' : ''} title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span>Download ZIP</span></button>
+    <button class="btn btn-secondary btn-sm" data-a="streamSelectedFiles" ${streamIssue || busy ? 'disabled' : ''} title="${esc(t(streamIssue || 'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.'))}">${ic('arrow-down-to-line', 15)}<span>Stream ZIP</span></button>
+    <button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button>
+    <button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button>
+    <button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection">${ic('x', 16)}</button>
+    <details class="selection-policy"><summary>Details</summary><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details>`
+        : ''
+    }
+  </section>`;
 }
