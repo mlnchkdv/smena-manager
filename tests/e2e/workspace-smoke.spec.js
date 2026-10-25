@@ -302,14 +302,15 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/projects');
   await page.locator('[data-a="go"][data-r="project"][aria-label="Проверка интерфейса"]').click();
   await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
-  await page
-    .locator('input[data-in="uploadFiles"]')
-    .first()
-    .setInputFiles({
-      name: fileName,
-      mimeType: 'text/plain',
-      buffer: Buffer.from('Файл для сквозной проверки общего хранилища.', 'utf8'),
-    });
+  const projectFilePicker = page.waitForEvent('filechooser');
+  await page.locator('[data-a="chooseStoredFiles"]').click();
+  await (
+    await projectFilePicker
+  ).setFiles({
+    name: fileName,
+    mimeType: 'text/plain',
+    buffer: Buffer.from('Файл для сквозной проверки общего хранилища.', 'utf8'),
+  });
   await expect(page.getByText(fileName, { exact: true })).toBeVisible({ timeout: 15_000 });
   await waitForSaved(page);
   await page.reload();
