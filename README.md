@@ -90,16 +90,24 @@ the derived index. ZIP status/download validation and streamed archives read onl
 full workspace writes and backups still require canonical records. Detailed capacity uses a
 revision-bound root summary (with exact canonical fallback for older roots), not file-part downloads.
 Save preparation and pre-restore/import checkpoints now reuse the atomic mutation's canonical
-snapshot instead of preloading the full catalog again; standalone backups always refresh storage.
+snapshot instead of preloading the full catalog again. Standalone backups read a fresh root and may
+reuse a complete worker snapshot only after exact ETag confirmation; cold/changed sources still
+materialize and verify all parts. Backup JSON is streamed record by record, preserving standalone
+complete metadata/history rather than references to catalog parts.
 Document-only saves and demand-mode personal preferences now use a narrowly scoped root patch:
 they validate the manifest, ownership/allowed fields, size budgets and snapshot-bound ETag without
 downloading unchanged file parts. Part pointers and physical accounting are preserved; the exact
 catalog byte budget accounts for revision digit growth. Legacy/migration cases fall back to the
-canonical path. File/core mutations and recovery still require complete canonical validation.
+canonical path. Demand-mode renames and folder moves of up to 500 existing files now read and
+rewrite only affected immutable parts, after checking the latest member/project permissions and
+every other incoming core field. Physical metadata, ACLs, relations, registry and retention stay
+unchanged; only matching attachment folder pointers may change. Snapshot-specific CAS, checksums,
+global order and exact byte accounting remain enforced. Mixed/core changes, additions, removals,
+physical changes and recovery still require complete canonical validation.
 Legacy aggregate/separate-document layouts remain readable. Binary files remain separate Drive
 objects. Graphs and connection pickers now use revision-fenced server queries (250/50 nodes),
 without hydrating all file records in the browser; only explicit JSON export returns the full graph.
-Whole-workspace writes/backups still materialize records; this is not independent per-project transaction storage. See the context document for
+General whole-workspace writes and cold/changed backups still materialize records; this is not independent per-project transaction storage. See the context document for
 rollback, retention and concurrency limitations.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
