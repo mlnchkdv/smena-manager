@@ -279,6 +279,10 @@ export async function createWorkspaceBackup(label = '') {
   // Capture the complete snapshot before awaiting: another request may replace
   // the worker cache while the provider checks the root's exact ETag.
   const baseline = database;
+  if (process.env.VERCEL && !baseline && typeof storage.createColdDatabaseBackup === 'function') {
+    const backup = await storage.createColdDatabaseBackup(label, async core => isDeepStrictEqual(core, await loadAggregate(storage, clone(core))));
+    if (backup) return backup;
+  }
   let current;
   if (process.env.VERCEL && typeof storage.loadDatabaseForBackup === 'function') {
     const loaded = await storage.loadDatabaseForBackup(storageVersion(baseline));

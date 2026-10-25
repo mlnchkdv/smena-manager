@@ -1,11 +1,19 @@
 // Emit the existing standalone backup envelope without allocating a second
 // catalog-sized JSON string. Arrays are serialized one complete record at a
 // time; normal JSON semantics (including undefined array slots) are retained.
-export function* backupJson(data, createdAt, label) {
+export function* backupJson(data, createdAt, label, serializedFiles) {
   yield `{"createdAt":${JSON.stringify(createdAt)},"label":${JSON.stringify(String(label || ''))},"data":{`;
   let separator = '';
   for (const [key, value] of Object.entries(data)) {
-    if (Array.isArray(value)) {
+    if (key === 'files' && serializedFiles) {
+      yield `${separator}"files":[`;
+      let comma = '';
+      for (const text of serializedFiles) {
+        yield comma + text;
+        comma = ',';
+      }
+      yield ']';
+    } else if (Array.isArray(value)) {
       yield `${separator}${JSON.stringify(key)}:[`;
       for (let index = 0; index < value.length; index++) yield `${index ? ',' : ''}${JSON.stringify(value[index]) ?? 'null'}`;
       yield ']';

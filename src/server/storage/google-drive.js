@@ -11,6 +11,7 @@ import { readCatalogAccounting } from '../file-catalog-accounting.js';
 import { metadataWriteBase, patchCatalogMetadata } from './catalog-metadata-write.js';
 import { backupJson } from './backup-json.js';
 import { writeFileMetadataParts } from './catalog-file-write.js';
+import { withCatalogBackupSpool } from './catalog-backup-spool.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -742,12 +743,32 @@ export class GoogleDriveStorageProvider {
   }
 
   async createDatabaseBackup(data, label = '') {
+    return this.uploadDatabaseBackup(data, label);
+  }
+
+  async createColdDatabaseBackup(label, validateCore) {
+    const root = await this.readDatabaseRoot();
+    const core = metadataWriteBase(root);
+    if (!core || !(await validateCore(core))) return null;
+    try {
+      return await withCatalogBackupSpool(
+        root,
+        (id, part) => this.readCatalogPart(id, part),
+        (data, records) => this.uploadDatabaseBackup(data, label, records),
+      );
+    } catch (error) {
+      if (error.code === 'BACKUP_CANONICAL_REQUIRED') return null;
+      throw error;
+    }
+  }
+
+  async uploadDatabaseBackup(data, label = '', records) {
     const folderId = await this.ensureBackupsFolder();
     const createdAt = new Date().toISOString();
     let size = 0;
     const body = Readable.from(
       (function* () {
-        for (const text of backupJson(data, createdAt, label)) {
+        for (const text of backupJson(data, createdAt, label, records)) {
           size += Buffer.byteLength(text);
           yield text;
         }

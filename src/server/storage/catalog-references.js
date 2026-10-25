@@ -1,5 +1,6 @@
 import { physicalFileKey } from '../file-registry.js';
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
+import { fileStorageAccounting } from '../file-capacity.js';
 
 const corrupt = () => Object.assign(new Error('The file reference index is incomplete or corrupt.'), { code: 'FILE_CATALOG_CORRUPT', statusCode: 503 });
 
@@ -52,4 +53,15 @@ export function readCatalogReferences(root) {
   }
   if (known !== activePhysical.knownBytes || unknown !== activePhysical.unknownFiles) throw corrupt();
   return refs;
+}
+
+export function referenceAccounting(core, refs, logical) {
+  const files = {
+    length: logical.files,
+    *[Symbol.iterator]() {
+      for (const [key, count] of refs)
+        for (let i = 0; i < count; i++) yield { [key.startsWith('id:') ? 'storageFileId' : 'storageName']: key.slice(key.indexOf(':') + 1), bytes: 0 };
+    },
+  };
+  return { ...fileStorageAccounting({ ...core, files }), logical };
 }
