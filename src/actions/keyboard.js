@@ -68,7 +68,7 @@ document.addEventListener('keydown', e => {
         ? $$('.modal').pop()
         : S.ui.knowledgeDrawer
           ? $('.knowledge-drawer')
-          : S.ui.knowledgeMobileFolders && matchMedia('(max-width:640px)').matches
+          : S.ui.knowledgeMobileFolders && S.ui.knowledgeFolderOverlay
             ? $('.knowledge-sidebar')
             : S.ui.drawer && S.ui.drawerFull
               ? $('.drawer')

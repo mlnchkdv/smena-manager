@@ -14,6 +14,7 @@ import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
 import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
+import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -146,7 +147,8 @@ export function pageKnowledge() {
           .join('')}</select></label>`
       : '';
 
-  return `<div class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
+  S.ui.knowledgeFolderOverlay = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
+  return `<div data-folder-overlay="${S.ui.knowledgeFolderOverlay}" class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
     ${S.ui.knowledgeMobileFolders ? '<button class="knowledge-folder-scrim" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders"></button>' : ''}
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">

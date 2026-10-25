@@ -272,7 +272,7 @@ export function afterRender() {
   }
   const shell = document.querySelector('.shell');
   if (shell) shell.inert = !!document.querySelector('.knowledge-drawer');
-  const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && matchMedia('(max-width:640px)').matches;
+  const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && S.ui.knowledgeFolderOverlay;
   const knowledgeMain = document.querySelector('.knowledge-main');
   if (knowledgeMain) knowledgeMain.inert = !!mobileFolders;
   document.querySelectorAll('.side,.topbar,.bottomnav').forEach(el => {

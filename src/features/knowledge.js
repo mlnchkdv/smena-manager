@@ -10,6 +10,7 @@ import { uid } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { historyContent } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
+import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 const canRestoreKnowledge = () => {
   if (workspaceSyncIsClean(S.data)) return true;
   flushLocalSave();
@@ -192,9 +193,9 @@ A.toggleKnowledgeMobileFolders = () => {
   if (S.ui.knowledgeMobileFolders) document.querySelector('.knowledge-sidebar .knowledge-mobile-folder-button')?.focus({ preventScroll: true });
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };
-let compactKnowledge = window.innerWidth <= 640;
+let compactKnowledge = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
 window.addEventListener('resize', () => {
-  const compact = window.innerWidth <= 640;
+  const compact = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
   const changed = compact !== compactKnowledge;
   compactKnowledge = compact;
   if ((S.ui.knowledgeMobileFolders && !compact) || (changed && S.ui.route === 'knowledge')) {

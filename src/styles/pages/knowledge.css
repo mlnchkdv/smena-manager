@@ -1,4 +1,40 @@
 /* Knowledge base: folder navigation on the left, note cards on the right. */
+.knowledge-shell[data-folder-overlay='true'] {
+  display: block;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-sidebar {
+  display: none;
+}
+.knowledge-shell[data-folder-overlay='true'].folders-open .knowledge-sidebar {
+  display: flex;
+  position: fixed;
+  inset: auto 0 0;
+  max-height: 80dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow: auto;
+  border-radius: 16px 16px 0 0;
+  z-index: 76;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-mobile-folder-button {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-folder-scrim {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: #0005;
+  z-index: 75;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-folders {
+  max-height: 45dvh;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-main {
+  height: 100%;
+}
 .knowledge-folder-layout {
   min-width: 0;
   max-width: 100%;
