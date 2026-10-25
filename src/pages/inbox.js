@@ -4,7 +4,7 @@ import { ic } from '../core/icons.js';
 import { S, commentsOf, mem, myNotification, myNotifications, pColor, proj, task } from '../core/store.js';
 import { av, empty, fmtComment } from '../ui/helpers.js';
 import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-list.js';
-import { commentHtml, mentionPicker } from '../overlays/drawer.js';
+import { commentHtml, mentionPicker } from '../overlays/drawer-content.js';
 import { isRussian, t as tr } from '../core/i18n.js';
 import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
 

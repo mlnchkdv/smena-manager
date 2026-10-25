@@ -22,7 +22,6 @@ import './overlays/drawer.js';
 import './overlays/modals.js';
 import './overlays/popovers.js';
 import './overlays/context-menu.js';
-import './overlays/palette.js';
 import './pages/auth.js';
 import './actions/actions.js';
 import './actions/events.js';
@@ -36,6 +35,7 @@ import './actions/archive.js';
 import './features/knowledge.js';
 import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline } from './core/store.js';
 import { A } from './actions/actions.js';
+import { retryOverlays } from './overlays/drawer.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
@@ -53,6 +53,7 @@ import { createPollCoordinator } from './core/poll-coordinator.js';
 import { retryPersonalPreferences } from './core/personal-preferences.js';
 
 void import('./core/deployment-recovery.js').then(module => module.installDeploymentRecovery(__SMENA_BUILD_ID__));
+A.retryOverlays = retryOverlays;
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
@@ -340,6 +341,7 @@ function loadRouteData() {
 }
 
 window.addEventListener('popstate', () => {
+  S.ui.mnav = false;
   const target = parseAppLocation(location.pathname);
   if (S.ui.currentUser && target.kind === 'file' && target.key && !D().files.some(file => file.id === target.key)) {
     const path = (S.ui.restoringFilePath = location.pathname);
