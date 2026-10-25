@@ -33,6 +33,11 @@ test('knowledge reading editing history search and mobile folders work in Russia
   }
   await expect(page.locator('.shell')).toBeVisible();
   await waitSaved(page);
+  // Other suites share the test account and can leave its persisted locale in
+  // English. Establish the locale used by the first editor assertions explicitly.
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский');
+  await waitSaved(page);
   const snapshot = await (await page.request.get('/api/workspace-documents/knowledge')).json();
   const data = {
     knowledgeFolders: [
@@ -206,7 +211,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     expect(scrollBeforeSelection).toBeGreaterThan(0);
     await page.locator('[data-in="knowledgeSelect"]').last().press('Space');
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollTop)).toBeGreaterThanOrEqual(scrollBeforeSelection - 2);
-    expect(Math.abs((await page.locator('.knowledge-preview-card').last().boundingBox()).y - cardBeforeSelection)).toBeLessThanOrEqual(2);
+    await expect
+      .poll(async () => Math.abs((await page.locator('.knowledge-preview-card').last().boundingBox()).y - cardBeforeSelection), { timeout: 1000 })
+      .toBeLessThanOrEqual(2);
     await expect(page.locator('.knowledge-folder-card-options').first()).toHaveAttribute('open', '');
     await expectFolderTileBounds(page);
     await page.locator('.knowledge-folder-card-options summary').first().click();

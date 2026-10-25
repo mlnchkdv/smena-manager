@@ -64,7 +64,24 @@ IN.knowledgeSelect = el => {
   // in place as well as preserving the scroller's offset across rerenders.
   const current = document.querySelector(`.knowledge-preview-card[data-id="${CSS.escape(el.dataset.id)}"]`);
   const scroller = current?.closest('.knowledge-main');
-  if (scroller && top != null) scroller.scrollTop += current.getBoundingClientRect().top - top;
+  if (scroller && top != null) {
+    const align = () => {
+      if (!current.isConnected) return stop();
+      scroller.scrollTop += current.getBoundingClientRect().top - top;
+    };
+    // Revealing folder-receive actions can settle their grid sizing on the next
+    // frame. Follow that bounded reflow, but never fight a new user interaction.
+    const observer = new ResizeObserver(align);
+    const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+    const stop = () => {
+      observer.disconnect();
+      events.forEach(type => scroller.removeEventListener(type, stop, true));
+    };
+    align();
+    observer.observe(current.parentElement);
+    events.forEach(type => scroller.addEventListener(type, stop, { once: true, capture: true, passive: true }));
+    setTimeout(stop, 300);
+  }
 };
 A.organizeKnowledgeFolders = () => {
   S.ui.knowledgeOrganize = !S.ui.knowledgeOrganize;
