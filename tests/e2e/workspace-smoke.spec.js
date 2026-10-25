@@ -544,6 +544,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await waitForSaved(page);
     await page.goto('/e2e-team/files');
     await page.setViewportSize({ width: 320, height: 844 });
+    await expect(page.locator('.topsearch')).toHaveAccessibleName(language === 'Русский' ? 'Найти или перейти…' : 'Search or jump to…');
     const folder = page.locator('.files-folder-tile', { hasText: folderA });
     await folder.locator('summary').click();
     // Filtering and background catalog responses must not collapse an open menu.
