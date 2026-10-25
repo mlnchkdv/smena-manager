@@ -86,7 +86,14 @@ document.addEventListener('mouseover', e => {
 const repositionPop = () => {
   if (S.ui.pop) requestAnimationFrame(placePop);
 };
+let mobileNavigation = innerWidth <= 900;
 addEventListener('resize', () => {
+  const mobile = innerWidth <= 900;
+  if (mobile !== mobileNavigation) {
+    mobileNavigation = mobile;
+    S.ui.mnav = false;
+    render();
+  }
   repositionPop();
   revealActiveSetting();
 });

@@ -23,6 +23,17 @@
 #mnav-btn {
   display: none;
 }
+.mobile-nav-close {
+  display: none;
+}
+@media (max-width: 900px) {
+  .mobile-nav-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .inbox-grid {
   display: grid;
   grid-template-columns: minmax(0, 420px) minmax(0, 1fr);

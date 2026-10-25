@@ -278,6 +278,20 @@ export function afterRender() {
   document.querySelectorAll('.side,.topbar,.bottomnav').forEach(el => {
     el.inert = !!mobileFolders;
   });
+  const mobileNav = innerWidth <= 900;
+  const navOpen = mobileNav && S.ui.mnav;
+  const side = document.querySelector('.side');
+  if (side) {
+    side.inert = !!mobileFolders || (mobileNav && !navOpen);
+    side.setAttribute('aria-hidden', String(side.inert));
+    side.setAttribute('role', navOpen ? 'dialog' : 'navigation');
+    if (navOpen) side.setAttribute('aria-modal', 'true');
+    else side.removeAttribute('aria-modal');
+  }
+  const main = document.querySelector('.main');
+  if (main) main.inert = !!navOpen;
+  const bottom = document.querySelector('.bottomnav');
+  if (bottom) bottom.inert = !!navOpen || !!mobileFolders;
   if (mobileFolders) {
     const sidebar = document.querySelector('.knowledge-sidebar');
     sidebar?.setAttribute('role', 'dialog');

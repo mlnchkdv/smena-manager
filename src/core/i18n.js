@@ -15,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Close navigation': 'Закрыть навигацию',
+  Later: 'Позже',
   'Loading file connections…': 'Загрузка файлов и связей…',
   'Use the update panel to load this section safely.': 'Чтобы безопасно открыть раздел, воспользуйтесь панелью обновления приложения.',
   'App update': 'Обновление приложения',

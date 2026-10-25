@@ -70,9 +70,11 @@ document.addEventListener('keydown', e => {
           ? $('.knowledge-drawer')
           : S.ui.knowledgeMobileFolders && S.ui.knowledgeFolderOverlay
             ? $('.knowledge-sidebar')
-            : S.ui.drawer && S.ui.drawerFull
-              ? $('.drawer')
-              : null;
+            : S.ui.mnav && innerWidth <= 900
+              ? $('.side')
+              : S.ui.drawer && S.ui.drawerFull
+                ? $('.drawer')
+                : null;
     if (box && !pl) {
       const f = [
         ...box.querySelectorAll(

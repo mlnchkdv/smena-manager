@@ -1120,10 +1120,12 @@ IN.bookmarkDraft = el => {
 A.openMnav = () => {
   S.ui.mnav = true;
   render();
+  document.querySelector('.mobile-nav-close')?.focus();
 };
 A.closeMnav = () => {
   S.ui.mnav = false;
   render();
+  document.querySelector('#mnav-btn')?.focus();
 };
 A.toggleExpand = el => {
   S.ui.expanded[el.dataset.id] = !S.ui.expanded[el.dataset.id];

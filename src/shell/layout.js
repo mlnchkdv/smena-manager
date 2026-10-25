@@ -166,6 +166,7 @@ export function renderSidebar() {
           <span class="chev-d faint">${ic('chevrons-up-down', 13)}</span>
         </button>
         ${u.collapsed ? '' : `<button class="ibtn ibtn-sm hide-m" data-a="toggleSide" data-tip="Collapse sidebar  [" aria-label="Collapse sidebar">${ic('panel-left', 15)}</button>`}
+        <button class="ibtn mobile-nav-close" data-a="closeMnav" aria-label="Close navigation">${ic('x', 18)}</button>
       </div>
     </div>
     <div class="side-scroll" data-keep="side">
