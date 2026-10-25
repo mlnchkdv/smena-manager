@@ -1,5 +1,30 @@
 # Improvement status / Статус улучшений
 
+## Guarded add/remove writes, cold backup spool and UI/UX audit — 25 October 2026
+
+This section supersedes older blanket full-add/remove and cold-materialization limitations below; canonical fallbacks and physical-device limits remain. / Этот этап уточняет старые ограничения, а не отменяет проверки целостности и восстановления.
+
+Delivered / Выполнено:
+
+- `770ee73`: optional validated physical-reference counts published with canonical roots; bounded checksum/identity-verified catalog iteration. Missing indexes preserve canonical fallback, malformed indexes fail closed. / Физические ссылки сверяются с accounting/registry, aliases не теряются.
+- `67d4f33`: cold standalone Drive backups verify every part into a private temporary spool before upload, restore original global order and stream complete records without a full catalog array/clone. Cleanup runs after success/failure. Migration/registry-repair cases fall back. / Меньше heap, но все обязательные чтения частей сохранены; это не streaming restore и не архив бинарных вложений.
+- `287e0f3`, `47168d5`: trusted new uploads and strictly classified recoverable removals use selected-part copy-on-write with latest member/project ACLs, exact source binding, target rechecks, revision/ETag CAS, lease checks, task-attachment detachment, aliases/retention, compacted global ordinals and exact accounting. Duplicate identities, mixed/relation-sensitive commands, unsupported roots and migrations remain canonical. / Частичный снимок никогда не становится полным кешем; права не берутся из входящего клиентского профиля.
+- `fd365e6`: ambiguous proxy publication retains uploaded content instead of deleting a possibly already published file. HTTP coverage simulates a successful publication followed by response loss. / Безопасная отложенная сверка orphan-объектов остаётся отдельной задачей.
+- `ba7ea83`: existing core browser workflow uploads through the real file chooser rather than setting a possibly detached input; no timeout increase or new spec. / Первый прогон был 5/6, повтор с реальным пользовательским путём — 6/6.
+- `6b24d5a`: stable localized accessible name for global search when its visible text is hidden; existing RU/EN 320 px workflow now asserts browser accessible-name semantics. / Мобильная кнопка больше не становится безымянной для скринридера.
+
+Acceptance / Проверки:
+
+- **462/462** server/shared tests, including selected reads, rejected ACL before part reads, corruption, aliases/final retention, stale private snapshots, wrong command targets, CAS loss and uncertain publication. `output/catalog-cold-delta-final-server.log`.
+- Existing targeted core/mobile workflows: **6/6**, Chromium/Firefox/WebKit, 3.5 minutes. Then accessible-search mobile RU/EN follow-up: **3/3**, 1.7 minutes. `output/catalog-cold-delta-browser-repeat.log`, `output/catalog-mobile-search-a11y-browsers.log`. Provider/store/HTTP fixtures count transport reads; local browser tests use isolated storage, not production Drive telemetry.
+- Build/lint/format passed. Initial JavaScript is **600.0/600 KiB** after rounding: within the enforced budget but nearly no headroom, so further frontend work needs real lazy-loading/budget reduction. `output/catalog-cold-final-build.log`, `output/catalog-cold-final-lint.log`.
+- Production, explicit approval: uploaded two harmless 149-byte TXT `ТЕСТ КАТАЛОГА 25.10 — A/B`, confirmed after mobile reload, moved only these two to recoverable trash and reloaded again. Three older fixtures, folders and export were preserved. Created exactly one standard manual backup: **25 October 22:59 Saratov, 88 KB**. No restore/permanent delete/cron/delivery. Russian was restored after English checks.
+- Fresh authenticated status: **revision 462**, source **manifest**, catalog **1376 B**, **three logical/active objects / 357 B**, zero aliases, retained **1186 known bytes + one unknown object**; knowledge revision **83**, bookmarks **11** unchanged. `output/playwright/catalog-cold-production-status.log`. This proves functional persistence/accounting, not exact production part-read counts or restore acceptance.
+- Deployment `dpl_52xjXEAStscKy98ZQM4eTsZV6B4r`, created at **23:03 Saratov**, was confirmed Ready for the accessible-search fix. The fresh production header exposes its name in RU and EN at 320 px; Russian was saved again and survived reload. A bounded **22:45–23:08 Saratov** runtime-error query returned **five `REVISION_CONFLICT` / HTTP 409 catalog read entries** during the audit, not zero errors. The fenced reads reject stale revisions; later lists/reloads completed. No other error code appeared in that selected log window; this is not an uptime guarantee. `output/catalog-cold-deployment-final.log`, `output/catalog-cold-production-errors-final.log`.
+- UI/UX sweep covered the main sections on desktop and focused file/knowledge/bookmark/settings scenarios on phones, RU/EN; individual 320/1024 checks also completed. Detailed evidence, 18 prioritized improvements and acceptance criteria: [`UI_UX_AUDIT_2026-10-25.md`](UI_UX_AUDIT_2026-10-25.md). Horizontal fit does not imply ergonomic content density.
+
+Remaining / Границы: full root/manifest/registry and identity ACL projections still scale with N. General core changes/recovery and conservative fallbacks still materialize the catalog. Cold independent copies still read all parts, use temporary disk and retain core/index/registry in memory; local spool reads have event-loop cost. Untouched immutable parts are not rescanned by narrow writes. Delayed orphan reconciliation and physical iOS/Android background-transfer acceptance are not delivered. No full dark-theme/zoom/screenreader certification or production restore was claimed.
+
 ## Scoped file writes and backup reads — 24 October 2026 / Точечная запись файлов и чтения для копий
 
 Implemented / Выполнено:

@@ -19,6 +19,8 @@ graph and PDF libraries are loaded on demand in the browser.
 
 Current audit findings, delivered fixes and verification limits / Текущий аудит, исправления и границы проверок:
 [`docs/IMPROVEMENT_STATUS.md`](docs/IMPROVEMENT_STATUS.md).
+Detailed UI/UX priorities and acceptance criteria / Подробный UI/UX-аудит и критерии приёмки:
+[`docs/UI_UX_AUDIT_2026-10-25.md`](docs/UI_UX_AUDIT_2026-10-25.md).
 
 ![Smena Manager home dashboard](docs/preview.png)
 
@@ -91,8 +93,11 @@ full workspace writes and backups still require canonical records. Detailed capa
 revision-bound root summary (with exact canonical fallback for older roots), not file-part downloads.
 Save preparation and pre-restore/import checkpoints now reuse the atomic mutation's canonical
 snapshot instead of preloading the full catalog again. Standalone backups read a fresh root and may
-reuse a complete worker snapshot only after exact ETag confirmation; cold/changed sources still
-materialize and verify all parts. Backup JSON is streamed record by record, preserving standalone
+reuse a complete worker snapshot only after exact ETag confirmation. Modern cold/changed sources
+verify every part into a private bounded temporary spool, then stream complete records in their
+original order without a catalog-sized in-memory array/clone. Verification finishes before backup
+upload; the spool is removed on success or failure. Legacy/migration cases retain canonical fallback.
+This reduces heap use, not the mandatory integrity-read count. Backup JSON preserves standalone
 complete metadata/history rather than references to catalog parts.
 Document-only saves and demand-mode personal preferences now use a narrowly scoped root patch:
 they validate the manifest, ownership/allowed fields, size budgets and snapshot-bound ETag without
@@ -102,12 +107,16 @@ canonical path. Demand-mode renames and folder moves of up to 500 existing files
 rewrite only affected immutable parts, after checking the latest member/project permissions and
 every other incoming core field. Physical metadata, ACLs, relations, registry and retention stay
 unchanged; only matching attachment folder pointers may change. Snapshot-specific CAS, checksums,
-global order and exact byte accounting remain enforced. Mixed/core changes, additions, removals,
-physical changes and recovery still require complete canonical validation.
+global order and exact byte accounting remain enforced. A separate trusted delta path now handles
+verified new uploads and strictly classified recoverable file removals (up to 500), using an optional
+validated physical-reference count index. It preserves aliases, retained objects, task attachments,
+exact accounting and global order without reading unrelated parts. Duplicate physical identities,
+mixed/core changes, unsupported roots and recovery retain canonical fallback. A proxy upload whose
+publication outcome is uncertain is not eagerly deleted: safety takes precedence over orphan cleanup.
 Legacy aggregate/separate-document layouts remain readable. Binary files remain separate Drive
 objects. Graphs and connection pickers now use revision-fenced server queries (250/50 nodes),
 without hydrating all file records in the browser; only explicit JSON export returns the full graph.
-General whole-workspace writes and cold/changed backups still materialize records; this is not independent per-project transaction storage. See the context document for
+General whole-workspace writes and recovery still materialize records; this is not independent per-project transaction storage. Cold backups still read all parts. See the context document for
 rollback, retention and concurrency limitations.
 
 Roles are enforced on both sides: `admin` can manage all data and configuration, `editor` can update
