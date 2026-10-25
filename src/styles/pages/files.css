@@ -4,6 +4,43 @@
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
 }
+.files-details {
+  margin: 0 0 8px;
+  font-size: var(--fs-xs);
+}
+.files-details > summary {
+  cursor: pointer;
+  color: var(--text-3);
+  padding: 6px 0;
+}
+.files-details .files-summary {
+  margin: 8px 0;
+}
+.files-page .workspace-files-dropzone {
+  display: none;
+}
+.files-page-head {
+  margin-bottom: 12px;
+}
+.files-page .files-folder-open {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+@media (max-width: 640px) {
+  .files-page .files-folder-open {
+    min-height: 78px;
+    padding: 8px 34px 8px 10px;
+    gap: 2px;
+  }
+  .files-page .files-folder-open > svg {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+  .files-page .files-folder-open .faint {
+    display: none;
+  }
+}
 .catalog-context-status {
   display: flex;
   flex-wrap: wrap;
