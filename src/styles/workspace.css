@@ -374,7 +374,7 @@
   :is(.files-page, .bookmarks-page, .knowledge-main) {
     padding-inline: var(--s-4);
   }
-  :is(.files-page-head, .bookmarks-head, .knowledge-content-head) {
+  :is(.files-page-head, .bookmarks-head) {
     flex-wrap: wrap;
   }
   .topbar {
