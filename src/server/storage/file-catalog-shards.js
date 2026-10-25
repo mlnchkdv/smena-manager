@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { fileCatalogIndex } from '../file-catalog-index.js';
 import { createCatalogAccounting } from '../file-catalog-accounting.js';
+import { catalogReferences, validateCatalogReferences } from './catalog-references.js';
 
 export const CATALOG_SHARD_BYTES = 2 * 1024 * 1024;
 const MAX_FILES = 100000;
@@ -70,7 +71,16 @@ export async function writeCatalogShards(data, previous, write) {
   const { files: _files, _fileCatalog: _catalog, ...core } = data;
   void _files;
   void _catalog;
-  return { ...core, _fileCatalog: { version: 3, total: data.files.length, shards, accounting: createCatalogAccounting(data) } };
+  return {
+    ...core,
+    _fileCatalog: {
+      version: 3,
+      total: data.files.length,
+      shards,
+      accounting: createCatalogAccounting(data),
+      physicalReferences: catalogReferences(data.files),
+    },
+  };
 }
 
 export function validateCatalogManifest(manifest) {
@@ -84,6 +94,7 @@ export function validateCatalogManifest(manifest) {
     manifest.shards.length > MAX_FILES
   )
     throw invalid();
+  validateCatalogReferences(manifest.physicalReferences);
   let count = 0;
   const ids = new Set();
   const fileIds = new Set();
@@ -150,11 +161,10 @@ export function validateCatalogManifest(manifest) {
   return manifest;
 }
 
-export async function readCatalogShards(root, read, project, projectFile = file => file, search = false) {
+export async function* catalogRecords(root, read, project, search = false) {
   const manifest = validateCatalogManifest(root._fileCatalog);
   if (Object.hasOwn(root, 'files')) throw invalid();
-  const rows = [],
-    ids = new Set(),
+  const ids = new Set(),
     positions = new Set();
   for (const part of manifest.shards) {
     if (typeof project === 'string' && part.project !== project) continue;
@@ -194,9 +204,14 @@ export async function readCatalogShards(root, read, project, projectFile = file 
       ids.add(file.id);
       // Validate the original record before projecting it. Search/graph readers
       // retain only small index rows, not every file's history/storage metadata.
-      rows.push([index, projectFile(file)]);
+      yield { index, file };
     }
   }
+}
+
+export async function readCatalogShards(root, read, project, projectFile = file => file, search = false) {
+  const rows = [];
+  for await (const { index, file } of catalogRecords(root, read, project, search)) rows.push([index, projectFile(file)]);
   rows.sort((a, b) => a[0] - b[0]);
   return rows.map(row => row[1]);
 }
