@@ -50,7 +50,15 @@
     flex: 1;
   }
   .knowledge-content-actions {
+    width: auto;
+    flex-wrap: nowrap;
     flex-shrink: 0;
+  }
+  .knowledge-content-actions > .btn {
+    flex: 0 0 auto;
+  }
+  .knowledge-content-head h1 {
+    overflow-wrap: break-word;
   }
   .knowledge-content-actions .btn,
   .knowledge-mobile-folder-button {
