@@ -1,4 +1,13 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+@media (forced-colors: active) {
+  :is(.btn, .select, .input, .workspace-file-card, .bookmark-card, .knowledge-preview-card, .knowledge-folder-tile) {
+    border: 1px solid CanvasText;
+  }
+  :is(.on, [aria-selected='true'], [aria-pressed='true']):focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
 .graph-controls button {
   min-width: 36px;
   min-height: 36px;

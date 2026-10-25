@@ -19,7 +19,7 @@
   --text: #1d1c1a;
   --text-2: #57544e;
   --text-3: #6b6760;
-  --text-4: #8c8880;
+  --text-4: #6d6962;
   --text-inv: #ffffff;
   /* accent (swappable) */
   --acc-l: #4b5bd6;
@@ -34,9 +34,9 @@
   --red: #b23c30;
   --blue: #3570c4;
   --violet: #7652c2;
-  --teal: #1e8580;
+  --teal: #1b7a75;
   --rose: #bc4270;
-  --orange: #c0612b;
+  --orange: #ae5523;
   --gray: #8a867e;
   --green-soft: color-mix(in srgb, var(--green) 11%, transparent);
   --amber-soft: color-mix(in srgb, var(--amber) 12%, transparent);
@@ -117,7 +117,7 @@
     --text: #eceae5;
     --text-2: #b5b2ab;
     --text-3: #9a968f;
-    --text-4: #6f6c66;
+    --text-4: #9b978f;
     --text-inv: #151514;
     --accent: var(--acc-d);
     --on-accent: #12131c;
@@ -157,7 +157,7 @@
   --text: #eceae5;
   --text-2: #b5b2ab;
   --text-3: #9a968f;
-  --text-4: #6f6c66;
+  --text-4: #9b978f;
   --text-inv: #151514;
   --accent: var(--acc-d);
   --on-accent: #12131c;
