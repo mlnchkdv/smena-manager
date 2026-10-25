@@ -200,10 +200,10 @@ export function pageFiles(projectId = null) {
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
     ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index)}
-    ${uploadsHtml()}
+    <section class="files-operations" aria-label="File operations">${uploadsHtml()}
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
-    ${fileExportsPanel()}
+    ${fileExportsPanel()}</section>
     ${fileSelectionBar(window.items, files, remote)}
     ${
       remote?.loading

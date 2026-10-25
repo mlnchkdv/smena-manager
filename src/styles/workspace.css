@@ -1,4 +1,20 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.files-operations > :is(.files-download-progress, .files-download-ready, .files-native-transfer) {
+  position: static;
+}
+.files-operations:has(.workspace-file-uploads, .files-download-progress, .files-native-transfer) {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-selection);
+  max-height: 38dvh;
+  overflow-y: auto;
+  background: var(--surface);
+}
+.files-operations .files-exports > summary {
+  padding-block: 6px;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
 .knowledge-quick-preview {
   max-width: 85ch;
   margin-inline: auto;

@@ -19,7 +19,12 @@ export function fileExportsPanel() {
     expired: 'Export expired',
     unavailable: 'Export access unavailable',
   };
-  return `<details class="files-exports" ${jobs.some(job => !['cancelled', 'expired'].includes(job.phase)) || S.ui.fileExportCreating ? 'open' : ''}><summary>Resumable exports</summary><p class="hint">Up to 500 files / 1 GB. Checkpoints are stored in Drive for 24 hours. Preparation pauses when no active tab continues it; resume here after reopening.</p><div class="row"><button class="btn btn-secondary btn-sm" data-a="createFileExport" ${unavailable || S.ui.fileExportRunning || S.ui.fileExportCreating ? 'disabled' : ''}>Prepare selected files</button><button class="btn btn-ghost btn-sm" data-a="refreshFileExports">Refresh exports</button></div>${jobs
+  const open =
+    S.ui.fileExportCreating ||
+    S.ui.fileExportRunning ||
+    S.ui.fileExportError ||
+    (S.ui.fileExportsExpanded ?? jobs.some(job => ['pending', 'processing', 'failed'].includes(job.phase)));
+  return `<details class="files-exports" ${open ? 'open' : ''}><summary><span>Resumable exports</span>${jobs.some(job => job.phase === 'ready') ? ' · <span>Export ready</span>' : ''}</summary>${S.ui.fileExportError ? `<p class="alert danger" role="alert">${esc(S.ui.fileExportError)}</p>` : ''}<p class="hint">Up to 500 files / 1 GB. Checkpoints are stored in Drive for 24 hours. Preparation pauses when no active tab continues it; resume here after reopening.</p><div class="row"><button class="btn btn-secondary btn-sm" data-a="createFileExport" ${unavailable || S.ui.fileExportRunning || S.ui.fileExportCreating ? 'disabled' : ''}>Prepare selected files</button><button class="btn btn-ghost btn-sm" data-a="refreshFileExports">Refresh exports</button></div>${jobs
     .slice(0, 4)
     .map(
       job =>

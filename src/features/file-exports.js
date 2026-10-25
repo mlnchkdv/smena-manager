@@ -12,18 +12,30 @@ export function ensureFileExports() {
   loaded = owner;
   busy = false;
   S.ui.fileExports = [];
+  S.ui.fileExportsExpanded = undefined;
+  S.ui.fileExportError = '';
   queueMicrotask(() => void A.refreshFileExports());
 }
 A.refreshFileExports = async () => {
   const owner = scope();
   try {
     const result = await listFileExports();
-    if (owner === scope()) S.ui.fileExports = result.jobs;
+    if (owner === scope()) {
+      S.ui.fileExports = result.jobs;
+      S.ui.fileExportError = '';
+    }
   } catch {
-    if (owner === scope()) toast('Unable to load exports. Check connection and retry.', { kind: 'err' });
+    if (owner === scope()) S.ui.fileExportError = 'Unable to load exports. Check connection and retry.';
   }
   if (owner === scope()) render();
 };
+document.addEventListener(
+  'toggle',
+  event => {
+    if (event.target?.matches?.('.files-exports') && event.target.isConnected) S.ui.fileExportsExpanded = event.target.open;
+  },
+  true,
+);
 async function run(id, owner) {
   if (busy || owner !== scope()) return;
   busy = true;
