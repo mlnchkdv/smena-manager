@@ -4,6 +4,19 @@ import { notificationAction, notificationLocale, notificationSnippet } from '../
 import { emailNotificationMessage } from '../../src/server/email-notifications.js';
 import { pushMessagePayload } from '../../src/server/push-subscriptions.js';
 
+test('historical system issue codes localize without translating comments or unknown diagnostics', () => {
+  const event = {
+    type: 'system',
+    by: null,
+    text: 'System check needs attention',
+    snippet: 'Notification delivery failed · Automatic backup failed · Custom diagnostic',
+  };
+  assert.equal(notificationSnippet(event, 'ru'), 'Не удалось доставить уведомления · Не удалось создать автоматическую копию · Custom diagnostic');
+  assert.equal(notificationSnippet(event, 'en'), event.snippet);
+  assert.equal(notificationSnippet({ ...event, type: 'comment' }, 'ru'), event.snippet);
+  assert.equal(notificationSnippet({ ...event, by: 'member' }, 'ru'), event.snippet);
+});
+
 test('notification channels use recipient language, localize system statuses and preserve user content', () => {
   const data = {
     ws: { url: 'team' },

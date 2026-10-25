@@ -12,6 +12,13 @@ const RU = Object.freeze({
   'System check needs attention': 'Система требует внимания',
 });
 const RU_STATUSES = Object.freeze({ Backlog: 'Бэклог', 'To do': 'К выполнению', 'In progress': 'В работе', Review: 'На проверке', Done: 'Готово' });
+const SYSTEM_ISSUES = Object.freeze({
+  'Email digest delivery failed': 'Не удалось доставить почтовую сводку',
+  'Automatic backup failed': 'Не удалось создать автоматическую копию',
+  'File cleanup failed': 'Ошибка очистки файлов',
+  'Abandoned upload cleanup failed': 'Ошибка очистки незавершённых загрузок',
+  'Notification delivery failed': 'Не удалось доставить уведомления',
+});
 
 export function notificationLocale(data, memberId, fallback = 'en') {
   const locale = data?.members?.find(member => member.id === memberId)?.locale || fallback;
@@ -28,6 +35,11 @@ export function notificationAction(notification, locale = 'en') {
 
 export function notificationSnippet(notification, locale = 'en') {
   const text = notification?.snippet || '';
+  if (locale === 'ru' && notification?.type === 'system' && !notification.by && notification.text === 'System check needs attention')
+    return text
+      .split(' · ')
+      .map(issue => SYSTEM_ISSUES[issue] || issue)
+      .join(' · ');
   // Only status-transition events contain system labels. Never translate user content.
   return locale === 'ru' && notification?.type === 'update' && notification?.task && /^(?:moved to |completed$)/u.test(notification.text || '')
     ? text
