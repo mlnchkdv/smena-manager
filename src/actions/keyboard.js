@@ -70,7 +70,7 @@ document.addEventListener('keydown', e => {
           ? $('.knowledge-drawer')
           : S.ui.knowledgeMobileFolders && S.ui.knowledgeFolderOverlay
             ? $('.knowledge-sidebar')
-            : S.ui.mnav && innerWidth <= 900
+            : S.ui.mnav && !S.ui.pop && innerWidth <= 900
               ? $('.side')
               : S.ui.drawer && S.ui.drawerFull
                 ? $('.drawer')

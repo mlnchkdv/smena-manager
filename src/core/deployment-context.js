@@ -1,5 +1,11 @@
 import { D, S } from './store.js';
+import { render } from '../shell/render.js';
 const KEY = 'smena:deployment-return';
+const workspace = () => JSON.stringify([D().ws?.id, D().ws?.url]);
+let lastFocus = '';
+document.addEventListener('focusin', event => {
+  if (event.target?.id && !event.target.closest('.deployment-update')) lastFocus = event.target.id;
+});
 const fields = [
   'fileProject',
   'fileFolder',
@@ -24,11 +30,12 @@ export function saveDeploymentContext() {
       KEY,
       JSON.stringify({
         owner: S.ui.currentUser.id,
-        workspace: D().ws?.id,
+        workspace: workspace(),
         path: location.pathname,
         at: Date.now(),
         view,
         selector,
+        focus: lastFocus.slice(0, 128),
         scroll: document.querySelector(selector)?.scrollTop || 0,
       }),
     );
@@ -47,21 +54,37 @@ export function restoreDeploymentContext() {
   if (
     !value ||
     value.owner !== S.ui.currentUser?.id ||
-    value.workspace !== D().ws?.id ||
+    value.workspace !== workspace() ||
     value.path !== location.pathname ||
     !Number.isFinite(value.at) ||
     Date.now() - value.at > 900000 ||
     value.at > Date.now()
   )
     return;
-  for (const key of fields) if (['string', 'boolean'].includes(typeof value.view?.[key]) && String(value.view[key]).length <= 1000) S.ui[key] = value.view[key];
+  let applied = false;
+  const current = () => value.owner === S.ui.currentUser?.id && value.workspace === workspace() && value.path === location.pathname;
   const restore = () => {
+    if (!current()) return observer.disconnect();
     const target = document.querySelector(value.selector === '.knowledge-main' ? '.knowledge-main' : '#main-content');
     if (!target || document.querySelector('[aria-busy="true"]')) return;
-    target.scrollTop = Math.max(0, Number(value.scroll) || 0);
-    window.removeEventListener('smena:page-module-ready', restore);
+    if (!applied) {
+      applied = true;
+      // Let route-local preference initializers run before restoring transient filters.
+      for (const key of fields)
+        if (['string', 'boolean'].includes(typeof value.view?.[key]) && String(value.view[key]).length <= 1000) S.ui[key] = value.view[key];
+      render();
+      return;
+    }
+    if (document.querySelector('.files-page .panel[role="status"]')) return;
+    observer.disconnect();
+    requestAnimationFrame(() => {
+      if (!current()) return;
+      document.querySelector(value.selector === '.knowledge-main' ? '.knowledge-main' : '#main-content')?.scrollTo(0, Math.max(0, Number(value.scroll) || 0));
+      if (typeof value.focus === 'string') document.getElementById(value.focus)?.focus({ preventScroll: true });
+    });
   };
-  window.addEventListener('smena:page-module-ready', restore);
-  setTimeout(() => window.removeEventListener('smena:page-module-ready', restore), 10000);
+  const observer = new MutationObserver(restore);
+  observer.observe(document.getElementById('app'), { childList: true, subtree: true });
+  setTimeout(() => observer.disconnect(), 10000);
   return restore;
 }
