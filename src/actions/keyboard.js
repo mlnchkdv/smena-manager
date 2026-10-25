@@ -192,6 +192,11 @@ document.addEventListener('keydown', e => {
       A.closeMnav();
       return;
     }
+    if (t.value && ['workspace-file-q', 'knowledge-search'].includes(t.id)) {
+      e.preventDefault();
+      (t.id === 'workspace-file-q' ? A.clearFileQuery : A.clearKnowledgeQuery)();
+      return;
+    }
     if (S.ui.sel.size) {
       A.clearSel();
       return;

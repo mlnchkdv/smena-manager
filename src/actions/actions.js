@@ -662,6 +662,7 @@ A.clearKnowledgeQuery = () => {
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   render();
+  document.getElementById('knowledge-search')?.focus({ preventScroll: true });
 };
 A.loadMoreKnowledge = () => {
   S.ui.knowledgeLimit = Math.min(1000, (S.ui.knowledgeLimit || 200) + 200);
