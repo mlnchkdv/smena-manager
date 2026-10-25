@@ -1,4 +1,7 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.knowledge-create-short {
+  display: none;
+}
 .files-exports:not([open]) {
   padding: 0;
   margin: 0;
@@ -36,6 +39,47 @@
   min-height: 36px;
 }
 @media (max-width: 640px) {
+  .knowledge-breadcrumbs:not(:has(button)) {
+    display: none;
+  }
+  .knowledge-content-head {
+    flex-wrap: nowrap;
+  }
+  .knowledge-content-head > div:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+  .knowledge-content-actions {
+    flex-shrink: 0;
+  }
+  .knowledge-content-actions .btn,
+  .knowledge-mobile-folder-button {
+    min-height: 44px;
+  }
+  .knowledge-create-short {
+    display: inline;
+  }
+  .knowledge-content-actions:has([data-a='clearKnowledgeQuery']) .knowledge-create-short {
+    display: none;
+  }
+  .knowledge-import-hint[data-reading='false'] {
+    display: none;
+  }
+  .knowledge-saved-views {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .knowledge-saved-views > .btn {
+    flex-shrink: 0;
+  }
+  .knowledge-folder-layout {
+    min-width: 0;
+    flex: 1;
+  }
+  .knowledge-folder-layout .select-btn {
+    min-width: 0;
+    width: 100%;
+  }
   .files-page-head {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -96,6 +140,11 @@
   .graph-detail-actions .btn {
     min-height: 44px;
     min-width: 44px;
+  }
+}
+@media (max-width: 360px) {
+  .knowledge-create-short {
+    display: none;
   }
 }
 .inbox-grid {
