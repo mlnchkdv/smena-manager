@@ -36,6 +36,7 @@ import './features/knowledge.js';
 import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline } from './core/store.js';
 import { A } from './actions/actions.js';
 import { retryOverlays } from './overlays/drawer.js';
+import { restoreDeploymentContext } from './core/deployment-context.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
@@ -391,7 +392,9 @@ window.addEventListener('popstate', () => {
     S.ui.auth = 'login';
     S.ui.authIssue = error.status === 401 ? '' : error.message || 'Unable to connect to the workspace server.';
   }
+  const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
   render();
+  restoreView?.();
   if (user && !S.ui.needsOnboarding) {
     loadRouteData();
     void refreshWebPushSubscription();

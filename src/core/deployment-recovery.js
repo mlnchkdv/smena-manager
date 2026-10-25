@@ -3,12 +3,14 @@ import { workspaceSyncIsClean, workspaceSyncState } from './workspace-sync.js';
 import { personalPreferenceSyncState } from './personal-preferences.js';
 import { deploymentReloadSafe } from '../shared/deployment-recovery.js';
 import { t } from './i18n.js';
+import { saveDeploymentContext } from './deployment-context.js';
 
 export function installDeploymentRecovery(buildId) {
   let changed = false,
     failed = false,
     checking = false,
-    presentation = '';
+    presentation = '',
+    deferred = false;
   const root = document.createElement('aside');
   root.className = 'deployment-update';
   root.hidden = true;
@@ -31,7 +33,7 @@ export function installDeploymentRecovery(buildId) {
       S.ui.deploymentChanged = changed;
       window.dispatchEvent(new Event('smena:deployment-version'));
     }
-    if (!changed && !failed) {
+    if ((!changed && !failed) || (deferred && !failed)) {
       root.hidden = true;
       presentation = '';
       return;
@@ -56,10 +58,22 @@ export function installDeploymentRecovery(buildId) {
     button.addEventListener('click', () => {
       if (!changed) return void check();
       // Recheck at the actual click, not just when the banner was rendered.
-      if (safe()) location.reload();
-      else paint();
+      if (safe()) {
+        saveDeploymentContext();
+        location.reload();
+      } else paint();
     });
     root.append(text, hint, button);
+    if (!failed) {
+      const later = document.createElement('button');
+      later.className = 'btn btn-ghost btn-sm';
+      later.textContent = t('Later');
+      later.addEventListener('click', () => {
+        deferred = true;
+        paint();
+      });
+      root.append(later);
+    }
   }
   async function check() {
     if (checking || document.hidden) return;
