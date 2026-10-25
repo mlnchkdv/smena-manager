@@ -1,4 +1,30 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.settings-section-nav {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .set .set-nav {
+    display: none;
+  }
+  .settings-section-nav {
+    display: block;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-section-picker {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r);
+    font: inherit;
+    font-size: 16px;
+    background: var(--surface);
+    color: var(--text);
+  }
+}
 .files-operations > :is(.files-download-progress, .files-download-ready, .files-native-transfer) {
   position: static;
 }

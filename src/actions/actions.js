@@ -1122,6 +1122,7 @@ A.openMnav = () => {
   render();
   document.querySelector('.mobile-nav-close')?.focus();
 };
+IN.settingsSection = el => go('settings', { sec: el.value });
 A.closeMnav = () => {
   S.ui.mnav = false;
   render();

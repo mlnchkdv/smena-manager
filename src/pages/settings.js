@@ -188,6 +188,7 @@ export function pageSettings() {
   const sec = availableSections.has(requestedSection) ? requestedSection : 'appearance';
   const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'Appearance'];
   return `<div class="set">
+    <div class="settings-section-nav"><label class="sr" for="settings-section">Settings</label><select id="settings-section" class="settings-section-picker" data-in="settingsSection">${navigation.map(([group, items]) => `<optgroup label="${esc(tr(group))}">${items.map(([key, name]) => `<option value="${key}" ${sec === key ? 'selected' : ''}>${esc(tr(name))}</option>`).join('')}</optgroup>`).join('')}</select></div>
     <nav class="set-nav" aria-label="Settings">${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
     <div class="set-body" data-keep="set:${sec}"><div class="set-in">${!isAdmin && ADMIN_SETTINGS.has(sec) ? `<div class="empty-state"><div class="glyph">${ic('lock', 20)}</div><h3 class="es-h">Administrator access required</h3><p>Only administrators can manage workspace settings, members, and billing.</p></div>` : settingsBody(sec, title[1])}</div></div>
   </div>`;
