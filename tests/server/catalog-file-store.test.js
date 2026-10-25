@@ -2,7 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GoogleDriveStorageProvider } from '../../src/server/storage/google-drive.js';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
-import { createEmptyDatabase, getWorkspaceDatabase, tryMutateWorkspaceFiles, resetWorkspaceStore } from '../../src/server/workspace-store.js';
+import {
+  createEmptyDatabase,
+  getWorkspaceDatabase,
+  tryMutateWorkspaceFiles,
+  resetWorkspaceStore,
+  mutateWorkspaceCatalogCommand,
+  getWorkspaceUploadSnapshot,
+} from '../../src/server/workspace-store.js';
+import { tryMutateWorkspaceFileRemoval } from '../../src/server/file-removal-patch.js';
+import { registerFileMetadata } from '../../src/server/file-registry.js';
 import { writeCatalogShards, materializeCatalog, catalogCore } from '../../src/server/storage/file-catalog-shards.js';
 import { rememberStorageVersion } from '../../src/server/storage/version-token.js';
 import { workspaceCoreData } from '../../src/shared/workspace-documents.js';
@@ -91,6 +100,13 @@ async function fixture(t) {
   };
   storage.loadDatabaseFilePatch = drive.loadDatabaseFilePatch.bind(drive);
   storage.saveDatabaseFilePatch = drive.saveDatabaseFilePatch.bind(drive);
+  storage.saveDatabaseFileDelta = drive.saveDatabaseFileDelta.bind(drive);
+  storage.loadDatabaseUploadState = drive.loadDatabaseUploadState.bind(drive);
+  storage.saveDatabase = async (next, options) => {
+    assert.equal(options.expectedEtag, `v${root.revision}`);
+    root = await writeCatalogShards(next, root._fileCatalog, write);
+    counts.writes++;
+  };
   storage.loadDatabaseCore = async ({ identities }) => catalogCore(root, { identities });
   storage.loadDatabase = async () => {
     counts.full++;
@@ -219,6 +235,80 @@ test('corrupt selected parts fail closed without staging uploads', async t => {
   assert.equal(f.counts.writes, 0);
 });
 
+function uploadCommand(file) {
+  return data => {
+    data.files.unshift(file);
+    registerFileMetadata(data, file, true);
+    data._pendingUploads = (data._pendingUploads || []).filter(item => item.filename !== file.storageName);
+    if (file.task) data.tasks.find(task => task.id === file.task).attachments.push(file);
+    return data;
+  };
+}
+
+test('verified upload commands and recoverable deletion touch only selected parts and retain exact accounting', async t => {
+  const f = await fixture(t);
+  const file = {
+    id: 'new-upload',
+    name: 'Новый.txt',
+    project: 'p',
+    task: 't',
+    storageFileId: 'new-physical',
+    storageName: 'new.txt',
+    bytes: 19,
+    by: 'me',
+    ownerId: 'me',
+  };
+  await mutateWorkspaceCatalogCommand(uploadCommand(file), 9, { demand: true, user: f.user, role: 'editor', project: 'p', physicalKey: 'id:new-physical' });
+  assert.equal(f.counts.full, 0);
+  assert.equal(f.counts.part, 1);
+  const complete = await f.full();
+  assert.deepEqual(complete.files[0], file);
+  assert.deepEqual(f.root()._fileCatalog.accounting, createCatalogAccounting(complete));
+  const incoming = f.payload();
+  incoming.tasks[0].attachments = incoming.tasks[0].attachments.filter(item => item.id !== file.id);
+  incoming.trash = [
+    { id: 'trash-new', kind: 'file', name: file.name, deletedAt: Date.now(), deletedBy: 'me', data: { file, attachment: file } },
+    ...incoming.trash,
+  ];
+  assert.ok(await tryMutateWorkspaceFileRemoval(incoming, { upsert: [], remove: [file.id] }, 10, f.user, []));
+  const removed = await f.full();
+  assert.deepEqual(removed.files, f.raw.files);
+  assert.deepEqual(removed.trash[0].data.file, file);
+  assert.deepEqual(removed.tasks[0].attachments, f.raw.tasks[0].attachments);
+  assert.deepEqual(f.root()._fileCatalog.accounting, createCatalogAccounting(removed));
+  assert.equal(removed._fileRegistry['id:new-physical'].verified, true);
+  assert.equal(f.counts.full, 0);
+});
+
+test('upload preflight skips parts only for provably new physical identities; repeated completion retains full duplicate detection', async t => {
+  const f = await fixture(t);
+  assert.equal((await getWorkspaceUploadSnapshot('id:brand-new')).files.length, 0);
+  assert.equal(f.counts.part, 0);
+  assert.deepEqual((await getWorkspaceUploadSnapshot('id:physical')).files[0].history, ['canonical']);
+  assert.equal(f.counts.part, 2);
+});
+
+test('legacy reference indexes use canonical fallback; stale/private commands and forged trash never publish', async t => {
+  const f = await fixture(t);
+  const file = { id: 'new', name: 'New.txt', project: 'p', bytes: 3 };
+  await assert.rejects(mutateWorkspaceCatalogCommand(uploadCommand(file), 8, { demand: true, user: f.user, role: 'editor', project: 'p' }), {
+    code: 'REVISION_CONFLICT',
+  });
+  await assert.rejects(
+    mutateWorkspaceCatalogCommand(uploadCommand({ ...file, project: 'private' }), 9, { demand: true, user: f.user, role: 'editor', project: 'private' }),
+    { code: 'FILE_FORBIDDEN' },
+  );
+  assert.equal(f.counts.part, 0);
+  const incoming = f.payload();
+  incoming.trash = [{ id: 'fake', kind: 'file', deletedAt: Date.now(), deletedBy: 'me', data: { file: { ...f.raw.files[0], storageName: 'forged' } } }];
+  assert.equal(await tryMutateWorkspaceFileRemoval(incoming, { upsert: [], remove: ['f'] }, 9, f.user, []), null);
+  assert.equal(f.counts.writes, 0);
+  delete f.root()._fileCatalog.physicalReferences;
+  await mutateWorkspaceCatalogCommand(uploadCommand(file), 9, { demand: true, user: f.user, role: 'editor', project: 'p' });
+  assert.equal(f.counts.full, 1);
+  assert.ok(f.root()._fileCatalog.physicalReferences);
+});
+
 test('lost coordination ownership after staging prevents publication and snapshots ignore the mutable provider cursor', async t => {
   const f = await fixture(t);
   const snapshot = await f.drive.loadDatabaseFilePatch(new Set(['f']), () => true);
@@ -302,4 +392,24 @@ test('HTTP demand file edits preserve ACL-filtered relations/totals and refresh 
     body: JSON.stringify({ data: body.data, revision: 10, fileChanges: { upsert: [{ ...f.raw.files[1], name: 'Private' }], remove: [] } }),
   });
   assert.equal(forbidden.status, 403);
+  f.storage.uploadFile = async filename => ({ filename, fileId: 'http-verified-upload' });
+  f.storage.deleteFile = async () => assert.fail('A successful upload must not be rolled back');
+  const form = new FormData();
+  form.set('file', new Blob(['HTTP upload / Загрузка'], { type: 'text/plain' }), 'HTTP-new.txt');
+  form.set('project', 'p');
+  form.set('revision', '10');
+  const uploadHeaders = { ...headers };
+  delete uploadHeaders['Content-Type'];
+  const uploaded = await fetch(`${origin}/api/files/upload`, { method: 'POST', headers: uploadHeaders, body: form });
+  assert.equal(uploaded.status, 201, await uploaded.clone().text());
+  const upload = await uploaded.json();
+  assert.equal(upload.file.storageFileId, 'http-verified-upload');
+  assert.deepEqual(upload.fileCatalog, { total: 2, mode: 'demand' });
+  const deleted = await fetch(`${origin}/api/files/${upload.file.id}`, { method: 'DELETE', headers, body: JSON.stringify({ revision: upload.data.revision }) });
+  assert.equal(deleted.status, 200, await deleted.clone().text());
+  const deletion = await deleted.json();
+  assert.equal(deletion.contentRetainedForBackups, true);
+  assert.deepEqual(deletion.fileCatalog, { total: 1, mode: 'demand' });
+  assert.equal(f.counts.full, 0);
+  assert.equal((await f.full())._fileGc.at(-1).storageFileId, 'http-verified-upload');
 });

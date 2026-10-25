@@ -26,7 +26,7 @@ import { providerFailureCounters } from './provider-safety.js';
 import { createCatalogReader } from './file-catalog-reader.js';
 import { catalogQuery, currentCatalogUser } from './file-catalog-query.js';
 import { memberForProfile } from '../shared/member-identity.js';
-import { canReadProject } from '../shared/project-access.js';
+import { canReadProject, canEditProject } from '../shared/project-access.js';
 import { queryGraph, validateGraphQuery } from './graph-query.js';
 import { fileExportReadIds } from './file-export-read.js';
 import { isDeepStrictEqual } from 'node:util';
@@ -165,6 +165,74 @@ export async function getWorkspaceDatabase(options = {}) {
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2_000 });
   else await initWorkspaceStore();
   return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, database[field]])) : database);
+}
+
+export async function getWorkspaceUploadSnapshot(physicalKey) {
+  const storage = getStorageProvider();
+  if (typeof storage.loadDatabaseUploadState !== 'function') return getWorkspaceDatabase();
+  return clone(await loadAggregate(storage, await storage.loadDatabaseUploadState(physicalKey)));
+}
+
+// Trusted upload/retention commands, not arbitrary browser data. Mixed client
+// snapshots continue through their existing merge/ACL/cascade machinery.
+export async function mutateWorkspaceCatalogCommand(mutator, expectedRevision, options) {
+  const storage = getStorageProvider();
+  if (!options.demand || typeof storage.saveDatabaseFileDelta !== 'function')
+    return options.tryOnly ? null : mutateWorkspaceDatabase(mutator, expectedRevision, options);
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new TypeError('A non-negative expected revision is required.');
+  return withWorkspaceWrite(async coordination => {
+    let actor;
+    const snapshot = await storage.loadDatabaseFilePatch(
+      new Set(options.ids || []),
+      async core => {
+        if (core.revision !== expectedRevision) throw new RevisionConflictError(core.revision);
+        if (!isDeepStrictEqual(core, await loadAggregate(storage, clone(core))) || !isDeepStrictEqual(core, assignCanonicalTaskKeys(core, clone(core))))
+          return false;
+        actor = currentCatalogUser(core, options.user);
+        const member = memberForProfile(core, actor);
+        const projects = options.project ? [options.project] : core.files.filter(file => options.ids?.includes(file.id)).map(file => file.project);
+        if (
+          !member ||
+          !['admin', 'editor'].includes(actor.role) ||
+          projects.some(
+            id =>
+              !canEditProject(
+                core.projects.find(project => project.id === id),
+                member.id,
+                actor.role,
+              ),
+          )
+        )
+          throw Object.assign(new Error('You do not have access to this file.'), { code: 'FILE_FORBIDDEN', statusCode: 403 });
+        return true;
+      },
+      { delta: true, project: options.project, physicalKey: options.physicalKey },
+    );
+    if (!snapshot) {
+      if (options.tryOnly) return null;
+      if (process.env.VERCEL) await reloadWorkspaceStore();
+      return mutateInsideLock(mutator, expectedRevision, { ...options, coordination });
+    }
+    const current = { ...snapshot.data, files: snapshot.files };
+    const changed = await mutator(clone(current), actor, snapshot.data);
+    if (!changed && options.tryOnly) return null;
+    const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
+    validateTaskTransitions(current, next);
+    validateMembershipTransition(current, next);
+    validateTransportSize(next, false);
+    try {
+      const result = await storage.saveDatabaseFileDelta(snapshot, next, () => coordination?.assertOwnership?.());
+      database = null;
+      lastLoadedAt = 0;
+      return clone(result);
+    } catch (error) {
+      if (Number(error?.response?.status || error?.code) !== 412) throw error;
+      database = null;
+      lastLoadedAt = 0;
+      const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
+      throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
+    }
+  });
 }
 
 const catalogReaders = new WeakMap();

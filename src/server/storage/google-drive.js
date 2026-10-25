@@ -12,6 +12,8 @@ import { metadataWriteBase, patchCatalogMetadata } from './catalog-metadata-writ
 import { backupJson } from './backup-json.js';
 import { writeFileMetadataParts } from './catalog-file-write.js';
 import { withCatalogBackupSpool } from './catalog-backup-spool.js';
+import { readCatalogReferences } from './catalog-references.js';
+import { writeCatalogDelta } from './catalog-delta-write.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -310,18 +312,68 @@ export class GoogleDriveStorageProvider {
     return { unchanged: false, data: data && rememberStorageVersion(data, storageVersion(root)) };
   }
 
-  async loadDatabaseFilePatch(ids, authorize) {
+  async loadDatabaseUploadState(physicalKey) {
+    const root = await this.readDatabaseRoot();
+    if (!root) return null;
+    const refs = metadataWriteBase(root) && readCatalogReferences(root);
+    const data =
+      refs && !refs.has(physicalKey) ? catalogCore(root, { identities: false }) : await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part));
+    return rememberStorageVersion(data, storageVersion(root));
+  }
+
+  async loadDatabaseFilePatch(ids, authorize, options = {}) {
     const root = await this.readDatabaseRoot();
     if (!metadataWriteBase(root)) return null;
     const data = rememberStorageVersion(catalogCore(root), storageVersion(root));
     // Authorization/classification happens against this exact latest root,
     // before reading a single immutable record (including private projects).
     if (!(await authorize(data))) return null;
+    if (options.delta) {
+      const refs = readCatalogReferences(root);
+      if (!refs || (options.physicalKey && refs.has(options.physicalKey))) return null;
+    }
     conditionalWriteOptions({ expectedEtag: storageVersion(root) });
-    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), { ids });
+    const selected = new Set(ids);
+    if (options.project) {
+      const part = root._fileCatalog.shards.find(part => part.project === options.project && part.count < 2000 && part.bytes < 1.75 * 1024 * 1024);
+      if (part) selected.add(part.keys[0][0]);
+    }
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), { ids: selected });
     const snapshot = { data, files };
     this.fileWriteRoots.set(snapshot, { root, files: structuredClone(files), fileId: this.databaseFileId, version: storageVersion(root) });
     return snapshot;
+  }
+
+  async saveDatabaseFileDelta(snapshot, next, assertOwnership) {
+    const source = this.fileWriteRoots.get(snapshot);
+    if (!source?.fileId || source.version !== storageVersion(snapshot.data))
+      throw Object.assign(new Error('Reload the catalog snapshot before saving.'), { code: 'STORAGE_VERSION_MISSING', statusCode: 503 });
+    const options = conditionalWriteOptions({ expectedEtag: source.version });
+    const stored = await writeCatalogDelta(source.root, source.files, next, async (text, hash) => {
+      await assertOwnership?.();
+      const result = await this.client.files.create({
+        requestBody: { name: `smena-catalog-${hash}.json`, parents: [this.rootFolderId], mimeType: 'application/json' },
+        media: { mimeType: 'application/json', body: Readable.from([text]) },
+        fields: 'id',
+        supportsAllDrives: true,
+      });
+      return result.data.id;
+    });
+    await assertOwnership?.();
+    const updated = await this.updateVersionedJson(
+      {
+        fileId: source.fileId,
+        requestBody: { appProperties: { smenaRevision: String(next.revision) } },
+        media: { mimeType: 'application/json', body: Readable.from([JSON.stringify(stored, null, 2)]) },
+        supportsAllDrives: true,
+      },
+      options,
+    );
+    this.databaseEtag = responseHeader(updated, 'etag');
+    this.catalogRoot = stored;
+    this.lastSyncAt = new Date().toISOString();
+    this.fileWriteRoots.delete(snapshot);
+    return rememberStorageVersion(catalogCore(stored), this.databaseEtag);
   }
 
   async saveDatabaseFilePatch(snapshot, files, tasks, revision, updatedAt, assertOwnership) {

@@ -20,6 +20,7 @@ import { fileRouter } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
+import { tryMutateWorkspaceFileRemoval } from './file-removal-patch.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
@@ -452,7 +453,9 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
     const incoming = workspaceCoreData(request.body?.data);
     const actorMemberId = memberForProfile(bindAccessProfiles(request.workspaceSnapshot, getAccessProfiles()), request.user)?.id || request.user.id;
     if (request.get('x-smena-file-catalog') === 'demand' && request.body?.fileChanges) {
-      const patched = await tryMutateWorkspaceFiles(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles());
+      const patched =
+        (await tryMutateWorkspaceFileRemoval(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles())) ||
+        (await tryMutateWorkspaceFiles(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles()));
       if (patched) return response.json({ data: workspaceCoreData(patched) });
     }
     let knownNotifications;

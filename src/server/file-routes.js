@@ -14,7 +14,8 @@ import {
   getWorkspaceFileSnapshot,
   getWorkspaceFilesSnapshot,
   queryWorkspaceFileCatalog,
-  mutateWorkspaceDatabase,
+  mutateWorkspaceCatalogCommand,
+  getWorkspaceUploadSnapshot,
   RevisionConflictError,
 } from './workspace-store.js';
 import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
@@ -276,16 +277,22 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     const taskId = String(request.body?.task || '').trim() || null;
     const folderId = request.body?.folderId || null;
     const filename = storageFilename(metadata.name);
-    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId, folderId);
+    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, projectId, taskId, folderId);
     stored = await getStorageProvider().uploadFile(filename, { path: request.file.path, size: metadata.size }, metadata.mimeType);
     let fileRecord;
-    const data = await mutateWorkspaceDatabase(
-      database => {
-        fileRecord = appendFileRecord(database, request.user, metadata, stored, projectId, taskId, folderId);
+    const data = await mutateWorkspaceCatalogCommand(
+      (database, actor = request.user) => {
+        fileRecord = appendFileRecord(database, actor, metadata, stored, projectId, taskId, folderId);
         return database;
       },
       revision,
-      { role: request.user.role },
+      {
+        role: request.user.role,
+        user: request.user,
+        demand: request.get('x-smena-file-catalog') === 'demand',
+        project: projectId,
+        physicalKey: `id:${stored.fileId}`,
+      },
     );
     response.status(201).json({ file: fileRecord, data });
   } catch (error) {
@@ -309,7 +316,7 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
     const projectId = String(request.body?.project || '').trim();
     const taskId = String(request.body?.task || '').trim() || null;
     const folderId = request.body?.folderId || null;
-    assertFileTarget(await getWorkspaceDatabase(), request.user, projectId, taskId, folderId);
+    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, projectId, taskId, folderId);
     const storage = getStorageProvider();
     if (typeof storage.createResumableUpload !== 'function') {
       throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
@@ -320,11 +327,11 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
     const filename = storageFilename(metadata.name);
     const marker = crypto.randomUUID();
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const current = await getWorkspaceDatabase();
+      const current = await getWorkspaceDatabase({ fields: ['revision', 'projects', 'tasks', 'members'] });
       try {
-        await mutateWorkspaceDatabase(
-          database => {
-            assertFileTarget(database, request.user, projectId, taskId, folderId);
+        await mutateWorkspaceCatalogCommand(
+          (database, actor = request.user) => {
+            assertFileTarget(database, actor, projectId, taskId, folderId);
             const pending = database._pendingUploads || [];
             if (pending.length >= 500)
               throw Object.assign(new Error('Too many pending uploads. Try again later.'), { statusCode: 429, code: 'UPLOAD_QUEUE_FULL' });
@@ -345,7 +352,7 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
             return database;
           },
           current.revision,
-          { role: 'admin' },
+          { role: 'admin', user: request.user, demand: request.get('x-smena-file-catalog') === 'demand', project: projectId },
         );
         break;
       } catch (error) {
@@ -402,7 +409,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
     let fileRecord;
     let data;
     for (let attempt = 0; attempt < 3; attempt++) {
-      const current = await getWorkspaceDatabase();
+      const current = await getWorkspaceUploadSnapshot(`id:${stored.fileId}`);
       assertFileTarget(current, request.user, ticket.projectId, ticket.taskId, ticket.folderId);
       const existing = current.files?.find(item => item.storageFileId === stored.fileId);
       if (existing) {
@@ -411,13 +418,19 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
         break;
       }
       try {
-        data = await mutateWorkspaceDatabase(
-          database => {
-            fileRecord = appendFileRecord(database, request.user, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
+        data = await mutateWorkspaceCatalogCommand(
+          (database, actor = request.user) => {
+            fileRecord = appendFileRecord(database, actor, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
             return database;
           },
           current.revision,
-          { role: request.user.role },
+          {
+            role: request.user.role,
+            user: request.user,
+            demand: request.get('x-smena-file-catalog') === 'demand',
+            project: ticket.projectId,
+            physicalKey: `id:${stored.fileId}`,
+          },
         );
         break;
       } catch (error) {
@@ -477,12 +490,12 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
   try {
     const revision = expectedRevision(request.body?.revision);
     let removed;
-    const data = await mutateWorkspaceDatabase(
-      database => {
+    const data = await mutateWorkspaceCatalogCommand(
+      (database, actor = request.user) => {
         removed = database.files?.find(item => item.id === request.params.id);
         if (!removed) throw Object.assign(new Error('File not found.'), { statusCode: 404, code: 'FILE_NOT_FOUND' });
-        assertFileTarget(database, request.user, removed.project, removed.task);
-        if (request.user.role !== 'admin' && removed.ownerId && removed.ownerId !== request.user.id) {
+        assertFileTarget(database, actor, removed.project, removed.task);
+        if (actor.role !== 'admin' && removed.ownerId && removed.ownerId !== actor.id) {
           throw Object.assign(new Error('Only the owner or an administrator can delete this file.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
         }
         database.files = database.files.filter(item => item.id !== removed.id);
@@ -494,7 +507,7 @@ fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, respon
         return database;
       },
       revision,
-      { role: request.user.role },
+      { role: request.user.role, user: request.user, demand: request.get('x-smena-file-catalog') === 'demand', ids: [request.params.id] },
     );
     response.json({ file: removed, data, cleanupPending: false, contentRetainedForBackups: Boolean(removed.storageName) });
   } catch (error) {
