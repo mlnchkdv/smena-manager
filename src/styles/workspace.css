@@ -4,6 +4,21 @@
   margin: 0;
   border: 0;
 }
+.files-operations:empty {
+  display: none;
+}
+@container workspace-files (max-width: 900px) {
+  .workspace-files-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .workspace-files-toolbar .workspace-file-search {
+    grid-column: 1 / 3;
+  }
+  .workspace-files-toolbar .files-view-switch {
+    grid-column: 3;
+    grid-row: 1;
+  }
+}
 .files-folder-crumbs:has(> button:only-child) {
   display: none;
 }
