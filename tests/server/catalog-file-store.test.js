@@ -26,8 +26,8 @@ async function fixture(t) {
       { id: 'owner', role: 'Owner' },
     ],
     projects: [
-      { id: 'p', name: 'Public', fileFolders: [{ id: 'folder', name: 'Папка' }] },
-      { id: 'private', name: 'Private', access: 'private', members: ['owner'] },
+      { id: 'p', name: 'Public', key: 'PRJ', seq: 1, fileFolders: [{ id: 'folder', name: 'Папка' }] },
+      { id: 'private', name: 'Private', key: 'PRIVATE', seq: 0, access: 'private', members: ['owner'] },
     ],
     files: [
       { id: 'f', name: 'Guide.txt', project: 'p', storageName: 'guide', storageFileId: 'physical', bytes: 12, history: ['canonical'] },
@@ -36,6 +36,7 @@ async function fixture(t) {
     tasks: [
       {
         id: 't',
+        key: 'PRJ-1',
         project: 'p',
         title: 'Task',
         attachments: [{ id: 'f', name: 'Guide.txt', project: 'p', storageName: 'guide', storageFileId: 'physical', bytes: 12 }],
@@ -180,6 +181,15 @@ test('mixed core changes, additions, removals and physical changes fall back wit
   assert.equal(await tryMutateWorkspaceFiles(f.payload(), { upsert: [{ ...f.raw.files[0], storageName: 'forged' }], remove: [] }, 9, f.user), null);
   assert.equal(f.counts.writes, 0);
   assert.equal(f.counts.full, 0);
+});
+
+test('task-key/sequence migration leaves the scoped path before reading or staging catalog parts', async t => {
+  const f = await fixture(t);
+  delete f.root().tasks[0].key;
+  assert.equal(await tryMutateWorkspaceFiles(f.payload(), { upsert: [{ ...f.raw.files[0], name: 'Renamed' }], remove: [] }, 9, f.user), null);
+  assert.equal(f.counts.part, 0);
+  assert.equal(f.counts.uploads, 0);
+  assert.equal(f.counts.writes, 0);
 });
 
 test('CAS loss never overwrites a concurrent root and forged snapshot objects are rejected', async t => {

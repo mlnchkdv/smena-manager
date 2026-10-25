@@ -546,6 +546,8 @@ export async function tryMutateWorkspaceFiles(incoming, changes, expectedRevisio
       if (core.revision !== expectedRevision) throw new RevisionConflictError(core.revision);
       // Migrations, sanitation or registry repairs require full canonical rows.
       if (!isDeepStrictEqual(core, await loadAggregate(storage, clone(core)))) return false;
+      const keyed = assignCanonicalTaskKeys(core, clone(core));
+      if (!isDeepStrictEqual(core, keyed)) return false;
       plan = planFileMetadataPatch(core, incoming, changes, user, profiles);
       return !!plan;
     });
@@ -555,6 +557,8 @@ export async function tryMutateWorkspaceFiles(incoming, changes, expectedRevisio
     if (snapshot.files.some((file, index) => !fileMetadataChanges(file, files[index]))) return null;
     const updatedAt = new Date().toISOString();
     const next = { ...snapshot.data, files, tasks: plan.tasks, revision: snapshot.data.revision + 1, updatedAt };
+    validateTaskTransitions(snapshot.data, next);
+    validateMembershipTransition(snapshot.data, next);
     if (!isDeepStrictEqual(next, normalizeDatabase(clone(next)))) return null;
     validateTransportSize(next, false);
     try {
