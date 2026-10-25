@@ -1,5 +1,9 @@
 # Improvement status / Статус улучшений
 
+## UI/UX delivery on 26 October 2026 / Внедрение UI/UX
+
+The 18-item audit implementation and its acceptance evidence are tracked in [UI_UX_IMPLEMENTATION_2026-10-26.md](UI_UX_IMPLEMENTATION_2026-10-26.md). The original [audit](UI_UX_AUDIT_2026-10-25.md) remains a historical baseline, not a description of the current layout. / Реализация 18 пунктов и результаты приёмки вынесены в отдельный отчёт; исходный аудит сохранён как историческая точка сравнения.
+
 ## Guarded add/remove writes, cold backup spool and UI/UX audit — 25 October 2026
 
 This section supersedes older blanket full-add/remove and cold-materialization limitations below; canonical fallbacks and physical-device limits remain. / Этот этап уточняет старые ограничения, а не отменяет проверки целостности и восстановления.

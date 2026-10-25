@@ -21,6 +21,8 @@ Current audit findings, delivered fixes and verification limits / Текущий
 [`docs/IMPROVEMENT_STATUS.md`](docs/IMPROVEMENT_STATUS.md).
 Detailed UI/UX priorities and acceptance criteria / Подробный UI/UX-аудит и критерии приёмки:
 [`docs/UI_UX_AUDIT_2026-10-25.md`](docs/UI_UX_AUDIT_2026-10-25.md).
+Implementation and acceptance of its 18 UI/UX items / Внедрение и приёмка 18 пунктов:
+[`docs/UI_UX_IMPLEMENTATION_2026-10-26.md`](docs/UI_UX_IMPLEMENTATION_2026-10-26.md).
 
 ![Smena Manager home dashboard](docs/preview.png)
 
@@ -37,6 +39,7 @@ npm run test:server
 npm run check:deploy # validate production variables without printing secrets
 npm run lint      # ESLint
 npm run format    # Prettier
+npm run check:ui  # isolated 5-size RU/EN light/dark browser matrix, 3 engines
 ```
 
 ## Server and storage

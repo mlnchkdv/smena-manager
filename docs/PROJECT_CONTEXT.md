@@ -14,6 +14,12 @@ Cold standalone copies verify every immutable part into a private temporary JSON
 
 Verification / Приёмка: 462 server/shared tests, six targeted existing cross-browser workflows, then three RU/EN mobile accessible-search repeats passed. Production uploaded/reloaded/trashed only the two approved TXT and created one manual copy (25 October 22:59 Saratov, 88 KB), without restore/permanent deletion. Detailed UI findings, next priorities and explicit verification limits: [`UI_UX_AUDIT_2026-10-25.md`](UI_UX_AUDIT_2026-10-25.md).
 
+### UI/UX update on 26 October 2026
+
+**RU.** Результаты 18 пунктов UI/UX-аудита и точные границы приёмки: [UI_UX_IMPLEMENTATION_2026-10-26.md](UI_UX_IMPLEMENTATION_2026-10-26.md). Файловые детали/пассивные экспорты раскрываются отдельно; база знаний адаптирует папки по доступной ширине; мобильная навигация и предпросмотры изолируют фон. Тяжёлые overlay-renderers теперь в `drawer-content.js`, `modal-content.js`, `popover-content.js`; управляющие `drawer.js`/`modals.js`/`popovers.js` остаются небольшими мостами. Не возвращать eager-импорты тяжёлых рендереров в entry. `workspace.css` импортируется последним для общих collection-токенов и адаптивных переопределений.
+
+**EN.** See the implementation report above for all 18 UI/UX items and acceptance limits. File details/passive exports are disclosed; knowledge folders adapt to usable width; mobile navigation and previews isolate their background. Heavy overlay renderers now live in `drawer-content.js`, `modal-content.js`, `popover-content.js`; small control modules remain eager bridges. Do not reintroduce eager renderer imports into the entry. `workspace.css` is imported last for shared collection tokens and responsive overrides.
+
 ## 1. Русская версия
 
 ### 1.1. Что это за проект
