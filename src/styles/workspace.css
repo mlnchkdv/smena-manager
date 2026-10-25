@@ -1,4 +1,38 @@
 /* Shared collection-page primitives; route-specific layout stays in its own stylesheet. */
+.bookmark-action-menu {
+  position: relative;
+}
+.bookmark-action-menu summary {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 32px;
+  cursor: pointer;
+  border-radius: var(--r);
+}
+.bookmark-action-menu summary::marker {
+  content: '';
+}
+.bookmark-action-menu > div {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  width: 210px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  z-index: 8;
+}
+.bookmark-action-menu .btn {
+  justify-content: flex-start;
+  width: 100%;
+}
+.bookmark-card:has(.bookmark-action-menu[open]) {
+  position: relative;
+  z-index: 8;
+}
 :is(.files-page, .bookmarks-page, .knowledge-main) {
   padding-inline: var(--gutter);
 }
@@ -35,6 +69,27 @@
   max-width: var(--modal-large);
 }
 @media (max-width: 640px) {
+  :is(.files-page, .knowledge-shell, .bookmarks-page) .ibtn,
+  :is(.modal-h, .drawer-h) .ibtn,
+  .bookmark-action-menu summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  :is(.workspace-files-toolbar, .bookmark-toolbar, .knowledge-content-toolbar) :is(.btn, .select, .input, .seg button) {
+    min-height: 44px;
+  }
+  .bookmark-action-menu .btn {
+    min-height: 44px;
+    white-space: normal;
+  }
+  .bookmark-action-menu > div {
+    position: fixed;
+    inset: auto 16px calc(70px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    max-height: 50dvh;
+    overflow-y: auto;
+    z-index: 78;
+  }
   :is(.files-page, .bookmarks-page, .knowledge-main) {
     padding-inline: var(--s-4);
   }
