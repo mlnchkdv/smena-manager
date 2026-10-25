@@ -296,10 +296,10 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     );
     response.status(201).json({ file: fileRecord, data });
   } catch (error) {
-    if (stored)
-      await getStorageProvider()
-        .deleteFile(stored.filename, stored.fileId)
-        .catch(cleanupError => reportProviderError('[Files] Upload rollback failed', cleanupError));
+    // A timed-out conditional write may already have published the reference.
+    // Never destroy uploaded content based solely on an unconfirmed response.
+    // Unreferenced proxy uploads need later reconciliation, not eager deletion.
+    if (stored) reportProviderError('[Files] Uploaded content retained after an unconfirmed catalog write', error);
     next(error);
   } finally {
     if (temporaryPath) await fs.promises.unlink(temporaryPath).catch(() => undefined);

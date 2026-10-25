@@ -412,4 +412,17 @@ test('HTTP demand file edits preserve ACL-filtered relations/totals and refresh 
   assert.deepEqual(deletion.fileCatalog, { total: 1, mode: 'demand' });
   assert.equal(f.counts.full, 0);
   assert.equal((await f.full())._fileGc.at(-1).storageFileId, 'http-verified-upload');
+  const uncertain = new FormData();
+  f.storage.uploadFile = async filename => ({ filename, fileId: 'http-uncertain-physical' });
+  uncertain.set('file', new Blob(['keep on uncertain publication'], { type: 'text/plain' }), 'HTTP-uncertain.txt');
+  uncertain.set('project', 'p');
+  uncertain.set('revision', String(f.root().revision));
+  const actualDelta = f.storage.saveDatabaseFileDelta;
+  f.storage.saveDatabaseFileDelta = async (...args) => {
+    await actualDelta(...args);
+    throw new Error('Simulated response loss after publication');
+  };
+  const lost = await fetch(`${origin}/api/files/upload`, { method: 'POST', headers: uploadHeaders, body: uncertain });
+  assert.equal(lost.status, 503);
+  assert.equal((await f.full()).files[0].name, 'HTTP-uncertain.txt', 'The published reference and content are retained despite response loss');
 });
