@@ -1,7 +1,25 @@
 /* Keep similar folder names distinguishable without requiring hover. */
 @media (max-width: 480px) {
-  :is(.files-folder-grid, .files-folder-grid.compact, .knowledge-folder-card-grid, .knowledge-preview-grid.knowledge-mixed-grid) {
+  :is(.files-folder-grid, .files-folder-grid.compact, .knowledge-folder-card-grid) {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .knowledge-preview-grid.knowledge-mixed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .knowledge-mixed-grid .knowledge-folder-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
+    gap: 0;
+    min-height: 110px;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card > span {
+    margin-top: 20px;
+    width: 100%;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card > svg {
+    width: 20px;
+    height: 20px;
   }
   .files-folder-open {
     display: grid;
