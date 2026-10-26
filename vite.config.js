@@ -78,6 +78,7 @@ export default defineConfig({
     proxy: { '/api': `http://127.0.0.1:${process.env.SMENA_API_PORT || 3001}` },
   },
   server: {
+    watch: { ignored: ['**/.data/**', '**/output/**', '**/.playwright-cli/**'] },
     host: '127.0.0.1',
     port: 5173,
     proxy: {

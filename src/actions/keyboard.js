@@ -206,7 +206,7 @@ document.addEventListener('keydown', e => {
       A.clearSearchInput({ dataset: { input: t.id } });
       return;
     }
-    const disclosure = document.querySelector('.knowledge-view-options[open], .knowledge-filter-options[open]');
+    const disclosure = document.querySelector('.files-filter-options.is-mobile[open], .knowledge-view-options[open], .knowledge-filter-options[open]');
     if (disclosure) {
       e.preventDefault();
       disclosure.open = false;

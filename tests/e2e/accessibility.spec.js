@@ -112,14 +112,11 @@ test('settings remain usable at 200% zoom on a narrow viewport in both locales',
   }
   await page.emulateMedia({ forcedColors: 'active' });
   await page.goto('/e2e-team/files');
+  await expect(page.locator('.files-page')).toBeVisible();
   await page.keyboard.press('Tab');
   await page.locator('.topsearch').focus();
-  const focus = await page.locator('.topsearch').evaluate(el => ({
-    style: getComputedStyle(el).outlineStyle,
-    width: parseFloat(getComputedStyle(el).outlineWidth),
-  }));
-  expect(focus.style).not.toBe('none');
-  expect(focus.width).toBeGreaterThanOrEqual(2);
+  await expect.poll(async () => page.locator('.topsearch').evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
+  await expect.poll(async () => page.locator('.topsearch').evaluate(el => parseFloat(getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(2);
   expect(await page.locator('[data-a="newFileFolder"]').evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
   await page.screenshot({ path: 'output/playwright/ux18-forced-colors-mobile.png' });
   await page.emulateMedia({ forcedColors: 'none' });
