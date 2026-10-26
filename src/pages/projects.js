@@ -65,7 +65,7 @@ export function pageProjects() {
         ['due', 'Due date'],
         ['progress', 'Progress'],
       ]
-        .map(([k, n]) => `<option value="${k}" ${sort === k ? 'selected' : ''}>Sort: ${n}</option>`)
+        .map(([k, n]) => `<option value="${k}" ${sort === k ? 'selected' : ''}>${n}</option>`)
         .join('')}</select>
       <span class="sp"></span>
       <div class="seg" role="tablist" aria-label="Layout">${[

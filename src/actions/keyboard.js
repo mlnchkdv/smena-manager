@@ -14,7 +14,7 @@ document.addEventListener('keydown', e => {
   const mod = e.metaKey || e.ctrlKey;
   const t = e.target;
   const typing = t.matches?.('input, textarea, select, [contenteditable="true"]');
-  if (S.ui.route === 'knowledge' && !S.ui.auth) {
+  if ((S.ui.route === 'knowledge' || S.ui.knowledgeDrawer) && !S.ui.auth) {
     if (mod && e.key.toLowerCase() === 's' && S.ui.knowledgeDrawer) {
       e.preventDefault();
       flushLocalSave();

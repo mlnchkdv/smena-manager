@@ -15,6 +15,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Display: 'Вид',
+  'Click to edit': 'Нажмите, чтобы изменить',
+  'Bookmark filters': 'Фильтры закладок',
+  'Enable interaction to move the graph. Switch back to scroll the page.': 'Включите управление, чтобы перемещать граф. Отключите его для прокрутки страницы.',
   'Content density': 'Плотность содержимого',
   'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.': 'Отступы в задачах, заметках, файлах и закладках. Зоны нажатия остаются удобными.',
   'Home view': 'Представление главной',
