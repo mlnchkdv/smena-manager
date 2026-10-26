@@ -4,6 +4,9 @@
 #app {
   height: 100%;
 }
+.main {
+  container: workspace / inline-size;
+}
 .shell {
   display: grid;
   grid-template-columns: var(--side-w) minmax(0, 1fr);

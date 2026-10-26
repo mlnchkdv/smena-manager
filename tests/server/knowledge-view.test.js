@@ -8,6 +8,8 @@ test('knowledge folder overlay follows usable width and sidebar collapse without
   assert.equal(knowledgeFolderOverlay(1024, true), false);
   assert.equal(knowledgeFolderOverlay(900, true), true);
   assert.equal(knowledgeFolderOverlay(320), true);
+  assert.equal(knowledgeFolderOverlay(1440, false, 468), true);
+  assert.equal(knowledgeFolderOverlay(1440, true, 1188), false);
 });
 import { knowledgeView } from '../../src/shared/knowledge-view.js';
 

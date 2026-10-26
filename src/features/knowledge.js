@@ -241,9 +241,9 @@ A.toggleKnowledgeMobileFolders = () => {
   if (S.ui.knowledgeMobileFolders) document.querySelector('.knowledge-sidebar .knowledge-mobile-folder-button')?.focus({ preventScroll: true });
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };
-let compactKnowledge = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
+let compactKnowledge = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed, document.querySelector('.main')?.clientWidth || undefined);
 window.addEventListener('resize', () => {
-  const compact = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
+  const compact = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed, document.querySelector('.main')?.clientWidth || undefined);
   const changed = compact !== compactKnowledge;
   compactKnowledge = compact;
   if ((S.ui.knowledgeMobileFolders && !compact) || (changed && S.ui.route === 'knowledge')) {

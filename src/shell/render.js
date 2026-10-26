@@ -2,6 +2,7 @@
    SHELL: render loop, router, sidebar, topbar, skeletons, filter engine
    ===================================================================== */
 import { $, $$ } from '../core/utils.js';
+import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { D, S, mem, proj, team } from '../core/store.js';
 import { applyPrefs } from '../core/theme.js';
 import { enhanceSelects, selectMenu } from '../ui/select.js';
@@ -243,6 +244,15 @@ export function render() {
   syncBrowserLocation();
 }
 let thumbnailModule;
+let layoutMain;
+const layoutObserver = new ResizeObserver(() => {
+  if (S.ui.route !== 'knowledge' || !layoutMain?.isConnected) return;
+  const compact = knowledgeFolderOverlay(innerWidth, S.ui.collapsed, layoutMain.clientWidth);
+  if (compact !== S.ui.knowledgeFolderOverlay) {
+    S.ui.knowledgeMobileFolders = false;
+    render();
+  }
+});
 let catalogContextModule;
 function refreshThumbnails() {
   if (!thumbnailModule && !document.querySelector('[data-file-thumb]')) return;
@@ -256,6 +266,12 @@ function refreshThumbnails() {
 }
 
 export function afterRender() {
+  const currentMain = document.querySelector('.main');
+  if (currentMain !== layoutMain) {
+    layoutObserver.disconnect();
+    layoutMain = currentMain;
+    if (layoutMain) layoutObserver.observe(layoutMain);
+  }
   if (
     S.ui.currentUser &&
     (S.ui.route === 'graph' ||

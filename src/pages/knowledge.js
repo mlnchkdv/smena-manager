@@ -147,7 +147,7 @@ export function pageKnowledge() {
           .join('')}</select></label>`
       : '';
 
-  S.ui.knowledgeFolderOverlay = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed);
+  S.ui.knowledgeFolderOverlay = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed, document.querySelector('.main')?.clientWidth || undefined);
   return `<div data-folder-overlay="${S.ui.knowledgeFolderOverlay}" class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
     ${S.ui.knowledgeMobileFolders ? '<button class="knowledge-folder-scrim" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders"></button>' : ''}
     <aside class="knowledge-sidebar">
