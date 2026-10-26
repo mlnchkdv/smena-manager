@@ -6,6 +6,19 @@
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
 }
+.home-view-switch {
+  width: fit-content;
+  margin-bottom: 12px;
+}
+.home-team-summary {
+  margin-bottom: 16px;
+}
+.home-team-summary > summary {
+  cursor: pointer;
+  padding: 8px 0;
+  color: var(--text-2);
+  min-height: 36px;
+}
 .inbox-grid.preview-hidden {
   grid-template-columns: minmax(0, 1fr);
 }

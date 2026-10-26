@@ -5,6 +5,15 @@ import { D, S, allTasks, canSee, isOver, pColor, progressOf, proj, visibleProjec
 import { av, avStack, empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+
+A.setHomeView = el => {
+  if (!['personal', 'team'].includes(el.dataset.view)) return;
+  writeLayoutPreference('homeView', el.dataset.view);
+  render();
+};
 
 export function pageHome() {
   const h = new Date().getHours();
@@ -16,6 +25,7 @@ export function pageHome() {
   const doneWk = all.filter(t => t.status === 'done' && t.completedAt && Date.now() - t.completedAt < 7 * DAY);
   const over = all.filter(isOver);
   const tab = S.ui.homeTab;
+  const personal = readLayoutPreference('homeView', 'personal') !== 'team';
   const lists = {
     upcoming: sortTasks(
       mineAll.filter(t => t.status !== 'done' && !isOver(t)),
@@ -36,15 +46,16 @@ export function pageHome() {
     return { lab, ts };
   };
   const dls = [dl('Today', 0, 0), dl('Tomorrow', 1, 1), dl('This week', 2, 7)];
-  return `<div class="page">
+  return `<div class="page home-page">
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span> · Here's what's happening across your workspace.</p></div>
       <div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}New task</button></div></div>
-    <div class="stats" style="margin-bottom:16px">
+    <div class="seg home-view-switch" role="group" aria-label="Home view"><button data-a="setHomeView" data-view="personal" aria-pressed="${personal}" class="${personal ? 'on' : ''}">My work</button><button data-a="setHomeView" data-view="team" aria-pressed="${!personal}" class="${!personal ? 'on' : ''}">Team overview</button></div>
+    <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Team overview</summary><div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}Active projects</span><span class="v">${activeP.length}</span><span class="d">${activeP.filter(p => p.status === 'risk').length} at risk</span></button>
       <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}Open tasks</span><span class="v">${open.length}</span><span class="d">${open.filter(t => t.assignee === D().me).length} assigned to you</span></button>
       <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}Completed</span><span class="v">${doneWk.length}</span><span class="d up">this week</span></button>
       <button class="stat" data-a="goTasks" data-f="overdue"><span class="k">${ic('clock-alert', 14)}Overdue</span><span class="v" style="${over.length ? 'color:var(--red)' : ''}">${over.length}</span><span class="d ${over.length ? 'bad' : ''}">${over.length ? 'need attention' : 'all on track'}</span></button>
-    </div>
+    </div></details>
     <div class="grid2">
       <div class="stack">
         <section class="panel" aria-labelledby="h-mytasks">
@@ -60,7 +71,7 @@ export function pageHome() {
               )
               .join('')}</div>
             <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="mytasks" data-tip="Open My Tasks" aria-label="Open My Tasks">${ic('arrow-up-right', 15)}</button></div></div>
-          ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? 'Every task assigned to you is on schedule.' : 'Add a task to get things moving.', '', 'sm')}
+${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? 'Every task assigned to you is on schedule.' : 'Add a task to get things moving.', `<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>`, 'sm')}
           ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="mytasks">View all ${lists[tab].length} tasks ${ic('arrow-right', 13)}</button>` : ''}
         </section>
         <section class="panel">

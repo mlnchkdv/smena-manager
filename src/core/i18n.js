@@ -15,6 +15,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Home view': 'Представление главной',
+  'My work': 'Моя работа',
+  'Team overview': 'Обзор команды',
+  'Browse workspace tasks': 'Посмотреть задачи пространства',
   'Preview pane': 'Панель просмотра',
   'Focus mode': 'Режим фокуса',
   'Exit focus mode': 'Выйти из фокуса',
