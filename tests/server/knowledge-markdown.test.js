@@ -48,7 +48,8 @@ test('tables support optional edge pipes and incomplete rows without consuming f
   assert.doesNotMatch(html, /Ignored/);
   assert.match(html, /<pre><code>X \| Y\n--- \| ---<\/code><\/pre>/);
   assert.equal((html.match(/<table>/g) || []).length, 1);
-  assert.doesNotMatch(renderKnowledgeMarkdown('A | B\n-- | ---\nC | D'), /<table>/);
+  assert.match(renderKnowledgeMarkdown('A | B\n-- | ---\nC | D'), /<table>/);
+  assert.doesNotMatch(renderKnowledgeMarkdown('A | B\ninvalid | separator\nC | D'), /<table>/);
 });
 
 test('imported MD metadata is separated for reading while raw source and provenance survive portable round trips', () => {

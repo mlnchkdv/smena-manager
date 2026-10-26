@@ -873,6 +873,22 @@
 .knowledge-quick-content {
   overflow-wrap: anywhere;
 }
+.knowledge-quick-content .knowledge-plain-text {
+  font: inherit;
+  padding: 0;
+  background: transparent;
+  white-space: pre-wrap;
+}
+.knowledge-image-reference {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
 .knowledge-quick-content [data-knowledge-heading] {
   scroll-margin-block-start: 16px;
 }

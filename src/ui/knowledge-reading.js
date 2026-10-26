@@ -2,6 +2,13 @@ import { D } from '../core/store.js';
 import { t } from '../core/i18n.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeRelations } from '../shared/knowledge-links.js';
+export const knowledgeMarkdownOptions = (note = {}) => ({
+  plainText: note.sourceFormat === 'text',
+  unresolvedLabel: t('Unresolved wiki link'),
+  imageLabel: t('Image'),
+  openImageLabel: t('Open image'),
+  unavailableImageLabel: t('Image source unavailable'),
+});
 
 export function knowledgeReadingHtml(note, source) {
   const wikiTargets = new Map(
@@ -9,5 +16,5 @@ export function knowledgeReadingHtml(note, source) {
       .outgoing.filter(ref => ref.note)
       .map(ref => [ref.title.toLocaleLowerCase('ru-RU'), ref.note.id]),
   );
-  return renderKnowledgeMarkdown(source, { wikiTargets, sourceId: note.id, unresolvedLabel: t('Unresolved wiki link') });
+  return renderKnowledgeMarkdown(source, { ...knowledgeMarkdownOptions(note), wikiTargets, sourceId: note.id });
 }
