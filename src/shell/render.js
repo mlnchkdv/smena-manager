@@ -268,13 +268,17 @@ export function render() {
 }
 let thumbnailModule;
 let layoutMain;
+let layoutFrame;
 const layoutObserver = new ResizeObserver(() => {
-  if (S.ui.route !== 'knowledge' || !layoutMain?.isConnected) return;
-  const compact = knowledgeFolderOverlay(innerWidth, S.ui.collapsed, layoutMain.clientWidth);
-  if (compact !== S.ui.knowledgeFolderOverlay) {
-    S.ui.knowledgeMobileFolders = false;
-    render();
-  }
+  cancelAnimationFrame(layoutFrame);
+  layoutFrame = requestAnimationFrame(() => {
+    if (S.ui.route !== 'knowledge' || !layoutMain?.isConnected) return;
+    const compact = knowledgeFolderOverlay(innerWidth, S.ui.collapsed, layoutMain.clientWidth);
+    if (compact !== S.ui.knowledgeFolderOverlay) {
+      S.ui.knowledgeMobileFolders = false;
+      render();
+    }
+  });
 });
 let catalogContextModule;
 function refreshThumbnails() {
