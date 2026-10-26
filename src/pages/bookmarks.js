@@ -3,6 +3,8 @@ import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { relationsPanel } from '../ui/relations.js';
+import { bookmarkView } from '../shared/bookmark-view.js';
+import { paginationHtml } from '../ui/pagination.js';
 
 const IMPORTANCE = {
   low: { label: 'Low', icon: 'minus', tone: 'muted' },
@@ -23,11 +25,6 @@ function safeUrl(value) {
   } catch {
     return null;
   }
-}
-
-function bookmarkMatches(link, query) {
-  if (!query) return true;
-  return [link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' ').toLowerCase().includes(query);
 }
 
 function bookmarkForm(folders) {
@@ -82,11 +79,13 @@ export function pageBookmarks() {
   const folderFilter = S.ui.bookmarkFolder || 'all';
   const scope = S.ui.bookmarkScope || 'active';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const filtered = links
-    .filter(link => bookmarkMatches(link, query))
-    .filter(link => folderFilter === 'all' || (folderFilter === 'root' ? !link.folder : link.folder === folderFilter))
-    .filter(link => (scope === 'archived' ? link.is_archived : !link.is_archived))
-    .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
+  const filterKey = JSON.stringify([query, folderFilter, scope]);
+  S.ui.listPages ||= {};
+  if (S.ui.bookmarkFilterKey !== filterKey) S.ui.listPages.bookmarks = 0;
+  S.ui.bookmarkFilterKey = filterKey;
+  const page = bookmarkView(links, { query, folder: folderFilter, scope, page: S.ui.listPages.bookmarks });
+  S.ui.listPages.bookmarks = page.page;
+  const filtered = page.items;
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
   return `<div class="bookmarks-page">
@@ -94,13 +93,13 @@ export function pageBookmarks() {
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span>${folders.length} folders</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     <div class="bookmark-toolbar">
-      <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks"></div>
+      <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
       <label class="sr" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
       <div class="seg" role="group" aria-label="Bookmark status"><button class="${scope === 'active' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="active">Active</button><button class="${scope === 'archived' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="archived">Archived</button></div>
     </div>
     ${
       filtered.length
-        ? `<div class="bookmark-grid">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>`
+        ? `<p class="hint num" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</p><div class="bookmark-grid">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
         : empty(
             'bookmark-x',
             scope === 'archived' ? 'No archived bookmarks' : 'No bookmarks found',
