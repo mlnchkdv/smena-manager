@@ -293,6 +293,16 @@ A.filterKnowledgePreviewTag = el => {
   S.ui.knowledgeOffset = 0;
   render();
 };
+A.showKnowledgeProperties = () => {
+  S.ui.knowledgeEditorPane = 'source';
+  render();
+  const properties = document.querySelector('.knowledge-properties');
+  if (!properties) return;
+  properties.open = true;
+  properties.scrollIntoView({ block: 'nearest' });
+  properties.querySelector('summary')?.focus({ preventScroll: true });
+  document.querySelector('.knowledge-note-actions')?.removeAttribute('open');
+};
 import { knowledgeLivePreview } from '../ui/knowledge-live-preview.js';
 import { translateElement, t } from '../core/i18n.js';
 import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
