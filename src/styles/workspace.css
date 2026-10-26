@@ -366,6 +366,58 @@
   .files-selection-bar:not(.active) :is(.btn, .ibtn) {
     min-height: 32px;
   }
+  .knowledge-main {
+    padding-top: 18px;
+  }
+  .knowledge-breadcrumbs:not(:has(button)) {
+    display: none;
+  }
+  .knowledge-breadcrumbs {
+    margin-bottom: 8px;
+  }
+  .knowledge-saved-views {
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .knowledge-content-head {
+    margin-bottom: 8px;
+  }
+  .knowledge-content-head > div:first-child {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    min-width: 0;
+  }
+  .knowledge-content-head p {
+    margin: 0;
+  }
+  .knowledge-import-hint {
+    margin-block: 4px 8px;
+  }
+  .knowledge-content-toolbar {
+    margin-bottom: 8px;
+  }
+  .knowledge-bulk:not(.active) {
+    padding-block: 0;
+    margin-bottom: 8px;
+    min-height: 30px;
+  }
+  .knowledge-folder-browser {
+    margin-block: 10px 12px;
+    padding: 10px;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card {
+    min-height: 88px;
+    padding: 12px 42px 12px 14px;
+    flex-direction: row;
+    align-items: center;
+  }
+  .knowledge-mixed-grid .knowledge-folder-card > svg {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
 }
 .modal {
   max-width: var(--modal-width);
