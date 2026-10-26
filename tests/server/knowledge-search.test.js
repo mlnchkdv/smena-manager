@@ -21,7 +21,7 @@ test('card excerpts omit MD service metadata while metadata remains searchable a
   assert.equal(knowledgeExcerpt(note, ''), 'Useful team body');
   assert.equal(createKnowledgeMatcher('service-only-marker')(note), true);
   assert.equal(knowledgeExcerpt(note, 'service-only-marker'), 'Useful team body');
-  assert.match(knowledgeExcerpt({ ...note, sourceFormat: 'text' }, ''), /internalkey: service-only-marker/);
+  assert.match(knowledgeExcerpt({ ...note, sourceFormat: 'text' }, ''), /internal_key: service-only-marker/);
 });
 
 test('blank searches on large collections never scan note bodies', () => {

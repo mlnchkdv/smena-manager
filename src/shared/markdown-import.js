@@ -1,4 +1,5 @@
 import { extractWikiLinks } from './knowledge-links.js';
+import { firstMarkdownParagraph } from './markdown-text.js';
 
 const text = value => (typeof value === 'string' ? value.trim() : '');
 
@@ -62,17 +63,7 @@ function markdownTitle(markdown) {
 }
 
 function markdownSummary(body) {
-  const paragraph = String(body || '')
-    .split(/\r?\n\s*\r?\n/)
-    .map(part => part.replace(/^\s*#{1,6}\s+.*$/gm, '').trim())
-    .map(part =>
-      part
-        .replace(/\[\[([^\]]+)\]\]/g, '$1')
-        .replace(/[`*_>#-]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim(),
-    )
-    .find(Boolean);
+  const paragraph = firstMarkdownParagraph(body);
   return (paragraph || 'Imported Markdown note.').slice(0, 500);
 }
 

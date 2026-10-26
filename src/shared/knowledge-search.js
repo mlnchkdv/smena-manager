@@ -1,4 +1,5 @@
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
+import { markdownText } from './markdown-text.js';
 
 export const searchTerms = query =>
   (String(query || '').match(/"[^"]+"|\S+/g) || [])
@@ -18,10 +19,11 @@ export function createKnowledgeMatcher(query) {
 export const matchesKnowledgeSearch = (note, query) => createKnowledgeMatcher(query)(note);
 export function knowledgeExcerpt(note, query, length = 180) {
   const clean = value =>
-    String(value || '')
-      .replace(/[#>*_`~[\]]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    note.sourceFormat === 'text'
+      ? String(value || '')
+          .replace(/\s+/g, ' ')
+          .trim()
+      : markdownText(value);
   const terms = searchTerms(query);
   const summary = clean(note.summary);
   const body = clean(knowledgeDisplayParts(note).body);
