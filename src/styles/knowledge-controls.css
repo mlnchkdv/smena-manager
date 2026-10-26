@@ -37,6 +37,7 @@
 }
 .knowledge-content-toolbar {
   clear: both;
+  position: relative;
   display: flex;
   align-items: flex-start;
 }
@@ -59,9 +60,17 @@
   flex: 1;
 }
 .knowledge-filter-options {
-  position: relative;
+  /* Anchor the panel to the whole toolbar, not the middle filter button. */
+  position: static;
   flex-shrink: 0;
   z-index: 7;
+}
+.knowledge-filter-options > div {
+  width: min(320px, 100%);
+}
+.knowledge-filter-options :is(.knowledge-tag-filter, .knowledge-sort-filter) {
+  flex: 0 0 auto;
+  min-height: 0;
 }
 .knowledge-filter-options :is(.knowledge-tag-filter, .knowledge-sort-filter, .select) {
   width: 100%;
