@@ -7,6 +7,7 @@ import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
+import { folderTrail } from '../shared/knowledge-tools.js';
 const hl = highlightKnowledge;
 
 export function pageSearch() {
@@ -19,6 +20,7 @@ export function pageSearch() {
     totals = {};
   const r = searchAll(q, { totals, offsets });
   const demandFiles = fileCatalogInfo()?.mode === 'demand';
+  const folderMap = new Map(D().knowledgeFolders.map(folder => [folder.id, folder]));
   const cat = S.ui.searchCat;
   const cats = [
     ['all', 'All'],
@@ -107,7 +109,13 @@ export function pageSearch() {
               r.knowledge
                 .map(
                   note =>
-                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(D().knowledgeFolders.find(folder => folder.id === note.folderId)?.name || note.category || '')}</span></div>`,
+                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(
+                      folderTrail(note.folderId, folderMap)
+                        .map(folder => folder.name)
+                        .join(' / ') ||
+                        note.category ||
+                        '',
+                    )}</span></div>`,
                 )
                 .join(''),
             ) +
@@ -126,7 +134,7 @@ export function pageSearch() {
                 })
                 .join(''),
             )
-          : `<div class="panel">${empty('search-x', 'No results found', 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+          : `<div class="panel">${empty('search-x', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'Use Files to search the complete file catalog.' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }

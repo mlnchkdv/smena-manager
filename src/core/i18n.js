@@ -35,6 +35,8 @@ const RU = {
   'Focus date': 'Перейти к дате',
   'Update and reopen': 'Обновить и открыть снова',
   'Chronological order': 'В хронологическом порядке',
+  'No matches in loaded results': 'В загруженных результатах совпадений нет',
+  'Use Files to search the complete file catalog.': 'Полный поиск по каталогу доступен в разделе «Файлы».',
   'Read full description': 'Прочитать полное описание',
   'Back to source note': 'Вернуться к исходной заметке',
   'Save the note before navigating.': 'Сохраните заметку перед переходом.',

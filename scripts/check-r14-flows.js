@@ -42,7 +42,7 @@ async page => {
     const touch=await page.context().browser().newContext({storageState:await page.context().storageState(),viewport:{width:1024,height:768},hasTouch:true});
     const tablet=await touch.newPage(); await tablet.goto('http://127.0.0.1:5194/layout-qa'); await tablet.locator('.home-page h1').waitFor();
     check(await tablet.evaluate(()=>matchMedia('(pointer: coarse)').matches),'Coarse pointer missing');
-    check(await tablet.locator('.home-deadline-task').evaluateAll(items=>items.every(e=>e.getBoundingClientRect().height>=43.9)),'Tablet touch row too small');
+    check(await tablet.locator('.home-deadline-task').evaluateAll(items=>items.length>0 && items.every(e=>e.getBoundingClientRect().height>=43.9)),'Tablet touch row missing or too small');
     await touch.close();
     return {languages:['ru','en'],wiki:'stable identity + return',bookmarks:'130 records paging + viewer reading',search:'75 records continuation',coarseTablet:true,productionWrites:0};
   } finally {
