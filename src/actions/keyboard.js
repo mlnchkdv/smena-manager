@@ -197,6 +197,18 @@ document.addEventListener('keydown', e => {
       (t.id === 'workspace-file-q' ? A.clearFileQuery : A.clearKnowledgeQuery)();
       return;
     }
+    if (t.value && ['search-page-q', 'bookmark-search'].includes(t.id)) {
+      e.preventDefault();
+      A.clearSearchInput({ dataset: { input: t.id } });
+      return;
+    }
+    const disclosure = document.querySelector('.knowledge-view-options[open], .knowledge-filter-options[open]');
+    if (disclosure) {
+      e.preventDefault();
+      disclosure.open = false;
+      disclosure.querySelector('summary')?.focus({ preventScroll: true });
+      return;
+    }
     if (S.ui.sel.size) {
       A.clearSel();
       return;

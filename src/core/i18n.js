@@ -15,6 +15,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Search categories': 'Категории поиска',
   'View options': 'Параметры вида',
   Agenda: 'Повестка',
   'View day': 'Посмотреть день',
