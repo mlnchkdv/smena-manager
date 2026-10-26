@@ -50,6 +50,13 @@ async function checkNarrowTeamDialog(page, language, browserName) {
 
 test('core task flow and responsive shell work across browser engines', async ({ page, browserName }) => {
   await signIn(page);
+  // Other suites share the account and can leave its server preference in EN.
+  // Establish the locale used by the RU assertions before starting this flow.
+  await page.goto('/e2e-team/settings/language');
+  await page.locator('select[data-k="lang"]').selectOption('Русский');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+  await page.waitForTimeout(500);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
   await page.setViewportSize({ width: 1366, height: 850 });
   await page.goto('/e2e-team');
   const accountTrigger = page.locator('.topbar .account-menu-trigger:visible');

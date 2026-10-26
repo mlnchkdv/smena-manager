@@ -146,13 +146,18 @@ async function acceptance(page, base) {
         .evaluate(element => element.getBoundingClientRect().height)) >= 44,
       'Agenda item is too small.',
     );
+    await open('knowledge', lang === 'ru' ? 'Все заметки' : 'All notes');
+    const query = await page.locator('.knowledge-preview-card .knowledge-preview-head strong').first().innerText();
+    check(Boolean(query.trim()), 'The isolated fixture needs a named note for the reader scenario.');
     await open('search', null);
-    await page.locator('#search-page-q').fill('Проверка');
-    await page.locator('[data-a=goKnowledgeNote]').first().click();
+    await page.locator('#search-page-q').fill(query);
+    // A result now has its own path disclosure. Open its title, not the
+    // geometric row centre, which can legitimately expand that disclosure.
+    await page.locator('[data-a=goKnowledgeNote] .tt').first().click();
     await page.locator('.knowledge-quick-preview').waitFor();
     check(page.url().endsWith('/search'), 'Opening a reader lost the search route.');
     await page.locator('.knowledge-drawer [data-a=closeKnowledgeDrawer]').click();
-    check((await page.locator('#search-page-q').inputValue()) === 'Проверка', 'Reader lost the query.');
+    check((await page.locator('#search-page-q').inputValue()) === query, 'Reader lost the query.');
     check((await page.evaluate(() => document.activeElement?.dataset.a)) === 'goKnowledgeNote', 'Reader lost result focus.');
     await page.locator('#search-page-q').press('Escape');
     check((await page.locator('#search-page-q').inputValue()) === '', 'Escape did not clear the query.');
