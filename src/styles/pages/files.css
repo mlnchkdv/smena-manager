@@ -945,7 +945,7 @@
 .file-preview-message {
   padding: 32px 20px;
   text-align: center;
-  color: var(--muted);
+  color: var(--text-3);
 }
 .files-preset-controls {
   display: flex;

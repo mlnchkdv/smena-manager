@@ -15,7 +15,7 @@
   border-radius: 16px 16px 0 0;
   z-index: 76;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-pop);
 }
 .knowledge-shell[data-folder-overlay='true'] .knowledge-mobile-folder-button {
   display: inline-flex;
@@ -803,7 +803,7 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
     border-radius: 18px 18px 0 0;
     z-index: 76;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-pop);
     overflow: auto;
   }
   .knowledge-shell .knowledge-mobile-folder-button {
@@ -1355,7 +1355,7 @@
 .knowledge-quick-content h3,
 .knowledge-quick-content h4 {
   margin: 1.1em 0 0.45em;
-  font-family: var(--sans);
+  font-family: var(--font);
   line-height: 1.25;
 }
 .knowledge-quick-content h2 {

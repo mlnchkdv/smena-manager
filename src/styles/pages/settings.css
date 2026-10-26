@@ -436,7 +436,7 @@
   margin-top: 16px;
   overflow: hidden;
   border: 1px solid var(--divider);
-  border-radius: var(--r-md);
+  border-radius: var(--r);
   background: var(--divider);
 }
 .notification-delivery-grid > div {

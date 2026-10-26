@@ -92,7 +92,7 @@
 .google-signin-error {
   display: block;
   padding: 9px 12px;
-  color: var(--danger);
+  color: var(--red);
   font-size: var(--fs-sm);
   text-align: center;
 }

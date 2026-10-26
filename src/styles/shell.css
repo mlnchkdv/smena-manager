@@ -536,7 +536,7 @@ h3.sub {
   display: none;
 }
 .deployment-update small {
-  color: var(--muted);
+  color: var(--text-3);
 }
 .deployment-update .btn {
   justify-self: start;
