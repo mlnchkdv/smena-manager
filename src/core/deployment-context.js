@@ -1,5 +1,6 @@
 import { D, S } from './store.js';
 import { render } from '../shell/render.js';
+import { failedOverlayTarget } from '../shared/deployment-recovery.js';
 const KEY = 'smena:deployment-return';
 const workspace = () => JSON.stringify([D().ws?.id, D().ws?.url]);
 let lastFocus = '';
@@ -20,6 +21,8 @@ const fields = [
   'knowledgeTag',
   'knowledgeShowFolders',
   'knowledgeFolderLayout',
+  'searchQ',
+  'searchCat',
 ];
 export function saveDeploymentContext() {
   if (!S.ui.currentUser) return;
@@ -34,6 +37,7 @@ export function saveDeploymentContext() {
         path: location.pathname,
         at: Date.now(),
         view,
+        overlay: failedOverlayTarget(S.ui),
         selector,
         focus: lastFocus.slice(0, 128),
         scroll: document.querySelector(selector)?.scrollTop || 0,
@@ -72,6 +76,12 @@ export function restoreDeploymentContext() {
       // Let route-local preference initializers run before restoring transient filters.
       for (const key of fields)
         if (['string', 'boolean'].includes(typeof value.view?.[key]) && String(value.view[key]).length <= 1000) S.ui[key] = value.view[key];
+      const overlay = value.overlay;
+      if (overlay?.kind === 'note' && D().knowledgeNotes.some(note => note.id === overlay.id)) {
+        S.ui.knowledgeDrawer = overlay.id;
+        S.ui.knowledgeDrawerView = 'preview';
+      } else if (overlay?.kind === 'task' && D().tasks.some(task => task.id === overlay.id)) S.ui.drawer = overlay.id;
+      else if (overlay?.kind === 'search' && typeof overlay.query === 'string') S.ui.palette = { q: overlay.query.slice(0, 500) };
       render();
       return;
     }

@@ -33,6 +33,7 @@ const RU = {
   'Scroll page': 'Прокручивать страницу',
   'Timeline presentation': 'Представление хронологии',
   'Focus date': 'Перейти к дате',
+  'Update and reopen': 'Обновить и открыть снова',
   'Search categories': 'Категории поиска',
   'View options': 'Параметры вида',
   Agenda: 'Повестка',

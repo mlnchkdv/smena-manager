@@ -1,7 +1,7 @@
 import { S } from './store.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './workspace-sync.js';
 import { personalPreferenceSyncState } from './personal-preferences.js';
-import { deploymentReloadSafe } from '../shared/deployment-recovery.js';
+import { deploymentReloadSafe, failedOverlayTarget } from '../shared/deployment-recovery.js';
 import { t } from './i18n.js';
 import { saveDeploymentContext } from './deployment-context.js';
 
@@ -23,7 +23,7 @@ export function installDeploymentRecovery(buildId) {
       personal: personalPreferenceSyncState(),
       uploads: S.ui.uploads,
       transfer: S.ui.fileDownload || (['preparing', 'ready'].includes(S.ui.fileNativeTransfer?.phase) && S.ui.fileNativeTransfer),
-      forms: S.ui.modals?.length || S.ui.drawer || S.ui.knowledgeDrawer || S.ui.pop || S.ui.palette,
+      forms: failedOverlayTarget(S.ui) ? false : S.ui.modals?.length || S.ui.drawer || S.ui.knowledgeDrawer || S.ui.pop || S.ui.palette,
       drafts: Object.values(S.ui.drafts || {}).some(value => Boolean(value)),
       loading: S.ui.loading,
       authBusy: S.ui.authBusy,
@@ -53,7 +53,7 @@ export function installDeploymentRecovery(buildId) {
     );
     const button = document.createElement('button');
     button.className = 'btn btn-secondary btn-sm';
-    button.textContent = t(changed ? 'Update app' : 'Check for update');
+    button.textContent = t(changed ? (failedOverlayTarget(S.ui) ? 'Update and reopen' : 'Update app') : 'Check for update');
     button.disabled = changed && !canReload;
     button.addEventListener('click', () => {
       if (!changed) return void check();

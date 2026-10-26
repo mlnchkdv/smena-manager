@@ -8,16 +8,21 @@ const active = () => S.ui.drawer || S.ui.knowledgeDrawer || S.ui.modals.length |
 const context = () => `${S.ui.currentUser?.id}:${getSessionGeneration()}`;
 export function retryOverlays() {
   failed = false;
+  S.ui.overlayLoadFailed = false;
   render();
 }
 export function renderLayer() {
-  if (!active()) return '';
+  if (!active()) {
+    S.ui.overlayLoadFailed = false;
+    return '';
+  }
   if (content) return content.renderLayer();
   if (!loading && !failed) {
     const owner = context();
     loading = import('./drawer-content.js')
       .then(module => {
         content = module;
+        S.ui.overlayLoadFailed = false;
         if (owner !== context() || !active()) return;
         render();
         const box = document.querySelector('.modal, .knowledge-drawer, .drawer, .palette, .pop.floating');
@@ -28,6 +33,7 @@ export function renderLayer() {
       })
       .catch(() => {
         failed = true;
+        if (owner === context()) S.ui.overlayLoadFailed = true;
         if (owner === context() && active()) render();
       })
       .finally(() => {
