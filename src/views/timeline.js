@@ -1,14 +1,18 @@
 /* ---------- TIMELINE ---------- */
-import { $, MON, MONL, TODAY, addD, diffD, esc, fmtDate, parse } from '../core/utils.js';
+import { $, MON, MONL, TODAY, addD, diffD, esc, fmtDate, parse, iso } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { S, allTasks, canSee, pColor, proj, task, taskProg, visibleProjects } from '../core/store.js';
 import { av, empty, stIcon } from '../ui/helpers.js';
 import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { timelineMilestones } from '../shared/timeline-scope.js';
+import { listWindow } from '../shared/list-window.js';
+import { paginationHtml } from '../ui/pagination.js';
+
+const listMode = () => (S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640);
 
 export function tlControls() {
-  return `<div class="seg" style="margin-left:4px">${[
+  return `<div class="seg" role="group" aria-label="Timeline presentation"><button class="${listMode() ? 'on' : ''}" aria-pressed="${listMode()}" data-a="set" data-k="tlPresentation" data-v="list">List</button><button class="${!listMode() ? 'on' : ''}" aria-pressed="${!listMode()}" data-a="set" data-k="tlPresentation" data-v="chart">Timeline</button></div><input type="date" class="input tl-date-picker" data-in="tlAnchor" value="${S.ui.tlAnchor || iso(TODAY)}" aria-label="Focus date"><div class="seg" style="margin-left:4px;${listMode() ? 'display:none' : ''}">${[
     ['week', 'Weeks'],
     ['month', 'Months'],
   ]
@@ -25,8 +29,31 @@ export function tlControls() {
   <button class="btn btn-ghost" data-a="tlToday">${ic('crosshair', 14)}Today</button>`;
 }
 export function timelineHtml(ts, key, p) {
+  if (listMode()) {
+    const items = [
+      ...ts.filter(t => t.due).map(t => ({ date: t.due, task: t })),
+      ...timelineMilestones(ts, visibleProjects().filter(canSee), p).map(m => ({ date: m.date, milestone: m })),
+    ].sort((a, b) => a.date.localeCompare(b.date));
+    const anchorKey = `${key}:${S.ui.tlAnchor || ''}`;
+    S.ui.listPages ||= {};
+    if (S.ui.tlAnchorKey !== anchorKey) {
+      S.ui.tlAnchorKey = anchorKey;
+      const position = items.findIndex(item => item.date >= (S.ui.tlAnchor || iso(TODAY)));
+      S.ui.listPages.timeline = Math.floor(Math.max(0, position) / 60);
+    }
+    const page = listWindow(items, S.ui.listPages.timeline, 60);
+    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}">${
+      page.items
+        .map(item => {
+          const m = item.milestone;
+          const project = m?.p || proj(item.task?.project);
+          return `<button class="tl-agenda-item" ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
+        })
+        .join('') || empty('calendar', 'Nothing on the timeline', 'Give tasks a start and due date to see them here.')
+    }${paginationHtml(page, 'timeline')}</div>`;
+  }
   const dw = S.ui.tlZoom === 'week' ? 32 : 11;
-  const rs = startOfWeek(addD(TODAY, S.ui.tlZoom === 'week' ? -21 : -56));
+  const rs = startOfWeek(addD(parse(S.ui.tlAnchor || iso(TODAY)), S.ui.tlZoom === 'week' ? -21 : -56));
   const nDays = S.ui.tlZoom === 'week' ? 7 * 13 : 7 * 34;
   const X = ds => diffD(parse(ds), rs) * dw;
   const g = S.ui.tlGroup;
@@ -172,11 +199,11 @@ export function tlAfter() {
     l.scrollTop = r.scrollTop;
   };
   l.scrollTop = r.scrollTop;
-  const k = $('.tl').dataset.tlKey + S.ui.tlZoom;
+  const k = $('.tl').dataset.tlKey + S.ui.tlZoom + (S.ui.tlAnchor || '');
   S.ui.tlInit = S.ui.tlInit || {};
   if (!S.ui.tlInit[k]) {
     S.ui.tlInit[k] = 1;
-    r.scrollLeft = Math.max(0, +$('.tl').dataset.tlToday - 160);
+    r.scrollLeft = Math.max(0, S.ui.tlAnchor ? 21 * (S.ui.tlZoom === 'week' ? 32 : 11) : +$('.tl').dataset.tlToday - 160);
   }
 }
 export function pageWsTimeline() {

@@ -8,6 +8,32 @@
   min-height: 0;
   overflow: hidden;
 }
+.tl-date-picker {
+  width: auto;
+  max-width: 180px;
+}
+.tl-agenda {
+  padding: 12px var(--gutter) 32px;
+  overflow-y: auto;
+}
+.tl-agenda-item {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.tl-agenda-item:hover {
+  background: var(--surface-2);
+}
+.tl-agenda-item strong,
+.tl-agenda-item .hint {
+  display: block;
+  overflow-wrap: anywhere;
+}
 .tl-left {
   border-right: 1px solid var(--border);
   overflow: hidden;
