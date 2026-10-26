@@ -6,6 +6,7 @@ import { relationsPanel } from '../ui/relations.js';
 import { bookmarkContextPage, bookmarkView } from '../shared/bookmark-view.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
+import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
 
 const IMPORTANCE = {
   low: { label: 'Low', icon: 'minus', tone: 'muted' },
@@ -62,7 +63,7 @@ function bookmarkCard(link, folders, readOnly) {
       <span class="bookmark-importance tone-${importance.tone}" title="${importance.label}">${ic(importance.icon, 13)}<span>${importance.label}</span></span>
     </div>
     ${link.description ? `<p class="bookmark-description" translate="no">${esc(link.description)}</p>` : ''}
-    ${link.description ? `<details class="bookmark-reading-details"><summary>Read full description</summary><div class="bookmark-full-description"><p translate="no">${esc(link.description)}</p><a href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(parsed.toString())}</a></div></details>` : ''}
+    ${link.description ? `<details class="bookmark-reading-details" ${disclosureAttributes(`bookmark:${link.id}`)}><summary id="bookmark-reading-${esc(link.id)}" data-open-label="Collapse description" data-closed-label="Read full description">${disclosureOpen(`bookmark:${link.id}`) ? 'Collapse description' : 'Read full description'}</summary><div class="bookmark-full-description"><p translate="no">${esc(link.description)}</p><a href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(parsed.toString())}</a></div></details>` : ''}
     <div class="bookmark-tags" translate="no">${(link.tags || []).map(tag => `<span class="chip">#${esc(tag)}</span>`).join('')}${folder ? `<span class="chip bookmark-folder-chip">${ic('folder', 11)}${esc(folder.name)}</span>` : ''}</div>
     <div class="bookmark-card-foot"><span>${ic('clock-3', 12)}${ago(new Date(link.updated_at || link.created_at).getTime())}</span><span class="sp"></span>${
       readOnly
