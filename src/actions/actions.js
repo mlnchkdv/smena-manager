@@ -179,8 +179,8 @@ export function applyPatch(t, patch) {
     } else if (k === 'assignee') {
       logAct('assigned', t, nv ? `to ${mem(nv)?.name}` : '(unassigned)');
     } else if (k === 'priority') logAct('changed priority of', t, `to ${PR[nv].name}`);
-    else if (k === 'due') logAct('changed due date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
-    else if (k === 'start') logAct('changed start date of', t, nv ? `to ${fmtDate(nv)}` : '(cleared)');
+    else if (k === 'due') logAct('changed due date of', t, nv ? `to ${nv}` : '(cleared)', { field: k, value: nv || null });
+    else if (k === 'start') logAct('changed start date of', t, nv ? `to ${nv}` : '(cleared)', { field: k, value: nv || null });
     else if (k === 'project') {
       const p = proj(nv);
       t.key = nextKey(p);
@@ -1298,7 +1298,8 @@ A.popPick = el => {
       logAct(
         k === 'assignee' ? 'assigned a subtask on' : 'set a subtask due date on',
         t,
-        k === 'assignee' ? (v ? `to ${mem(v).name}` : '(unassigned)') : v ? fmtDate(v) : '(cleared)',
+        k === 'assignee' ? (v ? `to ${mem(v).name}` : '(unassigned)') : v ? `to ${v}` : '(cleared)',
+        k === 'due' ? { field: 'subtaskDue', value: v } : null,
       );
     });
     return;

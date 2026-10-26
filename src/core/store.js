@@ -246,8 +246,17 @@ export function taskProg(t) {
 }
 
 /* ---------- activity + notification helpers ---------- */
-export function logAct(verb, t, extra = '') {
-  D().activity.unshift({ id: uid('a'), by: D().me, verb, task: t?.id || null, project: t?.project || null, at: Date.now(), extra });
+export function logAct(verb, t, extra = '', change = null) {
+  D().activity.unshift({
+    id: uid('a'),
+    by: D().me,
+    verb,
+    task: t?.id || null,
+    project: t?.project || null,
+    at: Date.now(),
+    extra,
+    ...(change ? { change } : {}),
+  });
   if (t) t.updated = Date.now();
 }
 

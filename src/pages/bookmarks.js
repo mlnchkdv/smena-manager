@@ -8,6 +8,7 @@ import { paginationHtml } from '../ui/pagination.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
+import { uiCount } from '../core/i18n.js';
 
 const IMPORTANCE = {
   low: { label: 'Low', icon: 'minus', tone: 'muted' },
@@ -90,7 +91,7 @@ export function pageBookmarks() {
 
   return `<div class="bookmarks-page">
 ${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and useful resources for the team.</p></div>${readOnly ? '' : `<div class="row"><button class="btn btn-secondary" data-a="newBookmarkFolder">${ic('folder-plus', 14)}New folder</button><button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button></div>`}`, 'bookmarks-head')}
-    <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span>${folders.length} folders</span></section>
+    <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     ${collectionToolbar(
       `

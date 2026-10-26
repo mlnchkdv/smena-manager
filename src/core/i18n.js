@@ -4,6 +4,7 @@
    coupling project data, routes, or action identifiers to translated text.
    ===================================================================== */
 import { S } from './store.js';
+import { countLabel } from '../shared/count-label.js';
 
 export const LANGUAGES = [
   ['English (US)', 'English (US)'],
@@ -1818,6 +1819,8 @@ const RU = {
   'added a file to': 'добавил(а) файл к',
   created: 'создал(а)',
   assigned: 'назначил(а)',
+  'assigned a subtask on': 'назначил(а) исполнителя подзадачи в',
+  'set a subtask due date on': 'изменил(а) срок подзадачи в',
 };
 
 const CONTROL_LABELS = {
@@ -2137,6 +2140,8 @@ export function activityExtra(value, verb) {
 }
 
 export const inProject = name => (isRussian() ? `в проекте «${name}»` : `in ${name}`);
+export const uiCount = (count, kind) => countLabel(count, kind, isRussian() ? 'ru-RU' : 'en-US');
+export const resultsCount = (shown, total, kind) => (isRussian() ? `Показано ${shown} из ${total}` : `${shown} of ${uiCount(total, kind)}`);
 
 const ATTRIBUTES = ['aria-label', 'title', 'placeholder', 'data-tip', 'data-msg', 'data-ph'];
 
