@@ -48,7 +48,8 @@ async function acceptance(page, base) {
   };
   await page.goto(base);
   const login = page.getByRole('textbox', { name: 'Идентификатор доступа', exact: true });
-  if (!new URL(page.url()).pathname.startsWith('/layout-qa')) {
+  await page.waitForFunction(() => document.querySelector('#l-access') || document.querySelector('.shell'));
+  if (await login.isVisible()) {
     await login.waitFor();
     await login.fill('density-layout-test-id-2026');
     await page.getByRole('button', { name: 'Войти', exact: true }).click();
@@ -57,7 +58,8 @@ async function acceptance(page, base) {
   check(new URL(page.url()).pathname.startsWith('/layout-qa'), 'Only the Layout QA fixture is allowed.');
   const open = async (route, title) => {
     await page.goto(base + '/layout-qa/' + route);
-    if (title) await page.getByRole('heading', { name: title, level: 1, exact: true }).waitFor();
+    if (route === '') await page.locator('.home-page h1').waitFor();
+    else if (title) await page.getByRole('heading', { name: title, level: 1, exact: true }).waitFor();
     else await page.locator('#search-page-q').waitFor();
   };
   const rows = [];
@@ -84,33 +86,46 @@ async function acceptance(page, base) {
         await radio.click();
         await saved;
       }
-      for (const width of [320, 390, 768, 1024, 1440]) {
-        await page.setViewportSize({ width, height: width < 500 ? 845 : 900 });
-        for (const [route, title] of [
-          ['files', lang === 'ru' ? 'Файлы' : 'Files'],
-          ['knowledge', lang === 'ru' ? 'Все заметки' : 'All notes'],
-          ['calendar', lang === 'ru' ? 'Календарь' : 'Calendar'],
-          ['bookmarks', lang === 'ru' ? 'Закладки' : 'Bookmarks'],
-          ['search', null],
-        ]) {
-          await open(route, title);
-          const geometry = await page.evaluate(() => ({
-            overflow: document.documentElement.scrollWidth - innerWidth,
-            firstNote: document.querySelector('.knowledge-preview-card')?.getBoundingClientRect().top,
-            toolbarEscape: [...document.querySelectorAll('.toolbar,.cal-h')].some(element => {
-              const r = element.getBoundingClientRect();
-              return [...element.children].some(child => {
-                const c = child.getBoundingClientRect();
-                return c.width > 0 && getComputedStyle(child).display !== 'none' && c.bottom > r.bottom + 1;
-              });
-            }),
-          }));
-          check(geometry.overflow <= 1, JSON.stringify({ route, lang, theme, width, geometry }));
-          check(!geometry.toolbarEscape, 'Calendar controls escape their row: ' + JSON.stringify({ lang, theme, width }));
-          if (route === 'knowledge' && (width === 390 || width === 1440))
-            check(geometry.firstNote < (width === 390 ? 480 : 360), 'Notes are pushed below primary controls.');
-          await page.screenshot({ path: `output/playwright/ergonomics26/${route}-${lang}-${theme}-${width}.png` });
-          rows.push({ route, lang, theme, width });
+      for (const density of ['comfortable', 'compact']) {
+        await open('settings/appearance', lang === 'ru' ? 'Оформление' : 'Appearance');
+        const control = page.locator(`[data-a="setPref"][data-k="density"][data-v="${density}"]`);
+        if ((await control.getAttribute('aria-pressed')) !== 'true') {
+          const saved = page.waitForResponse(response => response.url().endsWith('/api/preferences') && response.request().method() === 'PUT' && response.ok());
+          await control.click();
+          await saved;
+        }
+        for (const width of [320, 390, 768, 1024, 1440]) {
+          await page.setViewportSize({ width, height: width < 500 ? 845 : 900 });
+          for (const [route, title] of [
+            ['files', lang === 'ru' ? 'Файлы' : 'Files'],
+            ['knowledge', lang === 'ru' ? 'Все заметки' : 'All notes'],
+            ['calendar', lang === 'ru' ? 'Календарь' : 'Calendar'],
+            ['bookmarks', lang === 'ru' ? 'Закладки' : 'Bookmarks'],
+            ['search', null],
+            ['', null],
+            ['timeline', lang === 'ru' ? 'Хронология' : 'Timeline'],
+            ['graph', lang === 'ru' ? 'Граф' : 'Graph'],
+            ['inbox', lang === 'ru' ? 'Входящие' : 'Inbox'],
+          ]) {
+            await open(route, title);
+            const geometry = await page.evaluate(() => ({
+              overflow: document.documentElement.scrollWidth - innerWidth,
+              firstNote: document.querySelector('.knowledge-preview-card')?.getBoundingClientRect().top,
+              toolbarEscape: [...document.querySelectorAll('.toolbar,.cal-h')].some(element => {
+                const r = element.getBoundingClientRect();
+                return [...element.children].some(child => {
+                  const c = child.getBoundingClientRect();
+                  return c.width > 0 && getComputedStyle(child).display !== 'none' && c.bottom > r.bottom + 1;
+                });
+              }),
+            }));
+            check(geometry.overflow <= 1, JSON.stringify({ route, lang, theme, width, geometry }));
+            check(!geometry.toolbarEscape, 'Calendar controls escape their row: ' + JSON.stringify({ lang, theme, width }));
+            if (route === 'knowledge' && (width === 390 || width === 1440))
+              check(geometry.firstNote < (width === 390 ? 480 : 360), 'Notes are pushed below primary controls.');
+            await page.screenshot({ path: `output/playwright/ergonomics26/${route || 'home'}-${lang}-${theme}-${density}-${width}.png` });
+            rows.push({ route, lang, theme, density, width });
+          }
         }
       }
     }
@@ -171,6 +186,7 @@ async function acceptance(page, base) {
     passed: rows.length,
     languages: ['ru', 'en'],
     themes: ['light', 'dark'],
+    densities: ['comfortable', 'compact'],
     screenshots: 'output/playwright/ergonomics26',
     scope: 'isolated local fixture; no physical-device claims',
   };

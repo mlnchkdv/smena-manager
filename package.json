@@ -16,6 +16,7 @@
     "check:ui": "node scripts/check-ui-matrix.js",
     "check:tokens": "node scripts/check-ui-tokens.js",
     "check:ergonomics": "node scripts/check-ui-ergonomics.js",
+    "check:visual": "node scripts/check-visual-baselines.js",
     "setup:gmail": "node scripts/setup-gmail-oauth.js",
     "setup:storage": "node scripts/setup-storage.js",
     "check:deploy": "node scripts/check-deployment-config.js",
@@ -52,6 +53,8 @@
     "eslint": "^9.39.5",
     "globals": "^15.15.0",
     "lucide": "^0.460.0",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.9",
     "vite": "^6.4.4"
   }

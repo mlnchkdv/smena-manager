@@ -1,0 +1,11 @@
+{
+  "approved": false,
+  "approvedBy": null,
+  "approvedAt": null,
+  "files": [
+    { "name": "knowledge-ru-light-comfortable-390.png", "sha256": null },
+    { "name": "files-en-dark-compact-390.png", "sha256": null },
+    { "name": "timeline-ru-light-comfortable-1440.png", "sha256": null },
+    { "name": "bookmarks-en-light-comfortable-390.png", "sha256": null }
+  ]
+}
