@@ -96,7 +96,7 @@ const markdown = new Marked({
 
 export function renderKnowledgeMarkdown(source, options = {}) {
   if (options.plainText) return `<pre class="knowledge-plain-text">${escape(source)}</pre>`;
-  const headings = new Map();
+  const headings = new Set();
   const externalLink = (href, label) =>
     /^(https?:\/\/|mailto:)/i.test(href) ? `<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${label}</a>` : label;
   const inlines = (tokens = [], depth = 0) =>
@@ -148,10 +148,12 @@ export function renderKnowledgeMarkdown(source, options = {}) {
             return '';
           case 'heading': {
             const level = Math.min(6, token.depth + 1),
-              slug = knowledgeHeadingSlug(token.text),
-              occurrence = headings.get(slug) || 0;
-            headings.set(slug, occurrence + 1);
-            return `<h${level} data-knowledge-heading="${escape(slug + (occurrence ? `-${occurrence}` : ''))}" tabindex="-1">${inlines(token.tokens)}</h${level}>`;
+              slug = knowledgeHeadingSlug(token.text);
+            let anchor = slug,
+              suffix = 1;
+            while (headings.has(anchor)) anchor = `${slug}-${suffix++}`;
+            headings.add(anchor);
+            return `<h${level} data-knowledge-heading="${escape(anchor)}" tabindex="-1">${inlines(token.tokens)}</h${level}>`;
           }
           case 'paragraph':
           case 'text': {

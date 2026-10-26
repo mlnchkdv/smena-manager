@@ -13,3 +13,8 @@ test('internal links stay local and duplicated Unicode headings have separate de
   assert.doesNotMatch(html, /href="#[^"]+" target=/);
   assert.match(html, /href="https:\/\/example.test" target="_blank"/);
 });
+test('numbered headings do not collide with generated duplicate suffixes', () => {
+  const html = renderKnowledgeMarkdown('## Setup\n## Setup\n## Setup-1\n## Setup');
+  const anchors = [...html.matchAll(/data-knowledge-heading="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual(anchors, ['setup', 'setup-1', 'setup-1-1', 'setup-2']);
+});
