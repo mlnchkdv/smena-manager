@@ -35,6 +35,7 @@ const RU = {
   'Focus date': 'Перейти к дате',
   'Update and reopen': 'Обновить и открыть снова',
   'Chronological order': 'В хронологическом порядке',
+  'Read full description': 'Прочитать полное описание',
   'Back to source note': 'Вернуться к исходной заметке',
   'Save the note before navigating.': 'Сохраните заметку перед переходом.',
   'Unresolved wiki link': 'Цель wiki-ссылки не определена',

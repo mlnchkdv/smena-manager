@@ -155,6 +155,32 @@
   color: var(--text-4);
   font-size: var(--fs-2xs);
 }
+.bookmark-reading-details {
+  margin-top: 8px;
+  font-size: var(--fs-xs);
+}
+.bookmark-reading-details > summary {
+  cursor: pointer;
+  color: var(--accent);
+  padding-block: 8px;
+}
+.bookmark-card:has(.bookmark-reading-details[open]) > .bookmark-description {
+  display: none;
+}
+.bookmark-full-description {
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.bookmark-full-description p {
+  white-space: pre-wrap;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .bookmark-reading-details > summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
 .bookmark-importance {
   display: inline-flex;
   align-items: center;
