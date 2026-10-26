@@ -5,6 +5,7 @@ import { S, myNotifications, proj, task } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { notifIcon, notifText, notifSnippet } from './inbox.js';
 import { notificationReadButton } from '../ui/notification-controls.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 
 export function pageNotifications() {
   const f = S.ui.notifFilter;
@@ -18,12 +19,15 @@ export function pageNotifications() {
   ns.forEach(n => (buckets[dayBucket(n.at)] ||= []).push(n));
   return `<div class="page" style="max-width:820px">
     <div class="ph"><div><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent">${unread} unread</span>` : ''}</h1><p>Updates on tasks and projects you follow.</p></div>
-      <div class="acts"><div class="seg">${[
-        ['all', 'All'],
-        ['unread', 'Unread'],
-      ]
-        .map(([k, n]) => `<button class="${f === k ? 'on' : ''}" data-a="set" data-k="notifFilter" data-v="${k}">${n}</button>`)
-        .join('')}</div>
+      <div class="acts">${segmentedControl({
+        label: 'Notification filter',
+        key: 'notifFilter',
+        value: f,
+        items: [
+          ['all', 'All'],
+          ['unread', 'Unread'],
+        ],
+      })}
       <button class="btn btn-secondary" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>
       <button class="btn btn-secondary" data-a="clearReadNotifications" ${read ? '' : 'disabled'}>${ic('trash-2', 14)}Clear read</button>
       <button class="ibtn" data-a="go" data-r="settings" data-sec="notif-mentions" data-tip="Notification preferences" aria-label="Notification preferences">${ic('settings-2', 16)}</button></div></div>

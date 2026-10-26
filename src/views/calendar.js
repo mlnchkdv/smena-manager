@@ -8,6 +8,7 @@ import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { calendarDayItems } from '../shared/calendar-items.js';
 import { t } from '../core/i18n.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
@@ -96,13 +97,17 @@ export function calendarHtml(ts, opt = {}) {
               .join('')}</span>`
           : ''
       }
-      <div class="seg cal-views">${[
-        ['month', 'Month'],
-        ['week', 'Week'],
-        ['agenda', 'Agenda'],
-      ]
-        .map(([k, n]) => `<button class="${mode === k ? 'on' : ''}" data-a="set" data-k="calMode" data-v="${k}">${n}</button>`)
-        .join('')}</div>
+      ${segmentedControl({
+        label: 'Calendar view',
+        key: 'calMode',
+        value: mode,
+        className: 'cal-views',
+        items: [
+          ['month', 'Month'],
+          ['week', 'Week'],
+          ['agenda', 'Agenda'],
+        ],
+      })}
     </div>
     ${body}
   </div>`;

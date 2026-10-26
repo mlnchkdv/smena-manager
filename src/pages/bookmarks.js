@@ -7,6 +7,7 @@ import { bookmarkContextPage, bookmarkView } from '../shared/bookmark-view.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 
 const IMPORTANCE = {
   low: { label: 'Low', icon: 'minus', tone: 'muted' },
@@ -95,7 +96,15 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and usef
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
       <label class="sr" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
-      <div class="seg" role="group" aria-label="Bookmark status"><button class="${scope === 'active' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="active">Active</button><button class="${scope === 'archived' ? 'on' : ''}" data-a="set" data-k="bookmarkScope" data-v="archived">Archived</button></div>
+      ${segmentedControl({
+        label: 'Bookmark status',
+        key: 'bookmarkScope',
+        value: scope,
+        items: [
+          ['active', 'Active'],
+          ['archived', 'Archived'],
+        ],
+      })}
     `,
       'Bookmark filters',
       'bookmark-toolbar',

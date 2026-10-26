@@ -10,6 +10,7 @@ import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
 import { t as tr } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 
 const teamDescription = value => (!value || value === 'No description yet.' ? tr('No description yet.') : value);
 const recordedMemberLabel = (member, times) =>
@@ -39,7 +40,7 @@ export function pageMembers() {
           ? permsTable()
           : `
     <div class="row" style="margin-bottom:12px;gap:8px;flex-wrap:wrap"><div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="mem-q" data-in="memQ" placeholder="Search by name or email" value="${esc(u.memQ || '')}" aria-label="Search members"></div>
-      <div class="seg">${['all', ...ROLES].map(r => `<button class="${role === r ? 'on' : ''}" data-a="set" data-k="memRole" data-v="${r}">${r === 'all' ? 'All' : r}</button>`).join('')}</div></div>
+      ${segmentedControl({ label: 'Filter by role', key: 'memRole', value: role, items: ['all', ...ROLES].map(r => [r, r === 'all' ? 'All' : r]) })}</div>
     <div class="panel" style="overflow-x:auto">${
       ms.length
         ? `<table class="perm-t" style="min-width:880px"><thead><tr><th style="padding-left:14px">Member</th><th style="text-align:left">Role</th><th style="text-align:left">Team</th><th>Active projects</th><th>Tasks</th><th style="text-align:left">Recorded activity</th><th style="text-align:left">Status</th><th></th></tr></thead><tbody>
