@@ -1,0 +1,27 @@
+/* The saved content-density preference changes whitespace, never font or hit size. */
+:root[data-density='compact'] :is(.knowledge-preview-grid, .bookmark-grid, .workspace-file-grid) {
+  gap: 8px;
+}
+:root[data-density='compact'] .knowledge-preview-open {
+  padding: 12px 44px 12px 12px;
+}
+:root[data-density='compact'] .knowledge-preview-excerpt {
+  margin-block: 8px;
+  min-height: 32px;
+  -webkit-line-clamp: 2;
+}
+:root[data-density='compact'] .bookmark-card {
+  padding: 12px;
+}
+:root[data-density='compact'] .bookmark-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+@media (min-width: 901px) and (pointer: fine) {
+  :root[data-density='compact'] .workspace-file-card .fprev {
+    aspect-ratio: 2.3;
+    max-height: 110px;
+  }
+}

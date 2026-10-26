@@ -246,7 +246,7 @@ export function settingsBody(sec, title) {
       )}</div>
       <div class="sblock"><h2>Density</h2>
         ${srow('Sidebar density', 'Compact fits more projects on screen.', `<div class="seg">${['comfortable', 'compact'].map(k => `<button class="${P.side === k ? 'on' : ''}" data-a="setPref" data-k="side" data-v="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`)}
-        ${srow('Task display', 'Row height in lists and card padding on boards.', `<div class="seg">${['comfortable', 'compact'].map(k => `<button class="${P.density === k ? 'on' : ''}" data-a="setPref" data-k="density" data-v="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`)}
+        ${srow('Content density', 'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.', `<div class="seg" role="group" aria-label="Content density">${['comfortable', 'compact'].map(k => `<button class="${P.density === k ? 'on' : ''}" aria-pressed="${P.density === k}" data-a="setPref" data-k="density" data-v="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`)}
         ${srow(
           'Motion',
           'Reduce animations for drawers, modals, and transitions.',

@@ -15,6 +15,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Content density': 'Плотность содержимого',
+  'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.': 'Отступы в задачах, заметках, файлах и закладках. Зоны нажатия остаются удобными.',
   'Home view': 'Представление главной',
   'My work': 'Моя работа',
   'Team overview': 'Обзор команды',
