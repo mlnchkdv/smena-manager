@@ -588,9 +588,32 @@ A.clearSearchInput = el => {
   document.getElementById(el.dataset.input)?.focus({ preventScroll: true });
 };
 A.closeKnowledgeDrawer = () => {
+  S.ui.knowledgeWikiTrail = [];
   S.ui.knowledgeDrawer = null;
   render();
   if (!document.activeElement || document.activeElement === document.body) document.querySelector('[data-in="knowledgeQuery"]')?.focus();
+};
+A.followKnowledgeWiki = el => {
+  if (S.ui.knowledgeDirty) return toast('Save the note before navigating.', { kind: 'info' });
+  if (S.ui.knowledgeDrawer !== el.dataset.source || !D().knowledgeNotes.some(note => note.id === el.dataset.id)) return;
+  S.ui.knowledgeWikiTrail = [
+    ...(S.ui.knowledgeWikiTrail || []),
+    { id: el.dataset.source, scroll: document.querySelector('.knowledge-drawer-body')?.scrollTop || 0 },
+  ].slice(-20);
+  S.ui.knowledgeDrawer = el.dataset.id;
+  S.ui.knowledgeDrawerView = 'preview';
+  render();
+  document.querySelector('[data-a="backKnowledgeWiki"]')?.focus();
+};
+A.backKnowledgeWiki = () => {
+  if (S.ui.knowledgeDirty) return toast('Save the note before navigating.', { kind: 'info' });
+  const previous = S.ui.knowledgeWikiTrail?.pop();
+  if (!previous || !D().knowledgeNotes.some(note => note.id === previous.id)) return;
+  S.ui.knowledgeDrawer = previous.id;
+  S.ui.knowledgeDrawerView = 'preview';
+  render();
+  document.querySelector('.knowledge-drawer-body')?.scrollTo(0, previous.scroll);
+  document.querySelector('.knowledge-drawer [data-a="closeKnowledgeDrawer"]')?.focus();
 };
 A.editKnowledgeNote = () => {
   S.ui.knowledgeDrawerView = 'edit';

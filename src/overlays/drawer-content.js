@@ -15,7 +15,8 @@ import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 import { safeRichText } from '../ui/rich-text.js';
 import { relationsPanel } from '../ui/relations.js';
 import { noteEditor } from '../ui/knowledge-editor.js';
-import { renderKnowledgeMarkdown, knowledgeReadingSource } from '../shared/knowledge-markdown.js';
+import { knowledgeReadingSource } from '../shared/knowledge-markdown.js';
+import { knowledgeReadingHtml } from '../ui/knowledge-reading.js';
 import { knowledgeContext } from '../ui/knowledge-context.js';
 import { knowledgeMetadata } from '../ui/knowledge-metadata.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
@@ -43,7 +44,7 @@ export function knowledgeDrawerHtml(note) {
   const folders = Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [];
   const preview = S.ui.knowledgeDrawerView !== 'edit';
   const previewSource = knowledgeReadingSource(note);
-  const previewMarkup = renderKnowledgeMarkdown(previewSource);
+  const previewMarkup = knowledgeReadingHtml(note, previewSource);
   const updated = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
   const navigation = preview
     ? knowledgePreviewNavigation(S.ui.knowledgePreviewContext, {
@@ -54,9 +55,12 @@ export function knowledgeDrawerHtml(note) {
       })
     : null;
   const pager =
-    navigation?.total > 1
+    (S.ui.knowledgeWikiTrail?.length
+      ? `<button class="ibtn" data-a="backKnowledgeWiki" aria-label="Back to source note" title="Back to source note">${ic('arrow-left', 15)}</button>`
+      : '') +
+    (navigation?.total > 1
       ? `<div class="knowledge-preview-pager" role="group" aria-label="Notes on this page"><button id="knowledge-preview-previous" class="ibtn ibtn-sm" data-a="stepKnowledgePreview" data-direction="previous" aria-label="Previous note" title="Previous note" ${navigation.previous ? '' : 'disabled'}>${ic('chevron-left', 16)}</button><span id="knowledge-preview-position" class="knowledge-preview-position num" tabindex="-1" aria-live="polite" aria-atomic="true"><span class="sr">Notes on this page</span> ${navigation.index + 1} / ${navigation.total}</span><button id="knowledge-preview-next" class="ibtn ibtn-sm" data-a="stepKnowledgePreview" data-direction="next" aria-label="Next note" title="Next note" ${navigation.next ? '' : 'disabled'}>${ic('chevron-right', 16)}</button></div>`
-      : '';
+      : '');
   const previewBody = `<section class="knowledge-quick-preview"><h1 class="knowledge-reader-title" translate="no">${esc(note.title || tr('Untitled note'))}</h1><div class="knowledge-quick-preview-meta">${ic('clock-3', 13)}<span>Updated ${ago(Number.isFinite(updated) ? updated : Date.now())}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>${note.summary && !(note.sourceFormat === 'text' ? previewSource.includes(note.summary) : redundantMarkdownSummary(note.summary, previewSource)) ? `<p class="knowledge-quick-summary" translate="no">${esc(note.summary)}</p>` : ''}<div class="knowledge-quick-content" translate="no">${previewMarkup || '<p class="faint">No content yet.</p>'}</div>${knowledgeMetadata(note)}<div class="knowledge-quick-actions">${readOnly ? '' : `<button class="btn btn-primary" data-a="editKnowledgeNote">${ic('pencil', 14)}Edit note</button>`}<button class="btn btn-secondary" data-a="showGraph" data-key="note:${note.id}">${ic('network', 14)}Show connections</button></div></section>`;
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
     <div class="drawer-h"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span>${pager}${readOnly ? '' : `<button class="ibtn ibtn-sm" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`}<button class="ibtn ibtn-sm" data-a="closeKnowledgeDrawer" data-tip="Close  Esc" aria-label="Close">${ic('x', 16)}</button></div>

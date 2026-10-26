@@ -6,7 +6,7 @@ export function knowledgeReadingSource(note) {
   const heading = source.match(/^\s{0,3}#\s+([^\r\n]+)(?:\r?\n|$)/);
   return heading && heading[1].replace(/\s+#+\s*$/, '').trim() === String(note.title || '').trim() ? source.slice(heading[0].length) : source;
 }
-function inline(text) {
+function inline(text, options = {}) {
   const tokens = /`([^`]+)`|\*\*([^*]+)\*\*|\[\[([^\]]+)\]\]|\[([^\]]+)\]\(([^\s)]+)\)/g;
   let out = '',
     start = 0;
@@ -15,8 +15,12 @@ function inline(text) {
     start = match.index + match[0].length;
     if (match[1]) out += `<code>${escape(match[1])}</code>`;
     else if (match[2]) out += `<strong>${escape(match[2])}</strong>`;
-    else if (match[3]) out += `<span class="knowledge-wiki-link">${escape(match[3])}</span>`;
-    else
+    else if (match[3]) {
+      const target = options.wikiTargets?.get(match[3].trim().toLocaleLowerCase('ru-RU'));
+      out += target
+        ? `<button class="knowledge-wiki-link" data-a="followKnowledgeWiki" data-id="${escape(target)}" data-source="${escape(options.sourceId || '')}">${escape(match[3])}</button>`
+        : `<span class="knowledge-wiki-link unresolved" title="${escape(options.unresolvedLabel || 'Unresolved wiki link')}">${escape(match[3])}</span>`;
+    } else
       out += /^(https?:\/\/|mailto:|#)/i.test(match[5])
         ? `<a href="${escape(match[5])}" target="_blank" rel="noopener noreferrer">${escape(match[4])}</a>`
         : escape(match[4]);
@@ -52,7 +56,8 @@ function tableCells(line) {
   return cells;
 }
 
-export function renderKnowledgeMarkdown(markdown) {
+export function renderKnowledgeMarkdown(markdown, options = {}) {
+  const format = text => inline(text, options);
   const lines = String(markdown || '')
     .replace(/\r/g, '')
     .split('\n');
@@ -86,7 +91,7 @@ export function renderKnowledgeMarkdown(markdown) {
       const alignments = separators.map(value => (value.endsWith(':') ? (value.startsWith(':') ? 'center' : 'right') : 'left'));
       const row = (cells, heading = false) => {
         const tag = heading ? 'th' : 'td';
-        return `<tr>${headers.map((_, column) => `<${tag}${heading ? ' scope="col"' : ''} class="knowledge-table-${alignments[column]}">${inline(cells[column] || '')}</${tag}>`).join('')}</tr>`;
+        return `<tr>${headers.map((_, column) => `<${tag}${heading ? ' scope="col"' : ''} class="knowledge-table-${alignments[column]}">${format(cells[column] || '')}</${tag}>`).join('')}</tr>`;
       };
       html += `<div class="knowledge-table-wrap" role="region" tabindex="0" aria-label="${escape(headers.join(' · ').slice(0, 160))}"><table><thead>${row(headers, true)}</thead><tbody>`;
       i++;
@@ -103,15 +108,15 @@ export function renderKnowledgeMarkdown(markdown) {
         html += `<${type}>`;
         list = type;
       }
-      html += `<li>${inline(bullet[2]).replace(/^\[([ xX])\]\s*/, (_, v) => (v === ' ' ? '☐ ' : '☑ '))}</li>`;
+      html += `<li>${format(bullet[2]).replace(/^\[([ xX])\]\s*/, (_, v) => (v === ' ' ? '☐ ' : '☑ '))}</li>`;
     } else {
       closeList();
       if (heading) {
         const level = Math.min(6, Number(heading[1].length) + 1);
-        html += `<h${level}>${inline(heading[2])}</h${level}>`;
-      } else if (/^>\s?/.test(line)) html += `<blockquote>${inline(line.replace(/^>\s?/, ''))}</blockquote>`;
+        html += `<h${level}>${format(heading[2])}</h${level}>`;
+      } else if (/^>\s?/.test(line)) html += `<blockquote>${format(line.replace(/^>\s?/, ''))}</blockquote>`;
       else if (/^\s*---+\s*$/.test(line)) html += '<hr>';
-      else if (line.trim()) html += `<p>${inline(line)}</p>`;
+      else if (line.trim()) html += `<p>${format(line)}</p>`;
     }
   }
   closeList();

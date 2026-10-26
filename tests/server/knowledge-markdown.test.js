@@ -4,6 +4,14 @@ import { renderKnowledgeMarkdown, knowledgeReadingSource } from '../../src/share
 import { knowledgeDisplayParts } from '../../src/shared/knowledge-frontmatter.js';
 import { parseMarkdownNote, parseTextNote } from '../../src/shared/markdown-import.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../../src/shared/portable-workspace.js';
+
+test('resolved wiki links are keyboard buttons and unresolved references never guess targets', () => {
+  const html = renderKnowledgeMarkdown('[[Цель]] [[Нет]]', { sourceId: 'a', wikiTargets: new Map([['цель', 'b"x']]) });
+  assert.match(html, /<button[^>]+data-a="followKnowledgeWiki"/);
+  assert.match(html, /data-id="b&quot;x"/);
+  assert.match(html, /class="knowledge-wiki-link unresolved"/);
+  assert.doesNotMatch(renderKnowledgeMarkdown('[[Нет]]'), /<button/);
+});
 test('portable Markdown renders lists, headings and fenced code safely', () => {
   const html = renderKnowledgeMarkdown('# Title\n- Item\n1. Next\n```html\n<script>alert(1)</script>\n```\n[bad](javascript:alert)\n[ok](https://example.com)');
   assert.match(html, /<h2>Title<\/h2>/);
