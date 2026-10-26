@@ -21,6 +21,9 @@
     width: 20px;
     height: 20px;
   }
+  .knowledge-mixed-grid .knowledge-folder-browser-head > [data-a='newKnowledgeFolder'] {
+    display: none;
+  }
   .files-folder-open {
     display: grid;
     grid-template-columns: 24px minmax(0, 1fr);

@@ -4,6 +4,19 @@ const waitSaved = async page => {
   await page.waitForTimeout(500);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
 };
+const openViewOptions = async page => {
+  const options = page.locator('.knowledge-view-options');
+  if ((await options.getAttribute('open')) === null) await options.locator(':scope > summary').click();
+};
+const setFolderLayout = async (page, value) => {
+  await openViewOptions(page);
+  await page.locator('[data-in="knowledgeFolderLayout"]').selectOption(value);
+  await page.keyboard.press('Escape');
+  if (value === 'block') {
+    const folders = page.locator('.knowledge-folder-disclosure');
+    if ((await folders.getAttribute('open')) === null) await folders.locator(':scope > summary').click();
+  }
+};
 const expectFolderTileBounds = async page => {
   const overflow = await page.locator('.knowledge-folder-tile').evaluateAll(tiles =>
     tiles.map(tile => {
@@ -66,12 +79,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('[data-in="knowledgeQuery"]').fill('"original knowledge"');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await expect(page.locator('.knowledge-preview-excerpt mark')).toHaveText('Original knowledge');
+  await openViewOptions(page);
   await page.locator('[data-a="saveKnowledgeView"]').click();
   await page.locator('#prompt-in').fill('Pinned review');
   await page.locator('[data-a="promptSubmit"]').click();
   await page.reload();
+  await openViewOptions(page);
   await expect(page.locator('[data-a="applyKnowledgeView"]')).toHaveText('Pinned review');
   await page.locator('[data-a="applyKnowledgeView"]').click();
+  await page.keyboard.press('Escape');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await page.locator('.knowledge-preview-open').click();
   await expect(page.locator('.knowledge-drawer')).toContainText('Knowledge Beta');
@@ -135,7 +151,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Original knowledge content');
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
   expect(await page.locator('.knowledge-content-actions').evaluate(el => parseFloat(getComputedStyle(el).columnGap))).toBeGreaterThanOrEqual(8);
-  await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
+  await setFolderLayout(page, 'inline');
   await page.reload();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
   await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-tile')).toHaveCount(2);
@@ -146,8 +162,10 @@ test('knowledge reading editing history search and mobile folders work in Russia
     .evaluateAll(icons => icons.map(icon => icon.getBoundingClientRect().top));
   expect(Math.abs(folderIconTops[0] - folderIconTops[1])).toBeLessThanOrEqual(1);
   await page.screenshot({ path: 'output/playwright/knowledge-mixed-local-desktop-20261022.png' });
+  await openViewOptions(page);
   await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveCount(0);
+  await openViewOptions(page);
   await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
   for (const [language, folderLabel, editLabel] of [
@@ -163,12 +181,12 @@ test('knowledge reading editing history search and mobile folders work in Russia
       'aria-label',
       language === 'Русский' ? 'Отображение папок' : 'Folder display',
     );
-    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('block');
-    await expect(page.locator('.knowledge-content > .knowledge-folder-browser')).toBeVisible();
+    await setFolderLayout(page, 'block');
+    await expect(page.locator('.knowledge-folder-disclosure .knowledge-folder-browser')).toBeVisible();
     await page.locator('[data-a="focusKnowledgeNotes"]').press('Enter');
     await expect(page.locator('.knowledge-preview-open').first()).toBeFocused();
     await expect(page.locator('.knowledge-drawer')).toHaveCount(0);
-    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
+    await setFolderLayout(page, 'inline');
     await expect(page.locator('.knowledge-mixed-grid .knowledge-folder-card').first()).toBeVisible();
     const folderBoxes = await page.locator('.knowledge-mixed-grid .knowledge-folder-tile').evaluateAll(tiles =>
       tiles.map(el => {
@@ -314,16 +332,16 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
-    await page.locator('[data-in="knowledgeFolderLayout"]').selectOption(language === 'Русский' ? 'block' : 'inline');
+    await setFolderLayout(page, language === 'Русский' ? 'block' : 'inline');
+    const folderPageSize = language === 'Русский' ? 4 : 2;
     // Paging must remain usable when the activated navigation button becomes disabled.
-    await expect(page.locator('.knowledge-folder-card')).toHaveCount(4);
+    await expect(page.locator('.knowledge-folder-card')).toHaveCount(folderPageSize);
     await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
     await expect(page.locator('.knowledge-folder-card').first()).toBeFocused();
-    await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', 'scale-folder-4');
+    await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', `scale-folder-${folderPageSize}`);
     await page.locator('#knowledge-subfolder-search').fill('"Section 04"');
-    await expect(page.locator('.knowledge-folder-card')).toHaveCount(4);
-    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
-    await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
+    await expect(page.locator('.knowledge-folder-card')).toHaveCount(folderPageSize);
+    for (let i = 1; i < Math.ceil(10 / folderPageSize); i++) await page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]').press('Enter');
     await expect(page.locator('.knowledge-folder-card')).toHaveCount(2);
     await expect(page.locator('[data-a="knowledgeFolderCardPage"][data-key="next"]')).toBeDisabled();
     await expect(page.locator('.knowledge-folder-card').first()).toBeFocused();
