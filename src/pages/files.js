@@ -193,7 +193,7 @@ export function pageFiles(projectId = null) {
         ['project', 'Project'],
       ]
         .map(([value, label]) => `<option value="${value}" ${sort === value ? 'selected' : ''}>${label}</option>`)
-        .join('')}</select></div></details>
+        .join('')}</select>
       <div class="seg files-view-switch" role="group" aria-label="File view">${[
         ['grid', 'layout-grid', 'Grid view'],
         ['list', 'list', 'List view'],
@@ -202,7 +202,7 @@ export function pageFiles(projectId = null) {
           ([value, icon, label]) =>
             `<button class="${view === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${label}" aria-pressed="${view === value}">${ic(icon, 13)}</button>`,
         )
-        .join('')}</div>
+        .join('')}</div></div></details>
     `,
       'File filters',
       'files-toolbar workspace-files-toolbar',
