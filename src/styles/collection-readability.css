@@ -1,0 +1,40 @@
+/* Keep similar folder names distinguishable without requiring hover. */
+@media (max-width: 480px) {
+  :is(.files-folder-grid, .files-folder-grid.compact, .knowledge-folder-card-grid, .knowledge-preview-grid.knowledge-mixed-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .files-folder-open {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 88px;
+    padding: 12px 48px 12px 12px;
+  }
+  .files-folder-open :is(strong, .faint, small) {
+    grid-column: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .files-folder-open > svg {
+    grid-row: 1 / 4;
+  }
+  .knowledge-folder-card strong,
+  .knowledge-mixed-grid .knowledge-folder-card strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .workspace-file-card.textual .workspace-file-open {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .workspace-file-card.textual .workspace-file-card-foot {
+    left: 56px;
+  }
+  .workspace-file-card.textual .fprev {
+    padding: 8px;
+  }
+  .workspace-file-card.textual .fprev > :not(svg, .ftype) {
+    display: none;
+  }
+}
