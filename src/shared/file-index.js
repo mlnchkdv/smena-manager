@@ -1,4 +1,5 @@
 // Build once per render: no persistent cache can outlive a sync or ACL change.
+import { searchTerms } from './search-query.js';
 export const normalizeFileSearch = value =>
   String(value || '')
     .normalize('NFKC')
@@ -81,7 +82,7 @@ export function createFileIndex(data, projects, typeNames = {}) {
 }
 
 export function filterIndexedFiles(index, { project = 'all', folder = null, recursive = false, type = 'all', query = '', sort = 'date' } = {}) {
-  const terms = normalizeFileSearch(query).trim().split(/\s+/).filter(Boolean);
+  const terms = searchTerms(normalizeFileSearch(query));
   return index.files
     .filter(
       file =>

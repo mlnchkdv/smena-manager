@@ -1,15 +1,16 @@
 import { graphNeighborhood } from './relations.js';
+import { textMatcher } from './search-query.js';
 
 export function graphView(graph, { center = '', depth = 1, query = '', kind = '', project = '', connectedOnly = false, limit = 250 } = {}) {
   const local = graphNeighborhood(graph, center, depth);
   const connected = new Set(local.edges.flatMap(edge => [edge.from, edge.to]));
-  const q = String(query).trim().toLocaleLowerCase();
+  const matches = textMatcher(query);
   const matching = local.nodes.filter(
     node =>
       (!kind || node.kind === kind) &&
       (!project || node.project === project) &&
       (!connectedOnly || connected.has(node.key)) &&
-      [node.title, ...(node.tags || []), node.item?.url].join(' ').toLocaleLowerCase().includes(q),
+      matches([node.title, ...(node.tags || []), node.item?.url].join(' ')),
   );
   // Keep project anchors in a bounded global window. Otherwise a large file
   // collection fills the window before its project node and hides every edge.

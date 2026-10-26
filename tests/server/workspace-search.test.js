@@ -2,6 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { searchWorkspace } from '../../src/shared/workspace-search.js';
 
+test('global search uses AND terms and quoted phrases across readable fields', () => {
+  const data = { knowledgeNotes: [{ id: 'a', title: 'Команда', formatted_markdown: 'Правила безопасности и новый процесс' }] };
+  assert.equal(searchWorkspace(data, 'команда безопасности').knowledge.length, 1);
+  assert.equal(searchWorkspace(data, '"новый процесс" команда').knowledge.length, 1);
+  assert.equal(searchWorkspace(data, '"процесс новый"').knowledge.length, 0);
+});
+
 test('search is bounded, handles missing descriptions and includes workspace files without exposing private projects', () => {
   const data = {
     me: 'm',

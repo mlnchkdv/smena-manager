@@ -1,11 +1,8 @@
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
 import { markdownText } from './markdown-text.js';
+import { searchTerms } from './search-query.js';
+export { searchTerms } from './search-query.js';
 
-export const searchTerms = query =>
-  (String(query || '').match(/"[^"]+"|\S+/g) || [])
-    .slice(0, 16)
-    .map(term => term.replace(/^"|"$/g, '').toLocaleLowerCase())
-    .filter(Boolean);
 export const searchableNote = note => [note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
 export function createKnowledgeMatcher(query) {
   const terms = searchTerms(query);

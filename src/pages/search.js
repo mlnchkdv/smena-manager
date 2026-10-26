@@ -3,9 +3,10 @@ import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, mem, pColor, proj, task } from '../core/store.js';
 import { searchAll } from '../core/search.js';
-import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
+import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
+const hl = highlightKnowledge;
 
 export function pageSearch() {
   const inputQuery = String(S.ui.searchQ || '');
