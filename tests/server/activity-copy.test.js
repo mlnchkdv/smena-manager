@@ -45,6 +45,7 @@ test('legacy status transitions translate known labels without changing arbitrar
   assert.equal(activityTransitionExtra('from In progress to Review', 'moved', 'ru-RU'), 'из «В работе» в «На проверке»');
   assert.equal(activityTransitionExtra('from Done to To Do', 'moved', 'en-US'), null);
   assert.equal(activityTransitionExtra('from Custom to To Do', 'moved', 'ru-RU'), null);
+  assert.equal(activityTransitionExtra('from __proto__ to To Do', 'moved', 'ru-RU'), null);
   assert.equal(activityTransitionExtra('from Done to To Do', 'renamed', 'ru-RU'), null);
 });
 test('shared material counts agree in Russian and English, including 21', () => {

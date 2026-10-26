@@ -60,7 +60,9 @@ export function activityTransitionExtra(value, verb, locale = 'en-US') {
   const match = /^from (.+) to (.+)$/u.exec(String(value || ''));
   if (!match) return null;
   const statuses = { backlog: 'Бэклог', 'to do': 'К выполнению', 'in progress': 'В работе', review: 'На проверке', done: 'Готово' };
-  const from = statuses[match[1].toLowerCase()],
-    to = statuses[match[2].toLowerCase()];
+  const fromKey = match[1].toLowerCase(),
+    toKey = match[2].toLowerCase();
+  const from = Object.hasOwn(statuses, fromKey) ? statuses[fromKey] : null,
+    to = Object.hasOwn(statuses, toKey) ? statuses[toKey] : null;
   return from && to ? `из «${from}» в «${to}»` : null;
 }
