@@ -8,6 +8,14 @@ import { commentHtml, mentionPicker } from '../overlays/drawer-content.js';
 import { isRussian, t as tr } from '../core/i18n.js';
 import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+
+A.toggleInboxPreview = () => {
+  writeLayoutPreference('inboxPreview', !readLayoutPreference('inboxPreview', true));
+  render();
+};
 
 export function pageInbox() {
   const cats = [
@@ -28,12 +36,13 @@ export function pageInbox() {
   ns = ns.filter(n => cat === 'all' || n.type === cat);
   if (S.ui.inboxUnread) ns = ns.filter(n => !n.read);
   const sel = myNotification(S.ui.inboxSel);
+  const preview = readLayoutPreference('inboxPreview', true);
   return `<div class="page flush">
-    <div class="inbox-grid ${innerWidth <= 900 || innerWidth - (S.ui.collapsed ? 56 : 252) < 760 ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''}">
+    <div class="inbox-grid ${innerWidth <= 900 || (document.querySelector('.main')?.clientWidth || innerWidth - (S.ui.collapsed ? 56 : 252)) < 760 ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''} ${preview ? '' : 'preview-hidden'}">
       <div style="border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0">
         <div style="padding:18px var(--gutter) 0" class="row"><h1 style="font-size:var(--fs-xl);margin:0;font-weight:600;letter-spacing:-.015em">Inbox</h1><span class="sp"></span>
           <label class="row" style="font-size:12px;color:var(--text-2);gap:6px;cursor:pointer"><input type="checkbox" class="toggle" data-a="toggleUnreadOnly" ${S.ui.inboxUnread ? 'checked' : ''}>Unread</label>
-          <button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div>
+          <button class="ibtn ibtn-sm" data-a="toggleInboxPreview" aria-label="Preview pane" title="Preview pane" aria-pressed="${preview}">${ic(preview ? 'panel-right-close' : 'panel-right-open', 15)}</button><button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div>
         <div class="tabs inbox-tabs" role="tablist" aria-label="Inbox categories">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>
         <div class="inbox-list" data-keep="inbox-list">
           ${

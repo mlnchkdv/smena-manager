@@ -1,4 +1,5 @@
 import { S, me, myNotification, myNotifications, save } from '../core/store.js';
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { getSessionGeneration, savePersonalSettings, clearReadNotifications } from '../core/api.js';
 import { persistReadStateBatches } from '../shared/personal-settings.js';
 import { applyExternalCoreSnapshot } from '../core/bootstrap.js';
@@ -73,6 +74,7 @@ async function persistReadState(ids, read) {
 
 export function registerNotificationActions(A) {
   A.selNotif = el => {
+    writeLayoutPreference('inboxPreview', true);
     const n = myNotification(el.dataset.id);
     if (!n) return;
     S.ui.inboxSel = n.id;

@@ -6,6 +6,13 @@
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
 }
+.inbox-grid.preview-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.inbox-grid.preview-hidden .inbox-prev,
+.inbox-grid.inbox-narrow.has-selection.preview-hidden .inbox-prev {
+  display: none;
+}
 .panel-h {
   display: flex;
   align-items: center;
