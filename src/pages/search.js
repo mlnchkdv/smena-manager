@@ -114,7 +114,7 @@ export function pageSearch() {
               r.knowledge
                 .map(
                   note =>
-                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><div class="search-result-location">${
+                    `<div class="mini search-note-result"><button class="search-note-open" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span></button><div class="search-result-location">${
                       note.folderId && folderMap.has(note.folderId)
                         ? materialLocation(
                             folderTrail(note.folderId, folderMap)
