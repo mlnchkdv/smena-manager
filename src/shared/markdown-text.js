@@ -1,6 +1,14 @@
 // Text for summaries/search only. Never rewrite the stored Markdown or TXT.
 export function markdownText(value) {
   return String(value || '')
+    .replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$/gm, '')
+    .replace(/^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(?:\|[ \t]*:?-{3,}:?[ \t]*)+\|?[ \t]*$/gm, '')
+    .replace(/^[ \t]*\|(.+)\|[ \t]*$/gm, (_, row) =>
+      row
+        .split(/(?<!\\)\|/)
+        .map(cell => cell.trim())
+        .join(' · '),
+    )
     .replace(/^\s*```[^\n]*$/gm, '')
     .replace(/!?\[([^\]]+)\]\([^\n)]+\)/g, '$1')
     .replace(/\[\[([^\]]+)\]\]/g, '$1')
@@ -14,6 +22,7 @@ export function markdownText(value) {
 export function firstMarkdownParagraph(value) {
   return (
     String(value || '')
+      .replace(/^[ \t]*```[^\n]*\n[\s\S]*?^[ \t]*```[ \t]*$/gm, '')
       .split(/\r?\n\s*\r?\n/)
       .map(part => markdownText(part.replace(/^\s*#{1,6}\s+.*$/gm, '')))
       .find(Boolean) || ''
