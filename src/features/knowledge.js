@@ -48,13 +48,17 @@ for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNot
   A[name] = (...args) => {
     const opener = args[0];
     const grid = name === 'openKnowledgeNote' && opener?.matches?.('.knowledge-preview-open') && opener.closest('.knowledge-preview-grid');
-    S.ui.knowledgePreviewContext = grid
-      ? {
-          owner: S.ui.currentUser?.id,
-          workspace: D().ws.id || D().ws.url,
-          ids: [...grid.querySelectorAll('.knowledge-preview-card[data-id]')].map(card => card.dataset.id).slice(0, 60),
-        }
-      : null;
+    const results = name === 'goKnowledgeNote' && opener?.closest?.('.search-page');
+    S.ui.knowledgePreviewContext =
+      grid || results
+        ? {
+            owner: S.ui.currentUser?.id,
+            workspace: D().ws.id || D().ws.url,
+            ids: [...(grid || results).querySelectorAll(grid ? '.knowledge-preview-card[data-id]' : '[data-a="goKnowledgeNote"][data-id]')]
+              .map(card => card.dataset.id)
+              .slice(0, 60),
+          }
+        : null;
     original(...args);
     const id = S.ui.knowledgeDrawer;
     if (id) {

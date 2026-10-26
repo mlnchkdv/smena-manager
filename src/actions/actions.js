@@ -569,12 +569,10 @@ A.previewKnowledgeNote = el => {
   if (drawer) drawer.focus({ preventScroll: true });
 };
 A.goKnowledgeNote = el => {
-  S.ui.knowledgeActive = null;
-  S.ui.knowledgeDrawer = el.dataset.id;
-  S.ui.knowledgeDrawerView = 'edit';
-  S.ui.knowledgeQuery = '';
-  S.ui.knowledgeFolder = 'all';
-  go('knowledge');
+  if (!D().knowledgeNotes.some(note => note.id === el.dataset.id)) return;
+  S.ui.palette = null;
+  S.ui.pop = null;
+  A.previewKnowledgeNote(el);
 };
 A.setKnowledgePresentation = () => {
   // Kept for old deep links; the knowledge base now always uses panel view.
