@@ -9,6 +9,17 @@ test('global search uses AND terms and quoted phrases across readable fields', (
   assert.equal(searchWorkspace(data, '"процесс новый"').knowledge.length, 0);
 });
 
+test('search returns bounded pages with totals and clamps expired offsets', () => {
+  const data = { knowledgeNotes: Array.from({ length: 75 }, (_, id) => ({ id, title: 'guide' })) };
+  const totals = {},
+    offsets = { knowledge: 30 };
+  assert.equal(searchWorkspace(data, 'guide', { totals, offsets }).knowledge[0].id, 30);
+  assert.equal(totals.knowledge, 75);
+  offsets.knowledge = 300;
+  assert.equal(searchWorkspace(data, 'guide', { totals, offsets }).knowledge.length, 15);
+  assert.equal(offsets.knowledge, 60);
+});
+
 test('search is bounded, handles missing descriptions and includes workspace files without exposing private projects', () => {
   const data = {
     me: 'm',

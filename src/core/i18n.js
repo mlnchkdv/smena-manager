@@ -35,6 +35,8 @@ const RU = {
   'Focus date': 'Перейти к дате',
   'Update and reopen': 'Обновить и открыть снова',
   'Chronological order': 'В хронологическом порядке',
+  'Search results are paged. File results continue in Files.': 'Результаты разбиты на страницы. Полная выдача файлов — в разделе «Файлы».',
+  'Show all files': 'Показать все файлы',
   'No later items. Showing the nearest earlier items.': 'Более поздних событий нет. Показаны ближайшие предыдущие.',
   'Search categories': 'Категории поиска',
   'View options': 'Параметры вида',

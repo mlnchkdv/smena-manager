@@ -6,12 +6,19 @@ import { searchAll } from '../core/search.js';
 import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
+import { fileCatalogInfo } from '../core/file-catalog-state.js';
 const hl = highlightKnowledge;
 
 export function pageSearch() {
   const inputQuery = String(S.ui.searchQ || '');
   const q = inputQuery.trim();
-  const r = searchAll(q);
+  const context = JSON.stringify([q.toLocaleLowerCase(), S.ui.workspaceRevision]);
+  if (S.ui.searchPageContext !== context) S.ui.searchOffsets = {};
+  S.ui.searchPageContext = context;
+  const offsets = (S.ui.searchOffsets ||= {}),
+    totals = {};
+  const r = searchAll(q, { totals, offsets });
+  const demandFiles = fileCatalogInfo()?.mode === 'demand';
   const cat = S.ui.searchCat;
   const cats = [
     ['all', 'All'],
@@ -23,16 +30,20 @@ export function pageSearch() {
     ['knowledge', 'Knowledge base'],
     ['bookmarks', 'Bookmarks'],
   ];
-  const total = Object.values(r).reduce((a, b) => a + b.length, 0);
-  const visibleTotal = cat === 'all' ? total : r[cat]?.length || 0;
+  const total = Object.values(totals).reduce((a, b) => a + b, 0);
+  const visibleTotal = cat === 'all' ? total : totals[cat] || 0;
+  const pager = k =>
+    totals[k] > 30 && !(k === 'files' && demandFiles)
+      ? `<nav class="row" aria-label="Pagination"><button class="btn btn-secondary btn-sm" data-a="searchPage" data-key="${k}" data-offset="${offsets[k] - 30}" ${!offsets[k] ? 'disabled' : ''}>Previous</button><span class="hint num">${offsets[k] + 1}–${offsets[k] + r[k].length} / ${totals[k]}</span><button class="btn btn-secondary btn-sm" data-a="searchPage" data-key="${k}" data-offset="${offsets[k] + 30}" ${offsets[k] + 30 >= totals[k] ? 'disabled' : ''}>Next</button></nav>`
+      : '';
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
-      ? `<section style="margin-bottom:22px"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${r[k].length}</div><div class="panel" style="overflow:hidden">${html}</div></section>`
+      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div><div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
     <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
-    ${q ? '<div class="row" style="flex-wrap:wrap;margin-bottom:12px"><p class="hint grow">Showing up to 30 matches per category. Refine your search to find more.</p><button class="btn btn-secondary btn-sm" data-a="searchInGraph">Search in graph</button></div>' : ''}
-    <div class="tabs" role="group" aria-label="Search categories" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : r[k].length}</span></button>`).join('')}</div>
+    ${q ? `<div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"><p class="hint grow">Search results are paged. File results continue in Files.</p>${demandFiles ? '<button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-secondary btn-sm" data-a="searchInGraph">Search in graph</button></div>` : ''}
+    <div class="tabs" role="group" aria-label="Search categories" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</span></button>`).join('')}</div>
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${D()

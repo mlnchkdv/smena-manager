@@ -26,7 +26,7 @@ import {
 import { fileType, fsize } from '../ui/helpers.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { detachTaskFile } from '../shared/file-identity.js';
-import { saveFilePreferences } from '../core/file-preferences.js';
+import { filePreferences, saveFilePreferences } from '../core/file-preferences.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -3059,6 +3059,21 @@ A.palRun = el => {
 IN.searchQ = el => {
   S.ui.searchQ = el.value;
   render();
+};
+A.searchPage = el => {
+  if (!['tasks', 'projects', 'people', 'files', 'comments', 'knowledge', 'bookmarks'].includes(el.dataset.key)) return;
+  S.ui.searchOffsets ||= {};
+  S.ui.searchOffsets[el.dataset.key] = Math.max(0, Number(el.dataset.offset) || 0);
+  render();
+  const section = document.querySelector(`[data-search-category="${el.dataset.key}"]`);
+  section?.scrollIntoView({ block: 'start' });
+  section?.querySelector('[data-a]')?.focus({ preventScroll: true });
+};
+A.searchAllFileResults = () => {
+  const query = S.ui.searchQ || '';
+  filePreferences();
+  Object.assign(S.ui, { fileQ: query, fileProject: 'all', fileFolder: null, fileType: 'all', filePage: 0 });
+  go('files');
 };
 A.setSearch = el => {
   S.ui.searchQ = el.dataset.q;

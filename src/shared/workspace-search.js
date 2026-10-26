@@ -16,11 +16,21 @@ export function searchWorkspace(data, query, options = {}) {
   );
   const tasks = new Map((data.tasks || []).filter(task => !task.archived && projects.has(task.project)).map(task => [task.id, task]));
   const collect = (key, items, matches) => {
-    for (const item of items || [])
+    const source = [...(items || [])];
+    let count = 0;
+    let offset = Math.max(0, Math.floor((Number(options.offsets?.[key]) || 0) / limit) * limit);
+    for (const item of source)
       if (matches(item)) {
-        result[key].push(item);
-        if (result[key].length >= limit) break;
+        if (count >= offset && result[key].length < limit) result[key].push(item);
+        count++;
       }
+    if (offset >= count && count) {
+      offset = Math.floor((count - 1) / limit) * limit;
+      let i = 0;
+      for (const item of source) if (matches(item) && i++ >= offset && result[key].length < limit) result[key].push(item);
+    }
+    if (options.totals) options.totals[key] = count;
+    if (options.offsets) options.offsets[key] = offset;
   };
   collect('tasks', tasks.values(), task => has([task.title, task.key, String(task.desc || '').replace(/<[^>]+>/gu, '')].join(' ')));
   collect('projects', (data.projOrder || [...projects.keys()]).map(id => projects.get(id)).filter(Boolean), project =>
