@@ -130,7 +130,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await page.locator('#knowledge-body').fill('Updated knowledge body');
   await waitSaved(page);
-  await expect(page.locator('[data-knowledge-save-status]')).toHaveText('Сохранено');
+  await expect(page.locator('.knowledge-editor-head [data-knowledge-save-status]')).toHaveText('Сохранено');
   await page.reload();
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(2);
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Alpha' }).click();

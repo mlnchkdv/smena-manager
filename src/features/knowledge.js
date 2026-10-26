@@ -6,9 +6,9 @@ import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { moveKnowledgeNotes } from '../shared/knowledge-note-move.js';
 import { toggleKnowledgePageSelection } from '../shared/knowledge-selection.js';
-import { uid } from '../core/utils.js';
+import { uid, esc } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
-import { historyContent } from '../shared/knowledge-history.js';
+import { historyContent, knowledgeVersionChanges, KNOWLEDGE_VERSION_FIELDS } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
@@ -33,20 +33,26 @@ const canRestoreKnowledge = () => {
   return false;
 };
 A.restoreKnowledgeVersion = el => {
-  if (knowledgeEditBlocked() || !canRestoreKnowledge()) return;
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked() || !canRestoreKnowledge()) return;
   const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
   const version = note?.history?.find(version => version.id === el.dataset.version);
   if (!version) return;
+  const changes = knowledgeVersionChanges(note, version, D().knowledgeFolders);
+  if (!changes.fields.length) return toast('No changes to restore.', { kind: 'info' });
+  const base = JSON.stringify(historyContent(note, D().knowledgeFolders));
+  const target = JSON.stringify(changes.restored);
   confirmDlg({
     title: 'Restore this note version?',
-    body: 'The current content will become a previous version after synchronization.',
+    body: `<span translate="no">${esc(version.title)}</span><br><span>The current content will become a previous version after synchronization.</span><br><b>Fields to restore</b>: ${changes.fields.map(field => esc(t(KNOWLEDGE_VERSION_FIELDS[field]))).join(', ')}${changes.missingFolder ? '<br><strong>The original folder no longer exists. This version will be restored without a folder.</strong>' : ''}`,
     ok: 'Restore version',
     run: () => {
-      if (knowledgeEditBlocked() || !canRestoreKnowledge()) return;
+      if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked() || !canRestoreKnowledge()) return;
       // A refresh may have replaced the document while confirmation was open.
       const current = D().knowledgeNotes.find(item => item.id === note.id);
       const saved = current?.history?.find(item => item.id === version.id);
       if (!saved) return toast('This version is no longer available. Reopen version history.', { kind: 'info' });
+      if (JSON.stringify(historyContent(current, D().knowledgeFolders)) !== base || JSON.stringify(historyContent(saved, D().knowledgeFolders)) !== target)
+        return toast('The note changed. Reopen version history before restoring.', { kind: 'info' });
       mutate(() => {
         Object.assign(current, historyContent(saved, D().knowledgeFolders), {
           updatedAt: new Date().toISOString(),
@@ -288,7 +294,7 @@ A.filterKnowledgePreviewTag = el => {
   render();
 };
 import { knowledgeLivePreview } from '../ui/knowledge-live-preview.js';
-import { translateElement } from '../core/i18n.js';
+import { translateElement, t } from '../core/i18n.js';
 import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from '../ui/knowledge-editor-position.js';
 A.setKnowledgeEditorPane = el => {

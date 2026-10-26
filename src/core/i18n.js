@@ -15,6 +15,24 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Current value': 'Сейчас',
+  'Restored value': 'После восстановления',
+  'What will change': 'Что изменится',
+  'Fields to restore': 'Восстанавливаемые поля',
+  'No changes to restore.': 'Нет изменений для восстановления.',
+  'Compare text': 'Сравнить текст',
+  'Current text': 'Текущий текст',
+  'Version text': 'Текст версии',
+  'Version content': 'Содержимое версии',
+  'Text unchanged.': 'Текст не изменился.',
+  'From line': 'Со строки',
+  'Removed lines': 'Удаляемых строк',
+  'Added lines': 'Добавляемых строк',
+  'Unavailable folder': 'Недоступная папка',
+  'The changed range is shortened. Read the complete version below.': 'Изменённый фрагмент сокращён. Полная версия доступна ниже.',
+  'The original folder no longer exists. This version will be restored without a folder.':
+    'Исходная папка больше не существует. Версия будет восстановлена без папки.',
+  'The note changed. Reopen version history before restoring.': 'Заметка изменилась. Откройте историю заново перед восстановлением.',
   'Only administrators can manage teams.': 'Управлять командами могут только администраторы.',
   'Note view': 'Режим заметки',
   Editor: 'Редактор',
