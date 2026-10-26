@@ -1,4 +1,11 @@
 /* Keep similar folder names distinguishable without requiring hover. */
+.knowledge-mixed-grid {
+  align-items: start;
+}
+.knowledge-note-location {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
 @media (max-width: 480px) {
   :is(.files-folder-grid, .files-folder-grid.compact, .knowledge-folder-card-grid) {
     grid-template-columns: minmax(0, 1fr);

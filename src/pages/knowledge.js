@@ -53,13 +53,18 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
   );
 }
 
-function notePreviewCard(note, folder, readOnly) {
+function notePreviewCard(note, folder, readOnly, folderIndex) {
+  const location = folder
+    ? folderTrail(folder.id, folderIndex.byId)
+        .map(item => item.name)
+        .join(' / ')
+    : '';
   const tags = (note.tags || []).filter(Boolean).slice(0, 3);
   const excerpt = knowledgeExcerpt(note, S.ui.knowledgeQuery);
   return `<article class="knowledge-preview-card" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="Select note" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     <p class="knowledge-preview-excerpt" ${excerpt ? 'translate="no"' : ''}>${highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
-    <div class="knowledge-preview-meta">${folder ? `<span translate="no">${ic('folder', 11)}${esc(folder.name)}</span>` : `<span>${ic('folder-open', 11)}No folder</span>`}${tags.length ? `<span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</div>
+    <div class="knowledge-preview-meta">${folder ? `<span class="knowledge-note-location" translate="no" title="${esc(location)}">${ic('folder', 11)}${esc(location)}</span>` : `<span>${ic('folder-open', 11)}No folder</span>`}${tags.length ? `<span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</div>
   </button>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="Move note" title="Move note">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
 }
 
@@ -196,6 +201,7 @@ export function pageKnowledge() {
                     note,
                     folders.find(folder => folder.id === note.folderId),
                     readOnly,
+                    folderIndex,
                   ),
                 )
                 .join('')}</div>`

@@ -3,12 +3,13 @@ import { ic } from '../core/icons.js';
 import { S } from '../core/store.js';
 import { knowledgeFolderChildren } from '../shared/knowledge-folder-index.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
+import { knowledgeFolderPageSize } from '../shared/knowledge-layout.js';
 
 export function knowledgeFolderCards(index, folder, readOnly, { inline = false, hasNotes = false } = {}) {
   if (S.ui.knowledgeShowFolders === false || (folder !== 'all' && !index.byId.has(folder))) return '';
   const parent = folder === 'all' ? null : folder;
   const children = index.children.get(parent) || [];
-  const pageSize = window.innerWidth <= 640 ? (inline ? 2 : 4) : 6;
+  const pageSize = knowledgeFolderPageSize(document.querySelector('.knowledge-main')?.clientWidth || window.innerWidth, inline);
   if (!children.length && readOnly) return '';
   const page = knowledgeFolderChildren(index, parent, { query: S.ui.knowledgeFolderCardQuery, offset: S.ui.knowledgeFolderCardOffset, limit: pageSize });
   const selected = S.ui.knowledgeSelection?.length > 0 && !readOnly;

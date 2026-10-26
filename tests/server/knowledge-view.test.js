@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { knowledgeFolderOverlay } from '../../src/shared/knowledge-layout.js';
+import { knowledgeFolderOverlay, knowledgeFolderPageSize } from '../../src/shared/knowledge-layout.js';
+
+test('folder page size follows available content width rather than viewport', () => {
+  assert.equal(knowledgeFolderPageSize(480, true), 2);
+  assert.equal(knowledgeFolderPageSize(480, false), 4);
+  assert.equal(knowledgeFolderPageSize(1000, true), 6);
+});
 
 test('knowledge folder overlay follows usable width and sidebar collapse without changing the view', () => {
   assert.equal(knowledgeFolderOverlay(1440), false);
