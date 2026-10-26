@@ -2,7 +2,8 @@
   padding: 24px clamp(16px, 3vw, 40px) 90px;
   min-width: 0;
 }
-.graph-touch-control {
+.graph-touch-control,
+.graph-help-touch {
   display: none;
 }
 .shell:has(.graph-page.is-focused) {
@@ -19,6 +20,12 @@
   height: max(260px, calc(100dvh - 240px));
 }
 @media (max-width: 640px), (pointer: coarse) {
+  .graph-help-pointer {
+    display: none;
+  }
+  .graph-help-touch {
+    display: inline;
+  }
   .graph-touch-control {
     display: flex;
     position: absolute;
