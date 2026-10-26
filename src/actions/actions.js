@@ -2279,6 +2279,7 @@ A.tlToday = () => {
 IN.tlAnchor = el => {
   if (el.value && (!/^\d{4}-\d{2}-\d{2}$/.test(el.value) || !Number.isFinite(parse(el.value).getTime()))) return;
   S.ui.tlAnchor = el.value || iso(TODAY);
+  S.ui.tlInit = {};
   render();
 };
 IN.tlGroup = el => {

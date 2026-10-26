@@ -154,9 +154,9 @@ export function timelineHtml(ts, key, p) {
       `<button class="btn btn-primary btn-sm" data-a="newTask" ${p ? `data-project="${p.id}"` : ''}>${ic('plus', 14)}New task</button>`,
     );
   const todayX = diffD(TODAY, rs) * dw;
-  return `<div class="tl" data-tl-today="${todayX}" data-tl-key="${key}">
+  return `<div class="tl" data-tl-today="${todayX}" data-tl-anchor="${X(S.ui.tlAnchor || iso(TODAY))}" data-tl-key="${key}">
     <div class="tl-left"><div class="tl-head">Task</div><div class="tl-rows" id="tl-rows">${left}<div style="height:40px"></div></div></div>
-    <div class="tl-right" id="tl-right" data-keep="tl:${key}:${S.ui.tlZoom}">
+    <div class="tl-right" id="tl-right" data-keep="tl:${key}:${S.ui.tlZoom}:${S.ui.tlAnchor || ''}">
       <div class="tl-head" style="width:${W}px"><div class="tl-months">${months.map(m => `<div style="width:${m.n * dw}px"><span>${MONL[m.d.getMonth()]} ${m.d.getFullYear()}</span></div>`).join('')}</div><div class="tl-days">${days}</div></div>
       <div class="tl-grid" style="width:${W}px;height:${H + 40}px">
         ${weekend}${glines}
@@ -203,7 +203,7 @@ export function tlAfter() {
   S.ui.tlInit = S.ui.tlInit || {};
   if (!S.ui.tlInit[k]) {
     S.ui.tlInit[k] = 1;
-    r.scrollLeft = Math.max(0, S.ui.tlAnchor ? 21 * (S.ui.tlZoom === 'week' ? 32 : 11) : +$('.tl').dataset.tlToday - 160);
+    r.scrollLeft = Math.max(0, +$('.tl').dataset.tlAnchor - 160);
   }
 }
 export function pageWsTimeline() {
