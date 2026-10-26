@@ -45,3 +45,10 @@
     min-height: 44px;
   }
 }
+@media (max-width: 640px), (pointer: coarse) {
+  .drawer .task-completion-action {
+    min-width: 44px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+}

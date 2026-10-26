@@ -11,14 +11,14 @@ export function pageTasks() {
   const v = viewOf(key);
   v.mode = v.mode || 'list';
   const ts = applyView(allTasks(), v);
-  const right = `<div class="seg">${[
+  const right = `<div class="seg" role="group" aria-label="Task view">${[
     ['list', 'List', 'list'],
     ['board', 'Board', 'square-kanban'],
     ['table', 'Table', 'table-2'],
   ]
     .map(
       ([k, n, i]) =>
-        `<button class="${v.mode === k ? 'on' : ''}" data-a="setViewMode" data-key="${key}" data-v="${k}">${ic(i, 13)}<span class="hide-m">${n}</span></button>`,
+        `<button class="${v.mode === k ? 'on' : ''}" data-a="setViewMode" data-key="${key}" data-v="${k}" aria-label="${n}" title="${n}" aria-pressed="${v.mode === k}">${ic(i, 13)}<span class="hide-m">${n}</span></button>`,
     )
     .join('')}</div>`;
   let body;
