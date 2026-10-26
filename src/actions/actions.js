@@ -2033,6 +2033,10 @@ A.listPage = el => {
   S.ui.listPages ||= {};
   S.ui.listPages[el.dataset.key] = Math.max(0, Number(el.dataset.page) || 0);
   render();
+  if (['bookmarks', 'timeline'].includes(el.dataset.key)) {
+    document.querySelector('.tl-agenda')?.scrollTo(0, 0);
+    document.querySelector('.content')?.scrollTo(0, 0);
+  }
 };
 A.pdfPreviewPage = el => {
   const modal = S.ui.modals.at(-1);

@@ -1,6 +1,7 @@
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
+import { collectionSelection } from './collection-layout.js';
 export function knowledgeBulkToolbar(visible) {
   if (S.ui.currentUser?.role === 'viewer') return '';
   const known = new Set(D().knowledgeNotes.map(note => note.id));
@@ -9,11 +10,16 @@ export function knowledgeBulkToolbar(visible) {
   const pageSelected = visible.length > 0 && visible.every(note => selected.has(note.id));
   const hiddenCount = [...selected].filter(id => !visibleIds.has(id)).length;
   if (!visible.length && !selected.size) return '';
-  return `<div class="knowledge-bulk${selected.size ? ' active' : ''}" role="group" aria-label="Note selection"><button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-pressed="${pageSelected}" ${!visible.length ? 'disabled' : ''}>${pageSelected ? 'Deselect page' : 'Select page'}</button>${
-    selected.size
-      ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection">Clear selection</button><button class="btn btn-secondary btn-sm" data-a="moveKnowledgeNote">Move selected notes</button><button class="btn btn-danger-ghost btn-sm" data-a="trashKnowledgeSelection">Move to trash</button>`
-      : ''
-  }</div>`;
+  return collectionSelection(
+    `<button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-pressed="${pageSelected}" ${!visible.length ? 'disabled' : ''}>${pageSelected ? 'Deselect page' : 'Select page'}</button>${
+      selected.size
+        ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection">Clear selection</button><button class="btn btn-secondary btn-sm" data-a="moveKnowledgeNote">Move selected notes</button><button class="btn btn-danger-ghost btn-sm" data-a="trashKnowledgeSelection">Move to trash</button>`
+        : ''
+    }`,
+    'Note selection',
+    !!selected.size,
+    'knowledge-bulk',
+  );
 }
 export function knowledgeFolderBulk() {
   if (S.ui.currentUser?.role === 'viewer') return '';

@@ -4,6 +4,7 @@ import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { archiveSelectionIssue, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
+import { collectionSelection } from './collection-layout.js';
 
 export function syncFileSelection(files, projectId = null) {
   const scope = JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, projectId]);
@@ -51,7 +52,8 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const busy = S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase);
   const resultIds = remote ? remote.resultIds : results.length <= 500 ? results.map(file => file.id) : null;
   const selectResults = `<button class="btn btn-ghost btn-sm" data-a="selectFileResults" data-ids="${resultIds ? esc(resultIds.join(',')) : ''}" ${!resultIds?.length ? 'disabled' : ''} title="Narrow the filters to select up to 500 files.">Select results</button>`;
-  return `<section class="files-selection-bar ${files.length ? 'active' : ''}" aria-label="File selection">
+  return collectionSelection(
+    `
     <button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${selectResults}
     ${
       files.length
@@ -64,5 +66,9 @@ export function fileSelectionBar(page, results = page, remote = null) {
     <details class="selection-policy"><summary>Details</summary><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details>`
         : ''
     }
-  </section>`;
+  `,
+    'File selection',
+    !!files.length,
+    'files-selection-bar',
+  );
 }

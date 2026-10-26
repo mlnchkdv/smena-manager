@@ -729,13 +729,6 @@
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 10px;
 }
-.files-folder-tile {
-  position: relative;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-}
 .files-folder-open {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);

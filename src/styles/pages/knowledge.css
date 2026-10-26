@@ -276,13 +276,6 @@
   grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
   gap: 8px;
 }
-.knowledge-folder-tile {
-  position: relative;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  background: var(--surface);
-}
 .knowledge-folder-tile:has(.knowledge-folder-card-options[open]) {
   grid-column: 1 / -1;
 }

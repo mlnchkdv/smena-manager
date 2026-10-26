@@ -1,0 +1,26 @@
+/* Ownership: tokens = values; components/touch = controls; this layer = shared
+   collection structure; page styles = route-specific grid/placement only. */
+.collection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.collection-toolbar,
+.collection-selection {
+  min-width: 0;
+  gap: var(--s-2);
+}
+.collection-selection {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+:is(.files-folder-tile, .knowledge-folder-tile) {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}

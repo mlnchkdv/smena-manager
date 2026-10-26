@@ -2,6 +2,7 @@
 @import './tokens.css';
 @import './base.css';
 @import './components.css';
+@import './collection-components.css';
 @import './shell.css';
 @import './panels.css';
 @import './views/list.css';
