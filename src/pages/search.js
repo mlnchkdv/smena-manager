@@ -11,6 +11,7 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 import { t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { materialLocation } from '../ui/material-location.js';
+import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 const hl = highlightKnowledge;
 
 export function pageSearch() {
@@ -121,7 +122,7 @@ export function pageSearch() {
                               .join(' / '),
                             `search:${note.id}`,
                           )
-                        : `<span translate="no">${esc(note.category || '')}</span>`
+                        : `<span translate="no">${esc(knowledgeCategoryLabel(note.category))}</span>`
                     }</div></div>`,
                 )
                 .join(''),

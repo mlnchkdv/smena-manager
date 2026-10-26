@@ -8,13 +8,12 @@ import { knowledgeHistory } from './knowledge-history.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { knowledgeLivePreview } from './knowledge-live-preview.js';
-
-const DEFAULT_CATEGORIES = ['General', 'Processes', 'Regulations', 'Projects', 'Research'];
+import { KNOWLEDGE_CATEGORIES, knowledgeCategoryLabel } from './knowledge-category.js';
 
 export function noteEditor(note, folders, readOnly) {
   const conflict = knowledgeEditBlocked();
   const disabled = readOnly || conflict ? 'disabled' : '';
-  const categories = [...new Set([...DEFAULT_CATEGORIES, note.category].filter(Boolean))];
+  const categories = [...new Set([...KNOWLEDGE_CATEGORIES, note.category].filter(Boolean))];
   const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
   return `<section class="knowledge-editor" aria-label="Note editor">
     <div class="knowledge-editor-head">
@@ -27,7 +26,7 @@ export function noteEditor(note, folders, readOnly) {
     </div>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
     <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body"><div class="knowledge-fields">
-      <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''}>${esc(value)}</option>`).join('')}</select></div>
+      <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''} translate="no">${esc(knowledgeCategoryLabel(value))}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders
         .map(
           folder =>
