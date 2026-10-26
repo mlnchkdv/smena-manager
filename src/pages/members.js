@@ -1,5 +1,6 @@
 /* ---------- MEMBERS / PROFILE / TEAMS ---------- */
-import { ago, esc, minsAgo } from '../core/utils.js';
+import { ago, esc } from '../core/utils.js';
+import { recordedActivityIndex } from '../shared/recorded-activity.js';
 import { ic } from '../core/icons.js';
 import { ROLES } from '../core/constants.js';
 import { D, S, TM, allTasks, canSee, isOver, mem, progressOf, team, teamsList, visibleProjects } from '../core/store.js';
@@ -11,6 +12,8 @@ import { t as tr } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 
 const teamDescription = value => (!value || value === 'No description yet.' ? tr('No description yet.') : value);
+const recordedMemberLabel = (member, times) =>
+  member.id === D().me && S.ui.currentUser ? tr('Current session') : times.get(member.id) ? ago(times.get(member.id)) : tr('Activity unavailable');
 
 export function pageMembers() {
   const u = S.ui;
@@ -19,6 +22,7 @@ export function pageMembers() {
   const ms = D().members.filter(m => (role === 'all' || m.role === role) && (!q || m.name.toLowerCase().includes(q) || m.email.includes(q)));
   const isAdmin = S.ui.currentUser?.role === 'admin';
   const tab = u.membersTab;
+  const activity = recordedActivityIndex(D(), visibleProjects().filter(canSee)).members;
   return `<div class="page wide" style="max-width:1200px">
     <div class="ph"><div><h1>Members</h1><p>${D().members.length} people in ${esc(D().ws.name)}</p></div>${isAdmin ? `<div class="acts"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
     <div class="tabs" style="margin-bottom:14px">${[
@@ -38,7 +42,7 @@ export function pageMembers() {
       <div class="seg">${['all', ...ROLES].map(r => `<button class="${role === r ? 'on' : ''}" data-a="set" data-k="memRole" data-v="${r}">${r === 'all' ? 'All' : r}</button>`).join('')}</div></div>
     <div class="panel" style="overflow-x:auto">${
       ms.length
-        ? `<table class="perm-t" style="min-width:880px"><thead><tr><th style="padding-left:14px">Member</th><th style="text-align:left">Role</th><th style="text-align:left">Team</th><th>Active projects</th><th>Tasks</th><th style="text-align:left">Last active</th><th style="text-align:left">Status</th><th></th></tr></thead><tbody>
+        ? `<table class="perm-t" style="min-width:880px"><thead><tr><th style="padding-left:14px">Member</th><th style="text-align:left">Role</th><th style="text-align:left">Team</th><th>Active projects</th><th>Tasks</th><th style="text-align:left">Recorded activity</th><th style="text-align:left">Status</th><th></th></tr></thead><tbody>
     ${ms
       .map(m => {
         const ap = visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length;
@@ -46,7 +50,7 @@ export function pageMembers() {
         return `<tr data-ctx="member" data-id="${m.id}"><td style="padding-left:14px"><button class="row" data-a="go" data-r="member" data-id="${m.id}" style="gap:10px;text-align:left">${av(m.id, 'md', false)}<span class="col"><b style="font-weight:500"><span translate="no">${esc(m.name)}</span>${m.id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</b><span class="faint" style="font-size:12px" translate="no">${esc(m.email)}</span></span></button></td>
       <td style="text-align:left">${isAdmin && m.role !== 'Owner' && m.id !== D().me ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${m.role}</span>`}</td>
       <td style="text-align:left"><span class="row">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></span></td><td class="num">${ap}</td><td class="num">${ot}</td>
-      <td style="text-align:left" class="muted">${m.last == null ? '—' : m.last < 5 ? '<span style="color:var(--green)">Online</span>' : ago(minsAgo(m.last))}</td>
+      <td style="text-align:left" class="muted">${recordedMemberLabel(m, activity)}</td>
       <td style="text-align:left">${m.status === 'invited' ? '<span class="badge amber"><span class="dot"></span>Invited</span>' : m.status === 'deactivated' ? '<span class="badge gray">Access deactivated</span>' : '<span class="badge green"><span class="dot"></span>Access active</span>'}</td>
       <td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="Member options">${ic('ellipsis', 14)}</button></td></tr>`;
       })
@@ -119,6 +123,7 @@ export function pageTeam() {
 export function pageMember() {
   const m = mem(S.ui.params.id);
   if (!m) return page404();
+  const activity = recordedActivityIndex(D(), visibleProjects().filter(canSee)).members;
   const ts = allTasks().filter(t => t.assignee === m.id);
   const open = ts.filter(t => t.status !== 'done');
   const done = ts.filter(t => t.status === 'done');
@@ -132,7 +137,7 @@ export function pageMember() {
       ${av(m.id, 'xl ' + (m.last != null && m.last < 5 ? 'presence' : ''), false)}
       <div class="grow" style="min-width:220px"><div class="row" style="gap:10px;flex-wrap:wrap"><h1 style="font-size:var(--fs-2xl);margin:0;font-weight:600;letter-spacing:-.02em" translate="no">${esc(m.name)}</h1><span class="badge">${m.role === 'Owner' ? ic('crown', 11) : ''}${m.role}</span>${m.status === 'invited' ? '<span class="badge amber">Invite pending</span>' : ''}</div>
         <div class="muted" style="margin-top:3px"><span translate="no">${esc(m.title)}</span> · <span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div>
-        <div class="row faint" style="margin-top:8px;gap:14px;font-size:12.5px;flex-wrap:wrap"><span class="row" style="gap:5px">${ic('mail', 13)}<span style="user-select:all" translate="no">${esc(m.email)}</span></span><span class="row" style="gap:5px">${ic('map-pin', 13)}${esc(m.tz)}</span><span class="row" style="gap:5px">${ic('clock', 13)}${m.last == null ? 'Never signed in' : m.last < 5 ? 'Online now' : 'Active ' + ago(minsAgo(m.last))}</span></div></div>
+        <div class="row faint" style="margin-top:8px;gap:14px;font-size:12.5px;flex-wrap:wrap"><span class="row" style="gap:5px">${ic('mail', 13)}<span style="user-select:all" translate="no">${esc(m.email)}</span></span><span class="row" style="gap:5px">${ic('map-pin', 13)}${esc(m.tz)}</span><span class="row" style="gap:5px">${ic('clock', 13)}${tr('Recorded activity')}: ${recordedMemberLabel(m, activity)}</span></div></div>
       <div class="row"><button class="btn btn-secondary" data-a="copyText" data-text="${esc(m.email)}">${ic('copy', 14)}Copy email</button><button class="btn btn-primary" data-a="newTask" data-assignee="${m.id}">${ic('plus', 14)}Assign task</button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="More">${ic('ellipsis', 16)}</button></div>
     </div>
     <div class="stats" style="margin-bottom:18px">

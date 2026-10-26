@@ -15,6 +15,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Activity unavailable': 'Данные об активности недоступны',
+  'Recorded activity': 'Зафиксированная активность',
+  'Last recorded activity': 'Последняя зафиксированная активность',
+  'Current session': 'Текущая сессия',
   'Current value': 'Сейчас',
   'Restored value': 'После восстановления',
   'What will change': 'Что изменится',

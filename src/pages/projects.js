@@ -1,11 +1,14 @@
 /* ---------- PROJECTS ---------- */
-import { ago, esc, fmtDate, minsAgo } from '../core/utils.js';
+import { ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { S, TM, canSee, mem, progressOf, tasksOf, visibleProjects } from '../core/store.js';
+import { D, S, TM, canSee, mem, progressOf, tasksOf, visibleProjects } from '../core/store.js';
+import { recordedActivityIndex, compareProjectActivity } from '../shared/recorded-activity.js';
+import { locale, t } from '../core/i18n.js';
 import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 
-export function projectCard(p) {
+const activityLabel = at => (at ? ago(at) : t('Activity unavailable'));
+export function projectCard(p, at) {
   const ts = tasksOf(p.id);
   const pr = progressOf(p.id);
   const open = ts.filter(t => t.status !== 'done').length;
@@ -14,7 +17,7 @@ export function projectCard(p) {
     <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><button class="project-card-link trunc" data-a="go" data-r="project" data-id="${p.id}" aria-label="${esc(p.name)}" style="font-weight:600;font-size:14px">${esc(p.name)}</button>${p.fav ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}${p.private ? `<span class="faint" data-tip="Private project">${ic('lock', 12)}</span>` : ''}</div></div>${pStatus(p.status)}</div>
     <div class="desc">${esc(p.desc)}</div>
     ${locked ? `<div class="row faint" style="font-size:12px">${ic('lock', 12)}Restricted — request access to see tasks</div>` : `<div class="row" style="gap:10px">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num" style="font-size:12px;font-weight:500">${pr}%</span></div>`}
-    <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${locked ? '—' : `${ts.length - open}/${ts.length}`}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px">${ic('clock', 12)}${ago(minsAgo(p.last))}</span><span class="sp"></span>${avStack(p.members, 3)}</div>
+    <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${locked ? '—' : `${ts.length - open}/${ts.length}`}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px" title="Last recorded activity">${ic('clock', 12)}${locked ? '—' : activityLabel(at)}</span><span class="sp"></span>${avStack(p.members, 3)}</div>
     <button class="ibtn ibtn-sm more" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Project options" style="background:var(--surface);box-shadow:0 0 0 1px var(--border)">${ic('ellipsis', 14)}</button>
   </article>`;
 }
@@ -23,16 +26,21 @@ export function pageProjects() {
   const q = (u.projQ || '').toLowerCase();
   const st = u.projStatus || 'all';
   const sort = u.projSort || 'recent';
+  const times = recordedActivityIndex(D(), visibleProjects().filter(canSee)).projects;
   let ps = visibleProjects().filter(p => (st === 'all' || p.status === st) && (!q || p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)));
-  const sorter = { recent: p => p.last, name: p => p.name, due: p => p.due, progress: p => -progressOf(p.id) }[sort];
-  ps.sort((a, b) => (sorter(a) > sorter(b) ? 1 : -1));
+  const sorter = { name: p => p.name, due: p => p.due || '9999', progress: p => -progressOf(p.id) }[sort];
+  ps.sort((a, b) =>
+    sort === 'recent'
+      ? compareProjectActivity(a, b, times, locale())
+      : (sorter(a) > sorter(b) ? 1 : sorter(a) < sorter(b) ? -1 : 0) || String(a.id).localeCompare(String(b.id)),
+  );
   const view = u.projView;
   let body;
   if (!visibleProjects().length)
     body = `<div class="panel">${empty('folder-kanban', 'No projects yet', 'Create your first project to start organizing your work.', `<button class="btn btn-primary btn-sm" data-a="newProject">${ic('plus', 14)}Create project</button>`)}</div>`;
   else if (!ps.length)
     body = `<div class="panel">${empty('search-x', 'No results found', 'No projects match your search or filters. Try a different term.', `<button class="btn btn-secondary btn-sm" data-a="clearProjFilters">Clear filters</button>`)}</div>`;
-  else if (view === 'grid') body = `<div class="pgrid">${ps.map(projectCard).join('')}</div>`;
+  else if (view === 'grid') body = `<div class="pgrid">${ps.map(p => projectCard(p, times.get(p.id))).join('')}</div>`;
   else if (view === 'list')
     body = `<div class="panel" style="overflow:hidden">${ps
       .map(p => {
@@ -46,7 +54,7 @@ export function pageProjects() {
       .map(p => {
         const ts = tasksOf(p.id);
         const pr = progressOf(p.id);
-        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<span style="font-weight:500">${esc(p.name)}</span></span></td><td style="text-align:left">${pStatus(p.status)}</td><td style="text-align:left"><span class="row">${av(p.lead, 'sm')}${esc(mem(p.lead)?.name)}</span></td><td style="text-align:left" class="muted">${TM[p.team]?.name}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:left" class="muted">${ago(minsAgo(p.last))}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></td></tr>`;
+        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<span style="font-weight:500">${esc(p.name)}</span></span></td><td style="text-align:left">${pStatus(p.status)}</td><td style="text-align:left"><span class="row">${av(p.lead, 'sm')}${esc(mem(p.lead)?.name)}</span></td><td style="text-align:left" class="muted">${TM[p.team]?.name}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:left" class="muted">${canSee(p) ? activityLabel(times.get(p.id)) : '—'}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></td></tr>`;
       })
       .join('')}
     </tbody></table></div>`;
