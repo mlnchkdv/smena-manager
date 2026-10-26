@@ -23,6 +23,8 @@ const RU = {
   'Last recorded activity': 'Последняя зафиксированная активность',
   'Current session': 'Текущая сессия',
   'Calendar view': 'Вид календаря',
+  'Locate material': 'Найти на графе',
+  'Choose material': 'Выберите материал',
   'Notification filter': 'Фильтр уведомлений',
   'Filter by role': 'Фильтр по роли',
   'Current value': 'Сейчас',

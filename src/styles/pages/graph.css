@@ -95,6 +95,38 @@
   background-image: radial-gradient(var(--border) 0.7px, transparent 0.7px);
   background-size: 22px 22px;
 }
+.graph-locator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.graph-locator label {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+.graph-locator .select {
+  flex: 1;
+  min-width: 0;
+}
+.graph-stage:has(.graph-locator) .graph-controls {
+  top: 68px;
+}
+.graph-stage:has(.graph-locator) .graph-touch-control {
+  top: 120px;
+}
+@media (max-width: 640px) {
+  .graph-locator label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
 #knowledge-graph-canvas {
   position: relative;
   width: 100%;

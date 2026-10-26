@@ -24,6 +24,11 @@ IN.graphQuery = el => {
   S.ui.graphQuery = el.value;
   render();
 };
+IN.graphLocate = el => {
+  S.ui.graphSelected = el.value;
+  S.ui.graphSelectionClosed = !el.value;
+  render();
+};
 IN.graphFilter = el => {
   if (['graphKind', 'graphProject', 'graphDepth'].includes(el.dataset.field)) S.ui[el.dataset.field] = el.value;
   render();

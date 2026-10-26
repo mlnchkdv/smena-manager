@@ -1,6 +1,7 @@
 import cytoscape from 'cytoscape';
 import { ic } from '../core/icons.js';
 import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
+import { graphOverviewLabels } from '../shared/graph-labels.js';
 
 let instance;
 let context = '';
@@ -21,10 +22,12 @@ export function mountGraph(graph, selected, center, onSelect) {
             width: instance.width(),
             height: instance.height(),
             positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
+            selected: instance.nodes(':selected').first().id(),
           }
         : savedView?.center === center
           ? savedView
           : null;
+    instance?.off('zoom pan');
     instance?.destroy();
     disconnectObserver?.disconnect();
     resizeObserver?.disconnect();
@@ -49,6 +52,7 @@ export function mountGraph(graph, selected, center, onSelect) {
     const neighbors = new Set(graph.edges.filter(edge => edge.from === selected || edge.to === selected).flatMap(edge => [edge.from, edge.to]));
     if (selected) neighbors.add(selected);
     const denseGraph = graph.nodes.length > 80 || graph.edges.length > 160;
+    const smallGraph = graph.nodes.length <= 30;
     const elements = [
       ...graph.nodes.map(node => ({
         data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
@@ -84,7 +88,12 @@ export function mountGraph(graph, selected, center, onSelect) {
             label: 'data(label)',
             color: css.getPropertyValue('--text').trim(),
             'font-size': 14,
-            'font-family': css.getPropertyValue('--font').trim(),
+            'font-family':
+              css
+                .getPropertyValue('--font')
+                .split(',')[0]
+                .trim()
+                .replace(/^['"]|['"]$/gu, '') || 'sans-serif',
             'min-zoomed-font-size': 9,
             'text-valign': 'bottom',
             'text-margin-y': 10,
@@ -115,6 +124,17 @@ export function mountGraph(graph, selected, center, onSelect) {
         { selector: 'node.muted', style: { opacity: 0.55 } },
         { selector: 'node.dense-hidden', style: { 'text-opacity': 0 } },
         { selector: 'node.dense-hidden:selected', style: { 'text-opacity': 1 } },
+        { selector: 'node.overview-hidden', style: { 'text-opacity': 0 } },
+        {
+          selector: 'node.orientation-label',
+          style: {
+            'min-zoomed-font-size': 0,
+            'text-opacity': 1,
+            'text-background-color': css.getPropertyValue('--surface').trim(),
+            'text-background-opacity': 0.95,
+            'text-background-padding': 3,
+          },
+        },
         {
           selector: 'edge',
           style: {
@@ -141,10 +161,31 @@ export function mountGraph(graph, selected, center, onSelect) {
       ],
     });
     const updateDensity = () => {
-      if (!denseGraph || !instance) return;
-      instance.nodes().toggleClass('dense-hidden', instance.zoom() < 0.75);
+      if (!instance || instance.destroyed() || !instance.renderer()) return;
+      const zoom = instance.zoom();
+      if (denseGraph) instance.nodes().toggleClass('dense-hidden', zoom < 0.75);
+      if (smallGraph) {
+        const overview = zoom < 0.85;
+        const labels = overview
+          ? graphOverviewLabels(graph, new Map(instance.nodes().map(node => [node.id(), node.renderedPosition()])), {
+              width: instance.width(),
+              height: instance.height(),
+              selected,
+            })
+          : new Set();
+        instance.batch(() => {
+          instance.nodes().forEach(node => {
+            const labeled = overview && labels.has(node.id());
+            node.toggleClass('overview-hidden', overview && !labeled);
+            node.toggleClass('orientation-label', labeled);
+            if (labeled) node.style({ 'font-size': 12 / zoom, 'text-max-width': 110 / zoom, 'text-margin-y': 8 / zoom, width: 30 / zoom, height: 30 / zoom });
+            else node.removeStyle('font-size text-max-width text-margin-y width height');
+          });
+        });
+      }
     };
     instance.on('zoom', updateDensity);
+    if (smallGraph) instance.on('pan', updateDensity);
     if (previous?.signature === signature) {
       instance.nodes().positions(node => previous.positions.get(node.id()));
       if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
@@ -160,6 +201,12 @@ export function mountGraph(graph, selected, center, onSelect) {
     } else if (instance.zoom() > 1.2) {
       instance.zoom(1.2);
       instance.center();
+    }
+    if (selected && previous?.selected !== selected && container.clientWidth <= 640) {
+      const focus = instance.nodes(':selected').closedNeighborhood();
+      instance.fit(focus, 55);
+      instance.zoom(Math.max(0.65, Math.min(1.2, instance.zoom())));
+      instance.center(instance.nodes(':selected'));
     }
     updateDensity();
     instance.on('tap', 'node', event => onSelect(event.target.id()));
@@ -194,7 +241,9 @@ export function mountGraph(graph, selected, center, onSelect) {
             zoom: instance.zoom(),
             pan: instance.pan(),
             positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
+            selected: instance.nodes(':selected').first().id(),
           };
+        instance?.off('zoom pan');
         instance?.destroy();
         instance = null;
         disconnectObserver.disconnect();
