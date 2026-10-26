@@ -7,6 +7,7 @@ import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { calendarDayItems } from '../shared/calendar-items.js';
+import { t } from '../core/i18n.js';
 
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
@@ -16,14 +17,25 @@ export function calendarHtml(ts, opt = {}) {
   const chip = it => {
     if (it.ev) {
       const p = proj(it.ev.project);
-      return `<button class="cev event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}" title="${esc(it.ev.title)} · ${it.ev.time}"><span class="num faint" style="font-size:11px">${it.ev.time}</span><span class="trunc">${esc(it.ev.title)}</span></button>`;
+      return `<button class="cev event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}" title="${esc(it.ev.title)} · ${it.ev.time}"><span class="num faint" style="font-size:11px">${it.ev.time}</span><span class="trunc">${esc(it.ev.title)}</span><span class="cal-item-project">${esc(p.name)}</span></button>`;
     }
     const t = it.t;
     const p = proj(t.project);
-    return `<button class="cev ${t.status === 'done' ? 'done' : ''}${fxc('moved', t.id)}" style="--c:${pColor(p)}" draggable="true" data-drag-cal="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)}">${t.status === 'done' ? stIcon('done', 11) : prIcon(t.priority, 11)}<span class="trunc" translate="no">${esc(t.title)}</span>${av(t.assignee, '', false)}</button>`;
+    return `<button class="cev ${t.status === 'done' ? 'done' : ''}${fxc('moved', t.id)}" style="--c:${pColor(p)}" draggable="true" data-drag-cal="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)}">${t.status === 'done' ? stIcon('done', 11) : prIcon(t.priority, 11)}<span class="trunc" translate="no">${esc(t.title)}</span><span class="cal-item-project" translate="no">${esc(p.name)}</span>${av(t.assignee, '', false)}</button>`;
   };
   let label, body;
-  if (mode === 'month') {
+  if (mode === 'agenda') {
+    label = `${MONL[cur.getMonth()]} ${cur.getFullYear()}`;
+    const dates = Array.from({ length: new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate() }, (_, i) =>
+      iso(new Date(cur.getFullYear(), cur.getMonth(), i + 1)),
+    );
+    body = `<div class="cal-agenda">${
+      dates
+        .filter(ds => itemsOn(ds).length)
+        .map(ds => `<section><h3>${fmtDate(ds, true)}</h3>${itemsOn(ds).map(chip).join('')}</section>`)
+        .join('') || '<p class="empty">No scheduled items this month.</p>'
+    }</div>`;
+  } else if (mode === 'month') {
     label = `${MONL[cur.getMonth()]} ${cur.getFullYear()}`;
     const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
     const start = startOfWeek(first);
@@ -36,7 +48,7 @@ export function calendarHtml(ts, opt = {}) {
           const items = itemsOn(ds);
           const today = diffD(d, TODAY) === 0;
           return `<div class="cday ${d.getMonth() !== cur.getMonth() ? 'out' : ''} ${today ? 'today' : ''}" data-drop-day="${ds}">
-          <span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span>
+          <button class="cal-day-open" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}" aria-label="${esc(t('View day'))}: ${fmtDate(ds)}"><span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span><span class="cal-day-count" aria-hidden="true">${items.length || ''}</span></button>
           <button class="ibtn ibtn-xs add" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="Add task on ${fmtDate(ds)}">${ic('plus', 13)}</button>
           ${items.slice(0, 3).map(chip).join('')}
           ${items.length > 3 ? `<button class="cmore" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}">+${items.length - 3} more</button>` : ''}
@@ -87,6 +99,7 @@ export function calendarHtml(ts, opt = {}) {
       <div class="seg cal-views">${[
         ['month', 'Month'],
         ['week', 'Week'],
+        ['agenda', 'Agenda'],
       ]
         .map(([k, n]) => `<button class="${mode === k ? 'on' : ''}" data-a="set" data-k="calMode" data-v="${k}">${n}</button>`)
         .join('')}</div>

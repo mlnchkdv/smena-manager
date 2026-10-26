@@ -15,6 +15,9 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Agenda: 'Повестка',
+  'View day': 'Посмотреть день',
+  'No scheduled items this month.': 'В этом месяце нет запланированных задач и событий.',
   'Previous note': 'Предыдущая заметка',
   'Next note': 'Следующая заметка',
   'Notes on this page': 'Заметки на этой странице',

@@ -337,8 +337,12 @@ export function popHtml(p) {
             x =>
               `<button class="mi" data-a="openTask" data-id="${x.id}">${stIcon(x.status)}<span class="trunc" translate="no">${esc(x.title)}</span><span class="r">${av(x.assignee, 'sm', false)}</span></button>`,
           )
-          .join('');
-      style = 'width:280px';
+          .join('') +
+        (!items.length ? '<p class="hint" style="padding:8px">No tasks</p>' : '') +
+        (S.ui.currentUser?.role !== 'viewer'
+          ? `<div class="msep"></div><button class="mi" data-a="newTask" data-due="${ds}" ${p.calendarProject ? `data-project="${p.calendarProject}"` : ''}>${ic('plus', 14)}Add task</button>`
+          : '');
+      style = 'width:320px;max-width:calc(100vw - 24px)';
       break;
     }
     case 'event': {

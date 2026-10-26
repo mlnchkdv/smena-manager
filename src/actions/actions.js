@@ -2256,7 +2256,7 @@ A.colSortPrio = el => {
 A.calNav = el => {
   const d = +el.dataset.d;
   const cur = parse(S.ui.calDate);
-  S.ui.calDate = d === 0 ? iso(TODAY) : S.ui.calMode === 'month' ? iso(new Date(cur.getFullYear(), cur.getMonth() + d, 1)) : iso(addD(cur, d * 7));
+  S.ui.calDate = d === 0 ? iso(TODAY) : S.ui.calMode !== 'week' ? iso(new Date(cur.getFullYear(), cur.getMonth() + d, 1)) : iso(addD(cur, d * 7));
   render();
 };
 A.tlToday = () => {
