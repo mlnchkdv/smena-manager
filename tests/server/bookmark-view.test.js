@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bookmarkView } from '../../src/shared/bookmark-view.js';
+import { bookmarkView, savedBookmarkView } from '../../src/shared/bookmark-view.js';
+
+test('saved bookmarks remain visible after editing archive state, folder and title', () => {
+  assert.deepEqual(savedBookmarkView({ folder: 'new', is_archived: true }, 'old'), { bookmarkQuery: '', bookmarkScope: 'archived', bookmarkFolder: 'new' });
+  assert.equal(savedBookmarkView({ folder: 'new' }, 'all').bookmarkFolder, 'all');
+  assert.equal(savedBookmarkView({}, 'old').bookmarkFolder, 'root');
+});
 
 test('large bookmark collections have bounded pages without mutating source order', () => {
   const links = Array.from({ length: 1300 }, (_, i) => ({ id: String(i), title: 'Team guide', updated_at: new Date(i * 1000).toISOString() }));
