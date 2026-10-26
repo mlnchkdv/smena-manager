@@ -94,6 +94,6 @@ export function taskViewBody(type, ts, key, p) {
     );
   if (type === 'table') return viewToolbar(key, { cols: true, right: addBtn }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
   if (type === 'calendar') return viewToolbar(key, { group: false, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
-  if (type === 'timeline') return viewToolbar(key, { group: false, right: addBtn, extra: tlControls(key) }) + timelineHtml(ts, key, p);
+  if (type === 'timeline') return viewToolbar(key, { group: false, sort: false, right: addBtn, extra: tlControls(key) }) + timelineHtml(ts, key, p);
   return page404();
 }

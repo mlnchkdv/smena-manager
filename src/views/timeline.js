@@ -9,7 +9,9 @@ import { timelineMilestones } from '../shared/timeline-scope.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 
-const listMode = () => (S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640);
+export const timelineListMode = () =>
+  S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
+const listMode = timelineListMode;
 
 export function tlControls() {
   return `<div class="seg" role="group" aria-label="Timeline presentation"><button class="${listMode() ? 'on' : ''}" aria-pressed="${listMode()}" data-a="set" data-k="tlPresentation" data-v="list">List</button><button class="${!listMode() ? 'on' : ''}" aria-pressed="${!listMode()}" data-a="set" data-k="tlPresentation" data-v="chart">Timeline</button></div><input type="date" class="input tl-date-picker" data-in="tlAnchor" value="${S.ui.tlAnchor || iso(TODAY)}" aria-label="Focus date"><div class="seg" style="margin-left:4px;${listMode() ? 'display:none' : ''}">${[
@@ -18,14 +20,18 @@ export function tlControls() {
   ]
     .map(([k, n]) => `<button class="${S.ui.tlZoom === k ? 'on' : ''}" data-a="set" data-k="tlZoom" data-v="${k}">${n}</button>`)
     .join('')}</div>
-  <select class="select" style="height:26px;width:auto;font-size:12px;margin-left:4px" data-in="tlGroup" aria-label="Group by">${[
-    ['status', 'Group: Status'],
-    ['assignee', 'Group: Assignee'],
-    ['project', 'Group: Project'],
-    ['none', 'No grouping'],
-  ]
-    .map(([k, n]) => `<option value="${k}" ${S.ui.tlGroup === k ? 'selected' : ''}>${n}</option>`)
-    .join('')}</select>
+  ${
+    listMode()
+      ? ''
+      : `<select class="select" style="height:26px;width:auto;font-size:12px;margin-left:4px" data-in="tlGroup" aria-label="Group by">${[
+          ['status', 'Status'],
+          ['assignee', 'Assignee'],
+          ['project', 'Project'],
+          ['none', 'No grouping'],
+        ]
+          .map(([k, n]) => `<option value="${k}" ${S.ui.tlGroup === k ? 'selected' : ''}>${n}</option>`)
+          .join('')}</select>`
+  }
   <button class="btn btn-ghost" data-a="tlToday">${ic('crosshair', 14)}Today</button>`;
 }
 export function timelineHtml(ts, key, p) {
@@ -42,12 +48,12 @@ export function timelineHtml(ts, key, p) {
       S.ui.listPages.timeline = Math.floor(Math.max(0, position) / 60);
     }
     const page = listWindow(items, S.ui.listPages.timeline, 60);
-    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}">${
+    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${
       page.items
-        .map(item => {
+        .map((item, i) => {
           const m = item.milestone;
           const project = m?.p || proj(item.task?.project);
-          return `<button class="tl-agenda-item" ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
+          return `${i === 0 || page.items[i - 1].date !== item.date ? `<h3 class="hint">${fmtDate(item.date, true)}</h3>` : ''}<button class="tl-agenda-item" ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
         })
         .join('') || empty('calendar', 'Nothing on the timeline', 'Give tasks a start and due date to see them here.')
     }${paginationHtml(page, 'timeline')}</div>`;
@@ -214,5 +220,5 @@ export function pageWsTimeline() {
     S.ui.tlGroup = 'project';
   }
   return `<div class="page flush"><div class="ph"><div><h1>Timeline</h1><p>Schedules, dependencies, and milestones across projects.</p></div></div>
-  ${viewToolbar(key, { group: false, extra: tlControls(key) })}${timelineHtml(applyView(allTasks(), v), key, null)}</div>`;
+  ${viewToolbar(key, { group: false, sort: false, extra: tlControls(key) })}${timelineHtml(applyView(allTasks(), v), key, null)}</div>`;
 }

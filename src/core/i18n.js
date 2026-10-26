@@ -34,6 +34,7 @@ const RU = {
   'Timeline presentation': 'Представление хронологии',
   'Focus date': 'Перейти к дате',
   'Update and reopen': 'Обновить и открыть снова',
+  'Chronological order': 'В хронологическом порядке',
   'Search categories': 'Категории поиска',
   'View options': 'Параметры вида',
   Agenda: 'Повестка',
