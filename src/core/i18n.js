@@ -35,6 +35,7 @@ const RU = {
   'Focus date': 'Перейти к дате',
   'Update and reopen': 'Обновить и открыть снова',
   'Chronological order': 'В хронологическом порядке',
+  'No later items. Showing the nearest earlier items.': 'Более поздних событий нет. Показаны ближайшие предыдущие.',
   'Search categories': 'Категории поиска',
   'View options': 'Параметры вида',
   Agenda: 'Повестка',

@@ -8,6 +8,7 @@ import { startOfWeek } from '../core/calendar-layout.js';
 import { timelineMilestones } from '../shared/timeline-scope.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
+import { timelineAnchorPage, timelineContextKey } from '../shared/timeline-page.js';
 
 export const timelineListMode = () =>
   S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
@@ -40,15 +41,16 @@ export function timelineHtml(ts, key, p) {
       ...ts.filter(t => t.due).map(t => ({ date: t.due, task: t })),
       ...timelineMilestones(ts, visibleProjects().filter(canSee), p).map(m => ({ date: m.date, milestone: m })),
     ].sort((a, b) => a.date.localeCompare(b.date));
-    const anchorKey = `${key}:${S.ui.tlAnchor || ''}`;
+    const anchor = S.ui.tlAnchor || iso(TODAY);
+    const anchorKey = timelineContextKey(key, anchor, items);
+    const anchored = timelineAnchorPage(items, anchor);
     S.ui.listPages ||= {};
     if (S.ui.tlAnchorKey !== anchorKey) {
       S.ui.tlAnchorKey = anchorKey;
-      const position = items.findIndex(item => item.date >= (S.ui.tlAnchor || iso(TODAY)));
-      S.ui.listPages.timeline = Math.floor(Math.max(0, position) / 60);
+      S.ui.listPages.timeline = anchored.page;
     }
     const page = listWindow(items, S.ui.listPages.timeline, 60);
-    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${
+    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
       page.items
         .map((item, i) => {
           const m = item.milestone;
