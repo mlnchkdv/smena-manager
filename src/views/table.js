@@ -20,6 +20,28 @@ export const TCOLS = [
   ['created', 'Created', 112],
   ['project', 'Project', 166],
 ];
+function mobileTable(groups, cols, group) {
+  const visible = new Set(cols.map(col => col[0]));
+  return `<div class="only-m mobile-task-table">${groups
+    .filter(g => g.tasks.length)
+    .map(
+      g =>
+        `<section>${group !== 'none' ? `<h2 class="mobile-table-group">${g.html || ''}<span ${['project', 'assignee'].includes(group) && g.key !== 'none' ? 'translate="no"' : ''}>${esc(g.name)}</span><span class="faint">${g.tasks.length}</span></h2>` : ''}${g.tasks
+          .map(
+            t =>
+              `<button class="panel mobile-table-task" data-a="openTask" data-id="${t.id}"><span class="row">${visible.has('status') ? stIcon(t.status) : ''}<b class="grow" translate="no">${esc(t.title)}</b><span class="mono faint">${esc(t.key)}</span></span><span class="row muted mobile-table-fields">${visible.has('priority') ? prPill(t.priority) : ''}${visible.has('assignee') ? `<span class="row">${av(t.assignee, 'sm', false)}<span ${t.assignee ? 'translate="no"' : ''}>${esc(mem(t.assignee)?.name || 'Unassigned')}</span></span>` : ''}${visible.has('due') ? dueHtml(t) : ''}${visible.has('start') && t.start ? `<span>${ic('calendar', 12)}<span>Start date</span>: ${fmtDate(t.start)}</span>` : ''}${visible.has('project') ? `<span translate="no">${esc(proj(t.project)?.name || '')}</span>` : ''}${visible.has('labels') ? t.labels.map(lbl).join('') : ''}${visible.has('estimate') && t.estimate ? `<span>${ic('timer', 12)} ${esc(t.estimate)}</span>` : ''}${
+                visible.has('deps')
+                  ? t.deps
+                      .filter(id => task(id))
+                      .map(id => `<span class="depchip">${esc(task(id).key)}</span>`)
+                      .join('')
+                  : ''
+              }${visible.has('created') ? `<span><span>Created</span>: ${fmtDate(iso(new Date(t.created)))}</span>` : ''}</span></button>`,
+          )
+          .join('')}</section>`,
+    )
+    .join('')}</div>`;
+}
 export function tcell(t, c) {
   const ed = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === c;
   switch (c) {
@@ -81,6 +103,5 @@ export function tableHtml(ts, key, p) {
       )
       .join('')}
       <tr><td class="sticky cellbtn" data-a="newTask" ${p ? `data-project="${p.id}"` : ''} colspan="${cols.length}" style="color:var(--text-3)"><span class="row" style="gap:6px">${ic('plus', 14)}New task</span></td></tr>
-    </tbody></table></div>${paginationHtml(window, pageKey)}
-    <div class="only-m" style="padding:8px 16px 90px">${ts.map(t => `<div class="panel" style="padding:12px;margin-bottom:8px" data-a="openTask" data-id="${t.id}"><div class="row" style="margin-bottom:8px">${stIcon(t.status)}<b style="font-weight:500" class="grow" translate="no">${esc(t.title)}</b><span class="mono faint" style="font-size:11px">${t.key}</span></div><div class="row muted" style="flex-wrap:wrap;gap:10px;font-size:12px">${prPill(t.priority)}${av(t.assignee, 'sm', false)}<span class="muted" ${t.assignee ? 'translate="no"' : ''}>${esc(mem(t.assignee)?.name || 'Unassigned')}</span>${dueHtml(t)}${t.estimate ? `<span class="faint">${ic('timer', 12)} ${esc(t.estimate)}</span>` : ''}</div></div>`).join('')}</div>`;
+    </tbody></table></div>${mobileTable(groups, cols, v.group)}${paginationHtml(window, pageKey)}`;
 }

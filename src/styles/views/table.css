@@ -105,6 +105,53 @@ table.tbl {
   margin-right: 4px;
 }
 /* the sticky first column starts on the shared gutter, like the breadcrumb and toolbar above it */
+.mobile-task-table {
+  padding: 8px 16px 24px;
+}
+.mobile-table-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 8px;
+  font-size: var(--fs-sm);
+}
+.mobile-table-task {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mobile-table-task b {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.mobile-table-task .mono {
+  font-size: var(--fs-xs);
+}
+.mobile-table-fields {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: var(--fs-xs);
+}
+.task-mobile-view {
+  display: none;
+}
+@media (max-width: 640px) {
+  .task-mobile-view {
+    display: block;
+  }
+  .task-wide-view {
+    display: none;
+  }
+  .tasks-page .ph .acts {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
 .tbl th:first-child,
 .tbl td:first-child {
   padding-left: var(--gutter);
