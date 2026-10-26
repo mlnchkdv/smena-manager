@@ -7,6 +7,15 @@ test('saved bookmarks remain visible after editing archive state, folder and tit
   assert.equal(savedBookmarkView({ folder: 'new' }, 'all').bookmarkFolder, 'all');
   assert.equal(savedBookmarkView({}, 'old').bookmarkFolder, 'root');
 });
+test('saved bookmarks remain visible after renaming and moving to another folder', () => {
+  assert.deepEqual(savedBookmarkView({ folder: 'new' }, 'old'), { bookmarkQuery: '', bookmarkScope: 'active', bookmarkFolder: 'new' });
+  assert.equal(savedBookmarkView({ folder: '' }, 'old').bookmarkFolder, 'root');
+  assert.equal(savedBookmarkView({ folder: 'new' }, 'all').bookmarkFolder, 'all');
+  assert.equal(savedBookmarkView({ folder: '' }, 'root').bookmarkFolder, 'root');
+});
+test('editing an archived bookmark keeps the archived list selected', () => {
+  assert.deepEqual(savedBookmarkView({ folder: 'docs', is_archived: true }, 'docs'), { bookmarkQuery: '', bookmarkScope: 'archived', bookmarkFolder: 'docs' });
+});
 
 test('large bookmark collections have bounded pages without mutating source order', () => {
   const links = Array.from({ length: 1300 }, (_, i) => ({ id: String(i), title: 'Team guide', updated_at: new Date(i * 1000).toISOString() }));
