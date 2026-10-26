@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { activityDateExtra, activityVerbForm } from '../../src/shared/activity-copy.js';
+import { activityDateExtra, activityVerbForm, activityTransitionExtra } from '../../src/shared/activity-copy.js';
 import { countLabel } from '../../src/shared/count-label.js';
 
 test('new activity date values render independently of the creation language', () => {
@@ -39,6 +39,13 @@ test('Russian self actions use polite plural while other actors retain their for
   assert.equal(activityVerbForm('изменил(а) срок', true, 'ru-RU'), 'изменили срок');
   assert.equal(activityVerbForm('создал(а)', false, 'ru-RU'), 'создал(а)');
   assert.equal(activityVerbForm('assigned', true, 'en-US'), 'assigned');
+});
+test('legacy status transitions translate known labels without changing arbitrary text', () => {
+  assert.equal(activityTransitionExtra('from Done to To Do', 'moved', 'ru-RU'), 'из «Готово» в «К выполнению»');
+  assert.equal(activityTransitionExtra('from In progress to Review', 'moved', 'ru-RU'), 'из «В работе» в «На проверке»');
+  assert.equal(activityTransitionExtra('from Done to To Do', 'moved', 'en-US'), null);
+  assert.equal(activityTransitionExtra('from Custom to To Do', 'moved', 'ru-RU'), null);
+  assert.equal(activityTransitionExtra('from Done to To Do', 'renamed', 'ru-RU'), null);
 });
 test('shared material counts agree in Russian and English, including 21', () => {
   const counts = [0, 1, 2, 5, 21];

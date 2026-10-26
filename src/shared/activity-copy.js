@@ -54,3 +54,13 @@ export function activityDateExtra(activity, locale = 'en-US', formatDate) {
 export function activityVerbForm(translated, self, locale = 'en-US') {
   return self && locale.startsWith('ru') ? String(translated).replace(/л\(а\)/gu, 'ли') : translated;
 }
+
+export function activityTransitionExtra(value, verb, locale = 'en-US') {
+  if (verb !== 'moved' || !locale.startsWith('ru')) return null;
+  const match = /^from (.+) to (.+)$/u.exec(String(value || ''));
+  if (!match) return null;
+  const statuses = { backlog: 'Бэклог', 'to do': 'К выполнению', 'in progress': 'В работе', review: 'На проверке', done: 'Готово' };
+  const from = statuses[match[1].toLowerCase()],
+    to = statuses[match[2].toLowerCase()];
+  return from && to ? `из «${from}» в «${to}»` : null;
+}

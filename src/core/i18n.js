@@ -5,6 +5,7 @@
    ===================================================================== */
 import { S } from './store.js';
 import { countLabel } from '../shared/count-label.js';
+import { activityTransitionExtra } from '../shared/activity-copy.js';
 
 export const LANGUAGES = [
   ['English (US)', 'English (US)'],
@@ -1818,6 +1819,8 @@ const RU = {
   'is due tomorrow': '— срок завтра',
   'is overdue': '— срок просрочен',
   'changed priority of': 'изменил(а) приоритет',
+  'changed status of project': 'изменил(а) статус проекта',
+  'updated dependencies of': 'изменил(а) зависимости',
   'added a file to': 'добавил(а) файл к',
   created: 'создал(а)',
   assigned: 'назначил(а)',
@@ -2129,6 +2132,8 @@ export function t(value) {
 }
 
 export function activityExtra(value, verb) {
+  const transition = activityTransitionExtra(value, verb, isRussian() ? 'ru-RU' : 'en-US');
+  if (transition !== null) return transition;
   if (!isRussian() || !value) return value;
   const match = String(value).match(/^to (.+)$/u);
   if (!match) return t(value);
