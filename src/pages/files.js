@@ -56,13 +56,21 @@ function folderChip(file) {
 function fileCard(file) {
   const author = mem(file.by);
   const linkedTask = file.task ? task(file.task) : null;
-  return `<article class="fcard workspace-file-card${/\.(txt|md|markdown|json|csv|log)$/i.test(file.name) ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
+  const extension = String(file.name || '')
+    .split('.')
+    .pop()
+    .toLowerCase();
+  const textual = ['txt', 'md', 'markdown', 'json', 'csv', 'log'].includes(extension);
+  const preview = textual
+    ? `<span class="workspace-file-text-type" aria-hidden="true">${ic(fileMeta(file).i, 23)}<small translate="no">${esc(extension === 'markdown' ? 'MD' : extension.toUpperCase())}</small></span>`
+    : filePrev(file);
+  return `<article class="fcard workspace-file-card${textual ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
     ${fileSelectButton(file)}
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
-      ${filePrev(file)}
+      ${preview}
       <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span></span>
     </button>
-    ${folderChip(file)}<div class="workspace-file-card-foot">${projectChip(file)}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}<span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
+    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><span class="workspace-file-card-context">${projectChip(file)}${textual ? folderChip(file) : ''}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
   </article>`;
 }
 

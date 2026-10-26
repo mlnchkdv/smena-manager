@@ -73,3 +73,71 @@
     margin-left: 0;
   }
 }
+.workspace-file-card-context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+.workspace-file-card.textual .workspace-file-open {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 80px;
+  padding: 12px 52px 12px 12px;
+}
+.workspace-file-text-type {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 48px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--r);
+}
+.workspace-file-text-type small {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+}
+.workspace-file-card.textual .workspace-file-open .fi {
+  min-width: 0;
+  padding: 0;
+}
+.workspace-file-card.textual .fn {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.workspace-file-card.textual > .file-select {
+  left: auto;
+  right: 6px;
+  top: 6px;
+}
+.workspace-file-card.textual .workspace-file-card-foot {
+  position: static;
+  min-height: 44px;
+  left: auto;
+  padding: 4px 8px;
+  border-top: 1px solid var(--divider);
+}
+.workspace-file-card.textual .workspace-file-card-foot .workspace-file-folder {
+  margin: 0;
+  max-width: 130px;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .workspace-file-card.textual > .file-select,
+  .workspace-file-card.textual .workspace-file-card-foot .ibtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .workspace-file-card.textual .workspace-file-card-context > button {
+    min-height: 44px;
+    max-width: 130px;
+  }
+}
