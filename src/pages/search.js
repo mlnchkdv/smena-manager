@@ -4,6 +4,8 @@ import { ic } from '../core/icons.js';
 import { D, S, mem, pColor, proj, task } from '../core/store.js';
 import { searchAll } from '../core/search.js';
 import { FT, av, empty, hl, pIcon, pStatus, stIcon } from '../ui/helpers.js';
+import { knowledgeExcerpt } from '../shared/knowledge-search.js';
+import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 
 export function pageSearch() {
   const inputQuery = String(S.ui.searchQ || '');
@@ -93,7 +95,7 @@ export function pageSearch() {
               r.knowledge
                 .map(
                   note =>
-                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${hl(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${hl((note.summary || note.formatted_markdown || '').slice(0, 90), q)}</span></span><span class="faint" style="font-size:12px">${esc(note.category || 'General')}</span></div>`,
+                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(D().knowledgeFolders.find(folder => folder.id === note.folderId)?.name || note.category || '')}</span></div>`,
                 )
                 .join(''),
             ) +
