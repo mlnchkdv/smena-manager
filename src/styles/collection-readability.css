@@ -2,6 +2,81 @@
 .knowledge-mixed-grid {
   align-items: start;
 }
+.material-location {
+  min-width: 0;
+  font-size: var(--fs-xs);
+}
+.material-location > summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  cursor: pointer;
+  min-width: 0;
+  min-height: 30px;
+}
+.material-location > summary::-webkit-details-marker {
+  display: none;
+}
+.material-location > summary > svg {
+  flex: 0 0 auto;
+}
+.material-location-short {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.material-location-full {
+  padding: 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  overflow-wrap: anywhere;
+}
+.material-location[open] > summary > svg:last-child {
+  transform: rotate(180deg);
+}
+.material-location > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.knowledge-preview-location {
+  padding: 0 16px 8px;
+  min-width: 0;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-preview-card:has(.knowledge-preview-location) .knowledge-preview-open {
+  padding-bottom: 0;
+}
+.knowledge-preview-card:has(.knowledge-preview-location) .knowledge-preview-excerpt {
+  margin-bottom: 4px;
+}
+.knowledge-preview-card:has(.knowledge-preview-move) .knowledge-preview-location {
+  padding-right: 100px;
+}
+.search-result-location {
+  flex: 0 1 32%;
+  min-width: 0;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+@media (max-width: 640px) {
+  .search-result-location {
+    flex-basis: 100%;
+    padding-left: 22px;
+  }
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .material-location > summary {
+    min-height: 44px;
+  }
+  .knowledge-preview-location {
+    min-height: 44px;
+  }
+}
 .knowledge-note-location {
   overflow-wrap: anywhere;
   white-space: normal;

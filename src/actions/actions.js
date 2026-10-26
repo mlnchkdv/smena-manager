@@ -299,6 +299,12 @@ A.back = () => {
   else go('home');
 };
 A.reload = () => render();
+A.keepMaterialLocation = () => {};
+A.toggleMaterialLocation = (el, event) => {
+  event?.preventDefault();
+  const details = el.closest('.material-location');
+  if (details) details.open = !details.open;
+};
 A.openProject = el => go('project', { id: el.dataset.id, tab: S.prefs.defaultTab || 'board' });
 A.set = el => {
   const k = el.dataset.k;

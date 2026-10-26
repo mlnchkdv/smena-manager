@@ -10,6 +10,7 @@ import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
+import { materialLocation } from '../ui/material-location.js';
 const hl = highlightKnowledge;
 
 export function pageSearch() {
@@ -112,13 +113,16 @@ export function pageSearch() {
               r.knowledge
                 .map(
                   note =>
-                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><span class="faint" style="font-size:12px" translate="no">${esc(
-                      folderTrail(note.folderId, folderMap)
-                        .map(folder => folder.name)
-                        .join(' / ') ||
-                        note.category ||
-                        '',
-                    )}</span></div>`,
+                    `<div class="mini" data-a="goKnowledgeNote" data-id="${note.id}">${ic('file-text', 15)}<span class="tt"><span ${note.title ? 'translate="no"' : ''}>${highlightKnowledge(note.title || 'Untitled note', q)}</span> <span class="faint" style="font-size:12px" translate="no">— ${highlightKnowledge(knowledgeExcerpt(note, q, 120), q)}</span></span><div class="search-result-location">${
+                      note.folderId && folderMap.has(note.folderId)
+                        ? materialLocation(
+                            folderTrail(note.folderId, folderMap)
+                              .map(folder => folder.name)
+                              .join(' / '),
+                            `search:${note.id}`,
+                          )
+                        : `<span translate="no">${esc(note.category || '')}</span>`
+                    }</div></div>`,
                 )
                 .join(''),
             ) +

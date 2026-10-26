@@ -8,6 +8,7 @@ import { knowledgePreferences } from '../core/knowledge-preferences.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk } from '../ui/knowledge-bulk.js';
+import { materialLocation } from '../ui/material-location.js';
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
 import { t } from '../core/i18n.js';
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
@@ -64,8 +65,8 @@ function notePreviewCard(note, folder, readOnly, folderIndex) {
   return `<article class="knowledge-preview-card" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="Select note" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     <p class="knowledge-preview-excerpt" ${excerpt ? 'translate="no"' : ''}>${highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
-    <div class="knowledge-preview-meta">${folder ? `<span class="knowledge-note-location" translate="no" title="${esc(location)}">${ic('folder', 11)}${esc(location)}</span>` : `<span>${ic('folder-open', 11)}No folder</span>`}${tags.length ? `<span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span>` : ''}</div>
-  </button>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="Move note" title="Move note">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
+    ${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
+  </button><div class="knowledge-preview-location">${folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="Move note" title="Move note">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
 }
 
 function folderPath(folderId, folders) {
