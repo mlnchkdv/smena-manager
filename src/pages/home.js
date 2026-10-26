@@ -100,7 +100,7 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
                     .slice(0, 4)
                     .map(
                       t =>
-                        `<div class="row" style="height:30px;cursor:pointer;gap:8px;font-size:13px" data-a="openTask" data-id="${t.id}"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span><span class="trunc grow">${esc(t.title)}</span>${prIcon(t.priority, 13)}${av(t.assignee, 'sm')}</div>`,
+                        `<button type="button" class="row home-deadline-task" data-a="openTask" data-id="${t.id}"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span><span class="trunc grow" translate="no">${esc(t.title)}</span>${prIcon(t.priority, 13)}${av(t.assignee, 'sm', false)}</button>`,
                     )
                     .join('') + (g.ts.length > 4 ? `<div class="faint" style="font-size:11.5px;padding-left:16px">+${g.ts.length - 4} more</div>` : '')
                 : `<div class="faint" style="font-size:12.5px;padding:4px 0 2px">Nothing due</div>`

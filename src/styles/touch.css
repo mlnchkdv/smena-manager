@@ -1,6 +1,21 @@
 /* A compact pointer layout must not shrink the hit area on a touch device.
    This layer owns control sizes; route styles own placement and wrapping. */
+.home-deadline-task {
+  min-height: 30px;
+  width: 100%;
+  gap: 8px;
+  font-size: 13px;
+  text-align: left;
+}
 @media (max-width: 640px), (pointer: coarse) {
+  .home-deadline-task,
+  .home-page .mini-task-open {
+    min-height: 44px;
+  }
+  .home-page .mini {
+    min-height: 52px;
+    height: auto;
+  }
   :is(.btn, .ibtn, .seg button, .tab, .select, .input, .badge[data-a]) {
     min-height: 44px;
   }
