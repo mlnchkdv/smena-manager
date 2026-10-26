@@ -187,6 +187,74 @@ svg.logo {
 .sitem .pico .i {
   color: var(--pc, var(--c)) !important;
 }
+.sitem.sproject-row {
+  padding: 0;
+  gap: 0;
+  height: auto;
+  min-height: var(--side-row);
+}
+.sproject-link {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+  min-height: var(--side-row);
+  color: inherit;
+}
+.sproject-link .pico {
+  flex-shrink: 0;
+}
+.sproject-expand {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  min-height: var(--side-row);
+  color: var(--text-3);
+}
+.sproject-options {
+  opacity: 0;
+}
+.sproject-row:is(:hover, :focus-within) .sproject-options {
+  opacity: 1;
+}
+.collapsed .sproject-expand,
+.collapsed .sproject-options,
+.collapsed .sproject-link > :not(.pico) {
+  display: none !important;
+}
+.collapsed .sproject-link {
+  flex: 0 0 auto;
+}
+@media (max-width: 900px) {
+  .shell.collapsed .sproject-expand,
+  .shell.collapsed .sproject-options {
+    display: grid !important;
+  }
+  .shell.collapsed .sproject-link {
+    flex: 1;
+  }
+  .shell.collapsed .sproject-link > .sproject-name {
+    display: block !important;
+  }
+  .shell.collapsed .sproj > .sub.open {
+    display: block !important;
+  }
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .sproject-expand,
+  .sproject-options {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .sproject-options {
+    opacity: 1;
+  }
+  .sproject-link {
+    min-height: 44px;
+  }
+}
 .sitem .pico,
 .picon {
   --pc: color-mix(in srgb, var(--c) var(--pc-mix, 100%), var(--text));

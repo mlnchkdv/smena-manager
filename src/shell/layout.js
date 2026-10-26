@@ -11,6 +11,7 @@ import { page404, stateFailed } from '../pages/errors.js';
 import { t as tr } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
+import { appLocationPath } from '../shared/app-location.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -197,16 +198,18 @@ export function renderSidebar() {
           .map(p => {
             const open = !!u.expanded[p.id];
             const on = inProj === p.id;
+            const compact = u.collapsed && innerWidth > 900;
             return `<div class="sproj" data-proj-drop="${p.id}">
-            <div class="sitem ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project" role="link" tabindex="0" ${u.collapsed ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
-              <span class="pico" style="--c:${pColor(p)}" data-a="toggleExpand" data-id="${p.id}" aria-label="Toggle sub-pages">${ic(p.icon, 12)}</span>
-              <span class="trunc" translate="no">${esc(p.name)}</span>
+            <div class="sitem sproject-row ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-ctx="project" data-id="${p.id}">
+              <button class="sproject-expand" data-a="toggleExpand" data-id="${p.id}" aria-expanded="${open && !compact}" aria-controls="project-sections-${esc(p.id)}" aria-label="${esc(tr(open ? 'Collapse project sections' : 'Expand project sections'))}: ${esc(p.name)}">${ic('chevron-right', 13, 'chev ' + (open ? 'open' : ''))}</button>
+              <a class="sproject-link" href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id } }))}" data-a="go" data-r="project" data-id="${p.id}" aria-label="${esc(p.name)}" title="${esc(p.name)}" ${on ? 'aria-current="page"' : ''} ${compact ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
+              <span class="pico" style="--c:${pColor(p)}">${ic(p.icon, 12)}</span><span class="trunc sproject-name" translate="no">${esc(p.name)}</span>
               ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               ${p.private ? `<span class="faint" style="margin-left:4px">${ic('lock', 11)}</span>` : ''}
               <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
-              <span class="hov"><span class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Project options">${ic('ellipsis', 14)}</span><span class="ibtn ibtn-xs" data-a="toggleExpand" data-id="${p.id}" aria-label="Expand">${ic('chevron-right', 13, 'chev ' + (open ? 'open' : ''))}</span></span>
+              </a><button class="ibtn ibtn-xs sproject-options" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${esc(tr('Project options'))}: ${esc(p.name)}">${ic('ellipsis', 14)}</button>
             </div>
-            <div class="sub ${open && !u.collapsed ? 'open' : ''}">
+            <div id="project-sections-${esc(p.id)}" class="sub ${open && !compact ? 'open' : ''}">
               ${[
                 ['board', 'Board', 'square-kanban'],
                 ['list', 'List', 'list'],

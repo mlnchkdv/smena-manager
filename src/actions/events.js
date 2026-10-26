@@ -32,6 +32,10 @@ document.addEventListener(
       if (!el) render();
     }
     if (!el) return;
+    if (el.tagName === 'A' && el.dataset.a === 'go') {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+    }
     if (el.tagName === 'BUTTON' || (el.tagName === 'INPUT' && el.type === 'checkbox' && el.dataset.a)) e.preventDefault();
     const fn = A[el.dataset.a];
     if (fn) {
