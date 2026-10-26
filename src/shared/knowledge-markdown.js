@@ -1,6 +1,22 @@
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
 
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+export const knowledgeHeadingSlug = text =>
+  String(text)
+    .normalize('NFKC')
+    .toLocaleLowerCase('ru-RU')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[^\p{L}\p{N}_\s-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-') || 'section';
+function anchorName(value) {
+  try {
+    return knowledgeHeadingSlug(decodeURIComponent(value.slice(1)));
+  } catch {
+    return knowledgeHeadingSlug(value.slice(1));
+  }
+}
 export function knowledgeReadingSource(note) {
   const source = knowledgeDisplayParts(note).body;
   const heading = source.match(/^\s{0,3}#\s+([^\r\n]+)(?:\r?\n|$)/);
@@ -20,8 +36,10 @@ function inline(text, options = {}) {
       out += target
         ? `<button class="knowledge-wiki-link" data-a="followKnowledgeWiki" data-id="${escape(target)}" data-source="${escape(options.sourceId || '')}">${escape(match[3])}</button>`
         : `<span class="knowledge-wiki-link unresolved" title="${escape(options.unresolvedLabel || 'Unresolved wiki link')}">${escape(match[3])}</span>`;
-    } else
-      out += /^(https?:\/\/|mailto:|#)/i.test(match[5])
+    } else if (match[5].startsWith('#'))
+      out += `<a href="${escape(match[5])}" data-a="knowledgeAnchor" data-anchor="${escape(anchorName(match[5]))}">${escape(match[4])}</a>`;
+    else
+      out += /^(https?:\/\/|mailto:)/i.test(match[5])
         ? `<a href="${escape(match[5])}" target="_blank" rel="noopener noreferrer">${escape(match[4])}</a>`
         : escape(match[4]);
   }
@@ -61,6 +79,7 @@ export function renderKnowledgeMarkdown(markdown, options = {}) {
   const lines = String(markdown || '')
     .replace(/\r/g, '')
     .split('\n');
+  const headings = new Map();
   let html = '',
     code = null,
     list = null;
@@ -113,7 +132,10 @@ export function renderKnowledgeMarkdown(markdown, options = {}) {
       closeList();
       if (heading) {
         const level = Math.min(6, Number(heading[1].length) + 1);
-        html += `<h${level}>${format(heading[2])}</h${level}>`;
+        const slug = knowledgeHeadingSlug(heading[2]);
+        const occurrence = headings.get(slug) || 0;
+        headings.set(slug, occurrence + 1);
+        html += `<h${level} data-knowledge-heading="${escape(slug + (occurrence ? `-${occurrence}` : ''))}" tabindex="-1">${format(heading[2])}</h${level}>`;
       } else if (/^>\s?/.test(line)) html += `<blockquote>${format(line.replace(/^>\s?/, ''))}</blockquote>`;
       else if (/^\s*---+\s*$/.test(line)) html += '<hr>';
       else if (line.trim()) html += `<p>${format(line)}</p>`;

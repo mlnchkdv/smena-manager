@@ -873,6 +873,13 @@
 .knowledge-quick-content {
   overflow-wrap: anywhere;
 }
+.knowledge-quick-content [data-knowledge-heading] {
+  scroll-margin-block-start: 16px;
+}
+.knowledge-quick-content [data-knowledge-heading]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
 .knowledge-table-wrap {
   max-width: 100%;
   overflow: auto;

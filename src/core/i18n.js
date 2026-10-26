@@ -15,6 +15,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Section not found in this note.': 'Раздел в этой заметке не найден.',
   'Collapse description': 'Свернуть описание',
   'Task view': 'Вид задач',
   Display: 'Вид',

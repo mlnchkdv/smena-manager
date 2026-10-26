@@ -14,7 +14,7 @@ test('resolved wiki links are keyboard buttons and unresolved references never g
 });
 test('portable Markdown renders lists, headings and fenced code safely', () => {
   const html = renderKnowledgeMarkdown('# Title\n- Item\n1. Next\n```html\n<script>alert(1)</script>\n```\n[bad](javascript:alert)\n[ok](https://example.com)');
-  assert.match(html, /<h2>Title<\/h2>/);
+  assert.match(html, /<h2[^>]+data-knowledge-heading="title"[^>]*>Title<\/h2>/);
   assert.match(html, /<ul><li>Item/);
   assert.match(html, /&lt;script&gt;/);
   assert.doesNotMatch(html, /href="javascript:/);
@@ -39,7 +39,7 @@ test('Markdown tables preserve alignment, escaped pipes, inline code and safe ce
   assert.match(html, /<code>a\|b<\/code> and c\|d/);
   assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
   assert.doesNotMatch(html, /<img|href="javascript:/);
-  assert.match(html, /<\/table><\/div><h2>Next<\/h2>/);
+  assert.match(html, /<\/table><\/div><h2[^>]+data-knowledge-heading="next"[^>]*>Next<\/h2>/);
 });
 
 test('tables support optional edge pipes and incomplete rows without consuming fenced code', () => {

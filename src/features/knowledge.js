@@ -12,6 +12,20 @@ import { historyContent } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
+import { knowledgeHeadingSlug } from '../shared/knowledge-markdown.js';
+A.knowledgeAnchor = (el, event) => {
+  event?.preventDefault();
+  const content = el.closest('.knowledge-quick-content');
+  let target = content?.querySelector(`[data-knowledge-heading="${CSS.escape(el.dataset.anchor || '')}"]`);
+  const title = content?.closest('.knowledge-quick-preview')?.querySelector('.knowledge-reader-title');
+  if (!target && title && knowledgeHeadingSlug(title.textContent) === el.dataset.anchor) {
+    target = title;
+    target.tabIndex = -1;
+  }
+  if (!target) return toast('Section not found in this note.', { kind: 'info' });
+  target.scrollIntoView({ block: 'start', behavior: 'auto' });
+  target.focus({ preventScroll: true });
+};
 const canRestoreKnowledge = () => {
   if (workspaceSyncIsClean(S.data)) return true;
   flushLocalSave();
