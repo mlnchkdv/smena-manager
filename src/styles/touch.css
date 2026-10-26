@@ -52,3 +52,23 @@
     flex-shrink: 0;
   }
 }
+/* Project context must yield space before the essential task actions do. */
+.drawer:not(.knowledge-drawer) .drawer-h > .pillbtn {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  justify-content: flex-start;
+}
+.drawer:not(.knowledge-drawer) .drawer-h > .mono {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .drawer:not(.knowledge-drawer) .drawer-h > :is([data-a='toggleFavTask'], [data-a='copyLink']) {
+    display: none;
+  }
+}
