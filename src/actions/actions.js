@@ -63,13 +63,11 @@ import {
 } from '../core/api.js';
 import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
-import { buildPortableWorkspace, mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { updateKnowledgeSaveStatus, knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 import { savedBookmarkView } from '../shared/bookmark-view.js';
 import { bindWikiReferences, entityAllowed, RELATION_TYPES, resolveGraphEntity } from '../shared/relations.js';
 import { graphOptions } from '../ui/relations.js';
-import { reviewKnowledgeImport } from '../shared/knowledge-import.js';
 import {
   renameKnowledgeFolder as renameKnowledgeFolderData,
   deleteKnowledgeFolder as deleteKnowledgeFolderData,
@@ -313,8 +311,16 @@ A.set = el => {
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;
   render();
 };
-A.exportPortableWorkspace = () => {
+A.exportPortableWorkspace = async () => {
   if (S.ui.currentUser?.role !== 'admin') return;
+  const generation = getSessionGeneration();
+  let buildPortableWorkspace;
+  try {
+    ({ buildPortableWorkspace } = await import('../shared/portable-workspace.js'));
+  } catch {
+    return toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
+  }
+  if (generation !== getSessionGeneration() || S.ui.currentUser?.role !== 'admin') return;
   const payload = buildPortableWorkspace(D());
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const href = URL.createObjectURL(blob);
@@ -389,9 +395,12 @@ IN.importPortableWorkspace = async el => {
   const file = el.files?.[0];
   if (!file || S.ui.currentUser?.role !== 'admin') return;
   try {
+    const generation = getSessionGeneration();
+    const { mergePortableWorkspace } = await import('../shared/portable-workspace.js');
     if (file.size > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
     const payload = JSON.parse(await file.text());
     if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
+    if (generation !== getSessionGeneration() || S.ui.currentUser?.role !== 'admin') return;
     S.ui.importPreview = { payload, policy: 'copy', result: mergePortableWorkspace(D(), payload), busy: false };
     openModal({ type: 'portableImport' });
   } catch (error) {
@@ -400,10 +409,17 @@ IN.importPortableWorkspace = async el => {
     el.value = '';
   }
 };
-IN.importConflictPolicy = el => {
+IN.importConflictPolicy = async el => {
   const preview = S.ui.importPreview;
+  if (!preview) return;
   preview.policy = el.value;
-  preview.result = mergePortableWorkspace(D(), preview.payload, { conflictPolicy: preview.policy });
+  try {
+    const { mergePortableWorkspace } = await import('../shared/portable-workspace.js');
+    if (S.ui.importPreview !== preview) return;
+    preview.result = mergePortableWorkspace(D(), preview.payload, { conflictPolicy: preview.policy });
+  } catch {
+    return toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
+  }
   render();
 };
 A.downloadImportReport = () => {
@@ -508,6 +524,11 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
   S.ui.knowledgeImportStatus = '';
   render();
   try {
+    const [{ reviewKnowledgeImport }, { mergePortableWorkspace }] = await Promise.all([
+      import('../shared/knowledge-import.js'),
+      import('../shared/portable-workspace.js'),
+    ]);
+    if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
     const { payload, entries } = await reviewKnowledgeImport(files, {
       idFactory: uid,
       memberId: D().me,
