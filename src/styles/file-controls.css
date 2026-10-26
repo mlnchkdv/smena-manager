@@ -1,6 +1,28 @@
-.files-filter-options.is-desktop,
+.files-page .workspace-files-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.files-page .workspace-files-toolbar .workspace-file-search {
+  flex: 1 1 240px;
+}
+.files-filter-options.is-desktop {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
 .files-filter-options.is-desktop > div {
-  display: contents;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.files-filter-options.is-desktop .select {
+  width: 150px;
+  max-width: 100%;
+}
+.files-filter-options.is-desktop #workspace-file-project {
+  width: 180px;
 }
 .files-filter-options.is-desktop > summary {
   display: none;
