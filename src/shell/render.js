@@ -70,6 +70,7 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
+  if (route !== 'graph') S.ui.graphFocus = false;
   S.ui.restoringFilePath = null;
   if (route === 'project' && !params.tab) params.tab = 'board';
   if (!opt.back) S.ui.history.push({ route: S.ui.route, params: S.ui.params });

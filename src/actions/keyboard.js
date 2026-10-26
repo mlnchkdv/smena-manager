@@ -192,6 +192,10 @@ document.addEventListener('keydown', e => {
       A.closeMnav();
       return;
     }
+    if (S.ui.graphFocus && S.ui.route === 'graph') {
+      A.toggleGraphFocus();
+      return;
+    }
     if (t.value && ['workspace-file-q', 'knowledge-search'].includes(t.id)) {
       e.preventDefault();
       (t.id === 'workspace-file-q' ? A.clearFileQuery : A.clearKnowledgeQuery)();

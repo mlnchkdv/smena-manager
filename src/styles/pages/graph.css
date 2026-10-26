@@ -2,6 +2,36 @@
   padding: 24px clamp(16px, 3vw, 40px) 90px;
   min-width: 0;
 }
+.graph-touch-control {
+  display: none;
+}
+.shell:has(.graph-page.is-focused) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.shell:has(.graph-page.is-focused) > .side,
+#app:has(.graph-page.is-focused) :is(.topbar, .bottomnav) {
+  display: none;
+}
+.graph-page.is-focused {
+  padding: 12px;
+}
+.graph-page.is-focused #knowledge-graph-canvas {
+  height: max(260px, calc(100dvh - 240px));
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .graph-touch-control {
+    display: flex;
+    position: absolute;
+    right: 8px;
+    top: 62px;
+    z-index: 2;
+    max-width: calc(100% - 16px);
+  }
+  .graph-page:not(.is-interactive) #knowledge-graph-canvas {
+    pointer-events: none;
+    touch-action: pan-y;
+  }
+}
 .graph-head {
   display: flex;
   align-items: flex-start;

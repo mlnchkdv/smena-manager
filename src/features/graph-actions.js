@@ -46,6 +46,14 @@ A.toggleGraphFilters = () => {
   S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
   render();
 };
+A.toggleGraphFocus = () => {
+  S.ui.graphFocus = !S.ui.graphFocus;
+  render();
+};
+A.toggleGraphInteraction = () => {
+  S.ui.graphInteract = !S.ui.graphInteract;
+  render();
+};
 A.clearGraphSelection = () => {
   S.ui.graphSelected = '';
   S.ui.graphSelectionClosed = true;
