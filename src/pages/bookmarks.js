@@ -3,7 +3,7 @@ import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { relationsPanel } from '../ui/relations.js';
-import { bookmarkView } from '../shared/bookmark-view.js';
+import { bookmarkContextPage, bookmarkView } from '../shared/bookmark-view.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 
@@ -80,11 +80,7 @@ export function pageBookmarks() {
   const folderFilter = S.ui.bookmarkFolder || 'all';
   const scope = S.ui.bookmarkScope || 'active';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const filterKey = JSON.stringify([query, folderFilter, scope]);
-  S.ui.listPages ||= {};
-  if (S.ui.bookmarkFilterKey !== filterKey) S.ui.listPages.bookmarks = 0;
-  S.ui.bookmarkFilterKey = filterKey;
-  const page = bookmarkView(links, { query, folder: folderFilter, scope, page: S.ui.listPages.bookmarks });
+  const page = bookmarkView(links, { query, folder: folderFilter, scope, page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope }) });
   S.ui.listPages.bookmarks = page.page;
   const filtered = page.items;
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;

@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bookmarkView, savedBookmarkView } from '../../src/shared/bookmark-view.js';
+import { bookmarkView, savedBookmarkView, bookmarkContextPage } from '../../src/shared/bookmark-view.js';
+
+test('bookmark context changes reset paging while identical renders retain it', () => {
+  const ui = {};
+  assert.equal(bookmarkContextPage(ui), 0);
+  ui.listPages.bookmarks = 1;
+  assert.equal(bookmarkContextPage(ui), 1);
+  for (const context of [{ query: 'guide' }, { query: 'guide', folder: 'docs' }, { scope: 'archived' }, {}]) {
+    assert.equal(bookmarkContextPage(ui, context), 0);
+    ui.listPages.bookmarks = 1;
+    assert.equal(bookmarkContextPage(ui, context), 1);
+  }
+});
 
 test('saved bookmarks remain visible after editing archive state, folder and title', () => {
   assert.deepEqual(savedBookmarkView({ folder: 'new', is_archived: true }, 'old'), { bookmarkQuery: '', bookmarkScope: 'archived', bookmarkFolder: 'new' });
