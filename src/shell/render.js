@@ -14,6 +14,7 @@ import { renderAuth } from '../pages/auth.js';
 import { isRussian, t as tr, translateApp } from '../core/i18n.js';
 import { normalizeTablists } from '../ui/tabs.js';
 import { resizeKnowledgeTitle } from '../ui/knowledge-title.js';
+import { captureKnowledgeDisclosures } from '../ui/knowledge-disclosure.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
@@ -176,6 +177,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  captureKnowledgeDisclosures();
   S.ui.renderRevision = (S.ui.renderRevision || 0) + 1;
   if (S.ui.auth || !S.ui.currentUser) {
     for (const upload of S.ui.uploads || []) upload.controller?.abort();
