@@ -71,20 +71,20 @@ export function calendarHtml(ts, opt = {}) {
   }
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
   return `<div class="cal" style="min-height:640px">
-    <div class="toolbar" style="gap:8px">
+    <div class="toolbar cal-toolbar" style="gap:8px">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
       <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2>
       <span class="sp"></span>
       ${
         !opt.project && projs.length > 1
-          ? `<span class="row hide-m" style="gap:10px;font-size:11.5px;color:var(--text-2);margin-right:8px">${projs
+          ? `<span class="row hide-m cal-legend" style="gap:10px;font-size:11.5px;color:var(--text-2);margin-right:8px">${projs
               .slice(0, 5)
               .map(p => `<span class="row" translate="no" style="gap:4px"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</span>`)
               .join('')}</span>`
           : ''
       }
-      <div class="seg">${[
+      <div class="seg cal-views">${[
         ['month', 'Month'],
         ['week', 'Week'],
       ]

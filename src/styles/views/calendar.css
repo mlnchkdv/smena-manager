@@ -11,6 +11,25 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.cal-toolbar {
+  flex: 0 0 auto;
+}
+.cal-toolbar h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cal-views {
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .cal-toolbar > .sp {
+    display: none;
+  }
+  .cal-views {
+    margin-left: auto;
+  }
 }
 .cal-h div {
   padding: 8px 10px;
