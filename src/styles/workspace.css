@@ -328,6 +328,45 @@
 :is(.workspace-file-card, .bookmark-card, .knowledge-preview-card):focus-within {
   border-color: var(--accent-line);
 }
+/* Keep desktop collection chrome compact without shrinking touch controls. */
+@media (min-width: 901px) {
+  .files-page {
+    padding-top: 18px;
+  }
+  .files-page-head > div:first-child:not(.files-context-summary) {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    min-width: 0;
+  }
+  .files-page-head p {
+    margin: 0;
+    font-size: var(--fs-xs);
+  }
+  .workspace-files-toolbar {
+    padding: 6px;
+    margin-bottom: 10px;
+  }
+  .files-folders {
+    margin-bottom: 10px;
+  }
+  .files-folders-head {
+    margin-bottom: 6px;
+  }
+  .files-folder-grid:not(.compact) {
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+  }
+  .files-page .files-folder-open {
+    padding-block: 8px;
+  }
+  .files-selection-bar:not(.active) {
+    margin-bottom: 8px;
+  }
+  .files-selection-bar:not(.active) :is(.btn, .ibtn) {
+    min-height: 32px;
+  }
+}
 .modal {
   max-width: var(--modal-width);
 }
