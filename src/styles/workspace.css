@@ -399,9 +399,18 @@
     margin-bottom: 8px;
   }
   .knowledge-bulk:not(.active) {
-    padding-block: 0;
+    padding-block: 8px;
     margin-bottom: 8px;
-    min-height: 30px;
+    min-height: 42px;
+  }
+  .knowledge-bulk.active {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-bottom: 8px;
+  }
+  .knowledge-bulk.active > * {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .knowledge-folder-browser {
     margin-block: 10px 12px;
@@ -417,6 +426,27 @@
     width: 28px;
     height: 28px;
     flex-shrink: 0;
+  }
+  /* Use the count slot for a quick move action instead of growing the grid.
+     A short collection has no scroll range to compensate for that reflow. */
+  .knowledge-mixed-grid .knowledge-folder-tile:has(.knowledge-folder-receive) .knowledge-folder-card > span > span {
+    visibility: hidden;
+  }
+  .knowledge-mixed-grid .knowledge-folder-receive {
+    position: absolute;
+    inset: auto 4px 4px;
+    width: calc(100% - 8px);
+    min-height: 26px;
+    padding: 3px 6px;
+    border: 0;
+    border-radius: var(--r-sm);
+    font-size: var(--fs-2xs);
+    white-space: nowrap;
+  }
+  .knowledge-mixed-grid .knowledge-folder-tile:has(.knowledge-folder-card-options[open]) .knowledge-folder-receive {
+    position: static;
+    margin: 4px;
+    white-space: normal;
   }
 }
 .modal {
