@@ -9,16 +9,22 @@ import { go, render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
 import { A, IN, confirmDlg, restore, snapshot } from './actions.js';
 import { assignTeamRelations } from '../shared/team-relations.js';
+import { canManageTeams } from '../shared/workspace-permissions.js';
+const requireTeamAdmin = () => {
+  if (canManageTeams(S.ui.currentUser?.role)) return true;
+  toast('Only administrators can manage teams.', { kind: 'info' });
+  return false;
+};
 
 A.newTeam = () => {
-  if (S.ui.currentUser?.role !== 'admin') return;
+  if (!requireTeamAdmin()) return;
   S.ui.pop = null;
   S.ui.errors = {};
   S.ui.tform = { name: '', desc: '', icon: 'users', color: 'teal', members: [], projects: [] };
   openModal({ type: 'team' });
 };
 A.editTeam = el => {
-  if (S.ui.currentUser?.role !== 'admin') return;
+  if (!requireTeamAdmin()) return;
   const t = team(el.dataset.id);
   if (!t) return;
   S.ui.pop = null;
@@ -61,7 +67,7 @@ A.tformProject = el => {
   render();
 };
 A.submitTeam = () => {
-  if (S.ui.currentUser?.role !== 'admin') return;
+  if (!requireTeamAdmin()) return;
   const m = S.ui.modals[S.ui.modals.length - 1];
   const f = S.ui.tform;
   f.name = ($('#tm-name')?.value || '').trim();
@@ -106,7 +112,7 @@ A.submitTeam = () => {
   }
 };
 A.delTeam = el => {
-  if (S.ui.currentUser?.role !== 'admin') return;
+  if (!requireTeamAdmin()) return;
   const t = team(el.dataset.id);
   if (!t) return;
   S.ui.modals.pop();

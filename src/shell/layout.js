@@ -10,6 +10,7 @@ import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
 import { t as tr } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
+import { canManageTeams } from '../shared/workspace-permissions.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -224,7 +225,7 @@ export function renderSidebar() {
         ${sItem('archive', 'Archive', 'archive', { ct: D().tasks.filter(t => t.archived).length + D().projects.filter(p => p.archived).length + (D().trash?.length || 0) || '' })}
       </div>
       <div class="sgroup">
-        <div class="sgroup-h"><span>Teams</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="newTeam" data-tip="New team" aria-label="New team">${ic('plus', 14)}</button></div>
+        <div class="sgroup-h"><span>Teams</span><span class="sp"></span>${canManageTeams(u.currentUser?.role) ? `<button class="ibtn ibtn-xs" data-a="newTeam" data-tip="New team" aria-label="New team">${ic('plus', 14)}</button>` : ''}</div>
         ${teamsList()
           .map(t => sItem('team', t.name, t.icon, { id: t.id, userText: true }))
           .join('')}

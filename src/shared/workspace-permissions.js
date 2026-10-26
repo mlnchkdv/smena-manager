@@ -6,6 +6,7 @@ const clone = value => structuredClone(value);
 export function canWriteWorkspace(role) {
   return role === 'admin' || role === 'editor';
 }
+export const canManageTeams = role => role === 'admin';
 
 export function adminFieldsChanged(current, next) {
   return ADMIN_ONLY_FIELDS.filter(field => !same(current?.[field], next?.[field]));
