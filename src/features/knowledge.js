@@ -158,10 +158,14 @@ A.selectKnowledgePage = el => {
     (el.dataset.ids || '').split(',').filter(id => known.has(id)),
   );
   render();
+  (document.querySelector('.knowledge-bulk [data-a="selectKnowledgePage"]') || document.getElementById('knowledge-selection-start'))?.focus({
+    preventScroll: true,
+  });
 };
 A.clearKnowledgeSelection = () => {
   S.ui.knowledgeSelection = [];
   render();
+  document.getElementById('knowledge-selection-start')?.focus({ preventScroll: true });
 };
 IN.knowledgeBulkMove = el => {
   if (knowledgeEditBlocked()) return;

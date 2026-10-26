@@ -7,7 +7,7 @@ import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
 import { knowledgePreferences } from '../core/knowledge-preferences.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
-import { knowledgeBulkToolbar, knowledgeFolderBulk } from '../ui/knowledge-bulk.js';
+import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
 import { t } from '../core/i18n.js';
@@ -190,7 +190,7 @@ export function pageKnowledge() {
           .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
           .join(
             '',
-          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details></div>
+          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details>${knowledgeSelectionStart(visible)}</div>
         ${inlineFolders ? '' : folderCards}
         ${foldersAvailable && !inlineFolders ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}

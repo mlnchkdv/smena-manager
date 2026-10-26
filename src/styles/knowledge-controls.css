@@ -40,6 +40,20 @@
   display: flex;
   align-items: flex-start;
 }
+.knowledge-selection-start {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--r);
+  min-width: 36px;
+  min-height: 36px;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .knowledge-selection-start {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .knowledge-content-toolbar .knowledge-main-search {
   min-width: 0;
   flex: 1;

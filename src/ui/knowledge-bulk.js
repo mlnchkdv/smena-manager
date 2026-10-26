@@ -2,6 +2,12 @@ import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { collectionSelection } from './collection-layout.js';
+import { ic } from '../core/icons.js';
+export function knowledgeSelectionStart(visible) {
+  const known = new Set(D().knowledgeNotes.map(note => note.id));
+  if (S.ui.currentUser?.role === 'viewer' || !visible.length || (S.ui.knowledgeSelection || []).some(id => known.has(id))) return '';
+  return `<button id="knowledge-selection-start" class="ibtn knowledge-selection-start" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-label="Select page" title="Select page">${ic('list-checks', 17)}</button>`;
+}
 export function knowledgeBulkToolbar(visible) {
   if (S.ui.currentUser?.role === 'viewer') return '';
   const known = new Set(D().knowledgeNotes.map(note => note.id));
@@ -9,7 +15,7 @@ export function knowledgeBulkToolbar(visible) {
   const visibleIds = new Set(visible.map(note => note.id));
   const pageSelected = visible.length > 0 && visible.every(note => selected.has(note.id));
   const hiddenCount = [...selected].filter(id => !visibleIds.has(id)).length;
-  if (!visible.length && !selected.size) return '';
+  if (!selected.size) return '';
   return collectionSelection(
     `<button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-pressed="${pageSelected}" ${!visible.length ? 'disabled' : ''}>${pageSelected ? 'Deselect page' : 'Select page'}</button>${
       selected.size
