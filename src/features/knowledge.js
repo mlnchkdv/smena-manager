@@ -270,6 +270,12 @@ window.addEventListener('resize', () => {
     render();
   }
 });
+document.addEventListener('focusin', event => {
+  if (event.target.id === 'knowledge-body' && event.target.closest('.knowledge-editor')?.clientWidth > 700 && S.ui.knowledgeEditorPane === 'preview') {
+    S.ui.knowledgeEditorPane = 'source';
+    S.ui.knowledgeEditorPreview = true;
+  }
+});
 A.filterKnowledgePreviewTag = el => {
   S.ui.knowledgeDrawer = null;
   S.ui.knowledgeFolder = 'all';
@@ -280,10 +286,33 @@ A.filterKnowledgePreviewTag = el => {
 import { knowledgeLivePreview } from '../ui/knowledge-live-preview.js';
 import { translateElement } from '../core/i18n.js';
 import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
+import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from '../ui/knowledge-editor-position.js';
+A.setKnowledgeEditorPane = el => {
+  const pane = el.dataset.pane;
+  if (!['source', 'preview'].includes(pane)) return;
+  captureKnowledgeEditorPosition();
+  S.ui.knowledgeEditorPane = pane;
+  render();
+  restoreKnowledgeEditorPosition(pane);
+};
 A.toggleKnowledgeEditorPreview = () => {
+  if ((document.querySelector('.knowledge-editor')?.clientWidth || innerWidth) <= 700) {
+    A.setKnowledgeEditorPane({ dataset: { pane: S.ui.knowledgeEditorPane === 'preview' ? 'source' : 'preview' } });
+    return;
+  }
   S.ui.knowledgeEditorPreview = !S.ui.knowledgeEditorPreview;
+  if (!S.ui.knowledgeEditorPreview) S.ui.knowledgeEditorPane = 'source';
   render();
 };
+window.addEventListener('resize', () => {
+  const editor = document.querySelector('.knowledge-editor');
+  if (editor?.clientWidth <= 700 && document.activeElement?.id === 'knowledge-body' && S.ui.knowledgeEditorPane === 'preview') {
+    captureKnowledgeEditorPosition();
+    S.ui.knowledgeEditorPane = 'source';
+    render();
+    restoreKnowledgeEditorPosition('source');
+  }
+});
 A.formatKnowledge = el => {
   const input = document.getElementById('knowledge-body');
   if (!input || input.disabled || knowledgeEditBlocked()) return;

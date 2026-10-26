@@ -1406,10 +1406,38 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
 }
 .knowledge-editor {
+  container: note-editor / inline-size;
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+.knowledge-editor-mode {
+  display: none;
+}
+@container note-editor (max-width: 700px) {
+  .knowledge-editor-mode {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--surface);
+    padding-block: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .knowledge-desktop-preview {
+    display: none;
+  }
+  .knowledge-writing.with-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .knowledge-editor[data-pane='preview'] :is(.knowledge-body-field, .knowledge-format-toolbar, .knowledge-properties),
+  .knowledge-editor[data-pane='source'] .knowledge-live-preview {
+    display: none;
+  }
 }
 .knowledge-editor-head {
   display: flex;

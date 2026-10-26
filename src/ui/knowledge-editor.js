@@ -1,6 +1,6 @@
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { mem } from '../core/store.js';
+import { D, mem } from '../core/store.js';
 import { relationsPanel } from './relations.js';
 import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 import { S } from '../core/store.js';
@@ -11,11 +11,18 @@ import { knowledgeLivePreview } from './knowledge-live-preview.js';
 import { KNOWLEDGE_CATEGORIES, knowledgeCategoryLabel } from './knowledge-category.js';
 
 export function noteEditor(note, folders, readOnly) {
+  const context = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, note.id]);
+  if (S.ui.knowledgeEditorContext !== context) {
+    S.ui.knowledgeEditorContext = context;
+    S.ui.knowledgeEditorPane = 'source';
+  }
+  const pane = S.ui.knowledgeEditorPane === 'preview' ? 'preview' : 'source';
+  const showPreview = S.ui.knowledgeEditorPreview || pane === 'preview';
   const conflict = knowledgeEditBlocked();
   const disabled = readOnly || conflict ? 'disabled' : '';
   const categories = [...new Set([...KNOWLEDGE_CATEGORIES, note.category].filter(Boolean))];
   const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
-  return `<section class="knowledge-editor" aria-label="Note editor">
+  return `<section class="knowledge-editor" data-pane="${pane}" aria-label="Note editor">
     <div class="knowledge-editor-head">
       <div class="grow">
         <label class="sr" for="knowledge-title">Note title</label>
@@ -41,6 +48,7 @@ export function noteEditor(note, folders, readOnly) {
     <div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
     <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div></div>
     </div></details>
+    <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button><button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}">Preview</button></div><span class="knowledge-save-status" data-knowledge-save-status>${knowledgeSaveLabel()}</span></div>
     <div class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[
       ['bold', 'bold', 'Bold'],
       ['heading', 'heading', 'Heading'],
@@ -55,8 +63,8 @@ export function noteEditor(note, folders, readOnly) {
       )
       .join(
         '',
-      )}<span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!S.ui.knowledgeEditorPreview}">Preview</button></div>
-    <div class="knowledge-writing${S.ui.knowledgeEditorPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${S.ui.knowledgeEditorPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
+      )}<span class="sp"></span><button class="btn btn-ghost btn-sm knowledge-desktop-preview" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!showPreview}">Preview</button></div>
+    <div class="knowledge-writing${showPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-keep="knowledge-source:${note.id}" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${showPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
     ${relationsPanel(`note:${note.id}`)}${knowledgeHistory(note, readOnly || conflict)}
   </section>`;
 }
