@@ -171,7 +171,8 @@ export function render() {
   // Entrances animate only on the render where the surface first appears.
   const fx = S.ui.fx || (S.ui.fx = {});
   if (ov.drawer && prevOv.drawer !== ov.drawer) fx.drawer = true;
-  if (ov.knowledgeDrawer && prevOv.knowledgeDrawer !== ov.knowledgeDrawer) fx.knowledgeDrawer = true;
+  // Moving between notes keeps the reader open; do not replay its entrance.
+  if (ov.knowledgeDrawer && !prevOv.knowledgeDrawer) fx.knowledgeDrawer = true;
   if (ov.modals > (prevOv.modals || 0)) fx.modal = ov.modals;
   const popSig = S.ui.pop ? [S.ui.pop.type, S.ui.pop.id, S.ui.pop.i, S.ui.pop.field, S.ui.pop.ctx, S.ui.pop.key].join('|') : '';
   if (popSig && popSig !== render._popSig) fx.pop = true;

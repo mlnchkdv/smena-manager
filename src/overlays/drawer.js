@@ -21,7 +21,9 @@ export function renderLayer() {
         if (owner !== context() || !active()) return;
         render();
         const box = document.querySelector('.modal, .knowledge-drawer, .drawer, .palette, .pop.floating');
-        const focus = box?.querySelector('[autofocus]') || box?.querySelector('input,textarea,button');
+        const focus =
+          box?.querySelector('[autofocus]:not([disabled])') ||
+          box?.querySelector('input:not([disabled]):not([type="hidden"]),textarea:not([disabled]),button:not([disabled])');
         (focus || box)?.focus({ preventScroll: true });
       })
       .catch(() => {

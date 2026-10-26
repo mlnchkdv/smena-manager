@@ -11,6 +11,7 @@ import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { historyContent } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
+import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 const canRestoreKnowledge = () => {
   if (workspaceSyncIsClean(S.data)) return true;
   flushLocalSave();
@@ -45,6 +46,15 @@ A.restoreKnowledgeVersion = el => {
 for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNote']) {
   const original = A[name];
   A[name] = (...args) => {
+    const opener = args[0];
+    const grid = name === 'openKnowledgeNote' && opener?.matches?.('.knowledge-preview-open') && opener.closest('.knowledge-preview-grid');
+    S.ui.knowledgePreviewContext = grid
+      ? {
+          owner: S.ui.currentUser?.id,
+          workspace: D().ws.id || D().ws.url,
+          ids: [...grid.querySelectorAll('.knowledge-preview-card[data-id]')].map(card => card.dataset.id).slice(0, 60),
+        }
+      : null;
     original(...args);
     const id = S.ui.knowledgeDrawer;
     if (id) {
@@ -53,6 +63,27 @@ for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNot
     }
   };
 }
+A.stepKnowledgePreview = el => {
+  if (S.ui.knowledgeDrawerView === 'edit') return;
+  const direction = el.dataset.direction;
+  if (!['previous', 'next'].includes(direction)) return;
+  const navigation = knowledgePreviewNavigation(S.ui.knowledgePreviewContext, {
+    owner: S.ui.currentUser?.id,
+    workspace: D().ws.id || D().ws.url,
+    notes: D().knowledgeNotes,
+    activeId: S.ui.knowledgeDrawer,
+  });
+  const id = navigation?.[direction];
+  if (!id) return;
+  S.ui.knowledgeDrawer = id;
+  S.ui.knowledgeRecent = [id, ...(S.ui.knowledgeRecent || []).filter(item => item !== id)].slice(0, 50);
+  saveKnowledgePreferences();
+  render();
+  // At a page boundary the pressed arrow becomes disabled. Keep focus in the
+  // reader instead of falling back to the background or scrolling the results.
+  const target = document.querySelector(`.knowledge-preview-pager [data-direction="${direction}"]:not([disabled])`);
+  (target || document.querySelector('.knowledge-preview-position'))?.focus({ preventScroll: true });
+};
 IN.knowledgeSelect = el => {
   const card = el.closest('.knowledge-preview-card');
   const top = card?.getBoundingClientRect().top;
