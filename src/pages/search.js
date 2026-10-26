@@ -8,6 +8,8 @@ import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
+import { t } from '../core/i18n.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 const hl = highlightKnowledge;
 
 export function pageSearch() {
@@ -40,12 +42,13 @@ export function pageSearch() {
       : '';
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
-      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div><div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
+      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div>${k === 'files' && demandFiles ? '<p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
     <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
-    ${q ? `<div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"><p class="hint grow">Search results are paged. File results continue in Files.</p>${demandFiles ? '<button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-secondary btn-sm" data-a="searchInGraph">Search in graph</button></div>` : ''}
-    <div class="tabs" role="group" aria-label="Search categories" style="margin-bottom:18px">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</span></button>`).join('')}</div>
+    <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</span></button>`).join('')}</div>
+    <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</option>`).join('')}</select></div>
+    ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content">${demandFiles ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${D()

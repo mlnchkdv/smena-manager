@@ -15,6 +15,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Search tools': 'Действия поиска',
   'Open image': 'Открыть изображение',
   'Image source unavailable': 'Источник изображения недоступен',
   'Section not found in this note.': 'Раздел в этой заметке не найден.',

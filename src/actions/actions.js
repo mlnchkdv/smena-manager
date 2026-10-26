@@ -3100,6 +3100,11 @@ A.palRun = el => {
   render();
   it.run();
 };
+IN.searchCategory = el => {
+  S.ui.searchCat = el.value;
+  S.ui.pop = null;
+  render();
+};
 IN.searchQ = el => {
   S.ui.searchQ = el.value;
   render();

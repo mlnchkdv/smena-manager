@@ -29,3 +29,25 @@ document.addEventListener(
   },
   true,
 );
+document.addEventListener(
+  'keydown',
+  event => {
+    if (event.key !== 'Escape') return;
+    const menu = document.querySelector('.ui-menu[open]');
+    if (!menu) return;
+    menu.open = false;
+    menu.querySelector(':scope > summary')?.focus({ preventScroll: true });
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },
+  true,
+);
+document.addEventListener(
+  'click',
+  event => {
+    document.querySelectorAll('.ui-menu[open]').forEach(menu => {
+      if (!menu.contains(event.target)) menu.open = false;
+    });
+  },
+  true,
+);
