@@ -25,6 +25,9 @@ async function finishOnboarding(page) {
 
 async function signIn(page, accessId) {
   await page.goto('/');
+  await page.locator('#l-access:visible, .shell:visible').first().waitFor();
+  // Reactivating access can restore a still-valid session during the redirect.
+  if (await page.locator('.shell').isVisible()) return;
   await page.locator('#l-access').fill(accessId);
   await page.locator('#login-btn').click();
   await finishOnboarding(page);
@@ -62,6 +65,20 @@ test('two users exchange assignment and mention notifications in Russian and Eng
 
   await editor.goto('/e2e-team/notifications');
   await expect(editor.locator('.nrow', { hasText: taskTitle })).toContainText('assigned you', { timeout: 8_000 });
+  const assignment = editor.locator('.nrow', { hasText: taskTitle });
+  await expect(assignment.locator('.notification-open button')).toHaveCount(0);
+  const readAction = assignment.locator('.notification-read');
+  await expect(readAction).toHaveAccessibleName('Mark as read');
+  await expect(readAction).toHaveAccessibleDescription(new RegExp(taskTitle));
+  await readAction.focus();
+  await readAction.press('Enter');
+  await expect(readAction).toHaveAccessibleName('Mark as unread');
+  await expect(editor).toHaveURL(/\/notifications$/);
+  await waitForSaved(editor);
+  await readAction.focus();
+  await readAction.press('Space');
+  await expect(readAction).toHaveAccessibleName('Mark as read');
+  await waitForSaved(editor);
 
   await editor.goto('/e2e-team/inbox');
   await editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle }).click();
@@ -82,6 +99,14 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   const selfMention = editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle });
   await expect(selfMention).toContainText('mentioned you', { timeout: 8_000 });
   await expect(selfMention).toContainText('Проверить собственное упоминание.');
+  const inboxRead = selfMention.locator('..').locator('.notification-read');
+  await expect(selfMention.locator('button')).toHaveCount(0);
+  await expect(inboxRead).toHaveAccessibleName('Mark as read');
+  await inboxRead.focus();
+  await inboxRead.press('Space');
+  await expect(inboxRead).toHaveAccessibleName('Mark as unread');
+  await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
+  await waitForSaved(editor);
   await editor.locator('.inbox-tabs [data-v="assign"]').click();
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 
@@ -89,6 +114,7 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   const mention = admin.locator('.nrow', { hasText: taskTitle }).filter({ hasText: 'упомянул' });
   await expect(mention).toContainText('упомянул', { timeout: 8_000 });
   await expect(mention).toContainText('Проверьте результат.');
+  await expect(mention.locator('.notification-read')).toHaveAccessibleName('Отметить прочитанным');
   await expect(admin.locator('.nrow', { hasText: taskTitle }).filter({ hasText: 'оставил' })).toContainText('Проверить собственное упоминание.');
 
   for (const [page, width, height] of [

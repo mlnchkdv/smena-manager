@@ -11,6 +11,7 @@ import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
+import { notificationReadButton } from '../ui/notification-controls.js';
 
 A.toggleInboxPreview = () => {
   writeLayoutPreference('inboxPreview', !readLayoutPreference('inboxPreview', true));
@@ -106,15 +107,17 @@ export function inboxItem(n, on) {
     security: 'shield-alert',
     system: 'triangle-alert',
   }[n.type];
-  return `<div class="row" style="align-items:flex-start;gap:10px;padding:12px var(--gutter);border-bottom:1px solid var(--divider);cursor:pointer;position:relative;${on ? 'background:var(--surface-2);' : ''}" data-a="selNotif" data-id="${n.id}" role="button" tabindex="0">
+  const contextId = `inbox-notification-${esc(n.id)}`;
+  return `<div class="notification-item inbox-item ${on ? 'selected' : ''}">
+    <button type="button" class="notification-open" data-a="selNotif" data-id="${esc(n.id)}" ${on ? 'aria-current="true"' : ''}>
     ${!n.read ? '<span style="position:absolute;left:6px;top:22px;width:6px;height:6px;border-radius:50%;background:var(--accent)" aria-label="Unread"></span>' : ''}
     ${notifIcon(n)}
-    <div class="grow" style="font-size:13px;line-height:1.45">
-      <div>${notifText(n)}</div>
-      <div class="trunc muted" style="font-size:12.5px;margin-top:2px" translate="no">${notifSnippet(n)}</div>
-      <div class="row" style="gap:6px;margin-top:5px;font-size:11.5px;color:var(--text-3)">${ic(typeIc, 11)}${p ? `<span class="pdot" style="--c:${pColor(p)};width:6px;height:6px"></span>${esc(p.name)}` : ''}<span>·</span><span>${ago(n.at)}</span></div>
-    </div>
-    <button class="ibtn ibtn-xs" data-a="toggleRead" data-id="${n.id}" data-tip="${n.read ? 'Mark as unread' : 'Mark as read'}" aria-label="${n.read ? 'Mark as unread' : 'Mark as read'}">${ic(n.read ? 'mail' : 'mail-open', 13)}</button>
+    <span class="grow notification-copy">
+      <span class="notification-title" id="${contextId}">${notifText(n)}</span>
+      <span class="notification-snippet trunc muted" translate="no">${notifSnippet(n)}</span>
+      <span class="notification-meta row">${ic(typeIc, 11)}${p ? `<span class="pdot" style="--c:${pColor(p)};width:6px;height:6px"></span><span translate="no">${esc(p.name)}</span>` : ''}<span>·</span><span>${ago(n.at)}</span></span>
+    </span></button>
+    ${notificationReadButton(n, contextId)}
   </div>`;
 }
 export function inboxPreview(n) {
