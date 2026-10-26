@@ -109,7 +109,29 @@ export function fxSet(o) {
 }
 export const fxc = (kind, id) => (S.ui.fx && S.ui.fx[kind] === id ? ' fx-' + kind : '');
 /* Focus survives full re-renders: every control is addressable by its data-* identity. */
-export const FKEYS = ['a', 'id', 'r', 'tab', 'pop', 'ctx', 'k', 'v', 'sec', 'i', 'field', 'sid', 'key', 'e', 'f', 'dragCard', 'taskRow'];
+export const FKEYS = [
+  'a',
+  'id',
+  'r',
+  'tab',
+  'pop',
+  'ctx',
+  'k',
+  'v',
+  'sec',
+  'i',
+  'field',
+  'sid',
+  'key',
+  'e',
+  'f',
+  'dragCard',
+  'taskRow',
+  'date',
+  'due',
+  'folder',
+  'project',
+];
 export function focusKey(el) {
   if (!el || el === document.body || !el.tagName) return null;
   if (el.id) return '#' + CSS.escape(el.id);

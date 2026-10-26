@@ -20,7 +20,8 @@ const RU = {
   'Bookmark filters': 'Фильтры закладок',
   'Enable interaction to move the graph. Switch back to scroll the page.': 'Включите управление, чтобы перемещать граф. Отключите его для прокрутки страницы.',
   'Content density': 'Плотность содержимого',
-  'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.': 'Отступы в задачах, заметках, файлах и закладках. Зоны нажатия остаются удобными.',
+  'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.':
+    'Отступы в задачах, заметках, файлах и закладках. Зоны нажатия остаются удобными.',
   'Home view': 'Представление главной',
   'My work': 'Моя работа',
   'Team overview': 'Обзор команды',

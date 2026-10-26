@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "check:ui": "node scripts/check-ui-matrix.js",
     "check:tokens": "node scripts/check-ui-tokens.js",
+    "check:ergonomics": "node scripts/check-ui-ergonomics.js",
     "setup:gmail": "node scripts/setup-gmail-oauth.js",
     "setup:storage": "node scripts/setup-storage.js",
     "check:deploy": "node scripts/check-deployment-config.js",
