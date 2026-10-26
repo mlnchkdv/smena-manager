@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist/', '.data/', '.generated/'] },
+  { ignores: ['dist/', '.data/', '.generated/', '.vercel/', 'output/playwright/', '.playwright-cli/', 'playwright-report/', 'test-results/'] },
   js.configs.recommended,
   {
     files: ['**/*.js'],
