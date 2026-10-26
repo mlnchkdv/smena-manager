@@ -34,6 +34,7 @@ document.addEventListener(
   'toggle',
   event => {
     if (event.target?.matches?.('.files-details') && event.target.isConnected) S.ui.fileDetailsOpen = event.target.open;
+    if (event.target?.matches?.('.files-filter-options.is-mobile') && event.target.isConnected) S.ui.fileFiltersOpen = event.target.open;
   },
   true,
 );

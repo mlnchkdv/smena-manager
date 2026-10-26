@@ -1,0 +1,46 @@
+.files-filter-options.is-desktop,
+.files-filter-options.is-desktop > div {
+  display: contents;
+}
+.files-filter-options.is-desktop > summary {
+  display: none;
+}
+.files-filter-options.is-mobile {
+  position: relative;
+  z-index: 9;
+}
+.files-filter-options > summary {
+  list-style: none;
+}
+.files-filter-options.is-mobile > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(300px, calc(100vw - 32px));
+  max-height: 60dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.files-filter-options.is-mobile > div .select {
+  width: 100%;
+}
+@container workspace (max-width: 640px) {
+  .files-page .workspace-files-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .files-page .workspace-files-toolbar .workspace-file-search {
+    flex: 1 1 180px;
+  }
+  .files-page .workspace-files-toolbar .files-view-switch {
+    margin-left: 0;
+  }
+}
