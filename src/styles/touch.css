@@ -9,6 +9,8 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .home-deadline-task,
+  .task-table-open,
+  .member-mobile-open,
   .home-page .mini-task-open {
     min-height: 44px;
   }
