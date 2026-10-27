@@ -836,6 +836,7 @@ const RU = {
   'Active projects': 'Активные проекты',
   'Open tasks': 'Открытые задачи',
   'My tasks': 'Мои задачи',
+  'Workspace summary': 'Сводка пространства',
   'Upcoming deadlines': 'Ближайшие сроки',
   'Recent activity': 'Последняя активность',
   "Here's what's happening across your workspace.": 'Вот что происходит в вашем рабочем пространстве.',

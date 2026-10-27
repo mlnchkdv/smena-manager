@@ -19,6 +19,30 @@
   color: var(--text-2);
   min-height: 36px;
 }
+.home-task-tabs button {
+  white-space: normal;
+  height: auto;
+}
+.home-task-tab-label {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .home-task-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+  .home-task-tabs button {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 5px;
+  }
+  .home-task-tabs .num {
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+}
 .inbox-grid.preview-hidden {
   grid-template-columns: minmax(0, 1fr);
 }

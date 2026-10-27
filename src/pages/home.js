@@ -50,7 +50,7 @@ export function pageHome() {
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span> · Here's what's happening across your workspace.</p></div>
       ${S.ui.currentUser?.role === 'viewer' ? '' : `<div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}New task</button></div>`}</div>
     <div class="seg home-view-switch" role="group" aria-label="Home view"><button data-a="setHomeView" data-view="personal" aria-pressed="${personal}" class="${personal ? 'on' : ''}">My work</button><button data-a="setHomeView" data-view="team" aria-pressed="${!personal}" class="${!personal ? 'on' : ''}">Team overview</button></div>
-    <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Team overview</summary><div class="stats" style="margin-bottom:16px">
+    <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Workspace summary</summary><div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}Active projects</span><span class="v">${activeP.length}</span><span class="d">${activeP.filter(p => p.status === 'risk').length} at risk</span></button>
       <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}Open tasks</span><span class="v">${open.length}</span><span class="d">${open.filter(t => t.assignee === D().me).length} assigned to you</span></button>
       <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}Completed</span><span class="v">${doneWk.length}</span><span class="d up">this week</span></button>
@@ -60,14 +60,14 @@ export function pageHome() {
       <div class="stack">
         <section class="panel" aria-labelledby="h-mytasks">
           <div class="panel-h"><h2 id="h-mytasks">My tasks</h2>
-            <div class="acts"><div class="seg" role="tablist">${[
+            <div class="acts"><div class="seg home-task-tabs" role="tablist" aria-labelledby="h-mytasks">${[
               ['upcoming', 'Upcoming'],
               ['overdue', 'Overdue'],
               ['completed', 'Completed'],
             ]
               .map(
                 ([k, n]) =>
-                  `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}">${n} <span class="faint">${lists[k].length}</span></button>`,
+                  `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}"><span class="home-task-tab-label">${n}</span><span class="faint num">${lists[k].length}</span></button>`,
               )
               .join('')}</div>
             <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="mytasks" data-tip="Open My Tasks" aria-label="Open My Tasks">${ic('arrow-up-right', 15)}</button></div></div>
