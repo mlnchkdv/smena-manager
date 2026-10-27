@@ -68,6 +68,32 @@
 .notifications-page .ph .acts > .seg {
   margin-right: auto;
 }
+.notification-actions {
+  position: relative;
+  z-index: var(--z-selection);
+}
+.notification-actions > summary {
+  list-style: none;
+}
+.notification-actions > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: min(300px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.notification-actions .btn {
+  width: 100%;
+  justify-content: flex-start;
+  height: auto;
+  min-height: var(--control-target);
+  white-space: normal;
+  padding-block: 6px;
+}
 @media (max-width: 640px) {
   .notifications-page .ph .acts > .btn {
     height: auto;

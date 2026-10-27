@@ -28,8 +28,8 @@ export function pageNotifications() {
           ['unread', 'Unread'],
         ],
       })}
-      <button class="btn btn-secondary" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>
-      <button class="btn btn-secondary" data-a="clearReadNotifications" ${read ? '' : 'disabled'}>${ic('trash-2', 14)}Clear read</button>
+      <details class="ui-menu notification-actions"><summary class="ibtn" aria-label="Notification actions" title="Notification actions">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost" data-a="markAllRead" ${unread ? '' : 'disabled'}>${ic('check-check', 14)}Mark all as read</button>
+      <button class="btn btn-ghost" data-a="clearReadNotifications" ${read ? '' : 'disabled'}>${ic('trash-2', 14)}Clear read</button></div></details>
       <button class="ibtn" data-a="go" data-r="settings" data-sec="notif-mentions" data-tip="Notification preferences" aria-label="Notification preferences">${ic('settings-2', 16)}</button></div></div>
     ${
       ns.length

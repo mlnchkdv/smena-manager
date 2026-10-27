@@ -1278,6 +1278,7 @@ const RU = {
 
   // Menus, dialogs and keyboard help
   'Command menu': 'Меню команд',
+  'Notification actions': 'Действия с уведомлениями',
   'Search commands and pages…': 'Искать команды и страницы…',
   'Go to': 'Перейти',
   'Go to Home': 'Перейти на главную',
