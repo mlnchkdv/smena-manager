@@ -965,6 +965,8 @@ const RU = {
   'More actions': 'Дополнительные действия',
   'Task title': 'Название задачи',
   'Rename task': 'Переименовать задачу',
+  'Clear search history': 'Очистить историю поиска',
+  'Search history is private to your account on this device.': 'История поиска доступна только вашему аккаунту на этом устройстве.',
   Task: 'Задача',
   'Task name': 'Название задачи',
   'Add a description… (optional)': 'Добавьте описание… (необязательно)',

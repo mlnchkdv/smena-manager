@@ -12,6 +12,19 @@ import { t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { materialLocation } from '../ui/material-location.js';
 import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
+import { recentSearches, rememberSearch, clearSearchHistory } from '../core/search-history.js';
+import { A, KEY } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+A.clearSearchHistory = () => {
+  clearSearchHistory();
+  render();
+  document.getElementById('search-page-q')?.focus();
+};
+KEY.rememberSearch = () => {
+  rememberSearch(S.ui.searchQ);
+  render();
+  document.getElementById('search-page-q')?.focus();
+};
 const hl = highlightKnowledge;
 
 export function pageSearch() {
@@ -47,15 +60,17 @@ export function pageSearch() {
       ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div>${k === 'files' && demandFiles ? '<p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
-    <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
+    <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" data-key-enter="rememberSearch" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
     <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</span></button>`).join('')}</div>
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</option>`).join('')}</select></div>
     ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content">${demandFiles ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
     ${
       !q
-        ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${D()
-            .recentSearches.map(s => `<button class="badge" data-a="setSearch" data-q="${esc(s)}" translate="no">${ic('history', 11)}${esc(s)}</button>`)
-            .join('')}</div>`
+        ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${recentSearches()
+            .map(s => `<button class="badge" data-a="setSearch" data-q="${esc(s)}" translate="no">${ic('history', 11)}${esc(s)}</button>`)
+            .join(
+              '',
+            )}${recentSearches().length ? '<button class="btn btn-ghost btn-sm" data-a="clearSearchHistory">Clear search history</button>' : ''}</div><p class="hint">Search history is private to your account on this device.</p>`
         : visibleTotal
           ? sec(
               'tasks',

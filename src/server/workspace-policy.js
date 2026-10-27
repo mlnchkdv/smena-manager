@@ -36,6 +36,9 @@ export function projectWorkspace(database, user) {
     return project ? canReadProject(project, memberId, user.role) : user.role === 'admin' || item.deletedBy === memberId;
   });
   data.sessions = [];
+  // Legacy shared queries have no reliable author. Retain them in storage,
+  // but never distribute or silently assign them to the signed-in member.
+  data.recentSearches = [];
   // Notes/bookmarks are workspace-wide documents and may be absent from a core-only snapshot.
   const readableEndpoint = key => /^(note|bookmark):/.test(key) || entityAllowed(data, key, { role: user.role, memberId });
   data.relations = (data.relations || []).filter(edge => readableEndpoint(edge.from) && readableEndpoint(edge.to));
@@ -76,6 +79,7 @@ export function validateClientFiles(current, candidate, role, memberId) {
 export function mergeClientWorkspace(current, incoming, role, memberId) {
   if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new TypeError('Workspace data must be an object.');
   const candidate = { ...current, ...structuredClone(incoming) };
+  candidate.recentSearches = structuredClone(current.recentSearches || []);
   for (const key of Object.keys(candidate)) {
     if (!key.startsWith('_')) continue;
     if (Object.hasOwn(current, key)) candidate[key] = structuredClone(current[key]);

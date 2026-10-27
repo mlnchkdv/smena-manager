@@ -2,7 +2,8 @@
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { D, S, allTasks, pColor, proj, save, task } from '../core/store.js';
+import { D, S, allTasks, pColor, proj, task } from '../core/store.js';
+import { recentSearches, rememberSearch } from '../core/search-history.js';
 import { FT, av, hl, stIcon } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
@@ -104,7 +105,7 @@ export function paletteItems() {
   if (pl.mode === 'search' && !q) {
     groups.push({
       name: 'Recent searches',
-      items: D().recentSearches.map(s => ({
+      items: recentSearches().map(s => ({
         icon: 'history',
         name: s,
         run: () => {
@@ -202,9 +203,7 @@ export function paletteItems() {
         run: () => {
           S.ui.searchQ = q;
           S.ui.searchCat = sc;
-          if (!D().recentSearches.includes(q)) D().recentSearches.unshift(q);
-          D().recentSearches = D().recentSearches.slice(0, 5);
-          save();
+          rememberSearch(q);
           go('search');
         },
       },
