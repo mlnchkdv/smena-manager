@@ -4,7 +4,8 @@ import { S, task } from '../core/store.js';
 import { focusKey, render } from '../shell/render.js';
 
 export function openPop(el, extra = {}) {
-  const r = el.getBoundingClientRect();
+  const box = el.getBoundingClientRect();
+  const r = box.width ? box : el.closest('.ui-menu')?.querySelector('summary')?.getBoundingClientRect() || box;
   const d = el.dataset;
   S.ui.popOpener = focusKey(el);
   S.ui.pop = {

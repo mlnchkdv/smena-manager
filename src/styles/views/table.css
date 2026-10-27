@@ -172,3 +172,64 @@ table.tbl {
 .tbl td:first-child {
   padding-left: var(--gutter);
 }
+/* Compact task controls keep advanced views reachable without three toolbar rows. */
+.task-view-options {
+  position: relative;
+  z-index: var(--z-selection);
+}
+.task-view-options > summary {
+  list-style: none;
+}
+.task-view-options > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  width: min(260px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.task-view-options .btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+.task-view-options .hide-m {
+  display: inline;
+}
+.task-controls-toolbar {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.task-controls-toolbar > .inwrap {
+  flex: 1;
+  min-width: 0;
+}
+.task-controls-toolbar > .inwrap .input {
+  width: 100%;
+}
+.task-controls-toolbar > .sp {
+  display: none;
+}
+@media (max-width: 640px) {
+  .tasks-page .ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 12px 16px 8px;
+    gap: 6px;
+  }
+  .tasks-page .ph p {
+    display: none;
+  }
+  .tasks-page .ph .acts {
+    width: auto;
+    margin: 0;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  .tasks-page .task-controls-toolbar {
+    padding: 8px 16px;
+  }
+}

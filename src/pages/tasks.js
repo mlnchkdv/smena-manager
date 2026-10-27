@@ -26,8 +26,8 @@ export function pageTasks() {
   else if (v.mode === 'table') body = tableHtml(ts, key);
   else body = `<div class="list-wrap">${listHtml(groupTasks(ts, v.group), key, { cols: ['status', 'assignee', 'priority', 'due', 'project'] })}</div>`;
   return `<div class="page flush tasks-page">
-    <div class="ph"><div><h1>Tasks</h1><p>Every task across ${visibleProjects().filter(canSee).length} projects.</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}New task</button><div class="task-mobile-view">${right}</div></div></div>
-    ${viewToolbar(key, { right: `<div class="task-wide-view">${right}</div>`, cols: v.mode === 'table', group: v.mode !== 'board' })}
+    <div class="ph"><div><h1>Tasks</h1><p>Every task across ${visibleProjects().filter(canSee).length} projects.</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button><div class="task-mobile-view">${right}</div></div></div>
+    ${viewToolbar(key, { compact: true, right: `<div class="task-wide-view">${right}</div>`, cols: v.mode === 'table', group: v.mode !== 'board' })}
     ${body}
   </div>`;
 }
