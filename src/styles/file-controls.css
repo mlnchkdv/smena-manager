@@ -3,6 +3,34 @@
   flex-wrap: wrap;
   align-items: center;
 }
+@media (min-width: 641px) and (max-width: 900px) {
+  .files-page-head {
+    align-items: center;
+    gap: 8px;
+  }
+  .files-page-head > div:first-child {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    flex: 1 1 200px;
+    gap: 4px 12px;
+    min-width: 0;
+  }
+  .files-page-head p {
+    margin: 0;
+    font-size: var(--fs-xs);
+  }
+  .files-page .files-upload-actions {
+    flex: 1 1 300px;
+    width: auto;
+    min-width: 0;
+  }
+  .files-upload-actions > .select-btn {
+    flex: 1 1 140px;
+    width: auto;
+    min-width: 0;
+  }
+}
 .files-folder-tools {
   position: relative;
   flex-shrink: 0;
