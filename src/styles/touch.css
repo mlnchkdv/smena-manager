@@ -1,5 +1,21 @@
-/* A compact pointer layout must not shrink the hit area on a touch device.
-   This layer owns control sizes; route styles own placement and wrapping. */
+/* Control hit areas follow the layout without enlarging every desktop form.
+   Route styles own placement and wrapping; this layer owns minimum targets. */
+.ibtn-xs,
+.cal-day-open {
+  min-width: 28px;
+  min-height: 28px;
+}
+.home-task-tabs button {
+  min-height: 28px;
+}
+.project-card-link,
+.bookmark-title,
+.relations-compact > summary {
+  min-height: 30px;
+}
+.relations-compact > summary {
+  padding-block: 6px;
+}
 .home-deadline-task {
   min-height: 30px;
   width: 100%;
@@ -12,6 +28,11 @@
   .task-table-open,
   .member-mobile-open,
   .home-page .mini-task-open {
+    min-height: var(--control-target);
+  }
+  .project-card-link,
+  .bookmark-title,
+  .relations-compact > summary {
     min-height: var(--control-target);
   }
   .home-page .mini {
