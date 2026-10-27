@@ -248,7 +248,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
     await page.locator('.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="kb-child"]').click();
     await expect(page.locator('#knowledge-view-title')).toBeFocused();
-    await expect(page.locator('#knowledge-view-title')).toHaveText('Guides');
+    await expect(page.locator('#knowledge-view-title')).toHaveAccessibleName('Guides');
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toHaveCount(0);
     await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);

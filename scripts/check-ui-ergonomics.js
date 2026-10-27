@@ -131,6 +131,7 @@ async function acceptance(page, base) {
     }
     await page.setViewportSize({ width: 390, height: 845 });
     await open('calendar', lang === 'ru' ? 'Календарь' : 'Calendar');
+    await page.locator('[data-k=calMode][data-v=month]').click();
     const day = page.locator('.cal-day-open').first();
     const date = await day.getAttribute('data-date');
     await day.click();
