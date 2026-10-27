@@ -262,6 +262,33 @@
   margin: 0;
   max-width: 130px;
 }
+@media (min-width: 901px) {
+  .files-page .files-folder-open {
+    min-height: 64px;
+    gap: 2px 8px;
+  }
+  .workspace-file-card.textual .workspace-file-open {
+    grid-template-columns: 32px minmax(0, 1fr);
+    min-height: 64px;
+    gap: 8px;
+    padding: 8px 44px 8px 10px;
+  }
+  .workspace-file-text-type {
+    min-height: 40px;
+    gap: 2px;
+  }
+  .workspace-file-text-type > svg {
+    width: 22px;
+    height: 22px;
+  }
+  .workspace-file-card.textual .workspace-file-card-foot {
+    min-height: 36px;
+    padding-block: 2px;
+  }
+  .workspace-file-location > summary {
+    min-height: 32px;
+  }
+}
 @media (max-width: 640px), (pointer: coarse) {
   .workspace-file-card.textual > .file-select,
   .workspace-file-card.textual .workspace-file-card-foot .ibtn {

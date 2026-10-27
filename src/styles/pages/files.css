@@ -59,7 +59,7 @@
   flex: 1 1 180px;
 }
 .catalog-context-status .btn {
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-presets {
   display: flex;
@@ -80,7 +80,7 @@
     max-width: 100%;
   }
   .files-presets .btn {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .files-presets .hint {
     flex-basis: 100%;
@@ -107,7 +107,7 @@
 }
 .files-download-progress .ibtn {
   min-width: 44px;
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-download-progress progress {
   width: 100%;
@@ -132,12 +132,12 @@
 }
 .files-page-size .select {
   width: auto;
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-page-input {
   width: 66px;
   min-width: 0;
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-folder-grid.compact {
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -262,7 +262,7 @@
   color: var(--text-3);
 }
 .files-filter-summary .btn {
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .workspace-file-search .input,
 .workspace-files-toolbar .select {
@@ -405,7 +405,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .files-upload-actions .btn {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .files-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -437,7 +437,7 @@
   .workspace-file-card-foot .ibtn,
   .workspace-file-actions .ibtn {
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .workspace-file-card-foot .ibtn,
   .workspace-file-actions .ibtn {
@@ -547,7 +547,7 @@
   }
   .workspace-file-name {
     min-width: 0;
-    min-height: 44px;
+    min-height: var(--control-target);
     padding-right: 38px;
   }
   .workspace-file-author {
@@ -639,7 +639,7 @@
 }
 .files-selection-bar .btn,
 .files-selection-bar .ibtn {
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-selected-count {
   color: var(--text-3);
@@ -686,7 +686,7 @@
   }
   .files-folders-head > .btn {
     flex: 0 0 100%;
-    min-height: 44px;
+    min-height: var(--control-target);
     justify-content: center;
   }
 }
@@ -796,13 +796,13 @@
 }
 .files-folder-menu .btn {
   width: 100%;
-  min-height: 44px;
+  min-height: var(--control-target);
   justify-content: flex-start;
   white-space: normal;
 }
 .files-folder-tile > .btn {
   margin: 0 12px 10px;
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .files-folder-pages {
   justify-content: flex-end;
@@ -810,7 +810,7 @@
   font-size: var(--fs-2xs);
 }
 .files-folder-pages .btn {
-  min-height: 44px;
+  min-height: var(--control-target);
   white-space: normal;
 }
 .workspace-file-folder {
@@ -892,7 +892,7 @@
   .files-folders-head .ibtn,
   .files-folder-crumbs .btn {
     min-width: 44px;
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .files-folder-menu {
     top: 0;
@@ -968,7 +968,7 @@
 @media (max-width: 640px) {
   .files-preset-controls .btn,
   .files-preset-controls .select {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
 .files-context-summary {
@@ -1002,7 +1002,7 @@
     width: auto;
   }
   .project-files-page .files-upload-actions .btn {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .project-files-page .workspace-files-toolbar {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1044,6 +1044,6 @@
 @media (max-width: 640px) {
   .files-exports .btn,
   .files-exports summary {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
