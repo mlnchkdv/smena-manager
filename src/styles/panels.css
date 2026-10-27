@@ -242,3 +242,56 @@
   left: 0;
   right: 0;
 }
+@media (max-width: 900px) {
+  .home-task-panel > .empty-state.sm {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    text-align: left;
+    padding: 12px;
+    gap: 6px 10px;
+  }
+  .home-task-panel > .empty-state > .glyph {
+    grid-area: 1 / 1 / 3 / 2;
+    margin: 0;
+  }
+  .home-task-panel > .empty-state > .es-h {
+    grid-area: 1 / 2;
+  }
+  .home-task-panel > .empty-state > p {
+    grid-area: 2 / 2;
+    margin: 0;
+  }
+  .home-task-panel > .empty-state > .btn {
+    grid-column: 2;
+    width: fit-content;
+    max-width: 100%;
+    height: auto;
+    min-height: 44px;
+    white-space: normal;
+    padding-block: 6px;
+  }
+}
+@media (max-width: 640px) {
+  .home-page .ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .home-page .ph .acts {
+    width: auto;
+    margin: 0;
+  }
+  .home-page .ph [data-a='newTask'] {
+    width: 44px;
+    padding-inline: 0;
+  }
+  .home-greeting-context {
+    display: none;
+  }
+  .home-view-switch,
+  .home-team-summary {
+    margin-bottom: 8px;
+  }
+}

@@ -47,8 +47,8 @@ export function pageHome() {
   };
   const dls = [dl('Today', 0, 0), dl('Tomorrow', 1, 1), dl('This week', 2, 7)];
   return `<div class="page home-page">
-    <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span> · Here's what's happening across your workspace.</p></div>
-      ${S.ui.currentUser?.role === 'viewer' ? '' : `<div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}New task</button></div>`}</div>
+    <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span><span class="home-greeting-context"> · Here's what's happening across your workspace.</span></p></div>
+      ${S.ui.currentUser?.role === 'viewer' ? '' : `<div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button></div>`}</div>
     <div class="seg home-view-switch" role="group" aria-label="Home view"><button data-a="setHomeView" data-view="personal" aria-pressed="${personal}" class="${personal ? 'on' : ''}">My work</button><button data-a="setHomeView" data-view="team" aria-pressed="${!personal}" class="${!personal ? 'on' : ''}">Team overview</button></div>
     <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Workspace summary</summary><div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}Active projects</span><span class="v">${activeP.length}</span><span class="d">${activeP.filter(p => p.status === 'risk').length} at risk</span></button>
