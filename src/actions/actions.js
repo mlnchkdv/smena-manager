@@ -3821,3 +3821,8 @@ A.onbFinish = () => {
   go('project', { id: p.id, tab: S.prefs.defaultTab });
   toast(`Welcome to ${D().ws.name}`);
 };
+
+A.clearKnowledgeCriterion = el => {
+  if (el.dataset.field === 'tag') IN.knowledgeTag({ value: '' });
+  else if (el.dataset.field === 'sort') IN.knowledgeSort({ value: 'updated' });
+};

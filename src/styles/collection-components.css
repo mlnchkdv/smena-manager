@@ -24,3 +24,24 @@
   border-radius: var(--r-lg);
   background: var(--surface);
 }
+
+.catalog-criteria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 8px;
+}
+.catalog-criterion {
+  max-width: 100%;
+  height: auto;
+  min-height: var(--control-target);
+  white-space: normal;
+  text-align: left;
+}
+.catalog-criterion span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.catalog-criterion svg {
+  flex-shrink: 0;
+}

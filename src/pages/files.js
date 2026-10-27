@@ -1,3 +1,4 @@
+import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
 import { ago, esc } from '../core/utils.js';
 import '../ui/file-translations.js';
 import { ic } from '../core/icons.js';
@@ -156,6 +157,11 @@ export function pageFiles(projectId = null) {
   const totalSize = totalBytes === null ? '—' : formatBytes(totalBytes);
   const projectCount = remote?.projectCount ?? (remote?.loading ? '—' : index.projectsWithFiles.size);
   if (remote) index.count = (project, folder) => remote.folderCounts?.find(row => row[0] === project && row[1] === folder)?.[2] ?? '—';
+  const criteria = [
+    ...(!projectId && projectFilter !== 'all' ? [{ key: 'project', label: 'Project', value: proj(projectFilter)?.name || projectFilter }] : []),
+    ...(typeFilter !== 'all' ? [{ key: 'type', label: 'Type', value: tr(FT[typeFilter]?.n || 'Other files') }] : []),
+    ...(sort !== 'date' ? [{ key: 'sort', label: 'Sort', value: tr({ name: 'Name', size: 'Size', project: 'Project' }[sort] || 'Newest') }] : []),
+  ];
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const searched = Boolean(query || typeFilter !== 'all');
@@ -194,7 +200,7 @@ export function pageFiles(projectId = null) {
     ${collectionToolbar(
       `
       <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
-      <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary class="btn btn-secondary" aria-label="File filters" title="File filters">${ic('filter', 14)}<span class="hide-m">Filters</span>${projectFilter !== 'all' || typeFilter !== 'all' || sort !== 'date' ? '<span class="pdot"></span>' : ''}</summary><div>
+      <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('File filters', criteria)}" title="${filterSummaryLabel('File filters', criteria)}">${ic('filter', 14)}<span class="hide-m">Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div>
       ${projectId ? '' : `<label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
@@ -224,6 +230,7 @@ export function pageFiles(projectId = null) {
       'files-toolbar workspace-files-toolbar',
     )}
 
+    ${filterCriteria(criteria, 'clearFileCriterion')}
     ${filtered && (!projectId || query || typeFilter !== 'all' || currentFolder) ? `<div class="files-filter-summary"><span role="status" aria-live="polite">${remote?.loading ? 'Loading files…' : `<span>Files found</span>: <b>${window.total}</b> / ${allTotal}`}</span>${currentFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFiles">Search all folders</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="clearFileFilters">${ic('x', 13)}Clear filters</button></div>` : ''}
 
     ${

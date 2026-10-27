@@ -321,3 +321,9 @@ A.confirmFileMove = () => {
     },
   });
 };
+
+A.clearFileCriterion = el => {
+  const fields = { project: ['fileProject', 'all'], type: ['fileType', 'all'], sort: ['fileSort', 'date'] };
+  const item = fields[el.dataset.field];
+  if (item) IN[item[0]]({ value: item[1] });
+};
