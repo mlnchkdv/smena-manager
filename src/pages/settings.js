@@ -13,6 +13,7 @@ import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 import { storageCapacityPanel } from '../ui/storage-capacity.js';
 import { contentCounts } from '../shared/content-counts.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 
 export const SET_NAV = [
   [
@@ -245,7 +246,20 @@ export function settingsBody(sec, title) {
           .join('')}</div>`,
       )}</div>
       <div class="sblock"><h2>Density</h2>
-        ${srow('Sidebar density', 'Compact fits more projects on screen.', `<div class="seg">${['comfortable', 'compact'].map(k => `<button class="${P.side === k ? 'on' : ''}" data-a="setPref" data-k="side" data-v="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`)}
+        ${srow(
+          'Sidebar density',
+          'Compact fits more projects on screen.',
+          segmentedControl({
+            label: 'Sidebar density',
+            key: 'side',
+            value: P.side,
+            action: 'setPref',
+            items: [
+              ['comfortable', 'Comfortable'],
+              ['compact', 'Compact'],
+            ],
+          }),
+        )}
         ${srow('Content density', 'Spacing in tasks, notes, files and bookmarks. Touch targets stay accessible.', `<div class="seg" role="group" aria-label="Content density">${['comfortable', 'compact'].map(k => `<button class="${P.density === k ? 'on' : ''}" aria-pressed="${P.density === k}" data-a="setPref" data-k="density" data-v="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div>`)}
         ${srow(
           'Motion',

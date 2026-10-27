@@ -837,6 +837,7 @@ const RU = {
   'Open tasks': 'Открытые задачи',
   'My tasks': 'Мои задачи',
   'Workspace summary': 'Сводка пространства',
+  'Activity filters': 'Фильтры активности',
   'Upcoming deadlines': 'Ближайшие сроки',
   'Recent activity': 'Последняя активность',
   "Here's what's happening across your workspace.": 'Вот что происходит в вашем рабочем пространстве.',
