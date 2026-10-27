@@ -316,7 +316,7 @@ A.setKnowledgeEditorPane = el => {
   restoreKnowledgeEditorPosition(pane);
 };
 A.toggleKnowledgeEditorPreview = () => {
-  if ((document.querySelector('.knowledge-editor')?.clientWidth || innerWidth) <= 700) {
+  if ((document.querySelector('.knowledge-editor')?.clientWidth || innerWidth) <= 700 || matchMedia('(max-height: 500px)').matches) {
     A.setKnowledgeEditorPane({ dataset: { pane: S.ui.knowledgeEditorPane === 'preview' ? 'source' : 'preview' } });
     return;
   }
@@ -326,7 +326,11 @@ A.toggleKnowledgeEditorPreview = () => {
 };
 window.addEventListener('resize', () => {
   const editor = document.querySelector('.knowledge-editor');
-  if (editor?.clientWidth <= 700 && document.activeElement?.id === 'knowledge-body' && S.ui.knowledgeEditorPane === 'preview') {
+  if (
+    (editor?.clientWidth <= 700 || matchMedia('(max-height: 500px)').matches) &&
+    document.activeElement?.id === 'knowledge-body' &&
+    S.ui.knowledgeEditorPane === 'preview'
+  ) {
     captureKnowledgeEditorPosition();
     S.ui.knowledgeEditorPane = 'source';
     render();
