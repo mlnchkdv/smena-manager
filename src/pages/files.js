@@ -151,9 +151,10 @@ export function pageFiles(projectId = null) {
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
     : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
-  const allTotal = remote?.allTotal ?? allFiles.length;
-  const totalBytes = remote?.totalBytes ?? index.totalBytes;
-  const projectCount = remote?.projectCount ?? index.projectsWithFiles.size;
+  const allTotal = remote?.allTotal ?? (remote?.loading ? '—' : allFiles.length);
+  const totalBytes = remote?.totalBytes ?? (remote?.loading ? null : index.totalBytes);
+  const totalSize = totalBytes === null ? '—' : formatBytes(totalBytes);
+  const projectCount = remote?.projectCount ?? (remote?.loading ? '—' : index.projectsWithFiles.size);
   if (remote) index.count = (project, folder) => remote.folderCounts?.find(row => row[0] === project && row[1] === folder)?.[2] ?? '—';
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
@@ -169,7 +170,7 @@ export function pageFiles(projectId = null) {
 
   return `<div class="files-page ${projectId ? 'project-files-page' : ''}" ${uploadProject ? `data-dropzone="${esc(uploadProject)}" data-folder="${esc(currentFolder?.id || '')}"` : ''}>
     ${collectionHeader(
-      `${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${formatBytes(totalBytes)}</span></div>` : `<div><h1>Files</h1><p><span>Total files</span>: ${allTotal} · ${formatBytes(totalBytes)}</p></div>`}
+      `${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${totalSize}</span></div>` : `<div><h1>Files</h1><p><span>Total files</span>: ${allTotal} · ${totalSize}</p></div>`}
       ${
         readOnly || !projects.length
           ? ''
@@ -184,7 +185,7 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<section class="files-summary" aria-label="File summary">
       <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allTotal}</b></span></div>
-      <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${formatBytes(totalBytes)}</b></span></div>
+      <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${totalSize}</b></span></div>
       <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
     </section>`
     }<section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>${activeExports ? '' : exportPanel}</details>

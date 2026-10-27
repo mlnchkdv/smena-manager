@@ -25,7 +25,9 @@ function paintFeedback(key) {
   box.className = 'catalog-context-status';
   box.setAttribute('role', 'status');
   const message = document.createElement('span');
-  message.textContent = (feedback.error ? t('Some file results may be missing.') + ' ' : '') + t(feedback.error || 'Loading file connections…');
+  message.textContent =
+    (feedback.error ? t('Some file results may be missing.') + ' ' : '') +
+    t(feedback.error || (anchor.matches('.pal-in,.inwrap') ? 'Searching workspace…' : 'Loading files…'));
   box.append(message);
   if (feedback.error) {
     const retry = document.createElement('button');

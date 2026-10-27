@@ -78,7 +78,7 @@ export function demandFilePage(options) {
   return { loading: true, error: failed === key ? error : '' };
 }
 export function filePagePending(page) {
-  return `<div class="panel" style="padding:24px" role="status"><p>${esc(page.error || 'Loading files…')}</p>${page.error ? '<button class="btn btn-secondary" data-a="retryFileCatalog">Try again</button>' : ''}</div>`;
+  return `<div class="panel file-page-pending" role="status" aria-busy="${!page.error}"><p>${esc(page.error || 'Loading files…')}</p>${page.error ? '<button class="btn btn-secondary" data-a="retryFileCatalog">Try again</button>' : ''}</div>`;
 }
 A.retryFileCatalog = () => {
   failed = error = '';
