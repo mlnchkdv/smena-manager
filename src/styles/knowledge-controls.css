@@ -2,7 +2,7 @@
 .knowledge-format-toggle {
   display: none;
 }
-@media (max-height: 500px) {
+@media (max-height: 500px), (max-width: 640px) {
   .knowledge-drawer .knowledge-drawer-body {
     padding: 12px 16px 24px;
   }
@@ -227,5 +227,22 @@
   }
   .knowledge-content-toolbar .knowledge-filter-options > summary > span:not(.pdot) {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .knowledge-editor-mode .seg {
+    flex: 1;
+    min-width: 0;
+  }
+  .knowledge-editor-mode .seg button {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: var(--fs-xs);
+  }
+  .knowledge-editor-mode > .knowledge-save-status {
+    flex-shrink: 0;
+    font-size: var(--fs-2xs);
   }
 }
