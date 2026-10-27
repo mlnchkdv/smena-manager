@@ -109,6 +109,7 @@ const RU = {
   'Loading file connections…': 'Загрузка файлов и связей…',
   'Use the update panel to load this section safely.': 'Чтобы безопасно открыть раздел, воспользуйтесь панелью обновления приложения.',
   'Review app update': 'Проверить обновление',
+  'About this view': 'Об этом разделе',
   'App update': 'Обновление приложения',
   'A new app version is available.': 'Доступна новая версия приложения.',
   'This section could not load. Check for an app update.': 'Не удалось загрузить раздел. Проверьте обновление приложения.',

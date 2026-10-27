@@ -1,3 +1,4 @@
+import { pageIntroduction } from '../ui/page-introduction.js';
 /* ---------- TIMELINE ---------- */
 import { $, MON, MONL, TODAY, addD, diffD, esc, fmtDate, parse, iso } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -226,6 +227,6 @@ export function pageWsTimeline() {
     S.ui._tlWsInit = 1;
     S.ui.tlGroup = 'project';
   }
-  return `<div class="page flush"><div class="ph"><div><h1>Timeline</h1><p>Schedules, dependencies, and milestones across projects.</p></div></div>
+  return `<div class="page flush"><div class="ph compact-page-head"><div><h1>Timeline</h1><p class="page-description">Schedules, dependencies, and milestones across projects.</p></div><div class="acts">${pageIntroduction('Schedules, dependencies, and milestones across projects.')}</div></div>
   ${viewToolbar(key, { group: false, sort: false, extra: tlControls(key) })}${timelineHtml(applyView(allTasks(), v), key, null)}</div>`;
 }

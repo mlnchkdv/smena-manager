@@ -1,3 +1,4 @@
+import { pageIntroduction } from '../ui/page-introduction.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
@@ -90,7 +91,7 @@ export function pageBookmarks() {
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
   return `<div class="bookmarks-page layout-catalog">
-${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and useful resources for the team.</p></div>${readOnly ? '' : `<div class="row"><button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button></div>`}`, 'bookmarks-head')}
+${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared links, references, and useful resources for the team.</p></div><div class="row acts">${pageIntroduction('Shared links, references, and useful resources for the team.')}${readOnly ? '' : `<button class="btn btn-primary" data-a="newBookmark" aria-label="Add bookmark" title="Add bookmark">${ic('plus', 14)}<span class="hide-m">Add bookmark</span></button>`}</div>`, 'bookmarks-head compact-page-head')}
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     ${collectionToolbar(

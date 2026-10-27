@@ -1,3 +1,4 @@
+import { pageIntroduction } from '../ui/page-introduction.js';
 /* ---------- WORKSPACE OVERVIEW ---------- */
 import { TODAY, diffD, esc, fmtDate, parse, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -21,7 +22,7 @@ export function pageOverview() {
     .sort((a, b) => b.ts.length - a.ts.length);
   const maxL = Math.max(...load.map(l => l.ts.length), 1);
   return `<div class="page overview-page layout-dashboard">
-    <div class="ph"><div><h1>Workspace overview</h1><p>Health of every project in ${esc(D().ws.name)}.</p></div><div class="acts"><button class="btn btn-secondary" data-a="go" data-r="timeline">${ic('chart-gantt', 14)}Timeline</button><button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}New project</button></div></div>
+    <div class="ph compact-page-head"><div><h1>Workspace overview</h1><p class="page-description">Health of every project in ${esc(D().ws.name)}.</p></div><div class="acts">${pageIntroduction(`Health of every project in ${esc(D().ws.name)}.`)}<button class="btn btn-secondary" data-a="go" data-r="timeline" aria-label="Timeline" title="Timeline">${ic('chart-gantt', 14)}<span class="hide-m">Timeline</span></button><button class="btn btn-primary" data-a="newProject" aria-label="New project" title="New project">${ic('plus', 14)}<span class="hide-m">New project</span></button></div></div>
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><span class="k">Projects</span><span class="v">${ps.length}</span><span class="d">${ps.filter(p => p.status === 'complete').length} completed</span></div>
       <div class="stat"><span class="k">Tasks</span><span class="v">${all.length}</span><span class="d">${all.length - done} open</span></div>

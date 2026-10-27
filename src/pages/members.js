@@ -41,7 +41,7 @@ export function pageMembers() {
   const tab = u.membersTab;
   const activity = recordedActivityIndex(D(), visibleProjects().filter(canSee)).members;
   return `<div class="page wide" style="max-width:1200px">
-    <div class="ph"><div><h1>Members</h1><p>${D().members.length} people in ${esc(D().ws.name)}</p></div>${isAdmin ? `<div class="acts"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
+    <div class="ph compact-page-head"><div><h1>Members</h1><p>${D().members.length} people in ${esc(D().ws.name)}</p></div>${isAdmin ? `<div class="acts"><button class="btn btn-primary" data-a="invite" aria-label="Add access" title="Add access">${ic('user-plus', 14)}<span class="hide-m">Add access</span></button></div>` : ''}</div>
     <div class="tabs" style="margin-bottom:14px">${[
       ['members', 'Members'],
       ['teams', 'Teams'],
