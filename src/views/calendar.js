@@ -1,5 +1,6 @@
 /* ---------- CALENDAR ---------- */
 import { MONL, TODAY, WD, addD, diffD, esc, fmtDate, iso, parse } from '../core/utils.js';
+import { calendarMode } from '../core/calendar-preferences.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ic } from '../core/icons.js';
 import { D, S, allTasks, pColor, proj } from '../core/store.js';
@@ -12,7 +13,7 @@ import { segmentedControl } from '../ui/segmented-control.js';
 
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
-  const mode = S.ui.calMode;
+  const mode = calendarMode();
   const itemsOn = ds => calendarDayItems(ts, opt.events ? D().events : [], ds, opt.project);
   const wdn = Array.from({ length: 7 }, (_, i) => WD[(i + S.prefs.weekStart) % 7]);
   const chip = it => {
@@ -83,7 +84,7 @@ export function calendarHtml(ts, opt = {}) {
       .join('')}</div>`;
   }
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
-  return `<div class="cal" style="min-height:640px">
+  return `<div class="cal">
     <div class="toolbar cal-toolbar" style="gap:8px">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
@@ -115,6 +116,6 @@ export function calendarHtml(ts, opt = {}) {
 export function pageWsCalendar() {
   const key = 'cal';
   const v = viewOf(key);
-  return `<div class="page flush"><div class="ph"><div><h1>Calendar</h1><p>Deadlines and events across every project.</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}New task</button></div></div>
-  ${viewToolbar(key, { group: false })}${calendarHtml(applyView(allTasks(), v), { key, events: true })}</div>`;
+  return `<div class="page flush calendar-page"><div class="ph"><div><h1>Calendar</h1><p>Deadlines and events across every project.</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button></div></div>
+  ${viewToolbar(key, { group: false, compact: true })}${calendarHtml(applyView(allTasks(), v), { key, events: true })}</div>`;
 }

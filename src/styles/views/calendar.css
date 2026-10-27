@@ -277,3 +277,35 @@
   font-size: var(--fs-2xs);
   color: var(--text-3);
 }
+
+@media (max-width: 640px) {
+  .page.calendar-page > .ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 12px 16px 8px;
+    gap: 6px;
+  }
+  .page.calendar-page > .ph p {
+    display: none;
+  }
+  .page.calendar-page > .ph .acts {
+    width: auto;
+  }
+  .cal-toolbar {
+    padding: 8px 16px;
+  }
+  .cal-toolbar > .sp {
+    display: none;
+  }
+  .cal-toolbar > h2 {
+    flex: 1;
+    min-width: 0;
+  }
+  .cal-toolbar .cal-views {
+    flex: 1 1 100%;
+  }
+  .cal-toolbar .cal-views button {
+    flex: 1;
+  }
+}

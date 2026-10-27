@@ -91,12 +91,18 @@ const repositionPop = () => {
   if (S.ui.pop) requestAnimationFrame(placePop);
 };
 let mobileNavigation = innerWidth <= 900;
+let compactControls = innerWidth <= 640;
 addEventListener('resize', () => {
   const mobile = innerWidth <= 900;
   if (mobile !== mobileNavigation) {
     mobileNavigation = mobile;
     S.ui.mnav = false;
     render();
+  }
+  const compact = innerWidth <= 640;
+  if (compact !== compactControls) {
+    compactControls = compact;
+    if (S.ui.route === 'calendar' || S.ui.route === 'tasks' || (S.ui.route === 'project' && S.ui.params.tab === 'calendar')) render();
   }
   repositionPop();
   revealActiveSetting();

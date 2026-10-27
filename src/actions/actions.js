@@ -2,6 +2,7 @@
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
    ===================================================================== */
 import { $, $$, TODAY, addD, dOff, diffD, esc, fmtDate, fmtTimestamp, iso, parse, uid } from '../core/utils.js';
+import { saveCalendarMode } from '../core/calendar-preferences.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
 import { resetSearchSession } from '../core/search-history.js';
 import { seed } from '../data/seed.js';
@@ -315,6 +316,7 @@ A.set = el => {
   if (k === 'inboxCat') S.ui.inboxSel = null;
   S.ui[k] = v;
   if (k === 'fileView') saveFilePreferences();
+  if (k === 'calMode') saveCalendarMode(v);
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;
   render();
 };

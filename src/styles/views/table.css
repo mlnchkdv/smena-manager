@@ -163,7 +163,7 @@ table.tbl {
   .task-wide-view {
     display: none;
   }
-  .tasks-page .ph .acts {
+  .page.tasks-page .ph .acts {
     flex-wrap: wrap;
     gap: 8px;
   }
@@ -213,17 +213,17 @@ table.tbl {
   display: none;
 }
 @media (max-width: 640px) {
-  .tasks-page .ph {
+  .page.tasks-page .ph {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     padding: 12px 16px 8px;
     gap: 6px;
   }
-  .tasks-page .ph p {
+  .page.tasks-page .ph p {
     display: none;
   }
-  .tasks-page .ph .acts {
+  .page.tasks-page .ph .acts {
     width: auto;
     margin: 0;
     flex-wrap: nowrap;
