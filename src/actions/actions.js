@@ -1756,8 +1756,10 @@ DBL._commitTitle = el => {
   else render();
 };
 DBL.editCell = el => {
+  const item = task(el.dataset.id || el.closest('[data-id]')?.dataset.id);
+  if (!item || !canEditProject(proj(item.project), D().me, S.ui.currentUser?.role)) return;
   S.ui.drawer = null;
-  S.ui.editCell = { id: el.dataset.id || el.closest('[data-id]').dataset.id, f: el.dataset.f };
+  S.ui.editCell = { id: item.id, f: el.dataset.f };
   render();
   const i = $('#edit-cell');
   if (i) {
@@ -1771,6 +1773,8 @@ KEY.commitCell = el => {
   if (!c) return;
   S.ui.editCell = null;
   const v = el.value.trim();
+  const item = task(c.id);
+  if (!item || !canEditProject(proj(item.project), D().me, S.ui.currentUser?.role)) return render();
   if (c.f === 'title' && !v) {
     render();
     return;

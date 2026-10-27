@@ -1,7 +1,8 @@
 /* ---------- TABLE ---------- */
 import { esc, fmtDate, iso } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, isOver, mem, pColor, proj, task } from '../core/store.js';
+import { D, S, isOver, mem, pColor, proj, task } from '../core/store.js';
+import { canEditProject } from '../shared/project-access.js';
 import { av, dueHtml, empty, lbl, prPill, stIcon, stPill } from '../ui/helpers.js';
 import { groupTasks, viewOf } from '../shell/view-engine.js';
 import { listWindow } from '../shared/list-window.js';
@@ -47,8 +48,8 @@ export function tcell(t, c) {
   switch (c) {
     case 'title':
       return ed
-        ? `<td class="sticky editing"><input id="edit-cell" data-blur="commitCell" data-key-enter="commitCell" data-id="${t.id}" data-f="title" value="${esc(t.title)}" aria-label="Title"></td>`
-        : `<td class="sticky cellbtn" data-a="openTask" data-id="${t.id}" data-dbl="editCell" data-f="title" title="Double-click to rename"><span class="row" style="gap:8px">${stIcon(t.status, 13)}<span class="trunc" style="font-weight:450" translate="no">${esc(t.title)}</span><span class="mono faint" style="font-size:11px;margin-left:auto">${t.key}</span></span></td>`;
+        ? `<td class="sticky editing"><input id="edit-cell" data-blur="commitCell" data-key-enter="commitCell" data-id="${t.id}" data-f="title" value="${esc(t.title)}" aria-label="Task title"></td>`
+        : `<td class="sticky task-title-cell"><div class="row"><button class="task-table-open" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc" translate="no">${esc(t.title)}</span><span class="mono faint">${esc(t.key)}</span></button>${canEditProject(proj(t.project), D().me, S.ui.currentUser?.role) ? `<button class="ibtn ibtn-sm task-table-rename" data-a="editCell" data-id="${t.id}" data-f="title" aria-label="Rename task" aria-describedby="task-title-${esc(t.id)}" title="Rename task">${ic('pencil', 13)}<span class="sr" id="task-title-${esc(t.id)}" translate="no">${esc(t.title)}</span></button>` : ''}</div></td>`;
     case 'status':
       return `<td class="cellbtn" data-a="pop" data-pop="status" data-id="${t.id}"><span class="row" style="gap:6px">${stPill(t.status)}</span></td>`;
     case 'priority':

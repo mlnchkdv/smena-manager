@@ -964,6 +964,7 @@ const RU = {
   'Bulk actions': 'Массовые действия',
   'More actions': 'Дополнительные действия',
   'Task title': 'Название задачи',
+  'Rename task': 'Переименовать задачу',
   Task: 'Задача',
   'Task name': 'Название задачи',
   'Add a description… (optional)': 'Добавьте описание… (необязательно)',
