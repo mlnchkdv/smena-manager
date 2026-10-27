@@ -19,6 +19,7 @@ import '../features/files.js';
 import '../features/file-selection.js';
 import { demandFilePage, filePagePending } from '../features/file-catalog-demand.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -53,6 +54,12 @@ function folderChip(file) {
   return `<button class="workspace-file-folder trunc" data-a="openFileFolder" data-project="${esc(file.project)}" data-folder="${esc(folder.id)}" title="${esc(path)}">${ic('folder', 12)}<span class="trunc" translate="no">${esc(folder.name)}</span></button>`;
 }
 
+function textFileLocation(file, linkedTask) {
+  const project = proj(file.project);
+  const path = [project?.name, ...fileFolderPath(project, file.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
+  return `<details class="ui-menu workspace-file-location" ${disclosureAttributes(`file-location:${file.id}`)}><summary aria-label="${esc(tr('Show full path'))}: ${esc(path)}" title="${esc(path)}">${ic('folder', 13)}<span class="trunc" translate="no">${esc(path || tr('No folder'))}</span>${ic('chevron-down', 12)}</summary><div><p translate="no">${esc(path)}</p>${projectChip(file)}${folderChip(file)}${linkedTask ? `<button class="btn btn-ghost" data-a="openTask" data-id="${esc(linkedTask.id)}">${ic('link', 13)}${esc(linkedTask.key)}</button>` : ''}</div></details>`;
+}
+
 function fileCard(file) {
   const author = mem(file.by);
   const linkedTask = file.task ? task(file.task) : null;
@@ -70,7 +77,7 @@ function fileCard(file) {
       ${preview}
       <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span></span>
     </button>
-    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><span class="workspace-file-card-context">${projectChip(file)}${textual ? folderChip(file) : ''}${linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : ''}</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
+    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textual ? textFileLocation(file, linkedTask) : projectChip(file) + (linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : '')}</div><span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
   </article>`;
 }
 

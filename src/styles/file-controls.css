@@ -131,6 +131,64 @@
   gap: 4px 8px;
   min-width: 0;
 }
+.workspace-file-card.textual .workspace-file-card-context {
+  flex: 1;
+}
+.workspace-file-location {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+}
+.workspace-file-location > summary {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 36px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.workspace-file-location > summary > svg {
+  flex-shrink: 0;
+}
+.workspace-file-location > div {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 4px);
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-pop);
+  z-index: 6;
+}
+.workspace-file-location p {
+  overflow-wrap: anywhere;
+  font-size: var(--fs-xs);
+  margin: 0 0 4px;
+}
+.workspace-file-location :is(.workspace-file-project, .workspace-file-folder) {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+.workspace-file-card:has(.workspace-file-location[open]) {
+  overflow: visible;
+  z-index: 6;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .workspace-file-location > summary,
+  .workspace-file-location > div > button {
+    min-height: 44px;
+  }
+}
 .workspace-file-card.textual .workspace-file-open {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
