@@ -153,6 +153,8 @@
 .inbox-list {
   overflow-y: auto;
   flex: 1;
+  padding-bottom: var(--bottom-nav-height, 0px);
+  scroll-padding-bottom: var(--bottom-nav-height, 0px);
   scrollbar-width: none;
 }
 .inbox-list::-webkit-scrollbar {

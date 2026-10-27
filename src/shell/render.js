@@ -272,6 +272,10 @@ export function render() {
 let thumbnailModule;
 let layoutMain;
 let layoutFrame;
+let bottomNav;
+const bottomNavObserver = new ResizeObserver(() => {
+  document.documentElement.style.setProperty('--bottom-nav-height', `${bottomNav?.getBoundingClientRect().height || 0}px`);
+});
 const layoutObserver = new ResizeObserver(() => {
   cancelAnimationFrame(layoutFrame);
   layoutFrame = requestAnimationFrame(() => {
@@ -339,6 +343,12 @@ export function afterRender() {
   const main = document.querySelector('.main');
   if (main) main.inert = !!navOpen;
   const bottom = document.querySelector('.bottomnav');
+  if (bottom !== bottomNav) {
+    bottomNavObserver.disconnect();
+    bottomNav = bottom;
+    if (bottomNav) bottomNavObserver.observe(bottomNav);
+    document.documentElement.style.setProperty('--bottom-nav-height', `${bottomNav?.getBoundingClientRect().height || 0}px`);
+  }
   if (bottom) bottom.inert = !!navOpen || !!mobileFolders;
   if (mobileFolders) {
     const sidebar = document.querySelector('.knowledge-sidebar');

@@ -13,7 +13,8 @@
   max-width: 180px;
 }
 .tl-agenda {
-  padding: 12px var(--gutter) 32px;
+  padding: 12px var(--gutter) calc(32px + var(--bottom-nav-height, 0px));
+  scroll-padding-bottom: var(--bottom-nav-height, 0px);
   overflow-y: auto;
 }
 .tl-agenda-item {
