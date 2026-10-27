@@ -838,6 +838,7 @@ const RU = {
   'My tasks': 'Мои задачи',
   'Workspace summary': 'Сводка пространства',
   'Activity filters': 'Фильтры активности',
+  'Folder options': 'Параметры папок',
   'Upcoming deadlines': 'Ближайшие сроки',
   'Recent activity': 'Последняя активность',
   "Here's what's happening across your workspace.": 'Вот что происходит в вашем рабочем пространстве.',

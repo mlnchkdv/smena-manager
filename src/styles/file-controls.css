@@ -3,6 +3,57 @@
   flex-wrap: wrap;
   align-items: center;
 }
+.files-folder-tools {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 8;
+}
+.files-folder-tools > summary {
+  list-style: none;
+}
+.files-folder-tools > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: min(260px, calc(100vw - 40px));
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+@container workspace-files (max-width: 850px) {
+  .files-folders {
+    margin-bottom: 12px;
+  }
+  .files-folders-head {
+    gap: 4px;
+    flex-wrap: nowrap;
+    margin-bottom: 6px;
+  }
+  .files-folders-head h2 {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin: 0;
+  }
+  .files-folders-head > .sp {
+    display: block;
+  }
+  .files-folders-head > .num {
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+  .files-folder-grid {
+    gap: 8px;
+  }
+  .files-page .files-folder-open {
+    min-height: 78px;
+    padding-right: 44px;
+  }
+}
 .files-page .workspace-files-toolbar .workspace-file-search {
   flex: 1 1 240px;
 }
