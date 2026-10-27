@@ -4,6 +4,16 @@ import { t } from '../core/i18n.js';
 
 let scope;
 let expanded = new Set();
+function setMenuOpen(menu, open) {
+  menu.open = open;
+  // Synchronize remembered disclosures before an action replaces the DOM.
+  menu.dispatchEvent(new Event('toggle'));
+}
+export function closeActionMenus(except = null) {
+  document.querySelectorAll('.ui-menu[open]').forEach(menu => {
+    if (menu !== except) setMenuOpen(menu, false);
+  });
+}
 export function disclosureOpen(key) {
   const next = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
   if (scope !== next) {
@@ -33,9 +43,9 @@ document.addEventListener(
   'keydown',
   event => {
     if (event.key !== 'Escape') return;
-    const menu = document.querySelector('.ui-menu[open]');
+    const menu = [...document.querySelectorAll('.ui-menu[open]')].at(-1);
     if (!menu) return;
-    menu.open = false;
+    setMenuOpen(menu, false);
     menu.querySelector(':scope > summary')?.focus({ preventScroll: true });
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -45,9 +55,17 @@ document.addEventListener(
 document.addEventListener(
   'click',
   event => {
-    document.querySelectorAll('.ui-menu[open]').forEach(menu => {
-      if (!menu.contains(event.target)) menu.open = false;
-    });
+    const summary = event.target.closest?.('summary');
+    const menu = summary?.parentElement;
+    if (menu?.matches('.ui-menu')) {
+      event.preventDefault();
+      const open = !menu.open;
+      closeActionMenus(menu);
+      setMenuOpen(menu, open);
+      return;
+    }
+    const parent = event.target.closest?.('.ui-menu');
+    closeActionMenus(event.target.closest?.('button[data-a],a[href]') ? null : parent);
   },
   true,
 );

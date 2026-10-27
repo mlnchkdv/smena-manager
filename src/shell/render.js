@@ -19,6 +19,7 @@ import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
+import { closeActionMenus } from '../ui/disclosure.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -72,6 +73,7 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
+  closeActionMenus();
   if (route !== 'graph') S.ui.graphFocus = false;
   S.ui.restoringFilePath = null;
   if (route === 'project' && !params.tab) params.tab = 'board';
