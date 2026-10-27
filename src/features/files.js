@@ -8,7 +8,8 @@ import { streamSelectedFiles, startPreparedFileStream, cancelFileStream } from '
 import { mutate, toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { canEditFile } from '../shared/file-access.js';
-import { saveFilePreferences, saveFileFilterPresets } from '../core/file-preferences.js';
+import { saveFilePreferences, saveFileFilterPresets, fileFolderView } from '../core/file-preferences.js';
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { filePresetFilters, reorderFilePreset } from '../shared/file-presets.js';
 import { getSessionGeneration } from '../core/api.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, moveFileFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
@@ -183,12 +184,23 @@ KEY.filePageJump = A.filePageJump;
 KEY.fileFolderJump = A.fileFolderJump;
 KEY.saveFileFolder = () => A.saveFileFolder();
 A.toggleFileFolderLayout = () => {
+  if (innerWidth <= 640) {
+    writeLayoutPreference('fileFoldersMobileCompact', !fileFolderView().compact);
+    S.ui.fileFolderOffset = 0;
+    render();
+    return;
+  }
   S.ui.fileFolderLayout = S.ui.fileFolderLayout === 'compact' ? 'tiles' : 'compact';
   S.ui.fileFolderOffset = 0;
   saveFilePreferences();
   render();
 };
 A.toggleFileFolders = () => {
+  if (innerWidth <= 640) {
+    writeLayoutPreference('fileFoldersMobileCollapsed', !fileFolderView().collapsed);
+    render();
+    return;
+  }
   S.ui.fileFoldersCollapsed = !S.ui.fileFoldersCollapsed;
   saveFilePreferences();
   render();

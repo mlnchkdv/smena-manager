@@ -1,6 +1,12 @@
 import { D, S } from './store.js';
 import { fileViewKey, readFileView, writeFileView } from '../shared/file-view.js';
 import { readFilePresets, writeFilePresets } from '../shared/file-presets.js';
+import { readLayoutPreference } from './view-layout-preferences.js';
+export function fileFolderView() {
+  return innerWidth <= 640
+    ? { compact: readLayoutPreference('fileFoldersMobileCompact', true), collapsed: readLayoutPreference('fileFoldersMobileCollapsed', true) }
+    : { compact: S.ui.fileFolderLayout === 'compact', collapsed: S.ui.fileFoldersCollapsed === true };
+}
 let loadedKey;
 const key = () => fileViewKey(S.ui.currentUser?.id, D().ws?.id || D().ws?.url);
 export function filePreferences() {

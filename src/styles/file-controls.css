@@ -300,3 +300,19 @@
     max-width: 130px;
   }
 }
+@media (max-width: 640px) {
+  .files-folder-grid.compact .files-folder-open {
+    min-height: 50px;
+    padding: 6px 44px 6px 10px;
+    gap: 2px 8px;
+  }
+  .files-folder-grid.compact .files-folder-open .faint {
+    display: none;
+  }
+  .files-folder-grid.compact .files-folder-open strong {
+    grid-column: 2;
+  }
+  .files-folder-grid.compact .files-folder-open small {
+    grid-column: 2;
+  }
+}

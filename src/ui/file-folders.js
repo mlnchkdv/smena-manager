@@ -5,6 +5,7 @@ import { canEditProject } from '../shared/project-access.js';
 import { normalizeFileSearch } from '../shared/file-index.js';
 import { fileFolderMenu } from './file-folder-menu.js';
 import { disclosureAttributes } from './disclosure.js';
+import { fileFolderView } from '../core/file-preferences.js';
 
 export function visibleFileFolderKeys(projectId, currentFolder, index) {
   const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
@@ -17,7 +18,7 @@ export function visibleFileFolderKeys(projectId, currentFolder, index) {
         (terms.length ? terms.every(term => entry.search.includes(term)) : archived || (entry.folder.parentId || null) === (currentFolder?.id || null)),
     )
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
-  const limit = S.ui.fileFolderLayout === 'compact' ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
+  const limit = fileFolderView().compact ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
   const start = Math.min(Math.max(0, Number(S.ui.fileFolderOffset) || 0), Math.max(0, Math.ceil(entries.length / limit) - 1) * limit);
   return entries.slice(start, start + limit).map(entry => [entry.project.id, entry.folder.id]);
 }
@@ -35,8 +36,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
       return archived || (folder.parentId || null) === (currentFolder?.id || null);
     })
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
-  const compact = S.ui.fileFolderLayout === 'compact';
-  const collapsed = S.ui.fileFoldersCollapsed === true;
+  const { compact, collapsed } = fileFolderView();
   const limit = compact ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
   const start = Math.min(Math.max(0, Number(S.ui.fileFolderOffset) || 0), Math.max(0, Math.ceil(entries.length / limit) - 1) * limit);
   S.ui.fileFolderOffset = start;
