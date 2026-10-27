@@ -78,6 +78,18 @@ test('key Russian and English workflows pass automated WCAG checks', async ({ pa
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await page.waitForTimeout(700);
+    await page.goto('/e2e-team/activity');
+    const activityFilters = page.locator('.seg:has([data-k="actFilter"])');
+    await expect(activityFilters).toHaveAccessibleName(language === 'Русский' ? 'Фильтры активности' : 'Activity filters');
+    await activityFilters.locator('[data-v="comments"]').focus();
+    await page.keyboard.press('Space');
+    await expect(activityFilters.locator('[aria-pressed="true"]')).toHaveCount(1);
+    await expect(activityFilters.locator('[data-v="comments"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.goto('/e2e-team/settings/appearance');
+    await page.locator('[data-k="side"][data-v="compact"]').click();
+    await expect(page.locator('[data-k="side"][aria-pressed="true"]')).toHaveCount(1);
+    await expect(page.locator('[data-k="side"][data-v="compact"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('[data-k="side"][data-v="comfortable"]').click();
     for (const theme of ['light', 'dark']) {
       await page.goto('/e2e-team/settings/appearance');
       await page.locator(`[data-a="setTheme"][data-v="${theme}"]`).click();
@@ -117,6 +129,8 @@ test('settings remain usable at 200% zoom on a narrow viewport in both locales',
   await page.locator('.topsearch').focus();
   await expect.poll(async () => page.locator('.topsearch').evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
   await expect.poll(async () => page.locator('.topsearch').evaluate(el => parseFloat(getComputedStyle(el).outlineWidth))).toBeGreaterThanOrEqual(2);
+  await page.locator('.files-folder-tools > summary').click();
+  await expect(page.locator('[data-a="newFileFolder"]')).toBeVisible();
   expect(await page.locator('[data-a="newFileFolder"]').evaluate(el => parseFloat(getComputedStyle(el).borderTopWidth))).toBeGreaterThanOrEqual(1);
   await page.screenshot({ path: 'output/playwright/ux18-forced-colors-mobile.png' });
   await page.emulateMedia({ forcedColors: 'none' });

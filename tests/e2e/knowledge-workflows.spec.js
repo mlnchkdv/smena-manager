@@ -21,7 +21,11 @@ const expectFolderTileBounds = async page => {
   const overflow = await page.locator('.knowledge-folder-tile').evaluateAll(tiles =>
     tiles.map(tile => {
       const action = tile.querySelector('.knowledge-folder-receive');
-      return Math.max(tile.scrollHeight - tile.clientHeight, action ? action.getBoundingClientRect().bottom - tile.getBoundingClientRect().bottom : 0);
+      const card = tile.querySelector('.knowledge-folder-card');
+      return Math.max(
+        card ? card.getBoundingClientRect().bottom - tile.getBoundingClientRect().bottom : 0,
+        action ? action.getBoundingClientRect().bottom - tile.getBoundingClientRect().bottom : 0,
+      );
     }),
   );
   expect(
@@ -97,7 +101,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-frontmatter>summary').click();
   await expect(page.locator('.knowledge-frontmatter pre')).toContainText('metadata-only-marker');
   await page.locator('.knowledge-frontmatter>summary').click();
-  await page.locator('[data-a="editKnowledgeNote"]').click();
+  await page.locator('.knowledge-preview-edit').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
   await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
   const originalSource = await page.locator('#knowledge-body').inputValue();
@@ -119,7 +123,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Renamed legacy Alpha' }).click();
   await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
   await expect(page.locator('.knowledge-frontmatter').first()).not.toHaveAttribute('open');
-  await page.locator('[data-a="editKnowledgeNote"]').click();
+  await page.locator('.knowledge-preview-edit').click();
   await page.locator('.knowledge-history>summary').click();
   await page.locator('[data-a="restoreKnowledgeVersion"]').first().click();
   await page.locator('[data-a="confirmOk"]').click();
@@ -135,7 +139,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(2);
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Alpha' }).click();
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Updated knowledge body');
-  await page.locator('[data-a="editKnowledgeNote"]').click();
+  await page.locator('.knowledge-preview-edit').click();
   await page.locator('.knowledge-history>summary').click();
   await page.locator('.knowledge-history-row details>summary').first().click();
   await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
@@ -232,7 +236,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect
       .poll(async () => Math.abs((await page.locator('.knowledge-preview-card').last().boundingBox()).y - cardBeforeSelection), { timeout: 1000 })
       .toBeLessThanOrEqual(2);
-    await expect(page.locator('.knowledge-folder-card-options').first()).toHaveAttribute('open', '');
+    await expect(page.locator('.knowledge-folder-card-options').first()).not.toHaveAttribute('open', '');
     await expectFolderTileBounds(page);
     await page.locator('.knowledge-folder-card-options summary').first().click();
     await expectFolderTileBounds(page);
@@ -250,7 +254,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
     expect(await page.locator('.knowledge-main').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(2);
     await expect(page.locator('.knowledge-content .knowledge-mobile-folder-button')).toContainText(folderLabel);
     await page.locator('.knowledge-preview-open').click();
-    await expect(page.locator('[data-a="editKnowledgeNote"]')).toHaveText(editLabel);
+    await expect(page.locator('.knowledge-preview-edit')).toHaveAccessibleName(editLabel);
+    await expect(page.locator('.knowledge-preview-edit')).toBeInViewport();
     await expect(page.locator('.knowledge-frontmatter>summary')).toHaveText(language === 'Русский' ? 'Метаданные исходника' : 'Source metadata');
     await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
     await page.locator('.knowledge-frontmatter>summary').click();
