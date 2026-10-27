@@ -430,6 +430,19 @@ IN.knowledgeFolderLayout = el => {
   saveKnowledgePreferences();
   render();
 };
+IN.knowledgeNoteLayout = el => {
+  const main = document.querySelector('.knowledge-main');
+  const anchor =
+    main && [...main.querySelectorAll('.knowledge-preview-card')].find(card => card.getBoundingClientRect().bottom > main.getBoundingClientRect().top);
+  const id = anchor?.dataset.id;
+  const top = anchor?.getBoundingClientRect().top;
+  S.ui.knowledgeNoteLayout = el.value === 'list' ? 'list' : 'grid';
+  saveKnowledgePreferences();
+  render();
+  const nextMain = document.querySelector('.knowledge-main');
+  const next = nextMain && [...nextMain.querySelectorAll('.knowledge-preview-card')].find(card => card.dataset.id === id);
+  if (next) nextMain.scrollTop += next.getBoundingClientRect().top - top;
+};
 A.focusKnowledgeNotes = () => {
   const note = document.querySelector('.knowledge-preview-open');
   if (!note) return;

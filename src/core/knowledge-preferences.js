@@ -19,6 +19,7 @@ export function knowledgePreferences() {
     S.ui.knowledgeSelection = [];
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
+    S.ui.knowledgeNoteLayout = value.noteLayout === 'list' ? 'list' : 'grid';
     S.ui.knowledgeFolderNavOffset = 0;
     S.ui.knowledgeFolderCardOffset = 0;
     S.ui.knowledgeFolderCardQuery = '';
@@ -35,6 +36,7 @@ export function saveKnowledgePreferences() {
         recent: S.ui.knowledgeRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,
         folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
+        noteLayout: S.ui.knowledgeNoteLayout === 'list' ? 'list' : 'grid',
       }),
     );
   } catch {

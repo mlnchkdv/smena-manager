@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Note display': 'Отображение заметок',
+  'Compact list': 'Компактный список',
   'Expand project sections': 'Развернуть разделы проекта',
   'Collapse project sections': 'Свернуть разделы проекта',
   'Activity unavailable': 'Данные об активности недоступны',
