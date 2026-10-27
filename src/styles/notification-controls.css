@@ -120,3 +120,22 @@
     margin-top: 4px;
   }
 }
+.notification-system-history > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  min-height: var(--control-target);
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.notification-system-history > summary::before {
+  content: '›';
+}
+.notification-system-history[open] > summary::before {
+  transform: rotate(90deg);
+}
+.notification-system-history[open] {
+  border-top: 1px solid var(--border);
+}

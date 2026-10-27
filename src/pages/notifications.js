@@ -6,6 +6,18 @@ import { empty } from '../ui/helpers.js';
 import { notifIcon, notifText, notifSnippet } from './inbox.js';
 import { notificationReadButton } from '../ui/notification-controls.js';
 import { segmentedControl } from '../ui/segmented-control.js';
+import { inboxEventGroups } from '../shared/inbox-groups.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
+
+function notificationRow(n) {
+  const t = n.task ? task(n.task) : null;
+  const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
+  const contextId = `notification-${esc(n.id)}`;
+  return `<div class="nrow notification-item ${n.read ? '' : 'unread'}"><button type="button" class="notification-open" data-a="openNotif" data-id="${esc(n.id)}">
+    ${notifIcon(n)}<span class="grow notification-copy"><span class="notification-title" id="${contextId}">${notifText(n)}</span><span class="notification-snippet muted trunc" translate="no">${notifSnippet(n)}</span><span class="notification-meta faint">${p ? `<span translate="no">${esc(p.name)}</span> · ` : ''}${ago(n.at)}</span></span>
+    ${n.read ? '' : '<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:8px" aria-label="Unread"></span>'}
+    </button>${notificationReadButton(n, contextId)}</div>`;
+}
 
 export function pageNotifications() {
   const f = S.ui.notifFilter;
@@ -16,7 +28,7 @@ export function pageNotifications() {
   const read = ns.length - unread;
   if (f === 'unread') ns = ns.filter(n => !n.read);
   const buckets = {};
-  ns.forEach(n => (buckets[dayBucket(n.at)] ||= []).push(n));
+  inboxEventGroups(ns).forEach(group => (buckets[dayBucket(group.notification.at)] ||= []).push(group));
   return `<div class="page notifications-page layout-reading">
     <div class="ph"><div><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent">${unread} unread</span>` : ''}</h1><p>Updates on tasks and projects you follow.</p></div>
       <div class="acts">${segmentedControl({
@@ -37,15 +49,10 @@ export function pageNotifications() {
             .map(
               ([b, list]) =>
                 `<div class="day-h">${b}</div><div class="panel" style="overflow:hidden">${list
-                  .map(n => {
-                    const t = n.task ? task(n.task) : null;
-                    const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
-                    const contextId = `notification-${esc(n.id)}`;
-                    return `<div class="nrow notification-item ${n.read ? '' : 'unread'}"><button type="button" class="notification-open" data-a="openNotif" data-id="${esc(n.id)}">
-        ${notifIcon(n)}<span class="grow notification-copy"><span class="notification-title" id="${contextId}">${notifText(n)}</span><span class="notification-snippet muted trunc" translate="no">${notifSnippet(n)}</span><span class="notification-meta faint">${p ? `<span translate="no">${esc(p.name)}</span> · ` : ''}${ago(n.at)}</span></span>
-        ${n.read ? '' : '<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:8px" aria-label="Unread"></span>'}
-        </button>${notificationReadButton(n, contextId)}</div>`;
-                  })
+                  .map(
+                    ({ notification, earlier }) =>
+                      `${notificationRow(notification)}${earlier.length ? `<details class="notification-system-history" ${disclosureAttributes(`notification-history:${notification.id}`)}><summary><span>Earlier system events</span><span class="num">${earlier.length}</span></summary>${earlier.map(notificationRow).join('')}</details>` : ''}`,
+                  )
                   .join('')}</div>`,
             )
             .join('')
