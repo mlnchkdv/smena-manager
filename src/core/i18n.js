@@ -839,6 +839,7 @@ const RU = {
   'Workspace summary': 'Сводка пространства',
   'Activity filters': 'Фильтры активности',
   'Active filters': 'Активные фильтры',
+  'Selection options': 'Параметры выделения',
   'Project filters and view': 'Фильтры и вид проектов',
   'Timeline view': 'Вид хронологии',
   'Timeline scale': 'Масштаб хронологии',

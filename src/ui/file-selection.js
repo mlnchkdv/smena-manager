@@ -47,6 +47,7 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const movable = files.length > 0 && sameProject && files.every(file => canEditFile(file, D(), S.ui.currentUser?.role));
   const removable = files.length > 0 && files.every(file => canRemoveFile(file, D(), S.ui.currentUser?.role));
   const checked = page.length > 0 && page.every(file => ids.includes(file.id));
+  if (!page.length && !ids.length) return '';
   const downloadIssue = archiveSelectionIssue(files);
   const streamIssue = archiveSelectionIssue(files, STREAM_ZIP_POLICY);
   const busy = S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase);
@@ -54,7 +55,7 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const selectResults = `<button class="btn btn-ghost btn-sm" data-a="selectFileResults" data-ids="${resultIds ? esc(resultIds.join(',')) : ''}" ${!resultIds?.length ? 'disabled' : ''} title="Narrow the filters to select up to 500 files.">Select results</button>`;
   return collectionSelection(
     `
-    <button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${selectResults}
+    <button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${files.length ? selectResults : `<details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
     ${
       files.length
         ? `<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b>${hiddenCount ? ` · ${hiddenCount} <span>outside this page</span>` : ''}</span><span class="sp"></span>
