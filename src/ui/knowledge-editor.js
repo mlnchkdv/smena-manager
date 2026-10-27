@@ -9,12 +9,23 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { knowledgeLivePreview } from './knowledge-live-preview.js';
 import { KNOWLEDGE_CATEGORIES, knowledgeCategoryLabel } from './knowledge-category.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
+
+A.toggleKnowledgeFormatting = () => {
+  captureKnowledgeEditorPosition();
+  S.ui.knowledgeFormatExpanded = !S.ui.knowledgeFormatExpanded;
+  render();
+  restoreKnowledgeEditorPosition(S.ui.knowledgeEditorPane || 'source');
+};
 
 export function noteEditor(note, folders, readOnly) {
   const context = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, note.id]);
   if (S.ui.knowledgeEditorContext !== context) {
     S.ui.knowledgeEditorContext = context;
     S.ui.knowledgeEditorPane = 'source';
+    S.ui.knowledgeFormatExpanded = false;
   }
   const pane = S.ui.knowledgeEditorPane === 'preview' ? 'preview' : 'source';
   const showPreview = S.ui.knowledgeEditorPreview || pane === 'preview';
@@ -22,7 +33,7 @@ export function noteEditor(note, folders, readOnly) {
   const disabled = readOnly || conflict ? 'disabled' : '';
   const categories = [...new Set([...KNOWLEDGE_CATEGORIES, note.category].filter(Boolean))];
   const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
-  return `<section class="knowledge-editor" data-pane="${pane}" aria-label="Note editor">
+  return `<section class="knowledge-editor${S.ui.knowledgeFormatExpanded ? ' formatting-expanded' : ''}" data-pane="${pane}" aria-label="Note editor">
     <div class="knowledge-editor-head">
       <div class="knowledge-heading-title">
         <label class="sr" for="knowledge-title">Note title</label>
@@ -33,8 +44,8 @@ export function noteEditor(note, folders, readOnly) {
     <span class="sr" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
 
-    <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button><button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}">Preview</button></div><span class="knowledge-save-status" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span></div>
-    <div class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[
+    <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button><button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}">Preview</button></div><span class="knowledge-save-status" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span><button class="ibtn knowledge-format-toggle" data-a="toggleKnowledgeFormatting" aria-label="Text formatting" aria-expanded="${!!S.ui.knowledgeFormatExpanded}" aria-controls="knowledge-format-tools">${ic('type', 16)}</button></div>
+    <div id="knowledge-format-tools" class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[
       ['bold', 'bold', 'Bold'],
       ['heading', 'heading', 'Heading'],
       ['list', 'list', 'Bulleted list'],

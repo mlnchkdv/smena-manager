@@ -1,4 +1,59 @@
 /* Secondary settings are disclosed; search and note creation remain primary. */
+.knowledge-format-toggle {
+  display: none;
+}
+@media (max-height: 500px) {
+  .knowledge-drawer .knowledge-drawer-body {
+    padding: 12px 16px 24px;
+  }
+  .knowledge-editor {
+    gap: 8px;
+  }
+  .knowledge-editor-head {
+    position: relative;
+    padding: 0;
+    border: 0;
+  }
+  .knowledge-heading-title {
+    padding-right: 52px;
+  }
+  .knowledge-editor .knowledge-title {
+    font-size: var(--fs-xl);
+    min-height: 44px;
+  }
+  .knowledge-editor-meta-row {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: auto;
+  }
+  .knowledge-editor-meta-row .knowledge-meta,
+  .knowledge-wide-save,
+  .knowledge-desktop-preview {
+    display: none;
+  }
+  .knowledge-editor-mode {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    min-height: 44px;
+  }
+  .knowledge-format-toggle {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: auto;
+  }
+  .knowledge-editor:not(.formatting-expanded) .knowledge-format-toolbar,
+  .knowledge-editor[data-pane='preview'] :is(.knowledge-body-field, .knowledge-format-toolbar, .knowledge-properties, .knowledge-format-toggle),
+  .knowledge-editor[data-pane='source'] .knowledge-live-preview {
+    display: none;
+  }
+  .knowledge-writing.with-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .knowledge-content {
   display: flow-root;
 }
