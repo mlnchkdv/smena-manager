@@ -27,6 +27,7 @@
     min-width: 44px;
   }
   .graph-toolbar :is(.ibtn, .seg button),
+  .ui-menu > div > button,
   .drawer button.pillbtn,
   .files-page .btn,
   .knowledge-content-actions .btn {

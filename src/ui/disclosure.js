@@ -8,6 +8,18 @@ function setMenuOpen(menu, open) {
   menu.open = open;
   // Synchronize remembered disclosures before an action replaces the DOM.
   menu.dispatchEvent(new Event('toggle'));
+  if (open) positionActionMenus();
+}
+export function positionActionMenus() {
+  const nav = document.querySelector('.bottomnav')?.getBoundingClientRect().height || 0;
+  document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
+    if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
+    panel.style.translate = 'none';
+    const box = panel.getBoundingClientRect();
+    const x = Math.max(8 - box.left, Math.min(0, innerWidth - 8 - box.right));
+    const y = Math.max(8 - box.top, Math.min(0, innerHeight - nav - 8 - box.bottom));
+    panel.style.translate = `${x}px ${y}px`;
+  });
 }
 export function closeActionMenus(except = null) {
   document.querySelectorAll('.ui-menu[open]').forEach(menu => {

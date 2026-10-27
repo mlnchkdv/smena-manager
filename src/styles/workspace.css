@@ -477,10 +477,9 @@
     font-size: var(--fs-2xs);
     white-space: nowrap;
   }
-  .knowledge-mixed-grid .knowledge-folder-tile:has(.knowledge-folder-card-options[open]) .knowledge-folder-receive {
-    position: static;
-    margin: 4px;
-    white-space: normal;
+  .knowledge-mixed-grid .knowledge-folder-tile:has(.knowledge-folder-receive) .knowledge-folder-card {
+    padding-bottom: 52px;
+    min-height: 154px;
   }
 }
 .modal {

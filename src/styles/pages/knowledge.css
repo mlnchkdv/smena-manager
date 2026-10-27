@@ -277,7 +277,7 @@
   gap: 8px;
 }
 .knowledge-folder-tile:has(.knowledge-folder-card-options[open]) {
-  grid-column: 1 / -1;
+  z-index: 8;
 }
 .knowledge-folder-card-options {
   position: absolute;
@@ -303,20 +303,26 @@
   color: var(--accent);
 }
 .knowledge-folder-card-options[open] {
-  position: static;
-  padding: 0 8px 8px;
+  z-index: 8;
 }
 .knowledge-folder-card-options[open] summary {
-  position: absolute;
-  top: 8px;
-  right: 5px;
+  background: var(--accent-soft);
 }
 .knowledge-folder-card-options > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  width: min(260px, calc(100vw - 32px));
+  max-height: 50dvh;
+  overflow-y: auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 4px;
-  border-top: 1px solid var(--border);
-  padding-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
 }
 .knowledge-folder-card-options button {
   display: inline-flex;

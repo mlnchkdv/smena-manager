@@ -19,7 +19,7 @@ import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
-import { closeActionMenus } from '../ui/disclosure.js';
+import { closeActionMenus, positionActionMenus } from '../ui/disclosure.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -361,6 +361,7 @@ export function afterRender() {
   refreshThumbnails();
   selectMenu.close();
   enhanceSelects();
+  positionActionMenus();
   placePop();
   revealActiveSetting();
   $$('textarea[data-autosize]').forEach(autosize);
