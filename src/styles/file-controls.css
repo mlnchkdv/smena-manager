@@ -101,6 +101,10 @@
   position: relative;
   z-index: 9;
 }
+.files-page .workspace-files-toolbar:has(.files-filter-options.is-mobile[open]) {
+  position: relative;
+  z-index: 12;
+}
 .files-filter-options > summary {
   list-style: none;
 }
