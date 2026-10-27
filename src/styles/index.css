@@ -23,7 +23,6 @@
 @import './motion.css';
 @import './responsive.css';
 @import './workspace.css';
-@import './touch.css';
 @import './container-layout.css';
 @import './knowledge-controls.css';
 @import './collection-readability.css';
@@ -31,3 +30,4 @@
 @import './collection-density.css';
 @import './file-controls.css';
 @import './notification-controls.css';
+@import './touch.css';

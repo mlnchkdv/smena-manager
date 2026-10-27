@@ -16,12 +16,22 @@
     min-height: 52px;
     height: auto;
   }
-  :is(.btn, .ibtn, .seg button, .tab, .select, .input, .badge[data-a]) {
+  :is(.btn, .ibtn, .seg button, .tab, .select, .input, .badge[data-a], button.pillbtn, .ui-menu > summary, .cal-day-open) {
     min-height: 44px;
   }
-  .ibtn {
+  :is(.btn, .ibtn, .seg button, button.pillbtn, .ui-menu > summary) {
     min-width: 44px;
     flex-shrink: 0;
+  }
+  .cal-day-open {
+    min-width: 44px;
+  }
+  .graph-toolbar :is(.ibtn, .seg button),
+  .drawer button.pillbtn,
+  .files-page .btn,
+  .knowledge-content-actions .btn {
+    min-width: 44px;
+    min-height: 44px;
   }
   :is(.input, .textarea, .select) {
     font-size: 16px;
@@ -43,6 +53,11 @@
   }
   .pop .mi {
     min-height: 44px;
+  }
+}
+@media (max-width: 640px) {
+  .cal-g .cday {
+    padding-inline: 0;
   }
 }
 @media (max-width: 640px), (pointer: coarse) {
