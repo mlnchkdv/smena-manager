@@ -20,6 +20,7 @@ import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus } from '../ui/disclosure.js';
+import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -361,6 +362,7 @@ export function afterRender() {
   refreshThumbnails();
   selectMenu.close();
   enhanceSelects();
+  refreshBookmarkReading();
   positionActionMenus();
   placePop();
   revealActiveSetting();
