@@ -17,7 +17,7 @@ export function pageNotifications() {
   if (f === 'unread') ns = ns.filter(n => !n.read);
   const buckets = {};
   ns.forEach(n => (buckets[dayBucket(n.at)] ||= []).push(n));
-  return `<div class="page notifications-page" style="max-width:820px">
+  return `<div class="page notifications-page layout-reading">
     <div class="ph"><div><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent">${unread} unread</span>` : ''}</h1><p>Updates on tasks and projects you follow.</p></div>
       <div class="acts">${segmentedControl({
         label: 'Notification filter',

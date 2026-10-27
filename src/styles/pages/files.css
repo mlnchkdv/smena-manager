@@ -1,6 +1,6 @@
 .files-page {
   container: workspace-files / inline-size;
-  width: min(1500px, 100%);
+  width: min(var(--layout-catalog), 100%);
   margin: 0 auto;
   padding: 26px var(--gutter) 80px;
 }

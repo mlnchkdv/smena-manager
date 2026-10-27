@@ -3,6 +3,9 @@
    Light palette on bare :root; dark redefined (not inverted).
    ============================================================ */
 :root {
+  --layout-catalog: 1500px;
+  --layout-dashboard: 1400px;
+  --layout-reading: 820px;
   /* surfaces */
   --bg: #fbfaf8;
   --bg-side: #f4f3f0;

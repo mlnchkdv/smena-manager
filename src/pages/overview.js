@@ -20,7 +20,7 @@ export function pageOverview() {
     .map(m => ({ m, ts: all.filter(t => t.assignee === m.id && t.status !== 'done') }))
     .sort((a, b) => b.ts.length - a.ts.length);
   const maxL = Math.max(...load.map(l => l.ts.length), 1);
-  return `<div class="page">
+  return `<div class="page overview-page layout-dashboard">
     <div class="ph"><div><h1>Workspace overview</h1><p>Health of every project in ${esc(D().ws.name)}.</p></div><div class="acts"><button class="btn btn-secondary" data-a="go" data-r="timeline">${ic('chart-gantt', 14)}Timeline</button><button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}New project</button></div></div>
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><span class="k">Projects</span><span class="v">${ps.length}</span><span class="d">${ps.filter(p => p.status === 'complete').length} completed</span></div>

@@ -22,7 +22,7 @@ export function pageActivity() {
   if (who !== 'all') as = as.filter(a => a.by === who);
   const b = {};
   as.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
-  return `<div class="page" style="max-width:820px">
+  return `<div class="page activity-page layout-reading">
     <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div></div>
     <div class="row" style="gap:8px;margin-bottom:6px;flex-wrap:wrap">${segmentedControl({
       label: 'Activity filters',

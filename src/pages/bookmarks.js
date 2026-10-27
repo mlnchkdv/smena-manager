@@ -89,7 +89,7 @@ export function pageBookmarks() {
   const filtered = page.items;
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
-  return `<div class="bookmarks-page">
+  return `<div class="bookmarks-page layout-catalog">
 ${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and useful resources for the team.</p></div>${readOnly ? '' : `<div class="row"><button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button></div>`}`, 'bookmarks-head')}
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}

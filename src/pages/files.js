@@ -168,7 +168,7 @@ export function pageFiles(projectId = null) {
     S.ui.fileExportError ||
     S.ui.fileExports?.some(job => ['pending', 'processing', 'failed'].includes(job.phase));
 
-  return `<div class="files-page ${projectId ? 'project-files-page' : ''}" ${uploadProject ? `data-dropzone="${esc(uploadProject)}" data-folder="${esc(currentFolder?.id || '')}"` : ''}>
+  return `<div class="files-page layout-catalog ${projectId ? 'project-files-page' : ''}" ${uploadProject ? `data-dropzone="${esc(uploadProject)}" data-folder="${esc(currentFolder?.id || '')}"` : ''}>
     ${collectionHeader(
       `${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${totalSize}</span></div>` : `<div><h1>Files</h1><p><span>Total files</span>: ${allTotal} · ${totalSize}</p></div>`}
       ${

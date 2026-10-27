@@ -1,0 +1,14 @@
+/* Page purpose determines width; controls and content share the same gutters. */
+.layout-catalog {
+  width: 100%;
+  max-width: var(--layout-catalog);
+  margin-inline: auto;
+}
+.layout-dashboard {
+  width: 100%;
+  max-width: var(--layout-dashboard);
+}
+.layout-reading {
+  width: 100%;
+  max-width: var(--layout-reading);
+}

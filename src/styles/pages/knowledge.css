@@ -1157,7 +1157,7 @@
   padding: 24px clamp(18px, 4vw, 56px) 64px;
 }
 .knowledge-content {
-  width: min(1220px, 100%);
+  width: min(var(--layout-catalog), 100%);
   margin: 0 auto;
 }
 .knowledge-breadcrumbs {
