@@ -602,18 +602,9 @@
   font-size: var(--fs-xs);
   margin-bottom: 16px;
 }
-.knowledge-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
-}
 @media (max-width: 640px) {
   .knowledge-drawer-brand > span {
     display: none;
-  }
-  .knowledge-quick-actions .btn {
-    flex: 1 1 100%;
   }
   .knowledge-quick-content {
     font-size: var(--fs-sm);
