@@ -568,3 +568,79 @@
     overflow-wrap: anywhere;
   }
 }
+@media (max-width: 640px) {
+  .member-mobile-list {
+    display: grid;
+    gap: 10px;
+  }
+  .member-mobile-card {
+    padding: 12px;
+    min-width: 0;
+  }
+  .member-mobile-heading,
+  .member-mobile-open {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    text-align: left;
+  }
+  .member-mobile-open {
+    flex: 1;
+  }
+  .member-mobile-open > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .member-mobile-open small {
+    display: block;
+    color: var(--text-3);
+    margin-top: 3px;
+  }
+  .member-mobile-meta,
+  .portfolio-mobile-counts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-block: 8px;
+  }
+  .member-mobile-details > summary {
+    min-height: 44px;
+    padding-block: 12px;
+    cursor: pointer;
+    color: var(--text-2);
+  }
+  .member-mobile-details dl {
+    margin: 0;
+    font-size: var(--fs-sm);
+  }
+  .member-mobile-details dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-block: 6px;
+  }
+  .member-mobile-details dd {
+    margin: 0;
+    text-align: right;
+  }
+  .portfolio-mobile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border-top: 1px solid var(--divider);
+    text-align: left;
+  }
+  .portfolio-mobile-card .grow {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .portfolio-mobile-counts {
+    color: var(--text-2);
+    font-size: var(--fs-xs);
+    margin: 0;
+  }
+}

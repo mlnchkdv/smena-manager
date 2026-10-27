@@ -30,7 +30,8 @@ export function pageOverview() {
     </div>
     <div class="grid2">
       <section class="panel"><div class="panel-h"><h2>Portfolio</h2></div>
-        <div style="overflow-x:auto"><table class="perm-t" style="min-width:600px"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Lead</th><th style="text-align:left">Status</th><th style="text-align:left;width:22%">Progress</th><th>Open tasks</th><th>Overdue</th><th style="text-align:left">Due</th></tr></thead><tbody>
+        <div class="only-m portfolio-mobile-list">${ps.map(p => `<button class="portfolio-mobile-card" data-a="go" data-r="project" data-id="${esc(p.id)}" data-tab="overview"><span class="row">${pIcon(p, '', 14)}<b class="grow" translate="no">${esc(p.name)}</b>${pStatus(p.status)}</span><span class="row muted">${av(p.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(p.lead)?.name || '')}</span><span>${fmtDate(p.due)}</span></span><span class="row">${progBar(progressOf(p.id))}<span class="num">${progressOf(p.id)}%</span></span><span class="portfolio-mobile-counts"><span><span>Open tasks</span>: ${tasksOf(p.id).filter(t => t.status !== 'done').length}</span><span><span>Overdue</span>: ${tasksOf(p.id).filter(isOver).length}</span></span></button>`).join('')}</div>
+        <div class="hide-m" style="overflow-x:auto"><table class="perm-t" style="min-width:600px"><thead><tr><th style="padding-left:14px">Project</th><th style="text-align:left">Lead</th><th style="text-align:left">Status</th><th style="text-align:left;width:22%">Progress</th><th>Open tasks</th><th>Overdue</th><th style="text-align:left">Due</th></tr></thead><tbody>
         ${ps
           .map(p => {
             const ts = tasksOf(p.id);
