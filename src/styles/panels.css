@@ -145,14 +145,14 @@
 .nrow:hover {
   background: var(--surface-2);
 }
-/* Inbox list works as a secondary sidebar: no visible scrollbar (it narrowed the rows), and the
-   tab labels start on the gutter with tighter spacing so all five categories fit without clipping. */
+/* Inbox has one scrolling content region; its heading and horizontal tabs never shrink. */
 .inbox-heading {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 12px;
   padding: 12px var(--gutter) 0;
+  flex: 0 0 auto;
 }
 .inbox-heading h1 {
   margin: 0;
@@ -172,7 +172,7 @@
   color: var(--text-2);
   gap: 6px;
   cursor: pointer;
-  min-height: 44px;
+  min-height: var(--control-target);
 }
 .inbox-list {
   overflow-y: auto;
@@ -185,12 +185,16 @@
   display: none;
 }
 .inbox-tabs {
-  margin-top: 8px;
-  padding: 0 var(--gutter);
-  gap: 16px;
+  margin-top: 4px;
+  padding: 0 var(--gutter) 4px;
+  gap: 14px;
+  flex: 0 0 auto;
+  overflow-y: hidden;
+  scroll-padding-inline: var(--gutter);
 }
 .inbox-tabs .tab {
   padding: 0;
+  flex: 0 0 auto;
 }
 .inbox-tabs .tab.on::after {
   left: 0;

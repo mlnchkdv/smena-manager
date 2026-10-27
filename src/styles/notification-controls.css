@@ -57,6 +57,17 @@
   flex-wrap: wrap;
   gap: 6px;
 }
+@media (min-width: 901px) {
+  .notification-open {
+    padding-block: 8px;
+  }
+  .notification-meta {
+    margin-top: 3px;
+  }
+  .notification-item > .notification-read {
+    margin-top: 4px;
+  }
+}
 @media (max-width: 640px), (pointer: coarse) {
   .notification-item > .notification-read {
     min-width: var(--control-target);
