@@ -57,6 +57,25 @@
   flex-wrap: wrap;
   gap: 6px;
 }
+.notifications-page .ph {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.notifications-page .ph .acts {
+  width: 100%;
+  margin-left: 0;
+}
+.notifications-page .ph .acts > .seg {
+  margin-right: auto;
+}
+@media (max-width: 640px) {
+  .notifications-page .ph .acts > .btn {
+    height: auto;
+    padding-block: 6px;
+    white-space: normal;
+    flex: 1 1 120px;
+  }
+}
 @media (min-width: 901px) {
   .notification-open {
     padding-block: 8px;

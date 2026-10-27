@@ -27,6 +27,48 @@
   overflow-wrap: anywhere;
   min-width: 0;
 }
+@media (min-width: 901px) {
+  :is(.home-page, .notifications-page) {
+    padding-top: 18px;
+  }
+  .home-page .ph {
+    margin-bottom: 12px;
+  }
+  .home-view-switch,
+  .home-team-summary {
+    margin-bottom: 8px;
+  }
+  .home-team-summary > summary {
+    min-height: 28px;
+    padding-block: 4px;
+  }
+  .home-task-panel > .empty-state.sm {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    text-align: left;
+    padding: 14px;
+    gap: 4px 10px;
+  }
+  .home-task-panel > .empty-state > .glyph {
+    grid-area: 1 / 1 / 3 / 2;
+    margin: 0;
+  }
+  .home-task-panel > .empty-state > .es-h {
+    grid-area: 1 / 2;
+  }
+  .home-task-panel > .empty-state > p {
+    grid-area: 2 / 2;
+    margin: 0;
+  }
+  .home-task-panel > .empty-state > .btn {
+    grid-area: 1 / 3 / 3 / 4;
+    max-width: 170px;
+    white-space: normal;
+    height: auto;
+    min-height: 32px;
+    padding: 6px 10px;
+  }
+}
 @media (max-width: 640px) {
   .home-task-tabs {
     display: grid;

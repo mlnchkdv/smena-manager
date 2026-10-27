@@ -809,6 +809,8 @@ const RU = {
   'Nothing due': 'Нет задач со сроком',
   'No tasks': 'Нет задач',
   'No tasks here': 'Здесь пока нет задач',
+  'Nothing overdue': 'Нет просроченных задач',
+  'Every task assigned to you is on schedule.': 'Все назначенные вам задачи идут по плану.',
   'No assignee': 'Без исполнителя',
   '(unassigned)': '(исполнитель снят)',
   '(cleared)': '(очищено)',

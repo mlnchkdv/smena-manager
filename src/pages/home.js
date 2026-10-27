@@ -58,7 +58,7 @@ export function pageHome() {
     </div></details>
     <div class="grid2">
       <div class="stack">
-        <section class="panel" aria-labelledby="h-mytasks">
+        <section class="panel home-task-panel" aria-labelledby="h-mytasks">
           <div class="panel-h"><h2 id="h-mytasks">My tasks</h2>
             <div class="acts"><div class="seg home-task-tabs" role="tablist" aria-labelledby="h-mytasks">${[
               ['upcoming', 'Upcoming'],

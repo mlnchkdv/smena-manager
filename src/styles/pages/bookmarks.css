@@ -3,7 +3,7 @@
    ============================================================ */
 .bookmarks-page {
   min-height: 100%;
-  padding: 28px clamp(20px, 4vw, 56px) 88px;
+  padding: 18px clamp(20px, 4vw, 56px) 88px;
   background: var(--bg);
 }
 .bookmarks-head {
