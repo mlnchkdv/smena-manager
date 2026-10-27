@@ -51,7 +51,7 @@ export function placePop() {
     height: vv?.height || innerHeight,
   };
   const heightCap = p.type === 'user' ? 560 : 420;
-  el.style.maxHeight = `${Math.max(120, Math.min(heightCap, viewport.height - 16))}px`;
+  el.style.maxHeight = `${Math.max(0, Math.min(heightCap, viewport.height - 16))}px`;
   const w = el.offsetWidth,
     h = el.offsetHeight;
   let x = p.x,

@@ -510,6 +510,10 @@
   border-bottom: 1px solid var(--divider);
   margin: -4px -4px 4px;
   padding: 8px;
+  position: sticky;
+  top: -4px;
+  z-index: 1;
+  background: var(--surface);
 }
 .pop .pin input {
   border: 0;
@@ -518,6 +522,13 @@
   width: 100%;
   font-size: var(--fs);
   padding: 0 4px;
+  min-height: 32px;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .pop .pin input {
+    min-height: var(--control-target);
+    font-size: var(--control-input-font);
+  }
 }
 .mi {
   display: flex;
