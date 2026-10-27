@@ -59,8 +59,8 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .notification-item > .notification-read {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
     margin-top: 4px;
   }
 }

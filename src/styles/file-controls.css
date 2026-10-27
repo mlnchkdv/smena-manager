@@ -209,7 +209,7 @@
 @media (max-width: 640px), (pointer: coarse) {
   .workspace-file-location > summary,
   .workspace-file-location > div > button {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
 .workspace-file-card.textual .workspace-file-open {
@@ -265,11 +265,11 @@
 @media (max-width: 640px), (pointer: coarse) {
   .workspace-file-card.textual > .file-select,
   .workspace-file-card.textual .workspace-file-card-foot .ibtn {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
   .workspace-file-card.textual .workspace-file-card-context > button {
-    min-height: 44px;
+    min-height: var(--control-target);
     max-width: 130px;
   }
 }

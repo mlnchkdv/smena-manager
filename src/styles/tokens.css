@@ -84,6 +84,9 @@
   --h-sm: 26px;
   --h-md: 30px;
   --h-lg: 36px;
+  /* Dense laptop controls; narrow layouts retain larger touch targets. */
+  --control-target: 32px;
+  --control-input-font: var(--fs);
   --side-w: 252px;
   --side-row: 30px;
   --row-h: 40px;
@@ -101,6 +104,12 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur: 140ms;
   color-scheme: light;
+}
+@media (max-width: 900px) {
+  :root {
+    --control-target: 44px;
+    --control-input-font: 16px;
+  }
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {

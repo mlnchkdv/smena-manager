@@ -71,10 +71,10 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .material-location > summary {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .knowledge-preview-location {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
 .knowledge-note-location {

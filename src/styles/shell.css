@@ -245,14 +245,14 @@ svg.logo {
 @media (max-width: 640px), (pointer: coarse) {
   .sproject-expand,
   .sproject-options {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
   .sproject-options {
     opacity: 1;
   }
   .sproject-link {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
 .sitem .pico,

@@ -12,32 +12,32 @@
   .task-table-open,
   .member-mobile-open,
   .home-page .mini-task-open {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   .home-page .mini {
     min-height: 52px;
     height: auto;
   }
   :is(.btn, .ibtn, .seg button, .tab, .select, .input, .badge[data-a], button.pillbtn, .ui-menu > summary, .cal-day-open) {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
   :is(.btn, .ibtn, .seg button, button.pillbtn, .ui-menu > summary) {
-    min-width: 44px;
+    min-width: var(--control-target);
     flex-shrink: 0;
   }
   .cal-day-open {
-    min-width: 44px;
+    min-width: var(--control-target);
   }
   .graph-toolbar :is(.ibtn, .seg button),
   .ui-menu > div > button,
   .drawer button.pillbtn,
   .files-page .btn,
   .knowledge-content-actions .btn {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
   :is(.input, .textarea, .select) {
-    font-size: 16px;
+    font-size: var(--control-input-font);
   }
   :is(.ph .acts, .page-head, .toolbar) {
     flex-wrap: wrap;
@@ -47,15 +47,15 @@
     flex-wrap: wrap;
   }
   .knowledge-note-select {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
   .nrow > .ibtn {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
   .pop .mi {
-    min-height: 44px;
+    min-height: var(--control-target);
   }
 }
 @media (max-width: 640px) {
@@ -65,8 +65,8 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .drawer .task-completion-action {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
     flex-shrink: 0;
   }
 }

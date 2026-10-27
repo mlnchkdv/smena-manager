@@ -106,8 +106,8 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .knowledge-selection-start {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--control-target);
+    min-height: var(--control-target);
   }
 }
 .knowledge-content-toolbar .knowledge-main-search {
