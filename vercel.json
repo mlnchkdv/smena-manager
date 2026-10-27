@@ -16,7 +16,12 @@
   "headers": [
     {
       "source": "/app-version.json",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
     },
     {
       "source": "/(.*)",
@@ -57,5 +62,6 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "ignoreCommand": "node scripts/ignore-docs-build.js"
 }

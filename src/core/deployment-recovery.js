@@ -1,3 +1,4 @@
+import { A } from '../actions/actions.js';
 import { S } from './store.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './workspace-sync.js';
 import { personalPreferenceSyncState } from './personal-preferences.js';
@@ -28,6 +29,13 @@ export function installDeploymentRecovery(buildId) {
       loading: S.ui.loading,
       authBusy: S.ui.authBusy,
     });
+  A.reviewAppUpdate = () => {
+    deferred = false;
+    paint();
+    void check();
+    root.scrollIntoView({ block: 'nearest' });
+    root.querySelector('button')?.focus({ preventScroll: true });
+  };
   function paint() {
     if (Boolean(S.ui.deploymentChanged) !== changed) {
       S.ui.deploymentChanged = changed;
