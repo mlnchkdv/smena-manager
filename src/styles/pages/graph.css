@@ -14,10 +14,78 @@
   display: none;
 }
 .graph-page.is-focused {
-  padding: 12px;
+  padding: 8px;
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
 }
 .graph-page.is-focused #knowledge-graph-canvas {
-  height: max(260px, calc(100dvh - 240px));
+  height: 100%;
+  min-height: 0;
+}
+.graph-page.is-focused :is(.graph-head, .graph-toolbar) {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.graph-page.is-focused :is(.graph-head p, .graph-meta, .graph-help, .graph-export) {
+  display: none;
+}
+.graph-page.is-focused .graph-filter-panel {
+  flex: 0 0 auto;
+  max-height: 30dvh;
+  overflow: auto;
+  margin: 0;
+}
+.graph-page.is-focused .graph-layout {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+.graph-page.is-focused .graph-stage {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
+.graph-page.is-focused .graph-stage:has(.graph-list) {
+  display: block;
+}
+.graph-page.is-focused .graph-list {
+  height: 100%;
+  overflow-y: auto;
+}
+.graph-page.is-focused .graph-detail {
+  min-height: 0;
+  max-height: 100%;
+}
+.graph-page.is-focused .graph-touch-control {
+  top: auto;
+  bottom: 8px;
+}
+@media (max-width: 900px) {
+  .graph-page.is-focused .graph-layout.has-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .graph-page.is-focused .graph-detail {
+    position: absolute;
+    inset: auto 8px 8px;
+    max-height: 45%;
+    z-index: 3;
+  }
+}
+@media (max-height: 500px) {
+  .graph-page.is-focused .graph-head h1 {
+    font-size: var(--fs-lg);
+  }
+  .graph-page.is-focused .graph-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  .graph-page.is-focused .graph-search {
+    grid-column: auto;
+  }
 }
 @media (max-width: 640px), (pointer: coarse) {
   .graph-help-pointer {
