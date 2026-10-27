@@ -5,7 +5,7 @@ import { empty } from '../ui/helpers.js';
 import { relationsPanel } from '../ui/relations.js';
 import { bookmarkContextPage, bookmarkView } from '../shared/bookmark-view.js';
 import { paginationHtml } from '../ui/pagination.js';
-import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
+import { collectionHeader, collectionToolbar, collectionOptions } from '../ui/collection-layout.js';
 import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { uiCount } from '../core/i18n.js';
@@ -90,13 +90,14 @@ export function pageBookmarks() {
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
   return `<div class="bookmarks-page">
-${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and useful resources for the team.</p></div>${readOnly ? '' : `<div class="row"><button class="btn btn-secondary" data-a="newBookmarkFolder">${ic('folder-plus', 14)}New folder</button><button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button></div>`}`, 'bookmarks-head')}
+${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and useful resources for the team.</p></div>${readOnly ? '' : `<div class="row"><button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button></div>`}`, 'bookmarks-head')}
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     ${collectionToolbar(
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
-      <label class="sr" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
+      ${collectionOptions(
+        `<label class="label" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',
@@ -105,7 +106,9 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p>Shared links, references, and usef
           ['active', 'Active'],
           ['archived', 'Archived'],
         ],
-      })}
+      })}${readOnly ? '' : `<button class="btn btn-secondary" data-a="newBookmarkFolder">${ic('folder-plus', 14)}New folder</button>`}`,
+        { key: 'bookmarks', label: 'Bookmark filters', active: folderFilter !== 'all' || scope !== 'active' },
+      )}
     `,
       'Bookmark filters',
       'bookmark-toolbar',

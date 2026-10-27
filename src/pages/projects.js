@@ -6,6 +6,7 @@ import { D, S, TM, canSee, mem, progressOf, tasksOf, visibleProjects } from '../
 import { recordedActivityIndex, compareProjectActivity } from '../shared/recorded-activity.js';
 import { locale, t } from '../core/i18n.js';
 import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
+import { collectionOptions } from '../ui/collection-layout.js';
 
 const activityLabel = at => (at ? ago(at) : t('Activity unavailable'));
 export function projectCard(p, at) {
@@ -60,14 +61,15 @@ export function pageProjects() {
     </tbody></table></div>`;
   return `<div class="page wide">
     <div class="ph"><div><h1>Projects</h1><p>${visibleProjects().filter(p => p.status !== 'complete').length} active · ${visibleProjects().filter(p => p.status === 'complete').length} completed</p></div><div class="acts"><button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}New project</button></div></div>
-    <div class="row" style="margin-bottom:16px;flex-wrap:wrap;gap:8px">
+    <div class="row project-catalog-toolbar">
       <div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="proj-q" data-in="projQ" placeholder="Search projects" value="${esc(u.projQ || '')}" aria-label="Search projects"></div>
-      <select class="select" style="height:26px;width:auto;font-size:12px" data-in="projStatus" aria-label="Filter by status"><option value="all">All statuses</option>${Object.entries(
-        PSTAT,
-      )
-        .map(([k, v]) => `<option value="${k}" ${st === k ? 'selected' : ''}>${v.name}</option>`)
-        .join('')}</select>
-      <select class="select" style="height:26px;width:auto;font-size:12px" data-in="projSort" aria-label="Sort">${[
+      ${collectionOptions(
+        `<label class="label" for="project-status-filter">Filter by status</label><select id="project-status-filter" class="select" data-in="projStatus" aria-label="Filter by status"><option value="all">All statuses</option>${Object.entries(
+          PSTAT,
+        )
+          .map(([k, v]) => `<option value="${k}" ${st === k ? 'selected' : ''}>${v.name}</option>`)
+          .join('')}</select>
+      <label class="label" for="project-sort">Sort</label><select id="project-sort" class="select" data-in="projSort" aria-label="Sort">${[
         ['recent', 'Recently active'],
         ['name', 'Name'],
         ['due', 'Due date'],
@@ -75,17 +77,18 @@ export function pageProjects() {
       ]
         .map(([k, n]) => `<option value="${k}" ${sort === k ? 'selected' : ''}>${n}</option>`)
         .join('')}</select>
-      <span class="sp"></span>
-      <div class="seg" role="tablist" aria-label="Layout">${[
+      <div class="seg" role="group" aria-label="Layout">${[
         ['grid', 'Grid', 'layout-grid'],
         ['list', 'List', 'list'],
         ['table', 'Table', 'table-2'],
       ]
         .map(
           ([k, n, i]) =>
-            `<button role="tab" aria-selected="${view === k}" class="${view === k ? 'on' : ''}" data-a="set" data-k="projView" data-v="${k}">${ic(i, 13)}<span class="hide-m">${n}</span></button>`,
+            `<button aria-label="${n}" title="${n}" aria-pressed="${view === k}" class="${view === k ? 'on' : ''}" data-a="set" data-k="projView" data-v="${k}">${ic(i, 13)}<span>${n}</span></button>`,
         )
-        .join('')}</div>
+        .join('')}</div>`,
+        { key: 'projects', label: 'Project filters and view', active: st !== 'all' || sort !== 'recent' || view !== 'grid' },
+      )}
     </div>
     ${body}
   </div>`;

@@ -9,22 +9,27 @@ import { timelineMilestones } from '../shared/timeline-scope.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { timelineAnchorPage, timelineContextKey } from '../shared/timeline-page.js';
+import { collectionOptions } from '../ui/collection-layout.js';
 
 export const timelineListMode = () =>
   S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
 const listMode = timelineListMode;
 
-export function tlControls() {
-  return `<div class="seg" role="group" aria-label="Timeline presentation"><button class="${listMode() ? 'on' : ''}" aria-pressed="${listMode()}" data-a="set" data-k="tlPresentation" data-v="list">List</button><button class="${!listMode() ? 'on' : ''}" aria-pressed="${!listMode()}" data-a="set" data-k="tlPresentation" data-v="chart">Timeline</button></div><input type="date" class="input tl-date-picker" data-in="tlAnchor" value="${S.ui.tlAnchor || iso(TODAY)}" aria-label="Focus date"><div class="seg" style="margin-left:4px;${listMode() ? 'display:none' : ''}">${[
-    ['week', 'Weeks'],
-    ['month', 'Months'],
-  ]
-    .map(([k, n]) => `<button class="${S.ui.tlZoom === k ? 'on' : ''}" data-a="set" data-k="tlZoom" data-v="${k}">${n}</button>`)
-    .join('')}</div>
-  ${
+export function tlControls(key = 'timeline') {
+  const options = `<div class="seg" role="group" aria-label="Timeline presentation"><button class="${listMode() ? 'on' : ''}" aria-pressed="${listMode()}" data-a="set" data-k="tlPresentation" data-v="list">List</button><button class="${!listMode() ? 'on' : ''}" aria-pressed="${!listMode()}" data-a="set" data-k="tlPresentation" data-v="chart">Timeline</button></div>${
     listMode()
       ? ''
-      : `<select class="select" style="height:26px;width:auto;font-size:12px;margin-left:4px" data-in="tlGroup" aria-label="Group by">${[
+      : `<div class="seg" role="group" aria-label="Timeline scale">${[
+          ['week', 'Weeks'],
+          ['month', 'Months'],
+        ]
+          .map(
+            ([k, n]) =>
+              `<button class="${S.ui.tlZoom === k ? 'on' : ''}" aria-pressed="${S.ui.tlZoom === k}" data-a="set" data-k="tlZoom" data-v="${k}">${n}</button>`,
+          )
+          .join(
+            '',
+          )}</div><label class="label" for="timeline-group">Group by</label><select id="timeline-group" class="select" data-in="tlGroup" aria-label="Group by">${[
           ['status', 'Status'],
           ['assignee', 'Assignee'],
           ['project', 'Project'],
@@ -32,8 +37,8 @@ export function tlControls() {
         ]
           .map(([k, n]) => `<option value="${k}" ${S.ui.tlGroup === k ? 'selected' : ''}>${n}</option>`)
           .join('')}</select>`
-  }
-  <button class="btn btn-ghost" data-a="tlToday">${ic('crosshair', 14)}Today</button>`;
+  }`;
+  return `${collectionOptions(options, { key: `timeline:${key}`, label: 'Timeline view', active: !listMode() && S.ui.tlZoom === 'month' })}<input type="date" class="input tl-date-picker" data-in="tlAnchor" value="${S.ui.tlAnchor || iso(TODAY)}" aria-label="Focus date"><button class="btn btn-ghost" data-a="tlToday" aria-label="Today" title="Today">${ic('crosshair', 14)}<span class="hide-m">Today</span></button>`;
 }
 export function timelineHtml(ts, key, p) {
   if (listMode()) {

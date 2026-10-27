@@ -1,4 +1,100 @@
 /* The saved content-density preference changes whitespace, never font or hit size. */
+.collection-options {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 8;
+}
+.collection-options > summary {
+  list-style: none;
+}
+.collection-options > summary > .pdot {
+  background: var(--accent);
+}
+.collection-options-body {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(300px, calc(100vw - 40px));
+  max-height: 60dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.collection-options-body .seg {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: stretch;
+}
+.collection-options-body :is(.select, .label) {
+  width: 100%;
+  margin: 0;
+}
+.project-catalog-toolbar {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.project-catalog-toolbar > .inwrap,
+.bookmarks-page .bookmark-toolbar > .bookmark-search {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+.bookmarks-page .bookmark-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.bookmarks-page .bookmark-summary {
+  gap: 6px 12px;
+  margin-bottom: 12px;
+}
+.bookmarks-page .bookmark-summary span {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.toolbar:has(.tl-date-picker) {
+  position: relative;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.toolbar:has(.tl-date-picker) > .collection-options {
+  position: static;
+}
+.toolbar:has(.tl-date-picker) .collection-options-body {
+  right: var(--gutter);
+}
+.toolbar:has(.tl-date-picker) > .inwrap {
+  flex: 1 1 170px;
+  min-width: 0;
+  max-width: 260px;
+}
+.toolbar:has(.tl-date-picker) > .inwrap .input {
+  width: 100%;
+}
+.tl-date-picker {
+  width: 150px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+@media (max-width: 640px) {
+  .project-catalog-toolbar > .inwrap .input {
+    width: 100%;
+  }
+  .toolbar:has(.tl-date-picker) > .collection-options {
+    margin-left: auto;
+  }
+}
 :root[data-density='compact'] :is(.knowledge-preview-grid, .bookmark-grid, .workspace-file-grid) {
   gap: 8px;
 }
