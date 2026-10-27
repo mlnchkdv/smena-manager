@@ -295,3 +295,27 @@
     margin-bottom: 8px;
   }
 }
+
+.inbox-feed {
+  container: inbox-feed / inline-size;
+  min-width: 0;
+}
+.inbox-category-picker {
+  display: none;
+  padding: 6px var(--gutter) 8px;
+}
+.inbox-tabs .tab {
+  min-width: 28px;
+}
+@container inbox-feed (max-width: 520px) {
+  .inbox-category-picker {
+    display: block;
+  }
+  .inbox-category-picker .select {
+    width: 100%;
+    min-height: 44px;
+  }
+  .inbox-tabs {
+    display: none;
+  }
+}

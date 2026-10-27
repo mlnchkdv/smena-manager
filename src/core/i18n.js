@@ -99,6 +99,7 @@ const RU = {
   Later: 'Позже',
   'Search all folders': 'Искать во всех папках',
   'File operations': 'Операции с файлами',
+  'Inbox category': 'Категория входящих',
   'Inbox categories': 'Категории входящих',
   'Earlier system events': 'Предыдущие системные события',
   'Focus connections': 'Приблизить связи',
