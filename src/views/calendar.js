@@ -9,6 +9,7 @@ import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { calendarDayItems } from '../shared/calendar-items.js';
 import { t } from '../core/i18n.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 
 export function calendarHtml(ts, opt = {}) {
@@ -31,12 +32,12 @@ export function calendarHtml(ts, opt = {}) {
     const dates = Array.from({ length: new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate() }, (_, i) =>
       iso(new Date(cur.getFullYear(), cur.getMonth(), i + 1)),
     );
-    body = `<div class="cal-agenda">${
-      dates
-        .filter(ds => itemsOn(ds).length)
-        .map(ds => `<section><h3>${fmtDate(ds, true)}</h3>${itemsOn(ds).map(chip).join('')}</section>`)
-        .join('') || '<p class="empty">No scheduled items this month.</p>'
-    }</div>`;
+    const scheduled = dates.filter(ds => itemsOn(ds).length);
+    const target = S.ui.calAgendaAnchor ? scheduled.find(ds => ds >= S.ui.calAgendaAnchor) || scheduled.at(-1) : null;
+    const day = ds =>
+      `<section data-cal-date="${ds}" ${target === ds ? 'data-calendar-anchor tabindex="-1"' : ''}>${target === ds && ds !== S.ui.calAgendaAnchor ? `<p class="hint" role="status">${ds > S.ui.calAgendaAnchor ? 'Next scheduled day' : 'No later items. Showing the nearest earlier items.'}</p>` : ''}<h3>${fmtDate(ds, true)}</h3>${itemsOn(ds).map(chip).join('')}</section>`;
+    const earlier = target ? scheduled.filter(ds => ds < target) : [];
+    body = `<div class="cal-agenda">${earlier.length ? `<details class="cal-agenda-earlier" ${disclosureAttributes('calendar-earlier:' + S.ui.calDate)}><summary><span>Earlier days</span> · ${earlier.length}</summary>${earlier.map(day).join('')}</details>` : ''}${(target ? scheduled.filter(ds => ds >= target) : scheduled).map(day).join('') || '<p class="empty" role="status">No scheduled items this month.</p>'}</div>`;
   } else if (mode === 'month') {
     label = `${MONL[cur.getMonth()]} ${cur.getFullYear()}`;
     const first = new Date(cur.getFullYear(), cur.getMonth(), 1);

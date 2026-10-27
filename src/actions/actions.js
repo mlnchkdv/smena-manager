@@ -2324,8 +2324,14 @@ A.colSortPrio = el => {
 A.calNav = el => {
   const d = +el.dataset.d;
   const cur = parse(S.ui.calDate);
+  S.ui.calAgendaAnchor = d === 0 ? iso(TODAY) : null;
   S.ui.calDate = d === 0 ? iso(TODAY) : S.ui.calMode !== 'week' ? iso(new Date(cur.getFullYear(), cur.getMonth() + d, 1)) : iso(addD(cur, d * 7));
   render();
+  if (d === 0 && S.ui.calMode === 'agenda') {
+    const target = document.querySelector('[data-calendar-anchor]');
+    target?.scrollIntoView({ block: 'start' });
+    target?.focus({ preventScroll: true });
+  }
 };
 A.tlToday = () => {
   S.ui.tlAnchor = iso(TODAY);

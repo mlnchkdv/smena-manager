@@ -309,3 +309,16 @@
     flex: 1;
   }
 }
+
+.cal-agenda-earlier {
+  margin-bottom: 12px;
+}
+.cal-agenda-earlier > summary {
+  padding-block: 8px;
+  min-height: var(--control-target);
+  cursor: pointer;
+  color: var(--text-2);
+}
+.cal-agenda-earlier[open] > summary {
+  margin-bottom: 12px;
+}

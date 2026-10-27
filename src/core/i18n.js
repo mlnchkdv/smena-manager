@@ -23,6 +23,8 @@ const RU = {
   'Recorded activity': 'Зафиксированная активность',
   'Last recorded activity': 'Последняя зафиксированная активность',
   'Current session': 'Текущая сессия',
+  'Earlier days': 'Предыдущие дни',
+  'Next scheduled day': 'Ближайший день с событиями',
   'Calendar view': 'Вид календаря',
   'Locate material': 'Найти на графе',
   'Choose material': 'Выберите материал',
