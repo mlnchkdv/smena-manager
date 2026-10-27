@@ -3,6 +3,7 @@
    ===================================================================== */
 import { $, $$, TODAY, addD, dOff, diffD, esc, fmtDate, fmtTimestamp, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
+import { resetSearchSession } from '../core/search-history.js';
 import { seed } from '../data/seed.js';
 import {
   D,
@@ -3159,6 +3160,7 @@ A.newWorkspace = () => {
   render();
 };
 A.signOut = () => {
+  resetSearchSession();
   void revokeCurrentAuthSession().catch(() => undefined);
   clearSession();
   disableWorkspaceSync();

@@ -1,3 +1,4 @@
+import { resetSearchSession } from './search-history.js';
 import {
   clearSession,
   getAuthConfig,
@@ -98,6 +99,7 @@ async function loadWorkspaceFor(user) {
   } else {
     S.ui.needsOnboarding = false;
   }
+  resetSearchSession();
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
   Object.assign(S.prefs, DEFAULT_PREFS, personal.preferences);

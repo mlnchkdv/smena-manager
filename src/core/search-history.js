@@ -14,3 +14,9 @@ export function rememberSearch(query) {
   writeSearchHistory(storage(), key(), [query, ...recentSearches().filter(value => value !== query)]);
 }
 export const clearSearchHistory = () => writeSearchHistory(storage(), key(), []);
+export function resetSearchSession() {
+  S.ui.searchQ = '';
+  S.ui.searchCat = 'all';
+  S.ui.searchOffsets = {};
+  S.ui.searchPageContext = null;
+}
