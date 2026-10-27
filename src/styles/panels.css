@@ -123,6 +123,33 @@
 }
 /* Inbox list works as a secondary sidebar: no visible scrollbar (it narrowed the rows), and the
    tab labels start on the gutter with tighter spacing so all five categories fit without clipping. */
+.inbox-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 12px var(--gutter) 0;
+}
+.inbox-heading h1 {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.inbox-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+.inbox-heading-actions label {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  gap: 6px;
+  cursor: pointer;
+  min-height: 44px;
+}
 .inbox-list {
   overflow-y: auto;
   flex: 1;
