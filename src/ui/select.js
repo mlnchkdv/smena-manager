@@ -100,20 +100,44 @@ export const selectMenu = {
       e.stopPropagation();
       this.pick(+it.dataset.i);
     });
+    let searchPrefix = '';
+    let lastTyped = 0;
     menu.addEventListener('keydown', e => {
       const items = [...menu.querySelectorAll('.mi:not(:disabled)')];
       const i = items.indexOf(document.activeElement);
+      const typing = e.target.matches('input,textarea,[contenteditable="true"]');
       if (e.key === 'ArrowDown') {
         e.preventDefault();
+        e.stopPropagation();
         items[Math.min(items.length - 1, i + 1)]?.focus();
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
+        e.stopPropagation();
         items[Math.max(0, i - 1)]?.focus();
+      } else if (!typing && (e.key === 'Home' || e.key === 'End')) {
+        e.preventDefault();
+        e.stopPropagation();
+        items[e.key === 'Home' ? 0 : items.length - 1]?.focus();
+        searchPrefix = '';
       } else if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
         this.close(true);
       } else if (e.key === 'Tab') this.close();
+      else if (!typing && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key !== ' ' || searchPrefix)) {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = e.key.toLocaleLowerCase();
+        const now = performance.now();
+        searchPrefix = now - lastTyped > 700 ? key : searchPrefix + key;
+        lastTyped = now;
+        const repeated = [...searchPrefix].every(char => char === key);
+        const query = repeated ? key : searchPrefix;
+        const start = repeated ? i + 1 : Math.max(0, i);
+        Array.from({ length: items.length }, (_, offset) => items[(start + offset) % items.length])
+          .find(item => item.querySelector('.grow').textContent.trim().toLocaleLowerCase().startsWith(query))
+          ?.focus();
+      }
     });
     Object.assign(this, { el: menu, sel, btn });
     this.position();
