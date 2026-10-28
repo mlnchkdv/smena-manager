@@ -38,6 +38,11 @@
 .knowledge-format-toggle {
   display: none;
 }
+.knowledge-editor .knowledge-body.is-short-editor {
+  min-height: 96px;
+  height: var(--knowledge-editor-height, 160px);
+  max-height: var(--knowledge-editor-height, 160px);
+}
 @media (max-height: 500px), (max-width: 640px) {
   .knowledge-drawer .knowledge-drawer-body {
     padding: 12px 16px 24px;
