@@ -2,12 +2,12 @@
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
-import { D, S, allTasks, pColor, proj, task } from '../core/store.js';
+import { D, S, allTasks, canSee, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { recentSearches, rememberSearch } from '../core/search-history.js';
 import { FT, av, hl, stIcon } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
-import { sortTasks } from '../shell/view-engine.js';
+import { sortTasks, viewOf } from '../shell/view-engine.js';
 import { searchAll } from '../core/search.js';
 import { t as tr } from '../core/i18n.js';
 import { openModal } from './modals.js';
@@ -103,6 +103,18 @@ export function paletteItems() {
   const sc = pl.mode === 'search' ? pl.scope : 'all';
   const lim = sc === 'all' ? 4 : 12;
   if (pl.mode === 'search' && !q) {
+    const projects = visibleProjects().filter(canSee);
+    const project = projects.find(project => S.ui.route === 'project' && project.id === S.ui.params.id) || projects[0];
+    const openProject = (tab, highPriority = false) => {
+      const current = project && proj(project.id);
+      if (!current || current.archived || !canSee(current)) return go('projects');
+      if (highPriority) {
+        const view = viewOf('p:' + current.id);
+        view.q = '';
+        view.filters = [{ f: 'priority', op: 'is', v: ['urgent', 'high'] }];
+      }
+      go('project', { id: current.id, tab });
+    };
     groups.push({
       name: 'Recent searches',
       items: recentSearches().map(s => ({
@@ -120,14 +132,12 @@ export function paletteItems() {
       items: [
         { icon: 'clock-alert', name: 'Overdue tasks', run: () => A.goTasks({ dataset: { f: 'overdue' } }) },
         { icon: 'user', name: 'Tasks assigned to me', run: () => go('mytasks') },
-        {
-          icon: 'signal-high',
-          name: 'High priority in Website Redesign',
-          run: () => {
-            go('project', { id: 'p1', tab: 'v:v1' });
-          },
-        },
-        { icon: 'paperclip', name: 'Files in Website Redesign', run: () => go('project', { id: 'p1', tab: 'files' }) },
+        ...(project
+          ? [
+              { icon: 'signal-high', name: `${tr('High priority in')} ${project.name}`, authoredName: true, run: () => openProject('list', true) },
+              { icon: 'paperclip', name: `${tr('Files in')} ${project.name}`, authoredName: true, run: () => openProject('files') },
+            ]
+          : []),
       ],
     });
     return groups;
@@ -247,7 +257,7 @@ export function paletteHtml() {
                 `<div class="pal-group">${g.name ? `<div class="pal-sec">${g.name}</div>` : ''}${g.items
                   .map(it => {
                     const i = idx++;
-                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="trunc">${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}<span class="r">${it.r ? `<span class="mono">${esc(it.r)}</span>` : ''}${
+                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}<span class="r">${it.r ? `<span class="mono">${esc(it.r)}</span>` : ''}${
                       it.kbd
                         ? it.kbd
                             .split(' ')
