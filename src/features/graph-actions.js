@@ -24,6 +24,11 @@ IN.graphQuery = el => {
   S.ui.graphQuery = el.value;
   render();
 };
+A.clearGraphQuery = () => {
+  S.ui.graphQuery = '';
+  render();
+  document.getElementById('graph-search')?.focus({ preventScroll: true });
+};
 IN.graphLocate = el => {
   S.ui.graphSelected = el.value;
   S.ui.graphSelectionClosed = !el.value;

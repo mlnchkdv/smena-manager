@@ -2,6 +2,33 @@
   padding: 24px clamp(16px, 3vw, 40px) 90px;
   min-width: 0;
 }
+.graph-search {
+  position: relative;
+}
+.graph-search:has(.graph-search-clear) .input {
+  padding-right: 44px;
+}
+.graph-search-clear {
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.graph-pending {
+  display: grid;
+  place-items: center;
+  min-height: min(360px, 45dvh);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+.graph-pending .graph-query-status {
+  margin: 16px;
+}
+.graph-page.is-focused .graph-pending {
+  flex: 1;
+  min-height: 0;
+}
 .graph-touch-control,
 .graph-help-touch {
   display: none;

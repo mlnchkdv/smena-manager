@@ -197,6 +197,11 @@ document.addEventListener('keydown', e => {
       A.toggleGraphFocus();
       return;
     }
+    if (t.value && t.id === 'graph-search') {
+      e.preventDefault();
+      A.clearGraphQuery();
+      return;
+    }
     if (t.value && ['workspace-file-q', 'knowledge-search'].includes(t.id)) {
       e.preventDefault();
       (t.id === 'workspace-file-q' ? A.clearFileQuery : A.clearKnowledgeQuery)();
