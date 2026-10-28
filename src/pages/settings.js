@@ -14,6 +14,7 @@ import { browserNotificationState } from '../core/browser-notifications.js';
 import { storageCapacityPanel } from '../ui/storage-capacity.js';
 import { contentCounts } from '../shared/content-counts.js';
 import { segmentedControl } from '../ui/segmented-control.js';
+import { colorPalette, AVATAR_COLORS, WORKSPACE_COLORS } from '../ui/color-palette.js';
 
 export const SET_NAV = [
   [
@@ -205,7 +206,7 @@ export function settingsBody(sec, title) {
         H('Your workspace name, address, and identity.') +
         `
       <form data-submit="saveWorkspace">
-      <div class="sblock" style="margin-top:0"><div class="row" style="gap:14px;margin-bottom:18px">${wsLogo(d.ws, 52)}<div><div class="label" style="margin-bottom:6px">Workspace icon</div><div class="swatches">${['#2F2E2A', '#5A67D8', '#3B82C4', '#23918A', '#C54B78', '#C48A1E'].map(c => `<button type="button" class="sw ${d.ws.c === c ? 'on' : ''}" style="--c:${c};width:22px;height:22px" data-a="wsColor" data-v="${c}" aria-label="Color ${c}"></button>`).join('')}</div></div></div>
+      <div class="sblock" style="margin-top:0"><div class="row" style="gap:14px;margin-bottom:18px">${wsLogo(d.ws, 52)}<div><div class="label" style="margin-bottom:6px">Workspace icon</div>${colorPalette({ label: 'Workspace icon', value: d.ws.c, colors: WORKSPACE_COLORS, action: 'wsColor' })}</div></div>
       <div class="col" style="gap:14px;max-width:440px"><div class="field"><label class="label" for="ws-name">Workspace name</label><input class="input" id="ws-name" value="${esc(d.ws.name)}"></div>
       <div class="field"><label class="label" for="ws-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input workspace-url-prefix">${productHost()}/</span><input class="input" id="ws-url" value="${esc(d.ws.url)}"></div><span class="hint">Changing the URL will break existing links.</span></div>
       <div><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save">Save changes</button></div></div></div></form>
@@ -231,19 +232,21 @@ export function settingsBody(sec, title) {
       <div class="sblock"><h2>Accent color</h2>${srow(
         'Accent',
         'Used for primary buttons, focus rings, and selection.',
-        `<div class="swatches" role="radiogroup" aria-label="Accent color">${[
-          ['indigo', '#4B5BD6'],
-          ['blue', '#2F6CD4'],
-          ['violet', '#7348CC'],
-          ['teal', '#1A7F7A'],
-          ['rose', '#B93D68'],
-          ['graphite', '#34332F'],
-        ]
-          .map(
-            ([k, c]) =>
-              `<button class="sw ${P.accent === k ? 'on' : ''}" style="--c:${c}" role="radio" aria-checked="${P.accent === k}" data-a="setPref" data-k="accent" data-v="${k}" aria-label="${k}" data-tip="${k[0].toUpperCase() + k.slice(1)}">${P.accent === k ? ic('check', 13) : ''}</button>`,
-          )
-          .join('')}</div>`,
+        colorPalette({
+          label: 'Accent color',
+          value: P.accent,
+          colors: [
+            ['indigo', 'indigo', '#4B5BD6'],
+            ['blue', 'blue', '#2F6CD4'],
+            ['violet', 'violet', '#7348CC'],
+            ['teal', 'teal', '#1A7F7A'],
+            ['rose', 'rose', '#B93D68'],
+            ['graphite', 'graphite', '#34332F'],
+          ],
+          action: 'setPref',
+          key: 'accent',
+          size: 26,
+        }),
       )}</div>
       <div class="sblock"><h2>Density</h2>
         ${srow(
@@ -460,7 +463,7 @@ export function settingsBody(sec, title) {
       return (
         H('How you appear to others in the workspace.') +
         `<form data-submit="saveProfile" class="col" style="gap:16px;max-width:440px">
-      <div class="row" style="gap:14px">${av(d.me, 'xl', false)}<div><div class="label" style="margin-bottom:6px">Avatar color</div><div class="swatches">${['#5A67D8', '#C54B78', '#3B82C4', '#23918A', '#C48A1E', '#8662C9'].map(c => `<button type="button" class="sw ${me().c === c ? 'on' : ''}" style="--c:${c};width:22px;height:22px" data-a="avColor" data-v="${c}" aria-label="Color"></button>`).join('')}</div></div></div>
+      <div class="row" style="gap:14px">${av(d.me, 'xl', false)}<div><div class="label" style="margin-bottom:6px">Avatar color</div>${colorPalette({ label: 'Avatar color', value: me().c, colors: AVATAR_COLORS, action: 'avColor' })}</div></div>
       <div class="field"><label class="label" for="pf-name">Full name</label><input class="input ${err ? 'is-error' : ''}" id="pf-name" value="${esc(P.name)}">${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
       <div class="field"><label class="label" for="pf-title">Title</label><input class="input" id="pf-title" value="${esc(P.title)}"></div>
       <div class="field"><label class="label" for="pf-email">Email</label><input class="input" id="pf-email" value="${esc(me().email)}" disabled><span class="hint">Contact a workspace owner to change your sign-in email.</span></div>

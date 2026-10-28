@@ -330,27 +330,40 @@
 }
 .swatches {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 .sw {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--c);
+  width: 32px;
+  height: 32px;
+  position: relative;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
   color: #fff;
+}
+.sw::before {
+  content: '';
+  position: absolute;
+  width: var(--swatch-size, 26px);
+  height: var(--swatch-size, 26px);
+  border-radius: 50%;
+  background: var(--c);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
-  transition: transform var(--dur);
 }
-.sw:hover {
-  transform: scale(1.08);
+.sw > svg {
+  position: relative;
 }
-.sw.on {
+.sw.on::before {
   box-shadow:
     0 0 0 2px var(--surface),
     0 0 0 4px var(--c);
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .sw {
+    width: 44px;
+    height: 44px;
+  }
 }
 .perm-t {
   width: 100%;

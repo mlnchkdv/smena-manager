@@ -7,6 +7,7 @@ import { closeModal } from '../overlays/modals.js';
 import { closePop } from '../overlays/popovers.js';
 import { A, KEY } from './actions.js';
 import { moveTabFocus } from '../ui/tabs.js';
+import { moveColorFocus } from '../ui/color-palette.js';
 import { flushLocalSave } from '../core/store.js';
 
 export let gPending = 0;
@@ -49,7 +50,7 @@ document.addEventListener('keydown', e => {
     }
   }
   const pl = S.ui.palette;
-  if (moveTabFocus(e)) return;
+  if (moveTabFocus(e) || moveColorFocus(e)) return;
   if (mod && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     pl ? A.closePalette() : A.openPalette();

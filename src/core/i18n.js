@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Current color': 'Текущий цвет',
+  amber: 'янтарный',
   "The page you're looking for was moved, deleted, or never existed. Check the link or head back home.":
     'Страница была перемещена, удалена или не существует. Проверьте ссылку или вернитесь на главную.',
   'Go back': 'Назад',
