@@ -2,6 +2,62 @@
 .knowledge-reader-tools {
   display: contents;
 }
+.knowledge-table-tools {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+.knowledge-table-tools + .knowledge-table-wrap {
+  margin-top: 4px;
+}
+.knowledge-table-dialog {
+  width: min(1100px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-pop);
+}
+.knowledge-table-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.knowledge-table-dialog::backdrop {
+  background: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.knowledge-table-dialog > header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.knowledge-table-dialog h2 {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+.knowledge-table-dialog .knowledge-table-expanded {
+  --table-columns: 1;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.knowledge-table-expanded table {
+  table-layout: fixed;
+  width: max(100%, calc(var(--table-columns) * 12rem));
+}
+.knowledge-table-expanded :is(th, td) {
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
 .knowledge-outline {
   position: relative;
   flex: 0 0 auto;

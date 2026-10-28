@@ -274,6 +274,7 @@ export function render() {
   syncBrowserLocation();
 }
 let thumbnailModule;
+let knowledgeTableModule;
 let layoutMain;
 let layoutFrame;
 let bottomNav;
@@ -317,6 +318,14 @@ function refreshThumbnails() {
 export function afterRender() {
   resizeKnowledgeTitle();
   refreshKnowledgeOutline();
+  if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {
+    knowledgeTableModule ||= import('../ui/knowledge-table.js');
+    void knowledgeTableModule
+      .then(module => module.refreshKnowledgeTables())
+      .catch(() => {
+        knowledgeTableModule = null;
+      });
+  }
   const currentMain = document.querySelector('.main');
   if (currentMain !== layoutMain) {
     layoutObserver.disconnect();

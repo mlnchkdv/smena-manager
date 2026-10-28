@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Expand table': 'Развернуть таблицу',
+  'Close table': 'Закрыть таблицу',
   'Contents and actions': 'Оглавление и действия',
   'On this page': 'В этой заметке',
   'Current color': 'Текущий цвет',
