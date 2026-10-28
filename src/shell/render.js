@@ -288,6 +288,11 @@ const layoutObserver = new ResizeObserver(() => {
       render();
       return;
     }
+    const inbox = document.querySelector('.inbox-grid');
+    if (inbox && inbox.classList.contains('inbox-narrow') !== (innerWidth <= 900 || layoutMain.clientWidth < 760)) {
+      render();
+      return;
+    }
     if (S.ui.route !== 'knowledge') return;
     const compact = knowledgeFolderOverlay(innerWidth, S.ui.collapsed, layoutMain.clientWidth);
     if (compact !== S.ui.knowledgeFolderOverlay) {
