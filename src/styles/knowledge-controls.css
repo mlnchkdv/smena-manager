@@ -1,4 +1,40 @@
 /* Secondary settings are disclosed; search and note creation remain primary. */
+.knowledge-reader-tools {
+  display: contents;
+}
+@media (max-width: 480px) {
+  .knowledge-reader-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    height: auto;
+    gap: 2px 4px;
+    padding: 2px 10px;
+  }
+  .knowledge-reader-head :is(.knowledge-drawer-brand, .knowledge-drawer-brand + .faint, .sp) {
+    display: none;
+  }
+  .knowledge-reader-head #knowledge-drawer-title {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .knowledge-reader-close {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .knowledge-reader-head .knowledge-reader-tools {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 0;
+  }
+  .knowledge-reader-tools .knowledge-preview-pager {
+    margin-right: auto;
+  }
+}
 .knowledge-format-toggle {
   display: none;
 }
