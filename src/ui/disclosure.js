@@ -11,13 +11,22 @@ function setMenuOpen(menu, open) {
   if (open) positionActionMenus();
 }
 export function positionActionMenus() {
-  const nav = document.querySelector('.bottomnav')?.getBoundingClientRect().height || 0;
+  const viewport = window.visualViewport;
+  const left = (viewport?.offsetLeft || 0) + 8;
+  const top = (viewport?.offsetTop || 0) + 8;
+  const right = left + (viewport?.width || innerWidth) - 16;
+  const edge = top + (viewport?.height || innerHeight) - 16;
+  const nav = document.querySelector('.bottomnav')?.getBoundingClientRect();
+  const bottom = nav?.height && nav.top < edge && nav.bottom > top ? Math.min(edge, nav.top - 8) : edge;
   document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
     if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
     panel.style.translate = 'none';
+    panel.style.removeProperty('max-height');
+    const limit = parseFloat(getComputedStyle(panel).maxHeight);
+    panel.style.maxHeight = `${Math.max(0, Math.min(Number.isFinite(limit) ? limit : Infinity, bottom - top))}px`;
     const box = panel.getBoundingClientRect();
-    const x = Math.max(8 - box.left, Math.min(0, innerWidth - 8 - box.right));
-    const y = Math.max(8 - box.top, Math.min(0, innerHeight - nav - 8 - box.bottom));
+    const x = Math.max(left - box.left, Math.min(0, right - box.right));
+    const y = Math.max(top - box.top, Math.min(0, bottom - box.bottom));
     panel.style.translate = `${x}px ${y}px`;
   });
 }
@@ -28,6 +37,7 @@ export function closeActionMenus(except = null) {
 }
 addEventListener('resize', positionActionMenus);
 window.visualViewport?.addEventListener('resize', positionActionMenus);
+window.visualViewport?.addEventListener('scroll', positionActionMenus);
 export function disclosureOpen(key) {
   const next = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
   if (scope !== next) {
