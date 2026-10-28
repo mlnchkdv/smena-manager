@@ -3,6 +3,9 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
+.knowledge-main {
+  container: knowledge-catalog / inline-size;
+}
 .knowledge-note-list .knowledge-preview-card {
   border-radius: var(--r);
   padding-left: 36px;
@@ -53,6 +56,39 @@
 }
 .knowledge-note-list .knowledge-folder-card > span {
   margin-top: 0;
+}
+@container knowledge-catalog (min-width: 700px) {
+  .knowledge-note-list .knowledge-preview-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 26%);
+    align-items: center;
+    min-height: 56px;
+    padding-left: 44px;
+    padding-right: 112px;
+  }
+  .knowledge-note-list .knowledge-preview-card .knowledge-preview-open {
+    min-height: 56px;
+    padding: 8px 12px;
+    justify-content: center;
+  }
+  .knowledge-note-list .knowledge-preview-card .knowledge-preview-location {
+    min-height: 0;
+    padding: 6px 12px;
+  }
+  .knowledge-note-list .knowledge-note-select {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .knowledge-note-list :is(.knowledge-preview-move, .knowledge-preview-star) {
+    bottom: 50%;
+    transform: translateY(50%);
+  }
+  .knowledge-note-list .knowledge-preview-star {
+    right: 8px;
+  }
+  .knowledge-note-list .knowledge-preview-move {
+    right: 56px;
+  }
 }
 @media (max-width: 640px) {
   .knowledge-note-list .knowledge-preview-head {
