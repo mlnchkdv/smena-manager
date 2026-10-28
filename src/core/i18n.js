@@ -29,7 +29,6 @@ const RU = {
   'Request access': 'Запросить доступ',
   'Matching text': 'Совпадение в тексте',
   'Import metadata': 'Метаданные импорта',
-  'Note title': 'Название заметки',
   'Match in import metadata': 'Совпадение в метаданных импорта',
   'Note display': 'Отображение заметок',
   'Compact list': 'Компактный список',
