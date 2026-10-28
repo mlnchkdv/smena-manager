@@ -1,3 +1,4 @@
+import { actionLabel } from '../ui/action-label.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -59,10 +60,11 @@ function bookmarkCard(link, folders, readOnly) {
   const folder = folders.find(item => item.id === link.folder);
   const importance = IMPORTANCE[link.importance] || IMPORTANCE.medium;
   const host = link.site_name || parsed.hostname.replace(/^www\./, '');
-  return `<article class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'}">
+  const actionName = action => actionLabel(action, link.title || host, [folder?.name, parsed.hostname].filter(Boolean).join(' / '));
+  return `<article aria-labelledby="bookmark-title-${esc(link.id)}" class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'}">
     <div class="bookmark-card-top">
       <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
-      <div class="grow min0"><a class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
+      <div class="grow min0"><a id="bookmark-title-${esc(link.id)}" class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
       <span class="bookmark-importance tone-${importance.tone}" title="${importance.label}">${ic(importance.icon, 13)}<span>${importance.label}</span></span>
     </div>
     ${link.description ? `<p class="bookmark-description" translate="no">${esc(link.description)}</p>` : ''}
@@ -71,7 +73,7 @@ function bookmarkCard(link, folders, readOnly) {
     <div class="bookmark-card-foot"><span>${ic('clock-3', 12)}${ago(new Date(link.updated_at || link.created_at).getTime())}</span><span class="sp"></span>${
       readOnly
         ? ''
-        : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><button class="ibtn ibtn-xs" data-a="copyBookmark" data-id="${link.id}" data-tip="Copy link" aria-label="Copy link">${ic('copy', 14)}</button><details class="bookmark-action-menu ui-menu"><summary aria-label="More actions">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="editBookmark" data-id="${link.id}">${ic('pencil', 14)}Edit bookmark</button><button class="btn btn-ghost btn-sm" data-a="toggleBookmarkArchive" data-id="${link.id}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}</button><button class="btn btn-ghost btn-sm danger" data-a="deleteBookmark" data-id="${link.id}">${ic('trash-2', 14)}Delete bookmark</button></div></details>`
+        : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${actionName(link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read')}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><button class="ibtn ibtn-xs" data-a="copyBookmark" data-id="${link.id}" data-tip="Copy link" aria-label="${actionName('Copy link')}">${ic('copy', 14)}</button><details class="bookmark-action-menu ui-menu"><summary aria-label="${actionName('More actions')}" title="${actionName('More actions')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="editBookmark" data-id="${link.id}">${ic('pencil', 14)}Edit bookmark</button><button class="btn btn-ghost btn-sm" data-a="toggleBookmarkArchive" data-id="${link.id}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}</button><button class="btn btn-ghost btn-sm danger" data-a="deleteBookmark" data-id="${link.id}">${ic('trash-2', 14)}Delete bookmark</button></div></details>`
     }</div>
     ${relationsPanel(`bookmark:${link.id}`, true)}
   </article>`;

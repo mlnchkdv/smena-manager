@@ -1,3 +1,4 @@
+import { actionLabel } from '../ui/action-label.js';
 /* ---------- MEMBERS / PROFILE / TEAMS ---------- */
 import { ago, esc } from '../core/utils.js';
 import { recordedActivityIndex } from '../shared/recorded-activity.js';
@@ -29,7 +30,7 @@ const memberRoleControl = (m, isAdmin) =>
 
 function mobileMembers(members, isAdmin, activity) {
   if (!members.length) return `<div class="only-m">${empty('search-x', 'No results found', 'No members match that search.', '', 'sm')}</div>`;
-  return `<div class="only-m member-mobile-list">${members.map(m => `<article class="panel member-mobile-card"><div class="member-mobile-heading"><button class="member-mobile-open" data-a="go" data-r="member" data-id="${esc(m.id)}">${av(m.id, 'md', false)}<span><b translate="no">${esc(m.name)}</b>${m.id === D().me ? '<span class="faint">(you)</span>' : ''}<small translate="no">${esc(m.email)}</small></span></button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${esc(m.id)}" aria-label="Member options">${ic('ellipsis', 15)}</button></div><div class="member-mobile-meta">${memberRoleControl(m, isAdmin)}${memberAccessBadge(m)}</div><div class="row muted">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div><details class="member-mobile-details"><summary>Details</summary><dl><div><dt>Active projects</dt><dd>${visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length}</dd></div><div><dt>Open tasks</dt><dd>${allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length}</dd></div><div><dt>Recorded activity</dt><dd>${recordedMemberLabel(m, activity)}</dd></div></dl></details></article>`).join('')}</div>`;
+  return `<div class="only-m member-mobile-list">${members.map(m => `<article class="panel member-mobile-card" aria-labelledby="member-card-name-${esc(m.id)}"><div class="member-mobile-heading"><button class="member-mobile-open" aria-labelledby="member-card-name-${esc(m.id)}" data-a="go" data-r="member" data-id="${esc(m.id)}">${av(m.id, 'md', false)}<span><b id="member-card-name-${esc(m.id)}" translate="no">${esc(m.name)}</b>${m.id === D().me ? '<span class="faint">(you)</span>' : ''}<small translate="no">${esc(m.email)}</small></span></button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${esc(m.id)}" aria-label="${actionLabel('Member options', m.name, m.email)}" title="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 15)}</button></div><div class="member-mobile-meta">${memberRoleControl(m, isAdmin)}${memberAccessBadge(m)}</div><div class="row muted">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div><details class="member-mobile-details"><summary>Details</summary><dl><div><dt>Active projects</dt><dd>${visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length}</dd></div><div><dt>Open tasks</dt><dd>${allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length}</dd></div><div><dt>Recorded activity</dt><dd>${recordedMemberLabel(m, activity)}</dd></div></dl></details></article>`).join('')}</div>`;
 }
 
 export function pageMembers() {
@@ -69,7 +70,7 @@ export function pageMembers() {
       <td style="text-align:left"><span class="row">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></span></td><td class="num">${ap}</td><td class="num">${ot}</td>
       <td style="text-align:left" class="muted">${recordedMemberLabel(m, activity)}</td>
       <td style="text-align:left">${m.status === 'invited' ? '<span class="badge amber"><span class="dot"></span>Invited</span>' : m.status === 'deactivated' ? '<span class="badge gray">Access deactivated</span>' : '<span class="badge green"><span class="dot"></span>Access active</span>'}</td>
-      <td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="Member options">${ic('ellipsis', 14)}</button></td></tr>`;
+      <td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="${actionLabel('Member options', m.name, m.email)}" title="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 14)}</button></td></tr>`;
       })
       .join('')}
     </tbody></table>`

@@ -1,3 +1,4 @@
+import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
 import { ago, esc } from '../core/utils.js';
 import '../ui/file-translations.js';
@@ -55,6 +56,11 @@ function folderChip(file) {
   return `<button class="workspace-file-folder trunc" data-a="openFileFolder" data-project="${esc(file.project)}" data-folder="${esc(folder.id)}" title="${esc(path)}">${ic('folder', 12)}<span class="trunc" translate="no">${esc(folder.name)}</span></button>`;
 }
 
+function fileContext(file) {
+  const project = proj(file.project);
+  return [project?.name, ...fileFolderPath(project, file.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
+}
+
 function textFileLocation(file, linkedTask) {
   const project = proj(file.project);
   const path = [project?.name, ...fileFolderPath(project, file.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
@@ -72,13 +78,13 @@ function fileCard(file) {
   const preview = textual
     ? `<span class="workspace-file-text-type" aria-hidden="true">${ic(fileMeta(file).i, 23)}<small translate="no">${esc(extension === 'markdown' ? 'MD' : extension.toUpperCase())}</small></span>`
     : filePrev(file);
-  return `<article class="fcard workspace-file-card${textual ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
+  return `<article aria-labelledby="file-card-title-${esc(file.id)}" class="fcard workspace-file-card${textual ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
     ${fileSelectButton(file)}
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
       ${preview}
-      <span class="fi"><span class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span></span>
+      <span class="fi"><span id="file-card-title-${esc(file.id)}" class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span></span>
     </button>
-    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textual ? textFileLocation(file, linkedTask) : projectChip(file) + (linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : '')}</div><span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 13)}</button></div>
+    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textual ? textFileLocation(file, linkedTask) : projectChip(file) + (linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : '')}</div><span class="sp"></span><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 13)}</button></div>
   </article>`;
 }
 
@@ -87,7 +93,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}</div></div></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="File options">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}</div></div></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }
