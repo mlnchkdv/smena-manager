@@ -57,6 +57,8 @@ document.addEventListener(
   'keydown',
   event => {
     if (event.key !== 'Escape') return;
+    // A portalled select owns its first Escape; its parent menu closes next.
+    if (event.target.closest?.('.select-menu')) return;
     const menu = [...document.querySelectorAll('.ui-menu[open]')].at(-1);
     if (!menu) return;
     setMenuOpen(menu, false);
