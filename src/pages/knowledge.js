@@ -6,7 +6,7 @@ import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
 import { knowledgePreferences } from '../core/knowledge-preferences.js';
-import { knowledgeExcerpt } from '../shared/knowledge-search.js';
+import { knowledgeExcerpt, knowledgeSearchContext } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
@@ -63,9 +63,10 @@ function notePreviewCard(note, folder, readOnly, folderIndex) {
     : '';
   const tags = (note.tags || []).filter(Boolean).slice(0, 3);
   const excerpt = knowledgeExcerpt(note, S.ui.knowledgeQuery);
-  return `<article class="knowledge-preview-card" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="Select note" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
+  const context = knowledgeSearchContext(note, S.ui.knowledgeQuery);
+  return `<article class="knowledge-preview-card${context ? ' has-search-context' : ''}" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="Select note" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
-    <p class="knowledge-preview-excerpt" ${excerpt ? 'translate="no"' : ''}>${highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
+    ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
     ${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
   </button><div class="knowledge-preview-location">${folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="Move note" title="Move note">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
 }

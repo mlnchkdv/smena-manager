@@ -24,6 +24,15 @@
 .knowledge-note-list :is(.knowledge-preview-excerpt, .knowledge-preview-meta) {
   display: none;
 }
+.knowledge-note-list .has-search-context .knowledge-preview-excerpt {
+  display: -webkit-box;
+}
+.knowledge-match-source {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
 .knowledge-note-list .knowledge-preview-location {
   padding-left: 48px;
   padding-bottom: 6px;

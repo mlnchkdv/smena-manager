@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Matching text': 'Совпадение в тексте',
+  'Import metadata': 'Метаданные импорта',
+  'Note title': 'Название заметки',
+  'Match in import metadata': 'Совпадение в метаданных импорта',
   'Note display': 'Отображение заметок',
   'Compact list': 'Компактный список',
   'Expand project sections': 'Развернуть разделы проекта',

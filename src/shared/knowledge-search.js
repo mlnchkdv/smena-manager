@@ -14,6 +14,30 @@ export function createKnowledgeMatcher(query) {
   };
 }
 export const matchesKnowledgeSearch = (note, query) => createKnowledgeMatcher(query)(note);
+// Explain matches outside the visible title without exposing import service fields.
+export function knowledgeSearchContext(note, query) {
+  const terms = searchTerms(query);
+  if (!terms.length) return null;
+  const includes = value =>
+    terms.some(term =>
+      String(value || '')
+        .toLocaleLowerCase()
+        .includes(term),
+    );
+  const parts = knowledgeDisplayParts(note);
+  const clean = value =>
+    note.sourceFormat === 'text'
+      ? String(value || '')
+          .replace(/\s+/g, ' ')
+          .trim()
+      : markdownText(value);
+  if (includes(clean(note.summary)) || includes(clean(parts.body))) return { label: 'Matching text', text: knowledgeExcerpt(note, query) };
+  const tags = (note.tags || []).filter(includes);
+  if (tags.length) return { label: 'Tags', text: tags.join(', ') };
+  if (includes(note.title)) return { label: 'Note title', text: note.title };
+  if (includes(parts.metadata)) return { label: 'Import metadata', text: '', message: 'Match in import metadata' };
+  return null;
+}
 export function knowledgeExcerpt(note, query, length = 180) {
   const clean = value =>
     note.sourceFormat === 'text'
