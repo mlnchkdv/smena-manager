@@ -6,7 +6,7 @@ export function knowledgeOutline(markup, actions = '') {
   template.innerHTML = markup;
   const headings = [...template.content.querySelectorAll('[data-knowledge-heading]')];
   if (headings.length < 4) return '';
-  const base = Math.min(...headings.map(heading => Number(heading.tagName.slice(1))));
+  const base = headings.reduce((level, heading) => Math.min(level, Number(heading.tagName.slice(1))), 6);
   return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="Contents and actions" title="Contents and actions">${ic('list-tree', 16)}</summary><div>${actions}<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
     .map(
       heading =>
@@ -21,7 +21,7 @@ export function refreshKnowledgeOutline() {
   if (!body) return;
   const headings = [...body.querySelectorAll('[data-knowledge-heading]')];
   const top = body.getBoundingClientRect().top + 24;
-  const atEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
+  const atEnd = body.scrollHeight > body.clientHeight + 2 && body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
   const current = (atEnd ? headings.at(-1) : headings.findLast(heading => heading.getBoundingClientRect().top <= top)) || headings[0];
   outline.querySelectorAll('.knowledge-outline-link').forEach(link => {
     if (link.dataset.anchor === current?.dataset.knowledgeHeading) link.setAttribute('aria-current', 'location');

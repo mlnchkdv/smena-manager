@@ -70,6 +70,7 @@ export function refreshKnowledgeTables() {
     tools.className = 'knowledge-table-tools';
     const button = document.createElement('button');
     button.className = 'btn btn-ghost btn-sm';
+    button.setAttribute('aria-label', `${t('Expand table')}: ${wrapper.getAttribute('aria-label') || t('Table')}`);
     button.innerHTML = `${ic('maximize-2', 14)}<span>${esc(t('Expand table'))}</span>`;
     button.addEventListener('click', () => expandTable(wrapper, button));
     tools.append(button);
