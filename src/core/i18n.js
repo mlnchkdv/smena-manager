@@ -17,6 +17,16 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  "The page you're looking for was moved, deleted, or never existed. Check the link or head back home.":
+    'Страница была перемещена, удалена или не существует. Проверьте ссылку или вернитесь на главную.',
+  'Go back': 'Назад',
+  'is a private project.': '— закрытый проект.',
+  'the project owner': 'владельца проекта',
+  "Ask {owner} to add you, or request access and we'll let them know.":
+    'Попросите {owner} добавить вас или отправьте запрос на доступ — мы передадим его владельцу.',
+  "You don't have access": 'У вас нет доступа',
+  'Back to projects': 'К проектам',
+  'Request access': 'Запросить доступ',
   'Matching text': 'Совпадение в тексте',
   'Import metadata': 'Метаданные импорта',
   'Note title': 'Название заметки',
