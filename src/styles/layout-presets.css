@@ -36,7 +36,20 @@
   margin: 0;
   color: var(--text-2);
 }
+.notification-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 @media (max-width: 640px) {
+  .notifications-page .ph.compact-page-head {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .notifications-page .compact-page-head .acts {
+    justify-content: flex-start;
+  }
   .page .compact-page-head,
   .compact-page-head.bookmarks-head {
     display: grid;
