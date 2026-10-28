@@ -21,6 +21,7 @@ import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
+import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 
 export const ROUTE_NAMES = {
   home: 'Home',
@@ -315,6 +316,7 @@ function refreshThumbnails() {
 
 export function afterRender() {
   resizeKnowledgeTitle();
+  refreshKnowledgeOutline();
   const currentMain = document.querySelector('.main');
   if (currentMain !== layoutMain) {
     layoutObserver.disconnect();

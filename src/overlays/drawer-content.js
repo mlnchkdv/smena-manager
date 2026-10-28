@@ -21,6 +21,7 @@ import { knowledgeContext } from '../ui/knowledge-context.js';
 import { knowledgeMetadata } from '../ui/knowledge-metadata.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { redundantMarkdownSummary } from '../shared/markdown-text.js';
+import { knowledgeOutline } from '../ui/knowledge-outline.js';
 
 export function renderLayer() {
   const u = S.ui;
@@ -66,8 +67,19 @@ export function knowledgeDrawerHtml(note) {
     preview && !readOnly
       ? `<button class="ibtn ibtn-sm knowledge-preview-edit" data-a="editKnowledgeNote" aria-label="Edit note" title="Edit note">${ic('pencil', 15)}</button>`
       : '';
+  const favorite = readOnly
+    ? ''
+    : `<button class="ibtn ibtn-sm knowledge-reader-favorite" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`;
+  const outline = preview
+    ? knowledgeOutline(
+        previewMarkup,
+        readOnly
+          ? ''
+          : `<button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!note.favorite}">${ic('star', 15)}<span>${note.favorite ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
+      )
+    : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
-    <div class="drawer-h${preview ? ' knowledge-reader-head' : ''}"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span><span class="knowledge-reader-tools">${pager}${editAction}${readOnly ? '' : `<button class="ibtn ibtn-sm knowledge-reader-favorite" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`}</span><button class="ibtn ibtn-sm knowledge-reader-close" data-a="closeKnowledgeDrawer" data-tip="Close  Esc" aria-label="Close">${ic('x', 16)}</button></div>
+    <div class="drawer-h${preview ? ' knowledge-reader-head' : ''}"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span><span class="knowledge-reader-tools">${pager}${editAction}${outline || favorite}</span><button class="ibtn ibtn-sm knowledge-reader-close" data-a="closeKnowledgeDrawer" data-tip="Close  Esc" aria-label="Close">${ic('x', 16)}</button></div>
     <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${preview ? previewBody + knowledgeContext(note) : noteEditor(note, folders, readOnly)}</div>
   </aside>`;
 }

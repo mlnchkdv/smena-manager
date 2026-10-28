@@ -15,7 +15,7 @@ import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigati
 import { knowledgeHeadingSlug } from '../shared/knowledge-markdown.js';
 A.knowledgeAnchor = (el, event) => {
   event?.preventDefault();
-  const content = el.closest('.knowledge-quick-content');
+  const content = el.closest('.knowledge-quick-content') || el.closest('.knowledge-drawer')?.querySelector('.knowledge-quick-content');
   let target = content?.querySelector(`[data-knowledge-heading="${CSS.escape(el.dataset.anchor || '')}"]`);
   const title = content?.closest('.knowledge-quick-preview')?.querySelector('.knowledge-reader-title');
   if (!target && title && knowledgeHeadingSlug(title.textContent) === el.dataset.anchor) {

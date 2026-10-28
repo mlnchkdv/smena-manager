@@ -2,6 +2,48 @@
 .knowledge-reader-tools {
   display: contents;
 }
+.knowledge-outline {
+  position: relative;
+  flex: 0 0 auto;
+}
+.knowledge-outline > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(340px, calc(100vw - 24px));
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  z-index: 9;
+}
+.knowledge-outline-label {
+  margin: 8px;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}
+.knowledge-outline-link {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px 8px calc(10px + var(--outline-depth) * 12px);
+  text-align: left;
+  overflow-wrap: anywhere;
+  border-radius: var(--r);
+}
+.knowledge-outline-link:hover,
+.knowledge-outline-link[aria-current] {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .knowledge-outline-link {
+    min-height: 44px;
+  }
+}
 @media (max-width: 480px) {
   .knowledge-reader-head {
     display: grid;
