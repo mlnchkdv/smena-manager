@@ -23,7 +23,7 @@ document.addEventListener(
   event => {
     const summary = event.target.closest?.('summary');
     const details = summary?.parentElement;
-    if (!details?.matches('details[data-knowledge-disclosure]')) return;
+    if (!details?.matches('details[data-knowledge-disclosure]') || details.matches('.ui-menu')) return;
     event.preventDefault();
     details.open = !details.open;
     rememberDisclosure(details);

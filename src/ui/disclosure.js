@@ -26,6 +26,8 @@ export function closeActionMenus(except = null) {
     if (menu !== except) setMenuOpen(menu, false);
   });
 }
+addEventListener('resize', positionActionMenus);
+window.visualViewport?.addEventListener('resize', positionActionMenus);
 export function disclosureOpen(key) {
   const next = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
   if (scope !== next) {
