@@ -261,3 +261,11 @@
   z-index: 2;
   overflow: visible;
 }
+
+.tl-agenda .tl-anchor {
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 6px 10px;
+  border-left: 2px solid var(--accent);
+  scroll-margin-top: 12px;
+}
