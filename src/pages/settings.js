@@ -206,17 +206,21 @@ export function settingsBody(sec, title) {
   const np = myNotificationPreferences();
   const personal = !['workspace', 'members', 'teams', 'projects', 'permissions', 'security'].includes(sec);
   const scope =
-    sec === 'security'
+    sec === 'projects'
       ? isRussian()
-        ? 'Сессии и безопасность относятся ко всему аккаунту во всех пространствах.'
-        : 'Sessions and security apply to your account across all workspaces.'
-      : personal
+        ? 'Представление и показ завершённых задач — ваши личные настройки. Действия с архивом проектов общие для пространства.'
+        : 'View and completed-task defaults are personal. Project archive actions affect the workspace.'
+      : sec === 'security'
         ? isRussian()
-          ? 'Личные настройки в этом пространстве. Синхронизируются между вашими устройствами и не меняют настройки коллег.'
-          : 'Your personal settings in this workspace. Synced across your devices; other members are not affected.'
-        : isRussian()
-          ? 'Общие настройки текущего пространства. Изменения затрагивают его участников.'
-          : 'Shared settings for the current workspace. Changes affect its members.';
+          ? 'Сессии и безопасность относятся ко всему аккаунту во всех пространствах.'
+          : 'Sessions and security apply to your account across all workspaces.'
+        : personal
+          ? isRussian()
+            ? 'Личные настройки в этом пространстве. Синхронизируются между вашими устройствами и не меняют настройки коллег.'
+            : 'Your personal settings in this workspace. Synced across your devices; other members are not affected.'
+          : isRussian()
+            ? 'Общие настройки текущего пространства. Изменения затрагивают его участников.'
+            : 'Shared settings for the current workspace. Changes affect its members.';
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p><p class="hint settings-scope" translate="no">${scope} <b>${esc(d.ws.name)}</b></p>`;
   switch (sec) {
     case 'workspace': {
