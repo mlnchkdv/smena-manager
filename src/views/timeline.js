@@ -57,10 +57,8 @@ export function timelineHtml(ts, key, p) {
       S.ui.listPages.timeline = anchored.page;
     }
     const page = listWindow(items, S.ui.listPages.timeline, 60);
-    const focusIndex = Math.max(
-      0,
-      page.items.findIndex(item => item.date >= anchor),
-    );
+    const nextIndex = page.items.findIndex(item => item.date >= anchor);
+    const focusIndex = nextIndex < 0 ? Math.max(0, page.items.length - 1) : nextIndex;
     return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
       page.items
         .map((item, i) => {
