@@ -53,3 +53,16 @@ test('blocked or unsupported storage and locks preserve independent polling', as
   };
   assert.equal(await createPollCoordinator({ locks, storage, id: 'blocked' }).shouldPoll('owner'), true);
 });
+
+test('independent workspaces do not compete for the same user lease', async () => {
+  const values = new Map();
+  const storage = { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
+  const locks = { request: async (_name, callback) => callback() };
+  const a = createPollCoordinator({ locks, storage, now: () => 1000, id: 'a' });
+  const b = createPollCoordinator({ locks, storage, now: () => 1000, id: 'b' });
+  const follower = createPollCoordinator({ locks, storage, now: () => 1000, id: 'follower' });
+  assert.equal(await a.shouldPoll('owner', 'A'), true);
+  assert.equal(await b.shouldPoll('owner', 'B'), true);
+  assert.equal(await follower.shouldPoll('owner', 'A'), false);
+  assert.equal(values.size, 2);
+});

@@ -46,7 +46,7 @@ import { t as tr } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
-import { clearSession, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
+import { clearSession, getActiveWorkspace, getNotificationDeliveryStatus, SESSION_STORAGE_KEY } from './core/api.js';
 import { mergeWorkspaceData } from './shared/workspace-merge.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from './shared/workspace-documents.js';
 import { TODAY, iso, updateToday, fmtTimestamp } from './core/utils.js';
@@ -84,7 +84,7 @@ function announceWorkspaceChange() {
   if (!refreshChannel) return;
   clearTimeout(refreshAnnouncementTimer);
   refreshAnnouncementTimer = setTimeout(() => {
-    refreshChannel.postMessage({ type: 'workspace-saved', at: Date.now() });
+    refreshChannel.postMessage({ type: 'workspace-saved', owner: S.ui.currentUser?.id, workspace: getActiveWorkspace(), at: Date.now() });
   }, 80);
 }
 
@@ -416,7 +416,7 @@ async function refreshVisibleWorkspace(showNotice = false) {
       const connectionChanged = S.ui.offline !== flags.offline || S.ui.syncUnavailable !== flags.syncUnavailable;
       Object.assign(S.ui, flags);
       if (S.ui.currentUser?.id === owner && ['current', 'updated'].includes(result.status))
-        refreshChannel?.postMessage({ type: 'workspace-polled', owner, fingerprint: workspaceFingerprint() });
+        refreshChannel?.postMessage({ type: 'workspace-polled', owner, workspace: getActiveWorkspace(), fingerprint: workspaceFingerprint() });
       if (result.status !== 'updated' && (connectionChanged || previousIdentity !== JSON.stringify(S.ui.currentUser))) render();
       if (result.status === 'updated') {
         const freshNotifications = myNotifications().filter(notification => !previousNotifications.has(notification.id));
@@ -467,7 +467,7 @@ function scheduleWorkspaceRefresh(delay = null) {
   clearTimeout(workspaceRefreshTimer);
   workspaceRefreshTimer = setTimeout(
     async () => {
-      if (await pollCoordinator.shouldPoll(S.ui.auth ? null : S.ui.currentUser?.id)) await refreshVisibleWorkspace(false);
+      if (await pollCoordinator.shouldPoll(S.ui.auth ? null : S.ui.currentUser?.id, getActiveWorkspace())) await refreshVisibleWorkspace(false);
       scheduleWorkspaceRefresh();
     },
     delay ?? workspaceRefreshDelay({ hidden: document.hidden, offline: !navigator.onLine, failures: workspaceRefreshFailures }),
@@ -492,6 +492,7 @@ window.addEventListener('online', () => {
   void refreshWebPushSubscription();
 });
 refreshChannel?.addEventListener('message', event => {
+  if (event.data?.workspace !== getActiveWorkspace() || event.data?.owner !== S.ui.currentUser?.id) return;
   if (event.data?.type === 'workspace-saved') refreshWorkspaceSoon(false);
   if (event.data?.type === 'workspace-polled' && event.data.owner === S.ui.currentUser?.id && event.data.fingerprint !== workspaceFingerprint())
     refreshWorkspaceSoon(false);

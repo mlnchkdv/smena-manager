@@ -5,8 +5,9 @@ export function createPollCoordinator({ locks, storage, now = Date.now, id = cry
   let lastOwner;
   let lastPollAt;
   return {
-    async shouldPoll(owner) {
+    async shouldPoll(owner, workspace = '') {
       if (!owner) return false;
+      if (workspace) owner = JSON.stringify([owner, workspace]);
       if (owner !== lastOwner) {
         lastOwner = owner;
         lastPollAt = now();
