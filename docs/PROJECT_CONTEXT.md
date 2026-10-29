@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**29.10.2026 — рабочие пространства / multiple workspaces:** создание, переключение, отдельные участники/данные/файлы/копии и настройки; исходное пространство остаётся в legacy storage. Before changing authentication, storage, downloads or cron, read [`WORKSPACES.md`](WORKSPACES.md): it documents namespace boundaries, global sessions, Drive provisioning, automation and verification limits.
+
 > **Назначение документа:** этот файл предназначен для передачи проекта другой нейронной сети, разработчику или новому участнику команды. Он описывает фактическую архитектуру, ограничения, правила изменения кода и проверенные сценарии. Секреты, токены, cookies и содержимое `.env` сюда не входят.
 
 ### Storage update — 25 October 2026 / Актуализация хранилища

@@ -34,6 +34,8 @@ Implementation and acceptance of its 18 UI/UX items / Внедрение и пр
 
 ## Getting started
 
+**Рабочие пространства / Workspaces:** меню пространства → **Создать пространство / Create workspace**. Администраторы могут выбирать участников и настраивать название, описание и цвет. Each space has separate content, permissions, files and backups; Google sign-in stays shared. Подробности / Details: [`docs/WORKSPACES.md`](docs/WORKSPACES.md).
+
 Requires Node.js 22 (`.nvmrc` pins the same major version).
 
 ```bash
