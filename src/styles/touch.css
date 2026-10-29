@@ -6,6 +6,41 @@
 .knowledge-folder-menu[open] {
   opacity: 1;
 }
+.knowledge-folder-menu {
+  display: block;
+  position: relative;
+}
+.knowledge-folder-menu > summary {
+  list-style: none;
+}
+.knowledge-folder-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.knowledge-folder-menu:not([open]) > div {
+  display: none;
+}
+.knowledge-folder-menu > div {
+  position: fixed;
+  width: 220px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  z-index: 78;
+}
+.knowledge-folder-menu > div > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  border-radius: var(--r-sm);
+}
+.knowledge-folder-menu > div > button:hover {
+  background: var(--hover);
+}
 @media (max-width: 900px), (pointer: coarse) {
   .knowledge-sidebar :is(.knowledge-head-actions, .knowledge-folder-toolbar) .ibtn,
   .knowledge-sidebar .knowledge-mobile-folder-button,
