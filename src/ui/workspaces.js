@@ -93,7 +93,7 @@ workspaceModalRenderers.create = (
 ) => `${H(copy('Create workspace', 'Создать рабочее пространство'), copy('A separate place for projects, files and knowledge.', 'Отдельное место для проектов, файлов и базы знаний.'))}
   <form data-submit="submitWorkspace"><div class="modal-b col" style="gap:16px">
     <label class="field"><span class="label">${t('Workspace name')}</span><input class="input" id="new-ws-name" maxlength="100" required autofocus data-in="workspaceDraft" data-k="name" value="${esc(m.name)}" placeholder="${esc(copy('For example, Product team', 'Например, Команда продукта'))}" ${m.busy ? 'disabled' : ''}></label>
-    <label class="field"><span class="label">${t('Description')}</span><textarea class="input" id="new-ws-description" rows="3" maxlength="500" data-in="workspaceDraft" data-k="description" ${m.busy ? 'disabled' : ''}>${esc(m.description)}</textarea></label>
+    <label class="field"><span class="label">${t('Description')}</span><textarea class="textarea workspace-description" id="new-ws-description" aria-describedby="new-ws-description-hint" rows="3" maxlength="500" data-in="workspaceDraft" data-k="description" ${m.busy ? 'disabled' : ''}>${esc(m.description)}</textarea><small class="hint" id="new-ws-description-hint" data-description-count>${m.description.length} / 500</small></label>
     <div class="field"><span class="label">${t('Color')}</span>${colorPalette({ label: 'Workspace icon', value: m.color, colors: WORKSPACE_COLORS, action: 'workspaceDraftColor', size: 26 })}</div>
     <label class="row" style="align-items:flex-start;gap:10px"><input type="checkbox" data-in="workspaceDraft" data-k="includeMembers" ${m.includeMembers ? 'checked' : ''} ${m.busy ? 'disabled' : ''}><span>${copy('Include current workspace members', 'Добавить участников текущего пространства')}<span class="hint" style="display:block;margin-top:4px">${copy('They join as members. Guests retain read-only access.', 'Они получат роль участника. Гости сохранят доступ только для чтения.')}</span></span></label>
     <p class="hint" style="margin:0">${copy('You become the owner. Content and permissions are managed separately in each workspace.', 'Вы станете владельцем. Данные и права в каждом пространстве настраиваются отдельно.')}</p>
@@ -105,6 +105,7 @@ IN.workspaceDraft = el => {
   if (m?.type === 'workspaceCreate' && !m.busy) {
     m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
     rememberCreation(m);
+    if (el.dataset.k === 'description') el.closest('.field')?.querySelector('[data-description-count]')?.replaceChildren(`${el.value.length} / 500`);
   }
 };
 A.workspaceDraftColor = el => {
@@ -227,6 +228,7 @@ export function deleteWorkspace() {
 IN.workspaceSettings = el => {
   const draft = (S.ui.workspaceSettingsDraft ||= { ...D().ws });
   draft[el.dataset.k] = el.value;
+  if (el.dataset.k === 'description') el.closest('.field')?.querySelector('[data-description-count]')?.replaceChildren(`${el.value.length} / 500`);
   S.ui.workspaceSettingsDirty = ['name', 'description', 'url', 'c'].some(k => (draft[k] || '') !== (D().ws[k] || ''));
 };
 A.wsColor = el => {

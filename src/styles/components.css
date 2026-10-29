@@ -753,3 +753,9 @@
 .select-menu .mi[aria-selected='true'] {
   font-weight: 500;
 }
+
+.workspace-description {
+  min-height: 90px;
+  resize: vertical;
+  width: 100%;
+}
