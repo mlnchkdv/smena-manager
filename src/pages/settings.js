@@ -222,7 +222,10 @@ export function settingsBody(sec, title) {
     case 'workspace': {
       void refreshWorkspaces(false);
       const copy = (en, ru) => (isRussian() ? ru : en);
-      if (!S.ui.workspaceSettingsDirty) S.ui.workspaceSettingsDraft = { ...d.ws };
+      if (!S.ui.workspaceSettingsDirty) {
+        S.ui.workspaceSettingsDraft = { ...d.ws };
+        S.ui.workspaceSettingsBase = { ...d.ws };
+      }
       const draft = S.ui.workspaceSettingsDraft;
       const w = { ...d.ws, ...draft };
       return (

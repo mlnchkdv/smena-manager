@@ -5,6 +5,7 @@ import { isRussian, t } from '../core/i18n.js';
 import { getActiveWorkspace, workspaceDirectoryRequest, deleteAllWorkspaces } from '../core/api.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
+import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { openModal, workspaceModalRenderers } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
@@ -31,6 +32,10 @@ function rememberCreation(m) {
   }
 }
 function canLeave() {
+  if (S.ui.workspaceSettingsDirty) {
+    toast(copy('Save or cancel workspace settings before leaving.', 'Сохраните или отмените настройки пространства перед переходом.'), { kind: 'info' });
+    return false;
+  }
   flushLocalSave();
   const uploading = (S.ui.uploads || []).some(item => !['done', 'cancelled', 'error'].includes(item.status));
   if (
@@ -180,6 +185,19 @@ export function saveWorkspaceSettings() {
   const url = workspaceSlug($('#ws-url').value);
   const description = $('#ws-description').value.trim();
   const previousUrl = D().ws.url;
+  const merged = mergeWorkspaceSettings(
+    S.ui.workspaceSettingsBase || D().ws,
+    { ...S.ui.workspaceSettingsDraft, name, description, url: url || D().ws.url },
+    D().ws,
+  );
+  if (merged.conflicts.length)
+    return toast(
+      copy(
+        'These settings changed in another session. Cancel to load the latest values before saving again.',
+        'Эти настройки изменены в другой сессии. Нажмите «Отмена», чтобы загрузить актуальные значения перед сохранением.',
+      ),
+      { kind: 'err', ms: 8000 },
+    );
   if (!name || name.length > 100) return toast(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'), { kind: 'err' });
   if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === url))
     return toast(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'), { kind: 'err' });
@@ -192,7 +210,7 @@ export function saveWorkspaceSettings() {
         url: getActiveWorkspace() === 'default' ? url || D().ws.url : D().ws.url,
       });
       const item = D().workspaces?.find(item => item.id === D().ws.id);
-      if (item) Object.assign(item, { name, c: D().ws.c });
+      if (item) Object.assign(item, { name: D().ws.name, c: D().ws.c });
     })
   ) {
     S.ui.workspaceSettingsDraft = null;
@@ -216,10 +234,10 @@ export function deleteWorkspace() {
       if (!canLeave()) return;
       try {
         await deleteAllWorkspaces(S.ui.workspaceRevision);
-        const next = S.ui.availableWorkspaces?.find(item => item.id !== getActiveWorkspace() && item.initialized);
+        const next = S.ui.availableWorkspaces?.find(item => item.id !== getActiveWorkspace() && item.initialized && !item.archived);
         location.assign(next ? `/${encodeURIComponent(next.url)}/home` : '/');
       } catch {
-        toast(copy('The workspace could not be deleted.', 'Не удалось удалить пространство.'), { kind: 'err' });
+        toast(copy('The content could not be cleared.', 'Не удалось очистить содержимое.'), { kind: 'err' });
       }
     },
   });
@@ -268,8 +286,12 @@ A.archiveWorkspace = () =>
     ok: t('Archive'),
     run: async () => {
       if (!canLeave()) return;
-      await workspaceDirectoryRequest({ method: 'POST', path: `/api/workspaces/${getActiveWorkspace()}/archive`, body: JSON.stringify({ archived: true }) });
-      location.assign('/');
+      try {
+        await workspaceDirectoryRequest({ method: 'POST', path: `/api/workspaces/${getActiveWorkspace()}/archive`, body: JSON.stringify({ archived: true }) });
+        location.assign('/');
+      } catch {
+        toast(copy('Could not archive workspace.', 'Не удалось архивировать пространство.'), { kind: 'err' });
+      }
     },
   });
 A.restoreArchivedWorkspace = async el => {
@@ -299,6 +321,7 @@ export async function refreshWorkspaces(force = true) {
     S.ui.workspaceDirectoryError = copy('Could not refresh workspaces. Try again.', 'Не удалось обновить список пространств. Повторите попытку.');
   } finally {
     S.ui.workspaceDirectoryLoading = false;
+    S.ui.workspaceDirectoryCheckedAt = Date.now();
     if (S.ui.pop?.type === 'ws' || S.ui.route === 'settings') render();
   }
 }
