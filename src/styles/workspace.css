@@ -552,8 +552,15 @@
   .topbar {
     height: auto;
     min-height: var(--topbar-h);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     padding-block: 4px;
+  }
+  .topbar > :is(.ibtn, .btn, .topsearch) {
+    flex-shrink: 0;
+  }
+  .topbar .workspace-context {
+    min-width: 0;
+    flex-shrink: 1;
   }
   .bottomnav {
     display: grid;
@@ -565,6 +572,17 @@
   .bottomnav button span {
     max-width: 100%;
     overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 440px) {
+  .topbar .crumbs {
+    display: none;
+  }
+  .topbar .workspace-context {
+    flex: 1 1 100px;
+  }
+  .topbar > .sp {
+    display: none;
   }
 }
 @media (max-width: 640px) {
