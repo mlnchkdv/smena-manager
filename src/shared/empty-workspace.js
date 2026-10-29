@@ -35,3 +35,11 @@ export function emptyWorkspace(database) {
   for (const field of EMPTY_COLLECTIONS) empty[field] = [];
   return empty;
 }
+
+// Clearing materials is distinct from account onboarding or membership reset.
+export function clearWorkspaceContent(database) {
+  const empty = emptyWorkspace(database);
+  for (const key of ['ws', 'me', 'members', 'teams', 'workspaces', 'notifPrefs', 'tfa'])
+    if (database[key] !== undefined) empty[key] = structuredClone(database[key]);
+  return { ...database, ...empty };
+}

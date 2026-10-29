@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { emptyWorkspace } from '../../src/shared/empty-workspace.js';
+import { emptyWorkspace, clearWorkspaceContent } from '../../src/shared/empty-workspace.js';
 
 test('empty workspace removes all workspace content but preserves authorized members', () => {
   const database = {
@@ -48,4 +48,26 @@ test('empty workspace removes all workspace content but preserves authorized mem
   assert.equal(empty.tfa, false);
   assert.deepEqual(empty.notifPrefs, {});
   assert.equal(database.projects.length, 1);
+});
+
+test('content reset retains identity, invited members, teams and notification preferences', () => {
+  const source = {
+    ws: { id: 'child', name: 'My workspace', url: 'child' },
+    me: 'owner',
+    members: [{ id: 'owner' }, { id: 'invited', status: 'invited' }],
+    teams: [{ id: 'team', members: ['owner', 'invited'] }],
+    notifPrefs: { owner: { email_mention: true } },
+    tasks: [{ id: 'task' }],
+    knowledgeNotes: [{ id: 'note' }],
+    _workspaceDirectory: [{ id: 'other' }],
+  };
+  const cleared = clearWorkspaceContent(source);
+  assert.deepEqual(cleared.ws, source.ws);
+  assert.deepEqual(cleared.members, source.members);
+  assert.deepEqual(cleared.teams, source.teams);
+  assert.deepEqual(cleared.notifPrefs, source.notifPrefs);
+  assert.deepEqual(cleared._workspaceDirectory, source._workspaceDirectory);
+  assert.deepEqual(cleared.tasks, []);
+  assert.deepEqual(cleared.knowledgeNotes, []);
+  assert.equal(source.tasks.length, 1);
 });

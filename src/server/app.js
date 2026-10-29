@@ -25,7 +25,7 @@ import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
 import { tryMutateWorkspaceFileRemoval } from './file-removal-patch.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
-import { emptyWorkspace } from '../shared/empty-workspace.js';
+import { clearWorkspaceContent } from '../shared/empty-workspace.js';
 import { getStorageProvider } from './storage/index.js';
 import { requireCronSecret } from './cron-auth.js';
 import { runDueReminderSweep } from './due-reminders.js';
@@ -583,11 +583,11 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
-    const data = await mutateWorkspaceDatabase(
-      current => ({ ...current, ...emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())), ws: current.ws }),
-      request.body?.revision,
-      { role: request.user.role, replaceDocuments: true, backupLabel: 'Before clearing workspace content' },
-    );
+    const data = await mutateWorkspaceDatabase(current => clearWorkspaceContent(current), request.body?.revision, {
+      role: request.user.role,
+      replaceDocuments: true,
+      backupLabel: 'Before clearing workspace content',
+    });
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {
     next(error);
