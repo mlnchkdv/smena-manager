@@ -3,7 +3,7 @@ import { MOD, TODAY, diffD, esc, fmtTimestamp, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { PSTAT } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
-import { av } from '../ui/helpers.js';
+import { av, projectIconContent } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
@@ -203,7 +203,7 @@ export function renderSidebar() {
             <div class="sitem sproject-row ${on ? 'on' : ''}" draggable="true" data-drag-proj="${p.id}" data-ctx="project" data-id="${p.id}">
               <button class="sproject-expand" data-a="toggleExpand" data-id="${p.id}" aria-expanded="${open && !compact}" aria-controls="project-sections-${esc(p.id)}" aria-label="${esc(tr(open ? 'Collapse project sections' : 'Expand project sections'))}: ${esc(p.name)}">${ic('chevron-right', 13, 'chev ' + (open ? 'open' : ''))}</button>
               <a class="sproject-link" href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id } }))}" data-a="go" data-r="project" data-id="${p.id}" aria-label="${esc(p.name)}" title="${esc(p.name)}" ${on ? 'aria-current="page"' : ''} ${compact ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
-              <span class="pico" style="--c:${pColor(p)}">${ic(p.icon, 12)}</span><span class="trunc sproject-name" translate="no">${esc(p.name)}</span>
+              <span class="pico" style="--c:${pColor(p)}">${projectIconContent(p, 12)}</span><span class="trunc sproject-name" translate="no">${esc(p.name)}</span>
               ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               ${p.private ? `<span class="faint" style="margin-left:4px">${ic('lock', 11)}</span>` : ''}
               <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
@@ -257,7 +257,7 @@ export function crumbs() {
           p.name,
           `data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"`,
           true,
-          `<span class="pico" style="--c:${pColor(p)};width:16px;height:16px;border-radius:4px;display:grid;place-items:center;color:${pColor(p)}">${ic(p.icon, 11)}</span>`,
+          `<span class="pico" style="--c:${pColor(p)};width:16px;height:16px;border-radius:4px;display:grid;place-items:center;color:${pColor(p)}">${projectIconContent(p, 11)}</span>`,
           true,
         ),
       );

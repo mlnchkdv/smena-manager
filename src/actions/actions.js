@@ -2521,7 +2521,7 @@ A.newProject = () => {
   }
   const availableTeams = teamsList();
   const initialTeam = primaryTeamId(availableTeams, me().team);
-  S.ui.pform = { name: '', desc: '', icon: 'folder', color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
+  S.ui.pform = { name: '', desc: '', icon: 'folder', iconImage: null, color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
   S.ui.projectIconQuery = '';
   S.ui.errors = {};
   S.ui.pop = null;
@@ -2530,7 +2530,17 @@ A.newProject = () => {
 A.editProject = el => {
   const p = proj(el.dataset.id);
   S.ui.pop = null;
-  S.ui.pform = { name: p.name, desc: p.desc, icon: p.icon, color: p.color, team: p.team, lead: p.lead, due: p.due, tmpl: 'blank' };
+  S.ui.pform = {
+    name: p.name,
+    desc: p.desc,
+    icon: p.icon,
+    iconImage: p.iconImage || null,
+    color: p.color,
+    team: p.team,
+    lead: p.lead,
+    due: p.due,
+    tmpl: 'blank',
+  };
   S.ui.projectIconQuery = '';
   S.ui.errors = {};
   openModal({ type: 'project', edit: p.id });
@@ -2544,6 +2554,7 @@ IN.pform = el => {
 };
 A.pformSet = el => {
   S.ui.pform[el.dataset.f] = el.dataset.v;
+  if (el.dataset.f === 'icon') S.ui.pform.iconImage = null;
   if (el.dataset.f === 'color') {
     S.ui.pform.colorDraft = '';
     S.ui.errors.projectColor = null;
@@ -2577,6 +2588,7 @@ export function createProject(f, tmplId) {
     key: makeKey(f.name),
     name: f.name,
     icon: f.icon,
+    iconImage: f.iconImage || null,
     color: f.color,
     status: 'planning',
     team: primaryTeamId(teamsList(), f.team),
@@ -2606,54 +2618,6 @@ export function createProject(f, tmplId) {
   );
   return p;
 }
-A.submitProject = () => {
-  const m = S.ui.modals[S.ui.modals.length - 1];
-  const f = S.ui.pform;
-  f.name = ($('#p-name')?.value || '').trim();
-  f.desc = $('#p-desc')?.value || '';
-  f.team = $('#p-team')?.value || '';
-  f.lead = $('#p-lead')?.value || D().me;
-  f.due = $('#p-due')?.value || '';
-  if (!f.name) {
-    S.ui.errors.pname = 'Give the project a name';
-    render();
-    $('#p-name')?.focus();
-    return;
-  }
-  if (A.validateProjectAppearance && !A.validateProjectAppearance(f)) return;
-  if (m.edit) {
-    const p = proj(m.edit);
-    if (
-      mutate(() =>
-        Object.assign(p, {
-          name: f.name,
-          desc: f.desc,
-          icon: f.icon,
-          color: f.color,
-          team: f.team,
-          lead: f.lead,
-          due: f.due,
-          members: [...new Set([...p.members, f.lead])],
-        }),
-      )
-    ) {
-      S.ui.modals.pop();
-      render();
-      toast('Project updated');
-    }
-    return;
-  }
-  let p;
-  if (
-    !mutate(() => {
-      p = createProject(f, f.tmpl);
-    })
-  )
-    return;
-  S.ui.modals.pop();
-  go('project', { id: p.id, tab: f.tmpl === 'blank' ? 'overview' : S.prefs.defaultTab || 'board' });
-  toast(`Created ${p.name}${tasksOf(p.id).length ? ` with ${tasksOf(p.id).length} starter tasks` : ''}`);
-};
 A.dupProject = el => {
   const p = proj(el.dataset.id);
   S.ui.pop = null;

@@ -2,6 +2,22 @@
   flex: 0 0 auto;
   margin-top: 22px;
 }
+.project-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+}
+.project-image-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.project-image-controls .row {
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .project-appearance {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 196px;

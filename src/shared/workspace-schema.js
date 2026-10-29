@@ -1,5 +1,6 @@
 import { ENTITY_COLLECTIONS, RELATION_TYPES } from './relations.js';
 import { assertFileFolder, validateProjectFileFolders } from './file-organization.js';
+import { projectImageData } from './project-appearance.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -117,6 +118,7 @@ export function validateWorkspaceData(value) {
   }
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
     if (!isObject(project)) continue;
+    if (project.iconImage != null && project.iconImage !== '' && !projectImageData(project.iconImage)) invalid.push('projects.iconImage');
     try {
       validateProjectFileFolders(project);
     } catch {

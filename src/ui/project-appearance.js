@@ -1,12 +1,15 @@
-import { A, IN } from '../actions/actions.js';
+import { A, IN, createProject } from '../actions/actions.js';
 import { PCOLORS } from '../core/constants.js';
-import { S, pColor } from '../core/store.js';
-import { esc } from '../core/utils.js';
+import { D, S, pColor, proj, tasksOf } from '../core/store.js';
+import { $, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { isRussian, t } from '../core/i18n.js';
-import { render } from '../shell/render.js';
+import { go, render } from '../shell/render.js';
 import { colorPalette } from './color-palette.js';
-import { normalizeProjectColor } from '../shared/project-appearance.js';
+import { normalizeProjectColor, projectImageData } from '../shared/project-appearance.js';
+
+import { mutate, toast } from './toast.js';
+import { projectImageControls } from './project-image.js';
 
 const ICONS = [
   ['globe', 'Globe', 'Глобус'],
@@ -97,8 +100,9 @@ export function projectAppearance(form) {
   const query = (S.ui.projectIconQuery || '').trim().toLocaleLowerCase('ru-RU');
   const icons = ICONS.filter(icon => icon.join(' ').toLocaleLowerCase('ru-RU').includes(query));
   const focused = icons.some(([id]) => id === form.icon) ? form.icon : icons[0]?.[0];
+  const useImage = !!projectImageData(form.iconImage);
   const colors = [...Object.entries(PCOLORS).map(([id, color]) => [id, id, color]), ...EXTRA_COLORS.map(([hex, en, ru]) => [hex, isRussian() ? ru : en, hex])];
-  return `<section class="project-appearance" aria-label="Project appearance"><div class="project-icon-library"><label class="label" for="project-icon-search">Icon</label><div class="project-icon-search"><input class="input" id="project-icon-search" data-in="projectIconQuery" value="${esc(S.ui.projectIconQuery || '')}" placeholder="Search icons" aria-label="Search icons">${query ? `<button type="button" class="ibtn" data-a="clearProjectIconQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div><div class="iconpick project-icon-grid" role="radiogroup" aria-label="Icon">${icons.map(([id, en, ru]) => `<button type="button" role="radio" tabindex="${id === focused ? 0 : -1}" aria-checked="${form.icon === id}" class="project-icon-choice ${form.icon === id ? 'on' : ''}" data-a="pformSet" data-f="icon" data-v="${id}" aria-label="${esc(isRussian() ? ru : en)}" title="${esc(isRussian() ? ru : en)}">${ic(id, 18)}</button>`).join('') || '<p class="hint">No matching icons.</p>'}</div><span class="hint num" role="status">${icons.length} / ${ICONS.length}</span></div><div class="project-color-library"><span class="label">Color</span>${colorPalette({ label: 'Color', value: form.color, colors, action: 'projectColor' })}<div class="project-custom-color"><label class="project-color-input" for="project-custom-color"><span class="sr">Custom color</span><input type="color" id="project-custom-color" data-in="projectCustomColor" value="${pColor(form)}" aria-label="Custom color"></label><label class="sr" for="project-color-hex">HEX color</label><input class="input mono" id="project-color-hex" data-in="projectColorHex" value="${esc(form.colorDraft || pColor(form))}" maxlength="7" spellcheck="false" aria-label="HEX color" aria-invalid="${!!S.ui.errors.projectColor}" ${S.ui.errors.projectColor ? 'aria-describedby="project-color-error"' : ''}></div>${S.ui.errors.projectColor ? `<span class="err" id="project-color-error">${esc(t(S.ui.errors.projectColor))}</span>` : ''}</div></section>`;
+  return `${projectImageControls(form)}<section class="project-appearance" aria-label="Project appearance"><div class="project-icon-library"><label class="label" for="project-icon-search">Icon</label><div class="project-icon-search"><input class="input" id="project-icon-search" data-in="projectIconQuery" value="${esc(S.ui.projectIconQuery || '')}" placeholder="Search icons" aria-label="Search icons">${query ? `<button type="button" class="ibtn" data-a="clearProjectIconQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div><div class="iconpick project-icon-grid" role="radiogroup" aria-label="Icon">${icons.map(([id, en, ru]) => `<button type="button" role="radio" tabindex="${id === focused ? 0 : -1}" aria-checked="${!useImage && form.icon === id}" class="project-icon-choice ${!useImage && form.icon === id ? 'on' : ''}" data-a="pformSet" data-f="icon" data-v="${id}" aria-label="${esc(isRussian() ? ru : en)}" title="${esc(isRussian() ? ru : en)}">${ic(id, 18)}</button>`).join('') || '<p class="hint">No matching icons.</p>'}</div><span class="hint num" role="status">${icons.length} / ${ICONS.length}</span></div><div class="project-color-library"><span class="label">Color</span>${colorPalette({ label: 'Color', value: form.color, colors, action: 'projectColor' })}<div class="project-custom-color"><label class="project-color-input" for="project-custom-color"><span class="sr">Custom color</span><input type="color" id="project-custom-color" data-in="projectCustomColor" value="${pColor(form)}" aria-label="Custom color"></label><label class="sr" for="project-color-hex">HEX color</label><input class="input mono" id="project-color-hex" data-in="projectColorHex" value="${esc(form.colorDraft || pColor(form))}" maxlength="7" spellcheck="false" aria-label="HEX color" aria-invalid="${!!S.ui.errors.projectColor}" ${S.ui.errors.projectColor ? 'aria-describedby="project-color-error"' : ''}></div>${S.ui.errors.projectColor ? `<span class="err" id="project-color-error">${esc(t(S.ui.errors.projectColor))}</span>` : ''}</div></section>`;
 }
 
 IN.projectIconQuery = el => {
@@ -147,5 +151,55 @@ document.addEventListener('keydown', event => {
   items[next].click();
 });
 
-// Keep validation in the lazily loaded project form rather than the startup bundle.
-A.validateProjectAppearance = validateProjectAppearance;
+// Project submission is loaded with its form, keeping image controls off the startup path.
+A.submitProject = () => {
+  const m = S.ui.modals[S.ui.modals.length - 1];
+  if (m?.type !== 'project' || !S.ui.pform) return;
+  const f = S.ui.pform;
+  if (f.imagePending) return;
+  f.name = ($('#p-name')?.value || '').trim();
+  f.desc = $('#p-desc')?.value || '';
+  f.team = $('#p-team')?.value || '';
+  f.lead = $('#p-lead')?.value || D().me;
+  f.due = $('#p-due')?.value || '';
+  if (!f.name) {
+    S.ui.errors.pname = 'Give the project a name';
+    render();
+    $('#p-name')?.focus();
+    return;
+  }
+  if (!validateProjectAppearance(f)) return;
+  if (m.edit) {
+    const p = proj(m.edit);
+    if (
+      mutate(() =>
+        Object.assign(p, {
+          name: f.name,
+          desc: f.desc,
+          icon: f.icon,
+          iconImage: f.iconImage || null,
+          color: f.color,
+          team: f.team,
+          lead: f.lead,
+          due: f.due,
+          members: [...new Set([...p.members, f.lead])],
+        }),
+      )
+    ) {
+      S.ui.modals.pop();
+      render();
+      toast('Project updated');
+    }
+    return;
+  }
+  let p;
+  if (
+    !mutate(() => {
+      p = createProject(f, f.tmpl);
+    })
+  )
+    return;
+  S.ui.modals.pop();
+  go('project', { id: p.id, tab: f.tmpl === 'blank' ? 'overview' : S.prefs.defaultTab || 'board' });
+  toast(`Created ${p.name}${tasksOf(p.id).length ? ` with ${tasksOf(p.id).length} starter tasks` : ''}`);
+};

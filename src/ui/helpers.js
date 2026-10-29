@@ -5,6 +5,7 @@ import { LB, PR, PSTAT, ST } from '../core/constants.js';
 import { D, mem, pColor } from '../core/store.js';
 import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { t } from '../core/i18n.js';
+import { projectImageData } from '../shared/project-appearance.js';
 
 export function av(id, cls = '', tip = true) {
   const m = mem(id);
@@ -46,7 +47,11 @@ export function prIcon(p, s = 14) {
 export const stPill = st => `${stIcon(st)}<span>${ST[st].name}</span>`;
 export const prPill = p => `${prIcon(p)}<span>${PR[p || 'none'].name}</span>`;
 export const lbl = id => (LB[id] ? `<span class="lbl" style="--c:${LB[id].c}" translate="no"><i></i>${esc(LB[id].name)}</span>` : '');
-export const pIcon = (p, cls = '', s = 15) => `<span class="picon ${cls}" style="--c:${pColor(p)}">${ic(p.icon, s)}</span>`;
+export function projectIconContent(project, size = 15) {
+  const image = projectImageData(project?.iconImage);
+  return image ? `<img class="project-logo" src="${esc(image)}" alt="" decoding="async">` : ic(project?.icon, size);
+}
+export const pIcon = (p, cls = '', s = 15) => `<span class="picon ${cls}" style="--c:${pColor(p)}">${projectIconContent(p, s)}</span>`;
 export const pStatus = s => `<span class="pstatus" style="--c:${PSTAT[s].c}"><i></i>${PSTAT[s].name}</span>`;
 export function dueHtml(t, withIcon = true) {
   if (!t.due) return '';

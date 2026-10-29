@@ -157,7 +157,7 @@ export function projectModal(m, H) {
     </div>
     ${m.edit ? '' : `<div class="field"><span class="label">Template</span><div class="tmpls" role="radiogroup">${TEMPLATES.map(t => `<button type="button" role="radio" aria-checked="${f.tmpl === t.id}" class="opt ${f.tmpl === t.id ? 'on' : ''}" data-a="pformSet" data-f="tmpl" data-v="${t.id}" style="padding:10px">${ic(t.icon, 16)}<b style="font-size:12.5px">${templateText(t.name)}</b><span>${t.tasks.length ? t.tasks.length + ' starter tasks' : templateText(t.desc)}</span></button>`).join('')}</div></div>`}
   </form>
-  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="submitProject">${m.edit ? 'Save changes' : 'Create project'}</button></div>`;
+  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="submitProject" ${f.imagePending ? 'disabled' : ''}>${m.edit ? 'Save changes' : 'Create project'}</button></div>`;
 }
 
 function milestoneState(milestone) {
