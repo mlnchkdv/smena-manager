@@ -70,9 +70,14 @@ export function paletteItems() {
   if (pl.mode === 'ws') {
     groups.push({
       name: 'Switch workspace',
-      items: D()
-        .workspaces.filter(w => !q || w.name.toLowerCase().includes(ql))
-        .map(w => ({ html: `${wsLogo(w, 20)}`, name: w.name, sub: w.plan + ' plan', run: () => A.switchWs({ dataset: { v: w.id } }) })),
+      items: (S.ui.availableWorkspaces || [])
+        .filter(w => !q || w.name.toLowerCase().includes(ql))
+        .map(w => ({
+          html: `${wsLogo({ ...w, name: w.name || '?' }, 20)}`,
+          name: w.id === S.ui.activeWorkspace ? D().ws.name : w.name,
+          sub: '',
+          run: () => A.switchWs({ dataset: { v: w.id } }),
+        })),
     });
     return groups;
   }

@@ -49,7 +49,6 @@ import {
   getSessionToken,
   commitPortableImport,
   createWorkspaceBackup,
-  deleteAllWorkspaces,
   downloadWorkspaceFile,
   getStorageStatus,
   getNotificationDeliveryStatus,
@@ -1942,7 +1941,7 @@ A.downloadStoredFile = async el => {
   if (!file?.storageName) return toast('This legacy file has no stored content.', { kind: 'err' });
   if (getSessionToken() === 'cookie') {
     const anchor = document.createElement('a');
-    anchor.href = `/api/files/${encodeURIComponent(file.id)}/content?download=1`;
+    anchor.href = `/api/files/${encodeURIComponent(file.id)}/content?download=1&account=${encodeURIComponent(S.ui.currentUser.id)}&workspace=${encodeURIComponent(S.ui.activeWorkspace || 'default')}`;
     anchor.download = file.name;
     anchor.click();
     return;
@@ -3138,22 +3137,8 @@ A.setSearch = el => {
 };
 
 /* workspace, account, prototype controls */
-A.switchWs = el => {
-  void el;
-  S.ui.pop = null;
-  render();
-  toast('This deployment uses one shared workspace. Rename it in workspace settings.', { kind: 'info', ms: 8000 });
-};
-A.newWorkspace = () => {
-  if (D().ws?.name) return A.switchWs({});
-  if (S.ui.currentUser?.role !== 'admin') return;
-  S.ui.pop = null;
-  S.ui.auth = 'onboarding';
-  S.ui.onb = 1;
-  S.ui.onbData.ws = '';
-  S.ui.onbData.url = '';
-  render();
-};
+A.switchWs = async el => (await import('../ui/workspaces.js')).switchWorkspace(el);
+A.newWorkspace = async () => (await import('../ui/workspaces.js')).openWorkspaceCreation();
 A.signOut = () => {
   resetSearchSession();
   void revokeCurrentAuthSession().catch(() => undefined);
@@ -3471,46 +3456,8 @@ A.wsColor = el => {
   save();
   render();
 };
-A.saveWorkspace = () => {
-  const n = $('#ws-name').value.trim();
-  const u = workspaceSlug($('#ws-url').value);
-  if (!n) {
-    toast("Workspace name can't be empty", { kind: 'err' });
-    return;
-  }
-  if (
-    mutate(() => {
-      const old = D().ws.name;
-      D().ws.name = n;
-      D().ws.url = u || D().ws.url;
-      const w = D().workspaces.find(x => x.name === old);
-      if (w) w.name = n;
-    })
-  )
-    toast('Workspace settings saved');
-};
-A.delWorkspace = () =>
-  confirmDlg({
-    title: `Delete ${D().ws.name}?`,
-    body: 'Every project, task, file, and comment in this workspace will be permanently deleted for all members.',
-    ok: 'Delete workspace',
-    danger: true,
-    typeName: D().ws.name,
-    run: async () => {
-      try {
-        await deleteAllWorkspaces(S.ui.workspaceRevision);
-        await refreshWorkspaceFromServer({ force: true });
-        S.views = {};
-        S.ui.auth = 'onboarding';
-        S.ui.onb = 1;
-        S.ui.onbData = { ...S.ui.onbData, ws: '', url: '', proj: '', invites: '', urlTouched: false, projTouched: false };
-        render();
-        toast('Workspace deleted. Create a new workspace to continue.', { kind: 'info', ms: 5000 });
-      } catch (error) {
-        toast(error.message || 'The workspace could not be deleted.', { kind: 'err', ms: 8000 });
-      }
-    },
-  });
+A.saveWorkspace = async () => (await import('../ui/workspaces.js')).saveWorkspaceSettings();
+A.delWorkspace = async () => (await import('../ui/workspaces.js')).deleteWorkspace();
 A.avColor = el => {
   void persistPersonalChange({ profile: { c: el.dataset.v } });
 };
@@ -3768,7 +3715,8 @@ A.onbFinish = () => {
   mutate(() => {
     if (o.ws.trim()) {
       const c = ['#2F2E2A', '#5A67D8', '#23918A', '#C54B78'][D().workspaces.length % 4];
-      D().ws = { name: o.ws.trim(), url: o.url || 'workspace', c };
+      const scoped = S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default';
+      D().ws = { ...(scoped ? { id: D().ws.id } : {}), name: o.ws.trim(), url: scoped ? D().ws.url : o.url || 'workspace', c };
       if (!D().workspaces.some(w => w.name === D().ws.name)) D().workspaces.push({ id: uid('w'), name: D().ws.name, c, plan: 'Free' });
     }
     S.prefs.defaultTab = { kanban: 'board', list: 'list', timeline: 'timeline', table: 'table' }[o.team] || 'board';

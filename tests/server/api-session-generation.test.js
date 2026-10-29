@@ -9,7 +9,34 @@ import {
   putWorkspace,
   loadFileIdentities,
   uploadWorkspaceFile,
+  setActiveWorkspace,
+  getActiveWorkspace,
 } from '../../src/core/api.js';
+
+test('workspace changes reject late responses and carry an isolated request scope without changing the account', async () => {
+  const originalFetch = globalThis.fetch;
+  let finish;
+  try {
+    setSessionToken('workspace-owner');
+    setActiveWorkspace('11111111-1111-4111-8111-111111111111');
+    globalThis.fetch = async (_path, options) => {
+      assert.equal(options.headers.get('X-Smena-Workspace'), '11111111-1111-4111-8111-111111111111');
+      return new Promise(resolve => {
+        finish = resolve;
+      });
+    };
+    const pending = getCurrentUser();
+    setActiveWorkspace('22222222-2222-4222-8222-222222222222');
+    finish(new Response(JSON.stringify({ user: { id: 'owner' } })));
+    await assert.rejects(pending, { code: 'SESSION_CHANGED', staleSession: true });
+    assert.equal(getSessionToken(), 'workspace-owner');
+    setSessionToken('another-account');
+    assert.equal(getActiveWorkspace(), 'default', 'new account must not inherit a workspace selected by the previous account');
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+  }
+});
 
 test('multipart uploads resolve only the uploaded identity instead of hydrating the whole catalog', async () => {
   const originalFetch = globalThis.fetch,

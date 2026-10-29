@@ -1,7 +1,7 @@
 import { D, S } from './store.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
 import { toast } from '../ui/toast.js';
-import { getSessionGeneration, prepareFileArchive } from './api.js';
+import { getActiveWorkspace, getSessionGeneration, prepareFileArchive } from './api.js';
 import { render } from '../shell/render.js';
 
 const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, getSessionGeneration()]);
@@ -54,7 +54,7 @@ export function startPreparedFileStream() {
     form.method = 'POST';
     form.target = '_blank';
     form.rel = 'noopener';
-    form.action = `/api/files/archive?account=${encodeURIComponent(S.ui.currentUser.id)}`;
+    form.action = `/api/files/archive?account=${encodeURIComponent(S.ui.currentUser.id)}&workspace=${encodeURIComponent(getActiveWorkspace())}`;
     for (const [name, value] of Object.entries({ ids: JSON.stringify(state.ids), revision: String(state.revision) })) {
       const input = document.createElement('input');
       input.type = 'hidden';

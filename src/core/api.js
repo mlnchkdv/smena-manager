@@ -8,6 +8,15 @@ let sessionGeneration = 0;
 let sessionAccount = '';
 let sessionBlocked = false;
 let revisionCache = null;
+let activeWorkspace = '';
+export const getActiveWorkspace = () => activeWorkspace || 'default';
+export function setActiveWorkspace(value) {
+  if (activeWorkspace === value) return;
+  activeWorkspace = value;
+  sessionGeneration += 1;
+  revisionCache = null;
+}
+export const workspaceDirectoryRequest = (options = {}) => request('/api/workspaces', options, true);
 
 export const getSessionGeneration = () => sessionGeneration;
 function assertSessionGeneration(generation) {
@@ -38,6 +47,7 @@ export function getSessionToken() {
 
 export function setSessionToken(token) {
   sessionGeneration += 1;
+  activeWorkspace = '';
   sessionAccount = '';
   sessionBlocked = false;
   revisionCache = null;
@@ -66,6 +76,7 @@ function accountChanged() {
 function addAccountHeader(headers) {
   if (sessionBlocked) throw accountChanged();
   if (sessionAccount) headers.set('X-Smena-Account', encodeURIComponent(sessionAccount));
+  if (activeWorkspace) headers.set('X-Smena-Workspace', activeWorkspace);
   return headers;
 }
 

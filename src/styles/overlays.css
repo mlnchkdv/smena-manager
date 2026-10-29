@@ -38,6 +38,15 @@
 .modal.sm {
   max-width: 420px;
 }
+.workspace-create-dialog > form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.workspace-create-dialog .modal-b {
+  flex: 1;
+}
 .modal.lg {
   max-width: 720px;
 }

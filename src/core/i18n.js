@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Workspaces: 'Рабочие пространства',
+  'Find workspace': 'Найти пространство',
+  'Create workspace': 'Создать пространство',
+  'The permanent address keeps shared links working when the workspace is renamed.': 'Постоянный адрес сохраняет общие ссылки при переименовании пространства.',
   green: 'зелёный',
   slate: 'серый',
   'Edit member profile': 'Изменить профиль участника',

@@ -77,6 +77,7 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
 }
 
 async function loadWorkspaceFor(user) {
+  await (await import('./workspace-selection.js')).selectInitialWorkspace(user);
   const generation = getSessionGeneration();
   user = await getCurrentUser();
   const resources = await loadWorkspaceResources({ getWorkspace, getWorkspaceDocument, getPersonalPreferences, getFileUploadPolicy });

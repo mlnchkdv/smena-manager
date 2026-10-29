@@ -217,10 +217,23 @@ export function popHtml(p) {
       style = 'width:300px';
       break;
     }
-    case 'ws':
-      inner = `<div class="mh">Workspace</div><div class="mi">${wsLogo(D().ws, 20)}<span class="grow" translate="no">${esc(D().ws.name)}</span><span class="ck">${ic('check', 14)}</span></div><div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
-      style = 'width:260px';
+    case 'ws': {
+      const entries = S.ui.availableWorkspaces || [];
+      const query = (p.q || '').trim().toLocaleLowerCase();
+      inner = `<div class="mh">Workspaces</div>${entries.length > 5 ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${tr('Find workspace')}" aria-label="${tr('Find workspace')}" value="${esc(p.q || '')}"></div>` : ''}
+      <div style="max-height:min(280px,40dvh);overflow:auto">${
+        entries
+          .filter(w => !query || w.name.toLocaleLowerCase().includes(query))
+          .map(w => {
+            const current = w.id === S.ui.activeWorkspace;
+            const item = current ? D().ws : w;
+            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow trunc" translate="no">${esc(item.name || tr('New workspace'))}</span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
+          })
+          .join('') || `<div class="mi faint">No matches</div>`
+      }</div><div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
+      style = 'width:300px';
       break;
+    }
     case 'user':
       inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600" translate="no">${esc(S.prefs.name)}</div><div class="faint trunc" style="font-size:12px">${esc(me().email)}</div></div></div><div class="msep"></div>
       <button class="mi" data-a="go" data-r="member" data-id="${D().me}">${ic('user', 15)}View profile</button><button class="mi" data-a="go" data-r="settings" data-sec="profile">${ic('settings', 15)}Account settings</button>

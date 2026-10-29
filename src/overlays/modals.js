@@ -3,6 +3,7 @@ import { S } from '../core/store.js';
 import { focusKey, render } from '../shell/render.js';
 export { TEMPLATES, SHORTCUTS } from './modal-data.js';
 export const fileModalRenderers = {};
+export const workspaceModalRenderers = {};
 export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
   S.ui.modalOpeners[S.ui.modals.length] = S.ui.popOpener && S.ui.pop ? S.ui.popOpener : focusKey(document.activeElement);
