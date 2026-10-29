@@ -293,13 +293,13 @@ svg.logo {
 .sitem.dragging {
   opacity: 0.4;
 }
-.sub {
+.side .sub {
   padding-left: 14px;
   margin-left: 8px;
   border-left: 1px solid var(--border);
   display: none;
 }
-.sub.open {
+.side .sub.open {
   display: block;
 }
 .sitem .chev {
