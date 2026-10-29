@@ -7,7 +7,7 @@ import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { openModal, workspaceModalRenderers } from '../overlays/modals.js';
+import { openModal, closeModal, workspaceModalRenderers } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { mutate, toast } from './toast.js';
 import { colorPalette, WORKSPACE_COLORS } from './color-palette.js';
@@ -24,6 +24,7 @@ function rememberCreation(m) {
         description: m.description,
         color: m.color,
         includeMembers: m.includeMembers,
+        attempted: !!m.attempted,
         savedAt: Date.now(),
       }),
     );
@@ -80,6 +81,7 @@ export function openWorkspaceCreation() {
   } catch {
     /* Optional cache. */
   }
+  const recovered = draft?.attempted || draft?.savedAt > Date.now() - 86400000 ? draft : null;
   openModal({
     type: 'workspaceCreate',
     operationId: crypto.randomUUID(),
@@ -88,26 +90,63 @@ export function openWorkspaceCreation() {
     color: D().ws.c || '#5A67D8',
     includeMembers: false,
     error: '',
-    ...(draft?.savedAt > Date.now() - 86400000 ? draft : {}),
+    ...recovered,
+    attempted: !!recovered?.attempted || (!!recovered?.name && recovered.attempted === undefined),
+    restored: !!recovered && (!!recovered.name || !!recovered.attempted),
   });
 }
+
+A.restartWorkspaceCreation = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'workspaceCreate' || m.busy || m.attempted) return;
+  try {
+    sessionStorage.removeItem(creationKey());
+  } catch {
+    /* Optional cache. */
+  }
+  Object.assign(m, {
+    operationId: crypto.randomUUID(),
+    name: '',
+    description: '',
+    color: D().ws.c || '#5A67D8',
+    includeMembers: false,
+    restored: false,
+    error: '',
+  });
+  render();
+};
+A.cancelWorkspaceCreation = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'workspaceCreate' || m.busy) return;
+  if (!m.attempted) {
+    try {
+      sessionStorage.removeItem(creationKey());
+    } catch {
+      /* Optional cache. */
+    }
+  }
+  closeModal();
+};
 
 workspaceModalRenderers.create = (
   m,
   H,
 ) => `${H(copy('Create workspace', 'Создать рабочее пространство'), copy('A separate place for projects, files and knowledge.', 'Отдельное место для проектов, файлов и базы знаний.'))}
   <form data-submit="submitWorkspace"><div class="modal-b col" style="gap:16px">
+    ${m.attempted ? `<p class="hint" role="status" translate="no">${copy('A creation request was already sent. Check its result using the original settings; retrying will not create a duplicate.', 'Запрос на создание уже отправлялся. Проверьте результат с исходными настройками; повторная проверка не создаст дубликат.')}</p>` : m.restored ? `<div class="row" style="flex-wrap:wrap;gap:8px"><span class="hint" role="status" translate="no">${copy('Draft restored', 'Черновик восстановлен')}</span><button class="btn btn-ghost btn-sm" type="button" data-a="restartWorkspaceCreation">${copy('Start over', 'Начать заново')}</button></div>` : ''}
+    <fieldset style="border:0;padding:0;margin:0;min-width:0;display:contents" ${m.busy || m.attempted ? 'disabled' : ''}>
     <label class="field"><span class="label">${t('Workspace name')}</span><input class="input" id="new-ws-name" maxlength="100" required autofocus data-in="workspaceDraft" data-k="name" value="${esc(m.name)}" placeholder="${esc(copy('For example, Product team', 'Например, Команда продукта'))}" ${m.busy ? 'disabled' : ''}></label>
     <label class="field"><span class="label">${t('Description')}</span><textarea class="textarea workspace-description" id="new-ws-description" aria-describedby="new-ws-description-hint" rows="3" maxlength="500" data-in="workspaceDraft" data-k="description" ${m.busy ? 'disabled' : ''}>${esc(m.description)}</textarea><small class="hint" id="new-ws-description-hint" data-description-count>${m.description.length} / 500</small></label>
     <div class="field"><span class="label">${t('Color')}</span>${colorPalette({ label: 'Workspace icon', value: m.color, colors: WORKSPACE_COLORS, action: 'workspaceDraftColor', size: 26 })}</div>
     <label class="row" style="align-items:flex-start;gap:10px"><input type="checkbox" data-in="workspaceDraft" data-k="includeMembers" ${m.includeMembers ? 'checked' : ''} ${m.busy ? 'disabled' : ''}><span>${copy('Include current workspace members', 'Добавить участников текущего пространства')}<span class="hint" style="display:block;margin-top:4px">${copy('They join as members. Guests retain read-only access.', 'Они получат роль участника. Гости сохранят доступ только для чтения.')}</span></span></label>
+    </fieldset>
     <p class="hint" style="margin:0">${copy('You become the owner. Content and permissions are managed separately in each workspace.', 'Вы станете владельцем. Данные и права в каждом пространстве настраиваются отдельно.')}</p>
     ${m.error ? `<p role="alert" style="color:var(--red);margin:0">${esc(m.error)}</p>` : ''}
-  </div><div class="modal-f"><button type="button" class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${t('Cancel')}</button><button type="submit" class="btn btn-primary ${m.busy ? 'is-loading' : ''}" ${m.busy ? 'disabled' : ''}>${copy(m.busy ? 'Creating workspace…' : 'Create workspace', m.busy ? 'Создание пространства…' : 'Создать пространство')}</button></div></form>`;
+  </div><div class="modal-f"><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceCreation" ${m.busy ? 'disabled' : ''}>${m.attempted ? t('Close') : t('Cancel')}</button><button type="submit" class="btn btn-primary ${m.busy ? 'is-loading' : ''}" ${m.busy ? 'disabled' : ''}>${copy(m.busy ? 'Checking creation…' : m.attempted ? 'Check creation' : 'Create workspace', m.busy ? 'Проверка создания…' : m.attempted ? 'Проверить создание' : 'Создать пространство')}</button></div></form>`;
 
 IN.workspaceDraft = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'workspaceCreate' && !m.busy) {
+  if (m?.type === 'workspaceCreate' && !m.busy && !m.attempted) {
     m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
     rememberCreation(m);
     if (el.dataset.k === 'description') el.closest('.field')?.querySelector('[data-description-count]')?.replaceChildren(`${el.value.length} / 500`);
@@ -115,7 +154,7 @@ IN.workspaceDraft = el => {
 };
 A.workspaceDraftColor = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'workspaceCreate' || m.busy) return;
+  if (m?.type !== 'workspaceCreate' || m.busy || m.attempted) return;
   m.color = el.dataset.v;
   rememberCreation(m);
   render();
@@ -123,12 +162,15 @@ A.workspaceDraftColor = el => {
 A.submitWorkspace = async () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'workspaceCreate' || m.busy || !canLeave()) return;
-  m.name = $('#new-ws-name').value.trim();
-  m.description = $('#new-ws-description').value.trim();
+  if (!m.attempted) {
+    m.name = $('#new-ws-name').value.trim();
+    m.description = $('#new-ws-description').value.trim();
+  }
   if (!m.name) {
     m.error = copy('Enter a workspace name.', 'Укажите название пространства.');
     return render();
   }
+  m.attempted = true;
   rememberCreation(m);
   m.busy = true;
   S.ui.atomicOperation = true;
@@ -163,16 +205,19 @@ A.submitWorkspace = async () => {
         'Создание ещё выполняется. Подождите и проверьте результат повторно в этой форме.',
       );
     if (error.code === 'WORKSPACE_INPUT_CHANGED') {
-      m.operationId = crypto.randomUUID();
       m.error = copy(
-        'The previous operation used other settings. Check the workspace list before creating another.',
-        'Предыдущая операция использовала другие настройки. Проверьте список пространств перед новым созданием.',
+        'The previous request used different settings. Close this form and check the workspace list; the operation identity has been retained to avoid duplicates.',
+        'Предыдущий запрос использовал другие настройки. Закройте форму и проверьте список пространств; идентификатор операции сохранён для защиты от дубликатов.',
       );
     }
     if (error.code === 'WORKSPACE_INPUT_INVALID')
       m.error = copy('Check the workspace name, description and color.', 'Проверьте название, описание и цвет пространства.');
     if (error.status === 403) m.error = copy('Only an administrator can create workspaces.', 'Создавать пространства может только администратор.');
     if (error.code === 'WORKSPACE_LIMIT') m.error = copy('The workspace limit has been reached (50).', 'Достигнут лимит рабочих пространств (50).');
+    if (error.status === 400 || error.status === 403 || error.code === 'WORKSPACE_LIMIT') {
+      m.attempted = false;
+      rememberCreation(m);
+    }
     m.busy = false;
     render();
   } finally {

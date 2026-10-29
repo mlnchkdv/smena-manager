@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { randomUUID } from 'node:crypto';
 import { mergeWorkspaceSettings } from '../../src/shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../../src/shared/workspace-slug.js';
 
@@ -16,6 +17,7 @@ function fixture({ russian = false, active = 'default' } = {}) {
   const fields = { '#ws-name': { value: 'My team' }, '#ws-url': { value: 'team' }, '#ws-description': { value: '' } };
   const notices = [];
   const listeners = {};
+  const storage = new Map();
   let writes = 0;
   const context = {
     S,
@@ -28,6 +30,13 @@ function fixture({ russian = false, active = 'default' } = {}) {
         listeners[name] = callback;
       },
     },
+    crypto: { randomUUID },
+    sessionStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
+    openModal: modal => S.ui.modals.push(modal),
+    closeModal: () => S.ui.modals.pop(),
+    workspaceSyncIsClean: () => true,
+    personalPreferenceSyncState: () => ({ pending: false }),
+    flushLocalSave() {},
     $: selector => fields[selector],
     isRussian: () => russian,
     t: value => value,
@@ -46,8 +55,11 @@ function fixture({ russian = false, active = 'default' } = {}) {
   const source = readFileSync(new URL('../../src/ui/workspaces.js', import.meta.url), 'utf8')
     .replace(/^import .*;\r?\n/gm, '')
     .replace(/^export /gm, '');
-  vm.runInNewContext(`${source}\nthis.saveSettings = saveWorkspaceSettings; this.feedback = workspaceSettingsFeedback;`, context);
-  return { context, data, S, fields, notices, listeners, writes: () => writes };
+  vm.runInNewContext(
+    `${source}\nthis.saveSettings = saveWorkspaceSettings; this.feedback = workspaceSettingsFeedback; this.openCreation = openWorkspaceCreation;`,
+    context,
+  );
+  return { context, data, S, fields, notices, listeners, storage, writes: () => writes };
 }
 
 for (const russian of [false, true]) {
@@ -105,4 +117,46 @@ test('form feedback waits for its own server confirmation and retains retry stat
   assert.equal(f.context.feedback().state, 'saved');
   f.context.saveSettings();
   assert.equal(f.writes(), 1, 'unchanged submit does not write again');
+});
+
+test('cancel discards an unsubmitted creation draft while closing preserves an explicit recovery', () => {
+  const f = fixture();
+  f.S.ui.workspaceSettingsDirty = false;
+  f.context.openCreation();
+  f.context.IN.workspaceDraft({ dataset: { k: 'name' }, value: 'Draft' });
+  f.context.closeModal();
+  f.context.openCreation();
+  assert.equal(f.S.ui.modals.at(-1).restored, true);
+  assert.equal(f.S.ui.modals.at(-1).name, 'Draft');
+  f.context.A.cancelWorkspaceCreation();
+  assert.equal(f.storage.size, 0);
+  f.context.openCreation();
+  assert.equal(f.S.ui.modals.at(-1).name, '');
+});
+
+test('uncertain creation keeps original payload and operation identity for recovery', async () => {
+  const f = fixture();
+  f.S.ui.workspaceSettingsDirty = false;
+  f.context.openCreation();
+  f.fields['#new-ws-name'] = { value: 'Team' };
+  f.fields['#new-ws-description'] = { value: 'Original' };
+  const calls = [];
+  f.context.workspaceDirectoryRequest = async options => {
+    calls.push(JSON.parse(options.body));
+    throw new Error('Network timeout');
+  };
+  await f.context.A.submitWorkspace();
+  const operationId = f.S.ui.modals.at(-1).operationId;
+  f.context.A.restartWorkspaceCreation();
+  f.context.IN.workspaceDraft({ dataset: { k: 'name' }, value: 'Changed' });
+  assert.equal(f.S.ui.modals.at(-1).name, 'Team');
+  f.context.A.cancelWorkspaceCreation();
+  f.context.openCreation();
+  f.fields['#new-ws-name'].value = 'Changed DOM';
+  await f.context.A.submitWorkspace();
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].operationId, operationId);
+  assert.equal(calls[1].name, 'Team');
+  assert.equal(calls[1].description, 'Original');
+  assert.equal(f.S.ui.atomicOperation, false);
 });
