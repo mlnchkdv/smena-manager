@@ -155,15 +155,22 @@ export function notificationQueueStatus(data, now = Date.now()) {
   let sending = 0;
   let retrying = 0;
   let oldestPendingAt = null;
+  let nextAttemptAt = null;
+  const channels = {};
+  const reasons = {};
   for (const job of data._notificationOutbox || [])
-    for (const state of Object.values(job.channels || {})) {
+    for (const [channel, state] of Object.entries(job.channels || {})) {
       if (['sent', 'skipped'].includes(state.status)) continue;
       pending += 1;
+      channels[channel] = (channels[channel] || 0) + 1;
+      const reason = ['provider_error', 'channel_unavailable'].includes(state.reason) ? state.reason : 'unknown';
+      reasons[reason] = (reasons[reason] || 0) + 1;
+      if (state.nextAt && (!nextAttemptAt || state.nextAt < nextAttemptAt)) nextAttemptAt = state.nextAt;
       if ((state.leaseUntil || 0) > now) sending += 1;
       if (state.attempts > 0) retrying += 1;
       if (!oldestPendingAt || job.createdAt < oldestPendingAt) oldestPendingAt = job.createdAt;
     }
-  return { pending, sending, retrying, oldestPendingAt };
+  return { pending, sending, retrying, oldestPendingAt, nextAttemptAt, channels, reasons };
 }
 
 export function resetNotificationDeliveryForTests() {

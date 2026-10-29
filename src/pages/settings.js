@@ -9,7 +9,7 @@ import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
 import { SHORTCUTS } from '../overlays/modals.js';
-import { LANGUAGES, t as tr } from '../core/i18n.js';
+import { LANGUAGES, isRussian, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
 import { storageCapacityPanel } from '../ui/storage-capacity.js';
@@ -91,6 +91,8 @@ function deliveryStatusPanel() {
   }
   const emailReady = status.channels?.email?.configured && status.channels?.email?.authorized;
   const pushReady = status.channels?.push?.configured;
+  const copy = (en, ru) => (isRussian() ? ru : en);
+  const queue = status.outbox || {};
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
   const recentEmailFailure = Number(lastRun?.email?.failed || 0) > 0;
@@ -148,6 +150,8 @@ function deliveryStatusPanel() {
           `<div role="status" class="alert ${result.delivered ? 'success' : 'warn'}"><span>${esc(tr(result.channel === 'email' ? 'Test email' : 'Test push'))}: ${esc(result.recipient)} · ${esc(tr('Accepted'))}: ${Number(result.delivered || 0)} · ${esc(tr('Failed'))}: ${Number(result.failed || 0)} · ${esc(tr('Attempted'))}: ${Number(result.attempted || 0)} · ${settingsTimestamp(result.at)}</span></div>`,
       )
       .join('')}
+    <p class="hint" translate="no">${copy('Workspace', 'Пространство')}: ${esc(D().ws.name)} · ${copy('Data synchronization and notification delivery are independent.', 'Синхронизация данных и доставка уведомлений проверяются отдельно.')}</p>
+    ${queue.pending ? `<div class="alert warn"><div><b>${copy('Delivery queue needs attention', 'Очередь доставки требует внимания')}</b><p>${copy('Email', 'Почта')}: ${Number(queue.channels?.email || 0)} · Push: ${Number(queue.channels?.push || 0)}</p><p>${copy('Oldest pending item', 'Самое старое ожидание')}: ${settingsTimestamp(queue.oldestPendingAt)}</p><p>${copy('Channel unavailable', 'Канал недоступен')}: ${Number(queue.reasons?.channel_unavailable || 0)} · ${copy('Provider error', 'Ошибка провайдера')}: ${Number(queue.reasons?.provider_error || 0)} · ${copy('Cause not recorded', 'Причина не записана')}: ${Number(queue.reasons?.unknown || 0)}</p><p>${copy('Check channel authorization and device subscriptions before retrying. A successful latest attempt does not clear the remaining queue.', 'Проверьте авторизацию канала и подписки устройств перед повтором. Успешная последняя попытка не означает разбор оставшейся очереди.')}</p></div></div>` : ''}
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>

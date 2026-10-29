@@ -93,13 +93,20 @@ export async function drainNotificationOutbox(options) {
       }
     }
     let outcome = 'pending';
+    let reason = 'provider_error';
     const key = claim.channel === 'email' ? emailPreferenceForNotification(claim.notification) : pushPreferenceForNotification(claim.notification);
     if (!eligibleNotification(data, claim.notification) || !notificationPreferencesForMember(data, claim.notification.recipient)[key]) outcome = 'skipped';
     else {
       try {
         const result = await options.send[claim.channel](data, [claim.notification]);
         if (result.configured && !result.failed && result.delivered > 0) outcome = 'sent';
-        else failed += 1;
+        else if (result.configured && result.attempted === 0 && !result.failed) {
+          outcome = 'skipped';
+          reason = 'no_destination';
+        } else {
+          failed += 1;
+          reason = result.configured ? 'provider_error' : 'channel_unavailable';
+        }
       } catch {
         failed += 1;
       }
@@ -110,7 +117,12 @@ export async function drainNotificationOutbox(options) {
         await options.mutate(next => {
           const state = next._notificationOutbox?.find(item => item.id === claim.id)?.channels?.[claim.channel];
           if (state?.token === token) {
-            Object.assign(state, { status: outcome, leaseUntil: 0, nextAt: now() + Math.min(3600000, 30000 * 2 ** Math.min(state.attempts, 7)) });
+            Object.assign(state, {
+              reason: outcome === 'sent' ? null : reason,
+              status: outcome,
+              leaseUntil: 0,
+              nextAt: now() + Math.min(3600000, 30000 * 2 ** Math.min(state.attempts, 7)),
+            });
             delete state.token;
             if (outcome === 'sent' && claim.notification.type === 'digest') {
               const memberId = claim.notification.recipient;

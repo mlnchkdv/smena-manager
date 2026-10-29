@@ -9,7 +9,7 @@ import { calendarDayItems } from '../shared/calendar-items.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
-import { locale, t as tr } from '../core/i18n.js';
+import { locale, isRussian, t as tr } from '../core/i18n.js';
 
 import { tgt } from './popovers.js';
 export function popList(items, opt = {}) {
@@ -86,6 +86,8 @@ function accountSystemStatusHtml() {
         <div><dt>Last synchronized</dt><dd>${esc(lastSync)}</dd></div>
       </dl>
       ${S.ui.systemStatusError ? `<div class="account-system-error" role="alert">${ic('triangle-alert', 14)}<span>${esc(S.ui.systemStatusError)}</span></div>` : ''}
+      <p class="hint">${isRussian() ? 'Этот статус относится к данным. Доставка писем и push проверяется отдельно.' : 'This status covers data. Email and push delivery are checked separately.'}</p>
+      <button class="btn btn-ghost btn-sm" data-a="go" data-r="settings" data-sec="notif-push">${isRussian() ? 'Проверить доставку уведомлений' : 'Check notification delivery'}</button>
       <button class="btn btn-secondary btn-sm account-system-sync${S.ui.systemSyncing ? ' is-loading' : ''}" data-a="syncSystemNow" ${S.ui.systemSyncing ? 'disabled' : ''}>${ic('refresh-cw', 13)}<span>Synchronize now</span></button>
     </div>`
         : ''

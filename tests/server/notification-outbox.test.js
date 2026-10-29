@@ -102,3 +102,19 @@ test('revoked project access cancels queued delivery before contacting a provide
   assert.equal(state._notificationOutbox[0].channels.email.status, 'skipped');
   assert.equal(state._notificationOutbox[0].channels.push.status, 'skipped');
 });
+
+test('a configured channel without an eligible destination is skipped, not retried forever', async () => {
+  let state = fixture();
+  const result = await drainNotificationOutbox({
+    now: () => 100,
+    load: async () => structuredClone(state),
+    mutate: async change => {
+      state = change(structuredClone(state));
+      state.revision++;
+      return state;
+    },
+    send: { email: async () => ({ configured: true, attempted: 0, failed: 0 }), push: async () => ({ configured: true, attempted: 0, failed: 0 }) },
+  });
+  assert.equal(result.failed, 0);
+  assert.ok(Object.values(state._notificationOutbox[0].channels).every(channel => channel.status === 'skipped' && channel.reason === 'no_destination'));
+});
