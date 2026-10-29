@@ -1241,6 +1241,7 @@ A.pop = el => {
     return;
   }
   openPop(el);
+  if (d.pop === 'ws') void import('../ui/workspaces.js').then(module => module.refreshWorkspaces());
   if (d.pop === 'user') void refreshSystemStatus();
 };
 

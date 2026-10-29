@@ -236,8 +236,9 @@ export function paletteHtml() {
   const ph =
     pl.mode === 'search' ? 'Search tasks, projects, knowledge, bookmarks, and files…' : pl.mode === 'ws' ? 'Find a workspace…' : 'Type a command or search…';
   const inputLabel = pl.mode === 'search' ? 'Search workspace' : pl.mode === 'ws' ? 'Switch workspace' : 'Command menu';
-  return `<div class="palette" role="dialog" aria-modal="true" aria-label="${inputLabel}">
-    <div class="pal-in">${ic(pl.mode === 'search' ? 'search' : 'command', 17)}${pl.mode !== 'cmd' ? `<span class="badge" style="flex-shrink:0">${pl.mode === 'search' ? 'Search' : 'Workspace'}</span>` : ''}<input id="pal-in" data-in="palQ" value="${esc(pl.q)}" placeholder="${ph}" aria-label="${inputLabel}" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" ${flat.length ? `aria-activedescendant="pi-${pl.hl}"` : ''}><kbd>Esc</kbd></div>
+  return `<div class="palette" role="dialog" aria-modal="true" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}">
+    <div class="pal-in">${ic(pl.mode === 'search' ? 'search' : 'command', 17)}${pl.mode !== 'cmd' ? `<span class="badge" style="flex-shrink:0">${pl.mode === 'search' ? 'Search' : 'Workspace'}</span>` : ''}<input id="pal-in" data-in="palQ" value="${esc(pl.q)}" placeholder="${ph}" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" ${flat.length ? `aria-activedescendant="pi-${pl.hl}"` : ''}><kbd>Esc</kbd></div>
+    <p class="hint" style="margin:6px 16px" translate="no">${esc(D().ws.name)} · ${esc(D().ws.url)}</p>
     ${
       pl.mode === 'search'
         ? `<div class="pal-scope" role="tablist">${[

@@ -278,6 +278,7 @@ export function renderTopbar() {
   const syncTitle = state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : tr(sync[1]);
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" id="mnav-btn">${ic('menu', 17)}</button>
+    <button class="workspace-context pillbtn" data-a="pop" data-pop="ws" title="${esc(D().ws.name)}" aria-label="${esc(tr('Switch workspace'))}: ${esc(D().ws.name)}"><span class="trunc" translate="no">${esc(D().ws.name)}</span>${ic('chevron-down', 12)}</button>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
     <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label">${sync[1]}</span></span>

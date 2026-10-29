@@ -557,3 +557,18 @@
   animation: none;
   opacity: 0.85;
 }
+
+.workspace-context {
+  display: none;
+}
+@media (max-width: 900px) {
+  .topbar .workspace-context {
+    display: inline-flex;
+    min-width: 0;
+    max-width: 100px;
+    flex-shrink: 1;
+  }
+  .topbar .crumbs {
+    min-width: 0;
+  }
+}

@@ -222,14 +222,14 @@ export function popHtml(p) {
     case 'ws': {
       const entries = (S.ui.availableWorkspaces || []).filter(item => !item.archived);
       const query = (p.q || '').trim().toLocaleLowerCase();
-      inner = `<div class="mh">Workspaces</div>${entries.length > 5 ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${tr('Find workspace')}" aria-label="${tr('Find workspace')}" value="${esc(p.q || '')}"></div>` : ''}
+      inner = `<div class="mh row between"><span>Workspaces</span><button class="ibtn ibtn-sm" data-a="refreshWorkspaces" aria-label="${tr('Refresh')}" ${S.ui.workspaceDirectoryLoading ? 'disabled' : ''}>${ic('refresh-cw', 14)}</button></div>${S.ui.workspaceDirectoryError ? `<p class="hint" role="alert">${esc(S.ui.workspaceDirectoryError)}</p>` : ''}${entries.length > 5 ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${tr('Find workspace')}" aria-label="${tr('Find workspace')}" value="${esc(p.q || '')}"></div>` : ''}
       <div style="max-height:min(280px,40dvh);overflow:auto">${
         entries
-          .filter(w => !query || w.name.toLocaleLowerCase().includes(query))
+          .filter(w => !query || `${w.name} ${w.url}`.toLocaleLowerCase().includes(query))
           .map(w => {
             const current = w.id === S.ui.activeWorkspace;
             const item = current ? D().ws : w;
-            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow trunc" translate="no">${esc(item.name || tr('New workspace'))}</span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
+            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow min0"><span class="trunc" style="display:block" translate="no">${esc(item.name || tr('New workspace'))}</span><small class="faint" style="display:block" translate="no">${esc(w.url)} · ${tr(w.role === 'admin' ? 'Administrator' : w.role === 'viewer' ? 'Guest' : 'Member')}</small></span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
           })
           .join('') || `<div class="mi faint">No matches</div>`
       }</div><div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;

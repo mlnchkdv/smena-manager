@@ -1,7 +1,7 @@
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
    ===================================================================== */
-import '../ui/workspaces.js';
+import { refreshWorkspaces } from '../ui/workspaces.js';
 import { dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
@@ -207,6 +207,7 @@ export function settingsBody(sec, title) {
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
   switch (sec) {
     case 'workspace': {
+      void refreshWorkspaces(false);
       const copy = (en, ru) => (isRussian() ? ru : en);
       if (!S.ui.workspaceSettingsDirty) S.ui.workspaceSettingsDraft = { ...d.ws };
       const draft = S.ui.workspaceSettingsDraft;

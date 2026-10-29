@@ -284,3 +284,20 @@ A.restoreArchivedWorkspace = async el => {
     toast(copy('Could not restore workspace.', 'Не удалось вернуть пространство.'), { kind: 'err' });
   }
 };
+
+export async function refreshWorkspaces(force = true) {
+  if (S.ui.workspaceDirectoryLoading || (!force && Date.now() - (S.ui.workspaceDirectoryCheckedAt || 0) < 30000)) return;
+  S.ui.workspaceDirectoryLoading = true;
+  S.ui.workspaceDirectoryError = '';
+  try {
+    const { workspaces } = await workspaceDirectoryRequest();
+    S.ui.availableWorkspaces = workspaces;
+    S.ui.workspaceDirectoryCheckedAt = Date.now();
+  } catch {
+    S.ui.workspaceDirectoryError = copy('Could not refresh workspaces. Try again.', 'Не удалось обновить список пространств. Повторите попытку.');
+  } finally {
+    S.ui.workspaceDirectoryLoading = false;
+    if (S.ui.pop?.type === 'ws' || S.ui.route === 'settings') render();
+  }
+}
+A.refreshWorkspaces = () => refreshWorkspaces();
