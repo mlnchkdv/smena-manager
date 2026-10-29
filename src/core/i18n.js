@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Job title': 'Должность',
+  'Optional profile details for one person. Leave blank when adding multiple addresses.':
+    'Необязательные данные одного участника. При добавлении нескольких адресов оставьте поля пустыми.',
+  'Name and job title can only be set for one person at a time.': 'Имя и должность можно указать только для одного участника за раз.',
   'Expand table': 'Развернуть таблицу',
   'Close table': 'Закрыть таблицу',
   'Contents and actions': 'Оглавление и действия',

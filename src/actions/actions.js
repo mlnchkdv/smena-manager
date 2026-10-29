@@ -2825,6 +2825,8 @@ A.invite = () => {
     return;
   }
   S.ui.inviteDraft = '';
+  S.ui.inviteName = '';
+  S.ui.inviteTitle = '';
   S.ui.errors = {};
   S.ui.pop = null;
   openModal({ type: 'invite' });
@@ -2833,6 +2835,10 @@ A.submitInvite = () => {
   if (S.ui.currentUser?.role !== 'admin') return;
   const raw = $('#inv-emails').value;
   S.ui.inviteDraft = raw;
+  const name = ($('#inv-name')?.value || '').trim();
+  const title = ($('#inv-title')?.value || '').trim();
+  S.ui.inviteName = name;
+  S.ui.inviteTitle = title;
   const role = $('#inv-role').value;
   const team = $('#inv-team').value;
   const list = raw
@@ -2850,6 +2856,11 @@ A.submitInvite = () => {
     render();
     return;
   }
+  if ((name || title) && new Set(list).size !== 1) {
+    S.ui.errors.invite = 'Name and job title can only be set for one person at a time.';
+    render();
+    return;
+  }
   loadingBtn('inv-submit', 600, () => {
     if (
       !mutate(() =>
@@ -2864,14 +2875,16 @@ A.submitInvite = () => {
           } else
             D().members.push({
               id: uid('m'),
-              name: e
-                .split('@')[0]
-                .replace(/[._-]+/g, ' ')
-                .replace(/\b\w/g, c => c.toUpperCase()),
+              name:
+                name ||
+                e
+                  .split('@')[0]
+                  .replace(/[._-]+/g, ' ')
+                  .replace(/\b\w/g, c => c.toUpperCase()),
               email: e,
               role,
               team,
-              title: role,
+              title: title || role,
               c: '#6B7280',
               status: 'active',
               last: null,
