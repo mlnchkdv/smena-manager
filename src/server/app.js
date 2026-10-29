@@ -1,7 +1,9 @@
 import express from 'express';
 import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
-import { getAccessProfiles, requireAuth, requireRole } from './auth.js';
+import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
+import { createWorkspace, listUserWorkspaces, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
+import { inWorkspace } from './workspace-context.js';
 import { authRouter } from './auth-routes.js';
 import {
   createWorkspaceBackup,
@@ -80,7 +82,7 @@ app.get('/api/health', (_request, response) => {
   });
 });
 
-app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
+async function runWorkspaceAutomation() {
   try {
     const reminders = await runDueReminderSweep({ enqueueOnly: true });
     const digest = await runDailyEmailDigest({ enqueueOnly: true }).catch(error => {
@@ -109,10 +111,29 @@ app.get('/api/cron/reminders', requireCronSecret, async (_request, response, nex
     if (cronStatus !== 'ok') {
       await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
     }
-    response.json({ status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup });
+    return { status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup };
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
     await notifyAdministratorsAboutSystemIssue(['Daily automation failed']).catch(() => undefined);
+    throw error;
+  }
+}
+
+app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
+  try {
+    const scopes = ['default', ...(await workspaceDirectoryEntries()).map(entry => entry.id)];
+    const workspaces = [];
+    for (const id of scopes) {
+      try {
+        workspaces.push({ id, ...(await inWorkspace(id, runWorkspaceAutomation)) });
+      } catch (error) {
+        reportProviderError('[Workspace automation]', error);
+        workspaces.push({ id, status: 'failed' });
+      }
+    }
+    const primary = workspaces[0];
+    response.json({ ...primary, status: workspaces.every(item => item.status === 'ok') ? 'ok' : 'degraded', workspaces });
+  } catch (error) {
     next(error);
   }
 });
@@ -127,6 +148,21 @@ app.get('/api/cron/status', requireCronSecret, async (_request, response, next) 
 
 app.use('/api/auth', authRouter);
 app.use('/api', requireAuth);
+app.get('/api/workspaces', async (request, response, next) => {
+  try {
+    response.json({ workspaces: await listUserWorkspaces(request.user, request.configuredProfiles) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.use('/api', requireWorkspace);
+app.post('/api/workspaces', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.status(201).json({ workspace: await createWorkspace(request.user, request.body, request.configuredProfiles) });
+  } catch (error) {
+    next(error);
+  }
+});
 app.use('/api', (request, response, next) => {
   const send = response.json.bind(response);
   response.json = body => {

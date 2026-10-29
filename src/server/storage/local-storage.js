@@ -21,13 +21,13 @@ async function renameWithRetry(source, destination) {
 export class LocalStorageProvider {
   name = 'local';
 
-  constructor(databasePath = process.env.DATABASE_PATH || path.join(process.cwd(), '.data', 'smena-manager-data.json')) {
+  constructor(databasePath = process.env.DATABASE_PATH || path.join(process.cwd(), '.data', 'smena-manager-data.json'), options = {}) {
     this.databasePath = path.resolve(databasePath);
     this.pushSubscriptionsPath = path.resolve(path.join(path.dirname(this.databasePath), 'push-subscriptions.json'));
     this.notificationDeliveryPath = path.resolve(path.join(path.dirname(this.databasePath), 'notification-delivery-status.json'));
     this.authSessionsPath = path.resolve(path.join(path.dirname(this.databasePath), 'auth-sessions.json'));
-    this.uploadsPath = path.resolve(process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
-    this.backupsPath = path.resolve(process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
+    this.uploadsPath = path.resolve(options.uploadsPath || process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
+    this.backupsPath = path.resolve(options.backupsPath || process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
   }
 
   documentPath(name) {

@@ -1,3 +1,5 @@
+import { workspaceState, workspaceScope } from './workspace-context.js';
+const state = workspaceState(() => ({ database: null, initializationPromise: null, reloadPromise: null, localWriteQueue: Promise.resolve(), lastLoadedAt: 0 }));
 import { getStorageProvider } from './storage/index.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
@@ -34,12 +36,6 @@ import { filePatchIds, fileMetadataChanges } from './storage/catalog-file-write.
 import { planFileMetadataPatch } from './file-metadata-patch.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
-
-let database = null;
-let initializationPromise = null;
-let reloadPromise = null;
-let localWriteQueue = Promise.resolve();
-let lastLoadedAt = 0;
 
 export function createEmptyDatabase() {
   const now = new Date().toISOString();
@@ -115,43 +111,43 @@ async function loadAggregate(storage, stored) {
 }
 
 export async function initWorkspaceStore() {
-  if (database) return database;
-  if (initializationPromise) return initializationPromise;
+  if (state().database) return state().database;
+  if (state().initializationPromise) return state().initializationPromise;
 
-  initializationPromise = (async () => {
+  state().initializationPromise = (async () => {
     const storage = getStorageProvider();
     await storage.init();
     const stored = await storage.loadDatabase();
-    database = await loadAggregate(storage, stored);
-    if (!stored) await storage.saveDatabase(database);
-    lastLoadedAt = Date.now();
-    return database;
+    state().database = await loadAggregate(storage, stored);
+    if (!stored) await storage.saveDatabase(state().database);
+    state().lastLoadedAt = Date.now();
+    return state().database;
   })();
 
   try {
-    return await initializationPromise;
+    return await state().initializationPromise;
   } finally {
-    initializationPromise = null;
+    state().initializationPromise = null;
   }
 }
 
 export async function reloadWorkspaceStore(options = {}) {
   const maxAgeMs = Math.max(0, Number(options.maxAgeMs || 0));
-  if (database && maxAgeMs && Date.now() - lastLoadedAt <= maxAgeMs) return database;
-  if (reloadPromise) return reloadPromise;
-  reloadPromise = (async () => {
+  if (state().database && maxAgeMs && Date.now() - state().lastLoadedAt <= maxAgeMs) return state().database;
+  if (state().reloadPromise) return state().reloadPromise;
+  state().reloadPromise = (async () => {
     const storage = getStorageProvider();
     await storage.init();
     const stored = await storage.loadDatabase();
     if (!stored) throw new Error('The configured storage does not contain a workspace database.');
-    database = await loadAggregate(storage, stored);
-    lastLoadedAt = Date.now();
-    return database;
+    state().database = await loadAggregate(storage, stored);
+    state().lastLoadedAt = Date.now();
+    return state().database;
   })();
   try {
-    return await reloadPromise;
+    return await state().reloadPromise;
   } finally {
-    reloadPromise = null;
+    state().reloadPromise = null;
   }
 }
 
@@ -164,7 +160,7 @@ export async function getWorkspaceDatabase(options = {}) {
   }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2_000 });
   else await initWorkspaceStore();
-  return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, database[field]])) : database);
+  return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, state().database[field]])) : state().database);
 }
 
 export async function getWorkspaceUploadSnapshot(physicalKey) {
@@ -239,13 +235,13 @@ export async function mutateWorkspaceCatalogCommand(mutator, expectedRevision, o
     validateTransportSize(next, false);
     try {
       const result = await storage.saveDatabaseFileDelta(snapshot, next, () => coordination?.assertOwnership?.());
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       return clone(result);
     } catch (error) {
       if (Number(error?.response?.status || error?.code) !== 412) throw error;
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
       throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
     }
@@ -262,10 +258,10 @@ export async function getWorkspaceFileCatalogPage(user, options) {
   }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
   else await initWorkspaceStore();
-  let read = catalogReaders.get(database);
+  let read = catalogReaders.get(state().database);
   if (!read) {
-    read = createCatalogReader(database);
-    catalogReaders.set(database, read);
+    read = createCatalogReader(state().database);
+    catalogReaders.set(state().database, read);
   }
   return read(user, options);
 }
@@ -282,7 +278,7 @@ export async function queryWorkspaceFileCatalog(user, options) {
   }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
   else await initWorkspaceStore();
-  return catalogQuery(database, user, options);
+  return catalogQuery(state().database, user, options);
 }
 
 function catalogReadScope(data, user, project = 'all', ids) {
@@ -308,7 +304,7 @@ export async function queryWorkspaceGraph(user, input) {
   }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
   else await initWorkspaceStore();
-  return queryGraph(database, user, options);
+  return queryGraph(state().database, user, options);
 }
 
 export async function getWorkspaceFilesSnapshot(user, ids) {
@@ -363,7 +359,7 @@ export async function createWorkspaceBackup(label = '') {
   const storage = getStorageProvider();
   // Capture the complete snapshot before awaiting: another request may replace
   // the worker cache while the provider checks the root's exact ETag.
-  const baseline = database;
+  const baseline = state().database;
   if (process.env.VERCEL && !baseline && typeof storage.createColdDatabaseBackup === 'function') {
     const backup = await storage.createColdDatabaseBackup(label, async core => isDeepStrictEqual(core, await loadAggregate(storage, clone(core))));
     if (backup) return backup;
@@ -475,6 +471,11 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   if (!nextData || typeof nextData !== 'object' || Array.isArray(nextData)) {
     throw new TypeError('Workspace mutation must return a JSON object.');
   }
+  // Directory entries are server-owned and survive deletion, imports and restores.
+  if (!options.workspaceDirectory) nextData._workspaceDirectory = current._workspaceDirectory || [];
+  if (workspaceScope() !== 'default' && current.ws?.id) {
+    nextData.ws = { ...nextData.ws, id: current.ws.id, url: current.ws.url };
+  }
   if (current.me) nextData.me = current.me;
   if (options.role === 'editor') {
     const result = restoreUnauthorizedChanges(current, nextData, options.role, options.actorMemberId);
@@ -533,13 +534,13 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (status !== 412) throw error;
     const latest = await storage.loadDatabase().catch(() => null);
     if (latest) {
-      database = normalizeDatabase(latest);
-      lastLoadedAt = Date.now();
+      state().database = normalizeDatabase(latest);
+      state().lastLoadedAt = Date.now();
     }
     throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
   }
-  database = next;
-  lastLoadedAt = Date.now();
+  state().database = next;
+  state().lastLoadedAt = Date.now();
   return clone(next);
 }
 
@@ -570,21 +571,27 @@ export async function mutateWorkspaceDatabase(mutator, expectedRevision, options
 async function withWorkspaceWrite(operation) {
   if (process.env.VERCEL) {
     if (hasSharedRedis()) {
-      return withRedisLock('smena:workspace:write:v1', operation);
+      return withRedisLock(`smena:workspace:write:v1:${workspaceScope()}`, operation);
     }
     if (!directDriveWritesEnabled()) {
       throw new WorkspaceCoordinationError('Workspace writes are not enabled for this deployment.');
     }
   }
-  const result = localWriteQueue.then(() => operation(null));
-  localWriteQueue = result.catch(() => undefined);
+  const result = state().localWriteQueue.then(() => operation(null));
+  state().localWriteQueue = result.catch(() => undefined);
   return result;
 }
 
 export async function mutateWorkspaceMetadata(mutator, expectedRevision, options = {}) {
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
-  if (![...DOCUMENT_NAMES, 'preferences'].includes(options.scope) || options.backupLabel || options.replaceDocuments || options.actorMemberId)
+  if (
+    ![...DOCUMENT_NAMES, 'preferences', 'directory'].includes(options.scope) ||
+    options.backupLabel ||
+    options.replaceDocuments ||
+    options.actorMemberId ||
+    (options.scope === 'directory' && (!options.workspaceDirectory || workspaceScope() !== 'default'))
+  )
     throw new TypeError('Invalid metadata-only mutation scope.');
   const storage = getStorageProvider();
   if (typeof storage.loadDatabaseMetadata !== 'function' || typeof storage.saveDatabaseMetadata !== 'function')
@@ -609,13 +616,13 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
     await coordination?.assertOwnership?.();
     try {
       const result = await storage.saveDatabaseMetadata(next, baseline, { scope: options.scope, memberId: options.memberId });
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       return clone(result);
     } catch (error) {
       if (Number(error?.response?.status || error?.code) !== 412) throw error;
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
       throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
     }
@@ -652,13 +659,13 @@ export async function tryMutateWorkspaceFiles(incoming, changes, expectedRevisio
     validateTransportSize(next, false);
     try {
       const result = await storage.saveDatabaseFilePatch(snapshot, files, plan.tasks, next.revision, updatedAt, () => coordination?.assertOwnership?.());
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       return clone(result);
     } catch (error) {
       if (Number(error?.response?.status || error?.code) !== 412) throw error;
-      database = null;
-      lastLoadedAt = 0;
+      state().database = null;
+      state().lastLoadedAt = 0;
       const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
       throw new RevisionConflictError(Number(latest?.revision ?? snapshot.data.revision));
     }
@@ -727,10 +734,10 @@ export async function getWorkspaceStatus() {
 }
 
 export function resetWorkspaceStore() {
-  database = null;
-  initializationPromise = null;
-  reloadPromise = null;
-  localWriteQueue = Promise.resolve();
-  lastLoadedAt = 0;
+  state().database = null;
+  state().initializationPromise = null;
+  state().reloadPromise = null;
+  state().localWriteQueue = Promise.resolve();
+  state().lastLoadedAt = 0;
   resetWorkspaceDocumentStore();
 }

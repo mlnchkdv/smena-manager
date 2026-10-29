@@ -92,6 +92,23 @@ export class GoogleDriveStorageProvider {
   initialized = false;
   lastSyncAt = null;
 
+  constructor({ scope } = {}) {
+    this.scope = scope;
+    this.allowBootstrap = false;
+    if (scope) {
+      this.parentFolderId = this.rootFolderId;
+      this.rootFolderId = null;
+      this.databaseFileId = null;
+      this.documentFileIds = { knowledge: null, bookmarks: null };
+      this.pushSubscriptionsFileId = this.notificationDeliveryFileId = this.authSessionsFileId = null;
+      this.uploadsFolderId = this.backupsFolderId = null;
+    }
+  }
+
+  assertBootstrapAllowed() {
+    if (!this.scope || !this.allowBootstrap) assertMetadataBootstrapAllowed();
+  }
+
   createAuthClient() {
     const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
@@ -113,7 +130,7 @@ export class GoogleDriveStorageProvider {
     }
 
     if (email && privateKey) {
-      if (!this.rootFolderId) {
+      if (!this.rootFolderId && !this.parentFolderId) {
         throw new Error('GOOGLE_DRIVE_FOLDER_ID is required when using a service account.');
       }
       this.credentialType = 'service-account';
@@ -132,7 +149,12 @@ export class GoogleDriveStorageProvider {
     this.authClient = configureProviderTimeout(this.createAuthClient());
     this.client = drive({ version: 'v3', auth: this.authClient, timeout: 30000, retry: false });
     this.versionClient = drive({ version: 'v2', auth: this.authClient, timeout: 30000, retry: false });
-    if (!this.rootFolderId) this.rootFolderId = await this.getOrCreateRootFolder();
+    if (!this.rootFolderId) {
+      if (this.scope) {
+        const parent = this.parentFolderId || (await this.getOrCreateRootFolder());
+        this.rootFolderId = await this.getOrCreateFolder(`workspace-${this.scope}`, parent);
+      } else this.rootFolderId = await this.getOrCreateRootFolder();
+    }
     await this.client.files.get({
       fileId: this.rootFolderId,
       fields: 'id,name,trashed',
@@ -185,7 +207,7 @@ export class GoogleDriveStorageProvider {
     });
     const existing = uniqueDriveMatch(result);
     if (existing) return existing.id;
-    assertMetadataBootstrapAllowed();
+    this.assertBootstrapAllowed();
 
     const created = await this.client.files.create({
       requestBody: {
@@ -544,7 +566,7 @@ export class GoogleDriveStorageProvider {
       );
       this.databaseEtag = responseHeader(updated, 'etag');
     } else {
-      assertMetadataBootstrapAllowed();
+      this.assertBootstrapAllowed();
       const created = await this.client.files.create({
         requestBody: {
           name: DATABASE_NAME,
@@ -623,7 +645,7 @@ export class GoogleDriveStorageProvider {
       );
       this.documentEtags[name] = responseHeader(updated, 'etag');
     } else {
-      assertMetadataBootstrapAllowed();
+      this.assertBootstrapAllowed();
       const created = await this.client.files.create({
         requestBody: {
           name: filename,
@@ -679,7 +701,7 @@ export class GoogleDriveStorageProvider {
       this.pushSubscriptionsEtag = responseHeader(updated, 'etag');
       return;
     }
-    assertMetadataBootstrapAllowed();
+    this.assertBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: PUSH_SUBSCRIPTIONS_NAME,
@@ -728,7 +750,7 @@ export class GoogleDriveStorageProvider {
       this.notificationDeliveryEtag = responseHeader(updated, 'etag');
       return;
     }
-    assertMetadataBootstrapAllowed();
+    this.assertBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: NOTIFICATION_DELIVERY_NAME,
@@ -778,7 +800,7 @@ export class GoogleDriveStorageProvider {
       this.authSessionsEtag = responseHeader(updated, 'etag');
       return;
     }
-    assertMetadataBootstrapAllowed();
+    this.assertBootstrapAllowed();
     const created = await this.client.files.create({
       requestBody: {
         name: AUTH_SESSIONS_NAME,

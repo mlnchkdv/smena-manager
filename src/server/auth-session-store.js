@@ -120,7 +120,7 @@ function isWriteConflict(error) {
 
 export class AuthSessionRegistry {
   constructor(options = {}) {
-    this.provider = options.provider || (() => getStorageProvider());
+    this.provider = options.provider || (() => getStorageProvider('default'));
     this.now = options.now || (() => Date.now());
     this.cacheDurationMs = options.cacheDurationMs ?? CACHE_DURATION_MS;
     this.touchIntervalMs = options.touchIntervalMs ?? TOUCH_INTERVAL_MS;

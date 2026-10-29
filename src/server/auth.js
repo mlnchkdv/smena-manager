@@ -4,10 +4,12 @@ import { reportProviderError } from './provider-safety.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWorkspaceDatabase } from './workspace-store.js';
-import { workspaceAccessProfiles, workspaceMemberRole } from '../shared/workspace-access.js';
+import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { ensureAuthSession, registerAuthSession, sessionDetailsFromRequest } from './auth-session-store.js';
 import { recordLoginSecurityNotification } from './login-security.js';
+import { directoryLoginProfiles, listUserWorkspaces } from './workspace-directory.js';
+import { workspaceScope } from './workspace-context.js';
 
 const SESSION_PREFIX = 'smena_sess_';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -65,6 +67,8 @@ export function getAccessProfiles() {
   if (!Array.isArray(parsed)) throw new Error('Access profiles must be a JSON array.');
   return parsed.map(normalizeProfile).filter(Boolean);
 }
+
+export const getWorkspaceAccessProfiles = () => (workspaceScope() === 'default' ? getAccessProfiles() : []);
 
 function safeProfile(profile) {
   return {
@@ -191,19 +195,22 @@ export async function requireAuth(request, response, next) {
   }
   try {
     let profile = result.profile;
-    const database = await getWorkspaceDatabase({ fields: ['members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs'] });
+    const database = await getWorkspaceDatabase({ fields: ['members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs', '_workspaceDirectory'] });
     if (result.dynamic) {
-      const profiles = workspaceAccessProfiles(database);
+      const profiles = await directoryLoginProfiles(getAccessProfiles());
       profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
-      if (!profile) {
+      if (!profile && !(await listUserWorkspaces(result.profile, getAccessProfiles())).length) {
         response.status(401).json({ error: 'Account is unavailable.' });
         return;
       }
+      profile ||= result.profile;
     } else {
       const member = memberForProfile(database, result.profile);
       if (member && ['deactivated', 'removed'].includes(String(member.status || '').toLowerCase())) {
-        response.status(401).json({ error: 'Account is deactivated.' });
-        return;
+        if (!(await listUserWorkspaces(profile, getAccessProfiles())).length) {
+          response.status(401).json({ error: 'Account is deactivated.' });
+          return;
+        }
       }
       if (member) profile = { ...profile, role: workspaceMemberRole(member), ...(member.profileEditedAt ? { name: member.name, title: member.title } : {}) };
     }
@@ -220,6 +227,7 @@ export async function requireAuth(request, response, next) {
       return;
     }
     request.user = safeProfile(profile);
+    request.configuredProfiles = getAccessProfiles();
     request.workspaceSnapshot = database;
     request.sessionId = result.sessionId;
     request.authSession = activeSession;

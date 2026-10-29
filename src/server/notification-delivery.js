@@ -1,3 +1,5 @@
+import { workspaceState } from './workspace-context.js';
+const state = workspaceState(() => ({ mutationQueue: Promise.resolve(), memoryStatus: null }));
 import { getStorageProvider } from './storage/index.js';
 import { deliverEmailNotifications, emailAuthorizationStatus } from './email-notifications.js';
 import { deliverPushNotifications, pushDeliveryStatus } from './push-subscriptions.js';
@@ -7,8 +9,6 @@ import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store
 import { reportProviderError } from './provider-safety.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
-let mutationQueue = Promise.resolve();
-let memoryStatus = null;
 
 function cleanChannel(value = {}) {
   return Object.fromEntries(Object.keys(EMPTY_CHANNEL).map(key => [key, Math.max(0, Number(value[key] || 0))]));
@@ -32,7 +32,7 @@ function cleanStatus(value = {}) {
 }
 
 async function loadStatus(storage = getStorageProvider()) {
-  const stored = typeof storage.loadNotificationDeliveryStatus === 'function' ? await storage.loadNotificationDeliveryStatus() : memoryStatus;
+  const stored = typeof storage.loadNotificationDeliveryStatus === 'function' ? await storage.loadNotificationDeliveryStatus() : state().memoryStatus;
   return copyStorageVersion(stored, cleanStatus(stored || {}));
 }
 
@@ -44,7 +44,7 @@ async function mutateStatus(mutator) {
     try {
       if (typeof storage.saveNotificationDeliveryStatus === 'function')
         await storage.saveNotificationDeliveryStatus(next, { expectedEtag: storageVersion(current) });
-      memoryStatus = next;
+      state().memoryStatus = next;
       return next;
     } catch (error) {
       if (Number(error?.response?.status || error?.statusCode || error?.code) !== 412 || attempt === 2) throw error;
@@ -54,7 +54,7 @@ async function mutateStatus(mutator) {
 }
 
 export async function recordNotificationDelivery(result, options = {}) {
-  const operation = mutationQueue.then(async () => {
+  const operation = state().mutationQueue.then(async () => {
     const at = options.at || new Date().toISOString();
     return mutateStatus(current => ({
       ...current,
@@ -75,23 +75,23 @@ export async function recordNotificationDelivery(result, options = {}) {
       },
     }));
   });
-  mutationQueue = operation.catch(() => undefined);
+  state().mutationQueue = operation.catch(() => undefined);
   return operation;
 }
 
 export async function recordNotificationCronRun(details, options = {}) {
-  const operation = mutationQueue.then(async () => {
+  const operation = state().mutationQueue.then(async () => {
     const at = options.at || new Date().toISOString();
     return mutateStatus(current => ({ ...current, updatedAt: at, lastCron: { at, status: details.status || 'ok', ...details } }));
   });
-  mutationQueue = operation.catch(() => undefined);
+  state().mutationQueue = operation.catch(() => undefined);
   return operation;
 }
 
 /** Atomically claim a diagnostic test slot across workers/providers. */
 export async function claimNotificationTestCooldown(key, cooldownMs = 60_000, now = Date.now()) {
   let claimed = false;
-  const operation = mutationQueue.then(async () => {
+  const operation = state().mutationQueue.then(async () => {
     await mutateStatus(current => {
       const active = Object.fromEntries(Object.entries(current.testCooldowns || {}).filter(([, until]) => Number(until) > now));
       if (active[key] && Number(active[key]) > now) return { ...current, testCooldowns: active };
@@ -99,7 +99,7 @@ export async function claimNotificationTestCooldown(key, cooldownMs = 60_000, no
       return { ...current, testCooldowns: { ...active, [key]: now + Math.max(1_000, Number(cooldownMs) || 60_000) } };
     });
   });
-  mutationQueue = operation.catch(() => undefined);
+  state().mutationQueue = operation.catch(() => undefined);
   await operation;
   return claimed;
 }
@@ -167,6 +167,6 @@ export function notificationQueueStatus(data, now = Date.now()) {
 }
 
 export function resetNotificationDeliveryForTests() {
-  mutationQueue = Promise.resolve();
-  memoryStatus = null;
+  state().mutationQueue = Promise.resolve();
+  state().memoryStatus = null;
 }

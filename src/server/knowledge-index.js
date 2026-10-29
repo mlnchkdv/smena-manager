@@ -1,3 +1,5 @@
+import { workspaceState } from './workspace-context.js';
+const state = workspaceState(() => ({ cache: null }));
 import { searchTerms, searchableNote } from '../shared/knowledge-search.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 export function createKnowledgeIndex(notes, folders = []) {
@@ -24,10 +26,11 @@ export function createKnowledgeIndex(notes, folders = []) {
     },
   };
 }
-let cache;
+
 export function indexedKnowledgePage(database, options) {
   const revision = Number(database._documentRevisions?.knowledge?.revision || 0);
   const key = `${database.createdAt}:${database.revision}:${revision}`;
-  if (!cache || cache.key !== key) cache = { key, index: createKnowledgeIndex(database.knowledgeNotes || [], database.knowledgeFolders || []) };
-  return { ...cache.index.search(options), revision };
+  if (!state().cache || state().cache.key !== key)
+    state().cache = { key, index: createKnowledgeIndex(database.knowledgeNotes || [], database.knowledgeFolders || []) };
+  return { ...state().cache.index.search(options), revision };
 }

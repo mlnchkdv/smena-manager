@@ -1,3 +1,5 @@
+import { workspaceState } from './workspace-context.js';
+const state = workspaceState(() => ({ mutationQueue: Promise.resolve() }));
 import crypto from 'node:crypto';
 import webpush from 'web-push';
 import { getStorageProvider } from './storage/index.js';
@@ -7,7 +9,6 @@ import { notificationAction, notificationLocale, notificationSnippet } from '../
 import { storageVersion } from './storage/version-token.js';
 import { reportProviderError } from './provider-safety.js';
 
-let mutationQueue = Promise.resolve();
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BASE64URL = /^[A-Za-z0-9_-]+$/u;
 
@@ -91,7 +92,7 @@ function subscriptionId(endpoint) {
 }
 
 async function mutateSubscriptions(mutator) {
-  const operation = mutationQueue.then(async () => {
+  const operation = state().mutationQueue.then(async () => {
     const storage = getStorageProvider();
     for (let attempt = 0; attempt < 3; attempt += 1) {
       const current = typeof storage.loadPushSubscriptions === 'function' ? await storage.loadPushSubscriptions() : [];
@@ -105,7 +106,7 @@ async function mutateSubscriptions(mutator) {
     }
     return [];
   });
-  mutationQueue = operation.catch(() => undefined);
+  state().mutationQueue = operation.catch(() => undefined);
   return operation;
 }
 

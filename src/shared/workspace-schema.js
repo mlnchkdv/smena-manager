@@ -70,7 +70,7 @@ export function validateWorkspaceData(value) {
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
   if (isObject(value.ws)) {
     if (value.ws.c != null && (typeof value.ws.c !== 'string' || !/^#[\da-f]{6}$/iu.test(value.ws.c))) invalid.push('ws.c');
-    for (const field of ['name', 'url'])
+    for (const field of ['name', 'url', 'description'])
       if (value.ws[field] != null && (typeof value.ws[field] !== 'string' || value.ws[field].length > 500)) invalid.push(`ws.${field}`);
     if (
       value.ws.permissions != null &&

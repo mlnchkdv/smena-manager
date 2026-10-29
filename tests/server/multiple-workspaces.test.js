@@ -1,0 +1,149 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { inWorkspace } from '../../src/server/workspace-context.js';
+import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
+import { createWorkspace, directoryLoginProfiles, listUserWorkspaces } from '../../src/server/workspace-directory.js';
+import {
+  getWorkspaceDatabase,
+  mutateWorkspaceDatabase,
+  replaceWorkspaceDatabase,
+  createEmptyDatabase,
+  resetWorkspaceStore,
+} from '../../src/server/workspace-store.js';
+import { bindInitialAdministrator } from '../../src/shared/member-identity.js';
+
+const owner = { id: 'workspace-test-owner', name: 'Owner', email: 'owner@example.test', role: 'admin', active: true };
+const guest = { id: 'workspace-test-guest', name: 'Guest', email: 'guest@example.test', role: 'viewer', active: true };
+let directory;
+test.before(async () => {
+  directory = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-multiple-workspaces-'));
+  for (const key of [
+    'VERCEL',
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
+    'GOOGLE_REFRESH_TOKEN',
+    'GOOGLE_SERVICE_ACCOUNT_EMAIL',
+    'GOOGLE_SERVICE_ACCOUNT_KEY',
+    'GOOGLE_PRIVATE_KEY',
+  ])
+    delete process.env[key];
+  process.env.DATABASE_PATH = path.join(directory, 'workspace.json');
+  process.env.UPLOADS_PATH = path.join(directory, 'uploads');
+  process.env.BACKUPS_PATH = path.join(directory, 'backups');
+  process.env.ACCESS_IDS_JSON = JSON.stringify([owner, guest].map(profile => ({ ...profile, accessId: `${profile.id}-test` })));
+  process.env.SESSION_SECRET = 'multi-workspace-tests-only-secret-at-least-32-characters';
+  resetStorageProvider();
+  resetWorkspaceStore();
+  const root = bindInitialAdministrator(bindInitialAdministrator(createEmptyDatabase(), owner), guest);
+  root.ws = { id: 'legacy-root', name: 'Original', url: 'original', c: '#555555' };
+  await replaceWorkspaceDatabase(root, 0);
+});
+test.after(async () => {
+  await fs.rm(directory, { recursive: true, force: true });
+});
+
+test('workspace provisioning isolates concurrent data, files, membership, backups and directory writes', async () => {
+  const [a, b] = await Promise.all([
+    createWorkspace(owner, { name: 'Проект A', includeMembers: false }, [owner, guest]),
+    createWorkspace(owner, { name: 'Workspace B', includeMembers: true, locale: 'en' }, [owner, guest]),
+  ]);
+  assert.notEqual(a.id, b.id);
+  assert.equal((await listUserWorkspaces(owner, [owner, guest])).length, 3);
+  assert.deepEqual((await listUserWorkspaces(guest, [owner, guest])).map(item => item.id).sort(), ['default', b.id].sort());
+  await Promise.all(
+    [a, b].map((entry, index) =>
+      inWorkspace(entry.id, async () => {
+        const data = await getWorkspaceDatabase();
+        assert.equal(data.ws.id, entry.id);
+        assert.equal(data.members.length, index ? 2 : 1);
+        await mutateWorkspaceDatabase(
+          current => ({ ...current, knowledgeNotes: [{ id: 'same-note-id', title: entry.name, content: 'Private namespace' }] }),
+          data.revision,
+        );
+        const storage = getStorageProvider();
+        assert.notEqual(storage.uploadsPath, process.env.UPLOADS_PATH);
+        await storage.uploadFile('same.txt', Buffer.from(entry.name), 'text/plain');
+        await storage.createDatabaseBackup(await getWorkspaceDatabase(), entry.name);
+      }),
+    ),
+  );
+  for (const entry of [a, b])
+    await inWorkspace(entry.id, async () => {
+      const data = await getWorkspaceDatabase();
+      assert.equal(data.knowledgeNotes[0].title, entry.name);
+      assert.equal((await getStorageProvider().listDatabaseBackups()).length, 1);
+      assert.equal(await fs.readFile(path.join(getStorageProvider().uploadsPath, 'same.txt'), 'utf8'), entry.name);
+      await replaceWorkspaceDatabase({ ...data, ws: { ...data.ws, id: 'forged', url: 'forged' }, _workspaceDirectory: [{ id: 'forged' }] }, data.revision);
+      assert.equal((await getWorkspaceDatabase()).ws.url, entry.url);
+      assert.deepEqual((await getWorkspaceDatabase())._workspaceDirectory, []);
+    });
+  const root = await getWorkspaceDatabase();
+  await replaceWorkspaceDatabase({ ...createEmptyDatabase(), members: root.members, ws: root.ws, _workspaceDirectory: [] }, root.revision);
+  assert.equal((await listUserWorkspaces(owner, [owner, guest])).length, 3, 'restores cannot replace the global directory');
+  assert.throws(() => inWorkspace('../escape', () => getWorkspaceDatabase()), /Invalid workspace/u);
+  await assert.rejects(createWorkspace(guest, { name: 'Denied' }), /access/u);
+});
+
+test('HTTP workspace boundary rejects nonmembers and traversal, applies per-workspace roles and keeps global sessions', async () => {
+  const { app } = await import('../../src/server/app.js');
+  const { createSession, verifySession } = await import('../../src/server/auth.js');
+  const { registerAuthSession } = await import('../../src/server/auth-session-store.js');
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const tokens = new Map();
+  const call = async (user, url, scope, options = {}) => {
+    if (!tokens.has(user.id)) {
+      const token = createSession(user),
+        verified = verifySession(token);
+      await registerAuthSession({
+        id: verified.sessionId,
+        userId: user.id,
+        createdAt: verified.issuedAt,
+        lastSeenAt: verified.issuedAt,
+        expiresAt: verified.expiresAt,
+      });
+      tokens.set(user.id, token);
+    }
+    return fetch(`${base}${url}`, {
+      ...options,
+      headers: { Authorization: `Bearer ${tokens.get(user.id)}`, ...(scope ? { 'X-Smena-Workspace': scope } : {}), 'Content-Type': 'application/json' },
+    });
+  };
+  try {
+    const spaces = await listUserWorkspaces(owner, [owner, guest]);
+    const a = spaces.find(item => item.name === 'Проект A');
+    const b = spaces.find(item => item.name === 'Workspace B');
+    assert.equal((await call(guest, '/api/workspace', a.id)).status, 403);
+    assert.equal((await call(owner, '/api/workspace', '../escape')).status, 403);
+    assert.equal((await call(owner, `/api/workspace?workspace=${b.id}`, a.id)).status, 403);
+    const response = await call(guest, '/api/workspace', b.id);
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.data.ws.id, b.id);
+    assert.equal(body.data._workspaceDirectory, undefined);
+    assert.equal(body.data.members.length, 2, 'global profiles must not be injected into child workspaces');
+    assert.equal((await call(guest, '/api/workspaces', b.id, { method: 'POST', body: JSON.stringify({ name: 'Denied' }) })).status, 403);
+    assert.equal((await call(owner, '/api/auth/me')).status, 200);
+    await inWorkspace(a.id, async () => {
+      const data = await getWorkspaceDatabase();
+      await mutateWorkspaceDatabase(
+        current => ({
+          ...current,
+          members: [...current.members, { id: 'new-child-member', name: 'Child member', email: 'child@example.test', role: 'Member', status: 'active' }],
+        }),
+        data.revision,
+      );
+    });
+    const profile = (await directoryLoginProfiles([owner, guest])).find(item => item.email === 'child@example.test');
+    assert.ok(profile.id.startsWith('workspace:account-'));
+    assert.equal((await call(profile, '/api/auth/me', a.id)).status, 200);
+    assert.equal((await call(profile, '/api/workspace', b.id)).status, 403);
+    assert.equal((await call(profile, '/api/workspace', 'default')).status, 403);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+});

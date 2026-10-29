@@ -8,6 +8,7 @@ import { createLoginRateLimiter } from './login-rate-limit.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 import { mergeAccessProfiles } from '../shared/workspace-access.js';
 import { reserveSharedLoginAttempt } from './auth-session-store.js';
+import { directoryLoginProfiles } from './workspace-directory.js';
 
 const loginRateLimiter = createLoginRateLimiter();
 
@@ -64,7 +65,9 @@ authRouter.get('/config', async (request, response) => {
     configuredProfiles = getAccessProfiles().filter(profile => profile.active);
     const database = await getWorkspaceDatabase({ catalog: 'metadata' }).catch(() => null);
     workspaceStorageAvailable = Boolean(database);
-    profiles = mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
+    profiles = database
+      ? await directoryLoginProfiles(configuredProfiles)
+      : mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
     profileCount = configuredProfiles.length;
   } catch (error) {
     configurationError = error.message;
@@ -87,7 +90,7 @@ authRouter.get('/config', async (request, response) => {
 
 authRouter.post('/google', rateLimit, async (request, response) => {
   try {
-    const profiles = mergeAccessProfiles(getAccessProfiles(), await getWorkspaceDatabase({ catalog: 'metadata' }));
+    const profiles = await directoryLoginProfiles(getAccessProfiles());
     const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
     const token = await createTrackedSession(profile, request, 'google');
