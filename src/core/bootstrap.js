@@ -63,6 +63,7 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   }
   const member = memberForProfile(data, S.ui.currentUser);
   if (!member) throw new Error('Your access profile is not linked to a workspace member.');
+  if ((S.data.ws?.id || S.data.ws?.url) !== (data.ws.id || data.ws.url)) S.views = {};
   if (S.ui.currentUser?.name) member.name = S.ui.currentUser.name;
   if (S.ui.currentUser?.email) member.email = S.ui.currentUser.email;
   if (S.ui.currentUser?.title) member.title = S.ui.currentUser.title;
@@ -217,7 +218,10 @@ function storeConflictRecovery(data, details = {}) {
   const scope = details.scope || workspaceSyncConflict()?.scope || 'workspace';
   S.ui.syncRecovery = { data: structuredClone(data), ...details, owner, scope };
   try {
-    localStorage.setItem(`${CONFLICT_RECOVERY_KEY}:${owner}:${scope}`, JSON.stringify({ savedAt: new Date().toISOString(), ...S.ui.syncRecovery }));
+    localStorage.setItem(
+      `${CONFLICT_RECOVERY_KEY}:${owner}:${S.data.ws?.id || S.data.ws?.url}:${scope}`,
+      JSON.stringify({ savedAt: new Date().toISOString(), ...S.ui.syncRecovery }),
+    );
     return true;
   } catch {
     /* The current tab still retains the draft when storage is unavailable. */
@@ -322,7 +326,7 @@ export async function recoverWorkspaceConflict() {
       void queueScopedWorkspaceSync(conflict.scope, latest.data);
       S.ui.syncConflict = false;
       try {
-        localStorage.removeItem(`${CONFLICT_RECOVERY_KEY}:${S.ui.currentUser?.id || ''}:${conflict.scope}`);
+        localStorage.removeItem(`${CONFLICT_RECOVERY_KEY}:${S.ui.currentUser?.id || ''}:${S.data.ws?.id || S.data.ws?.url}:${conflict.scope}`);
       } catch {
         /* Storage may be unavailable. */
       }

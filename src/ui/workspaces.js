@@ -7,7 +7,7 @@ import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { openModal, workspaceModalRenderers } from '../overlays/modals.js';
-import { render } from '../shell/render.js';
+import { go, render } from '../shell/render.js';
 import { mutate, toast } from './toast.js';
 import { colorPalette, WORKSPACE_COLORS } from './color-palette.js';
 
@@ -112,6 +112,7 @@ export function saveWorkspaceSettings() {
   const name = $('#ws-name').value.trim();
   const url = workspaceSlug($('#ws-url').value);
   const description = $('#ws-description').value.trim();
+  const previousUrl = D().ws.url;
   if (!name || name.length > 100) return toast(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'), { kind: 'err' });
   if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === url))
     return toast(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'), { kind: 'err' });
@@ -121,8 +122,10 @@ export function saveWorkspaceSettings() {
       const item = D().workspaces?.find(item => item.id === D().ws.id);
       if (item) Object.assign(item, { name, c: D().ws.c });
     })
-  )
+  ) {
+    if (previousUrl !== D().ws.url) go('settings', { sec: 'workspace' });
     toast('Workspace settings saved');
+  }
 }
 
 export function deleteWorkspace() {

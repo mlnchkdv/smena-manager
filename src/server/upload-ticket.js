@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { workspaceScope } from './workspace-context.js';
 
 const PREFIX = 'smena_upload_';
 const LIFETIME_MS = 24 * 60 * 60 * 1000;
@@ -20,7 +21,7 @@ function safeEqual(left, right) {
 }
 
 export function createUploadTicket(payload, now = Date.now()) {
-  const encoded = Buffer.from(JSON.stringify({ version: 1, ...payload, expiresAt: now + LIFETIME_MS })).toString('base64url');
+  const encoded = Buffer.from(JSON.stringify({ version: 1, ...payload, workspace: workspaceScope(), expiresAt: now + LIFETIME_MS })).toString('base64url');
   return `${PREFIX}${encoded}.${signature(encoded)}`;
 }
 
@@ -42,5 +43,7 @@ export function verifyUploadTicket(ticket, now = Date.now()) {
   if (payload.version !== 1 || !Number.isFinite(payload.expiresAt) || payload.expiresAt <= now) {
     throw Object.assign(new Error('Upload ticket has expired.'), { statusCode: 400, code: 'UPLOAD_TICKET_EXPIRED' });
   }
+  if ((payload.workspace || 'default') !== workspaceScope())
+    throw Object.assign(new Error('This upload belongs to another workspace.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
   return payload;
 }

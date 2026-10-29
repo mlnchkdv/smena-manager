@@ -9,9 +9,10 @@ import {
   replaceWorkspaceDatabase,
 } from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
-import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
+import { bindAccessProfiles, bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { isActiveMember } from '../shared/workspace-membership.js';
 import { mergeAccessProfiles, workspaceMemberRole, workspaceAccessProfiles } from '../shared/workspace-access.js';
+import { workspaceSlug } from '../shared/workspace-slug.js';
 
 const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs'];
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
@@ -89,13 +90,7 @@ export async function createWorkspace(identity, input, configured = []) {
   const entries = await workspaceDirectoryEntries();
   if (entries.length >= 50) throw Object.assign(new Error('The workspace limit has been reached.'), { statusCode: 409, code: 'WORKSPACE_LIMIT' });
   const id = randomUUID();
-  const slug =
-    name
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      .replace(/^-|-$/gu, '')
-      .slice(0, 48) || 'workspace';
+  const slug = workspaceSlug(name).slice(0, 48) || 'workspace';
   const url = `${slug}-${id.slice(0, 8)}`;
   const data = bindInitialAdministrator(createEmptyDatabase(), { ...identity, role: 'admin' });
   data.ws = { id, name, description, url, c: color, permissions: { createProjects: true } };
@@ -106,7 +101,7 @@ export async function createWorkspace(identity, input, configured = []) {
   Object.assign(creator, { role: 'Owner', status: 'active', team: team.id });
   team.members = [creator.id];
   if (input?.includeMembers === true) {
-    for (const member of source.members || []) {
+    for (const member of (sourceScope === 'default' ? bindAccessProfiles(source, configured).members : source.members) || []) {
       if (!isActiveMember(member) || memberForProfile({ members: [member] }, identity)) continue;
       const copy = { ...structuredClone(member), id: randomUUID(), role: workspaceMemberRole(member) === 'viewer' ? 'Guest' : 'Member', team: team.id };
       data.members.push(copy);

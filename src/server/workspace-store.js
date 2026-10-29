@@ -476,6 +476,8 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   if (workspaceScope() !== 'default' && current.ws?.id) {
     nextData.ws = { ...nextData.ws, id: current.ws.id, url: current.ws.url };
   }
+  if (workspaceScope() === 'default' && current._workspaceDirectory?.some(entry => entry.url === nextData.ws?.url))
+    throw Object.assign(new Error('This workspace address is already in use.'), { statusCode: 409, code: 'WORKSPACE_URL_TAKEN' });
   if (current.me) nextData.me = current.me;
   if (options.role === 'editor') {
     const result = restoreUnauthorizedChanges(current, nextData, options.role, options.actorMemberId);
