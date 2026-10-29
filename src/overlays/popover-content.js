@@ -220,7 +220,7 @@ export function popHtml(p) {
       break;
     }
     case 'ws': {
-      const entries = S.ui.availableWorkspaces || [];
+      const entries = (S.ui.availableWorkspaces || []).filter(item => !item.archived);
       const query = (p.q || '').trim().toLocaleLowerCase();
       inner = `<div class="mh">Workspaces</div>${entries.length > 5 ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${tr('Find workspace')}" aria-label="${tr('Find workspace')}" value="${esc(p.q || '')}"></div>` : ''}
       <div style="max-height:min(280px,40dvh);overflow:auto">${

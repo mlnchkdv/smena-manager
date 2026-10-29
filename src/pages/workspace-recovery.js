@@ -1,3 +1,4 @@
+import '../ui/workspaces.js';
 import { S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { isRussian } from '../core/i18n.js';
@@ -10,7 +11,17 @@ export function workspaceRecovery(error) {
   const spaces = S.ui.availableWorkspaces || [];
   return `<div class="auth-card"><h1>${copy(unavailable ? 'Workspace unavailable' : 'Connection interrupted', unavailable ? 'Пространство недоступно' : 'Не удалось подключиться')}</h1>
     <p class="sub">${copy(unavailable ? 'Your account is signed in. Choose an available workspace or contact its administrator.' : 'Your session is retained. Check your connection and try again.', unavailable ? 'Вход в аккаунт выполнен. Выберите доступное пространство или обратитесь к его администратору.' : 'Сессия сохранена. Проверьте подключение и повторите попытку.')}</p>
-    <div class="col" style="gap:8px">${spaces.map(item => `<a class="btn btn-secondary" href="/${encodeURIComponent(item.url)}/home" translate="no">${esc(item.name || item.url)}</a>`).join('')}
+    <div class="col" style="gap:8px">${spaces
+      .filter(item => !item.archived)
+      .map(item => `<a class="btn btn-secondary" href="/${encodeURIComponent(item.url)}/home" translate="no">${esc(item.name || item.url)}</a>`)
+      .join('')}
+    ${spaces
+      .filter(item => item.archived)
+      .map(
+        item =>
+          `<button class="btn btn-secondary" data-a="restoreArchivedWorkspace" data-id="${esc(item.id)}">${copy('Restore', 'Восстановить')}: ${esc(item.name)}</button>`,
+      )
+      .join('')}
     <button class="btn btn-primary" data-a="retryWorkspaceConnection">${copy('Retry connection', 'Повторить подключение')}</button>
     <a class="btn btn-ghost" href="/">${copy('Open main website', 'На главную сайта')}</a></div></div>`;
 }

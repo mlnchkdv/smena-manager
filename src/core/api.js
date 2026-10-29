@@ -16,7 +16,7 @@ export function setActiveWorkspace(value) {
   sessionGeneration += 1;
   revisionCache = null;
 }
-export const workspaceDirectoryRequest = (options = {}) => request('/api/workspaces', options, true);
+export const workspaceDirectoryRequest = (options = {}) => request(options.path || '/api/workspaces', options, true);
 
 export const getSessionGeneration = () => sessionGeneration;
 function assertSessionGeneration(generation) {

@@ -59,7 +59,7 @@ function canLeave() {
 
 export function switchWorkspace(el) {
   const target = S.ui.availableWorkspaces?.find(item => item.id === el.dataset.v);
-  if (!target || target.id === getActiveWorkspace()) {
+  if (!target || target.archived || target.id === getActiveWorkspace()) {
     S.ui.pop = null;
     return render();
   }
@@ -203,12 +203,12 @@ export function saveWorkspaceSettings() {
 
 export function deleteWorkspace() {
   confirmDlg({
-    title: `${copy('Delete', 'Удалить')} ${D().ws.name}?`,
+    title: `${copy('Clear content', 'Очистить содержимое')}: ${D().ws.name}?`,
     body: copy(
-      'All content in this workspace will be deleted. Other workspaces remain available.',
-      'Все данные этого пространства будут удалены. Другие пространства останутся доступны.',
+      'Content will be cleared. The workspace identity and access remain. A safety backup is retained. Other workspaces are not affected.',
+      'Содержимое будет очищено. Пространство и доступ участников сохранятся. Перед операцией останется резервная копия. Другие пространства не затрагиваются.',
     ),
-    ok: t('Delete workspace'),
+    ok: copy('Clear content', 'Очистить содержимое'),
     danger: true,
     typeName: D().ws.name,
     run: async () => {
@@ -254,4 +254,33 @@ S.ui.beforeWorkspaceSettingsLeave = (route, params) => {
   }
 
   return true;
+};
+
+A.archiveWorkspace = () =>
+  confirmDlg({
+    title: copy('Archive this workspace?', 'Архивировать пространство?'),
+    body: copy(
+      'Content is retained. Administrators can restore access from workspace settings.',
+      'Содержимое сохраняется. Администратор сможет вернуть пространство в настройках.',
+    ),
+    ok: t('Archive'),
+    run: async () => {
+      if (!canLeave()) return;
+      await workspaceDirectoryRequest({ method: 'POST', path: `/api/workspaces/${getActiveWorkspace()}/archive`, body: JSON.stringify({ archived: true }) });
+      location.assign('/');
+    },
+  });
+A.restoreArchivedWorkspace = async el => {
+  try {
+    const result = await workspaceDirectoryRequest({
+      method: 'POST',
+      path: `/api/workspaces/${el.dataset.id}/archive`,
+      body: JSON.stringify({ archived: false }),
+    });
+    S.ui.availableWorkspaces = result.workspaces;
+    if (S.ui.auth) return location.assign('/');
+    render();
+  } catch {
+    toast(copy('Could not restore workspace.', 'Не удалось вернуть пространство.'), { kind: 'err' });
+  }
 };

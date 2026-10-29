@@ -207,6 +207,7 @@ export function settingsBody(sec, title) {
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
   switch (sec) {
     case 'workspace': {
+      const copy = (en, ru) => (isRussian() ? ru : en);
       if (!S.ui.workspaceSettingsDirty) S.ui.workspaceSettingsDraft = { ...d.ws };
       const draft = S.ui.workspaceSettingsDraft;
       const w = { ...d.ws, ...draft };
@@ -219,7 +220,19 @@ export function settingsBody(sec, title) {
       <div class="field"><label class="label" for="ws-description">Description</label><textarea class="input" id="ws-description" data-in="workspaceSettings" data-k="description" maxlength="500" rows="3">${esc(w.description || '')}</textarea></div>
       <div class="field"><label class="label" for="ws-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input workspace-url-prefix">${productHost()}/</span><input class="input" id="ws-url" data-in="workspaceSettings" data-k="url" value="${esc(w.url)}" ${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'readonly' : ''}></div><span class="hint">${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'The permanent address keeps shared links working when the workspace is renamed.' : 'Changing the URL will break existing links.'}</span></div>
       <div><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save">Save changes</button> <button type="button" class="btn btn-secondary" data-a="cancelWorkspaceSettings">Cancel</button></div></div></div></form>
-      <div class="sblock"><h2 style="color:var(--red)">Danger zone</h2>${srow('Delete workspace', 'Permanently delete this workspace, its projects, tasks, and files. This cannot be undone.', `<button class="btn btn-danger-ghost" style="border:1px solid color-mix(in srgb,var(--red) 35%,transparent)" data-a="delWorkspace">Delete workspace</button>`)}</div>`
+      <div class="sblock"><h2>${copy('Workspace lifecycle', 'Управление пространством')}</h2>
+      ${S.ui.activeWorkspace !== 'default' ? srow(copy('Archive workspace', 'Архивировать пространство'), copy('Retain all content and restore it later from these settings.', 'Сохранить все материалы и вернуть пространство позднее через эти настройки.'), `<button class="btn btn-secondary" data-a="archiveWorkspace">${tr('Archive')}</button>`) : ''}
+      ${srow(copy('Clear workspace content', 'Очистить содержимое пространства'), copy('A safety backup is created. Workspace name and access are retained.', 'Создаётся резервная копия. Название пространства и доступ участников сохраняются.'), `<button class="btn btn-danger-ghost" data-a="delWorkspace">${copy('Clear content', 'Очистить содержимое')}</button>`)}
+      ${(S.ui.availableWorkspaces || [])
+        .filter(item => item.archived)
+        .map(item =>
+          srow(
+            esc(item.name),
+            copy('Archived workspace', 'Архивное пространство'),
+            `<button class="btn btn-secondary" data-a="restoreArchivedWorkspace" data-id="${esc(item.id)}">${tr('Restore')}</button>`,
+          ),
+        )
+        .join('')}</div>`
       );
     }
     case 'appearance':

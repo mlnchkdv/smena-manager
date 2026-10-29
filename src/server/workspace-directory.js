@@ -16,9 +16,11 @@ import { workspaceSlug } from '../shared/workspace-slug.js';
 
 const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs'];
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
-export async function workspaceDirectoryEntries() {
+export async function workspaceDirectoryEntries({ includeArchived = false } = {}) {
   const root = await inWorkspace('default', () => getWorkspaceDatabase({ fields: ['_workspaceDirectory'] }));
-  return (root._workspaceDirectory || []).filter(entry => entry?.id && entry?.url && !['provisioning', 'failed'].includes(entry.state));
+  return (root._workspaceDirectory || []).filter(
+    entry => entry?.id && entry?.url && !['provisioning', 'failed'].includes(entry.state) && (includeArchived || entry.state !== 'archived'),
+  );
 }
 
 export async function readWorkspaceCore(id) {
@@ -35,7 +37,7 @@ export function workspaceUser(data, identity, { legacy = false, configured = [] 
 }
 
 export async function listUserWorkspaces(identity, configured = []) {
-  const entries = [{ id: 'default' }, ...(await workspaceDirectoryEntries())];
+  const entries = [{ id: 'default' }, ...(await workspaceDirectoryEntries({ includeArchived: true }))];
   const visible = await Promise.all(
     entries.map(async entry => {
       const data = await readWorkspaceCore(entry.id);
@@ -45,7 +47,9 @@ export async function listUserWorkspaces(identity, configured = []) {
       } catch {
         return null;
       }
+      if (entry.state === 'archived' && user.role !== 'admin') return null;
       return {
+        archived: entry.state === 'archived',
         id: entry.id,
         name: data.ws?.name || '',
         url: data.ws?.url || '',
@@ -62,7 +66,7 @@ export async function directoryLoginProfiles(configured) {
   const root = await readWorkspaceCore('default');
   const profiles = mergeAccessProfiles(configured, root);
   const emails = new Set(profiles.map(profile => profile.email));
-  for (const entry of await workspaceDirectoryEntries()) {
+  for (const entry of await workspaceDirectoryEntries({ includeArchived: true })) {
     const data = await readWorkspaceCore(entry.id);
     for (const profile of workspaceAccessProfiles(data)) {
       if (emails.has(profile.email)) continue;
@@ -203,6 +207,8 @@ export async function requireWorkspace(request, response, next) {
   try {
     if (request.get('X-Smena-Workspace') && request.query.workspace && request.get('X-Smena-Workspace') !== request.query.workspace) throw forbidden();
     if (id !== 'default' && !(request.workspaceSnapshot?._workspaceDirectory || []).some(entry => entry.id === id)) throw forbidden();
+    if (id !== 'default' && request.workspaceSnapshot?._workspaceDirectory?.some(entry => entry.id === id && entry.state === 'archived'))
+      throw Object.assign(forbidden(), { code: 'WORKSPACE_UNAVAILABLE' });
     const data = id === 'default' && request.workspaceSnapshot ? request.workspaceSnapshot : await readWorkspaceCore(id);
     request.user = workspaceUser(data, request.user, { legacy: id === 'default', configured: request.configuredProfiles || [] });
     request.workspaceSnapshot = data;
@@ -210,4 +216,15 @@ export async function requireWorkspace(request, response, next) {
   } catch (error) {
     next(error);
   }
+}
+
+export async function setWorkspaceArchived(identity, id, archived) {
+  if (id === 'default') throw Object.assign(new Error('The original workspace cannot be archived.'), { statusCode: 400 });
+  const entry = (await workspaceDirectoryEntries({ includeArchived: true })).find(item => item.id === id);
+  if (!entry) throw forbidden();
+  const user = workspaceUser(await readWorkspaceCore(id), identity);
+  if (user.role !== 'admin') throw forbidden();
+  await updateDirectory(list =>
+    list.map(item => (item.id === id ? { ...item, state: archived ? 'archived' : 'active', archivedAt: archived ? new Date().toISOString() : null } : item)),
+  );
 }

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { inWorkspace } from '../../src/server/workspace-context.js';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
-import { createWorkspace, directoryLoginProfiles, listUserWorkspaces } from '../../src/server/workspace-directory.js';
+import { createWorkspace, setWorkspaceArchived, directoryLoginProfiles, listUserWorkspaces } from '../../src/server/workspace-directory.js';
 import {
   getWorkspaceDatabase,
   mutateWorkspaceDatabase,
@@ -183,4 +183,16 @@ test('creation retry recovers the same published workspace and rejects changed i
   assert.equal(retry.id, first.id);
   assert.equal((await listUserWorkspaces(owner)).filter(item => item.id === first.id).length, 1);
   await assert.rejects(createWorkspace(owner, { ...input, name: 'Changed' }), error => error.code === 'WORKSPACE_INPUT_CHANGED');
+});
+
+test('workspace archive is reversible, scoped and hides contents without clearing them', async () => {
+  const created = await createWorkspace(owner, { name: 'Lifecycle test' });
+  await setWorkspaceArchived(owner, created.id, true);
+  const entry = (await listUserWorkspaces(owner)).find(item => item.id === created.id);
+  assert.equal(entry.archived, true);
+  assert.equal((await inWorkspace(created.id, () => getWorkspaceDatabase())).ws.name, 'Lifecycle test');
+  await assert.rejects(setWorkspaceArchived(guest, created.id, false));
+  await assert.rejects(setWorkspaceArchived(owner, 'default', true));
+  await setWorkspaceArchived(owner, created.id, false);
+  assert.equal((await listUserWorkspaces(owner)).find(item => item.id === created.id).archived, false);
 });

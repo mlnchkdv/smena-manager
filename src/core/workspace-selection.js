@@ -3,8 +3,9 @@ import { setActiveWorkspace, workspaceDirectoryRequest } from './api.js';
 import { parseAppLocation } from '../shared/app-location.js';
 
 export async function selectInitialWorkspace(user) {
-  const { workspaces } = await workspaceDirectoryRequest();
-  S.ui.availableWorkspaces = workspaces || [];
+  const { workspaces: directory } = await workspaceDirectoryRequest();
+  const workspaces = (directory || []).filter(item => !item.archived);
+  S.ui.availableWorkspaces = directory || [];
   if (!workspaces?.length) throw Object.assign(new Error('No available workspaces'), { code: 'NO_WORKSPACES' });
   const slug = parseAppLocation(location.pathname).slug;
   let remembered = '';
@@ -18,7 +19,7 @@ export async function selectInitialWorkspace(user) {
     (!slug && (workspaces.find(item => item.id === remembered && item.initialized) || workspaces.find(item => item.initialized) || workspaces[0]));
   if (!selected) throw Object.assign(new Error('Workspace unavailable'), { code: 'WORKSPACE_UNAVAILABLE' });
   setActiveWorkspace(selected.id);
-  S.ui.availableWorkspaces = workspaces;
+  S.ui.availableWorkspaces = directory;
   S.ui.activeWorkspace = selected.id;
   try {
     sessionStorage.setItem(`smena.workspace:${user.id}`, selected.id);

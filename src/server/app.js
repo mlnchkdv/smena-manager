@@ -2,7 +2,7 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
-import { createWorkspace, listUserWorkspaces, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
+import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
 import { inWorkspace } from './workspace-context.js';
 import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
@@ -152,6 +152,14 @@ app.use('/api/auth', authRouter);
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
+    response.json({ workspaces: await listUserWorkspaces(request.user, request.configuredProfiles) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/workspaces/:id/archive', async (request, response, next) => {
+  try {
+    await setWorkspaceArchived(request.user, request.params.id, request.body?.archived !== false);
     response.json({ workspaces: await listUserWorkspaces(request.user, request.configuredProfiles) });
   } catch (error) {
     next(error);
@@ -576,9 +584,9 @@ app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async 
 app.delete('/api/workspace', requireRole('admin'), async (request, response, next) => {
   try {
     const data = await mutateWorkspaceDatabase(
-      current => ({ ...current, ...emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())) }),
+      current => ({ ...current, ...emptyWorkspace(bindAccessProfiles(current, getAccessProfiles())), ws: current.ws }),
       request.body?.revision,
-      { role: request.user.role, replaceDocuments: true, backupLabel: 'Before workspace deletion' },
+      { role: request.user.role, replaceDocuments: true, backupLabel: 'Before clearing workspace content' },
     );
     response.json({ data: workspaceCoreData(data) });
   } catch (error) {
