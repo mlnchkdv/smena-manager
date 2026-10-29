@@ -2332,18 +2332,10 @@ A.calNav = el => {
     target?.focus({ preventScroll: true });
   }
 };
-A.tlToday = () => {
-  S.ui.tlAnchor = iso(TODAY);
-  S.ui.tlAnchorKey = null;
-  render();
-  const r = $('#tl-right');
-  if (r) r.scrollTo({ left: Math.max(0, +$('.tl').dataset.tlToday - 160), behavior: 'smooth' });
-};
-IN.tlAnchor = el => {
-  if (el.value && (!/^\d{4}-\d{2}-\d{2}$/.test(el.value) || !Number.isFinite(parse(el.value).getTime()))) return;
-  S.ui.tlAnchor = el.value || iso(TODAY);
-  S.ui.tlInit = {};
-  render();
+A.tlToday = async () => (await import('../views/timeline.js')).focusTimelineDate();
+IN.tlAnchor = async el => {
+  const date = el.value;
+  (await import('../views/timeline.js')).focusTimelineDate(date);
 };
 IN.tlGroup = el => {
   S.ui.tlGroup = el.value;

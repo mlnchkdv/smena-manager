@@ -1,3 +1,4 @@
+import { render } from '../shell/render.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 /* ---------- TIMELINE ---------- */
 import { $, MON, MONL, TODAY, addD, diffD, esc, fmtDate, parse, iso } from '../core/utils.js';
@@ -56,12 +57,17 @@ export function timelineHtml(ts, key, p) {
       S.ui.listPages.timeline = anchored.page;
     }
     const page = listWindow(items, S.ui.listPages.timeline, 60);
+    const focusIndex = Math.max(
+      0,
+      page.items.findIndex(item => item.date >= anchor),
+    );
     return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
       page.items
         .map((item, i) => {
           const m = item.milestone;
           const project = m?.p || proj(item.task?.project);
-          return `${i === 0 || page.items[i - 1].date !== item.date ? `<h3 class="hint">${fmtDate(item.date, true)}</h3>` : ''}<button class="tl-agenda-item" ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
+          const focus = i === focusIndex ? `<h3 class="hint tl-anchor" data-tl-focus tabindex="-1">${fmtDate(anchor, true)}</h3>` : '';
+          return `${focus}${i === 0 || page.items[i - 1].date !== item.date ? `<h3 class="hint">${fmtDate(item.date, true)}</h3>` : ''}<button class="tl-agenda-item" ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
         })
         .join('') || empty('calendar', 'Nothing on the timeline', 'Give tasks a start and due date to see them here.')
     }${paginationHtml(page, 'timeline')}</div>`;
@@ -229,4 +235,21 @@ export function pageWsTimeline() {
   }
   return `<div class="page flush"><div class="ph compact-page-head"><div><h1>Timeline</h1><p class="page-description">Schedules, dependencies, and milestones across projects.</p></div><div class="acts">${pageIntroduction('Schedules, dependencies, and milestones across projects.')}</div></div>
   ${viewToolbar(key, { group: false, sort: false, extra: tlControls(key) })}${timelineHtml(applyView(allTasks(), v), key, null)}</div>`;
+}
+
+export function focusTimelineDate(value = '') {
+  if (value && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(parse(value).getTime()))) return;
+  S.ui.tlAnchor = value || iso(TODAY);
+  S.ui.tlAnchorKey = null;
+  S.ui.tlInit = {};
+  render();
+  requestAnimationFrame(() => {
+    const anchor = document.querySelector('[data-tl-focus]');
+    if (anchor) {
+      anchor.scrollIntoView({ block: 'start', behavior: 'instant' });
+      anchor.focus({ preventScroll: true });
+    }
+    const chart = $('#tl-right');
+    if (chart) chart.scrollTo({ left: Math.max(0, +$('.tl').dataset.tlToday - 160), behavior: 'smooth' });
+  });
 }
