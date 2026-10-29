@@ -198,16 +198,20 @@ export function saveWorkspaceSettings() {
       ),
       { kind: 'err', ms: 8000 },
     );
-  if (!name || name.length > 100) return toast(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'), { kind: 'err' });
-  if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === url))
+  const next = { ...merged.value, url: getActiveWorkspace() === 'default' ? workspaceSlug(merged.value.url) || D().ws.url : D().ws.url };
+  if (!next.name || next.name.length > 100)
+    return toast(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'), { kind: 'err' });
+  if ((next.description || '').length > 500)
+    return toast(copy('Enter a description up to 500 characters.', 'Укажите описание длиной до 500 символов.'), { kind: 'err' });
+  if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === next.url))
     return toast(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'), { kind: 'err' });
   if (
     mutate(() => {
       Object.assign(D().ws, {
-        name,
-        description,
-        c: S.ui.workspaceSettingsDraft?.c || D().ws.c,
-        url: getActiveWorkspace() === 'default' ? url || D().ws.url : D().ws.url,
+        name: next.name,
+        description: next.description,
+        c: next.c,
+        url: next.url,
       });
       const item = D().workspaces?.find(item => item.id === D().ws.id);
       if (item) Object.assign(item, { name: D().ws.name, c: D().ws.c });
