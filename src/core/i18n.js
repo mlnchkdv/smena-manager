@@ -17,6 +17,12 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Project appearance': 'Оформление проекта',
+  'Search icons': 'Поиск значков',
+  'No matching icons.': 'Подходящих значков нет.',
+  'Custom color': 'Свой цвет',
+  'HEX color': 'Цвет HEX',
+  'Use a HEX color such as #5A67D8.': 'Укажите HEX-цвет, например #5A67D8.',
   'Job title': 'Должность',
   'Optional profile details for one person. Leave blank when adding multiple addresses.':
     'Необязательные данные одного участника. При добавлении нескольких адресов оставьте поля пустыми.',

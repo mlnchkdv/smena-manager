@@ -2522,6 +2522,7 @@ A.newProject = () => {
   const availableTeams = teamsList();
   const initialTeam = primaryTeamId(availableTeams, me().team);
   S.ui.pform = { name: '', desc: '', icon: 'folder', color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
+  S.ui.projectIconQuery = '';
   S.ui.errors = {};
   S.ui.pop = null;
   openModal({ type: 'project' });
@@ -2530,6 +2531,7 @@ A.editProject = el => {
   const p = proj(el.dataset.id);
   S.ui.pop = null;
   S.ui.pform = { name: p.name, desc: p.desc, icon: p.icon, color: p.color, team: p.team, lead: p.lead, due: p.due, tmpl: 'blank' };
+  S.ui.projectIconQuery = '';
   S.ui.errors = {};
   openModal({ type: 'project', edit: p.id });
 };
@@ -2542,6 +2544,10 @@ IN.pform = el => {
 };
 A.pformSet = el => {
   S.ui.pform[el.dataset.f] = el.dataset.v;
+  if (el.dataset.f === 'color') {
+    S.ui.pform.colorDraft = '';
+    S.ui.errors.projectColor = null;
+  }
   if (el.dataset.f === 'tmpl') {
     const t = TEMPLATES.find(x => x.id === el.dataset.v);
     if (t && S.ui.pform.icon === 'folder') S.ui.pform.icon = t.icon === 'file' ? 'folder' : t.icon;
@@ -2614,6 +2620,7 @@ A.submitProject = () => {
     $('#p-name')?.focus();
     return;
   }
+  if (A.validateProjectAppearance && !A.validateProjectAppearance(f)) return;
   if (m.edit) {
     const p = proj(m.edit);
     if (

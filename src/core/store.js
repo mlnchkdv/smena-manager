@@ -1,6 +1,7 @@
 /* ---------- store ---------- */
 import { TODAY, diffD, iso, parse, uid } from './utils.js';
 import { PCOLORS, TEAMS_SEED } from './constants.js';
+import { normalizeProjectColor } from '../shared/project-appearance.js';
 import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -210,7 +211,7 @@ export const me = () => D().members.find(m => m.id === D().me);
 export const mem = id => D().members.find(m => m.id === id);
 export const proj = id => D().projects.find(p => p.id === id);
 export const task = id => D().tasks.find(t => t.id === id);
-export const pColor = p => PCOLORS[p?.color] || PCOLORS.slate;
+export const pColor = p => (Object.hasOwn(PCOLORS, p?.color) ? PCOLORS[p.color] : normalizeProjectColor(p?.color) || PCOLORS.slate);
 export const visibleProjects = () =>
   D()
     .projOrder.map(proj)
