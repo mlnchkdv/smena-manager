@@ -389,8 +389,7 @@ window.addEventListener('popstate', () => {
     if (user && !S.ui.needsOnboarding) applyBrowserLocation();
   } catch (error) {
     S.ui.authBusy = false;
-    S.ui.auth = 'login';
-    S.ui.authIssue = error.status === 401 ? '' : error.message || 'Unable to connect to the workspace server.';
+    await (await import('./pages/workspace-recovery.js')).applyRecovery(error);
   }
   const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
   render();

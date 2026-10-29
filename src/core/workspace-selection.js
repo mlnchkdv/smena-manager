@@ -4,7 +4,8 @@ import { parseAppLocation } from '../shared/app-location.js';
 
 export async function selectInitialWorkspace(user) {
   const { workspaces } = await workspaceDirectoryRequest();
-  if (!workspaces?.length) throw new Error('Your account has no available workspaces. Contact an administrator.');
+  S.ui.availableWorkspaces = workspaces || [];
+  if (!workspaces?.length) throw Object.assign(new Error('No available workspaces'), { code: 'NO_WORKSPACES' });
   const slug = parseAppLocation(location.pathname).slug;
   let remembered = '';
   try {
@@ -15,7 +16,7 @@ export async function selectInitialWorkspace(user) {
   const selected =
     workspaces.find(item => item.url === slug && slug) ||
     (!slug && (workspaces.find(item => item.id === remembered && item.initialized) || workspaces.find(item => item.initialized) || workspaces[0]));
-  if (!selected) throw new Error('This workspace is unavailable. Open the main website to choose an available workspace.');
+  if (!selected) throw Object.assign(new Error('Workspace unavailable'), { code: 'WORKSPACE_UNAVAILABLE' });
   setActiveWorkspace(selected.id);
   S.ui.availableWorkspaces = workspaces;
   S.ui.activeWorkspace = selected.id;

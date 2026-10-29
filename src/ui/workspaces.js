@@ -180,3 +180,13 @@ window.addEventListener('beforeunload', event => {
     event.returnValue = '';
   }
 });
+
+S.ui.beforeWorkspaceSettingsLeave = (route, params) => {
+  if (S.ui.workspaceSettingsDirty && (route !== 'settings' || params.sec !== 'workspace')) {
+    if (!window.confirm(isRussian() ? 'Отменить несохранённые настройки пространства?' : 'Discard unsaved workspace settings?')) return false;
+    S.ui.workspaceSettingsDraft = null;
+    S.ui.workspaceSettingsDirty = false;
+  }
+
+  return true;
+};

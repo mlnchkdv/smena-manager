@@ -20,6 +20,7 @@ export const socialBtns = () => `<div class="social">
 export const ferr = k => (S.ui.errors[k] ? `<span class="err" id="${k}-err">${ic('circle-alert', 12)}${S.ui.errors[k]}</span>` : '');
 export const icls = k => (S.ui.errors[k] ? 'is-error' : '');
 export function renderAuth() {
+  if (S.ui.auth === 'workspace-recovery') return authShell(S.ui.workspaceRecoveryHtml || '');
   const s = S.ui.auth;
   const e = S.ui.errors;
   const f = S.ui.af || (S.ui.af = { email: 'hello@example.com', name: '' });
