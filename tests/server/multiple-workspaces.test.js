@@ -14,6 +14,8 @@ import {
   resetWorkspaceStore,
 } from '../../src/server/workspace-store.js';
 import { bindInitialAdministrator } from '../../src/shared/member-identity.js';
+import { LocalStorageProvider } from '../../src/server/storage/local-storage.js';
+import { rememberStorageVersion } from '../../src/server/storage/version-token.js';
 
 const owner = { id: 'workspace-test-owner', name: 'Owner', email: 'owner@example.test', role: 'admin', active: true };
 const guest = { id: 'workspace-test-guest', name: 'Guest', email: 'guest@example.test', role: 'viewer', active: true };
@@ -145,5 +147,30 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
     assert.equal((await call(profile, '/api/workspace', 'default')).status, 403);
   } finally {
     await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('first workspace publication reads a fresh validator after a metadata create response without an ETag', async () => {
+  const load = LocalStorageProvider.prototype.loadDatabase;
+  const save = LocalStorageProvider.prototype.saveDatabase;
+  let guardedWrites = 0;
+  LocalStorageProvider.prototype.loadDatabase = async function () {
+    const data = await load.call(this);
+    return data && this.databasePath.includes(`${path.sep}workspaces${path.sep}`) ? rememberStorageVersion(data, `"revision-${data.revision}"`) : data;
+  };
+  LocalStorageProvider.prototype.saveDatabase = async function (data, options = {}) {
+    const current = await load.call(this);
+    if (current && this.databasePath.includes(`${path.sep}workspaces${path.sep}`)) {
+      assert.equal(options.expectedEtag, `"revision-${current.revision}"`);
+      guardedWrites++;
+    }
+    return save.call(this, data);
+  };
+  try {
+    await createWorkspace(owner, { name: 'Versioned provisioning' }, [owner]);
+    assert.equal(guardedWrites, 1);
+  } finally {
+    LocalStorageProvider.prototype.loadDatabase = load;
+    LocalStorageProvider.prototype.saveDatabase = save;
   }
 });

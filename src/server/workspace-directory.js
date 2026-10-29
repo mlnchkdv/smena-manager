@@ -1,6 +1,13 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { inWorkspace, workspaceScope } from './workspace-context.js';
-import { createEmptyDatabase, getWorkspaceDatabase, mutateWorkspaceMetadata, replaceWorkspaceDatabase } from './workspace-store.js';
+import {
+  createEmptyDatabase,
+  getWorkspaceDatabase,
+  initWorkspaceStore,
+  reloadWorkspaceStore,
+  mutateWorkspaceMetadata,
+  replaceWorkspaceDatabase,
+} from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
 import { bindInitialAdministrator, memberForProfile } from '../shared/member-identity.js';
 import { isActiveMember } from '../shared/workspace-membership.js';
@@ -117,6 +124,10 @@ export async function createWorkspace(identity, input, configured = []) {
   storage.allowBootstrap = true;
   try {
     await inWorkspace(id, async () => {
+      await initWorkspaceStore();
+      // Drive create responses need not contain an ETag. Read the new root's
+      // validator before the first conditional write instead of weakening CAS.
+      await reloadWorkspaceStore();
       await replaceWorkspaceDatabase(data, 0, { role: 'admin' });
       await storage.ensureUploadsFolder?.();
       await storage.ensureBackupsFolder?.();
