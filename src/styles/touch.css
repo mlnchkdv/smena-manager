@@ -1,5 +1,43 @@
 /* Control hit areas follow the layout without enlarging every desktop form.
    Route styles own placement and wrapping; this layer owns minimum targets. */
+.knowledge-folder-node:has(.knowledge-folder-menu[open]) {
+  content-visibility: visible;
+}
+.knowledge-folder-menu[open] {
+  opacity: 1;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .knowledge-sidebar :is(.knowledge-head-actions, .knowledge-folder-toolbar) .ibtn,
+  .knowledge-sidebar .knowledge-mobile-folder-button,
+  .knowledge-sidebar .knowledge-folder-menu > summary {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .knowledge-sidebar .knowledge-folder,
+  .knowledge-sidebar .knowledge-folder-line {
+    min-height: 44px;
+  }
+  .knowledge-sidebar .knowledge-folder-toggle,
+  .knowledge-sidebar .knowledge-folder-toggle-spacer {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+  .knowledge-sidebar .knowledge-folder-actions {
+    opacity: 1;
+  }
+  .knowledge-folder-menu > div {
+    position: fixed;
+    inset: auto 12px 12px;
+    width: auto;
+    max-height: 50dvh;
+    overflow-y: auto;
+    z-index: 78;
+  }
+  .knowledge-folder-menu > div > button {
+    min-height: 44px;
+  }
+}
 .ibtn-xs,
 .cal-day-open {
   min-width: 28px;

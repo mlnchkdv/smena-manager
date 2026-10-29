@@ -18,6 +18,7 @@ import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowl
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
 import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 
 const noteTime = value => {
   const parsed = typeof value === 'number' ? value : Date.parse(value || '');
@@ -40,7 +41,7 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
         .join(' / ');
       const actions = readOnly
         ? ''
-        : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel('Rename folder', path)}" title="${actionLabel('Rename folder', path)}">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel('Delete folder', path)}" title="${actionLabel('Delete folder', path)}">${ic('trash-2', 12)}</button></span>`;
+        : `<details class="ui-menu knowledge-folder-actions knowledge-folder-menu" ${disclosureAttributes('knowledge-folder:' + folder.id)}><summary class="ibtn ibtn-xs" aria-label="${actionLabel('Folder actions', path)}" title="${actionLabel('Folder actions', path)}">${ic('ellipsis', 14)}</summary><div><button data-a="renameKnowledgeFolder" data-folder="${folder.id}">${ic('pencil', 14)}<span>Rename folder</span></button><button class="bad" data-a="deleteKnowledgeFolder" data-folder="${folder.id}">${ic('trash-2', 14)}<span>Delete folder</span></button></div></details>`;
       const toggle = hasChildren
         ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel(isCollapsed ? 'Expand folder' : 'Collapse folder', path)}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
         : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
