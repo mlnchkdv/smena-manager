@@ -1,3 +1,4 @@
+import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -34,15 +35,18 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
   S.ui.knowledgeRevealFolder = null;
   const html = page.rows
     .map(({ folder, depth, hasChildren, isCollapsed }) => {
+      const path = folderTrail(folder.id, index.byId)
+        .map(item => item.name)
+        .join(' / ');
       const actions = readOnly
         ? ''
-        : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="Rename folder" title="Rename folder">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="Delete folder" title="Delete folder">${ic('trash-2', 12)}</button></span>`;
+        : `<span class="knowledge-folder-actions"><button class="ibtn ibtn-xs" data-a="renameKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel('Rename folder', path)}" title="${actionLabel('Rename folder', path)}">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="deleteKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel('Delete folder', path)}" title="${actionLabel('Delete folder', path)}">${ic('trash-2', 12)}</button></span>`;
       const toggle = hasChildren
-        ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${isCollapsed ? 'Expand folder' : 'Collapse folder'}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
+        ? `<button class="ibtn ibtn-xs knowledge-folder-toggle" data-a="toggleKnowledgeFolder" data-folder="${folder.id}" aria-label="${actionLabel(isCollapsed ? 'Expand folder' : 'Collapse folder', path)}" aria-expanded="${!isCollapsed}" title="${isCollapsed ? 'Expand folder' : 'Collapse folder'}">${ic(isCollapsed ? 'chevron-right' : 'chevron-down', 13)}</button>`
         : '<span class="knowledge-folder-toggle-spacer" aria-hidden="true"></span>';
       const selectFolder =
         !readOnly && S.ui.knowledgeOrganize
-          ? `<input type="checkbox" data-in="knowledgeFolderSelect" data-id="${esc(folder.id)}" aria-label="Select folder" ${(S.ui.knowledgeFolderSelection || []).includes(folder.id) ? 'checked' : ''}>`
+          ? `<input type="checkbox" data-in="knowledgeFolderSelect" data-id="${esc(folder.id)}" aria-label="${actionLabel('Select folder', path)}" ${(S.ui.knowledgeFolderSelection || []).includes(folder.id) ? 'checked' : ''}>`
           : '';
       return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${selectFolder}${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${index.counts.get(folder.id) || 0}</span></button>${actions}</div></div>`;
     })

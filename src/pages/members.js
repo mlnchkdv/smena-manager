@@ -25,7 +25,7 @@ const memberAccessBadge = m =>
       : '<span class="badge green">Access active</span>';
 const memberRoleControl = (m, isAdmin) =>
   isAdmin && m.role !== 'Owner' && m.id !== D().me
-    ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${esc(m.id)}" aria-label="Role">${esc(m.role)}${ic('chevron-down', 12)}</button>`
+    ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${esc(m.id)}" aria-label="${actionLabel('Role', m.name, tr(m.role))}">${esc(m.role)}${ic('chevron-down', 12)}</button>`
     : `<span class="badge">${esc(m.role)}</span>`;
 
 function mobileMembers(members, isAdmin, activity) {
