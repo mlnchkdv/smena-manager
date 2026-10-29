@@ -204,7 +204,20 @@ export function settingsBody(sec, title) {
   const P = S.prefs;
   const d = D();
   const np = myNotificationPreferences();
-  const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
+  const personal = !['workspace', 'members', 'teams', 'projects', 'permissions', 'security'].includes(sec);
+  const scope =
+    sec === 'security'
+      ? isRussian()
+        ? 'Сессии и безопасность относятся ко всему аккаунту во всех пространствах.'
+        : 'Sessions and security apply to your account across all workspaces.'
+      : personal
+        ? isRussian()
+          ? 'Личные настройки в этом пространстве. Синхронизируются между вашими устройствами и не меняют настройки коллег.'
+          : 'Your personal settings in this workspace. Synced across your devices; other members are not affected.'
+        : isRussian()
+          ? 'Общие настройки текущего пространства. Изменения затрагивают его участников.'
+          : 'Shared settings for the current workspace. Changes affect its members.';
+  const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p><p class="hint settings-scope" translate="no">${scope} <b>${esc(d.ws.name)}</b></p>`;
   switch (sec) {
     case 'workspace': {
       void refreshWorkspaces(false);
@@ -238,7 +251,7 @@ export function settingsBody(sec, title) {
     }
     case 'appearance':
       return (
-        H(`Customize how ${PRODUCT_NAME} looks on this device.`) +
+        H(isRussian() ? 'Оформление вашего интерфейса в текущем пространстве.' : 'Customize your interface in the current workspace.') +
         `
       <div class="sblock" style="margin-top:0"><h2>Theme</h2><div class="themecards" style="margin-top:12px" role="radiogroup" aria-label="Theme">${[
         ['light', 'Light'],
