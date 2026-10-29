@@ -181,7 +181,12 @@ A.submitWorkspace = async () => {
 };
 
 export function saveWorkspaceSettings() {
-  if (S.ui.currentUser?.role !== 'admin') return;
+  if (S.ui.currentUser?.role !== 'admin' || !S.ui.workspaceSettingsDirty) return;
+  const reject = message => {
+    S.ui.workspaceSettingsError = message;
+    updateWorkspaceSettingsFeedback();
+    return toast(message, { kind: 'err', ms: 8000 });
+  };
   const name = $('#ws-name').value.trim();
   const url = workspaceSlug($('#ws-url').value);
   const description = $('#ws-description').value.trim();
@@ -192,20 +197,17 @@ export function saveWorkspaceSettings() {
     D().ws,
   );
   if (merged.conflicts.length)
-    return toast(
+    return reject(
       copy(
         'These settings changed in another session. Cancel to load the latest values before saving again.',
         'Эти настройки изменены в другой сессии. Нажмите «Отмена», чтобы загрузить актуальные значения перед сохранением.',
       ),
-      { kind: 'err', ms: 8000 },
     );
   const next = { ...merged.value, url: getActiveWorkspace() === 'default' ? workspaceSlug(merged.value.url) || D().ws.url : D().ws.url };
-  if (!next.name || next.name.length > 100)
-    return toast(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'), { kind: 'err' });
-  if ((next.description || '').length > 500)
-    return toast(copy('Enter a description up to 500 characters.', 'Укажите описание длиной до 500 символов.'), { kind: 'err' });
+  if (!next.name || next.name.length > 100) return reject(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'));
+  if ((next.description || '').length > 500) return reject(copy('Enter a description up to 500 characters.', 'Укажите описание длиной до 500 символов.'));
   if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === next.url))
-    return toast(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'), { kind: 'err' });
+    return reject(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'));
   if (
     mutate(() => {
       Object.assign(D().ws, {
@@ -220,8 +222,11 @@ export function saveWorkspaceSettings() {
   ) {
     S.ui.workspaceSettingsDraft = null;
     S.ui.workspaceSettingsDirty = false;
+    S.ui.workspaceSettingsError = '';
+    S.ui.workspaceSettingsSubmitted = { ...D().ws };
+    S.ui.workspaceSettingsSaveState = 'syncing';
     if (previousUrl !== D().ws.url) go('settings', { sec: 'workspace' });
-    toast('Workspace settings saved');
+    render();
   }
 }
 
@@ -256,6 +261,8 @@ IN.workspaceSettings = el => {
   draft[el.dataset.k] = el.value;
   if (el.dataset.k === 'description') el.closest('.field')?.querySelector('[data-description-count]')?.replaceChildren(`${el.value.length} / 500`);
   S.ui.workspaceSettingsDirty = ['name', 'description', 'url', 'c'].some(k => (draft[k] || '') !== (D().ws[k] || ''));
+  S.ui.workspaceSettingsError = '';
+  updateWorkspaceSettingsFeedback();
 };
 A.wsColor = el => {
   IN.workspaceSettings({ dataset: { k: 'c' }, value: el.dataset.v });
@@ -264,8 +271,47 @@ A.wsColor = el => {
 A.cancelWorkspaceSettings = () => {
   S.ui.workspaceSettingsDraft = null;
   S.ui.workspaceSettingsDirty = false;
+  S.ui.workspaceSettingsError = '';
   render();
 };
+
+export function workspaceSettingsFeedback() {
+  if (S.ui.workspaceSettingsError) return { state: 'error', text: S.ui.workspaceSettingsError };
+  if (S.ui.workspaceSettingsDirty) return { state: 'dirty', text: copy('Unsaved changes', 'Есть несохранённые изменения') };
+  const state = S.ui.workspaceSettingsSaveState || 'idle';
+  const messages = {
+    idle: ['No changes', 'Нет изменений'],
+    syncing: ['Saved locally. Waiting for server confirmation…', 'Сохранено локально. Ожидаем подтверждение сервера…'],
+    saved: ['Settings synchronized', 'Настройки синхронизированы'],
+    offline: ['Saved locally. Will sync when connected.', 'Сохранено локально. Синхронизируем после подключения.'],
+    error: [
+      'Could not synchronize settings. Your changes are retained; check system status.',
+      'Не удалось синхронизировать настройки. Изменения сохранены локально; проверьте статус системы.',
+    ],
+  };
+  return { state, text: copy(...(messages[state] || messages.error)) };
+}
+function updateWorkspaceSettingsFeedback() {
+  const status = $('#workspace-settings-status');
+  const feedback = workspaceSettingsFeedback();
+  if (status) {
+    status.textContent = feedback.text;
+    status.dataset.state = feedback.state;
+  }
+  const button = $('#ws-save');
+  if (button) button.disabled = !S.ui.workspaceSettingsDirty || !!S.ui.atomicOperation;
+}
+window.addEventListener('smena:sync-status', ({ detail }) => {
+  if (!S.ui.workspaceSettingsSubmitted || (detail.scope && detail.scope !== 'workspace')) return;
+  if (detail.status === 'saved') {
+    const expected = S.ui.workspaceSettingsSubmitted;
+    if (!['name', 'description', 'url', 'c'].every(key => (detail.sentData?.ws?.[key] || '') === (expected[key] || ''))) return;
+    S.ui.workspaceSettingsSaveState = 'saved';
+  } else if (detail.status === 'syncing') S.ui.workspaceSettingsSaveState = 'syncing';
+  else if (detail.status === 'offline') S.ui.workspaceSettingsSaveState = 'offline';
+  else if (['unavailable', 'invalid', 'too_large', 'conflict', 'forbidden'].includes(detail.status)) S.ui.workspaceSettingsSaveState = 'error';
+  updateWorkspaceSettingsFeedback();
+});
 
 window.addEventListener('beforeunload', event => {
   if (S.ui.workspaceSettingsDirty || S.ui.atomicOperation) {
@@ -280,6 +326,7 @@ S.ui.beforeWorkspaceSettingsLeave = (route, params) => {
     if (!window.confirm(isRussian() ? 'Отменить несохранённые настройки пространства?' : 'Discard unsaved workspace settings?')) return false;
     S.ui.workspaceSettingsDraft = null;
     S.ui.workspaceSettingsDirty = false;
+    S.ui.workspaceSettingsError = '';
   }
 
   return true;

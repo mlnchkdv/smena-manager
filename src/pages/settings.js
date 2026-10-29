@@ -1,7 +1,7 @@
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
    ===================================================================== */
-import { refreshWorkspaces } from '../ui/workspaces.js';
+import { refreshWorkspaces, workspaceSettingsFeedback } from '../ui/workspaces.js';
 import { dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
@@ -232,6 +232,7 @@ export function settingsBody(sec, title) {
       }
       const draft = S.ui.workspaceSettingsDraft;
       const w = { ...d.ws, ...draft };
+      const feedback = workspaceSettingsFeedback();
       return (
         H('Your workspace name, address, and identity.') +
         `
@@ -240,7 +241,8 @@ export function settingsBody(sec, title) {
       <div class="col" style="gap:14px;max-width:440px"><div class="field"><label class="label" for="ws-name">Workspace name</label><input class="input" id="ws-name" data-in="workspaceSettings" data-k="name" maxlength="100" required value="${esc(w.name)}"></div>
       <div class="field"><label class="label" for="ws-description">Description</label><textarea class="textarea workspace-description" id="ws-description" aria-describedby="ws-description-hint" data-in="workspaceSettings" data-k="description" maxlength="500" rows="3">${esc(w.description || '')}</textarea><small class="hint" id="ws-description-hint" data-description-count>${(w.description || '').length} / 500</small></div>
       <div class="field"><label class="label" for="ws-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input workspace-url-prefix">${productHost()}/</span><input class="input" id="ws-url" data-in="workspaceSettings" data-k="url" value="${esc(w.url)}" ${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'readonly' : ''}></div><span class="hint">${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'The permanent address keeps shared links working when the workspace is renamed.' : 'Changing the URL will break existing links.'}</span></div>
-      <div><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save">Save changes</button> <button type="button" class="btn btn-secondary" data-a="cancelWorkspaceSettings">Cancel</button></div></div></div></form>
+      <p class="hint" id="workspace-settings-status" role="status" aria-live="polite" data-state="${feedback.state}" translate="no">${esc(feedback.text)}</p>
+      <div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save" ${S.ui.workspaceSettingsDirty ? '' : 'disabled'}>Save changes</button><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceSettings">Cancel</button></div></div></div></form>
       <div class="sblock"><h2>${copy('Workspace lifecycle', 'Управление пространством')}</h2>
       ${S.ui.activeWorkspace !== 'default' ? srow(copy('Archive workspace', 'Архивировать пространство'), copy('Retain all content and restore it later from these settings.', 'Сохранить все материалы и вернуть пространство позднее через эти настройки.'), `<button class="btn btn-secondary" data-a="archiveWorkspace">${tr('Archive')}</button>`) : ''}
       ${srow(copy('Clear workspace content', 'Очистить содержимое пространства'), copy('A safety backup is created. Workspace name and access are retained.', 'Создаётся резервная копия. Название пространства и доступ участников сохраняются.'), `<button class="btn btn-danger-ghost" data-a="delWorkspace">${copy('Clear content', 'Очистить содержимое')}</button>`)}
