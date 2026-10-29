@@ -3322,9 +3322,35 @@ A.closeModal = () => closeModal();
 A.closeModalBg = (el, e) => {
   if (e.target === el) closeModal();
 };
-A.confirmOk = () => {
+A.confirmOk = async () => {
   const m = S.ui.modals[S.ui.modals.length - 1];
+  if (!m || m.busy || S.ui.atomicOperation) return;
   if (m.typeName && S.ui.confirmText !== m.typeName) return;
+  if (m.awaitRun) {
+    if (m.beforeRun && !m.beforeRun()) return;
+    m.busy = true;
+    m.error = '';
+    S.ui.atomicOperation = true;
+    render();
+    let result;
+    let succeeded = false;
+    try {
+      result = await m.run();
+      succeeded = true;
+    } catch {
+      m.error = m.failureMessage || t('Something went wrong. Please try again.');
+    } finally {
+      m.busy = false;
+      S.ui.atomicOperation = false;
+      if (succeeded && S.ui.modals.at(-1) === m) {
+        S.ui.modals.pop();
+        S.ui.confirmText = '';
+      }
+      render();
+    }
+    if (succeeded) m.onSuccess?.(result);
+    return;
+  }
   S.ui.modals.pop();
   S.ui.confirmText = '';
   render();

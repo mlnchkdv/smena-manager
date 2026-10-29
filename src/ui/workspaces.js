@@ -150,6 +150,7 @@ A.submitWorkspace = async () => {
     } catch {
       /* Optional cache. */
     }
+    S.ui.atomicOperation = false;
     location.assign(`/${encodeURIComponent(workspace.url)}/settings/workspace`);
   } catch (error) {
     m.error = copy(
@@ -234,16 +235,19 @@ export function deleteWorkspace() {
     ok: copy('Clear content', 'Очистить содержимое'),
     danger: true,
     typeName: D().ws.name,
+    awaitRun: true,
+    beforeRun: canLeave,
+    busyLabel: copy('Clearing content…', 'Очистка содержимого…'),
+    failureMessage: copy(
+      'The content could not be cleared. Check the connection and try again.',
+      'Не удалось очистить содержимое. Проверьте подключение и повторите попытку.',
+    ),
     run: async () => {
-      if (!canLeave()) return;
-      try {
-        await deleteAllWorkspaces(S.ui.workspaceRevision);
-        const next = S.ui.availableWorkspaces?.find(item => item.id !== getActiveWorkspace() && item.initialized && !item.archived);
-        location.assign(next ? `/${encodeURIComponent(next.url)}/home` : '/');
-      } catch {
-        toast(copy('The content could not be cleared.', 'Не удалось очистить содержимое.'), { kind: 'err' });
-      }
+      await deleteAllWorkspaces(S.ui.workspaceRevision);
+      const next = S.ui.availableWorkspaces?.find(item => item.id !== getActiveWorkspace() && item.initialized && !item.archived);
+      return next ? `/${encodeURIComponent(next.url)}/home` : '/';
     },
+    onSuccess: url => location.assign(url),
   });
 }
 
@@ -264,13 +268,14 @@ A.cancelWorkspaceSettings = () => {
 };
 
 window.addEventListener('beforeunload', event => {
-  if (S.ui.workspaceSettingsDirty) {
+  if (S.ui.workspaceSettingsDirty || S.ui.atomicOperation) {
     event.preventDefault();
     event.returnValue = '';
   }
 });
 
 S.ui.beforeWorkspaceSettingsLeave = (route, params) => {
+  if (S.ui.atomicOperation) return false;
   if (S.ui.workspaceSettingsDirty && (route !== 'settings' || params.sec !== 'workspace')) {
     if (!window.confirm(isRussian() ? 'Отменить несохранённые настройки пространства?' : 'Discard unsaved workspace settings?')) return false;
     S.ui.workspaceSettingsDraft = null;
@@ -288,15 +293,17 @@ A.archiveWorkspace = () =>
       'Содержимое сохраняется. Администратор сможет вернуть пространство в настройках.',
     ),
     ok: t('Archive'),
+    awaitRun: true,
+    beforeRun: canLeave,
+    busyLabel: copy('Archiving workspace…', 'Архивирование пространства…'),
+    failureMessage: copy(
+      'Could not archive workspace. Check the connection and try again.',
+      'Не удалось архивировать пространство. Проверьте подключение и повторите попытку.',
+    ),
     run: async () => {
-      if (!canLeave()) return;
-      try {
-        await workspaceDirectoryRequest({ method: 'POST', path: `/api/workspaces/${getActiveWorkspace()}/archive`, body: JSON.stringify({ archived: true }) });
-        location.assign('/');
-      } catch {
-        toast(copy('Could not archive workspace.', 'Не удалось архивировать пространство.'), { kind: 'err' });
-      }
+      await workspaceDirectoryRequest({ method: 'POST', path: `/api/workspaces/${getActiveWorkspace()}/archive`, body: JSON.stringify({ archived: true }) });
     },
+    onSuccess: () => location.assign('/'),
   });
 A.restoreArchivedWorkspace = async el => {
   try {

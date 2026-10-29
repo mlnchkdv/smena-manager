@@ -276,13 +276,15 @@ export function inviteModal(m, H) {
 }
 export function confirmModal(m) {
   const needs = m.typeName;
-  const ok = !needs || (S.ui.confirmText || '') === needs;
-  return `<div class="modal-b" style="padding-top:18px;gap:10px">
+  const ok = !m.busy && (!needs || (S.ui.confirmText || '') === needs);
+  return `<div class="modal-b" aria-busy="${!!m.busy}" style="padding-top:18px;gap:10px">
     <div class="row" style="gap:12px;align-items:flex-start"><span class="ftype" style="--c:${m.danger ? 'var(--red)' : 'var(--amber)'};width:34px;height:34px;border-radius:9px">${ic(m.icon || (m.danger ? 'trash-2' : 'archive'), 17)}</span>
     <div class="grow"><h2 id="mt-confirm" style="font-size:15px;font-weight:600;margin:4px 0 6px">${esc(m.title)}</h2><p class="muted" style="margin:0;font-size:13px;line-height:1.55">${m.body}</p></div></div>
-    ${needs ? `<div class="field" style="margin-top:6px"><label class="label" for="confirm-in" style="font-weight:400;color:var(--text-2)">Type <b style="color:var(--text);font-weight:600">${esc(needs)}</b> to confirm</label><input class="input" id="confirm-in" data-in="confirmText" autocomplete="off" autofocus value="${esc(S.ui.confirmText || '')}"></div>` : ''}
+    ${needs ? `<div class="field" style="margin-top:6px"><label class="label" for="confirm-in" style="font-weight:400;color:var(--text-2)">Type <b style="color:var(--text);font-weight:600">${esc(needs)}</b> to confirm</label><input class="input" id="confirm-in" data-in="confirmText" autocomplete="off" autofocus value="${esc(S.ui.confirmText || '')}" ${m.busy ? 'disabled' : ''}></div>` : ''}
+    ${m.busy ? `<p role="status" class="hint">${esc(m.busyLabel)}</p>` : ''}
+    ${m.error ? `<p role="alert" class="bad">${esc(m.error)}</p>` : ''}
   </div>
-  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${needs ? '' : 'autofocus'}>Cancel</button><button class="btn ${m.danger ? 'btn-danger' : 'btn-primary'}" data-a="confirmOk" ${ok ? '' : 'disabled'}>${esc(m.ok)}</button></div>`;
+  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : needs ? '' : 'autofocus'}>Cancel</button><button class="btn ${m.danger ? 'btn-danger' : 'btn-primary'} ${m.busy ? 'is-loading' : ''}" data-a="confirmOk" ${ok ? '' : 'disabled'}>${esc(m.busy ? m.busyLabel : m.ok)}</button></div>`;
 }
 export function shortcutsModal(H) {
   return `${H('Keyboard shortcuts')}<div class="modal-b" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row" style="height:30px;font-size:13px;border-bottom:1px solid var(--divider)"><span class="grow">${n}</span>${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</div>`).join('')}</div>`).join('')}</div>`;
