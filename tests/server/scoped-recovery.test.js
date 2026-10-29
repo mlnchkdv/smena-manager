@@ -92,7 +92,8 @@ test('accepting one server scope preserves other local documents and retains the
     await acceptServerConflictVersion({ createJournal: () => ({ read: async () => null }) });
     assert.equal(S.data.tasks[0].title, 'Chosen server version');
     assert.equal(S.data.knowledgeNotes[0].title, 'Local document');
-    const recovery = JSON.parse(stored.get('smena.recovery.conflict.v1:test-owner:workspace'));
+    assert.equal(stored.has('smena.recovery.conflict.v1:test-owner:workspace'), false, 'recovery must not overwrite a copy from another workspace');
+    const recovery = JSON.parse(stored.get(`smena.recovery.conflict.v1:test-owner:${base.ws.id || base.ws.url}:workspace`));
     assert.equal(recovery.data.tasks[0].title, 'Original offline copy');
   } finally {
     disableWorkspaceSync();
