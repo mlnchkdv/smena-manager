@@ -187,6 +187,13 @@
 .drawer-b {
   container-type: inline-size;
 }
+.drawer-b .dsec-h:has(.rte-tb) {
+  flex-wrap: wrap;
+}
+.drawer-b .rte-tb {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
 .task-properties > dt {
   height: auto;
   min-height: 30px;
