@@ -1,5 +1,9 @@
 /** Keep overview labels apart in screen coordinates; selected material has priority. */
-export function graphOverviewLabels(graph, points, { width, height, selected = '', limit = 4 } = {}) {
+export function graphOverviewLabels(
+  graph,
+  points,
+  { width, height, selected = '', limit = Math.max(4, Math.min(18, Math.floor((width * height) / 20000))) } = {},
+) {
   const degree = new Map(graph.nodes.map(node => [node.key, 0]));
   const neighbors = new Set();
   for (const edge of graph.edges) {

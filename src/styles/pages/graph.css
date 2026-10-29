@@ -528,3 +528,51 @@
     font-size: var(--fs-xs);
   }
 }
+
+.graph-legend-disclosure > summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
+.graph-legend-disclosure[open] .graph-legend {
+  padding: 6px 0;
+}
+@media (max-width: 540px) {
+  .graph-page {
+    padding-top: 10px;
+  }
+  .graph-head {
+    margin-bottom: 8px;
+  }
+  .graph-head .row button > span {
+    display: none;
+  }
+  .graph-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 6px;
+  }
+  .graph-toolbar .graph-search {
+    grid-column: auto;
+  }
+  .graph-filter-toggle > span:not(.cnt),
+  .graph-toolbar .seg button > span {
+    display: none;
+  }
+  .graph-meta {
+    margin: 6px 0;
+    gap: 4px;
+  }
+  .graph-locator {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .graph-locator > label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  #knowledge-graph-canvas {
+    height: clamp(280px, calc(100svh - 270px), 680px);
+  }
+}

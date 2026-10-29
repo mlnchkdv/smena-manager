@@ -52,7 +52,6 @@ export function mountGraph(graph, selected, center, onSelect) {
     const neighbors = new Set(graph.edges.filter(edge => edge.from === selected || edge.to === selected).flatMap(edge => [edge.from, edge.to]));
     if (selected) neighbors.add(selected);
     const denseGraph = graph.nodes.length > 80 || graph.edges.length > 160;
-    const smallGraph = graph.nodes.length <= 30;
     const elements = [
       ...graph.nodes.map(node => ({
         data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
@@ -164,7 +163,7 @@ export function mountGraph(graph, selected, center, onSelect) {
       if (!instance || instance.destroyed() || !instance.renderer()) return;
       const zoom = instance.zoom();
       if (denseGraph) instance.nodes().toggleClass('dense-hidden', zoom < 0.75);
-      if (smallGraph) {
+      {
         const overview = zoom < 0.85;
         const labels = overview
           ? graphOverviewLabels(graph, new Map(instance.nodes().map(node => [node.id(), node.renderedPosition()])), {
@@ -185,7 +184,7 @@ export function mountGraph(graph, selected, center, onSelect) {
       }
     };
     instance.on('zoom', updateDensity);
-    if (smallGraph) instance.on('pan', updateDensity);
+    instance.on('pan', updateDensity);
     if (previous?.signature === signature) {
       instance.nodes().positions(node => previous.positions.get(node.id()));
       if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
