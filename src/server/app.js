@@ -4,6 +4,7 @@ import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { createWorkspace, listUserWorkspaces, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
 import { inWorkspace } from './workspace-context.js';
+import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
 import {
   createWorkspaceBackup,
@@ -119,18 +120,19 @@ async function runWorkspaceAutomation() {
   }
 }
 
-app.get('/api/cron/reminders', requireCronSecret, async (_request, response, next) => {
+app.get('/api/cron/reminders', requireCronSecret, async (request, response, next) => {
   try {
     const scopes = ['default', ...(await workspaceDirectoryEntries()).map(entry => entry.id)];
-    const workspaces = [];
-    for (const id of scopes) {
-      try {
-        workspaces.push({ id, ...(await inWorkspace(id, runWorkspaceAutomation)) });
-      } catch (error) {
-        reportProviderError('[Workspace automation]', error);
-        workspaces.push({ id, status: 'failed' });
-      }
+    if (request.query.workspace) {
+      if (typeof request.query.workspace !== 'string' || !scopes.includes(request.query.workspace))
+        return response.status(404).json({ error: 'Workspace not found.' });
+      return response.json(await inWorkspace(request.query.workspace, runWorkspaceAutomation));
     }
+    const workspaces = await runWorkspaceAutomationBatch(scopes, {
+      run: runWorkspaceAutomation,
+      dispatch: process.env.VERCEL ? dispatchWorkspaceAutomation : null,
+      failed: error => reportProviderError('[Workspace automation]', error),
+    });
     const primary = workspaces[0];
     response.json({ ...primary, status: workspaces.every(item => item.status === 'ok') ? 'ok' : 'degraded', workspaces });
   } catch (error) {
