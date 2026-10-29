@@ -42,16 +42,17 @@ export function calendarHtml(ts, opt = {}) {
     label = `${MONL[cur.getMonth()]} ${cur.getFullYear()}`;
     const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
     const start = startOfWeek(first);
-    const cells = Array.from({ length: 42 }, (_, i) => addD(start, i));
-    const trimmed = cells[35].getMonth() !== cur.getMonth() ? cells.slice(0, 35) : cells;
+    const days = new Date(cur.getFullYear(), cur.getMonth() + 1, 0).getDate();
+    const weeks = Math.ceil((diffD(first, start) + days) / 7);
+    const trimmed = Array.from({ length: weeks * 7 }, (_, i) => addD(start, i));
     body = `<div class="cal-h">${wdn.map(d => `<div>${d}</div>`).join('')}</div>
-      <div class="cal-g" style="grid-template-rows:repeat(${trimmed.length / 7},minmax(112px,1fr))">${trimmed
+      <div class="cal-g" style="grid-template-rows:repeat(${weeks},minmax(0,1fr));--cal-weeks:${weeks}">${trimmed
         .map(d => {
           const ds = iso(d);
           const items = itemsOn(ds);
           const today = diffD(d, TODAY) === 0;
           return `<div class="cday ${d.getMonth() !== cur.getMonth() ? 'out' : ''} ${today ? 'today' : ''}" data-drop-day="${ds}">
-          <button class="cal-day-open" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}" aria-label="${esc(t('View day'))}: ${fmtDate(ds)}"><span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span><span class="cal-day-count" aria-hidden="true">${items.length || ''}</span></button>
+          <button class="cal-day-open" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}" aria-label="${esc(t('View day'))}: ${fmtDate(ds)}${items.length ? ` · ${items.length}` : ''}"><span class="dn" ${today ? 'aria-current="date"' : ''}>${d.getDate()}</span><span class="cal-day-count" aria-hidden="true">${items.length || ''}</span></button>
           <button class="ibtn ibtn-xs add" data-a="newTask" data-due="${ds}" ${opt.project ? `data-project="${opt.project}"` : ''} aria-label="Add task on ${fmtDate(ds)}">${ic('plus', 13)}</button>
           ${items.slice(0, 3).map(chip).join('')}
           ${items.length > 3 ? `<button class="cmore" data-a="pop" data-pop="daylist" data-date="${ds}" data-key="${opt.key || ''}" data-project="${opt.project || ''}" data-events="${opt.events ? '1' : '0'}">+${items.length - 3} more</button>` : ''}
