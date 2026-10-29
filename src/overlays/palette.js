@@ -9,7 +9,7 @@ import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
 import { sortTasks, viewOf } from '../shell/view-engine.js';
 import { searchAll } from '../core/search.js';
-import { t as tr } from '../core/i18n.js';
+import { t as tr, workspaceRoleLabel } from '../core/i18n.js';
 import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
 
@@ -76,7 +76,7 @@ export function paletteItems() {
         .map(w => ({
           html: `${wsLogo({ ...w, name: w.name || '?' }, 20)}`,
           name: w.id === S.ui.activeWorkspace ? D().ws.name : w.name,
-          sub: `${w.url} · ${tr(w.role === 'admin' ? 'Administrator' : w.role === 'viewer' ? 'Guest' : 'Member')}`,
+          sub: `${w.url} · ${workspaceRoleLabel(w.role)}`,
           run: () => A.switchWs({ dataset: { v: w.id } }),
         })),
     });

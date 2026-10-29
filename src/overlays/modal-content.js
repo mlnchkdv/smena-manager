@@ -9,7 +9,7 @@ import { memberProfileModal } from '../ui/member-profile.js';
 import { ensureFilePreview } from '../core/file-preview.js';
 import { render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
-import { t as tr, templateText } from '../core/i18n.js';
+import { t as tr, templateText, isRussian } from '../core/i18n.js';
 import { relationPicker, relationsPanel } from '../ui/relations.js';
 import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
 import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
@@ -280,7 +280,7 @@ export function confirmModal(m) {
   return `<div class="modal-b" aria-busy="${!!m.busy}" style="padding-top:18px;gap:10px">
     <div class="row" style="gap:12px;align-items:flex-start"><span class="ftype" style="--c:${m.danger ? 'var(--red)' : 'var(--amber)'};width:34px;height:34px;border-radius:9px">${ic(m.icon || (m.danger ? 'trash-2' : 'archive'), 17)}</span>
     <div class="grow"><h2 id="mt-confirm" style="font-size:15px;font-weight:600;margin:4px 0 6px">${esc(m.title)}</h2><p class="muted" style="margin:0;font-size:13px;line-height:1.55">${m.body}</p></div></div>
-    ${needs ? `<div class="field" style="margin-top:6px"><label class="label" for="confirm-in" style="font-weight:400;color:var(--text-2)">Type <b style="color:var(--text);font-weight:600">${esc(needs)}</b> to confirm</label><input class="input" id="confirm-in" data-in="confirmText" autocomplete="off" autofocus value="${esc(S.ui.confirmText || '')}" ${m.busy ? 'disabled' : ''}></div>` : ''}
+    ${needs ? `<div class="field" style="margin-top:6px"><label class="label" for="confirm-in" translate="no" style="font-weight:400;color:var(--text-2)">${isRussian() ? 'Введите' : 'Type'} <b style="color:var(--text);font-weight:600">${esc(needs)}</b>${isRussian() ? ', чтобы подтвердить' : ' to confirm'}</label><input class="input" id="confirm-in" data-in="confirmText" autocomplete="off" autofocus value="${esc(S.ui.confirmText || '')}" ${m.busy ? 'disabled' : ''}></div>` : ''}
     ${m.busy ? `<p role="status" class="hint">${esc(m.busyLabel)}</p>` : ''}
     ${m.error ? `<p role="alert" class="bad">${esc(m.error)}</p>` : ''}
   </div>

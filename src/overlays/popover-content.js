@@ -9,7 +9,7 @@ import { calendarDayItems } from '../shared/calendar-items.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
-import { locale, isRussian, t as tr } from '../core/i18n.js';
+import { locale, isRussian, t as tr, workspaceRoleLabel } from '../core/i18n.js';
 
 import { tgt } from './popovers.js';
 export function popList(items, opt = {}) {
@@ -229,7 +229,7 @@ export function popHtml(p) {
           .map(w => {
             const current = w.id === S.ui.activeWorkspace;
             const item = current ? D().ws : w;
-            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow min0"><span class="trunc" style="display:block" translate="no">${esc(item.name || tr('New workspace'))}</span><small class="faint" style="display:block" translate="no">${esc(w.url)} · ${tr(w.role === 'admin' ? 'Administrator' : w.role === 'viewer' ? 'Guest' : 'Member')}</small></span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
+            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow min0"><span class="trunc" style="display:block" translate="no">${esc(item.name || tr('New workspace'))}</span><small class="faint" style="display:block" translate="no">${esc(w.url)} · ${workspaceRoleLabel(w.role)}</small></span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
           })
           .join('') || `<div class="mi faint">No matches</div>`
       }</div><div class="msep"></div>${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;

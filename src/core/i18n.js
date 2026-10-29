@@ -754,6 +754,7 @@ const RU = {
   Role: 'Роль',
   Owner: 'Владелец',
   Admin: 'Администратор',
+  Administrator: 'Администратор',
   Guest: 'Гость',
   Type: 'Тип',
   Created: 'Создано',
@@ -1998,6 +1999,7 @@ const TEMPLATE_TEXT_RU = {
 };
 
 export const templateText = value => (isRussian() ? TEMPLATE_TEXT_RU[value] || value : value);
+export const workspaceRoleLabel = role => t(role === 'admin' ? 'Administrator' : role === 'viewer' ? 'Guest' : 'Member');
 
 const pluralRu = (value, one, few, many) => {
   const count = Number(value);
