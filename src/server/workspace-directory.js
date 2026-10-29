@@ -18,7 +18,7 @@ const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevision
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
 export async function workspaceDirectoryEntries() {
   const root = await inWorkspace('default', () => getWorkspaceDatabase({ fields: ['_workspaceDirectory'] }));
-  return (root._workspaceDirectory || []).filter(entry => entry?.id && entry?.url);
+  return (root._workspaceDirectory || []).filter(entry => entry?.id && entry?.url && !['provisioning', 'failed'].includes(entry.state));
 }
 
 export async function readWorkspaceCore(id) {
@@ -87,73 +87,114 @@ export async function createWorkspace(identity, input, configured = []) {
   const sourceScope = workspaceScope();
   const source = await readWorkspaceCore(sourceScope);
   workspaceUser(source, identity, { legacy: sourceScope === 'default', configured });
-  const entries = await workspaceDirectoryEntries();
-  if (entries.length >= 50) throw Object.assign(new Error('The workspace limit has been reached.'), { statusCode: 409, code: 'WORKSPACE_LIMIT' });
-  const id = randomUUID();
-  const slug = workspaceSlug(name).slice(0, 48) || 'workspace';
-  const url = `${slug}-${id.slice(0, 8)}`;
-  const data = bindInitialAdministrator(createEmptyDatabase(), { ...identity, role: 'admin' });
-  data.ws = { id, name, description, url, c: color, permissions: { createProjects: true } };
-  data.workspaces = [{ id, name, c: color, plan: 'Free' }];
-  const team = { id: `team-${id.slice(0, 8)}`, name: input?.locale === 'ru' ? 'Команда' : 'Team', c: color, icon: 'users' };
-  data.teams = [team];
-  const creator = data.members[0];
-  Object.assign(creator, { role: 'Owner', status: 'active', team: team.id });
-  team.members = [creator.id];
-  if (input?.includeMembers === true) {
-    for (const member of (sourceScope === 'default' ? bindAccessProfiles(source, configured).members : source.members) || []) {
-      if (!isActiveMember(member) || memberForProfile({ members: [member] }, identity)) continue;
-      const copy = { ...structuredClone(member), id: randomUUID(), role: workspaceMemberRole(member) === 'viewer' ? 'Guest' : 'Member', team: team.id };
-      data.members.push(copy);
-      team.members.push(copy.id);
+  const operation = input?.operationId || randomUUID();
+  if (!/^[\da-f-]{36}$/iu.test(operation)) throw Object.assign(new Error('Invalid creation operation.'), { statusCode: 400, code: 'WORKSPACE_INPUT_INVALID' });
+  const key = createHash('sha256')
+    .update(JSON.stringify([identity.id, sourceScope, operation]))
+    .digest('hex');
+  const signature = createHash('sha256')
+    .update(JSON.stringify([name, description, color, input?.includeMembers === true]))
+    .digest('hex');
+  let entry;
+  await updateDirectory(list => {
+    const existing = list.find(item => item.operation === key);
+    if (existing) {
+      if (existing.signature !== signature)
+        throw Object.assign(new Error('Creation inputs changed. Start a new operation.'), { statusCode: 409, code: 'WORKSPACE_INPUT_CHANGED' });
+      if (existing.state === 'provisioning' && existing.until > Date.now())
+        throw Object.assign(new Error('Workspace creation is still running.'), { statusCode: 409, code: 'WORKSPACE_CREATING' });
+      entry = existing;
+      if (!['provisioning', 'failed'].includes(existing.state)) return list;
+      return list.map(item => (item === existing ? { ...item, state: 'provisioning', until: Date.now() + 120000 } : item));
     }
+    if (list.length >= 50) throw Object.assign(new Error('Workspace limit reached.'), { statusCode: 409, code: 'WORKSPACE_LIMIT' });
+    const id = randomUUID();
+    const slug = workspaceSlug(name).slice(0, 48) || 'workspace';
+    entry = {
+      id,
+      url: `${slug}-${id.slice(0, 8)}`,
+      operation: key,
+      signature,
+      state: 'provisioning',
+      until: Date.now() + 120000,
+      createdAt: new Date().toISOString(),
+    };
+    return [...list, entry];
+  });
+  const { id, url } = entry;
+  if (!['provisioning', 'failed'].includes(entry.state)) {
+    const existing = await readWorkspaceCore(id);
+    workspaceUser(existing, identity);
+    return { id, url, name: existing.ws.name, c: existing.ws.c, role: 'admin', initialized: true };
   }
-  const storage = getStorageProvider(id);
-  if (storage.name === 'google-drive') {
-    const parent = getStorageProvider('default');
-    await parent.init();
-    storage.parentFolderId = parent.rootFolderId;
-  }
-  // A UUID namespace has one creator. Only this provisioning path may bootstrap
-  // its metadata on Vercel; ordinary requests retain the strict missing-file guard.
-  storage.allowBootstrap = true;
   try {
-    await inWorkspace(id, async () => {
-      await initWorkspaceStore();
-      // Drive create responses need not contain an ETag. Read the new root's
-      // validator before the first conditional write instead of weakening CAS.
-      await reloadWorkspaceStore();
-      await replaceWorkspaceDatabase(data, 0, { role: 'admin' });
-      await storage.ensureUploadsFolder?.();
-      await storage.ensureBackupsFolder?.();
-      await storage.savePushSubscriptions?.([]);
-      await storage.saveNotificationDeliveryStatus?.({ version: 1 });
-    });
-  } finally {
-    storage.allowBootstrap = false;
+    const data = bindInitialAdministrator(createEmptyDatabase(), { ...identity, role: 'admin' });
+    data.ws = { id, name, description, url, c: color, permissions: { createProjects: true } };
+    data.workspaces = [{ id, name, c: color, plan: 'Free' }];
+    const team = { id: `team-${id.slice(0, 8)}`, name: input?.locale === 'ru' ? 'Команда' : 'Team', c: color, icon: 'users' };
+    data.teams = [team];
+    const creator = data.members[0];
+    Object.assign(creator, { role: 'Owner', status: 'active', team: team.id });
+    team.members = [creator.id];
+    if (input?.includeMembers === true) {
+      for (const member of (sourceScope === 'default' ? bindAccessProfiles(source, configured).members : source.members) || []) {
+        if (!isActiveMember(member) || memberForProfile({ members: [member] }, identity)) continue;
+        const copy = { ...structuredClone(member), id: randomUUID(), role: workspaceMemberRole(member) === 'viewer' ? 'Guest' : 'Member', team: team.id };
+        data.members.push(copy);
+        team.members.push(copy.id);
+      }
+    }
+    const storage = getStorageProvider(id);
+    if (storage.name === 'google-drive') {
+      const parent = getStorageProvider('default');
+      await parent.init();
+      storage.parentFolderId = parent.rootFolderId;
+    }
+    // A UUID namespace has one creator. Only this provisioning path may bootstrap
+    // its metadata on Vercel; ordinary requests retain the strict missing-file guard.
+    storage.allowBootstrap = true;
+    try {
+      await inWorkspace(id, async () => {
+        await initWorkspaceStore();
+        // Drive create responses need not contain an ETag. Read the new root's
+        // validator before the first conditional write instead of weakening CAS.
+        await reloadWorkspaceStore();
+        const previous = await getWorkspaceDatabase({ fields: ['ws', 'revision'] });
+        if (!previous.ws?.name) await replaceWorkspaceDatabase(data, previous.revision, { role: 'admin' });
+        await storage.ensureUploadsFolder?.();
+        await storage.ensureBackupsFolder?.();
+        await storage.savePushSubscriptions?.([]);
+        await storage.saveNotificationDeliveryStatus?.({ version: 1 });
+      });
+    } finally {
+      storage.allowBootstrap = false;
+    }
+    await updateDirectory(list => list.map(item => (item.id === id ? { ...item, state: 'active', until: 0 } : item)));
+    return { id, url, name, c: color, role: 'admin', initialized: true };
+  } catch (error) {
+    await updateDirectory(list => list.map(item => (item.id === id ? { ...item, state: 'failed', until: 0 } : item))).catch(() => {});
+    throw error;
   }
-  // Publish only after complete provisioning. CAS retries serialize creators.
-  await inWorkspace('default', async () => {
+}
+
+async function updateDirectory(update) {
+  return inWorkspace('default', async () => {
     for (let attempt = 0; ; attempt++) {
       const root = await getWorkspaceDatabase({ fields: ['revision', '_workspaceDirectory'] });
       try {
-        await mutateWorkspaceMetadata(
+        return await mutateWorkspaceMetadata(
           current => {
-            const list = current._workspaceDirectory || [];
-            if (list.length >= 50) throw Object.assign(new Error('The workspace limit has been reached.'), { statusCode: 409 });
-            current._workspaceDirectory = [...list, { id, url, createdAt: new Date().toISOString() }];
+            current._workspaceDirectory = update(current._workspaceDirectory || []);
             return current;
           },
           root.revision,
           { scope: 'directory', workspaceDirectory: true },
         );
-        break;
       } catch (error) {
-        if (error.code !== 'REVISION_CONFLICT' || attempt >= 2) throw error;
+        if (error.code !== 'REVISION_CONFLICT' || attempt >= 3) throw error;
       }
     }
   });
-  return { id, url, name, c: color, role: 'admin', initialized: true };
 }
 
 export async function requireWorkspace(request, response, next) {

@@ -174,3 +174,13 @@ test('first workspace publication reads a fresh validator after a metadata creat
     LocalStorageProvider.prototype.saveDatabase = save;
   }
 });
+
+test('creation retry recovers the same published workspace and rejects changed inputs', async () => {
+  const operationId = '9dc628ae-9d07-42b8-9d93-e19d6a3b581a';
+  const input = { name: 'Idempotent workspace', operationId };
+  const first = await createWorkspace(owner, input, [owner]);
+  const retry = await createWorkspace(owner, input, [owner]);
+  assert.equal(retry.id, first.id);
+  assert.equal((await listUserWorkspaces(owner)).filter(item => item.id === first.id).length, 1);
+  await assert.rejects(createWorkspace(owner, { ...input, name: 'Changed' }), error => error.code === 'WORKSPACE_INPUT_CHANGED');
+});

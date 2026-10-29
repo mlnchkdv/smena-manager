@@ -12,6 +12,24 @@ import { mutate, toast } from './toast.js';
 import { colorPalette, WORKSPACE_COLORS } from './color-palette.js';
 
 const copy = (en, ru) => (isRussian() ? ru : en);
+const creationKey = () => `smena.workspace.create:${S.ui.currentUser?.id}:${getActiveWorkspace()}`;
+function rememberCreation(m) {
+  try {
+    sessionStorage.setItem(
+      creationKey(),
+      JSON.stringify({
+        operationId: m.operationId,
+        name: m.name,
+        description: m.description,
+        color: m.color,
+        includeMembers: m.includeMembers,
+        savedAt: Date.now(),
+      }),
+    );
+  } catch {
+    /* In-memory draft still works. */
+  }
+}
 function canLeave() {
   flushLocalSave();
   const uploading = (S.ui.uploads || []).some(item => !['done', 'cancelled', 'error'].includes(item.status));
@@ -51,7 +69,22 @@ export function switchWorkspace(el) {
 export function openWorkspaceCreation() {
   if (S.ui.currentUser?.role !== 'admin' || !canLeave()) return;
   S.ui.mnav = false;
-  openModal({ type: 'workspaceCreate', name: '', description: '', color: D().ws.c || '#5A67D8', includeMembers: false, error: '' });
+  let draft;
+  try {
+    draft = JSON.parse(sessionStorage.getItem(creationKey()) || 'null');
+  } catch {
+    /* Optional cache. */
+  }
+  openModal({
+    type: 'workspaceCreate',
+    operationId: crypto.randomUUID(),
+    name: '',
+    description: '',
+    color: D().ws.c || '#5A67D8',
+    includeMembers: false,
+    error: '',
+    ...(draft?.savedAt > Date.now() - 86400000 ? draft : {}),
+  });
 }
 
 workspaceModalRenderers.create = (
@@ -69,12 +102,16 @@ workspaceModalRenderers.create = (
 
 IN.workspaceDraft = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'workspaceCreate' && !m.busy) m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
+  if (m?.type === 'workspaceCreate' && !m.busy) {
+    m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
+    rememberCreation(m);
+  }
 };
 A.workspaceDraftColor = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'workspaceCreate' || m.busy) return;
   m.color = el.dataset.v;
+  rememberCreation(m);
   render();
 };
 A.submitWorkspace = async () => {
@@ -86,20 +123,48 @@ A.submitWorkspace = async () => {
     m.error = copy('Enter a workspace name.', 'Укажите название пространства.');
     return render();
   }
+  rememberCreation(m);
   m.busy = true;
   S.ui.atomicOperation = true;
   render();
   try {
     const { workspace } = await workspaceDirectoryRequest({
       method: 'POST',
-      body: JSON.stringify({ name: m.name, description: m.description, color: m.color, includeMembers: m.includeMembers, locale: isRussian() ? 'ru' : 'en' }),
+      body: JSON.stringify({
+        operationId: m.operationId,
+        name: m.name,
+        description: m.description,
+        color: m.color,
+        includeMembers: m.includeMembers,
+        locale: isRussian() ? 'ru' : 'en',
+      }),
     });
+    try {
+      sessionStorage.removeItem(creationKey());
+    } catch {
+      /* Optional cache. */
+    }
     location.assign(`/${encodeURIComponent(workspace.url)}/settings/workspace`);
   } catch (error) {
     m.error = copy(
       'Could not create the workspace. Check your connection and try again.',
       'Не удалось создать пространство. Проверьте подключение и повторите попытку.',
     );
+    if (error.code === 'WORKSPACE_CREATING')
+      m.error = copy(
+        'Creation is still running. Wait a moment, then check again with the same form.',
+        'Создание ещё выполняется. Подождите и проверьте результат повторно в этой форме.',
+      );
+    if (error.code === 'WORKSPACE_INPUT_CHANGED') {
+      m.operationId = crypto.randomUUID();
+      m.error = copy(
+        'The previous operation used other settings. Check the workspace list before creating another.',
+        'Предыдущая операция использовала другие настройки. Проверьте список пространств перед новым созданием.',
+      );
+    }
+    if (error.code === 'WORKSPACE_INPUT_INVALID')
+      m.error = copy('Check the workspace name, description and color.', 'Проверьте название, описание и цвет пространства.');
+    if (error.status === 403) m.error = copy('Only an administrator can create workspaces.', 'Создавать пространства может только администратор.');
     if (error.code === 'WORKSPACE_LIMIT') m.error = copy('The workspace limit has been reached (50).', 'Достигнут лимит рабочих пространств (50).');
     m.busy = false;
     render();
