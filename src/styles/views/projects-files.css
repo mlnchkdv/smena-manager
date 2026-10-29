@@ -184,6 +184,27 @@
 .kv > dt .i {
   color: var(--text-4);
 }
+.drawer-b {
+  container-type: inline-size;
+}
+.task-properties > dt {
+  height: auto;
+  min-height: 30px;
+  overflow-wrap: anywhere;
+}
+.task-properties > dd > .pillbtn {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  min-height: 30px;
+  overflow-wrap: anywhere;
+}
+@container (min-width: 720px) {
+  .task-properties {
+    grid-template-columns: 112px minmax(0, 1fr) 112px minmax(0, 1fr);
+    column-gap: 12px;
+  }
+}
 
 /* files */
 .files-toolbar {
