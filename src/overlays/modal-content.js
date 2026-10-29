@@ -5,6 +5,7 @@ import { PR, ST } from '../core/constants.js';
 import { D, S, mem, pColor, proj, task, teamsList } from '../core/store.js';
 import { FT, av, lbl, pIcon, prPill, stPill } from '../ui/helpers.js';
 import { projectAppearance } from '../ui/project-appearance.js';
+import { memberProfileModal } from '../ui/member-profile.js';
 import { ensureFilePreview } from '../core/file-preview.js';
 import { render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
@@ -77,6 +78,8 @@ export function modalHtml(m) {
       return wrap('', shareModal(m, H));
     case 'invite':
       return wrap('', inviteModal(m, H));
+    case 'memberProfile':
+      return wrap('sm', memberProfileModal(m, H));
     case 'confirm':
       return wrap('sm', confirmModal(m, H));
     case 'prompt':

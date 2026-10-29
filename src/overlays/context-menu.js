@@ -62,6 +62,7 @@ export function ctxMenu(p) {
     const canRm = S.ui.currentUser?.role === 'admin' && m.role !== 'Owner' && m.id !== D().me;
     return (
       I('viewProfile', 'user', 'View profile') +
+      (S.ui.currentUser?.role === 'admin' ? I('editMemberProfile', 'pencil', 'Edit member profile') : '') +
       I('assignToMember', 'plus', 'Assign a task') +
       I('copyEmail', 'mail', 'Copy email') +
       (canRm

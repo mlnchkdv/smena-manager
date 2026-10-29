@@ -2737,6 +2737,9 @@ A.requestAccess = el => {
 };
 
 /* sharing & invites */
+A.editMemberProfile = el => {
+  if (S.ui.currentUser?.role === 'admin') void import('../ui/member-profile.js').then(module => module.editMemberProfile(el));
+};
 A.share = el => {
   const id = el.dataset.id || curProjectId();
   S.ui.shareQ = '';

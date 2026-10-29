@@ -17,6 +17,9 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Edit member profile': 'Изменить профиль участника',
+  'Member profile updated': 'Профиль участника обновлён',
+  'Full name is required.': 'Укажите полное имя.',
   'Project appearance': 'Оформление проекта',
   'Search icons': 'Поиск значков',
   'No matching icons.': 'Подходящих значков нет.',
