@@ -196,3 +196,33 @@ test('workspace archive is reversible, scoped and hides contents without clearin
   await setWorkspaceArchived(owner, created.id, false);
   assert.equal((await listUserWorkspaces(owner)).find(item => item.id === created.id).archived, false);
 });
+
+test('failed provisioning resumes the reserved namespace without resetting its written content', async () => {
+  const operationId = 'f6a1513c-7f6a-42c3-ae9b-e4434358b6b4';
+  const input = { name: 'Recover partial creation', operationId };
+  const original = LocalStorageProvider.prototype.ensureUploadsFolder;
+  LocalStorageProvider.prototype.ensureUploadsFolder = async () => {
+    throw new Error('Simulated interruption after metadata write');
+  };
+  try {
+    await assert.rejects(createWorkspace(owner, input), /Simulated interruption/);
+  } finally {
+    if (original) LocalStorageProvider.prototype.ensureUploadsFolder = original;
+    else delete LocalStorageProvider.prototype.ensureUploadsFolder;
+  }
+  const reserved = (await getWorkspaceDatabase({ fields: ['_workspaceDirectory'] }))._workspaceDirectory.find(item => item.state === 'failed');
+  assert.ok(reserved);
+  assert.ok(!(await listUserWorkspaces(owner)).some(item => item.id === reserved.id));
+  await inWorkspace(reserved.id, async () => {
+    const data = await getWorkspaceDatabase();
+    await mutateWorkspaceDatabase(
+      current => ({ ...current, knowledgeNotes: [{ id: 'retained-note', title: 'Keep me', content: 'Already written content' }] }),
+      data.revision,
+    );
+  });
+  const recovered = await createWorkspace(owner, input);
+  assert.equal(recovered.id, reserved.id);
+  const data = await inWorkspace(reserved.id, () => getWorkspaceDatabase());
+  assert.equal(data.knowledgeNotes[0].id, 'retained-note');
+  assert.equal((await getWorkspaceDatabase({ fields: ['_workspaceDirectory'] }))._workspaceDirectory.find(item => item.id === reserved.id).state, 'active');
+});

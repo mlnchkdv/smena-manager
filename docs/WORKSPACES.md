@@ -26,7 +26,7 @@
 
 Ежедневный cron запускает прежний pipeline для каждого пространства. На Vercel дочерние обработки получают собственные invocation/time budgets через защищённый cron endpoint. Origin берётся из системных `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL`; redirects запрещены, credential не отправляется на host из пользовательского запроса. Ошибка одного пространства отражается как частичный сбой. HTTP 200 без корректного результата не считается успехом.
 
-Ограничения: это Drive/JSON-приложение для команд с общими физическими credentials и прежними лимитами документов/каталога, а не неограниченная SaaS-платформа. Изоляцию пользователей обеспечивает серверное членство, не отдельные Google-аккаунты. При неясном сетевом результате создания сначала обновите страницу и проверьте меню перед повтором: постоянного idempotency key пока нет. Ошибка подготовки может оставить неопубликованную папку; автоматически она не удаляется.
+Ограничения: это Drive/JSON-приложение для команд с общими физическими credentials и прежними лимитами документов/каталога, а не неограниченная SaaS-платформа. Изоляцию пользователей обеспечивает серверное членство, не отдельные Google-аккаунты. Создание использует постоянный ключ операции и резервирует запись каталога до подготовки. При неясном результате повтор из той же формы возвращает прежнее пространство; черновик и ключ сохраняются во вкладке на сутки. Незавершённая подготовка отслеживается как provisioning/failed и возобновляется в том же namespace, без повторной очистки записанных данных. Физические папки автоматически не удаляются.
 
 ## Usage
 
@@ -42,7 +42,7 @@ The server-private `_workspaceDirectory` publishes only provisioned spaces, surv
 
 Creation requires a workspace administrator and is limited to 50 child spaces. Only provisioning can bootstrap new UUID metadata on Vercel; the original missing-metadata guard stays strict. A fresh ETag is obtained before the first conditional write. Daily automation uses separate authenticated child invocations to a trusted Vercel host, refuses redirects and distinguishes execution success from HTTP success.
 
-This remains a team Drive/JSON application, with shared underlying credentials and existing capacity budgets. It is not an unlimited multi-tenant SaaS platform. Durable creation idempotency keys and automatic cleanup of unpublished failed provisioning are not implemented. Reload and inspect the directory before retrying an ambiguous creation result.
+This remains a team Drive/JSON application, with shared underlying credentials and existing capacity budgets. It is not an unlimited multi-tenant SaaS platform. Creation uses durable operation keys with a reserved directory entry. An ambiguous retry from the same form recovers the same namespace. The tab retains its operation and draft for one day; provisioning/failed entries stay hidden from ordinary selection and resume without resetting existing content. Physical cleanup of abandoned namespaces is not automatic.
 
 ## Проверки / Verification
 
