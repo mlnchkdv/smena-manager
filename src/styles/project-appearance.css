@@ -60,6 +60,12 @@
   gap: 8px;
   margin-top: 4px;
 }
+.project-color-palette {
+  max-height: 152px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px;
+}
 .project-custom-color .input {
   min-width: 0;
 }
@@ -82,6 +88,9 @@
   }
 }
 @media (max-width: 640px), (pointer: coarse) {
+  .project-color-palette {
+    max-height: 192px;
+  }
   .project-icon-grid {
     grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
     max-height: 192px;
