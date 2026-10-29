@@ -22,8 +22,8 @@ function canLeave() {
     uploading ||
     S.ui.fileExportRunning ||
     S.ui.knowledgeDirty ||
-    S.ui.form ||
-    S.ui.fileDownload ||
+    S.ui.modals.some(modal => ['task', 'project'].includes(modal.type)) ||
+    (S.ui.fileDownload && !['ready', 'expired', 'failed'].includes(S.ui.fileDownload.phase)) ||
     ['preparing', 'ready'].includes(S.ui.fileNativeTransfer?.phase)
   ) {
     toast(
