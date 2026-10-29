@@ -3451,11 +3451,6 @@ IN.prefSel = el => {
   render();
   toast('Preference updated', { ms: 1500 });
 };
-A.wsColor = el => {
-  D().ws.c = el.dataset.v;
-  save();
-  render();
-};
 A.saveWorkspace = async () => (await import('../ui/workspaces.js')).saveWorkspaceSettings();
 A.delWorkspace = async () => (await import('../ui/workspaces.js')).deleteWorkspace();
 A.avColor = el => {

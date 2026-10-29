@@ -22,6 +22,7 @@ function canLeave() {
     uploading ||
     S.ui.fileExportRunning ||
     S.ui.knowledgeDirty ||
+    S.ui.workspaceSettingsDirty ||
     S.ui.modals.some(modal => ['task', 'project'].includes(modal.type)) ||
     (S.ui.fileDownload && !['ready', 'expired', 'failed'].includes(S.ui.fileDownload.phase)) ||
     ['preparing', 'ready'].includes(S.ui.fileNativeTransfer?.phase)
@@ -118,11 +119,18 @@ export function saveWorkspaceSettings() {
     return toast(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'), { kind: 'err' });
   if (
     mutate(() => {
-      Object.assign(D().ws, { name, description, url: getActiveWorkspace() === 'default' ? url || D().ws.url : D().ws.url });
+      Object.assign(D().ws, {
+        name,
+        description,
+        c: S.ui.workspaceSettingsDraft?.c || D().ws.c,
+        url: getActiveWorkspace() === 'default' ? url || D().ws.url : D().ws.url,
+      });
       const item = D().workspaces?.find(item => item.id === D().ws.id);
       if (item) Object.assign(item, { name, c: D().ws.c });
     })
   ) {
+    S.ui.workspaceSettingsDraft = null;
+    S.ui.workspaceSettingsDirty = false;
     if (previousUrl !== D().ws.url) go('settings', { sec: 'workspace' });
     toast('Workspace settings saved');
   }
@@ -150,3 +158,25 @@ export function deleteWorkspace() {
     },
   });
 }
+
+IN.workspaceSettings = el => {
+  const draft = (S.ui.workspaceSettingsDraft ||= { ...D().ws });
+  draft[el.dataset.k] = el.value;
+  S.ui.workspaceSettingsDirty = ['name', 'description', 'url', 'c'].some(k => (draft[k] || '') !== (D().ws[k] || ''));
+};
+A.wsColor = el => {
+  IN.workspaceSettings({ dataset: { k: 'c' }, value: el.dataset.v });
+  render();
+};
+A.cancelWorkspaceSettings = () => {
+  S.ui.workspaceSettingsDraft = null;
+  S.ui.workspaceSettingsDirty = false;
+  render();
+};
+
+window.addEventListener('beforeunload', event => {
+  if (S.ui.workspaceSettingsDirty) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});

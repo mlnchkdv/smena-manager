@@ -75,6 +75,11 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
+  if (S.ui.workspaceSettingsDirty && (route !== 'settings' || params.sec !== 'workspace')) {
+    if (!window.confirm(isRussian() ? 'Отменить несохранённые настройки пространства?' : 'Discard unsaved workspace settings?')) return;
+    S.ui.workspaceSettingsDraft = null;
+    S.ui.workspaceSettingsDirty = false;
+  }
   closeActionMenus();
   if (route !== 'graph') S.ui.graphFocus = false;
   S.ui.restoringFilePath = null;

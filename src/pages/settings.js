@@ -1,6 +1,7 @@
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
    ===================================================================== */
+import '../ui/workspaces.js';
 import { dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
@@ -201,18 +202,22 @@ export function settingsBody(sec, title) {
   const np = myNotificationPreferences();
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p>`;
   switch (sec) {
-    case 'workspace':
+    case 'workspace': {
+      if (!S.ui.workspaceSettingsDirty) S.ui.workspaceSettingsDraft = { ...d.ws };
+      const draft = S.ui.workspaceSettingsDraft;
+      const w = { ...d.ws, ...draft };
       return (
         H('Your workspace name, address, and identity.') +
         `
       <form data-submit="saveWorkspace">
-      <div class="sblock" style="margin-top:0"><div class="row" style="gap:14px;margin-bottom:18px">${wsLogo(d.ws, 52)}<div><div class="label" style="margin-bottom:6px">Workspace icon</div>${colorPalette({ label: 'Workspace icon', value: d.ws.c, colors: WORKSPACE_COLORS, action: 'wsColor' })}</div></div>
-      <div class="col" style="gap:14px;max-width:440px"><div class="field"><label class="label" for="ws-name">Workspace name</label><input class="input" id="ws-name" maxlength="100" required value="${esc(d.ws.name)}"></div>
-      <div class="field"><label class="label" for="ws-description">Description</label><textarea class="input" id="ws-description" maxlength="500" rows="3">${esc(d.ws.description || '')}</textarea></div>
-      <div class="field"><label class="label" for="ws-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input workspace-url-prefix">${productHost()}/</span><input class="input" id="ws-url" value="${esc(d.ws.url)}" ${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'readonly' : ''}></div><span class="hint">${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'The permanent address keeps shared links working when the workspace is renamed.' : 'Changing the URL will break existing links.'}</span></div>
-      <div><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save">Save changes</button></div></div></div></form>
+      <div class="sblock" style="margin-top:0"><div class="row" style="gap:14px;margin-bottom:18px">${wsLogo(w, 52)}<div><div class="label" style="margin-bottom:6px">Workspace icon</div>${colorPalette({ label: 'Workspace icon', value: w.c, colors: WORKSPACE_COLORS, action: 'wsColor' })}</div></div>
+      <div class="col" style="gap:14px;max-width:440px"><div class="field"><label class="label" for="ws-name">Workspace name</label><input class="input" id="ws-name" data-in="workspaceSettings" data-k="name" maxlength="100" required value="${esc(w.name)}"></div>
+      <div class="field"><label class="label" for="ws-description">Description</label><textarea class="input" id="ws-description" data-in="workspaceSettings" data-k="description" maxlength="500" rows="3">${esc(w.description || '')}</textarea></div>
+      <div class="field"><label class="label" for="ws-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input workspace-url-prefix">${productHost()}/</span><input class="input" id="ws-url" data-in="workspaceSettings" data-k="url" value="${esc(w.url)}" ${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'readonly' : ''}></div><span class="hint">${S.ui.activeWorkspace && S.ui.activeWorkspace !== 'default' ? 'The permanent address keeps shared links working when the workspace is renamed.' : 'Changing the URL will break existing links.'}</span></div>
+      <div><button class="btn btn-primary" data-a="saveWorkspace" id="ws-save">Save changes</button> <button type="button" class="btn btn-secondary" data-a="cancelWorkspaceSettings">Cancel</button></div></div></div></form>
       <div class="sblock"><h2 style="color:var(--red)">Danger zone</h2>${srow('Delete workspace', 'Permanently delete this workspace, its projects, tasks, and files. This cannot be undone.', `<button class="btn btn-danger-ghost" style="border:1px solid color-mix(in srgb,var(--red) 35%,transparent)" data-a="delWorkspace">Delete workspace</button>`)}</div>`
       );
+    }
     case 'appearance':
       return (
         H(`Customize how ${PRODUCT_NAME} looks on this device.`) +
