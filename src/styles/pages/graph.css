@@ -1,6 +1,38 @@
 .graph-page {
-  padding: 24px clamp(16px, 3vw, 40px) 90px;
+  padding: 24px clamp(16px, 3vw, 40px) 12px;
   min-width: 0;
+}
+
+/* Allocate the remaining workspace height after the actual, wrapping toolbar.
+   A small minimum keeps short windows scrollable instead of crushing the graph. */
+.graph-page:not(.is-focused) {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - var(--bottom-nav-height, 0px));
+}
+.graph-page:not(.is-focused) > :not(.graph-layout):not(.graph-pending) {
+  flex-shrink: 0;
+}
+.graph-page:not(.is-focused) .graph-layout {
+  flex: 1 0 300px;
+  min-height: 300px;
+  align-items: stretch;
+}
+.graph-page:not(.is-focused) .graph-stage:not(:has(.graph-list)) {
+  display: grid;
+  grid-template-rows: auto minmax(220px, 1fr) auto;
+  min-height: 300px;
+}
+.graph-page:not(.is-focused) #knowledge-graph-canvas {
+  height: 100%;
+  min-height: 0;
+}
+.graph-page:not(.is-focused) .graph-stage:has(.graph-list) {
+  min-height: 0;
+}
+.graph-page:not(.is-focused) .graph-list {
+  height: 100%;
+  max-height: none;
 }
 .graph-search {
   position: relative;
