@@ -322,7 +322,7 @@ export async function refreshWorkspaces(force = true) {
   } finally {
     S.ui.workspaceDirectoryLoading = false;
     S.ui.workspaceDirectoryCheckedAt = Date.now();
-    if (S.ui.pop?.type === 'ws' || S.ui.route === 'settings') render();
+    if (S.ui.pop?.type === 'ws' || S.ui.palette?.mode === 'ws' || S.ui.route === 'settings') render();
   }
 }
 A.refreshWorkspaces = () => refreshWorkspaces();

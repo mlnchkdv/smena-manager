@@ -47,6 +47,7 @@ export function commands() {
       run: () => {
         S.ui.palette = { q: '', mode: 'ws', hl: 0 };
         render();
+        void import('../ui/workspaces.js').then(module => module.refreshWorkspaces());
       },
     },
     {
@@ -71,11 +72,11 @@ export function paletteItems() {
     groups.push({
       name: 'Switch workspace',
       items: (S.ui.availableWorkspaces || [])
-        .filter(w => !q || w.name.toLowerCase().includes(ql))
+        .filter(w => !w.archived && (!q || `${w.name} ${w.url}`.toLowerCase().includes(ql)))
         .map(w => ({
           html: `${wsLogo({ ...w, name: w.name || '?' }, 20)}`,
           name: w.id === S.ui.activeWorkspace ? D().ws.name : w.name,
-          sub: '',
+          sub: `${w.url} · ${tr(w.role === 'admin' ? 'Administrator' : w.role === 'viewer' ? 'Guest' : 'Member')}`,
           run: () => A.switchWs({ dataset: { v: w.id } }),
         })),
     });
