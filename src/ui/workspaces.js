@@ -257,6 +257,8 @@ export function saveWorkspaceSettings() {
   if ((next.description || '').length > 500) return reject(copy('Enter a description up to 500 characters.', 'Укажите описание длиной до 500 символов.'));
   if (getActiveWorkspace() === 'default' && S.ui.availableWorkspaces?.some(item => item.id !== 'default' && item.url === next.url))
     return reject(copy('This workspace address is already in use.', 'Этот адрес пространства уже занят.'));
+  const submittedFields = ['name', 'description', 'url', 'c'].filter(key => (next[key] || '') !== (D().ws[key] || ''));
+  if (!submittedFields.length) return A.cancelWorkspaceSettings();
   if (
     mutate(() => {
       Object.assign(D().ws, {
@@ -274,6 +276,7 @@ export function saveWorkspaceSettings() {
     S.ui.workspaceSettingsError = '';
     S.ui.workspaceSettingsConflicts = null;
     S.ui.workspaceSettingsSubmitted = { ...D().ws };
+    S.ui.workspaceSettingsSubmittedFields = submittedFields;
     S.ui.workspaceSettingsSaveState = 'syncing';
     if (previousUrl !== D().ws.url) go('settings', { sec: 'workspace' });
     render();
@@ -366,7 +369,7 @@ window.addEventListener('smena:sync-status', ({ detail }) => {
   if (S.ui.workspaceSettingsSaveState === 'saved') return;
   if (detail.status === 'saved') {
     const expected = S.ui.workspaceSettingsSubmitted;
-    if (!['name', 'description', 'url', 'c'].every(key => (detail.sentData?.ws?.[key] || '') === (expected[key] || ''))) return;
+    if (!S.ui.workspaceSettingsSubmittedFields.every(key => (detail.sentData?.ws?.[key] || '') === (expected[key] || ''))) return;
     S.ui.workspaceSettingsSaveState = 'saved';
   } else if (detail.status === 'syncing') S.ui.workspaceSettingsSaveState = 'syncing';
   else if (detail.status === 'offline') S.ui.workspaceSettingsSaveState = 'offline';

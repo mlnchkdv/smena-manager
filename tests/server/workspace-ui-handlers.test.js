@@ -113,7 +113,7 @@ test('form feedback waits for its own server confirmation and retains retry stat
   assert.equal(f.context.feedback().state, 'syncing');
   emit({ status: 'offline', scope: 'workspace' });
   assert.equal(f.context.feedback().state, 'offline');
-  emit({ status: 'saved', scope: 'workspace', sentData: { ws: { ...f.data.ws } } });
+  emit({ status: 'saved', scope: 'workspace', sentData: { ws: { ...f.data.ws, description: 'Independent queued update' } } });
   assert.equal(f.context.feedback().state, 'saved');
   f.context.saveSettings();
   assert.equal(f.writes(), 1, 'unchanged submit does not write again');
