@@ -119,6 +119,23 @@ test('form feedback waits for its own server confirmation and retains retry stat
   assert.equal(f.writes(), 1, 'unchanged submit does not write again');
 });
 
+test('reviewing a conflicting draft preserves independent fields and detects another later edit', () => {
+  const f = fixture();
+  f.data.ws.name = 'Remote name';
+  f.data.ws.description = 'Independent remote description';
+  f.context.saveSettings();
+  assert.equal(f.writes(), 0);
+  f.context.A.keepWorkspaceSettingsDraft();
+  f.data.ws.name = 'An even newer name';
+  f.context.saveSettings();
+  assert.equal(f.writes(), 0);
+  f.context.A.keepWorkspaceSettingsDraft();
+  f.context.saveSettings();
+  assert.equal(f.writes(), 1);
+  assert.equal(f.data.ws.name, 'My team');
+  assert.equal(f.data.ws.description, 'Independent remote description');
+});
+
 test('cancel discards an unsubmitted creation draft while closing preserves an explicit recovery', () => {
   const f = fixture();
   f.S.ui.workspaceSettingsDirty = false;

@@ -241,13 +241,17 @@ export function saveWorkspaceSettings() {
     { ...S.ui.workspaceSettingsDraft, name, description, url: url || D().ws.url },
     D().ws,
   );
-  if (merged.conflicts.length)
+  if (merged.conflicts.length) {
+    S.ui.workspaceSettingsConflicts = merged.conflicts;
+    S.ui.workspaceSettingsConflictLatest = { ...D().ws };
+    render();
     return reject(
       copy(
         'These settings changed in another session. Cancel to load the latest values before saving again.',
         'Эти настройки изменены в другой сессии. Нажмите «Отмена», чтобы загрузить актуальные значения перед сохранением.',
       ),
     );
+  }
   const next = { ...merged.value, url: getActiveWorkspace() === 'default' ? workspaceSlug(merged.value.url) || D().ws.url : D().ws.url };
   if (!next.name || next.name.length > 100) return reject(copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.'));
   if ((next.description || '').length > 500) return reject(copy('Enter a description up to 500 characters.', 'Укажите описание длиной до 500 символов.'));
@@ -268,6 +272,7 @@ export function saveWorkspaceSettings() {
     S.ui.workspaceSettingsDraft = null;
     S.ui.workspaceSettingsDirty = false;
     S.ui.workspaceSettingsError = '';
+    S.ui.workspaceSettingsConflicts = null;
     S.ui.workspaceSettingsSubmitted = { ...D().ws };
     S.ui.workspaceSettingsSaveState = 'syncing';
     if (previousUrl !== D().ws.url) go('settings', { sec: 'workspace' });
@@ -317,6 +322,16 @@ A.cancelWorkspaceSettings = () => {
   S.ui.workspaceSettingsDraft = null;
   S.ui.workspaceSettingsDirty = false;
   S.ui.workspaceSettingsError = '';
+  S.ui.workspaceSettingsConflicts = null;
+  render();
+};
+A.keepWorkspaceSettingsDraft = () => {
+  if (!S.ui.workspaceSettingsConflictLatest || !S.ui.workspaceSettingsConflicts?.length) return;
+  // Rebase only against the values the user reviewed, so a later remote edit
+  // still conflicts instead of becoming an unnoticed overwrite.
+  for (const key of S.ui.workspaceSettingsConflicts) S.ui.workspaceSettingsBase[key] = S.ui.workspaceSettingsConflictLatest[key];
+  S.ui.workspaceSettingsError = '';
+  S.ui.workspaceSettingsConflicts = null;
   render();
 };
 
@@ -348,6 +363,7 @@ function updateWorkspaceSettingsFeedback() {
 }
 window.addEventListener('smena:sync-status', ({ detail }) => {
   if (!S.ui.workspaceSettingsSubmitted || (detail.scope && detail.scope !== 'workspace')) return;
+  if (S.ui.workspaceSettingsSaveState === 'saved') return;
   if (detail.status === 'saved') {
     const expected = S.ui.workspaceSettingsSubmitted;
     if (!['name', 'description', 'url', 'c'].every(key => (detail.sentData?.ws?.[key] || '') === (expected[key] || ''))) return;
