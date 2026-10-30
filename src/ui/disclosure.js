@@ -43,6 +43,17 @@ export function closeActionMenus(except = null) {
 addEventListener('resize', positionActionMenus);
 window.visualViewport?.addEventListener('resize', positionActionMenus);
 window.visualViewport?.addEventListener('scroll', positionActionMenus);
+document.addEventListener(
+  'scroll',
+  event => {
+    const scroller = event.target;
+    document.querySelectorAll('.ui-menu[open]').forEach(menu => {
+      // A menu may scroll internally. Only its moving ancestors invalidate the anchor.
+      if (scroller?.contains(menu) && !menu.contains(scroller)) setMenuOpen(menu, false);
+    });
+  },
+  { capture: true, passive: true },
+);
 export function disclosureOpen(key) {
   const next = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
   if (scope !== next) {
