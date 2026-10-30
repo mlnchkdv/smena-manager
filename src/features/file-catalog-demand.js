@@ -5,7 +5,6 @@ import { applyExternalCoreSnapshot } from '../core/bootstrap.js';
 import { workspaceSyncIsClean, queueWorkspaceSync } from '../core/workspace-sync.js';
 import { render } from '../shell/render.js';
 import { A } from '../actions/actions.js';
-import { esc } from '../core/utils.js';
 import { catalogLoadError } from '../shared/catalog-errors.js';
 import { backgroundRender } from './background-render.js';
 import { readCatalogWithRevisionRefresh } from '../shared/catalog-revision-retry.js';
@@ -76,9 +75,6 @@ export function demandFilePage(options) {
     });
   }
   return { loading: true, error: failed === key ? error : '' };
-}
-export function filePagePending(page) {
-  return `<div class="panel file-page-pending" role="status" aria-busy="${!page.error}"><p>${esc(page.error || 'Loading files…')}</p>${page.error ? '<button class="btn btn-secondary" data-a="retryFileCatalog">Try again</button>' : ''}</div>`;
 }
 A.retryFileCatalog = () => {
   failed = error = '';

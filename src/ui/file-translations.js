@@ -6,6 +6,7 @@ registerRussianLabels({
   Aggregate: 'Общий JSON',
   'Catalog parts': 'Частей каталога',
   'Loading files…': 'Загрузка файлов…',
+  'Updating file counts…': 'Обновление счётчиков файлов…',
   'Save changes before loading another file page.': 'Сохраните изменения перед загрузкой другой страницы файлов.',
   'The workspace changed. Retry loading files.': 'Данные пространства изменились. Повторите загрузку файлов.',
   'Unable to load files.': 'Не удалось загрузить файлы.',

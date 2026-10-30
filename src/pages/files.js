@@ -19,7 +19,8 @@ import { fileTransferPanel } from '../ui/file-transfer.js';
 import { fileExportsPanel } from '../ui/file-exports.js';
 import '../features/files.js';
 import '../features/file-selection.js';
-import { demandFilePage, filePagePending } from '../features/file-catalog-demand.js';
+import { demandFilePage } from '../features/file-catalog-demand.js';
+import { filePagePending } from '../ui/file-page-state.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
@@ -244,7 +245,7 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index)}
+    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!remote?.loading && !remote.error)}
     <section class="files-operations" aria-label="File operations">${uploadsHtml()}
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
@@ -252,7 +253,7 @@ export function pageFiles(projectId = null) {
     ${fileSelectionBar(window.items, files, remote)}
     ${
       remote?.loading
-        ? filePagePending(remote)
+        ? filePagePending(remote, view)
         : files.length
           ? view === 'grid'
             ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`
