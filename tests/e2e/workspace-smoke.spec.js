@@ -354,7 +354,7 @@ test('shared content, files, settings, and backups persist through core workflow
 
   const fileName = `e2e-team-${browserName}-note.txt`;
   await page.goto('/e2e-team/projects');
-  await page.locator('[data-a="go"][data-r="project"][aria-label="Проверка интерфейса"]').click();
+  await page.locator('.project-card-link[aria-label="Проверка интерфейса"]').click();
   await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
   const projectFilePicker = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"]').click();
