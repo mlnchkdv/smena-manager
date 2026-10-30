@@ -3,6 +3,23 @@
   flex-wrap: wrap;
   align-items: center;
 }
+.files-upload-target {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 6px;
+}
+.files-upload-target > span {
+  white-space: nowrap;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.files-page .files-upload-actions .files-upload-target > .select {
+  flex: 1 1 90px;
+  min-width: 0;
+  width: clamp(70px, 15vw, 180px);
+}
 @media (min-width: 641px) and (max-width: 900px) {
   .files-page-head {
     align-items: center;

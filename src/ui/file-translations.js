@@ -1,5 +1,6 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'Upload to:': 'Загрузить в:',
   'Catalog storage': 'Хранение каталога',
   'Project shards': 'Части по проектам',
   Aggregate: 'Общий JSON',
