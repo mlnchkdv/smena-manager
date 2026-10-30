@@ -279,13 +279,15 @@ let knowledgeTableModule;
 let layoutMain;
 let layoutFrame;
 let bottomNav;
-const bottomNavObserver = new ResizeObserver(() => {
-  document.documentElement.style.setProperty('--bottom-nav-height', `${bottomNav?.getBoundingClientRect().height || 0}px`);
-});
+function updateBottomNavHeight() {
+  document.documentElement.style.setProperty('--bottom-nav-height', `${document.querySelector('.bottomnav')?.getBoundingClientRect().height || 0}px`);
+}
+const bottomNavObserver = new ResizeObserver(updateBottomNavHeight);
 const layoutObserver = new ResizeObserver(() => {
   cancelAnimationFrame(layoutFrame);
   layoutFrame = requestAnimationFrame(() => {
     if (!layoutMain?.isConnected) return;
+    updateBottomNavHeight();
     const filters = document.querySelector('.files-filter-options');
     if (filters && filters.classList.contains('is-mobile') !== layoutMain.clientWidth <= 850) {
       render();
@@ -373,7 +375,7 @@ export function afterRender() {
     bottomNavObserver.disconnect();
     bottomNav = bottom;
     if (bottomNav) bottomNavObserver.observe(bottomNav);
-    document.documentElement.style.setProperty('--bottom-nav-height', `${bottomNav?.getBoundingClientRect().height || 0}px`);
+    updateBottomNavHeight();
   }
   if (bottom) bottom.inert = !!navOpen || !!mobileFolders;
   if (mobileFolders) {

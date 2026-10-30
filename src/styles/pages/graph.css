@@ -8,7 +8,7 @@
 .graph-page:not(.is-focused) {
   display: flex;
   flex-direction: column;
-  height: calc(100% - var(--bottom-nav-height, 0px));
+  height: calc(100% - max(var(--bottom-nav-height, 0px), var(--graph-nav-reserve, 0px)));
 }
 .graph-page:not(.is-focused) > :not(.graph-layout):not(.graph-pending) {
   flex-shrink: 0;
@@ -33,6 +33,11 @@
 .graph-page:not(.is-focused) .graph-list {
   height: 100%;
   max-height: none;
+}
+@media (max-width: 640px) {
+  .graph-page {
+    --graph-nav-reserve: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
 }
 .graph-search {
   position: relative;
