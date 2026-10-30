@@ -191,6 +191,9 @@
   gap: 4px;
   flex-shrink: 0;
   font-size: var(--fs-2xs);
+  padding: 3px 6px;
+  border-radius: var(--r-sm);
+  background: var(--sunken);
 }
 .bookmark-importance.tone-info {
   color: var(--blue);
@@ -301,8 +304,5 @@
   }
   .bookmark-form-actions .btn {
     flex: 1;
-  }
-  .bookmark-importance span {
-    display: none;
   }
 }

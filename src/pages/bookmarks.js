@@ -3,20 +3,20 @@ import { pageIntroduction } from '../ui/page-introduction.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
-import { empty } from '../ui/helpers.js';
+import { empty, prIcon } from '../ui/helpers.js';
 import { relationsPanel } from '../ui/relations.js';
 import { bookmarkContextPage, bookmarkView } from '../shared/bookmark-view.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { collectionHeader, collectionToolbar, collectionOptions } from '../ui/collection-layout.js';
 import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
-import { uiCount } from '../core/i18n.js';
+import { uiCount, t } from '../core/i18n.js';
 
 const IMPORTANCE = {
-  low: { label: 'Low', icon: 'minus', tone: 'muted' },
-  medium: { label: 'Medium', icon: 'star', tone: 'info' },
-  high: { label: 'High', icon: 'star', tone: 'warning' },
-  critical: { label: 'Critical', icon: 'triangle-alert', tone: 'danger' },
+  low: { label: 'Low', priority: 'low', tone: 'muted' },
+  medium: { label: 'Medium', priority: 'medium', tone: 'info' },
+  high: { label: 'High', priority: 'high', tone: 'warning' },
+  critical: { label: 'Critical', priority: 'urgent', tone: 'danger' },
 };
 
 const bookmarksData = () => ({
@@ -65,7 +65,7 @@ function bookmarkCard(link, folders, readOnly) {
     <div class="bookmark-card-top">
       <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
       <div class="grow min0"><a id="bookmark-title-${esc(link.id)}" class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
-      <span class="bookmark-importance tone-${importance.tone}" title="${importance.label}">${ic(importance.icon, 13)}<span>${importance.label}</span></span>
+      <span class="bookmark-importance tone-${importance.tone}" aria-label="${esc(`${t('Importance')}: ${t(importance.label)}`)}">${prIcon(importance.priority, 13)}<span>${importance.label}</span></span>
     </div>
     ${link.description ? `<p class="bookmark-description" translate="no">${esc(link.description)}</p>` : ''}
     ${link.description ? `<details class="bookmark-reading-details" ${disclosureAttributes(`bookmark:${link.id}`)}><summary id="bookmark-reading-${esc(link.id)}" data-open-label="Collapse description" data-closed-label="Read full description">${disclosureOpen(`bookmark:${link.id}`) ? 'Collapse description' : 'Read full description'}</summary><div class="bookmark-full-description"><p translate="no">${esc(link.description)}</p><a href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(parsed.toString())}</a></div></details>` : ''}
