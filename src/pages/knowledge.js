@@ -183,8 +183,8 @@ export function pageKnowledge() {
           <button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>
           ${folderTree(folderIndex, folderFilter, readOnly, S.ui.knowledgeCollapsedFolders || {}, S.ui.knowledgeFolderQuery || '')}</nav>`
         }
-        <button class="knowledge-folder${folderFilter === 'recent' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="recent">${ic('history', 14)}Recently opened</button>
-        ${knowledgeFolderBulk()}
+        <div class="knowledge-folder-footer"><button class="knowledge-folder${folderFilter === 'recent' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="recent">${ic('history', 14)}Recently opened</button>
+        ${knowledgeFolderBulk()}</div>
         ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}
       </div>
     </aside>
