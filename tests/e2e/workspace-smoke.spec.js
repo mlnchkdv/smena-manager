@@ -55,6 +55,15 @@ async function waitForSaved(page) {
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15_000 });
 }
 
+async function expectSingleRowMobileHeader(page) {
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 845 });
+    await expect.poll(() => page.locator('.topbar').evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(60);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+}
+
 async function confirmDialog(page) {
   await expect(page.locator('[data-a="confirmOk"]:visible').last()).toBeVisible();
   await page.locator('[data-a="confirmOk"]:visible').last().click();
@@ -390,9 +399,13 @@ test('shared content, files, settings, and backups persist through core workflow
 
   await page.goto('/e2e-team/settings/workspace');
   await expectRussianUi(page, 'workspace settings');
+  await expect(page.locator('#ws-save')).toBeDisabled();
   await page.locator('#ws-name').fill('E2E Команда — сохранено');
+  await expect(page.locator('#workspace-settings-status')).toHaveText('Есть несохранённые изменения');
   await page.locator('#ws-save').click();
   await waitForSaved(page);
+  await expect(page.locator('#workspace-settings-status')).toHaveText('Настройки синхронизированы');
+  await expectSingleRowMobileHeader(page);
   await page.reload();
   await expect(page.locator('#ws-name')).toHaveValue('E2E Команда — сохранено');
   await page.locator('#ws-name').fill('E2E Команда');
@@ -418,6 +431,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('select[data-k="lang"]').selectOption('English (US)', { force: true });
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await waitForSaved(page);
+  await expectSingleRowMobileHeader(page);
   await page.goto('/e2e-team/settings/security');
   await expect(page.getByRole('heading', { name: 'Account security', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Open Google security' })).toBeVisible();
