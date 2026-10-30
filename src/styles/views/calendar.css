@@ -6,6 +6,11 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  padding-bottom: var(--bottom-nav-height, 0px);
+}
+.cal:has(.cal-g) {
+  /* Keep the last week above fixed navigation; short windows scroll the page. */
+  min-height: min-content;
 }
 .cal-item-project,
 .cal-day-count {
