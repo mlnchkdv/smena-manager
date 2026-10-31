@@ -18,7 +18,7 @@ export function helpGuides() {
         ),
         T(
           'Display → Card details chooses which filled properties appear in your catalog. This is a personal setting.',
-          'В «Вид → Сведения на карточках» выберите заполненные свойства для каталога. Это личная настройка.',
+          'В «Вид → Сведения в карточках» выберите заполненные свойства для каталога. Это личная настройка.',
         ),
       ],
     ],
