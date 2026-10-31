@@ -97,3 +97,8 @@ A.graphDisplayFocus = () => {
   closeModal();
   A.toggleGraphFocus();
 };
+
+A.toggleGraphInspector = () => {
+  S.ui.graphInspectorExpanded = !S.ui.graphInspectorExpanded;
+  render();
+};

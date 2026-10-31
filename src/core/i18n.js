@@ -608,6 +608,8 @@ const RU = {
   'Open a note to find it here later.': 'Откройте заметку — она появится здесь для быстрого возврата.',
   'Star useful notes to keep them close at hand.': 'Отметьте полезные заметки звёздочкой, чтобы быстро их находить.',
   'Create a note or import TXT and Markdown files.': 'Создайте заметку или импортируйте файлы TXT и Markdown.',
+  'Material details': 'Сведения о материале',
+  'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',
   'Including subfolders': 'Включая подпапки',
   'Reading note files…': 'Читаем файлы заметок…',
