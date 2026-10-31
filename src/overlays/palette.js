@@ -76,7 +76,9 @@ export function paletteItems() {
         .map(w => ({
           html: `${wsLogo({ ...w, name: w.name || '?' }, 20)}`,
           name: w.id === S.ui.activeWorkspace ? D().ws.name : w.name,
+          authoredName: true,
           sub: `${w.url} · ${workspaceRoleLabel(w.role)}`,
+          authoredSub: true,
           run: () => A.switchWs({ dataset: { v: w.id } }),
         })),
     });
@@ -95,7 +97,9 @@ export function paletteItems() {
         items: recent.map(t => ({
           html: stIcon(t.status),
           name: t.title,
+          authoredName: true,
           sub: proj(t.project).name,
+          authoredSub: true,
           r: t.key,
           run: () => A.openTask({ dataset: { id: t.id } }),
         })),
@@ -126,6 +130,7 @@ export function paletteItems() {
       items: recentSearches().map(s => ({
         icon: 'history',
         name: s,
+        authoredName: true,
         run: () => {
           pl.q = s;
           pl.hl = 0;
@@ -154,7 +159,15 @@ export function paletteItems() {
       name: 'Tasks',
       items: r.tasks
         .slice(0, lim)
-        .map(t => ({ html: stIcon(t.status), name: t.title, sub: proj(t.project).name, r: t.key, run: () => A.openTask({ dataset: { id: t.id } }) })),
+        .map(t => ({
+          html: stIcon(t.status),
+          name: t.title,
+          authoredName: true,
+          sub: proj(t.project).name,
+          authoredSub: true,
+          r: t.key,
+          run: () => A.openTask({ dataset: { id: t.id } }),
+        })),
     });
   if (sc === 'all' || sc === 'projects')
     groups.push({
@@ -162,6 +175,7 @@ export function paletteItems() {
       items: r.projects.slice(0, lim).map(p => ({
         html: `<span class="pdot" style="--c:${pColor(p)}"></span>`,
         name: p.name,
+        authoredName: true,
         sub: PSTAT[p.status].name,
         run: () => go('project', { id: p.id }),
       })),
@@ -169,7 +183,9 @@ export function paletteItems() {
   if (sc === 'all' || sc === 'people')
     groups.push({
       name: 'People',
-      items: r.people.slice(0, lim).map(m => ({ html: av(m.id, 'sm', false), name: m.name, sub: m.title, run: () => go('member', { id: m.id }) })),
+      items: r.people
+        .slice(0, lim)
+        .map(m => ({ html: av(m.id, 'sm', false), name: m.name, authoredName: true, sub: m.title, authoredSub: true, run: () => go('member', { id: m.id }) })),
     });
   if (sc === 'all' || sc === 'files')
     groups.push({
@@ -177,7 +193,9 @@ export function paletteItems() {
       items: r.files.slice(0, lim).map(f => ({
         icon: FT[f.type].i,
         name: f.name,
+        authoredName: true,
         sub: proj(f.project).name,
+        authoredSub: true,
         r: f.size,
         run: () => openModal({ type: 'filePreview', file: f, tid: f.task }),
       })),
@@ -187,7 +205,14 @@ export function paletteItems() {
       name: 'Comments',
       items: r.comments
         .slice(0, lim)
-        .map(c => ({ html: av(c.by, 'sm', false), name: c.text, sub: 'on ' + task(c.task).title, run: () => A.openTask({ dataset: { id: c.task } }) })),
+        .map(c => ({
+          html: av(c.by, 'sm', false),
+          name: c.text,
+          authoredName: true,
+          sub: task(c.task).title,
+          authoredSub: true,
+          run: () => A.openTask({ dataset: { id: c.task } }),
+        })),
     });
   if (sc === 'all' || sc === 'knowledge')
     groups.push({
@@ -195,7 +220,9 @@ export function paletteItems() {
       items: r.knowledge.slice(0, lim).map(note => ({
         icon: 'file-text',
         name: note.title || 'Untitled note',
+        authoredName: !!note.title,
         sub: note.summary || note.category || 'Knowledge base',
+        authoredSub: !!(note.summary || note.category),
         run: () => A.goKnowledgeNote({ dataset: { id: note.id } }),
       })),
     });
@@ -205,7 +232,9 @@ export function paletteItems() {
       items: r.bookmarks.slice(0, lim).map(link => ({
         icon: 'bookmark',
         name: link.title || link.url,
+        authoredName: true,
         sub: link.site_name || link.url,
+        authoredSub: true,
         run: () => A.goBookmark({ dataset: { id: link.id } }),
       })),
     });
@@ -216,6 +245,7 @@ export function paletteItems() {
       {
         icon: 'search',
         name: tr(`View all results for “${q}”`),
+        authoredName: true,
         run: () => {
           S.ui.searchQ = q;
           S.ui.searchCat = sc;
@@ -264,7 +294,7 @@ export function paletteHtml() {
                 `<div class="pal-group">${g.name ? `<div class="pal-sec">${g.name}</div>` : ''}${g.items
                   .map(it => {
                     const i = idx++;
-                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}<span class="r">${it.r ? `<span class="mono">${esc(it.r)}</span>` : ''}${
+                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${esc(it.sub)}</span>` : ''}<span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
                       it.kbd
                         ? it.kbd
                             .split(' ')
