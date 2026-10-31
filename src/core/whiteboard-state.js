@@ -2,6 +2,7 @@ import { activeDiagramView } from './diagram-view-state.js';
 import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
 import { isRussian } from './i18n.js';
+import { countLabel } from '../shared/count-label.js';
 import { entityAllowed, resolveGraphEntity } from '../shared/relations.js';
 import { whiteboardDocument, legacyWhiteboard } from '../shared/whiteboards.js';
 export const currentWhiteboard = () =>
@@ -11,6 +12,7 @@ export const currentWhiteboard = () =>
       ? legacyWhiteboard(D(), S.ui.params.id)
       : null;
 export const wbText = (en, ru) => (isRussian() ? ru : en);
+export const wbCount = (count, kind) => countLabel(count, kind, isRussian() ? 'ru-RU' : 'en-US');
 export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.ui.activeWorkspace, D().ws.id || D().ws.url, id]);
 let state;
 export function whiteboardState(id = S.ui.params.id) {

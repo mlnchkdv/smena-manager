@@ -60,4 +60,9 @@ test('shared material counts agree in Russian and English, including 21', () => 
   );
   assert.equal(countLabel(1, 'note', 'en-US'), '1 note');
   assert.equal(countLabel(22, 'note', 'ru-RU'), '22 заметки');
+  assert.equal(countLabel(1, 'card', 'ru-RU'), '1 карточка');
+  assert.equal(countLabel(3, 'card', 'ru-RU'), '3 карточки');
+  assert.equal(countLabel(11, 'card', 'ru-RU'), '11 карточек');
+  assert.equal(countLabel(2, 'connection', 'ru-RU'), '2 связи');
+  assert.equal(countLabel(1, 'connection', 'en-US'), '1 connection');
 });

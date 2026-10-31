@@ -41,7 +41,7 @@ export function helpGuides() {
       ],
     ],
     [
-      T('Plan on a project whiteboard', 'Планировать на холсте проекта'),
+      T('Plan on a whiteboard', 'Планировать на холсте'),
       'projects',
       [
         T(

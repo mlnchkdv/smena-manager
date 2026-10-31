@@ -5,7 +5,7 @@ import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
-import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 const button = (action, icon, en, ru, extra = '') =>
   `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru))}" title="${esc(T(en, ru))}" ${extra}>${ic(icon, 16)}</button>`;
 const icons = { text: 'sticky-note', material: 'file-text', group: 'square-dashed' };
@@ -62,7 +62,7 @@ export function projectWhiteboard(project) {
           )}</div></details>${button('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled')}${button('whiteboardRedo', 'redo-2', 'Redo', 'Повторить', state.redo.length ? '' : 'disabled')}`
       : `<span class="hint">${T('Read only', 'Только просмотр')}</span>`
   }
-  ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}${editable ? button('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}<span class="whiteboard-count">${board.nodes.length} / 200 · ${board.edges.length} ${T('connections', 'связей')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${diagramViewsControl('board', project.id)}${button('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${whiteboardPortableControl(editable)}
+  ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}${editable ? button('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${diagramViewsControl('board', project.id)}${button('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${whiteboardPortableControl(editable)}
   </div><p id="whiteboard-help" class="sr">${T('Move cards by their title. Drag empty space to pan; pinch or Ctrl + wheel to zoom. Arrow keys on a selected card move it. Outline mode lists every card and connection.', 'Перемещайте карточки за заголовок. Пустое место — панорама; щипок или Ctrl + колесо — масштаб. Стрелки на выбранной карточке перемещают её. В списке доступны все карточки и связи.')}</p>
   ${
     state.outline
@@ -74,7 +74,7 @@ export function projectWhiteboard(project) {
           .map(n => whiteboardCard(n, editable))
           .join(
             '',
-          )}</div>${!board.nodes.length ? `<div class="whiteboard-empty">${ic('layout-dashboard', 32)}<h2>${T('Give your ideas room', 'Разложите идеи по местам')}</h2><p>${T('Arrange cards and project materials, then connect them.', 'Разместите карточки и материалы проекта, затем свяжите их.')}</p>${editable ? `<button class="btn btn-primary btn-sm" data-a="whiteboardNewText">${ic('plus', 15)}${T('First card', 'Первая карточка')}</button>` : ''}</div>` : ''}<div class="whiteboard-navigation">${button('whiteboardZoomOut', 'minus', 'Zoom out', 'Уменьшить')}<button class="whiteboard-scale" data-a="whiteboardResetZoom" aria-label="${T('Reset zoom', 'Сбросить масштаб')}">${Math.round(state.zoom * 100)}%</button>${button('whiteboardZoomIn', 'plus', 'Zoom in', 'Увеличить')}${button('whiteboardFit', 'scan', 'Fit all cards', 'Показать весь холст')}</div></div>`
+          )}</div>${!board.nodes.length ? `<div class="whiteboard-empty">${ic('layout-dashboard', 32)}<h2>${T('Give your ideas room', 'Разложите идеи по местам')}</h2><p>${T('Arrange cards and materials, then connect them.', 'Разместите карточки и материалы, затем свяжите их.')}</p>${editable ? `<button class="btn btn-primary btn-sm" data-a="whiteboardNewText">${ic('plus', 15)}${T('First card', 'Первая карточка')}</button>` : ''}</div>` : ''}<div class="whiteboard-navigation">${button('whiteboardZoomOut', 'minus', 'Zoom out', 'Уменьшить')}<button class="whiteboard-scale" data-a="whiteboardResetZoom" aria-label="${T('Reset zoom', 'Сбросить масштаб')}">${Math.round(state.zoom * 100)}%</button>${button('whiteboardZoomIn', 'plus', 'Zoom in', 'Увеличить')}${button('whiteboardFit', 'scan', 'Fit all cards', 'Показать весь холст')}</div></div>`
   }
   ${
     state.selected

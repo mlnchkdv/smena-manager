@@ -227,7 +227,7 @@ test('personal graph and board layouts retain camera pins filters and account is
     project = data.projects.find(p => !p.private && p.access !== 'private') || data.projects[0];
   const boardPath = await projectBoardPath(page, project.id);
   const saveLayout = async name => {
-    await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
+    await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
     await page.locator('[data-a="saveDiagramView"]').click();
     await page.locator('[data-in="diagramViewName"]').fill(name);
     await page.locator('[data-a="commitDiagramView"]').click();
@@ -266,7 +266,7 @@ test('personal graph and board layouts retain camera pins filters and account is
         [1366, 768],
       ]) {
         await page.setViewportSize({ width, height });
-        await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
+        await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
         await expect(page.locator('[data-a="loadDiagramView"]')).toHaveCount(1);
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         await page.keyboard.press('Escape');
@@ -278,7 +278,7 @@ test('personal graph and board layouts retain camera pins filters and account is
     const editor = await context.newPage();
     await signIn(editor, 'e2e-editor-access-id-2026-secure');
     await editor.goto(boardPath);
-    await editor.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
+    await editor.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
     await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
   } finally {
     await context.close();

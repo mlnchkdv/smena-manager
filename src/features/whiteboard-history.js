@@ -4,7 +4,7 @@ import { getWhiteboardVersions } from '../core/api.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { currentWhiteboard } from '../core/whiteboard-state.js';
-import { whiteboardScope, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardScope, wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 import { whiteboardCommand } from './project-whiteboard.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { esc, fmtTimestamp } from '../core/utils.js';
@@ -20,7 +20,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function form(m, H) {
   const version = m.data?.versions.find(v => v.id === m.version),
     p = current();
-  return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Up to 5 previous versions per project, within a shared 700,000-character history budget. Restore changes only this board; materials remain unchanged.', 'До 5 предыдущих версий проекта в пределах общего лимита истории 700 000 символов. Восстанавливается только холст; исходные материалы не меняются.')}</p>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}">${esc(fmtTimestamp(v.at))} · ${v.board.nodes.length} ${T('cards', 'карточек')} · ${v.board.edges.length} ${T('connections', 'связей')}</button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
+  return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Up to 5 previous versions per whiteboard, within a shared 700,000-character history budget. Restore changes only this board; materials remain unchanged.', 'До 5 предыдущих версий холста в пределах общего лимита истории 700 000 символов. Восстанавливается только холст; исходные материалы не меняются.')}</p>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}">${esc(fmtTimestamp(v.at))} · ${C(v.board.nodes.length, 'card')} · ${C(v.board.edges.length, 'connection')}</button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
     version
       ? `<h3>${T('Version preview', 'Предпросмотр версии')}</h3><div class="whiteboard-version-preview">${version.board.nodes
           .slice(0, m.limit || 50)
