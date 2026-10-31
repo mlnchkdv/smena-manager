@@ -17,6 +17,7 @@ import { calendarHtml } from '../views/calendar.js';
 import { timelineHtml, tlControls } from '../views/timeline.js';
 import { filesHtml } from '../views/files.js';
 import { PROJECT_TABS } from '../shared/project-tabs.js';
+import { projectWhiteboard } from '../views/project-whiteboard.js';
 
 export const PTABS = PROJECT_TABS;
 
@@ -41,6 +42,7 @@ export function pageProject() {
       body = taskViewBody(sv.type, applyView(ts, viewOf(k)), k, p);
     }
   } else if (tab === 'overview') body = projOverview(p);
+  else if (tab === 'whiteboard') body = projectWhiteboard(p);
   else if (tab === 'files') body = filesHtml(p.id);
   else if (tab === 'activity') body = projActivity(p);
   else body = taskViewBody(tab, applyView(ts, viewOf(key)), key, p);

@@ -1,0 +1,361 @@
+.project-whiteboard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+.whiteboard-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--divider);
+}
+.whiteboard-count {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.whiteboard-toolbar .ibtn {
+  flex-shrink: 0;
+}
+.whiteboard-add {
+  position: relative;
+}
+.whiteboard-add > div {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 240px;
+  max-width: calc(100vw - 32px);
+  z-index: 20;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.whiteboard-add:not([open]) > div {
+  display: none;
+}
+.whiteboard-add > div > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  text-align: left;
+  border-radius: var(--r-sm);
+}
+.whiteboard-add > div > button:hover {
+  background: var(--surface-2);
+}
+.whiteboard-viewport {
+  position: relative;
+  height: max(380px, calc(100dvh - 260px));
+  min-width: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--border-strong) 0.8px, transparent 0.8px);
+  background-size: 20px 20px;
+}
+.whiteboard-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+.whiteboard-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+.whiteboard-card,
+.whiteboard-edges g {
+  --wb-accent: var(--border-strong);
+}
+.project-whiteboard [data-color='violet'] {
+  --wb-accent: var(--accent);
+}
+.project-whiteboard [data-color='blue'] {
+  --wb-accent: var(--blue);
+}
+.project-whiteboard [data-color='green'] {
+  --wb-accent: var(--green);
+}
+.project-whiteboard [data-color='amber'] {
+  --wb-accent: var(--amber);
+}
+.project-whiteboard [data-color='rose'] {
+  --wb-accent: var(--red);
+}
+.whiteboard-edges path {
+  fill: none;
+  stroke: var(--wb-accent);
+  stroke-width: 2;
+}
+.whiteboard-edges marker path {
+  fill: var(--text-3);
+  stroke: none;
+}
+.whiteboard-edges text {
+  fill: var(--text-2);
+  font-size: 12px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.whiteboard-card {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--wb-accent);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: 0 3px 8px -5px rgb(0 0 0 / 20%);
+  cursor: default;
+  overflow: hidden;
+}
+.whiteboard-card.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.whiteboard-card[data-kind='group'] {
+  z-index: 0;
+  background: color-mix(in srgb, var(--wb-accent) 7%, transparent);
+  border: 1px dashed var(--wb-accent);
+}
+.whiteboard-card-head {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--divider);
+}
+.whiteboard-drag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  min-height: 32px;
+  padding: 4px;
+  cursor: grab;
+  text-align: left;
+}
+.whiteboard-drag strong {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.whiteboard-card-content {
+  padding: 10px 12px;
+  min-height: 0;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+}
+.whiteboard-card-content > p {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.whiteboard-card-content .btn {
+  max-width: 100%;
+}
+.whiteboard-navigation {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 2px;
+  gap: 2px;
+  box-shadow: var(--shadow-sm);
+}
+.whiteboard-scale {
+  min-width: 48px;
+  font-size: var(--fs-xs);
+  min-height: 32px;
+}
+.whiteboard-empty {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: min(340px, calc(100% - 32px));
+  text-align: center;
+  pointer-events: none;
+  color: var(--text-2);
+}
+.whiteboard-empty > .i {
+  margin: 0 auto 12px;
+  color: var(--accent);
+}
+.whiteboard-empty h2 {
+  font-size: var(--fs-md);
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.whiteboard-empty p {
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.whiteboard-empty button {
+  pointer-events: auto;
+}
+.whiteboard-outline {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  align-items: start;
+  max-height: max(400px, calc(100dvh - 260px));
+  overflow: auto;
+}
+.whiteboard-card.in-outline {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-height: 140px;
+}
+.whiteboard-card.in-outline .whiteboard-card-content {
+  max-height: 200px;
+  overflow: auto;
+}
+.whiteboard-outline h3,
+.whiteboard-outline > .hint {
+  grid-column: 1 / -1;
+  font-size: var(--fs-sm);
+  margin: 0;
+}
+.whiteboard-edge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  min-width: 0;
+  font-size: var(--fs-sm);
+}
+.whiteboard-edge-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.whiteboard-edge-row small {
+  width: 100%;
+  color: var(--text-3);
+}
+.whiteboard-selection {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--divider);
+}
+.whiteboard-selection > span {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+}
+.whiteboard-help {
+  padding: 8px 12px;
+  border-top: 1px solid var(--divider);
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.whiteboard-help > summary {
+  cursor: pointer;
+}
+.whiteboard-help > p {
+  line-height: 1.6;
+  max-width: 80ch;
+}
+.whiteboard-tool-dialog .modal-b {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.whiteboard-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.whiteboard-form-grid input {
+  width: 100%;
+  min-width: 0;
+}
+.whiteboard-material-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  text-align: left;
+}
+.whiteboard-material-option span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.whiteboard-material-option small {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .project-whiteboard {
+    margin: 8px;
+  }
+  .whiteboard-viewport {
+    height: max(360px, calc(100dvh - 330px));
+  }
+  .whiteboard-count {
+    display: none;
+  }
+  .project-whiteboard .ibtn,
+  .whiteboard-scale,
+  .whiteboard-drag,
+  .whiteboard-toolbar .btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .whiteboard-selection > span {
+    display: none;
+  }
+  .whiteboard-selection {
+    justify-content: flex-end;
+  }
+  .whiteboard-tool-dialog {
+    width: min(560px, 100%);
+  }
+  .whiteboard-tool-dialog .modal-f {
+    flex-wrap: wrap;
+  }
+}

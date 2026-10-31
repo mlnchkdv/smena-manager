@@ -17,6 +17,9 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Simplified graph': 'Упрощённый вид',
+  'Compact nodes. Labels appear when you select or point at a node.': 'Компактные узлы. Подпись появляется при выборе или наведении на узел.',
+  Whiteboard: 'Холст',
   'Rename & edit': 'Название и настройки',
   Duplicate: 'Дублировать',
   'Move up in sidebar': 'Выше в боковой панели',

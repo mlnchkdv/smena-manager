@@ -1258,6 +1258,139 @@ test('PDF previews render pages locally without document scripts in Russian and 
   }
 });
 
+test('project whiteboards persist cards connections layout and inherited access in both languages', async ({ page, browser }) => {
+  test.setTimeout(360000);
+  await signIn(page);
+  const workspace = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = workspace.projects[0],
+    path = `/e2e-team/project/${project.id}/whiteboard`;
+  await page.goto(path);
+  await expect(page.locator('.project-whiteboard')).toBeVisible();
+  const add = async action => {
+    const menu = page.locator('.whiteboard-add');
+    if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
+    await menu.locator(`[data-a="${action}"]`).click();
+  };
+  const writeCard = async (title, body) => {
+    await page.locator('[data-in="whiteboardField"][data-field="title"]').fill(title);
+    if (body) await page.locator('[data-in="whiteboardField"][data-field="text"]').fill(body);
+    await page.locator('[data-a="whiteboardSave"]').click();
+    await waitForSaved(page);
+  };
+  await page.locator('[data-a="whiteboardNewText"]').filter({ visible: true }).click();
+  await writeCard('Research / Исследование', 'A useful idea / Полезная идея');
+  await add('whiteboardNewText');
+  await writeCard('Release / Выпуск', 'Next step');
+  let data = (await (await page.request.get('/api/workspace')).json()).data;
+  let board = data.projects.find(p => p.id === project.id).whiteboard;
+  expect(board.nodes).toHaveLength(2);
+  expect(board.nodes[0].x === board.nodes[1].x && board.nodes[0].y === board.nodes[1].y).toBeFalsy();
+  const [first, second] = board.nodes;
+  await add('whiteboardNewEdge');
+  await page.locator('[data-field="from"]').selectOption(first.id);
+  await page.locator('[data-field="to"]').selectOption(second.id);
+  await page.locator('[data-field="label"]').fill('Plan / План');
+  await page.locator('[data-a="whiteboardSave"]').click();
+  await waitForSaved(page);
+  await page.locator('[data-a="whiteboardFit"]').click();
+  const handle = page.locator(`[data-board-drag="${first.id}"]`),
+    box = await handle.boundingBox();
+  const edgeBefore = await page.locator('.whiteboard-edges g path').getAttribute('d');
+  await page.mouse.move(box.x + 20, box.y + 16);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 70, box.y + 46, { steps: 5 });
+  await expect(page.locator('.whiteboard-edges g path')).not.toHaveAttribute('d', edgeBefore);
+  await page.mouse.up();
+  await waitForSaved(page);
+  data = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(data.projects.find(p => p.id === project.id).whiteboard.nodes[0].x).not.toBe(first.x);
+  const upload = await page.request.post('/api/files/upload', {
+    multipart: {
+      file: { name: 'whiteboard-attachment.txt', mimeType: 'text/plain', buffer: Buffer.from('Linked board resource') },
+      revision: String(data.revision),
+      project: project.id,
+    },
+  });
+  expect(upload.status()).toBe(201);
+  const uploaded = (await upload.json()).file;
+  await page.reload();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(2);
+  await add('whiteboardAddMaterial');
+  await page.locator('[data-in="whiteboardQuery"]').fill('whiteboard-attachment');
+  await page.locator(`[data-a="whiteboardChooseMaterial"][data-key="file:${uploaded.id}"]`).click();
+  await waitForSaved(page);
+  await add('whiteboardNewFrame');
+  await writeCard('Scope / Область');
+  await page.reload();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(4);
+  await expect(page.locator('.whiteboard-edges g')).toHaveCount(1);
+  await page.locator('[data-a="whiteboardToggleOutline"]').click();
+  await page.locator(`[data-board-drag="${second.id}"]`).click();
+  await page.locator('[data-a="whiteboardDelete"]').click();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(3);
+  await expect(page.locator('.whiteboard-edge-row')).toHaveCount(0);
+  await page.locator('[data-a="whiteboardUndo"]').click();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(4);
+  await expect(page.locator('.whiteboard-edge-row')).toHaveCount(1);
+  await waitForSaved(page);
+  const download = page.waitForEvent('download');
+  await page.locator('[data-a="whiteboardExport"]').click();
+  expect(JSON.parse(await readFile(await (await download).path(), 'utf8')).board.nodes).toHaveLength(4);
+  data = (await (await page.request.get('/api/workspace')).json()).data;
+  data.projects.push({ ...project, id: 'second-whiteboard', key: 'WBT', whiteboard: { version: 1, nodes: [], edges: [] }, milestones: [] });
+  data.projOrder.push('second-whiteboard');
+  expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  await page.goto('/e2e-team/project/second-whiteboard/whiteboard');
+  await expect(page.locator('.project-whiteboard')).toBeVisible();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(0);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(path);
+    await expect(page.locator('.whiteboard-card')).toHaveCount(4);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await page.locator('[data-a="whiteboardToggleOutline"]').click();
+      await expect(page.locator('.whiteboard-outline')).toBeVisible();
+      await page.locator(`[data-a="whiteboardEdit"][data-id="${first.id}"]`).click();
+      await expect(page.locator('[data-field="text"]')).toHaveValue('A useful idea / Полезная идея');
+      const bounds = await page.locator('.whiteboard-tool-dialog').boundingBox();
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
+      await page.locator('.whiteboard-tool-dialog [data-a="closeModal"]').last().click();
+      if ([390, 1366].includes(width)) await page.screenshot({ path: `output/playwright/whiteboard-${language === 'Русский' ? 'ru' : 'en'}-${width}.png` });
+      await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    }
+  }
+  const context = await browser.newContext();
+  try {
+    const editor = await context.newPage();
+    await signIn(editor, 'e2e-editor-access-id-2026-secure');
+    data = (await (await page.request.get('/api/workspace')).json()).data;
+    const member = data.members.find(m => m.email === 'editor@example.test'),
+      original = data.projects.find(p => p.id === project.id);
+    original.members = [...new Set([...original.members, member.id])];
+    original.perms = { ...original.perms, [member.id]: 'Can view' };
+    expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+    await editor.goto(path);
+    await expect(editor.locator('.project-whiteboard')).toBeVisible();
+    await expect(editor.locator('.whiteboard-add')).toHaveCount(0);
+    const denied = (await (await editor.request.get('/api/workspace')).json()).data;
+    denied.projects.find(p => p.id === project.id).whiteboard.nodes[0].text = 'Forbidden';
+    expect((await editor.request.put('/api/workspace', { data: { revision: denied.revision, data: denied } })).status()).toBe(403);
+  } finally {
+    await context.close();
+  }
+});
+
 test('project cards stay compact and open through background and keyboard without menu collisions', async ({ page }) => {
   await signIn(page);
   const snapshot = await (await page.request.get('/api/workspace')).json();

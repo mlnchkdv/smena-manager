@@ -333,7 +333,16 @@ function refreshThumbnails() {
     });
 }
 
+let whiteboardModule;
 export function afterRender() {
+  if (document.querySelector('.project-whiteboard')) {
+    whiteboardModule ||= import('../features/project-whiteboard.js');
+    void whiteboardModule
+      .then(module => module.mountProjectWhiteboard())
+      .catch(() => {
+        whiteboardModule = null;
+      });
+  }
   resizeKnowledgeTitle();
   refreshKnowledgeOutline();
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {
