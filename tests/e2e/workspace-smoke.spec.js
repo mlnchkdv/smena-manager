@@ -1258,6 +1258,88 @@ test('PDF previews render pages locally without document scripts in Russian and 
   }
 });
 
+test('personal sidebar settings persist independently and help is available in settings', async ({ page, browser }) => {
+  test.setTimeout(300000);
+  await signIn(page);
+  const open = async target => {
+    await target.goto('/e2e-team/settings/appearance');
+    await target.locator('#main-content [data-a="customizeSidebar"]').click();
+    await expect(target.locator('.sidebar-customize-dialog')).toBeVisible();
+  };
+  for (const language of ['Русский', 'English (US)']) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await open(page);
+    await page.locator('[data-a="resetSidebarDraft"]').click();
+    await page.locator('[data-in="sidebarVisibility"][data-id="graph"]').uncheck();
+    await page.locator('[data-in="sidebarOption"][data-field="counts"]').uncheck();
+    await page.locator('[data-in="sidebarOption"][data-field="projects"]').uncheck();
+    await page.locator('[data-a="sidebarMove"][data-id="knowledge"][data-step="-1"]').click();
+    await page.locator('[data-a="applySidebarDraft"]').click();
+    await waitForSaved(page);
+    await page.reload();
+    await expect(page.locator('.shell')).toBeVisible();
+    await expect(page.locator('.side .sitem[data-r="graph"]')).toHaveCount(0);
+    await expect(page.locator('.side .sproj')).toHaveCount(0);
+    await expect(page.locator('.side .sitem[data-r="archive"]')).toHaveCount(1);
+    await expect(page.locator('.side-scroll .sitem > .ct')).toHaveCount(0);
+    const order = await page.locator('.side-scroll .sitem[data-r]').evaluateAll(els => els.map(el => el.dataset.r));
+    expect(order.indexOf('knowledge')).toBeLessThan(order.indexOf('timeline'));
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await open(page);
+      const box = await page.locator('.sidebar-customize-dialog').boundingBox();
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      if ([390, 1366].includes(width)) await page.screenshot({ path: `output/playwright/sidebar-custom-${language === 'Русский' ? 'ru' : 'en'}-${width}.png` });
+      await page.locator('[data-a="resetSidebarDraft"]').click();
+      await page.locator('.sidebar-customize-dialog [data-a="closeModal"]').last().click();
+      await expect(page.locator('.side .sitem[data-r="graph"]')).toHaveCount(0);
+    }
+    await page.goto('/e2e-team/settings/help');
+    await expect(page.locator('.set-in > h1')).toHaveText(language === 'Русский' ? 'Помощь и ресурсы' : 'Help & resources');
+    await expect(page.locator('.side-bot [data-pop="help"]')).toHaveCount(0);
+    await expect(page.locator('.side-bot .sitem[data-r="settings"]')).toHaveCount(1);
+  }
+  const context = await browser.newContext();
+  try {
+    const editor = await context.newPage();
+    await signIn(editor, 'e2e-editor-access-id-2026-secure');
+    await expect(editor.locator('.side .sitem[data-r="graph"]')).toHaveCount(1);
+    await open(editor);
+    await editor.locator('[data-in="sidebarVisibility"][data-id="files"]').uncheck();
+    await editor.locator('[data-a="applySidebarDraft"]').click();
+    await waitForSaved(editor);
+    await editor.reload();
+    await expect(editor.locator('.shell')).toBeVisible();
+    await expect(editor.locator('.side .sitem[data-r="files"]')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('.shell')).toBeVisible();
+    await expect(page.locator('.side .sitem[data-r="files"]')).toHaveCount(1);
+    await expect(page.locator('.side .sitem[data-r="graph"]')).toHaveCount(0);
+    await editor.goto('/e2e-team/settings/help');
+    await expect(editor.locator('.set-in > h1')).toBeVisible();
+    await open(editor);
+    await editor.locator('[data-a="resetSidebarDraft"]').click();
+    await editor.locator('[data-a="applySidebarDraft"]').click();
+    await waitForSaved(editor);
+  } finally {
+    await context.close();
+  }
+  await open(page);
+  await page.locator('[data-a="resetSidebarDraft"]').click();
+  await page.locator('[data-a="applySidebarDraft"]').click();
+  await waitForSaved(page);
+});
+
 test('project whiteboards persist cards connections layout and inherited access in both languages', async ({ page, browser }) => {
   test.setTimeout(360000);
   await signIn(page);

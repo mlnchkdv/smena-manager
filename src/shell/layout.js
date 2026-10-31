@@ -12,6 +12,7 @@ import { t as tr, workspaceDraftLabel } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { appLocationPath } from '../shared/app-location.js';
+import { SIDEBAR_ITEMS, sidebarPreferences } from '../shared/sidebar-preferences.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
@@ -147,6 +148,7 @@ export function sItem(route, label, icon, opt = {}) {
 export function renderSidebar() {
   const u = S.ui,
     d = D();
+  const menu = sidebarPreferences(S.prefs.sidebar);
   const notifications = myNotifications();
   const unreadInbox = notifications.filter(n => !n.read && n.type !== 'update').length;
   const unreadAll = notifications.filter(n => !n.read).length;
@@ -157,7 +159,23 @@ export function renderSidebar() {
       .map(project => project.id),
   );
   const fileCount = fileCatalogInfo()?.total ?? (d.files || []).filter(file => fileProjectIds.has(file.project)).length;
-  const projs = visibleProjects().filter(p => p.status !== 'complete');
+  const projs = menu.projects ? visibleProjects().filter(p => p.status !== 'complete') : [];
+  const counts = {
+    inbox: unreadInbox,
+    mytasks: myOpen,
+    notifications: unreadAll,
+    files: fileCount,
+    knowledge: d.knowledgeNotes?.length,
+    bookmarks: d.links?.filter(link => !link.is_archived).length,
+  };
+  const items = group =>
+    menu.order
+      .filter(id => !menu.hidden.includes(id))
+      .map(id => SIDEBAR_ITEMS.find(item => item[0] === id))
+      .filter(item => item?.[3] === group)
+      .map(([id, label, icon]) => sItem(id, label, icon, { ct: menu.counts ? counts[id] || '' : '', dot: id === 'inbox' }))
+      .join('');
+  const workspaceItems = items('workspace');
   const inProj = u.route === 'project' ? u.params.id : null;
   return `<nav class="side" aria-label="Main">
     <div class="side-top">
@@ -173,27 +191,10 @@ export function renderSidebar() {
     </div>
     <div class="side-scroll" data-keep="side">
       ${u.collapsed ? `<button class="sitem" data-a="toggleSide" data-tip="Expand sidebar" data-tip-pos="right" aria-label="Expand sidebar">${ic('panel-left', 16)}</button>` : ''}
-      ${sItem('home', 'Home', 'house')}
-      ${sItem('inbox', 'Inbox', 'inbox', { ct: unreadInbox || '', dot: true })}
-      ${sItem('mytasks', 'My Tasks', 'circle-check', { ct: myOpen || '' })}
-      ${sItem('favorites', 'Favorites', 'star')}
-      ${sItem('notifications', 'Notifications', 'bell', { ct: unreadAll || '' })}
-      <div class="sgroup">
-        <div class="sgroup-h">Workspace</div>
-        ${sItem('overview', 'Overview', 'layout-dashboard')}
-        ${sItem('projects', 'Projects', 'folder-kanban')}
-        ${sItem('files', 'Files', 'files', { ct: fileCount || '' })}
-        ${sItem('tasks', 'Tasks', 'list-checks')}
-        ${sItem('calendar', 'Calendar', 'calendar')}
-        ${sItem('timeline', 'Timeline', 'chart-gantt')}
-        ${sItem('knowledge', 'Knowledge base', 'library-big', { ct: d.knowledgeNotes?.length || '' })}
-        ${sItem('bookmarks', 'Bookmarks', 'bookmark', { ct: d.links?.filter(link => !link.is_archived).length || '' })}
-        ${sItem('graph', 'Graph', 'network')}
-        ${sItem('members', 'Members', 'users')}
-        ${sItem('activity', 'Activity', 'activity')}
-      </div>
+      ${items('personal')}
+      ${workspaceItems ? `<div class="sgroup"><div class="sgroup-h"><span>Workspace</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="customizeSidebar" aria-label="Customize menu" title="Customize menu">${ic('sliders-horizontal', 12)}</button></div>${workspaceItems}</div>` : ''}
       <div class="sgroup" id="side-projects">
-        <div class="sgroup-h"><span>Projects</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="newProject" data-tip="New project  P" aria-label="New project">${ic('plus', 14)}</button></div>
+        ${menu.projects ? `<div class="sgroup-h"><span>Projects</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="newProject" data-tip="New project  P" aria-label="New project">${ic('plus', 14)}</button></div>` : ''}
         ${projs
           .map(p => {
             const open = !!u.expanded[p.id];
@@ -225,17 +226,20 @@ export function renderSidebar() {
           </div>`;
           })
           .join('')}
-        ${sItem('archive', 'Archive', 'archive', { ct: D().tasks.filter(t => t.archived).length + D().projects.filter(p => p.archived).length + (D().trash?.length || 0) || '' })}
+        ${sItem('archive', 'Archive', 'archive', { ct: menu.counts ? D().tasks.filter(t => t.archived).length + D().projects.filter(p => p.archived).length + (D().trash?.length || 0) || '' : '' })}
       </div>
-      <div class="sgroup">
+      ${
+        menu.teams
+          ? `<div class="sgroup">
         <div class="sgroup-h"><span>Teams</span><span class="sp"></span>${canManageTeams(u.currentUser?.role) ? `<button class="ibtn ibtn-xs" data-a="newTeam" data-tip="New team" aria-label="New team">${ic('plus', 14)}</button>` : ''}</div>
         ${teamsList()
           .map(t => sItem('team', t.name, t.icon, { id: t.id, userText: true }))
           .join('')}
-      </div>
+      </div>`
+          : ''
+      }
     </div>
     <div class="side-bot">
-      <button class="sitem" data-a="pop" data-pop="help" ${u.collapsed ? 'data-tip="Help" data-tip-pos="right"' : ''}>${ic('circle-help', 16)}<span>Help & resources</span></button>
       ${sItem('settings', 'Settings', 'settings')}
       <button class="sitem account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}" style="height:36px" ${u.collapsed ? 'data-tip="Profile" data-tip-pos="right"' : ''}>${accountAvatarStatus(d.me)}<span class="trunc" style="color:var(--text);font-weight:500" translate="no">${esc(S.prefs.name)}</span><span class="ct">${ic('chevrons-up-down', 13)}</span></button>
     </div>

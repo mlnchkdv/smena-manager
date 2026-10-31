@@ -28,6 +28,7 @@ export const SET_NAV = [
       ['language', 'Language', 'languages'],
       ['datetime', 'Date & time', 'clock'],
       ['data-transfer', 'Data transfer', 'database-backup'],
+      ['help', 'Help & resources', 'circle-help'],
     ],
   ],
   [
@@ -226,6 +227,8 @@ export function settingsBody(sec, title) {
             : 'Shared settings for the current workspace. Changes affect its members.';
   const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p><p class="hint settings-scope" translate="no">${scope} <b>${esc(d.ws.name)}</b></p>`;
   switch (sec) {
+    case 'help':
+      return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Подсказки и инструменты для работы в пространстве.' : 'Guidance and tools for your workspace.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu <kbd>CtrlK</kbd></button></div><div class="sblock"><h2>Knowledge base</h2><p translate="no">${isRussian() ? 'Импортируйте TXT и MD, связывайте материалы через [[, используйте шаблоны и подборки. Команды находятся в меню «Вид».' : 'Import TXT and MD, connect materials with [[, and use templates and smart collections. Tools are available in Display.'}</p><button class="btn btn-ghost btn-sm" data-a="go" data-r="knowledge">Knowledge base</button></div><div class="sblock"><h2>Whiteboard</h2><p translate="no">${isRussian() ? 'Откройте проект и вкладку «Холст». Разместите карточки, материалы и рамки; добавьте связи. На телефоне удобно работать в режиме списка.' : 'Open a project and its Whiteboard tab. Arrange cards, materials and frames, then add connections. Outline mode is convenient on phones.'}</p><button class="btn btn-ghost btn-sm" data-a="go" data-r="projects">Projects</button></div><div class="sblock"><h2>Graph</h2><p translate="no">${isRussian() ? 'Выбирайте материал, чтобы увидеть его связи. Упрощённый вид уменьшает визуальный шум; физика автоматически распределяет узлы.' : 'Select a material to explore its connections. Simplified view reduces visual noise; physics automatically distributes nodes.'}</p><button class="btn btn-ghost btn-sm" data-a="go" data-r="graph">Graph</button></div><div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
     case 'workspace': {
       void refreshWorkspaces(false);
       const copy = (en, ru) => (isRussian() ? ru : en);
@@ -298,7 +301,7 @@ export function settingsBody(sec, title) {
           size: 26,
         }),
       )}</div>
-      <div class="sblock"><h2>Density</h2>
+      <div class="sblock"><h2>Customize menu</h2><p class="hint">${isRussian() ? 'Видимые разделы, порядок и счётчики — только для вас.' : 'Visible sections, order and counters — just for you.'}</p><button class="btn btn-secondary" data-a="customizeSidebar">${ic('sliders-horizontal', 14)}Customize menu</button></div><div class="sblock"><h2>Density</h2>
         ${srow(
           'Sidebar density',
           'Compact fits more projects on screen.',

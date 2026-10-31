@@ -1,0 +1,65 @@
+.sidebar-customize-dialog .modal-b {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.settings-help-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.sidebar-customize-dialog .modal-f {
+  flex-wrap: wrap;
+}
+.sidebar-custom-group h3 {
+  margin: 0 0 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.sidebar-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--divider);
+  padding: 3px 0;
+  min-width: 0;
+}
+.sidebar-custom-row > label {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 10px;
+  min-height: 38px;
+  min-width: 0;
+  cursor: pointer;
+}
+.sidebar-custom-row > label > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sidebar-custom-row > div {
+  display: flex;
+  flex-shrink: 0;
+}
+.sidebar-custom-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  cursor: pointer;
+}
+.sidebar-custom-row input,
+.sidebar-custom-option input {
+  flex-shrink: 0;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .sidebar-custom-row .ibtn,
+  .sidebar-custom-row > label,
+  .sidebar-custom-option {
+    min-height: 44px;
+  }
+  .sidebar-custom-row .ibtn {
+    min-width: 44px;
+  }
+}

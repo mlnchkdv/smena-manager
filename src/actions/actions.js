@@ -3801,6 +3801,7 @@ A.clearKnowledgeCriterion = el => {
 };
 
 A.quickCapture = async () => (await import('../features/knowledge-capture.js')).openCapture();
+A.customizeSidebar = async () => (await import('../features/sidebar-customization.js')).openSidebarCustomization();
 
 A.loadKnowledgeImage = async el => (await import('../features/knowledge-media.js')).loadKnowledgeImage(el);
 A.capturePdfExcerpt = async () => (await import('../features/knowledge-media.js')).capturePdfExcerpt();

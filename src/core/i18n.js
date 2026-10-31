@@ -17,6 +17,16 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Access: 'Доступ',
+  'About product': 'О приложении',
+  'Privacy policy': 'Политика конфиденциальности',
+  'Terms of service': 'Условия использования',
+  'Graph physics': 'Физика графа',
+  'Graph appearance': 'Отображение графа',
+  Physics: 'Физика',
+  'Settling layout…': 'Распределяем узлы…',
+  'Layout settled': 'Расположение стабилизировано',
+  'Customize menu': 'Настроить меню',
   'Simplified graph': 'Упрощённый вид',
   'Compact nodes. Labels appear when you select or point at a node.': 'Компактные узлы. Подпись появляется при выборе или наведении на узел.',
   Whiteboard: 'Холст',
