@@ -2,6 +2,87 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('whiteboard native and Canvas interchange previews limitations checks access and preserves replacements', async ({ page }) => {
+  test.setTimeout(240000);
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace')).json()).data,
+    project = snapshot.projects[0];
+  const native = {
+    format: 'smena-project-whiteboard',
+    version: 1,
+    board: {
+      version: 1,
+      nodes: [
+        { id: 'io-text', type: 'text', x: 0, y: 0, width: 240, height: 160, color: 'blue', title: 'Import card', text: 'Imported body' },
+        { id: 'io-material', type: 'material', x: 320, y: 0, width: 240, height: 160, color: 'neutral', target: 'note:not-readable' },
+      ],
+      edges: [{ id: 'io-edge', from: 'io-text', to: 'io-material', arrow: true, color: 'neutral', label: 'Related' }],
+    },
+  };
+  const path = `/e2e-team/project/${project.id}/whiteboard`;
+  await page.goto(path);
+  const upload = async (value, name = 'board.json') => {
+    const menu = page.locator('.whiteboard-io');
+    if (!(await menu.evaluate(e => e.open))) await menu.locator('summary').click();
+    const chooser = page.waitForEvent('filechooser');
+    await page.locator('[data-a="whiteboardImport"]').click();
+    await (await chooser).setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)) });
+    await expect(page.locator('[data-a="applyWhiteboardImport"]')).toBeVisible();
+  };
+  await upload(native);
+  await expect(page.locator('.modal-b')).toContainText('Недоступные материалы');
+  await page.locator('[data-a="applyWhiteboardImport"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(2);
+  await expect(page.locator('.whiteboard-card-content').first()).toHaveText('Imported body');
+  await page.locator('.whiteboard-io > summary').click();
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('[data-a="whiteboardExportCanvas"]').click();
+  const download = await downloadPromise;
+  const canvas = JSON.parse(await readFile(await download.path(), 'utf8'));
+  expect(canvas.nodes).toHaveLength(2);
+  expect(canvas.edges).toHaveLength(1);
+  const external = { nodes: [{ id: 'external', type: 'file', file: 'images/screenshot.png', x: 0, y: 0, width: 240, height: 160 }], edges: [] };
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(path);
+    await upload(external, 'board.canvas');
+    await expect(page.locator('.modal-b')).toContainText(language === 'Русский' ? 'Вложения не загружаются' : 'Attachments are not uploaded');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.locator('.modal').evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+    await page.locator('.modal [data-a="closeModal"]').first().click();
+  }
+  await upload(external, 'board.canvas');
+  await page.locator('[data-in="whiteboardImportMode"]').selectOption('replace');
+  await page.locator('[data-a="applyWhiteboardImport"]').click();
+  await page.locator('[data-a="confirmOk"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(1);
+  await expect(page.locator('.whiteboard-card-content')).toHaveText('images/screenshot.png');
+  const history = await (await page.request.get(`/api/projects/${project.id}/whiteboard-versions`)).json();
+  expect(history.versions[0].board.nodes).toHaveLength(2);
+  const latest = (await (await page.request.get('/api/workspace')).json()).data;
+  const p = latest.projects.find(p => p.id === project.id);
+  p.whiteboard = native.board;
+  p.whiteboardReplaceBaseHash = 'a'.repeat(64);
+  const stale = await page.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } });
+  expect(stale.status()).toBe(409);
+  expect((await stale.json()).code).toBe('WHITEBOARD_REPLACE_STALE');
+});
+
 test('personal graph and board layouts retain camera pins filters and account isolation', async ({ page, browser }) => {
   test.setTimeout(240000);
   await signIn(page);
@@ -1714,6 +1795,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(1);
   await waitForSaved(page);
   const download = page.waitForEvent('download');
+  await page.locator('.whiteboard-io > summary').click();
   await page.locator('[data-a="whiteboardExport"]').click();
   expect(JSON.parse(await readFile(await (await download).path(), 'utf8')).board.nodes).toHaveLength(4);
   data = (await (await page.request.get('/api/workspace')).json()).data;

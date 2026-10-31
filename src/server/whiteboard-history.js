@@ -12,6 +12,7 @@ export function captureWhiteboardHistory(current, next, actor = '') {
   for (const project of next.projects || []) {
     const before = old.get(project.id);
     delete project.whiteboardRestoreFrom;
+    delete project.whiteboardReplaceBaseHash;
     if (!before || whiteboardHash(whiteboardOf(before)) === whiteboardHash(whiteboardOf(project))) continue;
     versions.unshift({
       id: 'wbv-' + randomUUID(),
@@ -36,6 +37,13 @@ export function captureWhiteboardHistory(current, next, actor = '') {
   next._whiteboardHistory = retained;
 }
 export function validateWhiteboardRestore(current, project) {
+  if (project.whiteboardReplaceBaseHash != null) {
+    const hash = project.whiteboardReplaceBaseHash;
+    if (typeof hash !== 'string' || !/^[a-f0-9]{64}$/.test(hash)) throw new TypeError('Invalid whiteboard replacement request.');
+    const before = current.projects?.find(p => p.id === project.id);
+    if (!before || whiteboardHash(whiteboardOf(before)) !== hash)
+      throw Object.assign(new Error('The whiteboard changed. Reopen the import before replacing.'), { statusCode: 409, code: 'WHITEBOARD_REPLACE_STALE' });
+  }
   const token = project.whiteboardRestoreFrom;
   if (token == null) return;
   if (
