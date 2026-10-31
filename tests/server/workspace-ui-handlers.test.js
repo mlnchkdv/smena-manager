@@ -36,6 +36,7 @@ function fixture({ russian = false, active = 'default' } = {}) {
     openModal: modal => S.ui.modals.push(modal),
     closeModal: () => S.ui.modals.pop(),
     workspaceSyncIsClean: () => true,
+    retryWorkspaceSync: async () => {},
     personalPreferenceSyncState: () => ({ pending: false }),
     flushLocalSave() {},
     $: selector => fields[selector],
@@ -191,4 +192,35 @@ test('uncertain creation keeps original payload and operation identity for recov
   assert.equal(calls[1].name, 'Team');
   assert.equal(calls[1].description, 'Original');
   assert.equal(f.S.ui.atomicOperation, false);
+});
+
+test('settings navigation stays consistent until the user explicitly discards or saves', async () => {
+  const f = fixture();
+  const destinations = [];
+  f.context.go = (...args) => destinations.push(args);
+  assert.equal(f.S.ui.beforeWorkspaceSettingsLeave('settings', { sec: 'language' }), false);
+  assert.equal(f.S.ui.modals.at(-1).type, 'workspaceLeave');
+  f.context.closeModal();
+  assert.equal(f.S.ui.workspaceSettingsDirty, true);
+  assert.equal(destinations.length, 0);
+  f.S.ui.beforeWorkspaceSettingsLeave('settings', { sec: 'language' });
+  f.context.A.discardWorkspaceSettingsLeave();
+  assert.equal(f.S.ui.workspaceSettingsDirty, false);
+  assert.equal(destinations[0][1].sec, 'language');
+
+  const pending = fixture();
+  let continued = false;
+  pending.context.go = () => (continued = true);
+  pending.context.retryWorkspaceSync = async () => {
+    throw new Error('Offline');
+  };
+  pending.S.ui.beforeWorkspaceSettingsLeave('home', {});
+  await pending.context.A.saveWorkspaceSettingsLeave();
+  assert.equal(continued, false);
+  assert.equal(pending.writes(), 1);
+  assert.match(pending.S.ui.modals.at(-1).error, /retained locally/);
+  pending.context.retryWorkspaceSync = async () => {};
+  await pending.context.A.saveWorkspaceSettingsLeave();
+  assert.equal(continued, true);
+  assert.equal(pending.writes(), 1);
 });

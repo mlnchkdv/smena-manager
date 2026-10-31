@@ -75,7 +75,7 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
-  if (S.ui.beforeWorkspaceSettingsLeave?.(route, params) === false) return;
+  if (S.ui.beforeWorkspaceSettingsLeave?.(route, params, opt) === false) return;
   closeActionMenus();
   if (route !== 'graph') S.ui.graphFocus = false;
   S.ui.restoringFilePath = null;

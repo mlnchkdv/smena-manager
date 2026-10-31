@@ -3,7 +3,7 @@ import { D, S, flushLocalSave } from '../core/store.js';
 import { esc, $ } from '../core/utils.js';
 import { isRussian, t } from '../core/i18n.js';
 import { getActiveWorkspace, workspaceDirectoryRequest, deleteAllWorkspaces } from '../core/api.js';
-import { workspaceSyncIsClean } from '../core/workspace-sync.js';
+import { workspaceSyncIsClean, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
@@ -33,9 +33,10 @@ function rememberCreation(m) {
     /* In-memory draft still works. */
   }
 }
-function canLeave() {
+function canLeave(continueWith) {
   if (S.ui.workspaceSettingsDirty) {
-    toast(copy('Save or cancel workspace settings before leaving.', 'Сохраните или отмените настройки пространства перед переходом.'), { kind: 'info' });
+    if (continueWith) requestSettingsLeave(continueWith);
+    else toast(copy('Save or cancel workspace settings before leaving.', 'Сохраните или отмените настройки пространства перед переходом.'), { kind: 'info' });
     return false;
   }
   flushLocalSave();
@@ -70,11 +71,11 @@ export function switchWorkspace(el) {
     S.ui.pop = null;
     return render();
   }
-  if (canLeave()) location.assign(`/${encodeURIComponent(target.url)}/home`);
+  if (canLeave(() => switchWorkspace(el))) location.assign(`/${encodeURIComponent(target.url)}/home`);
 }
 
 export function openWorkspaceCreation() {
-  if (!canCreateWorkspace(S.ui.currentUser?.role) || !canLeave()) return;
+  if (!canCreateWorkspace(S.ui.currentUser?.role) || !canLeave(openWorkspaceCreation)) return;
   S.ui.mnav = false;
   let draft;
   try {
@@ -400,13 +401,56 @@ window.addEventListener('beforeunload', event => {
   }
 });
 
-S.ui.beforeWorkspaceSettingsLeave = (route, params) => {
+function requestSettingsLeave(continueWith) {
+  if (S.ui.modals.some(m => m.type === 'workspaceLeave')) return;
+  openModal({ type: 'workspaceLeave', continueWith });
+}
+workspaceModalRenderers.leave = (m, H) => `${H(copy('Unsaved workspace settings', 'Несохранённые настройки пространства'))}
+  <div class="modal-b"><p translate="no">${copy('Save your settings before continuing, or discard this draft.', 'Сохраните настройки перед переходом или отмените этот черновик.')}</p>${m.error ? `<p class="err" role="alert" translate="no">${esc(m.error)}</p>` : ''}</div>
+  <div class="modal-f" style="flex-wrap:wrap"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''} translate="no">${copy('Stay', 'Остаться')}</button>${S.ui.workspaceSettingsDirty ? `<button class="btn btn-secondary" data-a="discardWorkspaceSettingsLeave" ${m.busy ? 'disabled' : ''} translate="no">${copy('Discard changes', 'Отменить изменения')}</button>` : ''}<button class="btn btn-primary" data-a="saveWorkspaceSettingsLeave" ${m.busy ? 'disabled' : ''} translate="no">${m.busy ? copy('Saving…', 'Сохранение…') : copy('Save and continue', 'Сохранить и продолжить')}</button></div>`;
+A.discardWorkspaceSettingsLeave = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'workspaceLeave' || m.busy || !S.ui.workspaceSettingsDirty) return;
+  closeModal();
+  A.cancelWorkspaceSettings();
+  m.continueWith();
+};
+A.saveWorkspaceSettingsLeave = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'workspaceLeave' || m.busy) return;
+  if (S.ui.workspaceSettingsDirty) saveWorkspaceSettings();
+  if (S.ui.workspaceSettingsDirty || S.ui.workspaceSettingsError) {
+    m.error = workspaceSettingsFeedback().text;
+    return render();
+  }
+  m.busy = true;
+  S.ui.atomicOperation = true;
+  render();
+  let ready = false;
+  try {
+    flushLocalSave();
+    await retryWorkspaceSync();
+    ready = workspaceSyncIsClean(D()) && !personalPreferenceSyncState().pending;
+    if (!ready) throw new Error('Pending save');
+  } catch {
+    m.error = copy(
+      'Your changes are retained locally. Wait for server confirmation before continuing.',
+      'Изменения сохранены локально. Дождитесь подтверждения сервера перед переходом.',
+    );
+  } finally {
+    m.busy = false;
+    S.ui.atomicOperation = false;
+    if (ready) closeModal();
+    else render();
+  }
+  if (ready) m.continueWith();
+};
+
+S.ui.beforeWorkspaceSettingsLeave = (route, params, options) => {
   if (S.ui.atomicOperation) return false;
   if (S.ui.workspaceSettingsDirty && (route !== 'settings' || params.sec !== 'workspace')) {
-    if (!window.confirm(isRussian() ? 'Отменить несохранённые настройки пространства?' : 'Discard unsaved workspace settings?')) return false;
-    S.ui.workspaceSettingsDraft = null;
-    S.ui.workspaceSettingsDirty = false;
-    S.ui.workspaceSettingsError = '';
+    requestSettingsLeave(() => go(route, params, options));
+    return false;
   }
 
   return true;

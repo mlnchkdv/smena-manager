@@ -78,6 +78,11 @@ test('an ordinary member creates and configures owned workspaces without gaining
       const bottomNav = await member.locator('.bottomnav').boundingBox();
       expect(actions.y).toBeGreaterThan(50);
       expect(actions.y + actions.height).toBeLessThanOrEqual(bottomNav.y);
+      await member.locator('#settings-section').selectOption('language');
+      await expect(member.locator('.workspace-leave-dialog')).toBeVisible();
+      await expect(member.locator('#settings-section')).toHaveValue('workspace');
+      await member.locator('.workspace-leave-dialog [data-a="closeModal"]').click();
+      await expect(member.locator('#ws-name')).toHaveValue(name + ' updated');
       await member.locator('#ws-description').fill('Persisted owner changes');
       await member.locator('#ws-save').click();
       await saved(member);
