@@ -80,22 +80,23 @@ export function pageMembers() {
   </div>`;
 }
 export function permsTable() {
+  const archivable = (S.ui.activeWorkspace || 'default') !== 'default';
   const rows = [
     ['View projects & tasks', 1, 1, 1, 1],
-    ['Comment on tasks', 1, 1, 1, 1],
+    ['Comment on tasks', 1, 1, 1, 0],
     ['Create and edit tasks', 1, 1, 1, 0],
-    ['Create projects', 1, 1, 1, 0],
+    ['Create projects', 1, 1, D().ws.permissions?.createProjects !== false, 0],
     ['Create workspace', 1, 1, 1, 0],
-    ['Invite members', 1, 1, 0, 0],
+    ['Manage sign-in access', 1, 1, 0, 0],
     ['Manage roles', 1, 1, 0, 0],
     ['Workspace settings', 1, 1, 0, 0],
-    ['Billing', 1, 0, 0, 0],
-    ['Delete workspace', 1, 0, 0, 0],
+    ['Archive this workspace', archivable, archivable, 0, 0],
+    ['Clear workspace content', 1, 1, 0, 0],
   ];
-  return `<div class="panel" style="overflow-x:auto"><table class="perm-t" style="min-width:560px"><thead><tr><th style="padding-left:14px">Permission</th>${ROLES.map(r => `<th>${r}</th>`).join('')}</tr></thead><tbody>${rows
+  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p><div class="panel" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col">${r}</th>`).join('')}</tr></thead><tbody>${rows
     .map(
       r =>
-        `<tr><td style="padding-left:14px">${r[0]}</td>${r
+        `<tr><th scope="row" style="padding-left:14px;text-align:left;font-weight:400">${r[0]}</th>${r
           .slice(1)
           .map(
             v =>

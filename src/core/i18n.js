@@ -17,6 +17,17 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Manage sign-in access': 'Управление доступом ко входу',
+  'Archive this workspace': 'Архивировать это пространство',
+  'Clear workspace content': 'Очистить содержимое пространства',
+  'Roles in the current workspace': 'Роли в текущем пространстве',
+  'Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.':
+    'Права относятся к текущему пространству. Просмотр проектов, комментарии и редактирование также зависят от доступа к проекту.',
+  'Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.':
+    'Создав пространство, вы станете его владельцем; ваша роль здесь не изменится. Гости могут только просматривать доступные проекты.',
+  'The original workspace cannot be archived.': 'Исходное пространство нельзя архивировать.',
+  'Clearing content retains the workspace identity and member access. Archiving retains its content.':
+    'При очистке содержимого пространство и доступ участников сохраняются. При архивировании сохраняется и содержимое.',
   'These settings belong to the current workspace. Ask its owner or an administrator to make changes.':
     'Эти настройки относятся к текущему пространству. Для изменений обратитесь к его владельцу или администратору.',
   'Switch to a workspace you own to manage its settings.': 'Чтобы управлять настройками своего пространства, переключитесь на него.',
