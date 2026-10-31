@@ -2,7 +2,12 @@ import { esc } from '../core/utils.js';
 import { wbText as T } from '../core/whiteboard-state.js';
 export function whiteboardCatalogControls(state, project, projects, labelled = false) {
   const controls = [
-    ['project', T('Project', 'Проект'), [['', T('All projects', 'Все проекты')], ...projects.map(p => [p.id, p.name])], project],
+    [
+      'project',
+      T('Project', 'Проект'),
+      [['', T('All projects', 'Все проекты')], ['none', T('No project', 'Без проекта')], ...projects.map(p => [p.id, p.name])],
+      project,
+    ],
     [
       'archive',
       T('Status', 'Состояние'),

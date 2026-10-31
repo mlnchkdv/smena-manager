@@ -1,3 +1,4 @@
+import { whiteboardCatalogState, saveWhiteboardCatalog } from '../core/whiteboard-catalog-state.js';
 import { A, IN, confirmDlg } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard, canReadWhiteboard, whiteboardDocument } from '../shared/whiteboards.js';
@@ -125,6 +126,8 @@ IN.whiteboardsFilter = el => {
   if (!['query', 'project', 'sort', 'archive', 'view'].includes(filter)) return;
   S.ui.whiteboardsBrowser ||= {};
   S.ui.whiteboardsBrowser[filter] = el.value;
+  S.ui.whiteboardsBrowser.scroll = 0;
+  saveWhiteboardCatalog();
   S.ui.whiteboardsBrowser.limit = 50;
   if (filter === 'project' && S.ui.params.project) {
     go('whiteboards');
@@ -146,9 +149,22 @@ A.whiteboardCatalogFilters = () =>
 A.moreWhiteboards = () => {
   S.ui.whiteboardsBrowser ||= {};
   S.ui.whiteboardsBrowser.limit = (S.ui.whiteboardsBrowser.limit || 50) + 50;
+  saveWhiteboardCatalog();
   render();
 };
 A.openWhiteboardDocument = el => {
   const b = get(el.dataset.id);
-  if (canReadWhiteboard(D(), b, D().me, S.ui.currentUser?.role)) go('whiteboard', { id: b.id });
+  if (canReadWhiteboard(D(), b, D().me, S.ui.currentUser?.role)) {
+    const state = whiteboardCatalogState();
+    state.scroll = document.getElementById('main-content')?.scrollTop || 0;
+    state.restoreScroll = true;
+    saveWhiteboardCatalog();
+    go('whiteboard', { id: b.id });
+  }
+};
+
+A.resetWhiteboardCatalog = () => {
+  Object.assign(whiteboardCatalogState(), { query: '', project: '', archive: '', scroll: 0, limit: 50 });
+  saveWhiteboardCatalog();
+  go('whiteboards');
 };
