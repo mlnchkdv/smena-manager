@@ -7,7 +7,8 @@ export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.u
 let state;
 export function whiteboardState(id = S.ui.params.id) {
   const scope = whiteboardScope(id);
-  if (state?.scope !== scope) state = { scope, id, x: 32, y: 32, zoom: 1, fit: true, selected: '', outline: false, undo: [], redo: [] };
+  if (state?.scope !== scope)
+    state = { scope, id, x: 32, y: 32, zoom: 1, fit: true, selected: '', selection: [], multiSelect: false, outline: false, undo: [], redo: [] };
   return state;
 }
 export function whiteboardMaterial(node) {

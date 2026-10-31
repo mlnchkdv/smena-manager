@@ -2,6 +2,60 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('whiteboard multi selection aligns copies and pastes connected cards with undo and persistence', async ({ page }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace')).json()).data,
+    project = snapshot.projects[0];
+  const card = (id, x, y) => ({ id, type: 'text', x, y, width: 220, height: 160, color: 'neutral', title: id, text: 'Text' });
+  project.whiteboard = {
+    version: 1,
+    nodes: [card('selection-a', 0, 0), card('selection-b', 350, 100), card('selection-c', 700, 200)],
+    edges: [{ id: 'selection-e', from: 'selection-a', to: 'selection-b', label: 'Plan', arrow: true, color: 'blue' }],
+  };
+  expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await page.locator('[data-a="whiteboardToggleSelection"]').click();
+  for (const id of ['selection-a', 'selection-b', 'selection-c']) await page.locator(`[data-in="whiteboardSelection"][data-id="${id}"]`).check();
+  await page.locator('.whiteboard-arrange > summary').click();
+  await page.locator('[data-mode="top"]').click();
+  await waitForSaved(page);
+  const read = async () => (await (await page.request.get('/api/workspace')).json()).data.projects.find(p => p.id === project.id).whiteboard;
+  expect((await read()).nodes.map(n => n.y)).toEqual([0, 0, 0]);
+  await page.locator('[data-a="whiteboardCopy"]').click();
+  await page.locator('[data-a="whiteboardPaste"]').click();
+  await waitForSaved(page);
+  expect((await read()).nodes.length).toBe(6);
+  expect((await read()).edges.length).toBe(2);
+  await page.locator('[data-a="whiteboardUndo"]').click();
+  await waitForSaved(page);
+  expect((await read()).nodes.length).toBe(3);
+  await page.locator('[data-a="whiteboardRedo"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-card')).toHaveCount(6);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    await page.locator('[data-a="whiteboardToggleSelection"]').click();
+    await page.locator('[data-in="whiteboardSelection"]').first().check();
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+    await page.screenshot({ path: `output/playwright/audit11-whiteboard-selection-${language === 'Русский' ? 'ru' : 'en'}.png` });
+  }
+});
+
 test('large folder navigation preserves pinned destinations and move search context', async ({ page }) => {
   test.setTimeout(180000);
   await signIn(page);

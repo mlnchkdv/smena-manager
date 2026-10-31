@@ -1,3 +1,4 @@
+import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S, proj } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
@@ -5,7 +6,7 @@ import { whiteboardScope, whiteboardState, whiteboardLabel, wbText as T } from '
 import { workspaceSyncState } from '../core/workspace-sync.js';
 import { canEditProject } from '../shared/project-access.js';
 import { entityAllowed } from '../shared/relations.js';
-import { BOARD_COLORS, whiteboardOf, validWhiteboard, whiteboardBounds, movedWhiteboardNodes, removeWhiteboardNode } from '../shared/project-whiteboard.js';
+import { BOARD_COLORS, whiteboardOf, validWhiteboard, whiteboardBounds, removeWhiteboardNode } from '../shared/project-whiteboard.js';
 import { esc, uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
@@ -67,7 +68,7 @@ const activeModal = () => {
     p = current();
   return m?.type === 'whiteboardTool' && p?.id === m.project && m.scope === whiteboardScope(p.id) ? m : null;
 };
-function command(edit) {
+export function whiteboardCommand(edit) {
   const p = current();
   if (!editable(p)) {
     toast(T('Editing is unavailable. Check access or synchronization.', 'Редактирование недоступно. Проверьте доступ и синхронизацию.'), { kind: 'err' });
@@ -121,6 +122,7 @@ function revealNode(node) {
   const s = whiteboardState(),
     box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   s.selected = node.id;
+  s.selection = [node.id];
   if (!box) return;
   s.zoom = Math.max(0.2, Math.min(s.zoom, (box.width - 32) / node.width, (box.height - 32) / node.height));
   s.x = box.width / 2 - (node.x + node.width / 2) * s.zoom;
@@ -251,13 +253,96 @@ A.whiteboardChooseMaterial = async el => {
     closeModal();
   }
 };
-A.whiteboardSelect = el => {
-  whiteboardState().selected = el.dataset.id;
+const command = whiteboardCommand;
+const selectedIds = () => {
+  const s = whiteboardState();
+  return (s.selection?.length ? s.selection : s.selected ? [s.selected] : []).filter(id => whiteboardOf(current()).nodes.some(n => n.id === id));
+};
+A.whiteboardSelect = (el, event) => {
+  const s = whiteboardState(),
+    id = el.dataset.id;
+  if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
+    const ids = new Set(selectedIds());
+    ids.has(id) ? ids.delete(id) : ids.add(id);
+    s.selection = [...ids];
+    s.selected = s.selection[0] || '';
+  } else {
+    if (!s.multiSelect || !selectedIds().includes(id)) s.selection = [id];
+    s.selected = id;
+  }
+  render();
+};
+IN.whiteboardSelection = el => {
+  const s = whiteboardState(),
+    ids = new Set(selectedIds());
+  el.checked ? ids.add(el.dataset.id) : ids.delete(el.dataset.id);
+  s.selection = [...ids];
+  s.selected = s.selection[0] || '';
+  render();
+};
+A.whiteboardToggleSelection = () => {
+  whiteboardState().multiSelect = !whiteboardState().multiSelect;
   render();
 };
 A.whiteboardDeselect = () => {
-  whiteboardState().selected = '';
+  const s = whiteboardState();
+  s.selected = '';
+  s.selection = [];
   render();
+};
+let clipboard;
+A.whiteboardCopy = async () => {
+  if (!current() || !selectedIds().length) return;
+  const board = copyWhiteboardSelection(whiteboardOf(current()), selectedIds());
+  clipboard = { scope: JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]), board };
+  try {
+    await navigator.clipboard.writeText(JSON.stringify({ format: 'smena-whiteboard-selection', version: 1, board }));
+  } catch {
+    /* internal fallback */
+  }
+  toast(T('Cards copied', 'Карточки скопированы'), { kind: 'info' });
+};
+A.whiteboardPaste = async () => {
+  const p = current();
+  if (!editable(p)) return;
+  const scope = whiteboardScope(p.id);
+  let fragment = clipboard?.scope === JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]) ? clipboard.board : null;
+  try {
+    const value = fragment ? null : JSON.parse(await navigator.clipboard.readText());
+    if (value?.format === 'smena-whiteboard-selection' && value.version === 1) fragment = value.board;
+  } catch {
+    /* optional clipboard */
+  }
+  if (!fragment && clipboard?.scope === JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url])) fragment = clipboard.board;
+  if (current()?.id !== p.id || scope !== whiteboardScope(p.id) || !editable(current())) return;
+  if (!fragment || !validWhiteboard(fragment))
+    return toast(T('Copy cards first or use a valid selection.', 'Сначала скопируйте карточки или используйте корректное выделение.'), { kind: 'info' });
+  const files = fragment.nodes
+    .filter(n => n.type === 'material' && n.target.startsWith('file:') && !D().files.some(f => f.id === n.target.slice(5)))
+    .map(n => n.target.slice(5));
+  if (files.length) {
+    try {
+      await ensureFileIdentities(files);
+    } catch {
+      return toast(T('Could not check material access. Try again.', 'Не удалось проверить доступ к материалам. Повторите попытку.'), { kind: 'err' });
+    }
+    if (current()?.id !== p.id || scope !== whiteboardScope(p.id) || !editable(current())) return;
+  }
+  if (fragment.nodes.some(n => n.type === 'material' && !entityAllowed(D(), n.target, { memberId: D().me, role: S.ui.currentUser?.role })))
+    return toast(T('A linked material is unavailable.', 'Связанный материал недоступен.'), { kind: 'err' });
+  const result = pasteWhiteboardSelection(whiteboardOf(current()), fragment, uid);
+  if (!result) return toast(T('Board limit or invalid coordinates.', 'Лимит холста или неверные координаты.'), { kind: 'err' });
+  if (command(next => Object.assign(next, result.board))) {
+    const s = whiteboardState();
+    s.selection = result.ids;
+    s.selected = result.ids[0] || '';
+    s.multiSelect = result.ids.length > 1;
+    render();
+  }
+};
+A.whiteboardArrange = el => {
+  if (!['left', 'right', 'top', 'bottom', 'center-x', 'center-y', 'distribute-x', 'distribute-y'].includes(el.dataset.mode)) return;
+  if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
 };
 A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
@@ -268,7 +353,14 @@ A.whiteboardNewEdge = () => {
   if (!editable(current())) return;
   if (board.nodes.length < 2) return toast(T('Add two cards first.', 'Сначала добавьте две карточки.'), { kind: 'info' });
   const from = whiteboardState().selected || board.nodes[0].id;
-  openTool({ kind: 'edge', from, to: board.nodes.find(n => n.id !== from).id, label: '', arrow: true, color: 'neutral' });
+  openTool({
+    kind: 'edge',
+    from,
+    to: selectedIds().find(id => id !== from) || board.nodes.find(n => n.id !== from).id,
+    label: '',
+    arrow: true,
+    color: 'neutral',
+  });
 };
 A.whiteboardEditEdge = el => {
   const edge = whiteboardOf(current()).edges.find(e => e.id === el.dataset.id);
@@ -280,7 +372,11 @@ function removeNode(id) {
     render();
   }
 }
-A.whiteboardDelete = () => removeNode(whiteboardState().selected);
+A.whiteboardDelete = () => {
+  const ids = selectedIds();
+  if (ids.length <= 1) return removeNode(whiteboardState().selected);
+  if (command(board => ids.forEach(id => removeWhiteboardNode(board, id)))) A.whiteboardDeselect();
+};
 A.whiteboardRemoveInModal = () => {
   const m = activeModal();
   if (!m || !editable(current())) return;
@@ -409,8 +505,13 @@ function down(e) {
     return;
   }
   const handle = e.target.closest('[data-board-drag]');
+  if (handle && (e.shiftKey || e.ctrlKey || e.metaKey)) {
+    pointers.delete(e.pointerId);
+    return;
+  }
   if (handle && editable(current())) {
-    const nodes = movedWhiteboardNodes(whiteboardOf(current()), handle.dataset.boardDrag);
+    if (!selectedIds().includes(handle.dataset.boardDrag)) s.selection = [handle.dataset.boardDrag];
+    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), s.selection?.length ? s.selection : [handle.dataset.boardDrag]);
     s.selected = handle.dataset.boardDrag;
     gesture = { kind: 'move', nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
   } else if (!e.target.closest('button,a,.whiteboard-card')) gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
@@ -555,6 +656,19 @@ document.addEventListener(
   e => {
     if (!e.target.closest('.project-whiteboard') || e.target.closest('input,textarea,select') || S.ui.modals.length) return;
     const s = whiteboardState();
+    if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'a'].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key.toLowerCase() === 'c') void A.whiteboardCopy();
+      else if (e.key.toLowerCase() === 'v') void A.whiteboardPaste();
+      else {
+        s.selection = whiteboardOf(current()).nodes.map(n => n.id);
+        s.selected = s.selection[0] || '';
+        s.multiSelect = true;
+        render();
+      }
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       e.stopPropagation();
@@ -563,6 +677,7 @@ document.addEventListener(
     }
     if (e.key === 'Escape') {
       s.selected = '';
+      s.selection = [];
       render();
       return;
     }
@@ -574,7 +689,7 @@ document.addEventListener(
       const [dx, dy] = offsets[e.key],
         step = e.shiftKey ? 50 : 10;
       command(b => {
-        const ids = new Set(movedWhiteboardNodes(b, s.selected).map(n => n.id));
+        const ids = new Set(whiteboardSelectionNodes(b, selectedIds()).map(n => n.id));
         for (const n of b.nodes)
           if (ids.has(n.id)) {
             n.x += dx * step;

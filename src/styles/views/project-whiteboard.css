@@ -359,3 +359,36 @@
     flex-wrap: wrap;
   }
 }
+
+.whiteboard-selection {
+  flex-wrap: wrap;
+}
+.whiteboard-arrange > div {
+  width: min(280px, calc(100vw - 24px));
+  max-height: 50dvh;
+  overflow: auto;
+}
+.whiteboard-card-head > input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: 10px;
+}
+
+.whiteboard-select-box {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.whiteboard-select-box input {
+  width: 18px;
+  height: 18px;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .whiteboard-select-box {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

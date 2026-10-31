@@ -11,8 +11,8 @@ export function whiteboardCard(node, editable, outline = false) {
   const label = esc(whiteboardLabel(node)),
     state = whiteboardState();
   const material = node.type === 'material' ? whiteboardMaterial(node) : null;
-  return `<article class="whiteboard-card ${state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px"`}>
-    <div class="whiteboard-card-head"><button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`) : ''}</div>
+  return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px"`}>
+    <div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`) : ''}</div>
     ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? `<p class="hint">${esc(T('Linked material · opens the original', 'Связанный материал · открывается оригинал'))}</p>${material ? `<button class="btn btn-secondary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${esc(T('Open material', 'Открыть материал'))}</button>` : `<p class="hint">${esc(T('It may have been removed, or access is unavailable.', 'Возможно, материал удалён или нет доступа.'))}</p><button class="link" data-a="whiteboardRetryMaterials">${esc(T('Retry', 'Повторить'))}</button>`}` : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
   </article>`;
 }
@@ -37,6 +37,8 @@ export function projectWhiteboard(project) {
   const board = whiteboardOf(project),
     state = whiteboardState(project.id),
     editable = !project.archived && canEditProject(project, D().me, S.ui.currentUser?.role);
+  if (!state.selected) state.selection = [];
+  const selectedIds = (state.selection?.length ? state.selection : state.selected ? [state.selected] : []).filter(id => board.nodes.some(n => n.id === id));
   const edgeList = board.edges
     .map(
       edge =>
@@ -58,7 +60,7 @@ export function projectWhiteboard(project) {
           )}</div></details>${button('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled')}${button('whiteboardRedo', 'redo-2', 'Redo', 'Повторить', state.redo.length ? '' : 'disabled')}`
       : `<span class="hint">${T('Read only', 'Только просмотр')}</span>`
   }
-  <span class="whiteboard-count">${board.nodes.length} / 200 · ${board.edges.length} ${T('connections', 'связей')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${button('whiteboardExport', 'download', 'Download board JSON', 'Скачать JSON холста')}
+  ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}${editable ? button('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}<span class="whiteboard-count">${board.nodes.length} / 200 · ${board.edges.length} ${T('connections', 'связей')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${button('whiteboardExport', 'download', 'Download board JSON', 'Скачать JSON холста')}
   </div><p id="whiteboard-help" class="sr">${T('Move cards by their title. Drag empty space to pan; pinch or Ctrl + wheel to zoom. Arrow keys on a selected card move it. Outline mode lists every card and connection.', 'Перемещайте карточки за заголовок. Пустое место — панорама; щипок или Ctrl + колесо — масштаб. Стрелки на выбранной карточке перемещают её. В списке доступны все карточки и связи.')}</p>
   ${
     state.outline
@@ -72,6 +74,32 @@ export function projectWhiteboard(project) {
             '',
           )}</div>${!board.nodes.length ? `<div class="whiteboard-empty">${ic('layout-dashboard', 32)}<h2>${T('Give your ideas room', 'Разложите идеи по местам')}</h2><p>${T('Arrange cards and project materials, then connect them.', 'Разместите карточки и материалы проекта, затем свяжите их.')}</p>${editable ? `<button class="btn btn-primary btn-sm" data-a="whiteboardNewText">${ic('plus', 15)}${T('First card', 'Первая карточка')}</button>` : ''}</div>` : ''}<div class="whiteboard-navigation">${button('whiteboardZoomOut', 'minus', 'Zoom out', 'Уменьшить')}<button class="whiteboard-scale" data-a="whiteboardResetZoom" aria-label="${T('Reset zoom', 'Сбросить масштаб')}">${Math.round(state.zoom * 100)}%</button>${button('whiteboardZoomIn', 'plus', 'Zoom in', 'Увеличить')}${button('whiteboardFit', 'scan', 'Fit all cards', 'Показать весь холст')}</div></div>`
   }
-  ${state.selected ? `<div class="whiteboard-selection"><span class="trunc">${esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${editable ? `${button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку')}${button('whiteboardNewEdge', 'move-right', 'Connect card', 'Связать карточку')}${button('whiteboardDuplicate', 'copy', 'Duplicate card', 'Дублировать карточку')}${button('whiteboardDelete', 'trash-2', 'Remove card', 'Убрать карточку')}` : ''}${button('whiteboardDeselect', 'x', 'Clear selection', 'Снять выделение')}</div>` : ''}
+  ${
+    state.selected
+      ? `<div class="whiteboard-selection"><span class="trunc">${selectedIds.length > 1 ? T('Selected', 'Выбрано') + ': ' + selectedIds.length : esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${
+          editable
+            ? `${button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку')}${button('whiteboardNewEdge', 'move-right', 'Connect card', 'Связать карточку')}${button('whiteboardCopy', 'copy', 'Copy cards', 'Копировать карточки')}${
+                selectedIds.length > 1
+                  ? `<details class="ui-menu whiteboard-add whiteboard-arrange"><summary class="ibtn" aria-label="${T('Arrange cards', 'Выровнять карточки')}">${ic('align-start-vertical', 16)}</summary><div>${[
+                      ['left', 'Align left', 'По левому краю'],
+                      ['right', 'Align right', 'По правому краю'],
+                      ['top', 'Align top', 'По верхнему краю'],
+                      ['bottom', 'Align bottom', 'По нижнему краю'],
+                      ['center-x', 'Center horizontally', 'По центру по горизонтали'],
+                      ['center-y', 'Center vertically', 'По центру по вертикали'],
+                      ['distribute-x', 'Distribute horizontally', 'Распределить по горизонтали'],
+                      ['distribute-y', 'Distribute vertically', 'Распределить по вертикали'],
+                    ]
+                      .map(
+                        ([mode, en, ru]) =>
+                          `<button data-a="whiteboardArrange" data-mode="${mode}" ${mode.startsWith('distribute') && selectedIds.length < 3 ? 'disabled' : ''}>${T(en, ru)}</button>`,
+                      )
+                      .join('')}</div></details>`
+                  : ''
+              }${button('whiteboardDelete', 'trash-2', 'Remove card', 'Убрать карточку')}`
+            : ''
+        }${button('whiteboardDeselect', 'x', 'Clear selection', 'Снять выделение')}</div>`
+      : ''
+  }
   <details class="whiteboard-help"><summary>${T('Navigation and limits', 'Навигация и ограничения')}</summary><p>${T('Drag empty space to pan. Pinch or Ctrl + wheel to zoom. Use Outline on phones and keyboards. Boards support 200 cards and 400 connections. Changes use workspace synchronization; simultaneous editing of the same field may require conflict review.', 'Пустое место — панорама. Щипок или Ctrl + колесо — масштаб. На телефоне и с клавиатурой удобно работать в списке. До 200 карточек и 400 связей. Работает синхронизация пространства; одновременные изменения одного поля могут потребовать разрешения конфликта.')}</p></details></section>`;
 }
