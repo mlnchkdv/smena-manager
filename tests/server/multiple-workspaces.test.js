@@ -113,7 +113,11 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
     }
     return fetch(`${base}${url}`, {
       ...options,
-      headers: { Authorization: `Bearer ${tokens.get(user.id)}`, ...(scope ? { 'X-Smena-Workspace': scope } : {}), 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${tokens.get(user.id)}`,
+        ...(scope ? { 'X-Smena-Workspace': scope } : {}),
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+      },
     });
   };
   try {
@@ -137,6 +141,7 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
         current => ({
           ...current,
           members: [...current.members, { id: 'new-child-member', name: 'Child member', email: 'child@example.test', role: 'Member', status: 'active' }],
+          _userPrefs: { ...current._userPrefs, 'new-child-member': { lang: 'English (UK)', theme: 'dark' }, [owner.id]: { lang: 'Русский' } },
         }),
         data.revision,
       );
@@ -158,7 +163,10 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
     assert.equal(ownedData.members.length, 1);
     assert.equal(ownedData.members[0].role, 'Owner');
     assert.equal(ownedData.members[0].email, profile.email);
+    assert.deepEqual((await (await call(profile, '/api/preferences', owned.id)).json()).preferences, { lang: 'English (UK)' });
     ownedData.ws.name = 'Configured by its creator';
+    ownedData.projects.push({ id: 'owned-project', name: 'Owner-only project marker', members: [ownedData.me], lead: ownedData.me });
+    ownedData.tasks.push({ id: 'owned-task', title: 'Owner-only task marker', project: 'owned-project', status: 'todo' });
     assert.equal(
       (
         await call(profile, '/api/workspace', owned.id, {
@@ -169,7 +177,64 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
       200,
     );
     assert.equal((await (await call(profile, '/api/workspace', owned.id)).json()).data.ws.name, 'Configured by its creator');
+    for (const [name, data] of Object.entries({
+      knowledge: { knowledgeNotes: [{ id: 'owned-note', title: 'Owner-only note marker', formatted_markdown: '# Private content' }], knowledgeFolders: [] },
+      bookmarks: { links: [{ id: 'owned-bookmark', title: 'Owner-only bookmark marker', url: 'https://example.test/owned' }], linkFolders: [] },
+    })) {
+      const initial = (await (await call(profile, `/api/workspace-documents/${name}`, owned.id)).json()).data;
+      assert.equal(
+        (await call(profile, `/api/workspace-documents/${name}`, owned.id, { method: 'PUT', body: JSON.stringify({ revision: initial.revision, data }) }))
+          .status,
+        200,
+      );
+      const reloaded = (await (await call(profile, `/api/workspace-documents/${name}`, owned.id)).json()).data;
+      const field = name === 'knowledge' ? 'knowledgeNotes' : 'links';
+      assert.equal(reloaded[field][0].id, data[field][0].id);
+      const sourceDocument = (await (await call(profile, `/api/workspace-documents/${name}`, a.id)).json()).data;
+      assert.ok(!sourceDocument[field].some(item => item.id === data[field][0].id));
+    }
+    const upload = new FormData();
+    upload.set('file', new Blob(['Owner-only file marker'], { type: 'text/plain' }), 'owned-isolation.txt');
+    upload.set('project', 'owned-project');
+    upload.set('revision', String((await (await call(profile, '/api/workspace', owned.id)).json()).data.revision));
+    const uploaded = await call(profile, '/api/files/upload', owned.id, { method: 'POST', body: upload });
+    assert.equal(uploaded.status, 201);
+    const file = (await uploaded.json()).file;
+    assert.equal(await (await call(profile, `/api/files/${file.id}/content`, owned.id)).text(), 'Owner-only file marker');
+    assert.equal((await call(profile, `/api/files/${file.id}/content`, a.id)).status, 404);
+    // A source administrator is not automatically a member of a personal workspace.
+    for (const endpoint of [
+      '/api/workspace',
+      '/api/workspace-documents/knowledge',
+      '/api/workspace-documents/bookmarks',
+      '/api/files/catalog',
+      `/api/files/${file.id}/content`,
+    ])
+      assert.equal((await call(owner, endpoint, owned.id)).status, 403, endpoint);
+    assert.ok(!(await listUserWorkspaces(owner, [owner, guest])).some(item => item.id === owned.id));
+    assert.equal(
+      (await call(profile, '/api/preferences', owned.id, { method: 'PUT', body: JSON.stringify({ preferences: { lang: 'Русский' } }) })).status,
+      200,
+    );
+    assert.equal((await (await call(profile, '/api/preferences', owned.id)).json()).preferences.lang, 'Русский');
+    assert.equal(
+      (await (await call(profile, '/api/preferences', a.id)).json()).preferences.lang,
+      'English (UK)',
+      'later language changes remain workspace-local',
+    );
+    resetWorkspaceStore();
+    resetStorageProvider();
+    const coldOwned = (await (await call(profile, '/api/workspace', owned.id)).json()).data;
+    assert.equal(coldOwned.ws.name, 'Configured by its creator');
+    assert.equal(coldOwned.tasks.find(item => item.id === 'owned-task').title, 'Owner-only task marker');
+    assert.equal((await (await call(profile, '/api/workspace-documents/knowledge', owned.id)).json()).data.knowledgeNotes[0].id, 'owned-note');
+    assert.equal((await (await call(profile, '/api/workspace-documents/bookmarks', owned.id)).json()).data.links[0].id, 'owned-bookmark');
+    assert.equal(await (await call(profile, `/api/files/${file.id}/content`, owned.id)).text(), 'Owner-only file marker');
+    assert.equal((await call(owner, '/api/workspace', owned.id)).status, 403);
     const sourceData = (await (await call(profile, '/api/workspace', a.id)).json()).data;
+    assert.ok(!sourceData.projects.some(item => item.id === 'owned-project'));
+    assert.ok(!sourceData.tasks.some(item => item.id === 'owned-task'));
+    assert.ok(!sourceData.files.some(item => item.id === file.id));
     const sourceName = sourceData.ws.name;
     sourceData.ws.name = 'Forbidden source edit';
     assert.equal(
@@ -224,6 +289,14 @@ test('creation retry recovers the same published workspace and rejects changed i
   assert.equal(retry.id, first.id);
   assert.equal((await listUserWorkspaces(owner)).filter(item => item.id === first.id).length, 1);
   await assert.rejects(createWorkspace(owner, { ...input, name: 'Changed' }), error => error.code === 'WORKSPACE_INPUT_CHANGED');
+});
+
+test('new workspace language falls back to creation locale without copying another member preferences', async () => {
+  const entry = await createWorkspace(owner, { name: 'English creation locale', locale: 'en', includeMembers: true }, [owner, guest]);
+  const data = await inWorkspace(entry.id, () => getWorkspaceDatabase());
+  assert.deepEqual(data._userPrefs, { [owner.id]: { lang: 'English (US)' } });
+  assert.equal(data.members.find(member => member.id === owner.id).locale, 'en');
+  assert.ok(data.members.some(member => member.email === guest.email));
 });
 
 test('workspace archive is reversible, scoped and hides contents without clearing them', async () => {

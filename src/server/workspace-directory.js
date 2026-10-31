@@ -14,6 +14,7 @@ import { isActiveMember } from '../shared/workspace-membership.js';
 import { mergeAccessProfiles, workspaceMemberRole, workspaceAccessProfiles } from '../shared/workspace-access.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
+import { applyPersonalSettings } from '../shared/personal-settings.js';
 
 const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs'];
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
@@ -140,6 +141,16 @@ export async function createWorkspace(identity, input, configured = []) {
     data.teams = [team];
     const creator = data.members[0];
     Object.assign(creator, { role: 'Owner', status: 'active', team: team.id });
+    const sourceMember = memberForProfile(source, identity);
+    const sourceLanguage = source._userPrefs?.[sourceMember?.id]?.lang;
+    const language = ['Русский', 'English (US)', 'English (UK)'].includes(sourceLanguage)
+      ? sourceLanguage
+      : input?.locale === 'en'
+        ? 'English (US)'
+        : 'Русский';
+    // Seed only the creator's language. Each workspace keeps independent
+    // preferences; do not copy other members' settings or notification state.
+    applyPersonalSettings(data, creator.id, { preferences: { lang: language } });
     team.members = [creator.id];
     if (input?.includeMembers === true) {
       for (const member of (sourceScope === 'default' ? bindAccessProfiles(source, configured).members : source.members) || []) {
