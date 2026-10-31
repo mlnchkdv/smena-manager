@@ -70,7 +70,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       (async () => {
         const cache = await caches.open(OFFLINE_CACHE);
-        return (await cache.match(event.request)) || fetch(event.request);
+        return (await cache.match(event.request, { ignoreVary: true })) || fetch(event.request);
       })(),
     );
 });
