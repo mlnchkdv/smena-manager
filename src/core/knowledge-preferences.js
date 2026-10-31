@@ -20,7 +20,11 @@ export function knowledgePreferences() {
     S.ui.knowledgeSelection = [];
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
-    S.ui.knowledgeNoteLayout = value.noteLayout === 'list' ? 'list' : 'grid';
+    S.ui.knowledgeNoteLayout = ['list', 'grid'].includes(value.noteLayout)
+      ? value.noteLayout
+      : window.matchMedia('(max-width: 640px)').matches
+        ? 'list'
+        : 'grid';
     S.ui.knowledgeFolderNavOffset = 0;
     S.ui.knowledgeFolderCardOffset = 0;
     S.ui.knowledgeFolderCardQuery = '';
