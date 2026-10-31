@@ -17,6 +17,20 @@ import { KNOWLEDGE_CATEGORIES, knowledgeCategoryLabel } from './knowledge-catego
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
+import { knowledgeVersionFits } from '../shared/knowledge-history.js';
+
+A.downloadKnowledgeNoteSource = el => {
+  const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+  if (!note || typeof note.formatted_markdown !== 'string') return;
+  const url = URL.createObjectURL(new Blob([note.formatted_markdown], { type: 'text/plain;charset=utf-8' }));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = (note.title || 'note').replace(/[\\/:*?"<>|\u0000-\u001f]/gu, '-').slice(0, 120) + (note.sourceFormat === 'text' ? '.txt' : '.md');
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
 
 A.toggleKnowledgeFormatting = () => {
   captureKnowledgeEditorPosition();
@@ -55,6 +69,7 @@ export function noteEditor(note, folders, readOnly) {
     </div>
     <span class="sr" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
+    <div class="alert info knowledge-version-coverage" data-knowledge-version-coverage data-id="${esc(note.id)}" role="status" ${knowledgeVersionFits(note) ? 'hidden' : ''}><span>Large note: text can be saved, but new individual versions are not created. Download the source before major edits.</span><button class="btn btn-secondary btn-sm" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">Download source</button></div>
 
     <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button>${note.sourceFormat !== 'text' ? `<button data-a="setKnowledgeEditorPane" data-pane="blocks" aria-pressed="${pane === 'blocks'}" class="${pane === 'blocks' ? 'on' : ''}" translate="no">${kc('Blocks', 'Блоки')}</button>` : ''}<button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}" translate="no">${kc('Read', 'Читать')}</button></div><span class="knowledge-save-status" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span><button class="ibtn knowledge-format-toggle" data-a="toggleKnowledgeFormatting" aria-label="Text formatting" aria-expanded="${!!S.ui.knowledgeFormatExpanded}" aria-controls="knowledge-format-tools">${ic('type', 16)}</button><button class="ibtn knowledge-editor-focus" data-a="toggleKnowledgeEditorFocus" aria-pressed="${!!S.ui.knowledgeEditorFocus}" aria-label="${kc(S.ui.knowledgeEditorFocus ? 'Exit editor focus' : 'Focus editor', S.ui.knowledgeEditorFocus ? 'Выйти из фокуса редактора' : 'Фокус на редакторе')}" title="${kc(S.ui.knowledgeEditorFocus ? 'Exit editor focus' : 'Focus editor', S.ui.knowledgeEditorFocus ? 'Выйти из фокуса редактора' : 'Фокус на редакторе')}">${ic(S.ui.knowledgeEditorFocus ? 'minimize' : 'maximize', 16)}</button></div>
     <div id="knowledge-format-tools" class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[

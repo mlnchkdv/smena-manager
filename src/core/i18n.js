@@ -17,6 +17,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Large note: text can be saved, but new individual versions are not created. Download the source before major edits.':
+    'Большая заметка: текст сохраняется, но новые индивидуальные версии не создаются. Перед крупной правкой скачайте исходник.',
+  'Download source': 'Скачать исходник',
+  'No new individual versions for this large note. Keep its source for recovery.':
+    'Для этой большой заметки новые индивидуальные версии не создаются. Сохраните исходник для восстановления.',
+  'Version retention depends on the size of the complete text-and-properties snapshot. Up to 5 versions are retained.':
+    'История зависит от размера снимка текста и свойств. Хранятся до 5 версий.',
   'Preview alongside': 'Предпросмотр рядом',
   'Team tasks': 'Задачи команды',
   'Your list is empty. Explore workspace tasks or switch to Team overview.':

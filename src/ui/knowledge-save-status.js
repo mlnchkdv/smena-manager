@@ -2,6 +2,7 @@ import { S, D } from '../core/store.js';
 import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
 import { t } from '../core/i18n.js';
+import { knowledgeVersionFits } from '../shared/knowledge-history.js';
 export function knowledgeSaveLabel() {
   const state = workspaceSyncState().documents.knowledge;
   if (state.hasConflict) return 'Conflict';
@@ -15,6 +16,10 @@ export function knowledgeEditBlocked() {
 export function updateKnowledgeSaveStatus() {
   document.querySelectorAll('[data-knowledge-save-status]').forEach(el => {
     el.textContent = t(knowledgeSaveLabel());
+  });
+  document.querySelectorAll('[data-knowledge-version-coverage]').forEach(el => {
+    const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+    el.hidden = !note || knowledgeVersionFits(note);
   });
 }
 if (typeof window !== 'undefined') {
