@@ -2,8 +2,10 @@ import { DEFAULT_NOTIFICATION_PREFERENCES, notificationRecipient } from './notif
 import { resolveTimeZone } from './calendar-time.js';
 import { validKnowledgeQueries } from './knowledge-query.js';
 import { validSidebar } from './sidebar-preferences.js';
+import { validCardMeta } from './knowledge-card-meta.js';
 
 const PREFERENCE_TYPES = Object.freeze({
+  knowledgeCardMeta: 'string',
   sidebar: 'string',
   graphSimple: 'boolean',
   graphPhysics: 'boolean',
@@ -50,12 +52,19 @@ export function applyPersonalSettings(database, memberId, input) {
     for (const [key, value] of Object.entries(input.preferences)) {
       if (
         typeof value !== PREFERENCE_TYPES[key] ||
-        (typeof value === 'string' && value.length > (key === 'knowledgeQueries' ? 24000 : key === 'sidebar' ? 6000 : 180))
+        (typeof value === 'string' && value.length > (['knowledgeQueries', 'knowledgeCardMeta'].includes(key) ? 24000 : key === 'sidebar' ? 6000 : 180))
       )
         invalid();
       if (key === 'sidebar') {
         try {
           if (!validSidebar(JSON.parse(value))) invalid();
+        } catch {
+          invalid();
+        }
+      }
+      if (key === 'knowledgeCardMeta') {
+        try {
+          if (!validCardMeta(JSON.parse(value))) invalid();
         } catch {
           invalid();
         }

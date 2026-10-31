@@ -1,5 +1,59 @@
 import { expect, test } from '@playwright/test';
 
+test('knowledge card metadata is configurable and persists across languages and sizes', async ({ page }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeNotes.push({
+    id: 'metadata-card-a',
+    title: 'Meeting / Встреча',
+    formatted_markdown: 'Test',
+    typeId: 'meeting',
+    properties: { date: '2026-10-31' },
+    tags: [],
+    folderId: null,
+  });
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/knowledge');
+    const card = page.locator('[data-id="metadata-card-a"].knowledge-preview-card');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expect(card.locator('.knowledge-card-type')).toHaveText(language === 'Русский' ? 'Встреча' : 'Meeting');
+      await expect(card.locator('.knowledge-card-meta')).toContainText(language === 'Русский' ? 'Дата' : 'Date');
+      await expectNoPageOverflow(page);
+    }
+    await page.locator('.knowledge-view-options > summary').click();
+    await page.locator('[data-a="configureCardMeta"]').click();
+    const dialog = page.getByRole('dialog');
+    await dialog.locator('[data-in="cardMetaType"]').uncheck();
+    await dialog.locator('[data-in="cardMetaField"][data-field="date"]').uncheck();
+    await dialog.locator('[data-a="applyCardMeta"]').click();
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.reload();
+    await expect(card.locator('.knowledge-card-meta')).toHaveCount(0);
+    await page.locator('.knowledge-view-options > summary').click();
+    await page.locator('[data-a="configureCardMeta"]').click();
+    await dialog.locator('[data-in="cardMetaType"]').check();
+    await dialog.locator('[data-in="cardMetaField"][data-field="date"]').check();
+    await dialog.locator('[data-a="applyCardMeta"]').click();
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  }
+});
+
 test.setTimeout(120_000);
 
 async function signIn(page) {

@@ -1,4 +1,5 @@
 import { knowledgeViewOptions } from '../ui/knowledge-view-options.js';
+import { noteCardMeta } from '../ui/knowledge-card-meta.js';
 import '../features/knowledge.js';
 import '../ui/knowledge-tags.js';
 import { smartCollections } from '../ui/knowledge-queries.js';
@@ -79,7 +80,7 @@ function notePreviewCard(note, folder, readOnly, folderIndex) {
   return `<article class="knowledge-preview-card${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
-    ${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
+    ${noteCardMeta(note)}${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
   </button><div class="knowledge-preview-location">${folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="${actionLabel('Move note')}" title="${actionLabel('Move note')}">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${actionLabel(note.favorite ? 'Remove from favorites' : 'Add to favorites')}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
 }
 
