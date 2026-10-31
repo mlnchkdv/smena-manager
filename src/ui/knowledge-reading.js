@@ -20,6 +20,10 @@ export const knowledgeMarkdownOptions = (note = {}) => ({
   loadImageLabel: document.documentElement.lang === 'ru' ? 'Загрузить изображение' : 'Load image',
   bindImageLabel: document.documentElement.lang === 'ru' ? 'Связать с файлом' : 'Bind to a file',
   resolveBlock: (id, block) => resolveKnowledgeBlock(D().knowledgeNotes, id, block),
+  embedShortenedLabel:
+    document.documentElement.lang === 'ru'
+      ? 'Фрагмент сокращён. Полный блок доступен в источнике.'
+      : 'Excerpt shortened. Open the source to read the complete block.',
   embedUnavailableLabel: document.documentElement.lang === 'ru' ? 'Блок недоступен или образует цикл' : 'Block unavailable or recursive',
   unresolvedLabel: t('Unresolved wiki link'),
   imageLabel: t('Image'),

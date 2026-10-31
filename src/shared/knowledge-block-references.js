@@ -1,6 +1,19 @@
 import { markdownBlocks } from './knowledge-blocks.js';
 export function blockIdentity(raw) {
-  return String(raw).match(/(?:^|\n)\^([a-zA-Z0-9_-]{1,100})[ \t]*(?:\n|$)/)?.[1] || '';
+  let fence = '';
+  for (const line of String(raw).split(/\r?\n/)) {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/);
+    if (marker) {
+      if (!fence) fence = marker[1];
+      else if (marker[1][0] === fence[0] && marker[1].length >= fence.length && /^\s*[`~]+\s*$/.test(line)) fence = '';
+      continue;
+    }
+    if (!fence) {
+      const id = line.match(/^\^([a-zA-Z0-9_-]{1,100})[ \t]*$/);
+      if (id) return id[1];
+    }
+  }
+  return '';
 }
 export function identifyBlock(source, index, id) {
   if (!/^[a-zA-Z0-9_-]{1,100}$/.test(id)) throw new TypeError('Invalid block ID');

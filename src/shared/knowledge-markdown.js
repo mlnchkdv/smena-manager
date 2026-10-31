@@ -115,6 +115,7 @@ const markdown = new Marked({
 });
 
 export function renderKnowledgeMarkdown(source, options = {}) {
+  options = { ...options, embedBudget: options.embedBudget || { count: 0 } };
   if (options.plainText) return `<pre class="knowledge-plain-text">${escape(source)}</pre>`;
   const headings = new Set();
   const externalLink = (href, label) =>
@@ -144,7 +145,7 @@ export function renderKnowledgeMarkdown(source, options = {}) {
             if (!block || stack.includes(key) || stack.length >= 4 || budget.count >= 12)
               return `<span class="hint">${escape(options.embedUnavailableLabel || 'Block unavailable or recursive')}</span>`;
             budget.count++;
-            return `<span class="knowledge-transclusion"><strong>${escape(block.title)}</strong>${renderKnowledgeMarkdown(block.source, { ...options, embedBudget: budget, embedStack: [...stack, key] })}</span>`;
+            return `<span class="knowledge-transclusion"><strong><button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(ref.key)}">${escape(block.title)}</button></strong>${renderKnowledgeMarkdown(block.source.slice(0, 32000), { ...options, embedBudget: budget, embedStack: [...stack, key] })}${block.source.length > 32000 ? `<span class="hint">${escape(options.embedShortenedLabel || 'Excerpt shortened. Open the source to read the complete block.')}</span>` : ''}</span>`;
           }
           case 'knowledgeWiki': {
             const material = materialLink(token.text);

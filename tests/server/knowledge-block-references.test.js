@@ -15,3 +15,10 @@ test('stable block identities survive moves and recursive embeds are bounded', (
   assert.match(cycle, /recursive/);
   assert.ok(cycle.length < 1000);
 });
+
+test('embed budgets apply to the entire document and code examples do not claim IDs', () => {
+  const html = renderKnowledgeMarkdown(Array(40).fill('![[note:n#^stable]]').join('\n\n'), { resolveBlock: () => ({ title: 'Source', source: 'Text' }) });
+  assert.equal((html.match(/knowledge-transclusion/g) || []).length, 12);
+  const source = '```\n^fake\n```';
+  assert.equal(resolveKnowledgeBlock([{ id: 'n', formatted_markdown: source }], 'n', 'fake'), null);
+});
