@@ -54,6 +54,10 @@ test('workspace provisioning isolates concurrent data, files, membership, backup
   ]);
   assert.notEqual(a.id, b.id);
   assert.equal((await listUserWorkspaces(owner, [owner, guest])).length, 3);
+  const ownEntry = (await listUserWorkspaces(owner, [owner, guest])).find(item => item.id === a.id);
+  assert.equal(ownEntry.role, 'admin');
+  assert.equal(ownEntry.memberRole, 'Owner');
+  assert.equal((await listUserWorkspaces(guest, [owner, guest])).find(item => item.id === b.id).memberRole, 'Guest');
   assert.deepEqual((await listUserWorkspaces(guest, [owner, guest])).map(item => item.id).sort(), ['default', b.id].sort());
   await Promise.all(
     [a, b].map((entry, index) =>

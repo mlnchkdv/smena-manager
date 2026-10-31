@@ -2022,7 +2022,8 @@ const TEMPLATE_TEXT_RU = {
 };
 
 export const templateText = value => (isRussian() ? TEMPLATE_TEXT_RU[value] || value : value);
-export const workspaceRoleLabel = role => t(role === 'admin' ? 'Administrator' : role === 'viewer' ? 'Guest' : 'Member');
+export const workspaceRoleLabel = role =>
+  t({ owner: 'Owner', admin: 'Administrator', viewer: 'Guest', guest: 'Guest' }[String(role || '').toLowerCase()] || 'Member');
 
 const pluralRu = (value, one, few, many) => {
   const count = Number(value);

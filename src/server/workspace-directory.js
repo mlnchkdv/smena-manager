@@ -57,6 +57,7 @@ export async function listUserWorkspaces(identity, configured = []) {
         url: data.ws?.url || '',
         c: data.ws?.c || '#5A67D8',
         role: user.role,
+        memberRole: memberForProfile(data, identity)?.role || user.role,
         initialized: Boolean(data.ws?.name),
       };
     }),

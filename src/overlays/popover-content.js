@@ -231,7 +231,7 @@ export function popHtml(p) {
           .map(w => {
             const current = w.id === S.ui.activeWorkspace;
             const item = current ? D().ws : w;
-            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow min0"><span class="trunc" style="display:block" translate="no">${esc(item.name || tr('New workspace'))}</span><small class="faint" style="display:block" translate="no">${esc(w.url)} · ${workspaceRoleLabel(w.role)}</small></span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
+            return `<button class="mi" data-a="switchWs" data-v="${esc(w.id)}" aria-current="${current ? 'true' : 'false'}">${wsLogo({ ...item, name: item.name || '?' }, 24)}<span class="grow min0"><span class="trunc" style="display:block" translate="no">${esc(item.name || tr('New workspace'))}</span><small class="faint" style="display:block" translate="no">${esc(w.url)} · ${workspaceRoleLabel(w.memberRole || w.role)}</small></span>${current ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`;
           })
           .join('') || `<div class="mi faint">No matches</div>`
       }</div>${canCreateWorkspace(S.ui.currentUser?.role) ? `<div class="msep"></div><button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button>` : ''}${S.ui.currentUser?.role === 'admin' ? `<button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Add access</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
