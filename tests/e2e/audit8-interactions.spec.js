@@ -136,10 +136,11 @@ test('audit eight: authored palette text, select and folder focus, graph context
       await overflow(page);
       await page.locator('.topbar [data-a="openPalette"]').click();
       await page.locator('#pal-in').fill('Frontend');
-      await expect(page.locator('.pi > .trunc').filter({ hasText: 'Frontend сайта' })).toHaveCount(1);
+      await expect(page.locator('.pi .pi-name').filter({ hasText: 'Frontend сайта' })).toHaveCount(1);
+      expect((await page.locator('.pi .pi-name').filter({ hasText: 'Frontend сайта' }).boundingBox()).width).toBeGreaterThan(80);
       await expect(page.locator('.pi .sub').filter({ hasText: 'Design' })).toHaveCount(1);
       await expect(
-        page.locator('.pi > .trunc').filter({ hasText: ru ? 'Все результаты по запросу «Frontend»' : 'View all results for “Frontend”' }),
+        page.locator('.pi .pi-name').filter({ hasText: ru ? 'Все результаты по запросу «Frontend»' : 'View all results for “Frontend”' }),
       ).toHaveCount(1);
       await expect(page.locator('.pi mark').first()).toHaveText('Frontend');
       for (const search of [false, true]) {
@@ -148,7 +149,7 @@ test('audit eight: authored palette text, select and folder focus, graph context
       }
       if (width === 320) {
         await page.locator('#pal-in').fill('Home');
-        await expect(page.locator('.pi > .trunc').filter({ hasText: /^Home$/ })).toHaveCount(3);
+        await expect(page.locator('.pi .pi-name').filter({ hasText: /^Home$/ })).toHaveCount(3);
         await expect(page.locator('.pi .sub').filter({ hasText: ru ? /^Общие$/ : /^General$/ })).toHaveCount(1);
       }
       await page.locator('#pal-in').press('Escape');
