@@ -5,6 +5,7 @@ import { assertFileFolder, validateProjectFileFolders } from './file-organizatio
 import { projectImageData } from './project-appearance.js';
 import { validNoteTypes, validNoteProperties } from './knowledge-types.js';
 import { validKnowledgeTemplates } from './knowledge-templates.js';
+import { validWhiteboard } from './project-whiteboard.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -125,6 +126,7 @@ export function validateWorkspaceData(value) {
   }
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
     if (!isObject(project)) continue;
+    if (project.whiteboard != null && !validWhiteboard(project.whiteboard)) invalid.push('projects.whiteboard');
     if (project.iconImage != null && project.iconImage !== '' && !projectImageData(project.iconImage)) invalid.push('projects.iconImage');
     try {
       validateProjectFileFolders(project);

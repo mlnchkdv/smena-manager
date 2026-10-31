@@ -92,6 +92,14 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
   const editable = id => canEditProject(projects.get(id) || proposed.get(id), memberId, role);
   const commentable = id => projectAccess(projects.get(id) || proposed.get(id), memberId, role) >= 2;
 
+  // Material cards store identity only. Never copy private titles/content into another project's board.
+  for (const project of candidate.projects || []) {
+    const oldNodes = new Map((projects.get(project.id)?.whiteboard?.nodes || []).map(node => [node.id, node]));
+    for (const node of Array.isArray(project.whiteboard?.nodes) ? project.whiteboard.nodes : [])
+      if (node.type === 'material' && node.target !== oldNodes.get(node.id)?.target && !entityAllowed(current, node.target, { role, memberId }))
+        throw permissionError('projects.whiteboard.target');
+  }
+
   if (role !== 'admin') {
     const guarded = restoreUnauthorizedChanges(current, candidate, role, memberId);
     for (const field of guarded.fields) candidate[field] = guarded.data[field];

@@ -10,7 +10,7 @@ export function applyEntityDefaults(data) {
     for (const subtask of Array.isArray(task?.subtasks) ? task.subtasks : []) fill(subtask, { title: '', done: false });
   }
   for (const project of Array.isArray(data.projects) ? data.projects : [])
-    fill(project, { name: '', desc: '', status: 'planning', members: [], perms: {}, milestones: [] });
+    fill(project, { name: '', desc: '', status: 'planning', members: [], perms: {}, milestones: [], whiteboard: { version: 1, nodes: [], edges: [] } });
   for (const comment of Array.isArray(data.comments) ? data.comments : []) fill(comment, { text: '', re: {} });
   if (data.relations == null) data.relations = [];
   if (Array.isArray(data.knowledgeNotes)) bindWikiReferences(data.knowledgeNotes);

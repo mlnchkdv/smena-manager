@@ -71,6 +71,9 @@ export function workspaceGraph(data, options = {}) {
     }
   }
   for (const node of nodes) {
+    if (node.kind === 'project')
+      for (const card of node.item.whiteboard?.nodes || [])
+        if (card.type === 'material') add({ id: `whiteboard:${node.id}:${card.id}`, from: node.key, to: card.target, type: 'used', origin: 'automatic' });
     if (node.kind !== 'project' && node.project)
       add({ id: `project:${node.key}`, from: node.key, to: entityKey('project', node.project), type: 'used', origin: 'automatic' });
     if (node.kind === 'file' && node.item.task)
