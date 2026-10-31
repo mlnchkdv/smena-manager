@@ -11,6 +11,8 @@ export function knowledgeImportReview(preview, folders) {
       .map(folder => folder.name)
       .join(' / ') || t('No folder');
   return `<div class="knowledge-import-review"><p><span>Destination folder</span>: <strong translate="no">${esc(destination)}</strong></p>
+    ${preview.batches ? `<p class="hint">${t('Files are read in batches of 50. Nothing is saved until you confirm the complete review.')}</p>` : ''}
+    ${preview.files && preview.entries.some(entry => entry.error) ? `<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeImport">${t('Retry failed files')}</button>` : ''}
     ${preview.entries.some(entry => entry.error) ? '<p class="alert info">Some files could not be read. Only the valid notes below will be imported.</p>' : ''}
     <ul>${preview.entries
       .map(entry => {

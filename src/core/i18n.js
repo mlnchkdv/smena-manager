@@ -609,6 +609,11 @@ const RU = {
   'Star useful notes to keep them close at hand.': 'Отметьте полезные заметки звёздочкой, чтобы быстро их находить.',
   'Create a note or import TXT and Markdown files.': 'Создайте заметку или импортируйте файлы TXT и Markdown.',
   'Reading note files…': 'Читаем файлы заметок…',
+  'Select up to 1,000 note files.': 'Выберите до 1 000 файлов заметок.',
+  'Import canceled. Nothing was saved.': 'Импорт отменён. Ничего не сохранено.',
+  'Retry failed files': 'Повторить чтение неудачных файлов',
+  'Files are read in batches of 50. Nothing is saved until you confirm the complete review.':
+    'Файлы читаются пакетами по 50. Запись всего набора произойдёт после подтверждения предпросмотра.',
   'Drop TXT or Markdown files here, or choose Import notes.': 'Перетащите сюда TXT или Markdown либо нажмите «Импорт заметок».',
   'Destination folder': 'Папка назначения',
   'Each file becomes a note. Review duplicates before importing.': 'Каждый файл станет заметкой. Проверьте дубли перед импортом.',

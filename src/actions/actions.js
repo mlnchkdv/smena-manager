@@ -529,21 +529,25 @@ A.newKnowledgeNote = el => {
     S.ui.knowledgeQuery = '';
   });
 };
-export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolder) {
+export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolder, previous = null) {
   if (!files?.length || !['admin', 'editor'].includes(S.ui.currentUser?.role) || S.ui.knowledgeImportReading || knowledgeEditBlocked()) return;
   const owner = S.ui.currentUser.id;
   const workspace = D().ws.id || D().ws.url;
   const destination = knowledgeCollections().folders.some(folder => folder.id === folderId) ? folderId : null;
+  const controller = new AbortController();
+  S.ui.knowledgeImportAbort = controller;
   S.ui.knowledgeImportReading = true;
   S.ui.knowledgeImportStatus = '';
   render();
   try {
-    const [{ reviewKnowledgeImport }, { mergePortableWorkspace }] = await Promise.all([
+    const [{ reviewKnowledgeImportQueue }, { mergePortableWorkspace }, { jsonByteLength, WORKSPACE_TRANSPORT_MAX_BYTES }] = await Promise.all([
       import('../shared/knowledge-import.js'),
       import('../shared/portable-workspace.js'),
+      import('../shared/workspace-size.js'),
     ]);
     if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
-    const { payload, entries } = await reviewKnowledgeImport(files, {
+    const review = await reviewKnowledgeImportQueue(files, {
+      signal: controller.signal,
       idFactory: uid,
       memberId: D().me,
       folderId: destination,
@@ -553,10 +557,16 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
       },
     });
     if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
+    const payload = { notes: [...(previous?.payload.notes || []), ...review.payload.notes] };
+    let retryIndex = 0;
+    const entries = previous ? previous.entries.map(entry => (entry.error ? review.entries[retryIndex++] : entry)) : review.entries;
+    if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
     S.ui.knowledgeMobileFolders = false;
     S.ui.importPreview = {
       payload,
       entries,
+      files: previous?.files || Array.from(files),
+      batches: Math.ceil((previous?.files || files).length / 50),
       destination,
       policy: 'copy',
       result: mergePortableWorkspace(D(), payload),
@@ -565,14 +575,34 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
     openModal({ type: 'portableImport' });
   } catch (error) {
     if (owner === S.ui.currentUser?.id && workspace === (D().ws.id || D().ws.url)) {
-      S.ui.knowledgeImportStatus = error instanceof Error ? error.message : 'Note files could not be imported.';
+      S.ui.knowledgeImportStatus = controller.signal.aborted
+        ? 'Import canceled. Nothing was saved.'
+        : error instanceof Error
+          ? error.message
+          : 'Note files could not be imported.';
       toast(S.ui.knowledgeImportStatus, { kind: 'err', ms: 6000 });
+      if (previous) {
+        S.ui.importPreview = previous;
+        openModal({ type: 'portableImport' });
+      }
     }
   } finally {
-    S.ui.knowledgeImportReading = false;
-    render();
+    if (owner === S.ui.currentUser?.id && workspace === (D().ws.id || D().ws.url) && S.ui.knowledgeImportAbort === controller) {
+      S.ui.knowledgeImportReading = false;
+      S.ui.knowledgeImportAbort = null;
+      render();
+    }
   }
 }
+A.cancelKnowledgeImport = () => S.ui.knowledgeImportAbort?.abort();
+A.retryKnowledgeImport = () => {
+  const previous = S.ui.importPreview;
+  if (!previous?.files || previous.busy) return;
+  const failed = previous.files.filter((_, index) => previous.entries[index]?.error);
+  if (!failed.length) return;
+  closeModal();
+  return importKnowledgeFiles(failed, previous.destination, previous);
+};
 IN.importKnowledgeMarkdown = el => {
   const files = [...(el.files || [])];
   el.value = '';

@@ -35,6 +35,7 @@ export async function reviewKnowledgeImport(files, options = {}) {
   const notes = [];
   const entries = [];
   for (const file of items) {
+    options.signal?.throwIfAborted();
     try {
       if (!/\.(txt|md|markdown)$/i.test(file.name)) throw new TypeError('Only TXT, MD and Markdown files are supported.');
       if (!file.size) throw new TypeError('The note file is empty.');
@@ -44,12 +45,14 @@ export async function reviewKnowledgeImport(files, options = {}) {
       } catch {
         throw new TypeError('The file could not be read.');
       }
+      options.signal?.throwIfAborted();
       const source = decodeNoteFile(buffer);
       if (!source.trim()) throw new TypeError('The note file is empty.');
       const note = (/\.txt$/i.test(file.name) ? parseTextNote : parseMarkdownNote)(file.name, source, options);
       notes.push(note);
       entries.push({ name: file.name, id: note.id });
     } catch (error) {
+      if (error.name === 'AbortError' || options.signal?.aborted) throw error;
       entries.push({ name: file.name, error: error.message });
     }
     options.onProgress?.(entries.length, items.length);
@@ -57,6 +60,28 @@ export async function reviewKnowledgeImport(files, options = {}) {
   const payload = { notes };
   if (jsonByteLength({ payload }) > LIMIT) throw new TypeError('The import file must be smaller than 4 MB.');
   return { payload, entries };
+}
+
+export async function reviewKnowledgeImportQueue(files, options = {}) {
+  const items = Array.from(files || []);
+  if (!items.length) throw new TypeError('Select TXT or Markdown files.');
+  if (items.length > 1000) throw new TypeError('Select up to 1,000 note files.');
+  if (items.reduce((sum, file) => sum + file.size, 0) > LIMIT) throw new TypeError('The import file must be smaller than 4 MB.');
+  const payload = { notes: [] },
+    entries = [];
+  for (let start = 0; start < items.length; start += 50) {
+    options.signal?.throwIfAborted();
+    const batch = await reviewKnowledgeImport(items.slice(start, start + 50), {
+      ...options,
+      onProgress: done => options.onProgress?.(start + done, items.length),
+    });
+    payload.notes.push(...batch.payload.notes);
+    entries.push(...batch.entries);
+    if (jsonByteLength({ payload }) > LIMIT) throw new TypeError('The import file must be smaller than 4 MB.');
+    await (options.yield?.() || new Promise(resolve => setTimeout(resolve, 0)));
+  }
+  options.signal?.throwIfAborted();
+  return { payload, entries, batches: Math.ceil(items.length / 50) };
 }
 
 export async function prepareKnowledgeImport(files, options = {}) {

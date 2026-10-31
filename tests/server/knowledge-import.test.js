@@ -1,8 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareKnowledgeImport, decodeNoteFile, reviewKnowledgeImport } from '../../src/shared/knowledge-import.js';
+import { prepareKnowledgeImport, decodeNoteFile, reviewKnowledgeImport, reviewKnowledgeImportQueue } from '../../src/shared/knowledge-import.js';
 import { mergePortableWorkspace } from '../../src/shared/portable-workspace.js';
 const file = (name, content) => new File([content], name);
+test('queued import reviews 200 files in bounded batches and retains successful entries for an atomic commit', async () => {
+  let id = 0,
+    yields = 0;
+  const items = Array.from({ length: 200 }, (_, i) => file(`note-${i}.md`, `# Note ${i}\nBody`));
+  const result = await reviewKnowledgeImportQueue(items, {
+    idFactory: () => String(id++),
+    yield: async () => {
+      yields++;
+    },
+  });
+  assert.equal(result.payload.notes.length, 200);
+  assert.equal(result.entries.length, 200);
+  assert.equal(yields, 4);
+  const controller = new AbortController();
+  let reads = 0;
+  await assert.rejects(
+    () =>
+      reviewKnowledgeImportQueue(items, {
+        signal: controller.signal,
+        onProgress: done => {
+          reads = done;
+          if (done === 50) controller.abort();
+        },
+      }),
+    { name: 'AbortError' },
+  );
+  assert.equal(reads, 50);
+  await assert.rejects(
+    () => reviewKnowledgeImportQueue([{ size: 4 * 1024 * 1024, name: 'large.txt', arrayBuffer: () => assert.fail('preflight must run first') }]),
+    /4 MB/,
+  );
+});
 
 test('mixed TXT and Markdown imports preserve text, metadata and the chosen destination', async () => {
   const payload = await prepareKnowledgeImport(

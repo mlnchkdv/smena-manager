@@ -408,7 +408,12 @@ export async function importPortableWorkspace(payload, expectedRevision, conflic
         conflictPolicy,
         includeDefinitions: actor.role === 'admin' && actor.includeDefinitions !== false,
       });
-      for (const name of DOCUMENT_NAMES) validateDocumentInput(name, workspaceDocumentData(name, result.data));
+      for (const name of DOCUMENT_NAMES) {
+        const document = workspaceDocumentData(name, result.data);
+        validateDocumentInput(name, document);
+        const bytes = workspaceTransportBytes(document, Number(database._documentRevisions?.[name]?.revision || 0) + 1);
+        if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);
+      }
       backup = await backupSnapshot(database, 'Before portable import');
       counts = result.counts;
       report = result.report;
