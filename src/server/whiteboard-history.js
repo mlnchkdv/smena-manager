@@ -20,6 +20,8 @@ export function captureWhiteboardHistory(current, next, actor = '') {
       whiteboard: project.id,
       at: new Date().toISOString(),
       by: actor,
+      sourceBy: before.editedBy || before.by || '',
+      sourceAt: before.editedAt || before.at || '',
       editedBy: actor,
       board: structuredClone(whiteboardOf(before)),
     });

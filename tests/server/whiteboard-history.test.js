@@ -1,3 +1,4 @@
+import { compareWhiteboards } from '../../src/shared/whiteboard-comparison.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { captureWhiteboardHistory, whiteboardHash, whiteboardVersions, validateWhiteboardRestore } from '../../src/server/whiteboard-history.js';
@@ -36,4 +37,17 @@ test('stale forged and mutated whiteboard restoration is rejected', () => {
       }),
     /does not match/,
   );
+});
+
+test('whiteboard comparison distinguishes additions removals and content or geometry changes', () => {
+  const current = board('new'),
+    previous = board('old');
+  previous.nodes.push({ ...previous.nodes[0], id: 'restored' });
+  current.edges.push({ id: 'removed', from: 'a', to: 'restored' });
+  const before = JSON.stringify(current),
+    result = compareWhiteboards(current, previous);
+  assert.equal(result.changed, 1);
+  assert.equal(result.added, 1);
+  assert.equal(result.removed, 1);
+  assert.equal(JSON.stringify(current), before);
 });

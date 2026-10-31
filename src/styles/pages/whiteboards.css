@@ -291,3 +291,33 @@
     min-width: 44px;
   }
 }
+
+.whiteboard-version-list .btn {
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: left;
+}
+.whiteboard-version-list small {
+  color: var(--text-3);
+}
+.whiteboard-version-comparison details {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.whiteboard-diff-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 8px;
+}
+.whiteboard-diff-pair p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-sm);
+}
+@media (max-width: 640px) {
+  .whiteboard-diff-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

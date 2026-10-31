@@ -1,3 +1,4 @@
+import { compareWhiteboards } from '../shared/whiteboard-comparison.js';
 import { A, confirmDlg } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { getWhiteboardVersions } from '../core/api.js';
@@ -20,9 +21,25 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 function form(m, H) {
   const version = m.data?.versions.find(v => v.id === m.version),
     p = current();
-  return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Up to 5 previous versions per whiteboard, within a shared 700,000-character history budget. Restore changes only this board; materials remain unchanged.', 'До 5 предыдущих версий холста в пределах общего лимита истории 700 000 символов. Восстанавливается только холст; исходные материалы не меняются.')}</p>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}">${esc(fmtTimestamp(v.at))} · ${C(v.board.nodes.length, 'card')} · ${C(v.board.edges.length, 'connection')}</button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
+  const diff = version && compareWhiteboards(m.base, version.board);
+  const author = v => D().members.find(member => member.id === (v.sourceBy || v.by))?.name || T('Author unavailable', 'Автор недоступен');
+  const text = n =>
+    n
+      ? n.type === 'material'
+        ? n.target
+        : [n.title || n.label, n.text, n.x != null ? `X: ${n.x} · Y: ${n.y}` : ''].filter(Boolean).join(' · ').slice(0, 400)
+      : '—';
+  return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Compare with the current whiteboard before restoring. The current state will remain in history.', 'Сравните версию с текущим холстом перед восстановлением. Текущее состояние останется в истории.')}</p><details class="whiteboard-history-limits"><summary>${T('History limits', 'Ограничения истории')}</summary><p class="hint">${T('Up to 5 previous versions per whiteboard within a shared 700,000-character budget. Linked materials remain unchanged.', 'До 5 предыдущих версий холста в общем лимите 700 000 символов. Исходные материалы не меняются.')}</p></details>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}"><span>${esc(fmtTimestamp(v.sourceAt || v.at))} · ${esc(author(v))}</span><small>${C(v.board.nodes.length, 'card')} · ${C(v.board.edges.length, 'connection')}</small></button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
     version
-      ? `<h3>${T('Version preview', 'Предпросмотр версии')}</h3><div class="whiteboard-version-preview">${version.board.nodes
+      ? `<section class="whiteboard-version-comparison"><h3>${T('Changes on restore', 'Изменения при восстановлении')}</h3><p>${T('Added', 'Добавлено')}: ${diff.added} · ${T('Removed', 'Удалено')}: ${diff.removed} · ${T('Changed', 'Изменено')}: ${diff.changed}</p>${diff.rows
+          .slice(0, 50)
+          .map(
+            r =>
+              `<details><summary>${r.kind === 'card' ? T('Card', 'Карточка') : T('Connection', 'Связь')}: ${esc((r.after || r.before).title || (r.after || r.before).label || r.id)}</summary><div class="whiteboard-diff-pair"><section><strong>${T('Current', 'Сейчас')}</strong><p>${esc(text(r.before))}</p></section><section><strong>${T('Selected version', 'Выбранная версия')}</strong><p>${esc(text(r.after))}</p></section></div></details>`,
+          )
+          .join(
+            '',
+          )}${diff.rows.length > 50 ? `<p class="hint">${T('First 50 changes shown. The full version is below.', 'Показаны первые 50 изменений. Полная версия ниже.')}</p>` : ''}</section><h3>${T('Version preview', 'Предпросмотр версии')}</h3><div class="whiteboard-version-preview">${version.board.nodes
           .slice(0, m.limit || 50)
           .map(
             n =>
