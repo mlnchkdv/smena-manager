@@ -32,8 +32,9 @@ function viewStatus(kind, project) {
   const active = activeDiagramView(kind, project);
   if (!active) return '';
   const layout = kind === 'board' ? whiteboardState(project) : currentGraphLayout();
-  const dirty = diagramLayoutChanged(kind, active.layout, layout) || (kind === 'graph' && JSON.stringify(active.context) !== JSON.stringify(context()));
-  return `${active.name} · ${dirty ? T('Changed', 'Изменено') : T('Saved', 'Сохранено')}`;
+  const dirty =
+    diagramLayoutChanged(kind, active.layout, layout) || (kind === 'graph' && Object.keys(context()).some(key => active.context[key] !== context()[key]));
+  return `${dirty ? T('Changed', 'Изменено') : T('Saved', 'Сохранено')} · ${active.name}`;
 }
 export function refreshDiagramViewStatus() {
   for (const el of document.querySelectorAll('[data-diagram-status]')) {
