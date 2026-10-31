@@ -702,3 +702,12 @@
     white-space: normal;
   }
 }
+.permission-notes {
+  margin-bottom: 12px;
+}
+.permission-notes > summary {
+  min-height: var(--control-target);
+  align-content: center;
+  color: var(--text-2);
+  cursor: pointer;
+}
