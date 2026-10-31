@@ -51,11 +51,27 @@ function lucideSubset() {
 const buildId = process.env.VERCEL_GIT_COMMIT_SHA || randomUUID();
 export default defineConfig({
   define: { __SMENA_BUILD_ID__: JSON.stringify(buildId) },
-  build: { rollupOptions: { output: { manualChunks: { sanitizer: ['dompurify'] } } } },
+  build: {
+    rollupOptions: {
+      input: { index: path.resolve('index.html'), offline: path.resolve('offline.html') },
+      output: { manualChunks: { sanitizer: ['dompurify'] } },
+    },
+  },
   plugins: [
     {
       name: 'deployment-version',
-      generateBundle() {
+      generateBundle(_, bundle) {
+        const entry = Object.values(bundle).find(item => item.type === 'chunk' && item.isEntry && item.name === 'offline');
+        const assets = new Set(['/offline.html', '/favicon.svg']);
+        const visit = item => {
+          if (!item || assets.has('/' + item.fileName)) return;
+          assets.add('/' + item.fileName);
+          for (const css of item.viteMetadata?.importedCss || []) assets.add('/' + css);
+          for (const file of item.imports || []) visit(bundle[file]);
+        };
+        visit(entry);
+        this.emitFile({ type: 'asset', fileName: 'offline-assets.json', source: JSON.stringify([...assets]) });
+        this.emitFile({ type: 'asset', fileName: 'sw.js', source: fs.readFileSync('public/sw.js', 'utf8').replaceAll('__OFFLINE_BUILD__', buildId) });
         this.emitFile({ type: 'asset', fileName: 'app-version.json', source: JSON.stringify({ version: buildId }) });
       },
     },

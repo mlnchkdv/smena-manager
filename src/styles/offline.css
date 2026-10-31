@@ -1,0 +1,132 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #faf9f7;
+  color: #242422;
+  font:
+    15px/1.6 system-ui,
+    sans-serif;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid #ddd;
+}
+a {
+  color: #5056d8;
+}
+main {
+  max-width: 1400px;
+  padding: 20px;
+  margin: auto;
+}
+h1 {
+  font-size: 24px;
+}
+h2 {
+  font-size: 22px;
+}
+button,
+select,
+textarea {
+  font: inherit;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: white;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+  margin: 4px 8px 4px 0;
+}
+button:focus-visible,
+a:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #5056d8;
+  outline-offset: 2px;
+}
+.offline-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 24px;
+}
+nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+article {
+  min-width: 0;
+}
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 240px;
+  font-family: monospace;
+}
+pre {
+  overflow: auto;
+  background: #eee;
+  padding: 12px;
+}
+blockquote {
+  border-left: 3px solid #5056d8;
+  padding-left: 12px;
+}
+table {
+  border-collapse: collapse;
+  display: block;
+  overflow: auto;
+}
+td,
+th {
+  border: 1px solid #ddd;
+  padding: 6px;
+}
+small {
+  color: #666;
+}
+@media (max-width: 700px) {
+  main {
+    padding: 12px;
+  }
+  .offline-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  nav {
+    max-height: 30dvh;
+    overflow: auto;
+  }
+  button,
+  select {
+    min-height: 44px;
+  }
+  textarea {
+    font-size: 16px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1e1f22;
+    color: #eee;
+  }
+  button,
+  select,
+  textarea {
+    background: #27282b;
+    color: #eee;
+    border-color: #555;
+  }
+  pre {
+    background: #28292c;
+  }
+  a {
+    color: #a4a8ff;
+  }
+}

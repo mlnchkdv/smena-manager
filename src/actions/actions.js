@@ -961,7 +961,10 @@ IN.relationType = el => {
 A.createRelation = async el => {
   const modal = S.ui.modals.at(-1);
   if (modal?.type !== 'relations' || !Object.hasOwn(RELATION_TYPES, modal.relationType)) return;
-  if (modal.inline) { if(!(await hydrateRelatedFiles([el.dataset.key]))||S.ui.modals.at(-1)!==modal)return; return (await import('../features/knowledge-inline.js')).insertInlineTarget(modal, el.dataset.key); }
+  if (modal.inline) {
+    if (!(await hydrateRelatedFiles([el.dataset.key])) || S.ui.modals.at(-1) !== modal) return;
+    return (await import('../features/knowledge-inline.js')).insertInlineTarget(modal, el.dataset.key);
+  }
   const from = modal.source,
     to = el.dataset.key;
   if (!(await hydrateRelatedFiles([from, to])) || S.ui.modals.at(-1) !== modal) return;
@@ -3153,6 +3156,7 @@ A.setSearch = el => {
 A.switchWs = async el => (await import('../ui/workspaces.js')).switchWorkspace(el);
 A.newWorkspace = async () => (await import('../ui/workspaces.js')).openWorkspaceCreation();
 A.signOut = () => {
+  void import('../core/offline-library.js').then(m => m.forgetOfflineOwner());
   resetSearchSession();
   void revokeCurrentAuthSession().catch(() => undefined);
   clearSession();
@@ -3808,3 +3812,9 @@ A.bindKnowledgeAsset = async el => {
   await import('../features/knowledge-media.js');
   return A.bindKnowledgeAsset(el);
 };
+
+A.keepKnowledgeOffline = async el => (await import('../features/offline-knowledge.js')).pinKnowledgeNote(el);
+A.keepFileOffline = async el => (await import('../features/offline-knowledge.js')).pinKnowledgeFile(el);
+A.offlineKnowledge = async () => (await import('../features/offline-knowledge.js')).reviewOfflineChanges();
+
+A.keepBookmarkOffline = async el => (await import('../features/offline-knowledge.js')).pinBookmark(el);
