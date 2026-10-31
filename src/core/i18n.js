@@ -17,6 +17,16 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'completed subtask on': 'завершил(а) подзадачу в',
+  'reopened subtask on': 'возобновил(а) подзадачу в',
+  Field: 'Поле',
+  Operator: 'Условие',
+  Where: 'Где',
+  'Add filter:': 'Добавить фильтр:',
+  'Select…': 'Выбрать…',
+  'No filters applied. Combine filters to narrow the task list, e.g. Status is In Progress and Assignee is Sarah.':
+    'Фильтры не применены. Добавьте условия, например статус и исполнителя, чтобы сузить список задач.',
+  'Favorite limit reached. Remove an existing favorite first.': 'Достигнут лимит личного избранного. Сначала снимите отметку с другого материала.',
   Access: 'Доступ',
   'About product': 'О приложении',
   'Privacy policy': 'Политика конфиденциальности',
@@ -2193,7 +2203,7 @@ const PATTERNS = [
   [/^([\d.,]+) of ([\d.,]+)$/u, '$1 из $2'],
   [/^(\d+) starter tasks · (.+) view$/u, (_match, count, view) => `${count} начальных задач · Представление: ${RU[view] || view}`],
   [/^(\d+) selected$/u, 'Выбрано: $1'],
-  [/^(\d+) comments?$/u, '$1 комментариев'],
+  [/^(\d+) comments?$/u, (_match, count) => countLabel(count, 'comment', 'ru-RU')],
   [/^(\d+) files?$/u, '$1 файлов'],
   [/^(\d+) starter tasks?$/u, '$1 начальных задач'],
   [/^(\d+) invites? sent$/u, 'Отправлено приглашений: $1'],

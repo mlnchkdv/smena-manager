@@ -1,4 +1,5 @@
 import { isFavorite } from '../core/favorites.js';
+import { activityVerbForm } from '../shared/activity-copy.js';
 import { noteTypeFields } from '../ui/knowledge-types.js';
 /* =====================================================================
    OVERLAYS: drawer, modals, popovers, context menus, command palette
@@ -170,7 +171,7 @@ export function drawerHtml(t) {
             ${mentionPicker(t.id)}
           </div></div>`
             : `
-          <div style="padding-top:4px">${acts.map(a => `<div class="act-line"><span class="ico">${av(a.by, 'sm', false)}</span><span class="grow"><b>${esc(mem(a.by)?.id === D().me ? tr('You') : mem(a.by)?.name)}</b> ${esc(tr(a.verb.replace(/ of$/, '')))}${a.extra ? ' ' + esc(activityExtra(a.extra, a.verb)) : ''}</span><time class="faint" style="font-size:11.5px">${ago(a.at)}</time></div>`).join('')}
+          <div style="padding-top:4px">${acts.map(a => `<div class="act-line"><span class="ico">${av(a.by, 'sm', false)}</span><span class="grow"><b>${esc(mem(a.by)?.id === D().me ? tr('You') : mem(a.by)?.name)}</b> ${esc(activityVerbForm(tr(a.verb.replace(/ of$/, '')), mem(a.by)?.id === D().me, isRussian() ? 'ru-RU' : 'en-US'))}${a.extra ? ' ' + esc(activityExtra(a.extra, a.verb)) : ''}</span><time class="faint" style="font-size:11.5px">${ago(a.at)}</time></div>`).join('')}
           <div class="act-line"><span class="ico">${ic('plus', 13)}</span><span class="grow">Task created</span><time class="faint" style="font-size:11.5px">${ago(t.created)}</time></div></div>`
         }
       </div>`

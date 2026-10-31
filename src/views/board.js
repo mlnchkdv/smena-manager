@@ -7,6 +7,7 @@ import { av, dueHtml, lbl, prIcon, progBar, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
+import { uiCount } from '../core/i18n.js';
 
 export function kcard(t, opt = {}) {
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
@@ -23,7 +24,7 @@ export function kcard(t, opt = {}) {
       <button class="m" data-a="pop" data-pop="priority" data-id="${t.id}" data-tip="${PR[t.priority].name}" aria-label="Priority: ${PR[t.priority].name}">${prIcon(t.priority, 13)}</button>
       ${t.due ? `<button class="m" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}" aria-label="Due date">${dueHtml(t)}</button>` : ''}
       ${t.recur ? `<span class="m" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 12)}</span>` : ''}
-      ${cc ? `<span class="m" aria-label="${cc} comments">${ic('message-square', 12)}${cc}</span>` : ''}
+      ${cc ? `<span class="m" aria-label="${esc(uiCount(cc, 'comment'))}">${ic('message-square', 12)}${cc}</span>` : ''}
       ${ac ? `<span class="m" aria-label="${ac} attachments">${ic('paperclip', 12)}${ac}</span>` : ''}
       <button class="m board-assignee" data-a="pop" data-pop="assignee" data-id="${t.id}" data-tip="${esc(mem(t.assignee)?.name || 'Unassigned')}" style="margin-left:auto" aria-label="Assignee">${av(t.assignee, 'sm', false)}</button>
     </div>

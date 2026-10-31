@@ -18,4 +18,8 @@
 
 ## Verification limits / Границы приёмки
 
+### 03 — Localization
+
+Localized subtask completion/reopen events, filter help/fields/operators/selection, and the favorite-limit message. Custom Select accessible names translate their label while preserving authored option text. Team/comment counts use shared RU/EN plural rules; graph hint spans have word separation. Targeted localization/activity tests: 6/6; targeted lint passed. Production RU/EN visual acceptance is tracked separately after deployment.
+
 Физические iOS/Android остаются недоступны; смена browser viewport не заменяет жесты, экранную клавиатуру и PWA. Production материалы команды и права не изменяются ради проверки. Multi-user и опасные операции проверяются в изолированных фикстурах; production-запись требует конкретного согласованного сценария.

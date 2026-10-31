@@ -40,7 +40,7 @@ export function enhanceSelects(root = document) {
       const selectedText = sel.options[sel.selectedIndex]?.text || '';
       const authored = sel.options[sel.selectedIndex]?.closest('[translate="no"]');
       btn.innerHTML = `<span class="trunc" ${authored ? 'translate="no"' : ''}>${esc(selectedText)}</span>`;
-      btn.setAttribute('aria-label', `${accessibleLabel}: ${selectedText}`);
+      btn.setAttribute('aria-label', `${t(accessibleLabel)}: ${authored ? selectedText : t(selectedText)}`);
     };
     sync();
     sel.classList.add('select-native');

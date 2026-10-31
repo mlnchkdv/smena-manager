@@ -10,7 +10,7 @@ import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
-import { t as tr } from '../core/i18n.js';
+import { t as tr, uiCount } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 
@@ -56,7 +56,7 @@ export function pageMembers() {
       .join('')}</div>
     <div id="members-panel" role="tabpanel" aria-labelledby="members-tab-${tab}" tabindex="0">${
       tab === 'teams'
-        ? `<div class="row" style="margin-bottom:12px"><span class="muted" style="font-size:13px">${teamsList().length} teams</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="newTeam">${ic('plus', 13)}New team</button></div>${teamsGrid()}`
+        ? `<div class="row" style="margin-bottom:12px"><span class="muted" style="font-size:13px">${uiCount(teamsList().length, 'team')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="newTeam">${ic('plus', 13)}New team</button></div>${teamsGrid()}`
         : tab === 'roles'
           ? permsTable()
           : `
