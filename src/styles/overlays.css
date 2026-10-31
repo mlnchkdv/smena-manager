@@ -971,6 +971,21 @@
   gap: 5px;
   align-items: center;
 }
+@media (max-width: 640px) {
+  .pal-f {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .pal-f > :is(.sp, :last-child) {
+    display: none;
+  }
+  .pal-f > span {
+    max-width: 100%;
+  }
+  .pal-f kbd {
+    flex-shrink: 0;
+  }
+}
 
 #toasts {
   position: fixed;
