@@ -1,7 +1,9 @@
 import { DEFAULT_NOTIFICATION_PREFERENCES, notificationRecipient } from './notification-model.js';
 import { resolveTimeZone } from './calendar-time.js';
+import { validKnowledgeQueries } from './knowledge-query.js';
 
 const PREFERENCE_TYPES = Object.freeze({
+  knowledgeQueries: 'string',
   theme: 'string',
   accent: 'string',
   side: 'string',
@@ -42,7 +44,14 @@ export function applyPersonalSettings(database, memberId, input) {
   if (input.preferences) {
     if (typeof input.preferences !== 'object' || Array.isArray(input.preferences)) invalid();
     for (const [key, value] of Object.entries(input.preferences)) {
-      if (typeof value !== PREFERENCE_TYPES[key] || (typeof value === 'string' && value.length > 180)) invalid();
+      if (typeof value !== PREFERENCE_TYPES[key] || (typeof value === 'string' && value.length > (key === 'knowledgeQueries' ? 24000 : 180))) invalid();
+      if (key === 'knowledgeQueries') {
+        try {
+          if (!validKnowledgeQueries(JSON.parse(value))) invalid();
+        } catch {
+          invalid();
+        }
+      }
       if (key === 'theme' && !['light', 'dark', 'system'].includes(value)) invalid();
       if (key === 'timeFmt' && !['12', '24'].includes(value)) invalid();
       if (key === 'weekStart' && ![0, 1, 6].includes(value)) invalid();

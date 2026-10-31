@@ -1846,3 +1846,22 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.knowledge-smart-collections {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  max-height: 180px;
+  overflow: auto;
+  grid-column: 1 / -1;
+}
+.knowledge-smart-collections summary {
+  cursor: pointer;
+  font-size: 12px;
+}
+.knowledge-smart-collections .grow {
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

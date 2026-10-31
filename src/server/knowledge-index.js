@@ -1,6 +1,7 @@
+import { parseKnowledgeQuery } from '../shared/knowledge-query.js';
 import { workspaceState } from './workspace-context.js';
 const state = workspaceState(() => ({ cache: null }));
-import { searchTerms, searchableNote } from '../shared/knowledge-search.js';
+import { searchableNote } from '../shared/knowledge-search.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 export function createKnowledgeIndex(notes, folders = []) {
   const postings = new Map();
@@ -16,8 +17,8 @@ export function createKnowledgeIndex(notes, folders = []) {
   }
   return {
     search(options = {}) {
-      const sets = searchTerms(options.query)
-        .filter(term => term.length >= 3)
+      const sets = parseKnowledgeQuery(options.query)
+        .terms.filter(term => term.length >= 3)
         .map(term => postings.get(term.slice(0, 3)) || new Set())
         .sort((a, b) => a.size - b.size);
       const candidates = sets.length ? [...sets[0]].filter(id => sets.every(set => set.has(id))).map(id => all.get(id)) : notes;

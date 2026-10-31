@@ -1,22 +1,23 @@
+import { parseKnowledgeQuery, matchesKnowledgeRules } from './knowledge-query.js';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
 import { markdownText } from './markdown-text.js';
-import { searchTerms } from './search-query.js';
 export { searchTerms } from './search-query.js';
 
-export const searchableNote = note => [note.title, note.summary, note.typeId, ...Object.values(note.properties || {}), note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
+export const searchableNote = note =>
+  [note.title, note.summary, note.typeId, ...Object.values(note.properties || {}), note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
 export function createKnowledgeMatcher(query) {
-  const terms = searchTerms(query);
+  const { terms, rules } = parseKnowledgeQuery(query);
   // A blank search must not read/lowercase the full text of every stored note.
-  if (!terms.length) return () => true;
+  if (!terms.length && !rules.length) return () => true;
   return note => {
     const text = searchableNote(note);
-    return terms.every(term => text.includes(term));
+    return matchesKnowledgeRules(note, rules) && terms.every(term => text.includes(term));
   };
 }
 export const matchesKnowledgeSearch = (note, query) => createKnowledgeMatcher(query)(note);
 // Explain matches outside the visible title without exposing import service fields.
 export function knowledgeSearchContext(note, query) {
-  const terms = searchTerms(query);
+  const { terms } = parseKnowledgeQuery(query);
   if (!terms.length) return null;
   const includes = value =>
     terms.some(term =>
@@ -45,7 +46,7 @@ export function knowledgeExcerpt(note, query, length = 180) {
           .replace(/\s+/g, ' ')
           .trim()
       : markdownText(value);
-  const terms = searchTerms(query);
+  const { terms } = parseKnowledgeQuery(query);
   const summary = clean(note.summary);
   const body = clean(knowledgeDisplayParts(note).body);
   const score = text => terms.filter(term => text.toLocaleLowerCase().includes(term)).length;
