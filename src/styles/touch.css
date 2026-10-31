@@ -97,6 +97,22 @@
   text-align: left;
 }
 @media (max-width: 640px), (pointer: coarse) {
+  .graph-legend-disclosure > summary,
+  .files-details > summary,
+  .tlist button.addrow {
+    min-height: var(--control-target);
+    align-content: center;
+  }
+  .fitem .obj {
+    display: flex;
+    align-items: center;
+    min-height: var(--control-target);
+    max-width: 100%;
+    width: fit-content;
+    padding-block: 6px;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
   .home-deadline-task,
   .task-table-open,
   .member-mobile-open,

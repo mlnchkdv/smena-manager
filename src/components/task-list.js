@@ -142,9 +142,9 @@ export function actHtml(a, opt = {}) {
   const t = a.task ? task(a.task) : null;
   const p = a.project ? proj(a.project) : null;
   const obj = t
-    ? `<span class="obj" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</span>`
+    ? `<button type="button" class="obj" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</button>`
     : p
-      ? `<span class="obj" data-a="go" data-r="project" data-id="${p.id}" translate="no">${esc(p.name)}</span>`
+      ? `<button type="button" class="obj" data-a="go" data-r="project" data-id="${p.id}" translate="no">${esc(p.name)}</button>`
       : '';
   const self = a.by === D().me;
   const locale = isRussian() ? 'ru-RU' : 'en-US';
