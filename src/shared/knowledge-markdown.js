@@ -1,6 +1,7 @@
 import { materialLink } from './material-links.js';
 import { Marked } from 'marked';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
+import { markdownText } from './markdown-text.js';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const textHtml = value => escape(value).replace(/&amp;((?:#\d+|#x[\da-f]+|[a-z][\da-z]+);)/gi, '&$1');
@@ -23,8 +24,15 @@ function anchorName(value) {
 export function knowledgeReadingSource(note) {
   const source = knowledgeDisplayParts(note).body;
   if (note.sourceFormat === 'text') return source;
-  const heading = source.match(/^\s{0,3}#\s+([^\r\n]+)(?:\r?\n|$)/);
-  return heading && heading[1].replace(/\s+#+\s*$/, '').trim() === String(note.title || '').trim() ? source.slice(heading[0].length) : source;
+  const heading =
+    source.match(/^(?:[ \t]*\r?\n)*[ \t]{0,3}#\s+([^\r\n]+)(?:\r?\n|$)/) || source.match(/^(?:[ \t]*\r?\n)*([^\r\n]+)\r?\n[ \t]*={3,}[ \t]*(?:\r?\n|$)/);
+  return heading &&
+    markdownText(heading[1].replace(/\s+#+\s*$/, '')).normalize('NFKC') ===
+      String(note.title || '')
+        .trim()
+        .normalize('NFKC')
+    ? source.slice(heading[0].length)
+    : source;
 }
 
 function tableCells(line) {

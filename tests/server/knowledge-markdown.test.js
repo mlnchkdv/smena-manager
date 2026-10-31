@@ -113,3 +113,13 @@ test('unrelated, malformed and out-of-bound history never establishes legacy Mar
     assert.deepEqual(knowledgeDisplayParts({ ...renamed, history }), { body: source, metadata: '' });
   }
 });
+
+test('reading removes only a matching first Markdown title without mutating source', () => {
+  for (const source of ['\n# **Название**\nBody', 'Название\n===\nBody']) {
+    const note = { title: 'Название', sourceFormat: 'markdown', formatted_markdown: source };
+    assert.equal(knowledgeReadingSource(note), 'Body');
+    assert.equal(note.formatted_markdown, source);
+    assert.equal(knowledgeReadingSource({ ...note, sourceFormat: 'text' }), source);
+    assert.equal(knowledgeReadingSource({ ...note, title: 'Other' }), source);
+  }
+});

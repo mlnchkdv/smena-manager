@@ -9,7 +9,7 @@ import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 import { mutate } from './toast.js';
 import { knowledgeEditBlocked } from './knowledge-save-status.js';
-export function knowledgeContext(note) {
+export function knowledgeContext(note, { reading = false } = {}) {
   const open = S.ui.knowledgeContextId === note.id;
   let body = '';
   if (open) {
@@ -34,11 +34,14 @@ export function knowledgeContext(note) {
       .join('');
     body = `<div translate="no">${snippets}<h4>${kc('Unlinked mentions', 'Упоминания без связи')}</h4>${mentions || `<p class="hint">${kc('No suggestions.', 'Нет предложений.')}</p>`}<p class="hint">${kc('Suggestions do not change any note until you connect them.', 'Предложения не меняют заметки без вашего действия.')}</p></div>`;
   }
-  return `<section class="knowledge-preview-context"><p class="hint" translate="no">${esc(
-    folderTrail(note.folderId, D().knowledgeFolders)
-      .map(f => f.name)
-      .join(' / '),
-  )}</p><div class="knowledge-context-tags">${(note.tags || []).map(tag => `<button class="knowledge-tag" data-a="filterKnowledgePreviewTag" data-tag="${esc(tag)}" translate="no">${esc(tag)}</button>`).join('')}</div>${relationsPanel(`note:${note.id}`, true)}<section class="knowledge-context"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeContext" data-id="${esc(note.id)}" aria-expanded="${open}" translate="no">${kc('Context and mentions', 'Контекст и упоминания')}</button>${body}</section></section>`;
+  const path = folderTrail(note.folderId, D().knowledgeFolders)
+    .map(f => f.name)
+    .join(' / ');
+  const refs = knowledgeRelations(D().knowledgeNotes, note);
+  const showContext = !reading || open || refs.outgoing.some(r => r.note) || refs.backlinks.length || unlinkedMentions(D().knowledgeNotes, note, []).length;
+  const links = relationsPanel(`note:${note.id}`, true, reading);
+  if (reading && !path && !note.tags?.length && !links && !showContext) return '';
+  return `<section class="knowledge-preview-context">${path ? `<p class="hint" translate="no">${esc(path)}</p>` : ''}${note.tags?.length ? `<div class="knowledge-context-tags">${(note.tags || []).map(tag => `<button class="knowledge-tag" data-a="filterKnowledgePreviewTag" data-tag="${esc(tag)}" translate="no">${esc(tag)}</button>`).join('')}</div>` : ''}${links}${showContext ? `<section class="knowledge-context"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeContext" data-id="${esc(note.id)}" aria-expanded="${open}" translate="no">${kc('Context and mentions', 'Контекст и упоминания')}</button>${body}</section>` : ''}</section>`;
 }
 A.toggleKnowledgeContext = el => {
   S.ui.knowledgeContextId = S.ui.knowledgeContextId === el.dataset.id ? null : el.dataset.id;

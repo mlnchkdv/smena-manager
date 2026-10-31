@@ -23,7 +23,7 @@ export function relationGraph() {
   return cachedGraph.graph;
 }
 
-export function relationsPanel(key, compact = false) {
+export function relationsPanel(key, compact = false, hideEmpty = false) {
   const remote = graphReadModel('connections', key);
   const graph = remote ? remote.view || { nodes: [], edges: [], unresolved: [] } : relationGraph();
   const nodes = new Map(graph.nodes.map(node => [node.key, node]));
@@ -45,6 +45,7 @@ export function relationsPanel(key, compact = false) {
     remote && !remote.view
       ? `<p class="hint" role="status">${esc(remote.error || 'Loading connections…')}${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`
       : '';
+  if (hideEmpty && !edges.length && !unresolved.length && !status) return '';
   const content = `<section class="relations-panel" data-catalog-key="${esc(key)}" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${status}${edges.length ? `<h4>Related materials</h4>${rows(false)}<h4>Where used</h4>${rows(true)}` : status ? '' : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolvedHtml}${remote?.view?.truncated ? '<p class="hint">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}</section>`;
   return compact ? `<details class="relations-compact"><summary><span>Connections</span> · ${edges.length}</summary>${content}</details>` : content;
 }
