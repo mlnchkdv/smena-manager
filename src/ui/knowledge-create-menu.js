@@ -6,6 +6,21 @@ import { kc, typeName } from './knowledge-types.js';
 import { noteTypes } from '../shared/knowledge-types.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
+import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
+import { render } from '../shell/render.js';
+
+export function knowledgeSavedSearchShortcuts() {
+  const views = (S.ui.knowledgeSavedViews || []).filter(view => view.pinned);
+  if (!views.length) return '';
+  return `<nav class="knowledge-pinned-searches" aria-label="${kc('Pinned searches on this device', 'Закреплённые поиски на этом устройстве')}"><h3 class="hint" translate="no">${kc('Pinned searches', 'Закреплённые поиски')}</h3>${views.map(view => `<button class="knowledge-folder" data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" title="${esc(view.name)}">${ic('bookmark', 14)}<span class="trunc" translate="no">${esc(view.name)}</span></button>`).join('')}</nav>`;
+}
+A.pinKnowledgeSearch = el => {
+  const view = S.ui.knowledgeSavedViews?.find(view => view.id === el.dataset.id);
+  if (!view) return;
+  view.pinned = !view.pinned;
+  saveKnowledgePreferences();
+  render();
+};
 export function knowledgeCreateMenu() {
   return `<div class="knowledge-create" translate="no"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote" aria-label="${kc('New note', 'Новая заметка')}" title="${kc('New note', 'Новая заметка')}">${ic('plus', 14)}<span class="knowledge-create-label">${kc('New note', 'Новая заметка')}</span></button><details class="ui-menu knowledge-create-options" ${disclosureAttributes('knowledge-create')}><summary class="btn btn-primary btn-sm" aria-label="${kc('Create by type or template', 'Создать по типу или шаблону')}" title="${kc('Create by type or template', 'Создать по типу или шаблону')}">${ic('chevron-down', 14)}</summary><div>${noteTypes(
     D().ws,
@@ -36,7 +51,7 @@ A.knowledgeLibraryTools = () =>
         .map(([a, i, en, ru]) => `<button class="btn btn-secondary" data-a="openKnowledgeLibraryTool" data-command="${a}">${ic(i, 16)}${kc(en, ru)}</button>`)
         .join(
           '',
-        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
+        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="pinKnowledgeSearch" data-id="${esc(view.id)}" aria-pressed="${!!view.pinned}" aria-label="${esc((view.pinned ? kc('Unpin search', 'Открепить поиск') : kc('Pin search', 'Закрепить поиск')) + ': ' + view.name)}">${ic(view.pinned ? 'pin-off' : 'pin', 14)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
   });
 A.openKnowledgeLibraryTool = el => {
   if (commands().some(([a]) => a === el.dataset.command)) {
@@ -46,6 +61,8 @@ A.openKnowledgeLibraryTool = el => {
 };
 
 A.openSavedKnowledgeSearch = el => {
-  closeModal();
+  if (S.ui.modals.length) closeModal();
+  S.ui.knowledgeMobileFolders = false;
+  S.ui.knowledgeActiveCollection = null;
   A.applyKnowledgeView(el);
 };
