@@ -27,6 +27,8 @@ function fixture() {
   };
   const menu = { contains: () => true, querySelector: () => input, querySelectorAll: () => [option] };
   const context = {
+    S: { ui: { currentUser: { id: 'owner' }, route: 'files', params: {}, modals: [] } },
+    D: () => ({ ws: { id: 'workspace' } }),
     document: { activeElement: active, querySelector: () => btn, addEventListener() {} },
     window: {},
     addEventListener() {},
@@ -36,17 +38,18 @@ function fixture() {
   const source = readFileSync(new URL('../../src/ui/select.js', import.meta.url), 'utf8')
     .replace(/^import .*;\r?\n/gm, '')
     .replace(/^export /gm, '');
-  vm.runInNewContext(source + '\nthis.menu = selectMenu;', context);
+  vm.runInNewContext(source + '\nthis.menu = selectMenu; this.scope = selectionScope;', context);
   Object.assign(context.menu, {
     el: menu,
     sel: old,
     btn,
+    scope: context.scope(),
     open() {
       opened++;
       this.el = menu;
     },
   });
-  return { menu: context.menu, input, sel, btn, opened: () => opened, focused: () => focus };
+  return { menu: context.menu, input, sel, btn, old, ui: context.S.ui, opened: () => opened, focused: () => focus };
 }
 
 test('a background rebuild preserves query, caret and active option by value after reordering', () => {
@@ -58,6 +61,23 @@ test('a background rebuild preserves query, caret and active option by value aft
   assert.equal(f.input.value, 'Frontend');
   assert.deepEqual(f.input.range, [3, 6]);
   assert.equal(f.focused(), 'task:2');
+});
+
+test('ordinary non-search selects survive a background rebuild but never a navigation/account change', () => {
+  const f = fixture();
+  f.old.hasAttribute = () => false;
+  f.menu.el.scrollTop = 130;
+  const saved = f.menu.capture();
+  f.menu.restore(saved);
+  assert.equal(f.opened(), 1);
+  assert.equal(f.menu.el.scrollTop, 130);
+  f.ui.route = 'settings';
+  f.menu.restore(saved);
+  assert.equal(f.opened(), 1);
+  f.ui.route = 'files';
+  f.ui.currentUser.id = 'other';
+  f.menu.restore(saved);
+  assert.equal(f.opened(), 1);
 });
 
 test('search is not reopened for changed values, hidden/disabled triggers or inert surfaces', () => {

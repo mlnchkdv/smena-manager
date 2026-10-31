@@ -8,6 +8,18 @@ import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { knowledgeSelectOptions } from '../shared/knowledge-select-options.js';
+import { D, S } from '../core/store.js';
+
+const selectionScope = () =>
+  JSON.stringify([
+    S.ui.currentUser?.id,
+    D().ws.id || D().ws.url,
+    S.ui.route,
+    S.ui.params,
+    (S.ui.modals || []).map(m => [m.type, m.id, m.edit]),
+    S.ui.drawer,
+    S.ui.knowledgeDrawer,
+  ]);
 
 function focusSelectTrigger(btn) {
   const summary = btn?.closest('details:not([open])')?.querySelector(':scope > summary');
@@ -66,10 +78,13 @@ export const selectMenu = {
   sel: null,
   btn: null,
   capture() {
-    if (!this.sel?.hasAttribute('data-preserve-search') || !this.el?.contains(document.activeElement)) return null;
+    if (!this.sel || !this.el?.contains(document.activeElement)) return null;
     const input = this.el.querySelector('input');
     return {
       identity: this.btn.dataset.focusSelect,
+      scope: this.scope,
+      scroll: this.el.scrollTop,
+      resultsScroll: this.el.querySelector('.knowledge-select-results')?.scrollTop,
       value: this.sel.value,
       query: input?.value || '',
       start: input?.selectionStart,
@@ -78,10 +93,10 @@ export const selectMenu = {
     };
   },
   restore(state) {
-    if (!state) return;
+    if (!state || state.scope !== selectionScope()) return;
     const btn = document.querySelector(`[data-focus-select="${CSS.escape(state.identity)}"]`);
     const sel = btn?.previousElementSibling;
-    if (!sel?.matches('select[data-preserve-search]') || sel.disabled || sel.value !== state.value || !btn.offsetParent || btn.closest('[inert]')) return;
+    if (!sel?.matches('select.select') || sel.disabled || sel.value !== state.value || !btn.offsetParent || btn.closest('[inert]')) return;
     this.open(sel, btn);
     const input = this.el.querySelector('input');
     if (input) {
@@ -90,7 +105,10 @@ export const selectMenu = {
       if (state.start != null) input.setSelectionRange(state.start, state.end);
     }
     const option = [...this.el.querySelectorAll('[data-i]')].find(item => sel.options[item.dataset.i]?.value === state.option);
-    option?.focus({ preventScroll: true });
+    if (option && !option.disabled) option.focus({ preventScroll: true });
+    this.el.scrollTop = state.scroll || 0;
+    const results = this.el.querySelector('.knowledge-select-results');
+    if (results) results.scrollTop = state.resultsScroll || 0;
   },
   toggle(sel, btn) {
     this.sel === sel && this.el ? this.close() : this.open(sel, btn);
@@ -177,7 +195,7 @@ export const selectMenu = {
           ?.focus();
       }
     });
-    Object.assign(this, { el: menu, sel, btn });
+    Object.assign(this, { el: menu, sel, btn, scope: selectionScope() });
     this.position();
     btn.setAttribute('aria-expanded', 'true');
     (menu.querySelector('input') || menu.querySelector('[aria-selected="true"]:not(:disabled)') || menu.querySelector('.mi:not(:disabled)'))?.focus({
