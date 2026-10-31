@@ -99,7 +99,7 @@
     inset: auto 12px calc(76px + env(safe-area-inset-bottom, 0px));
     padding: 10px 12px;
     border: 1px solid var(--border);
-    border-radius: var(--r-md);
+    border-radius: var(--r);
     background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
