@@ -26,9 +26,9 @@ Implementation and acceptance of its 18 UI/UX items / Внедрение и пр
 
 ## Заметки TXT и Markdown / TXT and Markdown notes
 
-**RU:** TXT читается как обычный текст. MD поддерживает абзацы, заголовки и внутренние якоря, курсив, полужирный и зачёркнутый текст, вложенные и нумерованные списки, чек-листы, цитаты, код, таблицы, обычные и wiki-ссылки. Чтение, предпросмотр и история используют один renderer. HTML отображается как текст. Изображения показаны ссылками для явного открытия: внешние ресурсы не загружаются автоматически. Относительные пути изображений пока не привязаны к вложениям. Исходники импорта сохраняются без переписывания.
+**RU:** TXT читается как обычный текст. MD поддерживает заголовки, списки, код, таблицы, ссылки на материалы, устойчивые ссылки на блоки и живые вставки из других заметок. Доступны исходник Markdown, блочное редактирование и предпросмотр. Авторизованные изображения загружаются по явному нажатию; внешние ресурсы не загружаются автоматически. Относительные пути можно связать с вложениями, в том числе при импорте ZIP. Исходники сохраняются. Типы и свойства, шаблоны, умные подборки, быстрый сбор, офлайн-библиотека и переносимые архивы описаны в [отчёте о внедрении](docs/CAPACITIES_DELIVERY_2026-10-31.md).
 
-**EN:** TXT is read as plain text. MD supports paragraphs, headings and local anchors, emphasis, strong and deleted text, nested and numbered lists, checklists, quotes, code, tables, regular links and wiki links. Reading, preview and history share one renderer. HTML is displayed as text. Images appear as explicit links; external resources are never loaded automatically. Relative image paths are not yet mapped to attachments. Imported source text is preserved.
+**EN:** TXT is read as plain text. MD supports headings, lists, code, tables, material links, stable block references and live transclusions. Source Markdown, block editing and preview modes are available. Authorized images load on explicit request; external resources never load automatically. Relative paths can be bound to attachments, including ZIP imports. Source text is preserved. Types and properties, templates, smart collections, quick capture, the offline library and portable archives are documented in the [delivery report](docs/CAPACITIES_DELIVERY_2026-10-31.md).
 
 ![Smena Manager home dashboard](docs/preview.png)
 
