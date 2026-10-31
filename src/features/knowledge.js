@@ -309,7 +309,7 @@ import { knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from '../ui/knowledge-editor-position.js';
 A.setKnowledgeEditorPane = el => {
   const pane = el.dataset.pane;
-  if (!['source', 'preview'].includes(pane)) return;
+  if (!['source', 'preview', 'blocks'].includes(pane)) return;
   captureKnowledgeEditorPosition();
   S.ui.knowledgeEditorPane = pane;
   render();

@@ -33,6 +33,6 @@ export function restoreKnowledgeEditorPosition(pane) {
     (input.disabled ? document.getElementById('knowledge-pane-source') : input)?.focus({ preventScroll: true });
     input.setSelectionRange(...value.cursor);
     input.scrollTop = value.inputScroll;
-  } else document.querySelector('[data-a="setKnowledgeEditorPane"][data-pane="preview"]')?.focus({ preventScroll: true });
+  } else document.querySelector(`[data-a="setKnowledgeEditorPane"][data-pane="${pane}"]`)?.focus({ preventScroll: true });
   document.querySelector('.knowledge-drawer-body')?.scrollTo(0, value[pane]);
 }

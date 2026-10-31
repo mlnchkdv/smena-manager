@@ -1881,3 +1881,28 @@
   color: var(--muted);
   white-space: pre-wrap;
 }
+
+.knowledge-writing[hidden] {
+  display: none;
+}
+.knowledge-editable-block {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 8px;
+  margin-block: 8px;
+  min-width: 0;
+}
+.knowledge-editable-block textarea {
+  width: 100%;
+  font-family: var(--mono);
+  resize: vertical;
+}
+.knowledge-editor[data-pane='blocks'] .knowledge-format-toolbar {
+  display: none;
+}
+.knowledge-editor-mode .seg {
+  flex-wrap: wrap;
+}
+.knowledge-block-editor pre {
+  overflow: auto;
+}
