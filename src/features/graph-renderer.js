@@ -2,6 +2,8 @@ import cytoscape from 'cytoscape';
 import { ic } from '../core/icons.js';
 import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
 import { graphOverviewLabels } from '../shared/graph-labels.js';
+import { t } from '../core/i18n.js';
+import { graphPhysicsOptions } from '../shared/graph-physics.js';
 
 let instance;
 let context = '';
@@ -9,12 +11,16 @@ let disconnectObserver;
 let savedView;
 let resizeObserver;
 let topology = '';
-export function mountGraph(graph, selected, center, onSelect, simple = false) {
+let runningLayout,
+  physicsTimer,
+  physicsEnabled = false;
+export function mountGraph(graph, selected, center, onSelect, simple = false, physics = false, reducedMotion = false, scope = '') {
   requestAnimationFrame(() => {
     const container = document.getElementById('knowledge-graph-canvas');
     if (!container) return;
+    const scopeKey = JSON.stringify([scope, center]);
     const previous =
-      instance && context === center
+      instance && context === scopeKey
         ? {
             signature: topology,
             zoom: instance.zoom(),
@@ -23,15 +29,23 @@ export function mountGraph(graph, selected, center, onSelect, simple = false) {
             height: instance.height(),
             positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
             selected: instance.nodes(':selected').first().id(),
+            physics: physicsEnabled,
+            running: !!runningLayout,
           }
-        : savedView?.center === center
+        : savedView?.scope === scopeKey
           ? savedView
           : null;
+    clearTimeout(physicsTimer);
+    runningLayout?.stop();
+    runningLayout = null;
     instance?.off('zoom pan');
     instance?.destroy();
     disconnectObserver?.disconnect();
     resizeObserver?.disconnect();
-    context = center;
+    context = scopeKey;
+    container.dataset.physics = physics ? 'on' : 'off';
+    physicsEnabled = physics;
+    container.dataset.physicsState = physics ? 'settled' : 'off';
     const css = getComputedStyle(container);
     const signature = graphTopologyKey(graph);
     topology = signature;
@@ -240,6 +254,45 @@ export function mountGraph(graph, selected, center, onSelect, simple = false) {
       instance.center(instance.nodes(':selected'));
     }
     updateDensity();
+    const cy = instance;
+    const simulate = fit => {
+      if (instance !== cy || cy.destroyed()) return;
+      clearTimeout(physicsTimer);
+      runningLayout?.stop();
+      const layout = cy.layout(graphPhysicsOptions(reducedMotion));
+      runningLayout = layout;
+      container.dataset.physicsState = 'running';
+      const status = document.querySelector('[data-graph-physics-status]');
+      if (status) status.textContent = t('Settling layout…');
+      layout.one('layoutstop', () => {
+        if (instance !== cy) return;
+        clearTimeout(physicsTimer);
+        runningLayout = null;
+        container.dataset.physicsState = 'settled';
+        if (status) status.textContent = t('Layout settled');
+        if (fit) {
+          cy.fit(undefined, 45);
+          if (cy.zoom() > 1.2) {
+            cy.zoom(1.2);
+            cy.center();
+          }
+        }
+        updateDensity();
+      });
+      layout.run();
+      if (runningLayout === layout)
+        physicsTimer = setTimeout(() => {
+          if (runningLayout === layout) layout.stop();
+        }, 2500);
+    };
+    if (physics && (!previous || !previous.physics || previous.running || previous.signature !== signature)) simulate(true);
+    instance.on('grab', 'node', () => {
+      clearTimeout(physicsTimer);
+      runningLayout?.stop();
+    });
+    instance.on('free', 'node', () => {
+      if (physics) simulate(false);
+    });
     instance.on('tap', 'node', event => onSelect(event.target.id()));
     instance.on('mouseover', 'node', event => {
       container.style.cursor = 'pointer';
@@ -268,6 +321,9 @@ export function mountGraph(graph, selected, center, onSelect, simple = false) {
         if (instance)
           savedView = {
             center,
+            scope: scopeKey,
+            physics,
+            running: !!runningLayout,
             signature,
             width,
             height,
@@ -276,6 +332,9 @@ export function mountGraph(graph, selected, center, onSelect, simple = false) {
             positions: new Map(instance.nodes().map(node => [node.id(), { ...node.position() }])),
             selected: instance.nodes(':selected').first().id(),
           };
+        clearTimeout(physicsTimer);
+        runningLayout?.stop();
+        runningLayout = null;
         instance?.off('zoom pan');
         instance?.destroy();
         instance = null;

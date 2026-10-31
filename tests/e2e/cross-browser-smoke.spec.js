@@ -76,10 +76,24 @@ test('simplified graph preserves materials selection filters and personal prefer
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('.graph-summary')).toHaveText(summary);
+    const physics = page.locator('.graph-physics-toggle');
+    if ((await physics.getAttribute('aria-pressed')) !== 'true') await physics.click();
+    const canvas = page.locator('#knowledge-graph-canvas');
+    await expect(canvas).toHaveAttribute('data-physics', 'on');
+    await expect(canvas).toHaveAttribute('data-physics-state', 'settled', { timeout: 10000 });
+    await physics.click();
+    await expect(canvas).toHaveAttribute('data-physics', 'off');
+    await page.waitForTimeout(200);
+    const frozen = await canvas.screenshot();
+    await page.waitForTimeout(400);
+    const { PNG } = await import('pngjs');
+    expect(PNG.sync.read(frozen).data.equals(PNG.sync.read(await canvas.screenshot()).data)).toBeTruthy();
+    await physics.click();
     await page.waitForTimeout(650);
     await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
     await page.reload();
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(physics).toHaveAttribute('aria-pressed', 'true');
     for (const [width, height] of [
       [320, 740],
       [390, 845],

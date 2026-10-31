@@ -1,4 +1,13 @@
-.graph-simple-toggle[aria-pressed='true'] {
+.graph-appearance {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.graph-physics-status {
+  display: block;
+}
+.graph-simple-toggle[aria-pressed='true'],
+.graph-physics-toggle[aria-pressed='true'] {
   background: var(--accent-soft);
   color: var(--accent);
   border-color: var(--accent-line);
@@ -7,6 +16,13 @@
   grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
 @media (max-width: 640px) {
+  .graph-physics-toggle > span {
+    display: none;
+  }
+  .graph-physics-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
   .graph-page .graph-toolbar:has(.graph-simple-toggle) {
     grid-template-columns: minmax(0, 1fr) auto auto;
   }

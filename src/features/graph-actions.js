@@ -74,3 +74,8 @@ A.toggleGraphSimple = () => {
   save();
   render();
 };
+A.toggleGraphPhysics = () => {
+  S.prefs.graphPhysics = !S.prefs.graphPhysics;
+  save();
+  render();
+};
