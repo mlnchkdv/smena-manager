@@ -25,6 +25,7 @@ test('an ordinary member creates and configures owned workspaces without gaining
   }
   await saved(page);
   const source = (await (await page.request.get('/api/workspace')).json()).data;
+  const sourceKnowledge = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
   const memberContext = await browser.newContext();
   const member = await memberContext.newPage();
   try {
@@ -33,6 +34,7 @@ test('an ordinary member creates and configures owned workspaces without gaining
     await member.locator('#login-btn').click();
     await expect(member.locator('.shell')).toBeVisible();
     for (const language of ['Русский', 'English (US)']) {
+      console.log(`Member-owned workspace: ${language}`);
       const ru = language === 'Русский';
       await member.setViewportSize({ width: 1366, height: 767 });
       await member.goto('/e2e-team/settings/language');
@@ -53,6 +55,8 @@ test('an ordinary member creates and configures owned workspaces without gaining
         await expect(member.locator('.workspace-create-dialog')).toBeVisible();
         expect(await member.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       }
+      // Submit and save on a genuinely narrow layout, not only inspect its form.
+      await member.setViewportSize({ width: ru ? 320 : 390, height: 845 });
       const name = ru ? 'Личное пространство участника' : 'Member workspace';
       await member.locator('#new-ws-name').fill(name);
       await member.locator('#new-ws-description').fill('Owner-only settings test');
@@ -60,6 +64,7 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await member.locator('.workspace-create-dialog button[type="submit"]').click();
       await expect(member).toHaveURL(/\/settings\/workspace$/);
       await expect(member.locator('#ws-name')).toHaveValue(name);
+      await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
       const ownedPath = new URL(member.url()).pathname;
       await member.locator('#ws-name').fill(name + ' updated');
       await member.locator('#ws-description').fill('Persisted owner changes');
@@ -68,9 +73,12 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await member.reload();
       await expect(member.locator('#ws-name')).toHaveValue(name + ' updated');
       await expect(member.locator('#ws-description')).toHaveValue('Persisted owner changes');
+      await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
       const directory = (await (await member.request.get('/api/workspaces')).json()).workspaces;
+      await member.screenshot({ path: `output/playwright/member-owned-workspaces-2026-10-31/${ru ? 'ru' : 'en'}-settings-mobile.png` });
       expect(directory.find(item => item.url === ownedPath.split('/')[1]).role).toBe('admin');
       expect(directory.find(item => item.id === 'default').role).toBe('editor');
+      const ownEntry = directory.find(item => item.url === ownedPath.split('/')[1]);
       for (const [width, height] of [
         [320, 676],
         [390, 845],
@@ -81,7 +89,66 @@ test('an ordinary member creates and configures owned workspaces without gaining
         await expect(member.locator('#ws-name')).toBeEditable();
         expect(await member.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       }
+      await member.setViewportSize({ width: ru ? 320 : 390, height: 845 });
+      await member.goto(`/${ownEntry.url}/projects`);
+      await member.locator('#main-content [data-a="newProject"]').first().click();
+      const projectName = ru ? 'Проект в личном пространстве' : 'Personal workspace project';
+      await member.locator('#p-name').fill(projectName);
+      await member.locator('[data-a="pformSet"][data-v="blank"]').click();
+      await member.locator('.modal-f [data-a="submitProject"]').click();
+      await saved(member);
+      const headers = { 'X-Smena-Workspace': ownEntry.id };
+      const ownCore = (await (await member.request.get('/api/workspace', { headers })).json()).data;
+      const project = ownCore.projects.find(item => item.name === projectName);
+      expect(project).toBeTruthy();
+      await member.goto(`/${ownEntry.url}/project/${project.id}`);
+      await member.locator('#main-content [data-a="newTask"]').first().click();
+      const taskName = ru ? 'Личная задача — проверка изоляции' : 'Personal task — isolation check';
+      await member.locator('#f-title').fill(taskName);
+      await member.locator('#f-submit').click();
+      await saved(member);
+      await member.reload();
+      await expect(member.locator('#main-content')).toContainText(taskName);
+      const document = (await (await member.request.get('/api/workspace-documents/knowledge', { headers })).json()).data;
+      const noteTitle = ru ? 'Личная заметка — проверка изоляции' : 'Personal note — isolation check';
+      expect(
+        (
+          await member.request.put('/api/workspace-documents/knowledge', {
+            headers,
+            data: {
+              revision: document.revision,
+              data: {
+                knowledgeFolders: [],
+                knowledgeNotes: [{ id: 'owned-note', title: noteTitle, formatted_markdown: '# Independent workspace content', tags: [], category: 'General' }],
+              },
+            },
+          })
+        ).ok(),
+      ).toBeTruthy();
+      await member.goto(`/${ownEntry.url}/knowledge`);
+      await expect(member.getByText(noteTitle, { exact: true }).first()).toBeVisible();
+      await member.reload();
+      await expect(member.getByText(noteTitle, { exact: true }).first()).toBeVisible();
+      await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
+      await member.screenshot({ path: `output/playwright/member-owned-workspaces-2026-10-31/${ru ? 'ru' : 'en'}-knowledge-mobile.png` });
+      expect((await page.request.get('/api/workspace', { headers })).status()).toBe(403);
+      expect((await page.request.get('/api/workspace-documents/knowledge', { headers })).status()).toBe(403);
+      expect((await (await page.request.get('/api/workspaces')).json()).workspaces.some(item => item.id === ownEntry.id)).toBe(false);
+      await saved(member);
+      await member.locator('.workspace-context[data-pop="ws"]').click();
+      await member.locator('.pop [data-a="switchWs"][data-v="default"]').click();
+      await expect(member).toHaveURL(/\/e2e-team\/home$/);
+      await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
+      await member.goto('/e2e-team/knowledge');
+      await expect(member.locator('.knowledge-shell')).toBeVisible();
+      await expect(member.getByText(noteTitle, { exact: true })).toHaveCount(0);
+      await member.locator('.workspace-context[data-pop="ws"]').click();
+      await member.locator(`.pop [data-a="switchWs"][data-v="${ownEntry.id}"]`).click();
+      await expect(member).toHaveURL(new RegExp(`/${ownEntry.url}/home$`));
+      await member.goto(`/${ownEntry.url}/knowledge`);
+      await expect(member.getByText(noteTitle, { exact: true }).first()).toBeVisible();
       await member.goto('/e2e-team/settings/workspace');
+      console.log(`Member-owned isolation and mobile switcher verified: ${language}`);
       await expect(member.locator('.shell')).toBeVisible();
       await expect(member.locator('#ws-name')).toHaveCount(0);
       await expect(member.locator('.settings-access')).toContainText(ru ? 'Требуется доступ администратора' : 'Administrator access required');
@@ -89,6 +156,9 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await expect(member.locator('.settings-access [data-pop="ws"]')).toBeVisible();
       const unchanged = (await (await page.request.get('/api/workspace')).json()).data;
       expect(unchanged.ws).toEqual(source.ws);
+      expect(unchanged.projects).toEqual(source.projects);
+      expect(unchanged.tasks).toEqual(source.tasks);
+      expect((await (await page.request.get('/api/workspace-documents/knowledge')).json()).data.knowledgeNotes).toEqual(sourceKnowledge.knowledgeNotes);
       expect(unchanged.members.find(item => item.email === 'editor@example.test').role).toBe('Member');
     }
   } finally {
