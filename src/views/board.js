@@ -7,7 +7,8 @@ import { av, dueHtml, lbl, prIcon, progBar, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
-import { uiCount } from '../core/i18n.js';
+import { uiCount, t as tr } from '../core/i18n.js';
+import { actionLabel } from '../ui/action-label.js';
 
 export function kcard(t, opt = {}) {
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
@@ -26,9 +27,9 @@ export function kcard(t, opt = {}) {
       ${t.recur ? `<span class="m" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 12)}</span>` : ''}
       ${cc ? `<span class="m" aria-label="${esc(uiCount(cc, 'comment'))}">${ic('message-square', 12)}${cc}</span>` : ''}
       ${ac ? `<span class="m" aria-label="${ac} attachments">${ic('paperclip', 12)}${ac}</span>` : ''}
-      <button class="m board-assignee" data-a="pop" data-pop="assignee" data-id="${t.id}" data-tip="${esc(mem(t.assignee)?.name || 'Unassigned')}" style="margin-left:auto" aria-label="Assignee">${av(t.assignee, 'sm', false)}</button>
+      <button class="m board-assignee" data-a="pop" data-pop="assignee" data-id="${t.id}" data-tip="${esc(mem(t.assignee)?.name || 'Unassigned')}" style="margin-left:auto" aria-label="${actionLabel('Assignee', mem(t.assignee)?.name || tr('Unassigned'), t.title)}" translate="no">${av(t.assignee, 'sm', false)}</button>
     </div>
-    <div class="hacts"><button class="ibtn ibtn-xs" data-a="toggleDone" data-id="${t.id}" data-tip="${t.status === 'done' ? 'Reopen' : 'Mark complete'}" aria-label="${t.status === 'done' ? 'Reopen' : 'Mark complete'}">${ic(t.status === 'done' ? 'rotate-ccw' : 'check', 13)}</button><button class="ibtn ibtn-xs" data-a="editTask" data-id="${t.id}" data-tip="Quick edit" aria-label="Quick edit">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More">${ic('ellipsis', 13)}</button></div>
+    <div class="hacts"><button class="ibtn ibtn-xs" data-a="toggleDone" data-id="${t.id}" data-tip="${t.status === 'done' ? 'Reopen' : 'Mark complete'}" aria-label="${t.status === 'done' ? 'Reopen' : 'Mark complete'}">${ic(t.status === 'done' ? 'rotate-ccw' : 'check', 13)}</button><button class="ibtn ibtn-xs" data-a="editTask" data-id="${t.id}" data-tip="Quick edit" aria-label="Quick edit">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="${actionLabel('Task options', t.title, t.key)}">${ic('ellipsis', 13)}</button></div>
   </div>`;
 }
 export function boardHtml(ts, key, opt = {}) {

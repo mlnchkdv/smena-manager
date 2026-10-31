@@ -19,6 +19,7 @@ import { segmentedControl } from '../ui/segmented-control.js';
 import { colorPalette, AVATAR_COLORS, WORKSPACE_COLORS } from '../ui/color-palette.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
 import { workspaceRoleLabel } from '../core/i18n.js';
+import { actionLabel } from '../ui/action-label.js';
 
 export const SET_NAV = [
   [
@@ -419,7 +420,7 @@ export function settingsBody(sec, title) {
       return (
         H(`${d.members.length} people have access to ${esc(d.ws.name)}.`) +
         `<div class="row settings-member-actions" style="margin-bottom:12px"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}Add access</button><button class="btn btn-secondary" data-a="go" data-r="members">Open member directory</button></div>
-      <div class="panel" style="overflow:hidden">${d.members.map(m => `<div class="mini settings-member" style="min-height:52px;cursor:default" data-ctx="member" data-id="${m.id}">${av(m.id, 'md', false)}<div class="grow"><div style="font-weight:500">${esc(m.name)}</div><div class="faint" style="font-size:12px">${esc(m.email)}</div></div>${m.status === 'invited' ? '<span class="badge amber">Invited</span>' : ''}${m.role === 'Owner' ? `<span class="pillbtn">${ic('crown', 13)}Owner</span>` : `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>`}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="Options">${ic('ellipsis', 14)}</button></div>`).join('')}</div>`
+      <div class="panel" style="overflow:hidden">${d.members.map(m => `<div class="mini settings-member" style="min-height:52px;cursor:default" data-ctx="member" data-id="${m.id}">${av(m.id, 'md', false)}<div class="grow"><div style="font-weight:500">${esc(m.name)}</div><div class="faint" style="font-size:12px">${esc(m.email)}</div></div>${m.status === 'invited' ? '<span class="badge amber">Invited</span>' : ''}${m.role === 'Owner' ? `<span class="pillbtn">${ic('crown', 13)}Owner</span>` : `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>`}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 14)}</button></div>`).join('')}</div>`
       );
     case 'teams':
       return H('Teams group people and projects.') + teamsGrid();
