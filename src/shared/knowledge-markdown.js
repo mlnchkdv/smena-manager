@@ -155,12 +155,24 @@ export function renderKnowledgeMarkdown(source, options = {}) {
               ? `<button class="knowledge-wiki-link" data-a="followKnowledgeWiki" data-id="${escape(target)}" data-source="${escape(options.sourceId || '')}">${escape(token.text)}</button>`
               : `<span class="knowledge-wiki-link unresolved" title="${escape(options.unresolvedLabel || 'Unresolved wiki link')}">${escape(token.text)}</span>`;
           }
-          case 'link':
+          case 'link': {
+            const asset = options.asset?.(token.href);
+            if (asset)
+              return `<button class="knowledge-wiki-link" data-a="openKnowledgeFilePage" data-id="${escape(asset.id)}" data-page="${asset.page || 1}">${child()}</button>`;
             return token.href.startsWith('#')
               ? `<a href="${escape(token.href)}" data-a="knowledgeAnchor" data-anchor="${escape(anchorName(token.href))}">${child()}</a>`
               : externalLink(token.href, child());
-          case 'image':
+          }
+          case 'image': {
+            const asset = options.asset?.(token.href);
+            if (asset)
+              return asset.url
+                ? `<img class="knowledge-inline-image" src="${escape(asset.url)}" alt="${escape(token.text)}">`
+                : `<button class="btn btn-secondary" data-a="loadKnowledgeImage" data-id="${escape(asset.id)}">${escape(options.loadImageLabel || 'Load image')}: ${escape(token.text)}</button>`;
+            if (!/^[a-z]+:|^\//i.test(token.href) && options.sourceId)
+              return `<button class="knowledge-wiki-link" data-a="bindKnowledgeAsset" data-id="${escape(options.sourceId)}" data-path="${escape(token.href)}">${escape(options.bindImageLabel || 'Bind to a file')}: ${escape(token.text || token.href)}</button>`;
             return `<span class="knowledge-image-reference"><span>${escape(options.imageLabel || 'Image')}:</span> ${escape(token.text || options.imageLabel || 'Image')} ${/^https?:\/\//i.test(token.href) ? externalLink(token.href, escape(options.openImageLabel || 'Open image')) : `<span class="hint">(${escape(options.unavailableImageLabel || 'Image source unavailable')})</span>`}</span>`;
+          }
           case 'html':
             return escape(token.raw);
           case 'text':

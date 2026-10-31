@@ -58,7 +58,12 @@ export async function renderPdfPage(blob, pageNumber, signal) {
     await rendering.promise;
     const image = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     if (!image || signal.aborted) throw new DOMException('Aborted', 'AbortError');
-    return { blob: image, page, pages: pdf.numPages };
+    const content = await source.getTextContent();
+    const text = content.items
+      .map(item => item.str || '')
+      .join(' ')
+      .slice(0, 60000);
+    return { blob: image, page, pages: pdf.numPages, text };
   } finally {
     clearTimeout(timer);
     signal.removeEventListener('abort', cancel);

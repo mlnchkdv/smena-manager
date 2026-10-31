@@ -239,6 +239,14 @@ export function validateDocumentInput(name, value) {
     )
       invalid.push('links.reading');
     if (name === 'knowledge' && (!validAliases(item.aliases) || !validAliases(item.tagAliases))) invalid.push('knowledgeNotes.aliases');
+    if (
+      name === 'knowledge' &&
+      item.assets != null &&
+      (!isObject(item.assets) ||
+        Object.keys(item.assets).length > 100 ||
+        Object.entries(item.assets).some(([path, id]) => path.length > 500 || !validIdentity(id)))
+    )
+      invalid.push('knowledgeNotes.assets');
     if (name === 'knowledge' && !validNoteProperties(item)) invalid.push('knowledgeNotes.properties');
     if (
       item.wikiRefs != null &&

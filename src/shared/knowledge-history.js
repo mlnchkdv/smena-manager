@@ -1,6 +1,20 @@
-const fields = ['title', 'summary', 'formatted_markdown', 'tags', 'category', 'folderId', 'typeId', 'properties', 'aliases', 'tagAliases', 'captureStatus'];
+const fields = [
+  'title',
+  'summary',
+  'formatted_markdown',
+  'tags',
+  'category',
+  'folderId',
+  'typeId',
+  'properties',
+  'aliases',
+  'tagAliases',
+  'captureStatus',
+  'assets',
+];
 export const KNOWLEDGE_VERSION_FIELDS = {
   typeId: 'Type',
+  assets: 'Linked assets',
   captureStatus: 'Capture status',
   aliases: 'Aliases',
   tagAliases: 'Tag aliases',
@@ -16,7 +30,8 @@ const snapshot = note =>
   Object.fromEntries(
     fields.map(field => [
       field,
-      note[field] ?? (['tags', 'aliases', 'tagAliases'].includes(field) ? [] : field === 'properties' ? {} : field === 'typeId' ? 'note' : ''),
+      note[field] ??
+        (['tags', 'aliases', 'tagAliases'].includes(field) ? [] : ['properties', 'assets'].includes(field) ? {} : field === 'typeId' ? 'note' : ''),
     ]),
   );
 export const knowledgeVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;

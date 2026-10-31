@@ -26,7 +26,7 @@ export function ensureFilePreview(modal, refresh) {
       if (!previews.has(modal) || !S.ui.modals.includes(modal) || state.owner !== S.ui.currentUser?.id) return;
       if (policy.kind === 'pdf') {
         state.pdf = blob;
-        await showPdfPage(modal, state, 1);
+        await showPdfPage(modal, state, modal.initialPage || 1);
       } else if (policy.kind === 'text') modal.preview = { kind: 'text', text: await blob.text() };
       else {
         state.url = URL.createObjectURL(blob);
@@ -46,7 +46,7 @@ async function showPdfPage(modal, state, number) {
   if (!previews.has(modal) || state.owner !== S.ui.currentUser?.id || state.controller.signal.aborted) return;
   if (state.url) URL.revokeObjectURL(state.url);
   state.url = URL.createObjectURL(result.blob);
-  modal.preview = { kind: 'pdf', url: state.url, page: result.page, pages: result.pages };
+  modal.preview = { kind: 'pdf', url: state.url, page: result.page, pages: result.pages, text: result.text };
 }
 
 export async function changePdfPreviewPage(modal, number, refresh) {

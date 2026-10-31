@@ -1,3 +1,5 @@
+import { assetPath } from '../shared/knowledge-assets.js';
+import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { A } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { uid } from '../core/utils.js';
@@ -33,13 +35,29 @@ export function insertInlineTarget(modal, key) {
     note.formatted_markdown !== modal.inline.base
   )
     return;
-  const result = insertMaterialLink(
-    note.formatted_markdown,
-    modal.inline.start,
-    modal.inline.end,
-    key,
-    target.item.title || target.item.name || target.item.url,
-  );
+  if (modal.inline.assetPath) {
+    const path = assetPath(modal.inline.assetPath);
+    if (!path || target.kind !== 'file') return;
+    if (
+      mutate(() => {
+        note.assets = { ...note.assets, [path]: target.id };
+        note.updatedAt = new Date().toISOString();
+        note.updatedBy = D().me;
+      })
+    )
+      closeModal();
+    return;
+  }
+  let result = insertMaterialLink(note.formatted_markdown, modal.inline.start, modal.inline.end, key, target.item.title || target.item.name || target.item.url);
+  if (modal.inline.asset && target.kind === 'file') {
+    const image = filePreviewPolicy(target.item).kind === 'image';
+    const label = target.item.name.replace(/[[\]\r\n]/g, ' ');
+    const link = `${image ? '!' : ''}[${label}](smena-file:${target.id})`;
+    result = {
+      text: note.formatted_markdown.slice(0, modal.inline.start) + link + note.formatted_markdown.slice(modal.inline.end),
+      cursor: modal.inline.start + link.length,
+    };
+  }
   if (
     mutate(() => {
       note.formatted_markdown = result.text;
@@ -80,3 +98,12 @@ document.addEventListener('input', event => {
     handling = false;
   });
 });
+
+A.attachKnowledgeMedia = () => {
+  openInlinePicker();
+  const m = S.ui.modals.at(-1);
+  if (m?.inline) {
+    m.kind = 'file';
+    m.inline.asset = true;
+  }
+};
