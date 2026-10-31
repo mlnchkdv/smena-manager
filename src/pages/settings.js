@@ -210,7 +210,7 @@ export function settingsBody(sec, title) {
   const P = S.prefs;
   const d = D();
   const np = myNotificationPreferences();
-  const personal = !['workspace', 'members', 'teams', 'projects', 'permissions', 'security'].includes(sec);
+  const personal = !['workspace', 'data-transfer', 'members', 'teams', 'projects', 'permissions', 'security'].includes(sec);
   const scope =
     sec === 'projects'
       ? isRussian()
@@ -495,6 +495,9 @@ export function settingsBody(sec, title) {
         srow('Task status changes', '', tog('push_update', np.push_update, 'np')) +
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
         srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np')) +
+        (S.ui.currentUser?.role === 'admin'
+          ? `<p class="hint settings-scope" translate="no">${isRussian() ? 'Диагностика и операции доставки ниже относятся ко всему пространству, а не только к вашему устройству.' : 'Diagnostics and delivery operations below apply to the workspace, not only this device.'} <b>${esc(d.ws.name)}</b></p>`
+          : '') +
         deliveryStatusPanel()
       );
     }
