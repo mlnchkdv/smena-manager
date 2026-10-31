@@ -267,6 +267,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           }
         : null,
     );
+    instance.on('zoom pan dragfree lock unlock', () => window.dispatchEvent(new Event('smena:diagram-layout-changed')));
     instance.on('zoom', updateDensity);
     instance.on('pan', updateDensity);
     if (previous?.signature === signature) {

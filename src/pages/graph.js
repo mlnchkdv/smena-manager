@@ -33,9 +33,10 @@ function graphFilters(ui, center) {
 
 function graphDetails(node) {
   if (!node) return '';
+  const pinned = diagramPreferences(S.prefs.diagramViews).pins.some(p => p.id === node.key);
   return `<aside class="graph-detail"><div class="graph-detail-head"><span class="badge">${ic(ENTITY_ICONS[node.kind], 12)}${ENTITY_LABELS[node.kind]}</span><button class="ibtn ibtn-sm" data-a="clearGraphSelection" aria-label="Close material details">${ic('x', 15)}</button></div>
     <h2 translate="no">${esc(node.title)}</h2>${node.item.summary || node.item.description || node.item.url ? `<p class="graph-description" translate="no">${esc(node.item.summary || node.item.description || node.item.url)}</p>` : ''}
-<div class="graph-detail-actions"><button class="btn btn-secondary btn-sm" data-a="toggleGraphPin" data-key="${esc(node.key)}" aria-pressed="${diagramPreferences(S.prefs.diagramViews).pins.some(p => p.id === node.key)}" translate="no">${ic('pin', 14)}${document.documentElement.lang === 'ru' ? 'Закрепить узел' : 'Pin node'}</button><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button>${S.ui.graphView === 'list' ? '' : '<button class="btn btn-secondary btn-sm" data-a="graphControl" data-command="selection">Focus connections</button>'}</div>
+<div class="graph-detail-actions"><button class="btn btn-secondary btn-sm" data-a="toggleGraphPin" data-key="${esc(node.key)}" aria-pressed="${diagramPreferences(S.prefs.diagramViews).pins.some(p => p.id === node.key)}" translate="no">${ic('pin', 14)}${document.documentElement.lang === 'ru' ? (pinned ? 'Открепить узел' : 'Закрепить узел') : pinned ? 'Unpin node' : 'Pin node'}</button><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button>${S.ui.graphView === 'list' ? '' : '<button class="btn btn-secondary btn-sm" data-a="graphControl" data-command="selection">Focus connections</button>'}</div>
     ${relationsPanel(node.key)}
   </aside>`;
 }

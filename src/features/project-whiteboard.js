@@ -464,6 +464,7 @@ function paintView() {
   if (world) world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
   const scale = document.querySelector('.whiteboard-scale');
   if (scale) scale.textContent = Math.round(s.zoom * 100) + '%';
+  window.dispatchEvent(new Event('smena:diagram-layout-changed'));
 }
 function zoomTo(next, cx, cy) {
   const s = whiteboardState(),

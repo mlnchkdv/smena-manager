@@ -61,3 +61,18 @@
     min-height: 44px;
   }
 }
+
+.diagram-layout-status {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+@media (max-width: 640px) {
+  .diagram-layout-status {
+    max-width: 100px;
+  }
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { defaultDiagramViews, validDiagramViews, diagramPreferences } from '../../src/shared/diagram-views.js';
+import { defaultDiagramViews, validDiagramViews, diagramPreferences, diagramLayoutChanged } from '../../src/shared/diagram-views.js';
 import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
 const graph = () => ({
   id: 'g',
@@ -21,4 +21,18 @@ test('named diagram views validate positions active scopes limits and legacy mig
   applyPersonalSettings(db, 'a', { preferences: { diagramViews: JSON.stringify(cfg) } });
   assert.equal(db._userPrefs.b, undefined);
   assert.equal(JSON.parse(db._userPrefs.a.diagramViews).items[0].layout.positions[0].x, 100);
+});
+
+test('layout change detection tolerates numeric jitter but detects position camera pin and outline changes', () => {
+  const saved = graph().layout;
+  assert.equal(diagramLayoutChanged('graph', saved, structuredClone(saved)), false);
+  const changed = structuredClone(saved);
+  changed.positions[0].x += 20;
+  assert.equal(diagramLayoutChanged('graph', saved, changed), true);
+  changed.positions[0].x = saved.positions[0].x;
+  changed.positions[0].locked = false;
+  assert.equal(diagramLayoutChanged('graph', saved, changed), true);
+  const board = { x: 1, y: 2, zoom: 1, outline: false };
+  assert.equal(diagramLayoutChanged('board', board, { ...board, x: 1.001 }), false);
+  assert.equal(diagramLayoutChanged('board', board, { ...board, outline: true }), true);
 });

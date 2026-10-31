@@ -5,7 +5,7 @@ import { ic } from '../core/icons.js';
 import { isRussian } from '../core/i18n.js';
 import { currentGraphLayout, activeDiagramView, diagramScope } from '../core/diagram-view-state.js';
 import { whiteboardState } from '../core/whiteboard-state.js';
-import { diagramPreferences, validDiagramViews } from '../shared/diagram-views.js';
+import { diagramPreferences, validDiagramViews, diagramLayoutChanged } from '../shared/diagram-views.js';
 import { disclosureAttributes } from './disclosure.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { render, go } from '../shell/render.js';
@@ -28,11 +28,26 @@ const persist = (cfg, reload = true) => {
   save();
   return true;
 };
+function viewStatus(kind, project) {
+  const active = activeDiagramView(kind, project);
+  if (!active) return '';
+  const layout = kind === 'board' ? whiteboardState(project) : currentGraphLayout();
+  const dirty = diagramLayoutChanged(kind, active.layout, layout) || (kind === 'graph' && JSON.stringify(active.context) !== JSON.stringify(context()));
+  return `${active.name} · ${dirty ? T('Changed', 'Изменено') : T('Saved', 'Сохранено')}`;
+}
+export function refreshDiagramViewStatus() {
+  for (const el of document.querySelectorAll('[data-diagram-status]')) {
+    el.textContent = viewStatus(el.dataset.kind, el.dataset.project);
+    el.title = el.textContent;
+  }
+}
+window.addEventListener('smena:diagram-layout-changed', refreshDiagramViewStatus);
+document.addEventListener('pointerup', () => requestAnimationFrame(refreshDiagramViewStatus));
 export function diagramViewsControl(kind, project = '') {
   const cfg = prefs(),
     items = cfg.items.filter(i => i.kind === kind && i.project === project);
   const active = activeDiagramView(kind, project);
-  return `<details class="ui-menu diagram-view-menu" ${disclosureAttributes('diagram:' + kind + ':' + project)} translate="no"><summary class="btn btn-secondary btn-sm" aria-label="${T('Saved layouts', 'Сохранённые раскладки')}" title="${T('Saved layouts', 'Сохранённые раскладки')}">${ic('bookmark', 14)}<span class="hide-m">${T('Layouts', 'Раскладки')}</span></summary><div><p class="hint">${T('Personal layouts · synced in this workspace', 'Личные раскладки · синхронизируются в этом пространстве')}</p>${items.map(i => `<div class="diagram-view-row"><button data-a="loadDiagramView" data-id="${esc(i.id)}" aria-pressed="${active?.id === i.id}"><span>${esc(i.name)}</span></button><button class="ibtn" data-a="removeDiagramView" data-id="${esc(i.id)}" aria-label="${esc(T('Remove layout', 'Убрать раскладку') + ': ' + i.name)}">${ic('x', 13)}</button></div>`).join('')}<button data-a="saveDiagramView" data-kind="${kind}" data-project="${esc(project)}">${ic('bookmark-plus', 14)}${T('Save layout…', 'Сохранить раскладку…')}</button><button data-a="resetDiagramView" data-kind="${kind}" data-project="${esc(project)}">${ic('rotate-ccw', 14)}${T('Reset layout', 'Сбросить раскладку')}</button></div></details>`;
+  return `<details class="ui-menu diagram-view-menu" ${disclosureAttributes('diagram:' + kind + ':' + project)} translate="no"><summary class="btn btn-secondary btn-sm" aria-label="${T('Saved layouts', 'Сохранённые раскладки')}" title="${T('Saved layouts', 'Сохранённые раскладки')}">${ic('bookmark', 14)}<span class="hide-m">${T('Layouts', 'Раскладки')}</span>${active ? `<span class="diagram-layout-status" data-diagram-status data-kind="${kind}" data-project="${esc(project)}">${esc(viewStatus(kind, project))}</span>` : ''}</summary><div><p class="hint">${T('Personal layouts · synced in this workspace', 'Личные раскладки · синхронизируются в этом пространстве')}</p>${items.map(i => `<div class="diagram-view-row"><button data-a="loadDiagramView" data-id="${esc(i.id)}" aria-pressed="${active?.id === i.id}"><span>${esc(i.name)}</span></button><button class="ibtn" data-a="removeDiagramView" data-id="${esc(i.id)}" aria-label="${esc(T('Remove layout', 'Убрать раскладку') + ': ' + i.name)}">${ic('x', 13)}</button></div>`).join('')}<button data-a="saveDiagramView" data-kind="${kind}" data-project="${esc(project)}">${ic('bookmark-plus', 14)}${T('Save layout…', 'Сохранить раскладку…')}</button><button data-a="resetDiagramView" data-kind="${kind}" data-project="${esc(project)}">${ic('rotate-ccw', 14)}${T('Reset layout', 'Сбросить раскладку')}</button></div></details>`;
 }
 function form(m, H) {
   const items = prefs().items.filter(i => i.kind === m.kind && i.project === m.project);
@@ -92,6 +107,7 @@ A.commitDiagramView = () => {
     return;
   }
   closeModal();
+  render();
 };
 A.loadDiagramView = el => {
   const cfg = prefs(),

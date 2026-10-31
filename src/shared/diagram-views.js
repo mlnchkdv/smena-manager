@@ -92,3 +92,19 @@ export function diagramPreferences(raw) {
     return defaultDiagramViews();
   }
 }
+
+export function diagramLayoutChanged(kind, saved, current) {
+  if (!saved || !current) return false;
+  const near = (a, b, epsilon = 0.01) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= epsilon;
+  if (kind === 'board')
+    return !near(saved.x, current.x) || !near(saved.y, current.y) || !near(saved.zoom, current.zoom, 0.0001) || !!saved.outline !== !!current.outline;
+  if (!near(saved.zoom, current.zoom, 0.0001) || !near(saved.pan.x, current.pan.x) || !near(saved.pan.y, current.pan.y)) return true;
+  const points = new Map(current.positions.map(p => [p.id, p]));
+  return (
+    points.size !== saved.positions.length ||
+    saved.positions.some(p => {
+      const q = points.get(p.id);
+      return !q || !near(p.x, q.x) || !near(p.y, q.y) || !!p.locked !== !!q.locked;
+    })
+  );
+}
