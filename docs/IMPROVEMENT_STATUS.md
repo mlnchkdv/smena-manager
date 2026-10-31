@@ -1,5 +1,7 @@
 # Improvement status / Статус улучшений
 
+**01.11.2026 — новый аудит / new audit:** [40 proposed UI/UX improvements](UI_UX_DEEP_AUDIT_2026-11-01.md), with production evidence, priorities and acceptance criteria. **Not implemented in this audit.** / План ещё не внедрён. Covers RU/EN and seven sizes; graph lifecycle errors, personal favorites, mobile clipping, timeline context, knowledge editing, diagrams and catalog ergonomics are separated from recommendations and unverified cases.
+
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](UI_UX_DELIVERY_2026-11-01_TWELVE.md).
 
 ## Independent whiteboards / Самостоятельные холсты — 31 October 2026

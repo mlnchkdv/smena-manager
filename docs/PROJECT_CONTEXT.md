@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**01.11.2026 — глубокий UI/UX-аудит / deep production audit:** [40 proposed items, evidence, scope and acceptance](UI_UX_DEEP_AUDIT_2026-11-01.md). RU/EN, seven viewport sizes, every main section and Settings page. This is the current proposed backlog, not delivered functionality; preserve the stated production/physical-device/write-test limits. / Новый план ещё не внедрён; не смешивать с результатами предыдущих 12 правок.
+
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](UI_UX_DELIVERY_2026-11-01_TWELVE.md).
 
 **31.10.2026 — самостоятельные холсты / independent whiteboards:** [Current model, migration, ACLs, acceptance and UI/UX backlog](UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md). Whiteboards are workspace documents rather than project tabs. Read this update before changing old project links, compatibility aliases, history, graph or search.
