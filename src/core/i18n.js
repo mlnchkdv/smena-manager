@@ -22,6 +22,7 @@ const RU = {
   'Privacy policy': 'Политика конфиденциальности',
   'Terms of service': 'Условия использования',
   'Graph physics': 'Физика графа',
+  'Note actions': 'Действия с заметкой',
   'Graph appearance': 'Отображение графа',
   Physics: 'Физика',
   'Settling layout…': 'Распределяем узлы…',

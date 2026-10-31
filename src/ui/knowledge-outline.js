@@ -5,14 +5,19 @@ export function knowledgeOutline(markup, actions = '') {
   const template = document.createElement('template');
   template.innerHTML = markup;
   const headings = [...template.content.querySelectorAll('[data-knowledge-heading]')];
-  if (headings.length < 4) return '';
+  if (headings.length < 4 && !actions) return '';
+  const hasOutline = headings.length >= 4;
   const base = headings.reduce((level, heading) => Math.min(level, Number(heading.tagName.slice(1))), 6);
-  return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="Contents and actions" title="Contents and actions">${ic('list-tree', 16)}</summary><div>${actions}<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
-    .map(
-      heading =>
-        `<button class="knowledge-outline-link" data-a="knowledgeAnchor" data-anchor="${esc(heading.dataset.knowledgeHeading)}" style="--outline-depth:${Number(heading.tagName.slice(1)) - base}"><span translate="no">${esc(heading.textContent)}</span></button>`,
-    )
-    .join('')}</nav></div></details>`;
+  return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="${hasOutline ? 'Contents and actions' : 'Note actions'}" title="${hasOutline ? 'Contents and actions' : 'Note actions'}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${actions}${
+    hasOutline
+      ? `<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
+          .map(
+            heading =>
+              `<button class="knowledge-outline-link" data-a="knowledgeAnchor" data-anchor="${esc(heading.dataset.knowledgeHeading)}" style="--outline-depth:${Number(heading.tagName.slice(1)) - base}"><span translate="no">${esc(heading.textContent)}</span></button>`,
+          )
+          .join('')}</nav>`
+      : ''
+  }</div></details>`;
 }
 
 export function refreshKnowledgeOutline() {
