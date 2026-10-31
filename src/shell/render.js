@@ -184,6 +184,9 @@ export function makeFocusable() {
 }
 export function render() {
   captureKnowledgeDisclosures();
+  // A background read may redraw the page while an option/search has focus.
+  // Close to its trigger before capturing focus, then restore the rebuilt trigger.
+  if (selectMenu.el?.contains(document.activeElement)) selectMenu.close(true);
   S.ui.renderRevision = (S.ui.renderRevision || 0) + 1;
   if (S.ui.auth || !S.ui.currentUser) {
     for (const upload of S.ui.uploads || []) upload.controller?.abort();
