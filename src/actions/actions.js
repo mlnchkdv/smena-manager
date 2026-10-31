@@ -1,3 +1,4 @@
+import { noteTypes } from '../shared/knowledge-types.js';
 import { bookmarkUrlKey } from '../shared/web-capture.js';
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
@@ -490,14 +491,17 @@ A.toggleSide = () => {
 };
 
 /* ---------- knowledge base ---------- */
-A.newKnowledgeNote = () => {
+A.newKnowledgeNote = el => {
+  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const selectedType = noteTypes(D().ws).find(t => t.id === el?.dataset?.typeId);
   mutate(() => {
     const { notes } = knowledgeCollections();
     const now = new Date().toISOString();
     const note = {
       id: uid('kn'),
-      title: `${isRussian() ? 'Новая заметка' : 'New note'} ${notes.length + 1}`,
+      title: `${selectedType ? (isRussian() && selectedType.ru ? selectedType.ru : selectedType.name) : isRussian() ? 'Новая заметка' : 'New note'} ${notes.length + 1}`,
       category: 'General',
+      typeId: selectedType?.id || 'note',
       summary: '',
       extracted_skills: [],
       tags: [],

@@ -1,5 +1,54 @@
 import { expect, test } from '@playwright/test';
 
+test('knowledge creation menus expose types templates and library tools on mobile and desktop', async ({ page }) => {
+  page.setDefaultTimeout(15000);
+  test.setTimeout(180000);
+  await signIn(page);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/knowledge');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expectNoPageOverflow(page);
+      await page.locator('.knowledge-create-options > summary').click();
+      const menu = page.locator('.knowledge-create-options > div');
+      await expect(menu).toBeVisible();
+      const bounds = await menu.boundingBox();
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      await expect(menu.locator('[data-type-id="meeting"]')).toHaveText(language === 'Русский' ? 'Встреча' : 'Meeting');
+      await page.keyboard.press('Escape');
+    }
+    await page.locator('.knowledge-create-options > summary').click();
+    await page.locator('.knowledge-create-options [data-type-id="meeting"]').click();
+    await expect(page.locator('.knowledge-drawer [data-in="noteType"]')).toHaveValue('meeting');
+    await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.locator('.knowledge-create-options > summary').click();
+    await page.locator('.knowledge-create-options [data-a="noteTemplates"]').click();
+    await expect(page.locator('[data-a="createFromKnowledgeTemplate"]')).toBeVisible();
+    await page.locator('[data-a="createFromKnowledgeTemplate"]').click();
+    await expect(page.locator('#knowledge-body')).toContainText(language === 'Русский' ? 'Повестка' : 'Agenda');
+    await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.locator('[data-a="knowledgeLibraryTools"]').click();
+    await page.locator('[data-command="knowledgeArchive"]').click();
+    await expect(page.locator('.modal h2')).toHaveText(language === 'Русский' ? 'Архив базы знаний' : 'Knowledge archive');
+    await page.locator('.modal [data-a="closeModal"]').first().click();
+  }
+});
+
 test('knowledge card metadata is configurable and persists across languages and sizes', async ({ page }) => {
   test.setTimeout(180000);
   await signIn(page);

@@ -29,3 +29,60 @@
   gap: 10px;
   min-height: 44px;
 }
+
+.knowledge-create {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.knowledge-create-options > div {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: min(260px, calc(100vw - 16px));
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-pop);
+  max-height: min(480px, 60dvh);
+  overflow-y: auto;
+}
+.knowledge-create-options {
+  position: relative;
+  flex-shrink: 0;
+}
+.knowledge-create-options > summary {
+  list-style: none;
+}
+.knowledge-create-options > summary::-webkit-details-marker {
+  display: none;
+}
+.knowledge-create-options:not([open]) > div {
+  display: none;
+}
+.knowledge-create-options > div button {
+  justify-content: flex-start;
+  text-align: left;
+  min-height: 36px;
+  gap: 8px;
+}
+.knowledge-library-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.knowledge-library-tools .btn {
+  justify-content: flex-start;
+  text-align: left;
+  min-height: 44px;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .knowledge-create-options > div button {
+    min-height: 44px;
+  }
+}
