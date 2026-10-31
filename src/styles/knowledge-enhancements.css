@@ -128,3 +128,25 @@
     min-height: 44px;
   }
 }
+
+@media (max-width: 640px) {
+  .knowledge-content-actions .knowledge-import-trigger {
+    display: none;
+  }
+  .knowledge-content-actions .knowledge-create > .btn {
+    width: auto;
+    min-width: 0;
+    padding-inline: 10px;
+    flex: 1;
+  }
+  .knowledge-content-actions .knowledge-create-label {
+    display: inline;
+  }
+  .knowledge-content-actions .knowledge-create {
+    margin-right: auto;
+  }
+  .knowledge-content-actions {
+    width: 100%;
+    gap: 6px;
+  }
+}

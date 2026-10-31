@@ -7,7 +7,7 @@ import { noteTypes } from '../shared/knowledge-types.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
 export function knowledgeCreateMenu() {
-  return `<div class="knowledge-create" translate="no"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote" aria-label="${kc('New note', 'Новая заметка')}" title="${kc('New note', 'Новая заметка')}">${ic('plus', 14)}<span class="hide-m">${kc('New note', 'Новая заметка')}</span></button><details class="ui-menu knowledge-create-options" ${disclosureAttributes('knowledge-create')}><summary class="btn btn-primary btn-sm" aria-label="${kc('Create by type or template', 'Создать по типу или шаблону')}" title="${kc('Create by type or template', 'Создать по типу или шаблону')}">${ic('chevron-down', 14)}</summary><div>${noteTypes(
+  return `<div class="knowledge-create" translate="no"><button class="btn btn-primary btn-sm" data-a="newKnowledgeNote" aria-label="${kc('New note', 'Новая заметка')}" title="${kc('New note', 'Новая заметка')}">${ic('plus', 14)}<span class="knowledge-create-label">${kc('New note', 'Новая заметка')}</span></button><details class="ui-menu knowledge-create-options" ${disclosureAttributes('knowledge-create')}><summary class="btn btn-primary btn-sm" aria-label="${kc('Create by type or template', 'Создать по типу или шаблону')}" title="${kc('Create by type or template', 'Создать по типу или шаблону')}">${ic('chevron-down', 14)}</summary><div>${noteTypes(
     D().ws,
   )
     .map(type => `<button data-a="newKnowledgeNote" data-type-id="${esc(type.id)}">${ic('file-plus', 14)}<span>${esc(typeName(type))}</span></button>`)
@@ -16,7 +16,7 @@ export function knowledgeCreateMenu() {
     )}<hr><button data-a="noteTemplates">${ic('copy', 14)}<span>${kc('From template…', 'Из шаблона…')}</span></button>${S.ui.currentUser?.role === 'admin' ? `<button data-a="manageNoteTypes">${ic('shapes', 14)}<span>${kc('Manage types', 'Настроить типы')}</span></button>` : ''}</div></details></div>`;
 }
 const commands = () => [
-  ['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок'],
+  ...(S.ui.currentUser?.role === 'viewer' ? [] : [['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок']]),
   ['saveKnowledgeView', 'bookmark-plus', 'Save search', 'Сохранить поиск'],
   ['knowledgeArchive', 'archive', 'ZIP import / export', 'Импорт / экспорт ZIP'],
   ['offlineKnowledge', 'hard-drive', 'Offline library', 'Офлайн-библиотека'],
