@@ -211,6 +211,11 @@ A.importKnowledgeArchive = async () => {
     flushLocalSave();
     await retryWorkspaceSync();
     if (!workspaceSyncIsClean(D())) throw Error(kc('Wait until current changes are synchronized.', 'Дождитесь синхронизации текущих изменений.'));
+    // Document edits advance the aggregate revision even when the core has no
+    // changes to flush. Refresh before starting an irreversible upload attempt.
+    await refreshWorkspaceFromServer({ force: true });
+    if (generation !== getSessionGeneration()) return;
+    if (!workspaceSyncIsClean(D())) throw Error(kc('Wait until current changes are synchronized.', 'Дождитесь синхронизации текущих изменений.'));
     if (m.includeFiles)
       for (const file of m.review.files) {
         if (m.uploaded[file.id]) continue;
