@@ -12,6 +12,7 @@ import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../sha
 import { getWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
 import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
 import { mergeClientWorkspace } from './workspace-policy.js';
+import { captureWhiteboardHistory } from './whiteboard-history.js';
 import { sanitizeWorkspaceContent } from './content-security.js';
 import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { migrateMilestoneIds } from '../shared/milestone-identity.js';
@@ -494,6 +495,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  if (!options.replaceDocuments) captureWhiteboardHistory(current, nextData, options.actorMemberId || '');
   applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);
   validateMembershipTransition(current, nextData);

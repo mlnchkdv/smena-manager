@@ -51,7 +51,9 @@ import { applyFileCatalogChanges } from '../shared/file-catalog.js';
 import { fileCatalogVersion } from './file-catalog-version.js';
 import { completeCatalogCascade } from './file-catalog-query.js';
 import { fileExportRouter } from './file-export-routes.js';
-import { canEditProject, trashProject, trashProjectId } from '../shared/project-access.js';
+import { canEditProject, canReadProject, trashProject, trashProjectId } from '../shared/project-access.js';
+import { whiteboardHash, whiteboardVersions } from './whiteboard-history.js';
+import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
 import { setSessionCookie } from './session-cookie.js';
@@ -476,6 +478,19 @@ app.get('/api/workspace', async (request, response, next) => {
   try {
     const database = await getWorkspaceDatabase(request.get('x-smena-file-catalog') === 'demand' ? { catalog: 'metadata' } : {});
     response.json({ data: workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/projects/:id/whiteboard-versions', async (request, response, next) => {
+  try {
+    const database = await getWorkspaceDatabase({ catalog: 'metadata' }),
+      project = database.projects.find(p => p.id === request.params.id);
+    const actor = memberForProfile(bindAccessProfiles(database, getAccessProfiles()), request.user)?.id || request.user.id;
+    if (!project || !canReadProject(project, actor, request.user.role)) return response.status(404).json({ error: 'Project not found.' });
+    response.setHeader('Cache-Control', 'no-store');
+    response.json({ board: whiteboardOf(project), baseHash: whiteboardHash(whiteboardOf(project)), versions: whiteboardVersions(database, project.id) });
   } catch (error) {
     next(error);
   }

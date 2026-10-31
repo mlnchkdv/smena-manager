@@ -1,0 +1,39 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { captureWhiteboardHistory, whiteboardHash, whiteboardVersions, validateWhiteboardRestore } from '../../src/server/whiteboard-history.js';
+const board = text => ({ version: 1, nodes: [{ id: 'a', type: 'text', x: 0, y: 0, width: 220, height: 160, color: 'neutral', title: 'A', text }], edges: [] });
+test('whiteboard history is server derived bounded and checkpoints restoration', () => {
+  const current = { projects: [{ id: 'p', whiteboard: board('original') }] },
+    next = { projects: [{ id: 'p', whiteboard: board('edited') }] };
+  captureWhiteboardHistory(current, next, 'editor');
+  const versions = whiteboardVersions(next, 'p');
+  assert.equal(versions.length, 1);
+  assert.equal(versions[0].board.nodes[0].text, 'original');
+  const restoring = structuredClone(next);
+  restoring.projects[0].whiteboard = versions[0].board;
+  restoring.projects[0].whiteboardRestoreFrom = { id: versions[0].id, baseHash: whiteboardHash(next.projects[0].whiteboard) };
+  validateWhiteboardRestore(next, restoring.projects[0]);
+  captureWhiteboardHistory(next, restoring, 'editor');
+  assert.equal(whiteboardVersions(restoring, 'p')[0].board.nodes[0].text, 'edited');
+  assert.equal(restoring.projects[0].whiteboardRestoreFrom, undefined);
+  assert.equal(whiteboardVersions(restoring, 'other').length, 0);
+});
+test('stale forged and mutated whiteboard restoration is rejected', () => {
+  const db = { projects: [{ id: 'p', whiteboard: board('old') }] },
+    next = { projects: [{ id: 'p', whiteboard: board('new') }] };
+  captureWhiteboardHistory(db, next, 'one');
+  const v = whiteboardVersions(next, 'p')[0];
+  assert.throws(
+    () => validateWhiteboardRestore(next, { id: 'p', whiteboard: v.board, whiteboardRestoreFrom: { id: v.id, baseHash: whiteboardHash(board('stale')) } }),
+    e => e.code === 'WHITEBOARD_RESTORE_STALE',
+  );
+  assert.throws(
+    () =>
+      validateWhiteboardRestore(next, {
+        id: 'p',
+        whiteboard: board('forged'),
+        whiteboardRestoreFrom: { id: v.id, baseHash: whiteboardHash(next.projects[0].whiteboard) },
+      }),
+    /does not match/,
+  );
+});

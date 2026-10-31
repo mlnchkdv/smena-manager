@@ -1,5 +1,6 @@
 import { canEditProject, canReadProject, entityProjectId, projectAccess, trashProject, trashProjectId } from '../shared/project-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
+import { validateWhiteboardRestore } from './whiteboard-history.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { entityAllowed } from '../shared/relations.js';
@@ -94,6 +95,7 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
 
   // Material cards store identity only. Never copy private titles/content into another project's board.
   for (const project of candidate.projects || []) {
+    validateWhiteboardRestore(current, project);
     const oldNodes = new Map((projects.get(project.id)?.whiteboard?.nodes || []).map(node => [node.id, node]));
     for (const node of Array.isArray(project.whiteboard?.nodes) ? project.whiteboard.nodes : [])
       if (node.type === 'material' && node.target !== oldNodes.get(node.id)?.target && !entityAllowed(current, node.target, { role, memberId }))

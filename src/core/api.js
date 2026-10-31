@@ -135,6 +135,7 @@ async function request(path, options = {}, authenticated = false) {
 }
 
 export const getAuthConfig = () => request('/api/auth/config');
+export const getWhiteboardVersions = id => request(`/api/projects/${encodeURIComponent(id)}/whiteboard-versions`, {}, true);
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const listFileExports = () => request('/api/files/exports', {}, true);
 export const createFileExport = ids => request('/api/files/exports', { method: 'POST', body: JSON.stringify({ ids }) }, true);

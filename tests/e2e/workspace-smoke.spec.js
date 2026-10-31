@@ -2,6 +2,78 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('whiteboard durable history restores safely rejects stale restore and follows project access', async ({ page, browser }) => {
+  test.setTimeout(240000);
+  await signIn(page);
+  let snapshot = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = snapshot.projects[0];
+  project.private = true;
+  project.members = [snapshot.me];
+  project.whiteboard = {
+    version: 1,
+    nodes: [{ id: 'history-a', type: 'text', x: 0, y: 0, width: 240, height: 180, color: 'neutral', title: 'History card', text: 'Original' }],
+    edges: [],
+  };
+  expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  const path = `/e2e-team/project/${project.id}/whiteboard`;
+  await page.goto(path);
+  await page.locator('.whiteboard-card [data-a="whiteboardEdit"]').click();
+  await page.locator('[data-field="text"][data-in="whiteboardField"]').fill('Changed');
+  await page.locator('[data-a="whiteboardSave"]').click();
+  await waitForSaved(page);
+  const history = await (await page.request.get(`/api/projects/${project.id}/whiteboard-versions`)).json(),
+    version = history.versions.find(v => v.board.nodes[0]?.text === 'Original');
+  expect(version).toBeTruthy();
+  await page.locator('[data-a="whiteboardHistory"]').click();
+  await page.locator(`[data-a="chooseWhiteboardVersion"][data-id="${version.id}"]`).click();
+  await page.locator('[data-a="restoreWhiteboardVersion"]').click();
+  await page.locator('[data-a="confirmOk"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-card-content')).toHaveText('Original');
+  const restored = await (await page.request.get(`/api/projects/${project.id}/whiteboard-versions`)).json();
+  expect(restored.versions[0].board.nodes[0].text).toBe('Changed');
+  snapshot = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(snapshot._whiteboardHistory).toBeUndefined();
+  snapshot.projects.find(p => p.id === project.id).whiteboard.nodes[0].text = 'Concurrent';
+  expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  snapshot = (await (await page.request.get('/api/workspace')).json()).data;
+  const stale = snapshot.projects.find(p => p.id === project.id);
+  stale.whiteboard = version.board;
+  stale.whiteboardRestoreFrom = { id: version.id, baseHash: restored.baseHash };
+  const rejected = await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } });
+  expect(rejected.status()).toBe(409);
+  expect((await rejected.json()).code).toBe('WHITEBOARD_RESTORE_STALE');
+  const context = await browser.newContext();
+  try {
+    const editor = await context.newPage();
+    await signIn(editor, 'e2e-editor-access-id-2026-secure');
+    expect((await editor.request.get(`/api/projects/${project.id}/whiteboard-versions`)).status()).toBe(404);
+  } finally {
+    await context.close();
+  }
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(path);
+    await page.locator('[data-a="whiteboardHistory"]').click();
+    await expect(page.locator('.whiteboard-version-list button').first()).toBeVisible();
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      const dialog = page.locator('.modal');
+      expect(await dialog.evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+    }
+    await page.locator('.modal [data-a="closeModal"]').first().click();
+  }
+});
+
 test('whiteboard multi selection aligns copies and pastes connected cards with undo and persistence', async ({ page }) => {
   test.setTimeout(180000);
   await signIn(page);

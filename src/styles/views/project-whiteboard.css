@@ -392,3 +392,24 @@
     min-height: 44px;
   }
 }
+
+.whiteboard-version-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.whiteboard-version-list .btn {
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  min-height: 44px;
+}
+.whiteboard-version-preview p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.whiteboard-version-preview summary {
+  cursor: pointer;
+  min-height: 36px;
+  padding: 6px 0;
+}

@@ -1,4 +1,5 @@
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
+import './whiteboard-history.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S, proj } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
@@ -68,7 +69,7 @@ const activeModal = () => {
     p = current();
   return m?.type === 'whiteboardTool' && p?.id === m.project && m.scope === whiteboardScope(p.id) ? m : null;
 };
-export function whiteboardCommand(edit) {
+export function whiteboardCommand(edit, restoreToken) {
   const p = current();
   if (!editable(p)) {
     toast(T('Editing is unavailable. Check access or synchronization.', 'Редактирование недоступно. Проверьте доступ и синхронизацию.'), { kind: 'err' });
@@ -92,6 +93,7 @@ export function whiteboardCommand(edit) {
   if (
     !mutate(() => {
       p.whiteboard = next;
+      if (restoreToken) p.whiteboardRestoreFrom = restoreToken;
     })
   ) {
     state.undo = undo;
