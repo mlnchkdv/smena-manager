@@ -1,3 +1,5 @@
+import { receiveWebCapture } from '../ui/web-capture.js';
+import { isRussian } from '../core/i18n.js';
 import { actionLabel } from '../ui/action-label.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 import { ago, esc } from '../core/utils.js';
@@ -19,6 +21,7 @@ const IMPORTANCE = {
   critical: { label: 'Critical', priority: 'urgent', tone: 'danger' },
 };
 
+const kc = (en, ru) => (isRussian() ? ru : en);
 const bookmarksData = () => ({
   links: Array.isArray(D().links) ? D().links : [],
   folders: Array.isArray(D().linkFolders) ? D().linkFolders : [],
@@ -41,7 +44,15 @@ function bookmarkForm(folders) {
     <div class="bookmark-form-grid">
       <div class="field bookmark-url-field"><label class="label" for="bookmark-url">URL</label><input class="input" id="bookmark-url" type="url" inputmode="url" value="${esc(draft.url)}" data-in="bookmarkDraft" data-field="url" placeholder="https://example.com" autocomplete="url"></div>
       <div class="field"><label class="label" for="bookmark-title">Bookmark title</label><input class="input" id="bookmark-title" value="${esc(draft.title)}" data-in="bookmarkDraft" data-field="title" placeholder="Resource title"></div>
-      <div class="field bookmark-description-field"><label class="label" for="bookmark-description">Description</label><textarea class="textarea" id="bookmark-description" data-in="bookmarkDraft" data-field="description" placeholder="Why this resource is useful">${esc(draft.description)}</textarea></div>
+      <label class="field bookmark-description-field" translate="no">${kc('Saved excerpt', 'Сохранённый фрагмент')}<textarea class="textarea" data-in="bookmarkDraft" data-field="excerpt" maxlength="8000">${esc(draft.excerpt || '')}</textarea></label><label class="field" translate="no">${kc('Reading status', 'Статус чтения')}<select class="select" data-in="bookmarkDraft" data-field="readingStatus">${[
+        ['unread', kc('To read', 'Прочитать')],
+        ['reading', kc('Reading', 'Читаю')],
+        ['done', kc('Processed', 'Разобрано')],
+      ]
+        .map(([v, n]) => `<option value="${v}" ${draft.readingStatus === v ? 'selected' : ''}>${n}</option>`)
+        .join(
+          '',
+        )}</select></label><div class="field bookmark-description-field"><label class="label" for="bookmark-description">Description</label><textarea class="textarea" id="bookmark-description" data-in="bookmarkDraft" data-field="description" placeholder="Why this resource is useful">${esc(draft.description)}</textarea></div>
       <div class="field"><label class="label" for="bookmark-folder">Folder</label><select class="select" id="bookmark-folder" data-in="bookmarkDraft" data-field="folder"><option value="">No folder</option>${folders.map(folder => `<option value="${folder.id}" ${draft.folder === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="bookmark-importance">Importance</label><select class="select" id="bookmark-importance" data-in="bookmarkDraft" data-field="importance">${Object.entries(
         IMPORTANCE,
@@ -75,11 +86,12 @@ function bookmarkCard(link, folders, readOnly) {
         ? ''
         : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${actionName(link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read')}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><button class="ibtn ibtn-xs" data-a="copyBookmark" data-id="${link.id}" data-tip="Copy link" aria-label="${actionName('Copy link')}">${ic('copy', 14)}</button><details class="bookmark-action-menu ui-menu"><summary aria-label="${actionName('More actions')}" title="${actionName('More actions')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="editBookmark" data-id="${link.id}">${ic('pencil', 14)}Edit bookmark</button><button class="btn btn-ghost btn-sm" data-a="toggleBookmarkArchive" data-id="${link.id}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}</button><button class="btn btn-ghost btn-sm danger" data-a="deleteBookmark" data-id="${link.id}">${ic('trash-2', 14)}Delete bookmark</button></div></details>`
     }</div>
-    ${relationsPanel(`bookmark:${link.id}`, true)}
+    ${link.excerpt ? `<details translate="no"><summary>${kc('Saved excerpt', 'Сохранённый фрагмент')}</summary><blockquote class="bookmark-excerpt">${esc(link.excerpt)}</blockquote></details>` : ''}<span class="hint" translate="no">${link.readingStatus === 'reading' ? kc('Reading', 'Читаю') : link.is_read ? kc('Processed', 'Разобрано') : kc('To read', 'Прочитать')}</span>${relationsPanel(`bookmark:${link.id}`, true)}
   </article>`;
 }
 
 export function pageBookmarks() {
+  if (location.hash.startsWith('#capture=')) queueMicrotask(receiveWebCapture);
   const { links, folders } = bookmarksData();
   const query = String(S.ui.bookmarkQuery || '')
     .trim()
@@ -93,7 +105,7 @@ export function pageBookmarks() {
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
   return `<div class="bookmarks-page layout-catalog">
-${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared links, references, and useful resources for the team.</p></div><div class="row acts">${pageIntroduction('Shared links, references, and useful resources for the team.')}${readOnly ? '' : `<button class="btn btn-primary" data-a="newBookmark" aria-label="Add bookmark" title="Add bookmark">${ic('plus', 14)}<span class="hide-m">Add bookmark</span></button>`}</div>`, 'bookmarks-head compact-page-head')}
+${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared links, references, and useful resources for the team.</p></div><div class="row acts">${pageIntroduction('Shared links, references, and useful resources for the team.')}${readOnly ? '' : `<button class="btn btn-primary" data-a="webCaptureHelp" aria-label="${kc('Web capture', 'Сбор из браузера')}" translate="no">${ic('globe', 14)}${kc('Web capture', 'Сбор из браузера')}</button><button class="btn btn-primary" data-a="newBookmark" aria-label="Add bookmark" title="Add bookmark">${ic('plus', 14)}<span class="hide-m">Add bookmark</span></button>`}</div>`, 'bookmarks-head compact-page-head')}
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
     ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
     ${collectionToolbar(

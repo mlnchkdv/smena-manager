@@ -232,6 +232,12 @@ export function validateDocumentInput(name, value) {
     for (const id of [...path].reverse()) resolved.set(id, ++depth);
   }
   for (const item of value[contentField]) {
+    if (
+      name === 'bookmarks' &&
+      ((item.excerpt != null && (typeof item.excerpt !== 'string' || item.excerpt.length > 8000)) ||
+        (item.readingStatus != null && !['unread', 'reading', 'done'].includes(item.readingStatus)))
+    )
+      invalid.push('links.reading');
     if (name === 'knowledge' && (!validAliases(item.aliases) || !validAliases(item.tagAliases))) invalid.push('knowledgeNotes.aliases');
     if (name === 'knowledge' && !validNoteProperties(item)) invalid.push('knowledgeNotes.properties');
     if (

@@ -1,3 +1,4 @@
+import { bookmarkUrlKey } from '../shared/web-capture.js';
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
    ===================================================================== */
@@ -267,7 +268,7 @@ function bookmarkCollections() {
 }
 
 function emptyBookmarkDraft(folder = '') {
-  return { url: '', title: '', description: '', folder, tags: '', importance: 'medium' };
+  return { url: '', title: '', description: '', excerpt: '', readingStatus: 'unread', folder, tags: '', importance: 'medium' };
 }
 
 function normalizedBookmarkUrl(value) {
@@ -1030,6 +1031,8 @@ A.editBookmark = el => {
     folder: link.folder || '',
     tags: (link.tags || []).join(', '),
     importance: link.importance || 'medium',
+    excerpt: link.excerpt || '',
+    readingStatus: link.readingStatus || (link.is_read ? 'done' : 'unread'),
   };
   S.ui.bookmarkForm = true;
   render();
@@ -1048,6 +1051,15 @@ A.saveBookmark = () => {
     document.getElementById('bookmark-url')?.focus();
     return;
   }
+  if (bookmarkCollections().links.some(link => link.id !== S.ui.bookmarkEditing && bookmarkUrlKey(link.url) === bookmarkUrlKey(parsed.toString()))) {
+    toast(
+      isRussian()
+        ? 'Этот адрес уже есть в закладках. Найдите и измените существующую запись.'
+        : 'This URL is already bookmarked. Find and edit the existing item.',
+      { kind: 'err' },
+    );
+    return;
+  }
   const tags = [
     ...new Set(
       String(draft.tags || '')
@@ -1063,6 +1075,8 @@ A.saveBookmark = () => {
       url: parsed.toString(),
       title: draft.title.trim() || parsed.hostname.replace(/^www\./, ''),
       description: draft.description.trim(),
+      excerpt: String(draft.excerpt || '').slice(0, 8000),
+      readingStatus: ['unread', 'reading', 'done'].includes(draft.readingStatus) ? draft.readingStatus : 'unread',
       site_name: parsed.hostname.replace(/^www\./, ''),
       preview_image: '',
       favicon_url: '',
@@ -1072,13 +1086,13 @@ A.saveBookmark = () => {
       updated_at: now,
     };
     const existing = links.find(item => item.id === S.ui.bookmarkEditing);
-    if (existing) Object.assign(existing, values);
+    if (existing) Object.assign(existing, values, { is_read: values.readingStatus === 'done' });
     else
       links.unshift({
         id: uid('ln'),
         ...values,
         is_archived: false,
-        is_read: false,
+        is_read: draft.readingStatus === 'done',
         health_status: 'unknown',
         created_at: now,
       });
@@ -1118,6 +1132,7 @@ A.toggleBookmarkRead = el => {
     const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
     if (link) {
       link.is_read = !link.is_read;
+      link.readingStatus = link.is_read ? 'done' : 'unread';
       link.updated_at = new Date().toISOString();
     }
   });

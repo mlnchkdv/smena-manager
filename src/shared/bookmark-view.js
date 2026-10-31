@@ -26,7 +26,7 @@ export function bookmarkView(links, { query = '', folder = 'all', scope = 'activ
     .filter(link => folder === 'all' || (folder === 'root' ? !link.folder : link.folder === folder))
     .filter(link => {
       if (!terms.length) return true;
-      const text = [link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' ').toLocaleLowerCase();
+      const text = [link.title, link.description, link.excerpt, link.url, link.site_name, ...(link.tags || [])].join(' ').toLocaleLowerCase();
       return terms.every(term => text.includes(term));
     })
     .sort((a, b) => (Date.parse(b.updated_at || b.created_at) || 0) - (Date.parse(a.updated_at || a.created_at) || 0));
