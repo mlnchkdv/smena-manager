@@ -1,3 +1,6 @@
+import { openModal, closeModal } from '../overlays/modals.js';
+import { ic } from '../core/icons.js';
+import { isRussian } from '../core/i18n.js';
 import { D, S, save } from '../core/store.js';
 import { go, render } from '../shell/render.js';
 import { A, IN } from '../actions/actions.js';
@@ -78,4 +81,19 @@ A.toggleGraphPhysics = () => {
   S.prefs.graphPhysics = !S.prefs.graphPhysics;
   save();
   render();
+};
+
+A.graphDisplayOptions = () => {
+  const T = (en, ru) => (isRussian() ? ru : en);
+  const option = (a, icon, en, ru, on) =>
+    `<button class="btn btn-secondary" data-a="${a}" aria-pressed="${!!on}">${ic(icon, 16)}${T(en, ru)}<span class="sp"></span>${ic(on ? 'check' : 'minus', 14)}</button>`;
+  openModal({
+    type: 'knowledgeTool',
+    render: (_m, H) =>
+      `${H(T('Graph display and navigation', 'Вид и навигация графа'))}<div class="modal-b knowledge-library-tools" translate="no">${option('toggleGraphSimple', 'circle-dot', 'Simplified graph', 'Упрощённый граф', S.prefs.graphSimple)}${option('toggleGraphPhysics', 'orbit', 'Physics', 'Физика', S.prefs.graphPhysics)}${option('graphDisplayFocus', 'maximize', 'Focus mode', 'Режим фокуса', S.ui.graphFocus)}<p class="hint">${T('Simplified nodes show their labels on selection. Physics moves unpinned nodes; disabling it retains their positions.', 'В упрощённом виде подписи видны при выборе узла. Физика перемещает незакреплённые узлы; отключение сохраняет их положение.')}</p><p class="hint">${T('On touch screens, enable graph interaction to pan and zoom. Switch back to scroll the page.', 'На сенсорном экране включите управление графом для панорамы и масштаба. Вернитесь к прокрутке, чтобы двигать страницу.')}</p></div><div class="modal-f"><button class="btn btn-primary" data-a="closeModal">${T('Done', 'Готово')}</button></div>`,
+  });
+};
+A.graphDisplayFocus = () => {
+  closeModal();
+  A.toggleGraphFocus();
 };

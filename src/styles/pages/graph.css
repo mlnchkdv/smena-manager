@@ -657,3 +657,33 @@
     height: clamp(280px, calc(100svh - 270px), 680px);
   }
 }
+
+.graph-active-context {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.graph-toolbar:has(.graph-display-trigger) {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+@media (max-width: 640px) {
+  .graph-page .graph-toolbar:has(.graph-display-trigger) {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+  .graph-page .graph-toolbar:has(.graph-display-trigger) .graph-search {
+    grid-column: 1 / -1;
+  }
+  .graph-toolbar .graph-display-trigger {
+    min-height: 44px;
+    padding-inline: 10px;
+  }
+  .graph-toolbar .graph-filter-toggle > span:not(.cnt) {
+    display: inline;
+  }
+  .graph-head [data-a='toggleGraphFocus'] > span {
+    display: inline;
+  }
+  .graph-head [data-a='toggleGraphFocus'] {
+    max-width: 180px;
+    white-space: normal;
+  }
+}
