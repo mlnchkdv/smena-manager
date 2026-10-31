@@ -1054,6 +1054,7 @@ const RU = {
   'Blocked by': 'Заблокировано задачей',
   'Blocked by…': 'Заблокировано задачей…',
   'Does not repeat': 'Не повторяется',
+  'No labels selected': 'Не выбраны',
   'Every 2 weeks': 'Каждые 2 недели',
   Estimate: 'Оценка',
   'No estimate': 'Без оценки',
