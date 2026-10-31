@@ -66,15 +66,57 @@
   display: none;
 }
 .knowledge-create-options > div button {
+  display: flex;
+  align-items: center;
   justify-content: flex-start;
   text-align: left;
   min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 6px;
   gap: 8px;
+}
+.knowledge-create-options > div button > svg {
+  flex-shrink: 0;
+}
+.knowledge-create-options > div button:hover {
+  background: var(--surface-2);
 }
 .knowledge-library-tools {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+@media (max-width: 640px) {
+  .knowledge-content-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .knowledge-content-head > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .knowledge-content-head h1 {
+    min-width: 0;
+    flex: 1;
+  }
+  .knowledge-content-head > div:first-child > p {
+    flex-shrink: 0;
+    margin: 0;
+  }
+  .knowledge-folder-title-button {
+    max-width: 100%;
+  }
+  .knowledge-folder-title-button > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: normal;
+  }
+  .knowledge-content-actions {
+    justify-content: flex-end;
+  }
 }
 .knowledge-library-tools .btn {
   justify-content: flex-start;

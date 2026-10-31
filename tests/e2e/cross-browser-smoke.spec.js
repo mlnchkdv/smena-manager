@@ -89,6 +89,8 @@ test('knowledge creation menus expose types templates and library tools on mobil
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
       await expect(menu.locator('[data-type-id="meeting"]')).toHaveText(language === 'Русский' ? 'Встреча' : 'Meeting');
+      expect(await menu.locator('[data-type-id="meeting"]').evaluate(e => getComputedStyle(e).display)).toBe('flex');
+      if (width <= 640) expect((await page.locator('.knowledge-folder-title-button').boundingBox()).height).toBeLessThanOrEqual(45);
       await page.keyboard.press('Escape');
     }
     await page.locator('.knowledge-create-options > summary').click();
