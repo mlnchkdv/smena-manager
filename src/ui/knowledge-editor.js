@@ -24,6 +24,12 @@ A.toggleKnowledgeFormatting = () => {
   render();
   restoreKnowledgeEditorPosition(S.ui.knowledgeEditorPane || 'source');
 };
+A.toggleKnowledgeEditorFocus = () => {
+  captureKnowledgeEditorPosition();
+  S.ui.knowledgeEditorFocus = !S.ui.knowledgeEditorFocus;
+  render();
+  restoreKnowledgeEditorPosition(S.ui.knowledgeEditorPane || 'source');
+};
 
 export function noteEditor(note, folders, readOnly) {
   const context = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, note.id]);
@@ -31,6 +37,7 @@ export function noteEditor(note, folders, readOnly) {
     S.ui.knowledgeEditorContext = context;
     S.ui.knowledgeEditorPane = 'source';
     S.ui.knowledgeFormatExpanded = false;
+    S.ui.knowledgeEditorFocus = false;
   }
   const pane = S.ui.knowledgeEditorPane === 'blocks' && note.sourceFormat !== 'text' ? 'blocks' : S.ui.knowledgeEditorPane === 'preview' ? 'preview' : 'source';
   const showPreview = S.ui.knowledgeEditorPreview || pane === 'preview';
@@ -38,7 +45,7 @@ export function noteEditor(note, folders, readOnly) {
   const disabled = readOnly || conflict ? 'disabled' : '';
   const categories = [...new Set([...KNOWLEDGE_CATEGORIES, note.category].filter(Boolean))];
   const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
-  return `<section class="knowledge-editor${S.ui.knowledgeFormatExpanded ? ' formatting-expanded' : ''}" data-pane="${pane}" aria-label="Note editor">
+  return `<section class="knowledge-editor${S.ui.knowledgeFormatExpanded ? ' formatting-expanded' : ''}${S.ui.knowledgeEditorFocus ? ' is-focused' : ''}" data-pane="${pane}" aria-label="Note editor">
     <div class="knowledge-editor-head">
       <div class="knowledge-heading-title">
         <label class="sr" for="knowledge-title">Note title</label>
@@ -49,8 +56,7 @@ export function noteEditor(note, folders, readOnly) {
     <span class="sr" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
 
-    ${noteTypeFields(note, readOnly)}
-    <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button>${note.sourceFormat !== 'text' ? `<button data-a="setKnowledgeEditorPane" data-pane="blocks" aria-pressed="${pane === 'blocks'}" class="${pane === 'blocks' ? 'on' : ''}" translate="no">${kc('Blocks', 'Блоки')}</button>` : ''}<button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}" translate="no">${kc('Read', 'Читать')}</button></div><span class="knowledge-save-status" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span><button class="ibtn knowledge-format-toggle" data-a="toggleKnowledgeFormatting" aria-label="Text formatting" aria-expanded="${!!S.ui.knowledgeFormatExpanded}" aria-controls="knowledge-format-tools">${ic('type', 16)}</button></div>
+    <div class="knowledge-editor-mode"><div class="seg" role="group" aria-label="Note view"><button id="knowledge-pane-source" data-a="setKnowledgeEditorPane" data-pane="source" aria-pressed="${pane === 'source'}" class="${pane === 'source' ? 'on' : ''}">Editor</button>${note.sourceFormat !== 'text' ? `<button data-a="setKnowledgeEditorPane" data-pane="blocks" aria-pressed="${pane === 'blocks'}" class="${pane === 'blocks' ? 'on' : ''}" translate="no">${kc('Blocks', 'Блоки')}</button>` : ''}<button id="knowledge-pane-preview" data-a="setKnowledgeEditorPane" data-pane="preview" aria-pressed="${pane === 'preview'}" class="${pane === 'preview' ? 'on' : ''}" translate="no">${kc('Read', 'Читать')}</button></div><span class="knowledge-save-status" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span><button class="ibtn knowledge-format-toggle" data-a="toggleKnowledgeFormatting" aria-label="Text formatting" aria-expanded="${!!S.ui.knowledgeFormatExpanded}" aria-controls="knowledge-format-tools">${ic('type', 16)}</button><button class="ibtn knowledge-editor-focus" data-a="toggleKnowledgeEditorFocus" aria-pressed="${!!S.ui.knowledgeEditorFocus}" aria-label="${kc(S.ui.knowledgeEditorFocus ? 'Exit editor focus' : 'Focus editor', S.ui.knowledgeEditorFocus ? 'Выйти из фокуса редактора' : 'Фокус на редакторе')}" title="${kc(S.ui.knowledgeEditorFocus ? 'Exit editor focus' : 'Focus editor', S.ui.knowledgeEditorFocus ? 'Выйти из фокуса редактора' : 'Фокус на редакторе')}">${ic(S.ui.knowledgeEditorFocus ? 'minimize' : 'maximize', 16)}</button></div>
     <div id="knowledge-format-tools" class="knowledge-format-toolbar" role="group" aria-label="Text formatting" title="Ctrl/⌘ B · Bold / Ctrl/⌘ Enter · Preview / Ctrl/⌘ S · Save">${[
       ['bold', 'bold', 'Bold'],
       ['heading', 'heading', 'Heading'],
@@ -67,7 +73,7 @@ export function noteEditor(note, folders, readOnly) {
         '',
       )}<button class="ibtn" data-a="attachKnowledgeMedia" aria-label="${kc('Insert file or image', 'Вставить файл или изображение')}" ${disabled}>${ic('paperclip', 15)}</button><button class="ibtn" data-a="insertKnowledgeMaterial" aria-label="${kc('Link material', 'Связать материал')}" title="[[" ${disabled}>${ic('at-sign', 15)}</button><span class="sp"></span><button class="btn btn-ghost btn-sm knowledge-desktop-preview" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!showPreview}">Preview alongside</button></div>
     ${pane === 'blocks' ? blockEditor(note, disabled) : ''}<div ${pane === 'blocks' ? 'hidden' : ''} class="knowledge-writing${showPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-keep="knowledge-source:${note.id}" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${showPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
-    <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body"><div class="knowledge-fields">
+    <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body">${noteTypeFields(note, readOnly)}<div class="knowledge-fields">
       <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''} translate="no">${esc(knowledgeCategoryLabel(value))}</option>`).join('')}</select></div>
       <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders
         .map(
