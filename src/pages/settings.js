@@ -16,6 +16,8 @@ import { storageCapacityPanel } from '../ui/storage-capacity.js';
 import { contentCounts } from '../shared/content-counts.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { colorPalette, AVATAR_COLORS, WORKSPACE_COLORS } from '../ui/color-palette.js';
+import { canCreateWorkspace } from '../shared/workspace-permissions.js';
+import { workspaceRoleLabel } from '../core/i18n.js';
 
 export const SET_NAV = [
   [
@@ -192,12 +194,13 @@ export function pageSettings() {
   );
   const requestedSection = S.ui.params.sec || S.ui.settings || 'appearance';
   const availableSections = new Set(navigation.flatMap(([, items]) => items.map(([key]) => key)));
-  const sec = availableSections.has(requestedSection) ? requestedSection : 'appearance';
+  const restricted = !isAdmin && ADMIN_SETTINGS.has(requestedSection);
+  const sec = restricted || availableSections.has(requestedSection) ? requestedSection : 'appearance';
   const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'Appearance'];
   return `<div class="set">
-    <div class="settings-section-nav"><label class="sr" for="settings-section">Settings</label><select id="settings-section" class="settings-section-picker" data-in="settingsSection">${navigation.map(([group, items]) => `<optgroup label="${esc(tr(group))}">${items.map(([key, name]) => `<option value="${key}" ${sec === key ? 'selected' : ''}>${esc(tr(name))}</option>`).join('')}</optgroup>`).join('')}</select></div>
+    <div class="settings-section-nav"><label class="sr" for="settings-section">Settings</label><select id="settings-section" class="settings-section-picker" data-in="settingsSection">${restricted ? `<option value="${esc(sec)}" selected disabled>${esc(tr(title[1]))}</option>` : ''}${navigation.map(([group, items]) => `<optgroup label="${esc(tr(group))}">${items.map(([key, name]) => `<option value="${key}" ${sec === key ? 'selected' : ''}>${esc(tr(name))}</option>`).join('')}</optgroup>`).join('')}</select></div>
     <nav class="set-nav" aria-label="Settings">${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
-    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${!isAdmin && ADMIN_SETTINGS.has(sec) ? `<div class="empty-state"><div class="glyph">${ic('lock', 20)}</div><h3 class="es-h">Administrator access required</h3><p>Only administrators can manage workspace settings, members, and billing.</p></div>` : settingsBody(sec, title[1])}</div></div>
+    <div class="set-body" data-keep="set:${sec}"><div class="set-in">${restricted ? `<section class="settings-access"><h1>${esc(tr(title[1]))}</h1><p class="muted"><span translate="no">${esc(D().ws.name)}</span> · ${esc(workspaceRoleLabel(S.ui.currentUser?.role))}</p><div class="panel"><div class="panel-h">${ic('lock', 18)}<h2>Administrator access required</h2></div><div class="panel-b"><p>These settings belong to the current workspace. Ask its owner or an administrator to make changes.</p><p>Switch to a workspace you own to manage its settings.</p><div class="settings-member-actions row"><button class="btn btn-secondary" data-a="pop" data-pop="ws">Switch workspace</button>${canCreateWorkspace(S.ui.currentUser?.role) ? '<button class="btn btn-primary" data-a="newWorkspace">Create workspace</button>' : ''}<button class="btn btn-ghost" data-a="go" data-r="settings" data-sec="appearance">Personal settings</button></div></div></div></section>` : settingsBody(sec, title[1])}</div></div>
   </div>`;
 }
 export function settingsBody(sec, title) {

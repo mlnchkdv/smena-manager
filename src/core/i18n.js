@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'These settings belong to the current workspace. Ask its owner or an administrator to make changes.':
+    'Эти настройки относятся к текущему пространству. Для изменений обратитесь к его владельцу или администратору.',
+  'Switch to a workspace you own to manage its settings.': 'Чтобы управлять настройками своего пространства, переключитесь на него.',
+  'Personal settings': 'Личные настройки',
   'Filter labels…': 'Поиск меток…',
   'No matches': 'Совпадений нет',
   Workspaces: 'Рабочие пространства',
