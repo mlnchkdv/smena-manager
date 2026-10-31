@@ -40,6 +40,7 @@ export function installDeploymentRecovery(buildId) {
     root.querySelector('button')?.focus({ preventScroll: true });
   };
   function paint() {
+    root.setAttribute('aria-label', t('App update'));
     if (Boolean(S.ui.deploymentChanged) !== changed) {
       S.ui.deploymentChanged = changed;
       window.dispatchEvent(new Event('smena:deployment-version'));
