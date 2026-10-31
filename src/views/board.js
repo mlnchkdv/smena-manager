@@ -9,6 +9,16 @@ import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { uiCount, t as tr } from '../core/i18n.js';
 import { actionLabel } from '../ui/action-label.js';
+import { A } from '../actions/actions.js';
+
+A.focusBoardColumn = el => {
+  const board = document.querySelector(`.board[data-board-key="${CSS.escape(el.dataset.key)}"]`);
+  const column = board?.querySelector(`[data-drop-col="${CSS.escape(el.dataset.status)}"]`);
+  if (!column) return;
+  const left =
+    board.scrollLeft + column.getBoundingClientRect().left - board.getBoundingClientRect().left - parseFloat(getComputedStyle(board).paddingLeft || 0);
+  board.scrollTo({ left, behavior: S.prefs.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+};
 
 export function kcard(t, opt = {}) {
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
@@ -35,7 +45,8 @@ export function kcard(t, opt = {}) {
 export function boardHtml(ts, key, opt = {}) {
   const commentCounts = new Map();
   for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
-  return `<div class="board" data-keep="board:${key}">${STATUSES.map(s => {
+  const navigation = `<nav class="board-column-nav" aria-label="${tr('Board columns')}">${STATUSES.map(status => `<button class="btn btn-secondary btn-sm" data-a="focusBoardColumn" data-key="${esc(key)}" data-status="${status.id}">${stIcon(status.id, 13)}<span>${status.name}</span><span class="num">${ts.filter(task => task.status === status.id).length}</span></button>`).join('')}</nav>`;
+  return `${navigation}<div class="board" data-board-key="${esc(key)}" data-keep="board:${key}">${STATUSES.map(s => {
     const col = ts.filter(t => t.status === s.id).sort((a, b) => a.order - b.order);
     const ck = key + ':' + s.id;
     const pageKey = `board:${ck}`;

@@ -1,6 +1,23 @@
 /* ============================================================
    KANBAN
    ============================================================ */
+.board-column-nav {
+  display: none;
+}
+@media (max-width: 640px) {
+  .board-column-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    min-width: 0;
+    padding: 4px var(--gutter);
+  }
+  .board-column-nav .btn {
+    flex: 0 0 auto;
+    min-height: 44px;
+    gap: 6px;
+  }
+}
 .board {
   display: flex;
   gap: 12px;
