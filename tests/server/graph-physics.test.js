@@ -2,6 +2,38 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import cytoscape from 'cytoscape';
 import { graphPhysicsOptions } from '../../src/shared/graph-physics.js';
+import { disposeGraph } from '../../src/shared/graph-disposal.js';
+
+test('retiring a running layout drains its queued final position before destroying the renderer', () => {
+  const calls = [],
+    frames = [() => calls.push('final positions')];
+  let destroyed = false;
+  const cy = {
+    destroyed: () => destroyed,
+    removeAllListeners: () => calls.push('detach graph'),
+    destroy: () => {
+      destroyed = true;
+      calls.push('destroy');
+    },
+  };
+  const layout = { removeAllListeners: () => calls.push('detach layout'), stop: () => calls.push('stop') };
+  disposeGraph(cy, layout, frame => frames.push(frame));
+  assert.equal(destroyed, false);
+  while (frames.length) frames.shift()();
+  assert.deepEqual(calls, ['detach graph', 'detach layout', 'stop', 'final positions', 'destroy']);
+  disposeGraph(cy, layout, () => assert.fail('already retired'));
+});
+
+test('graphs whose stopped layout reference was cleared still drain before destruction', () => {
+  const cy = cytoscape({ headless: true });
+  let cleanup;
+  disposeGraph(cy, null, frame => {
+    cleanup = frame;
+  });
+  assert.equal(cy.destroyed(), false);
+  cleanup();
+  assert.equal(cy.destroyed(), true);
+});
 test('bounded graph physics redistributes nodes while preserving graph identities', async () => {
   const cy = cytoscape({
     headless: true,

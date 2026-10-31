@@ -1,12 +1,13 @@
 import { D, S } from '../core/store.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
-import { activeDiagramView, registerGraphLayoutReader } from '../core/diagram-view-state.js';
+import { activeDiagramView, diagramScope, registerGraphLayoutReader } from '../core/diagram-view-state.js';
 import cytoscape from 'cytoscape';
 import { ic } from '../core/icons.js';
 import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
 import { graphOverviewLabels } from '../shared/graph-labels.js';
 import { t } from '../core/i18n.js';
 import { graphPhysicsOptions } from '../shared/graph-physics.js';
+import { disposeGraph } from '../shared/graph-disposal.js';
 
 let instance;
 let context = '',
@@ -15,11 +16,15 @@ let disconnectObserver;
 let savedView;
 let resizeObserver;
 let topology = '';
+let mountGeneration = 0;
 let runningLayout,
   physicsTimer,
   physicsEnabled = false;
 export function mountGraph(graph, selected, center, onSelect, simple = false, physics = false, reducedMotion = false, scope = '') {
+  const generation = ++mountGeneration,
+    requestedScope = diagramScope();
   requestAnimationFrame(() => {
+    if (generation !== mountGeneration || requestedScope !== diagramScope()) return;
     const container = document.getElementById('knowledge-graph-canvas');
     if (!container) return;
     const scopeKey = JSON.stringify([scope, center]);
@@ -40,10 +45,10 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           ? savedView
           : null;
     clearTimeout(physicsTimer);
-    runningLayout?.stop();
+    const retired = instance;
+    instance = null;
+    disposeGraph(retired, runningLayout);
     runningLayout = null;
-    instance?.off('zoom pan');
-    instance?.destroy();
     disconnectObserver?.disconnect();
     resizeObserver?.disconnect();
     context = scopeKey;
@@ -231,8 +236,10 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
       ],
     });
+    const cy = instance;
+    const current = () => instance === cy && !cy.destroyed() && container.isConnected;
     const updateDensity = () => {
-      if (!instance || instance.destroyed() || !instance.renderer()) return;
+      if (!current() || !cy.renderer()) return;
       const zoom = instance.zoom();
       if (simple) return;
       if (denseGraph) instance.nodes().toggleClass('dense-hidden', zoom < 0.75);
@@ -257,7 +264,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       }
     };
     registerGraphLayoutReader(() =>
-      instance && !instance.destroyed()
+      current()
         ? {
             positions: instance.nodes().map(n => ({ id: n.id(), x: n.position('x'), y: n.position('y'), locked: n.locked() })),
             zoom: instance.zoom(),
@@ -293,9 +300,8 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       instance.center(instance.nodes(':selected'));
     }
     updateDensity();
-    const cy = instance;
     const simulate = fit => {
-      if (instance !== cy || cy.destroyed()) return;
+      if (!current()) return;
       clearTimeout(physicsTimer);
       runningLayout?.stop();
       const layout = cy.layout(graphPhysicsOptions(reducedMotion));
@@ -304,7 +310,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       const status = document.querySelector('[data-graph-physics-status]');
       if (status) status.textContent = t('Settling layout…');
       layout.one('layoutstop', () => {
-        if (instance !== cy) return;
+        if (!current() || runningLayout !== layout) return;
         clearTimeout(physicsTimer);
         runningLayout = null;
         container.dataset.physicsState = 'settled';
@@ -321,7 +327,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       layout.run();
       if (runningLayout === layout)
         physicsTimer = setTimeout(() => {
-          if (runningLayout === layout) layout.stop();
+          if (current() && runningLayout === layout) layout.stop();
         }, 2500);
     };
     if (physics && (!previous || !previous.physics || previous.running || previous.signature !== signature)) simulate(true);
@@ -343,8 +349,8 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     });
     let width = container.clientWidth,
       height = container.clientHeight;
-    resizeObserver = new ResizeObserver(() => {
-      if (!instance || !container.isConnected || (width === container.clientWidth && height === container.clientHeight)) return;
+    const ownedResizeObserver = new ResizeObserver(() => {
+      if (!current() || (width === container.clientWidth && height === container.clientHeight)) return;
       width = container.clientWidth;
       height = container.clientHeight;
       instance.resize();
@@ -354,9 +360,13 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         instance.center();
       }
     });
-    resizeObserver.observe(container);
-    disconnectObserver = new MutationObserver(() => {
+    resizeObserver = ownedResizeObserver;
+    ownedResizeObserver.observe(container);
+    const ownedDisconnectObserver = new MutationObserver(() => {
       if (!container.isConnected) {
+        ownedDisconnectObserver.disconnect();
+        ownedResizeObserver.disconnect();
+        if (instance !== cy || cy.destroyed()) return;
         if (instance)
           savedView = {
             center,
@@ -372,16 +382,14 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             selected: instance.nodes(':selected').first().id(),
           };
         clearTimeout(physicsTimer);
-        runningLayout?.stop();
+        const retiredLayout = runningLayout;
         runningLayout = null;
-        instance?.off('zoom pan');
-        instance?.destroy();
         instance = null;
-        disconnectObserver.disconnect();
-        resizeObserver.disconnect();
+        disposeGraph(cy, retiredLayout);
       }
     });
-    disconnectObserver.observe(document.getElementById('app'), { childList: true, subtree: true });
+    disconnectObserver = ownedDisconnectObserver;
+    ownedDisconnectObserver.observe(document.getElementById('app'), { childList: true, subtree: true });
   });
 }
 window.addEventListener('smena:graph-control', event => {
