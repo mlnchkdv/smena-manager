@@ -36,11 +36,16 @@ A.knowledgeLibraryTools = () =>
         .map(([a, i, en, ru]) => `<button class="btn btn-secondary" data-a="openKnowledgeLibraryTool" data-command="${a}">${ic(i, 16)}${kc(en, ru)}</button>`)
         .join(
           '',
-        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
+        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
   });
 A.openKnowledgeLibraryTool = el => {
   if (commands().some(([a]) => a === el.dataset.command)) {
     closeModal();
     A[el.dataset.command]?.();
   }
+};
+
+A.openSavedKnowledgeSearch = el => {
+  closeModal();
+  A.applyKnowledgeView(el);
 };

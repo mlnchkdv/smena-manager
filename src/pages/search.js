@@ -173,7 +173,9 @@ export function pageSearch() {
                 })
                 .join(''),
             )
-          : `<div class="panel">${empty('search-x', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'Use Files to search the complete file catalog.' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+          : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
+            ? ''
+            : `<div class="panel">${empty('search-x', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'Use Files to search the complete file catalog.' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }
