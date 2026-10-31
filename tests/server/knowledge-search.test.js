@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { knowledgeExcerpt, createKnowledgeMatcher } from '../../src/shared/knowledge-search.js';
+import { knowledgeExcerpt, noteCardExcerpt, createKnowledgeMatcher } from '../../src/shared/knowledge-search.js';
 import { knowledgeView } from '../../src/shared/knowledge-view.js';
+test('card excerpts skip only the initial stock prompt while searches and stored source retain it', () => {
+  const formatted_markdown = '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.\n\nНастоящий регламент';
+  const note = { formatted_markdown };
+  assert.equal(noteCardExcerpt(note, ''), 'Настоящий регламент');
+  assert.match(noteCardExcerpt(note, 'Добавьте'), /Добавьте/);
+  assert.equal(note.formatted_markdown, formatted_markdown);
+  assert.equal(noteCardExcerpt({ ...note, sourceFormat: 'text' }, ''), knowledgeExcerpt({ ...note, sourceFormat: 'text' }, ''));
+});
 test('search excerpts reveal matching body text even when a summary is present', () => {
   const note = { summary: 'Short description', formatted_markdown: `# Guide\n\n${'Context '.repeat(80)}ключевая фраза далее` };
   assert.equal(knowledgeExcerpt(note, ''), 'Short description');

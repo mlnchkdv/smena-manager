@@ -1414,6 +1414,9 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
 }
+.knowledge-preview-excerpt[hidden] {
+  display: none;
+}
 .knowledge-main[data-density='compact'] .knowledge-preview-open {
   padding: 12px 48px 8px 12px;
 }
