@@ -136,6 +136,7 @@ function revealNode(node) {
   s.x = box.width / 2 - (node.x + node.width / 2) * s.zoom;
   s.y = box.height / 2 - (node.y + node.height / 2) * s.zoom;
   s.fit = false;
+  s.autoFit = false;
 }
 function newCard(type) {
   if (!editable(current())) return;
@@ -477,6 +478,7 @@ function zoomTo(next, cx, cy) {
   s.y = y - ((y - s.y) * z) / s.zoom;
   s.zoom = z;
   s.fit = false;
+  s.autoFit = false;
   paintView();
 }
 A.whiteboardZoomIn = () => zoomTo(whiteboardState().zoom * 1.25);
@@ -491,9 +493,11 @@ A.whiteboardFit = () => {
   s.x = (box.width - b.width * s.zoom) / 2 - b.x * s.zoom;
   s.y = (box.height - b.height * s.zoom) / 2 - b.y * s.zoom;
   s.fit = false;
+  s.autoFit = true;
   paintView();
 };
-let viewport, gesture;
+let viewport, gesture, cameraObserver, cameraFrame;
+let cameraSize;
 const pointers = new Map(),
   mounted = new WeakSet(),
   hydrations = new Set();
@@ -561,6 +565,7 @@ function move(e) {
     s.x = g.panX + e.clientX - g.x;
     s.y = g.panY + e.clientY - g.y;
     s.fit = false;
+    s.autoFit = false;
     paintView();
     return;
   }
@@ -626,6 +631,28 @@ export function mountProjectWhiteboard() {
     gesture = null;
     pointers.clear();
     viewport = next;
+    cameraObserver?.disconnect();
+    cancelAnimationFrame(cameraFrame);
+    cameraSize = next ? { width: next.clientWidth, height: next.clientHeight } : null;
+    const owner = next && whiteboardState();
+    if (next) {
+      cameraObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(cameraFrame);
+        cameraFrame = requestAnimationFrame(() => {
+          if (next !== viewport || !next.isConnected || whiteboardState() !== owner) return;
+          const size = { width: next.clientWidth, height: next.clientHeight };
+          if (!size.width || !size.height) return;
+          if (owner.autoFit) A.whiteboardFit();
+          else if (cameraSize) {
+            owner.x += (size.width - cameraSize.width) / 2;
+            owner.y += (size.height - cameraSize.height) / 2;
+            paintView();
+          }
+          cameraSize = size;
+        });
+      });
+      cameraObserver.observe(next);
+    }
   }
   if (next && !mounted.has(next)) {
     mounted.add(next);
@@ -647,6 +674,7 @@ export function mountProjectWhiteboard() {
           s.x -= e.deltaX;
           s.y -= e.deltaY;
           s.fit = false;
+          s.autoFit = false;
           paintView();
         }
       },
