@@ -922,13 +922,29 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 38px;
+  min-height: 38px;
+  height: auto;
   padding: 0 10px;
   border-radius: var(--r-sm);
   width: 100%;
   text-align: left;
   font-size: var(--fs);
   cursor: pointer;
+}
+.pi-main {
+  flex: 1;
+  min-width: 0;
+  padding-block: 6px;
+}
+.pi-name {
+  display: block;
+}
+.pi:has(.sub) {
+  min-height: 52px;
+}
+.pi > :is(svg, .av),
+.pi .r {
+  flex-shrink: 0;
 }
 .pi.hl {
   background: var(--surface-2);
@@ -937,9 +953,10 @@
   color: var(--text-2);
 }
 .pi .sub {
+  display: block;
   color: var(--text-3);
   font-size: var(--fs-xs);
-  margin-left: 4px;
+  margin-left: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

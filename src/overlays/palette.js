@@ -307,7 +307,7 @@ export function paletteHtml() {
                 `<div class="pal-group">${g.name ? `<div class="pal-sec">${g.name}</div>` : ''}${g.items
                   .map(it => {
                     const i = idx++;
-                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${esc(it.sub)}</span>` : ''}<span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
+                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
                       it.kbd
                         ? it.kbd
                             .split(' ')
