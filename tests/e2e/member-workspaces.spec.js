@@ -84,6 +84,9 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await member.goto('/e2e-team/settings/workspace');
       await expect(member.locator('.shell')).toBeVisible();
       await expect(member.locator('#ws-name')).toHaveCount(0);
+      await expect(member.locator('.settings-access')).toContainText(ru ? 'Требуется доступ администратора' : 'Administrator access required');
+      await expect(member.locator('.settings-access [data-a="newWorkspace"]')).toBeVisible();
+      await expect(member.locator('.settings-access [data-pop="ws"]')).toBeVisible();
       const unchanged = (await (await page.request.get('/api/workspace')).json()).data;
       expect(unchanged.ws).toEqual(source.ws);
       expect(unchanged.members.find(item => item.email === 'editor@example.test').role).toBe('Member');
