@@ -117,6 +117,7 @@ export function fxSet(o) {
 export const fxc = (kind, id) => (S.ui.fx && S.ui.fx[kind] === id ? ' fx-' + kind : '');
 /* Focus survives full re-renders: every control is addressable by its data-* identity. */
 export const FKEYS = [
+  'focusSelect',
   'a',
   'id',
   'r',
@@ -231,6 +232,8 @@ export function render() {
   translateApp();
   normalizeTablists();
   makeFocusable();
+  // Focus keys may point to enhanced triggers; create them before restoration.
+  enhanceSelects();
   keep.forEach(([k, t, l]) => {
     const el = document.querySelector(`[data-keep="${CSS.escape(k)}"]`);
     if (el) {

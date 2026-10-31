@@ -18,6 +18,12 @@ export function enhanceSelects(root = document) {
     btn.setAttribute('style', sel.getAttribute('style') || '');
     btn.setAttribute('aria-haspopup', 'listbox');
     btn.setAttribute('aria-expanded', 'false');
+    // Rebuilt triggers need an identity independent of the selected value/locale.
+    const scope = sel.closest('.modal,.drawer') || root;
+    const scopeName = scope.getAttribute?.('aria-labelledby') || (scope.matches?.('.drawer') ? 'drawer' : 'page');
+    const identity = sel.id || ['in', 'k', 'f', 'field', 'key', 'ctx'].map(key => sel.dataset[key] || '').join('|');
+    const peers = [...scope.querySelectorAll('select.select')];
+    btn.dataset.focusSelect = `${scopeName}:${identity}:${peers.indexOf(sel)}`;
     const accessibleLabel =
       sel.getAttribute('aria-label') ||
       (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`)?.textContent) ||
