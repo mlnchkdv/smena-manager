@@ -16,6 +16,8 @@ export function knowledgeCreateMenu() {
     )}<hr><button data-a="noteTemplates">${ic('copy', 14)}<span>${kc('From template…', 'Из шаблона…')}</span></button>${S.ui.currentUser?.role === 'admin' ? `<button data-a="manageNoteTypes">${ic('shapes', 14)}<span>${kc('Manage types', 'Настроить типы')}</span></button>` : ''}</div></details></div>`;
 }
 const commands = () => [
+  ['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок'],
+  ['saveKnowledgeView', 'bookmark-plus', 'Save search', 'Сохранить поиск'],
   ['knowledgeArchive', 'archive', 'ZIP import / export', 'Импорт / экспорт ZIP'],
   ['offlineKnowledge', 'hard-drive', 'Offline library', 'Офлайн-библиотека'],
   ...(S.ui.currentUser?.role === 'viewer'
@@ -32,7 +34,9 @@ A.knowledgeLibraryTools = () =>
     render: (_m, H) =>
       `${H(kc('Library tools', 'Инструменты базы знаний'))}<div class="modal-b knowledge-library-tools" translate="no">${commands()
         .map(([a, i, en, ru]) => `<button class="btn btn-secondary" data-a="openKnowledgeLibraryTool" data-command="${a}">${ic(i, 16)}${kc(en, ru)}</button>`)
-        .join('')}</div>`,
+        .join(
+          '',
+        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="applyKnowledgeView" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
   });
 A.openKnowledgeLibraryTool = el => {
   if (commands().some(([a]) => a === el.dataset.command)) {
