@@ -17,6 +17,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Commands: 'Команды',
   'Manage sign-in access': 'Управление доступом ко входу',
   'Archive this workspace': 'Архивировать это пространство',
   'Clear workspace content': 'Очистить содержимое пространства',
