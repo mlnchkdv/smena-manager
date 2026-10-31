@@ -1,3 +1,7 @@
+import { identifyBlock } from '../shared/knowledge-block-references.js';
+import { copy } from '../actions/actions.js';
+import { uid } from '../core/utils.js';
+import { knowledgeMarkdownOptions } from './knowledge-reading.js';
 import { toast } from './toast.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S, save } from '../core/store.js';
@@ -27,7 +31,7 @@ export function blockEditor(note, disabled) {
     .map((block, index) =>
       block.metadata
         ? `<details><summary>${kc('Import metadata (edit in Markdown)', 'Метаданные импорта (правка в Markdown)')}</summary><pre>${esc(block.raw)}</pre></details>`
-        : `<section class="knowledge-editable-block" data-block="${index}"><div class="row"><button class="btn btn-ghost btn-sm" data-a="editKnowledgeBlock" data-index="${index}">${kc('Edit block', 'Изменить блок')}</button><span class="sp"></span>${[-1, 1].map(dir => `<button class="ibtn" aria-label="${dir < 0 ? kc('Move up', 'Выше') : kc('Move down', 'Ниже')}" data-a="moveKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" data-direction="${dir}" ${disabled}>${dir < 0 ? '↑' : '↓'}</button>`).join('')}</div>${active === index ? `<textarea class="textarea" rows="${Math.min(12, Math.max(3, block.raw.split('\n').length))}" data-in="knowledgeBlockText" data-id="${esc(note.id)}" data-index="${index}" ${disabled}>${esc(block.raw)}</textarea>` : `<div class="knowledge-quick-content">${renderKnowledgeMarkdown(block.raw)}</div>`}</section>`,
+        : `<section class="knowledge-editable-block" data-block="${index}"><div class="row"><button class="btn btn-ghost btn-sm" data-a="editKnowledgeBlock" data-index="${index}">${kc('Edit block', 'Изменить блок')}</button><button class="ibtn" data-a="referenceKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" aria-label="${kc('Block reference', 'Ссылка на блок')}" ${disabled}>↗</button><span class="sp"></span>${[-1, 1].map(dir => `<button class="ibtn" aria-label="${dir < 0 ? kc('Move up', 'Выше') : kc('Move down', 'Ниже')}" data-a="moveKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" data-direction="${dir}" ${disabled}>${dir < 0 ? '↑' : '↓'}</button>`).join('')}</div>${active === index ? `<textarea class="textarea" rows="${Math.min(12, Math.max(3, block.raw.split('\n').length))}" data-in="knowledgeBlockText" data-id="${esc(note.id)}" data-index="${index}" ${disabled}>${esc(block.raw)}</textarea>` : `<div class="knowledge-quick-content">${renderKnowledgeMarkdown(block.raw, knowledgeMarkdownOptions(note))}</div>`}</section>`,
     )
     .join(
       '',
@@ -82,7 +86,9 @@ A.insertKnowledgeBlock = el => {
     note = noteFor(m?.noteId),
     kind = kinds().find(k => k[0] === el.dataset.kind);
   if (!note || !kind || !editable()) return;
-  update(note, `${note.formatted_markdown.trimEnd()}\n\n${kind[2]}${kc('Text', 'Текст')}\n`);
+  const text = kc('Text', 'Текст');
+  const value = kind[0] === 'code' ? '```\n' + text + '\n```' : `${kind[2]}${text}`;
+  update(note, `${note.formatted_markdown.trimEnd()}\n\n${value}\n`);
   S.ui.knowledgeBlockIndex = markdownBlocks(note.formatted_markdown).length - 1;
   closeModal();
 };
@@ -93,3 +99,32 @@ document.addEventListener('keydown', event => {
     A.knowledgeBlockMenu({ dataset: { id: input.dataset.id } });
   }
 });
+
+A.referenceKnowledgeBlock = el => {
+  const note = noteFor(el.dataset.id);
+  if (!note || !editable()) return;
+  const result = identifyBlock(note.formatted_markdown, Number(el.dataset.index), uid('b'));
+  update(note, result.text);
+  const ref = `note:${note.id}#^${result.id}`;
+  openModal({
+    type: 'knowledgeTool',
+    ref,
+    raw: markdownBlocks(result.text)[Number(el.dataset.index)].raw.replace(/(?:^|\n)\^[\w-]+[ \t]*(?:\n|$)/, ''),
+    render: (m, H) =>
+      `${H(kc('Reuse block', 'Использовать блок'))}<div class="modal-b" translate="no"><code>${esc(ref)}</code><p class="hint">${kc('A live embed follows the source. A text copy is independent.', 'Включение обновляется вместе с источником. Копия текста независима.')}</p><button class="btn btn-secondary" data-a="copyKnowledgeBlock" data-mode="link">${kc('Copy link', 'Копировать ссылку')}</button><button class="btn btn-secondary" data-a="copyKnowledgeBlock" data-mode="embed">${kc('Copy live embed', 'Копировать включение')}</button><button class="btn btn-secondary" data-a="copyKnowledgeBlock" data-mode="text">${kc('Copy text', 'Копировать текст')}</button></div>`,
+  });
+};
+A.copyKnowledgeBlock = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.ref) copy(el.dataset.mode === 'text' ? m.raw : `${el.dataset.mode === 'embed' ? '!' : ''}[[${m.ref}]]`);
+};
+A.openKnowledgeBlock = el => {
+  const id = (el.dataset.key || '').slice(5);
+  if (!D().knowledgeNotes.some(n => n.id === id)) return;
+  A.goKnowledgeNote({ dataset: { id } });
+  requestAnimationFrame(() => {
+    const target = document.querySelector(`[data-knowledge-block="${CSS.escape(el.dataset.block || '')}"]`);
+    target?.scrollIntoView({ block: 'center' });
+    target?.focus({ preventScroll: true });
+  });
+};

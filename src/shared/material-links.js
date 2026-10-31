@@ -1,7 +1,8 @@
 const KEY = /^(note|project|task|bookmark|file):([\p{L}\p{N}_.:@+-]{1,180})$/u;
 export function materialLink(value) {
-  const [key, ...label] = String(value).split('|');
-  return KEY.test(key) ? { key, label: label.join('|') || key } : null;
+  const [target, ...label] = String(value).split('|');
+  const [key, block] = target.split('#^');
+  return KEY.test(key) && (block == null || /^[a-zA-Z0-9_-]{1,100}$/.test(block)) ? { key, block, label: label.join('|') || target } : null;
 }
 export function materialReferences(source) {
   return [...String(source || '').matchAll(/\[\[([^\]\n]+)\]\]/g)].map(m => materialLink(m[1])).filter(Boolean);

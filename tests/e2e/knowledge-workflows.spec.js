@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-test.setTimeout(240000);
+test.setTimeout(360000);
 const waitSaved = async page => {
   await page.waitForTimeout(500);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
@@ -90,7 +90,27 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
   await page.locator('.knowledge-type-fields>summary').click();
   await expect(page.locator('[data-in="noteProperty"][data-field="review"]')).toHaveValue('2026-12-01');
+  await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
+  await page.locator('[data-a="editKnowledgeBlock"]').first().click();
+  const blockInput = page.locator('[data-in="knowledgeBlockText"]');
+  await blockInput.fill('Second reference\n\nExtra');
+  await blockInput.press('End');
+  await blockInput.pressSequentially(' more');
+  await waitSaved(page);
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
+  await expect(page.locator('#knowledge-body')).toHaveValue('Second reference\n\nExtra more');
+  await page.locator('#knowledge-body').fill('Second reference [[');
+  await expect(page.locator('#relation-search')).toBeVisible();
+  await page.locator('#relation-search').fill('Knowledge Alpha');
+  await page.locator('[data-a="createRelation"][data-key="note:kb-a"]').click();
+  await expect(page.locator('#knowledge-body')).toHaveValue('Second reference [[note:kb-a|Knowledge Alpha]]');
+  await page.locator('#knowledge-body').fill('Second reference');
+  await waitSaved(page);
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+  await page.locator('[data-in="knowledgeQuery"]').fill('type:instruction field:review<2026-12-02');
+  await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
+  await expect(page.locator('.knowledge-preview-open')).toContainText('Knowledge Beta');
   await page.locator('[data-in="knowledgeQuery"]').fill('"original knowledge"');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await expect(page.locator('.knowledge-preview-excerpt mark')).toHaveText('Original knowledge');

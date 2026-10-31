@@ -62,6 +62,25 @@ const markdown = new Marked({
   breaks: false,
   extensions: [
     {
+      name: 'knowledgeEmbed',
+      level: 'inline',
+      start: src => src.indexOf('![['),
+      tokenizer(src) {
+        const match = /^!\[\[([^\]\n]+)\]\]/.exec(src);
+        if (match) return { type: 'knowledgeEmbed', raw: match[0], text: match[1] };
+      },
+    },
+    {
+      name: 'knowledgeBlockMarker',
+      level: 'block',
+      start: src => src.match(/^\^[\w-]+[ \t]*(?:\n|$)/m)?.index,
+      tokenizer(src) {
+        const match = /^\^([\w-]+)[ \t]*(?:\n|$)/.exec(src);
+        if (match) return { type: 'knowledgeBlockMarker', raw: match[0], id: match[1] };
+      },
+    },
+
+    {
       name: 'knowledgeWiki',
       level: 'inline',
       start: src => src.indexOf('[['),
@@ -116,10 +135,21 @@ export function renderKnowledgeMarkdown(source, options = {}) {
             return `<code>${escape(token.text)}</code>`;
           case 'br':
             return '<br>';
+          case 'knowledgeEmbed': {
+            const ref = materialLink(token.text),
+              budget = options.embedBudget || { count: 0 },
+              stack = options.embedStack || [];
+            const key = ref?.block ? `${ref.key}#^${ref.block}` : '';
+            const block = key && ref.key.startsWith('note:') && options.resolveBlock?.(ref.key.slice(5), ref.block);
+            if (!block || stack.includes(key) || stack.length >= 4 || budget.count >= 12)
+              return `<span class="hint">${escape(options.embedUnavailableLabel || 'Block unavailable or recursive')}</span>`;
+            budget.count++;
+            return `<span class="knowledge-transclusion"><strong>${escape(block.title)}</strong>${renderKnowledgeMarkdown(block.source, { ...options, embedBudget: budget, embedStack: [...stack, key] })}</span>`;
+          }
           case 'knowledgeWiki': {
             const material = materialLink(token.text);
             if (material)
-              return `<button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(material.key)}">${escape(material.label)}</button>`;
+              return `<button class="knowledge-wiki-link" data-a="${material.block ? 'openKnowledgeBlock' : 'openRelatedEntity'}" data-key="${escape(material.key)}" data-block="${escape(material.block || '')}">${escape(material.label)}</button>`;
             const target = options.wikiTargets?.get(token.text.trim().toLocaleLowerCase('ru-RU'));
             return target
               ? `<button class="knowledge-wiki-link" data-a="followKnowledgeWiki" data-id="${escape(target)}" data-source="${escape(options.sourceId || '')}">${escape(token.text)}</button>`
@@ -147,6 +177,8 @@ export function renderKnowledgeMarkdown(source, options = {}) {
       .map(token => {
         if (depth > 32) return `<pre>${escape(token.raw)}</pre>`;
         switch (token.type) {
+          case 'knowledgeBlockMarker':
+            return `<span class="knowledge-block-anchor" data-knowledge-block="${escape(token.id)}" tabindex="-1"></span>`;
           case 'space':
           case 'def':
             return '';
@@ -162,7 +194,7 @@ export function renderKnowledgeMarkdown(source, options = {}) {
           case 'paragraph':
           case 'text': {
             const body = inlines(token.tokens || [{ type: 'text', text: token.text }]);
-            return tight ? body : `<p>${body}</p>`;
+            return tight || (token.tokens?.length === 1 && token.tokens[0].type === 'knowledgeEmbed') ? body : `<p>${body}</p>`;
           }
           case 'code':
             return `<pre><code>${escape(token.text)}</code></pre>`;
