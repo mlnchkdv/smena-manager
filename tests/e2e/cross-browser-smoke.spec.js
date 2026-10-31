@@ -48,6 +48,61 @@ async function checkNarrowTeamDialog(page, language, browserName) {
   await dialog.getByRole('button', { name: language === 'ru' ? 'Отмена' : 'Cancel', exact: true }).click();
 }
 
+test('simplified graph preserves materials selection filters and personal preference', async ({ page, browserName }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeNotes.push(
+    ...Array.from({ length: 100 }, (_, i) => ({
+      id: `simple-graph-${i}`,
+      title: `Graph material ${i}`,
+      formatted_markdown: i ? `[[note:simple-graph-${i - 1}|Previous]]` : 'Start',
+      tags: [],
+      folderId: null,
+    })),
+  );
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/graph');
+    const toggle = page.locator('.graph-simple-toggle');
+    await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+    if ((await toggle.getAttribute('aria-pressed')) === 'true') await toggle.click();
+    const summary = await page.locator('.graph-summary').textContent();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.graph-summary')).toHaveText(summary);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.reload();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expectNoPageOverflow(page);
+      await expect(toggle).toHaveAccessibleName(language === 'Русский' ? 'Упрощённый вид' : 'Simplified graph');
+      await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+      if ([390, 1366].includes(width))
+        await page.screenshot({ path: `output/playwright/graph-simple-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
+    }
+    await page.locator('#graph-locate').selectOption('note:simple-graph-42');
+    await expect(page.locator('.graph-detail h2')).toHaveText('Graph material 42');
+    await page.locator('[data-a="clearGraphSelection"]').click();
+    await page.locator('[data-k="graphView"][data-v="list"]').click();
+    await expect(page.locator('.graph-list')).toBeVisible();
+    await page.locator('[data-k="graphView"][data-v="graph"]').click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  }
+});
+
 test('core task flow and responsive shell work across browser engines', async ({ page, browserName }) => {
   await signIn(page);
   // Other suites share the account and can leave its server preference in EN.

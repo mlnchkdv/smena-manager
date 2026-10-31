@@ -1,4 +1,4 @@
-import { D, S } from '../core/store.js';
+import { D, S, save } from '../core/store.js';
 import { go, render } from '../shell/render.js';
 import { A, IN } from '../actions/actions.js';
 import { resolveGraphEntity } from '../shared/relations.js';
@@ -67,5 +67,10 @@ A.toggleGraphInteraction = () => {
 A.clearGraphSelection = () => {
   S.ui.graphSelected = '';
   S.ui.graphSelectionClosed = true;
+  render();
+};
+A.toggleGraphSimple = () => {
+  S.prefs.graphSimple = !S.prefs.graphSimple;
+  save();
   render();
 };

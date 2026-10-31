@@ -3,6 +3,7 @@ import { resolveTimeZone } from './calendar-time.js';
 import { validKnowledgeQueries } from './knowledge-query.js';
 
 const PREFERENCE_TYPES = Object.freeze({
+  graphSimple: 'boolean',
   knowledgeQueries: 'string',
   theme: 'string',
   accent: 'string',

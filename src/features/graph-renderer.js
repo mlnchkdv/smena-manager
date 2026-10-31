@@ -9,7 +9,7 @@ let disconnectObserver;
 let savedView;
 let resizeObserver;
 let topology = '';
-export function mountGraph(graph, selected, center, onSelect) {
+export function mountGraph(graph, selected, center, onSelect, simple = false) {
   requestAnimationFrame(() => {
     const container = document.getElementById('knowledge-graph-canvas');
     if (!container) return;
@@ -56,12 +56,14 @@ export function mountGraph(graph, selected, center, onSelect) {
       ...graph.nodes.map(node => ({
         data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
         position: positions.get(node.key),
-        classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : ''].filter(Boolean).join(' '),
+        classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : '', simple ? 'simple' : ''].filter(Boolean).join(' '),
         selected: node.key === selected,
       })),
       ...graph.edges.map((edge, index) => ({
         data: { id: `e${index}`, source: edge.from, target: edge.to, automatic: edge.origin === 'automatic' ? 1 : 0 },
-        classes: [selected && (edge.from === selected || edge.to === selected) ? 'highlight' : '', denseGraph ? 'dense' : ''].filter(Boolean).join(' '),
+        classes: [selected && (edge.from === selected || edge.to === selected) ? 'highlight' : '', denseGraph ? 'dense' : '', simple ? 'simple' : '']
+          .filter(Boolean)
+          .join(' '),
       })),
     ];
     instance = cytoscape({
@@ -157,11 +159,41 @@ export function mountGraph(graph, selected, center, onSelect) {
             width: 2,
           },
         },
+        {
+          selector: 'node.simple',
+          style: {
+            shape: 'ellipse',
+            width: 11,
+            height: 11,
+            'background-image': 'none',
+            'background-opacity': 1,
+            'border-width': 1,
+            'text-opacity': 0,
+            'text-margin-y': 8,
+          },
+        },
+        {
+          selector: 'node.simple:selected, node.simple.simple-hover',
+          style: {
+            width: 16,
+            height: 16,
+            'text-opacity': 1,
+            'font-size': 14,
+            'min-zoomed-font-size': 0,
+            'text-background-color': css.getPropertyValue('--surface').trim(),
+            'text-background-opacity': 0.95,
+            'text-background-padding': 4,
+            'overlay-opacity': 0,
+          },
+        },
+        { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', 'line-style': 'solid', width: 1, opacity: 0.3 } },
+        { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
       ],
     });
     const updateDensity = () => {
       if (!instance || instance.destroyed() || !instance.renderer()) return;
       const zoom = instance.zoom();
+      if (simple) return;
       if (denseGraph) instance.nodes().toggleClass('dense-hidden', zoom < 0.75);
       {
         const overview = zoom < 0.85;
@@ -209,11 +241,13 @@ export function mountGraph(graph, selected, center, onSelect) {
     }
     updateDensity();
     instance.on('tap', 'node', event => onSelect(event.target.id()));
-    instance.on('mouseover', 'node', () => {
+    instance.on('mouseover', 'node', event => {
       container.style.cursor = 'pointer';
+      if (simple) event.target.addClass('simple-hover');
     });
-    instance.on('mouseout', 'node', () => {
+    instance.on('mouseout', 'node', event => {
       container.style.cursor = '';
+      if (simple) event.target.removeClass('simple-hover');
     });
     let width = container.clientWidth,
       height = container.clientHeight;

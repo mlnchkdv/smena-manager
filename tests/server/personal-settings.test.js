@@ -9,6 +9,11 @@ test('spellcheck and deletion confirmation are persisted as booleans, including 
   applyPersonalSettings(database, 'me', { preferences: { spell: false, confirmDel: false } });
   assert.deepEqual(database._userPrefs.me, { spell: false, confirmDel: false });
   assert.throws(() => applyPersonalSettings(database, 'me', { preferences: { spell: 'false' } }), /Invalid/u);
+  applyPersonalSettings(database, 'me', { preferences: { graphSimple: true } });
+  assert.equal(personalPreferenceData(database._userPrefs.me).graphSimple, true);
+  applyPersonalSettings(database, 'me', { preferences: { graphSimple: false } });
+  assert.equal(database._userPrefs.me.graphSimple, false);
+  assert.throws(() => applyPersonalSettings(database, 'me', { preferences: { graphSimple: 'false' } }), /Invalid/u);
 });
 
 test('mark all read stays within the API limit, deduplicates IDs and stops after a failed batch', async () => {

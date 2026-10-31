@@ -1,3 +1,31 @@
+.graph-simple-toggle[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent-line);
+}
+.graph-toolbar:has(.graph-simple-toggle) {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+@media (max-width: 640px) {
+  .graph-page .graph-toolbar:has(.graph-simple-toggle) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  .graph-page .graph-toolbar:has(.graph-simple-toggle) > .graph-search {
+    grid-column: 1 / -1;
+  }
+  .graph-page .graph-toolbar:has(.graph-simple-toggle) > .graph-filter-toggle {
+    justify-self: start;
+  }
+}
+@media (max-width: 640px) {
+  .graph-simple-toggle > span {
+    display: none;
+  }
+  .graph-simple-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .graph-page {
   padding: 24px clamp(16px, 3vw, 40px) 12px;
   min-width: 0;
