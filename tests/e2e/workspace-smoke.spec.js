@@ -2,6 +2,80 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('personal graph and board layouts retain camera pins filters and account isolation', async ({ page, browser }) => {
+  test.setTimeout(240000);
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeNotes.push(
+    ...Array.from({ length: 40 }, (_, i) => ({
+      id: `layout-note-${i}`,
+      title: `Layout ${i}`,
+      formatted_markdown: i ? `[[note:layout-note-${i - 1}|Previous]]` : 'Start',
+      tags: [],
+    })),
+  );
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  const data = (await (await page.request.get('/api/workspace')).json()).data,
+    project = data.projects[0];
+  const saveLayout = async name => {
+    await page.locator('.diagram-view-menu > summary').click();
+    await page.locator('[data-a="saveDiagramView"]').click();
+    await page.locator('[data-in="diagramViewName"]').fill(name);
+    await page.locator('[data-a="commitDiagramView"]').click();
+    await waitForSaved(page);
+  };
+  await page.goto('/e2e-team/graph');
+  await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+  await page.locator('#graph-locate').selectOption('note:layout-note-0');
+  await page.locator('[data-a="toggleGraphPin"]').click();
+  await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-a="clearGraphSelection"]').click();
+  await page.locator('[data-command="in"]').click();
+  await saveLayout('Graph plan');
+  await page.reload();
+  await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+  await page.locator('#graph-locate').selectOption('note:layout-note-0');
+  await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('[data-a="clearGraphSelection"]').click();
+  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await page.locator('[data-a="whiteboardZoomIn"]').click();
+  const scale = await page.locator('.whiteboard-scale').textContent();
+  await saveLayout('Board plan');
+  await page.reload();
+  await expect(page.locator('.whiteboard-scale')).toHaveText(scale);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    for (const route of ['/e2e-team/graph', `/e2e-team/project/${project.id}/whiteboard`]) {
+      await page.goto(route);
+      for (const [width, height] of [
+        [320, 740],
+        [390, 845],
+        [768, 1024],
+        [844, 390],
+        [1366, 768],
+      ]) {
+        await page.setViewportSize({ width, height });
+        await page.locator('.diagram-view-menu > summary').click();
+        await expect(page.locator('[data-a="loadDiagramView"]')).toHaveCount(1);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        await page.keyboard.press('Escape');
+      }
+    }
+  }
+  const context = await browser.newContext();
+  try {
+    const editor = await context.newPage();
+    await signIn(editor, 'e2e-editor-access-id-2026-secure');
+    await editor.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await editor.locator('.diagram-view-menu > summary').click();
+    await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
+  } finally {
+    await context.close();
+  }
+});
+
 test('whiteboard durable history restores safely rejects stale restore and follows project access', async ({ page, browser }) => {
   test.setTimeout(240000);
   await signIn(page);

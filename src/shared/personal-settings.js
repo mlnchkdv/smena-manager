@@ -4,10 +4,12 @@ import { validKnowledgeQueries } from './knowledge-query.js';
 import { validSidebar } from './sidebar-preferences.js';
 import { validCardMeta } from './knowledge-card-meta.js';
 import { validFolderPins } from './knowledge-folder-shortcuts.js';
+import { validDiagramViews } from './diagram-views.js';
 
 const PREFERENCE_TYPES = Object.freeze({
   knowledgeCardMeta: 'string',
   knowledgeFolderPins: 'string',
+  diagramViews: 'string',
   sidebar: 'string',
   graphSimple: 'boolean',
   graphPhysics: 'boolean',
@@ -55,12 +57,26 @@ export function applyPersonalSettings(database, memberId, input) {
       if (
         typeof value !== PREFERENCE_TYPES[key] ||
         (typeof value === 'string' &&
-          value.length > (['knowledgeQueries', 'knowledgeCardMeta'].includes(key) ? 24000 : ['sidebar', 'knowledgeFolderPins'].includes(key) ? 6000 : 180))
+          value.length >
+            (key === 'diagramViews'
+              ? 180000
+              : ['knowledgeQueries', 'knowledgeCardMeta'].includes(key)
+                ? 24000
+                : ['sidebar', 'knowledgeFolderPins'].includes(key)
+                  ? 6000
+                  : 180))
       )
         invalid();
       if (key === 'sidebar') {
         try {
           if (!validSidebar(JSON.parse(value))) invalid();
+        } catch {
+          invalid();
+        }
+      }
+      if (key === 'diagramViews') {
+        try {
+          if (!validDiagramViews(JSON.parse(value))) invalid();
         } catch {
           invalid();
         }

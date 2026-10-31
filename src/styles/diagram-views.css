@@ -1,0 +1,63 @@
+.diagram-view-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.diagram-view-menu > summary {
+  list-style: none;
+}
+.diagram-view-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.diagram-view-menu > div {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px);
+  z-index: 55;
+  width: min(280px, calc(100vw - 24px));
+  max-height: 60dvh;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-pop);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.diagram-view-menu:not([open]) > div {
+  display: none;
+}
+.diagram-view-menu > div > button,
+.diagram-view-row > button:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  min-height: 36px;
+  padding: 6px;
+  border-radius: 6px;
+}
+.diagram-view-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.diagram-view-row > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.diagram-view-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diagram-view-row [aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--surface-2);
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .diagram-view-menu > div button {
+    min-height: 44px;
+  }
+}

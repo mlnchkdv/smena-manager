@@ -1,3 +1,6 @@
+import { D, S } from '../core/store.js';
+import { diagramPreferences } from '../shared/diagram-views.js';
+import { activeDiagramView, registerGraphLayoutReader } from '../core/diagram-view-state.js';
 import cytoscape from 'cytoscape';
 import { ic } from '../core/icons.js';
 import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
@@ -6,7 +9,8 @@ import { t } from '../core/i18n.js';
 import { graphPhysicsOptions } from '../shared/graph-physics.js';
 
 let instance;
-let context = '';
+let context = '',
+  personalViewKey = '';
 let disconnectObserver;
 let savedView;
 let resizeObserver;
@@ -19,7 +23,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const container = document.getElementById('knowledge-graph-canvas');
     if (!container) return;
     const scopeKey = JSON.stringify([scope, center]);
-    const previous =
+    let previous =
       instance && context === scopeKey
         ? {
             signature: topology,
@@ -50,6 +54,28 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const signature = graphTopologyKey(graph);
     topology = signature;
     const positions = graphPositions(graph, center);
+    const cfg = diagramPreferences(S.prefs.diagramViews),
+      saved = activeDiagramView('graph'),
+      active = saved?.context.center === center ? saved : null;
+    const personalKey = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, active?.id || '', S.ui.diagramViewNonce || 0]);
+    if (active && (!previous || personalViewKey !== personalKey)) {
+      const l = active.layout;
+      previous = {
+        signature,
+        positions: new Map(l.positions.map(p => [p.id, p])),
+        zoom: l.zoom,
+        pan: l.pan,
+        width: l.width,
+        height: l.height,
+        physics,
+        running: false,
+        selected: '',
+      };
+    } else if (personalViewKey && personalViewKey !== personalKey && !active) previous = null;
+    personalViewKey = personalKey;
+    const pins = new Map(cfg.pins.map(p => [p.id, p]));
+    for (const [id, p] of pins) if (positions.has(id)) positions.set(id, p);
+
     const glyphs = Object.fromEntries(
       Object.entries(GRAPH_KINDS).map(([kind, meta]) => {
         const color = css.getPropertyValue(meta.color).trim() || '#6366f1';
@@ -72,6 +98,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         position: positions.get(node.key),
         classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : '', simple ? 'simple' : ''].filter(Boolean).join(' '),
         selected: node.key === selected,
+        locked: pins.has(node.key),
       })),
       ...graph.edges.map((edge, index) => ({
         data: { id: `e${index}`, source: edge.from, target: edge.to, automatic: edge.origin === 'automatic' ? 1 : 0 },
@@ -229,10 +256,21 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         });
       }
     };
+    registerGraphLayoutReader(() =>
+      instance && !instance.destroyed()
+        ? {
+            positions: instance.nodes().map(n => ({ id: n.id(), x: n.position('x'), y: n.position('y'), locked: n.locked() })),
+            zoom: instance.zoom(),
+            pan: { ...instance.pan() },
+            width: instance.width(),
+            height: instance.height(),
+          }
+        : null,
+    );
     instance.on('zoom', updateDensity);
     instance.on('pan', updateDensity);
     if (previous?.signature === signature) {
-      instance.nodes().positions(node => previous.positions.get(node.id()));
+      instance.nodes().positions(node => pins.get(node.id()) || previous.positions.get(node.id()) || positions.get(node.id()));
       if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
         instance.zoom(previous.zoom);
         instance.pan(previous.pan);

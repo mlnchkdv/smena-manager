@@ -1,3 +1,4 @@
+import { activeDiagramView } from './diagram-view-state.js';
 import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
 import { isRussian } from './i18n.js';
@@ -7,8 +8,11 @@ export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.u
 let state;
 export function whiteboardState(id = S.ui.params.id) {
   const scope = whiteboardScope(id);
-  if (state?.scope !== scope)
+  if (state?.scope !== scope) {
     state = { scope, id, x: 32, y: 32, zoom: 1, fit: true, selected: '', selection: [], multiSelect: false, outline: false, undo: [], redo: [] };
+    const view = activeDiagramView('board', id);
+    if (view) Object.assign(state, view.layout, { fit: false });
+  }
   return state;
 }
 export function whiteboardMaterial(node) {

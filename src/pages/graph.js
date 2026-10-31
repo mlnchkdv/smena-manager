@@ -1,3 +1,6 @@
+import { diagramViewsControl } from '../ui/diagram-views.js';
+import { preparePersonalGraph } from '../core/diagram-view-state.js';
+import { diagramPreferences } from '../shared/diagram-views.js';
 import { D, S, visibleProjects } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { t as tr } from '../core/i18n.js';
@@ -32,7 +35,7 @@ function graphDetails(node) {
   if (!node) return '';
   return `<aside class="graph-detail"><div class="graph-detail-head"><span class="badge">${ic(ENTITY_ICONS[node.kind], 12)}${ENTITY_LABELS[node.kind]}</span><button class="ibtn ibtn-sm" data-a="clearGraphSelection" aria-label="Close material details">${ic('x', 15)}</button></div>
     <h2 translate="no">${esc(node.title)}</h2>${node.item.summary || node.item.description || node.item.url ? `<p class="graph-description" translate="no">${esc(node.item.summary || node.item.description || node.item.url)}</p>` : ''}
-<div class="graph-detail-actions"><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button>${S.ui.graphView === 'list' ? '' : '<button class="btn btn-secondary btn-sm" data-a="graphControl" data-command="selection">Focus connections</button>'}</div>
+<div class="graph-detail-actions"><button class="btn btn-secondary btn-sm" data-a="toggleGraphPin" data-key="${esc(node.key)}" aria-pressed="${diagramPreferences(S.prefs.diagramViews).pins.some(p => p.id === node.key)}" translate="no">${ic('pin', 14)}${document.documentElement.lang === 'ru' ? 'Закрепить узел' : 'Pin node'}</button><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button>${S.ui.graphView === 'list' ? '' : '<button class="btn btn-secondary btn-sm" data-a="graphControl" data-command="selection">Focus connections</button>'}</div>
     ${relationsPanel(node.key)}
   </aside>`;
 }
@@ -40,6 +43,7 @@ function graphDetails(node) {
 export function pageGraph() {
   const ui = S.ui,
     center = ui.params.center || '';
+  preparePersonalGraph(center);
   const remote = graphReadModel('view');
   const pending = !!remote && !remote.view;
   const view = remote
@@ -89,7 +93,7 @@ export function pageGraph() {
     .map(([kind, meta]) => `<span class="graph-kind" style="--node-color:var(${meta.color})">${ic(meta.icon, 12)}<span>${ENTITY_LABELS[kind]}</span></span>`)
     .join('');
   return `<div class="graph-page${ui.graphFocus ? ' is-focused' : ''}${ui.graphInteract ? ' is-interactive' : ''}">
-<header class="graph-head"><div><h1>Graph</h1><p>Explore connections between your team's materials.</p></div><div class="row"><button class="btn btn-secondary btn-sm" data-a="toggleGraphFocus" aria-pressed="${!!ui.graphFocus}" aria-label="${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}">${ic(ui.graphFocus ? 'minimize' : 'maximize', 14)}<span>${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}</span></button>${center ? `<button class="btn btn-secondary btn-sm" data-a="showGraph">${ic('arrow-left', 14)}All materials</button>` : ''}<button class="btn btn-secondary btn-sm graph-export" data-a="exportGraph" aria-label="Export graph">${ic('download', 14)}<span>Export graph</span></button></div></header>
+<header class="graph-head"><div><h1>Graph</h1><p>Explore connections between your team's materials.</p></div><div class="row">${diagramViewsControl('graph')}<button class="btn btn-secondary btn-sm" data-a="toggleGraphFocus" aria-pressed="${!!ui.graphFocus}" aria-label="${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}">${ic(ui.graphFocus ? 'minimize' : 'maximize', 14)}<span>${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}</span></button>${center ? `<button class="btn btn-secondary btn-sm" data-a="showGraph">${ic('arrow-left', 14)}All materials</button>` : ''}<button class="btn btn-secondary btn-sm graph-export" data-a="exportGraph" aria-label="Export graph">${ic('download', 14)}<span>Export graph</span></button></div></header>
     <div class="graph-toolbar"><div class="graph-search"><label class="sr" for="graph-search">Search graph</label><input id="graph-search" class="input" data-in="graphQuery" value="${esc(ui.graphQuery || '')}" placeholder="Search materials and tags" aria-label="Search graph">${ui.graphQuery ? `<button class="ibtn graph-search-clear" data-a="clearGraphQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div><button class="btn btn-secondary btn-sm graph-filter-toggle ${activeFilters ? 'is-active' : ''}" data-a="toggleGraphFilters" aria-label="${esc(tr('Filters'))}${activeFilters ? `: ${activeFilters}` : ''}" title="${esc(tr('Filters'))}" aria-expanded="${!!ui.graphFiltersOpen}" aria-controls="graph-filters">${ic('sliders-horizontal', 14)}<span>Filters</span>${activeFilters ? `<span class="cnt">${activeFilters}</span>` : ''}</button>${!list ? `<div class="graph-appearance" role="group" aria-label="Graph appearance"><button class="btn btn-secondary btn-sm graph-simple-toggle" data-a="toggleGraphSimple" aria-label="Simplified graph" title="Simplified graph" aria-pressed="${!!S.prefs.graphSimple}">${ic('circle-dot', 14)}<span>Simplified graph</span></button><button class="btn btn-secondary btn-sm graph-physics-toggle" data-a="toggleGraphPhysics" aria-label="Graph physics" title="Graph physics" aria-pressed="${!!S.prefs.graphPhysics}">${ic('orbit', 14)}<span>Physics</span></button></div>` : ''}<div class="seg" role="group" aria-label="Graph view"><button data-a="set" data-k="graphView" data-v="graph" class="${!list ? 'on' : ''}" aria-pressed="${!list}" aria-label="Graph">${ic('network', 14)}<span>Graph</span></button><button data-a="set" data-k="graphView" data-v="list" class="${list ? 'on' : ''}" aria-pressed="${list}" aria-label="List">${ic('list', 14)}<span>List</span></button></div></div>
     ${graphFilters(ui, center)}
     <div class="graph-meta"><details class="graph-legend-disclosure"><summary>Material types</summary><div class="graph-legend" aria-label="Material types">${legend}</div></details><div class="graph-summary" role="status"><span>Materials</span>: ${pending ? '—' : view.total}<span class="graph-meta-dot">·</span><span>Connections</span>: ${pending ? '—' : view.edges.length}</div></div>
