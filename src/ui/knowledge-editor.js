@@ -25,7 +25,7 @@ A.downloadKnowledgeNoteSource = el => {
   const url = URL.createObjectURL(new Blob([note.formatted_markdown], { type: 'text/plain;charset=utf-8' }));
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = (note.title || 'note').replace(/[\\/:*?"<>|\u0000-\u001f]/gu, '-').slice(0, 120) + (note.sourceFormat === 'text' ? '.txt' : '.md');
+  anchor.download = (note.title || 'note').replace(/[\\/:*?"<>|\p{Cc}]/gu, '-').slice(0, 120) + (note.sourceFormat === 'text' ? '.txt' : '.md');
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
