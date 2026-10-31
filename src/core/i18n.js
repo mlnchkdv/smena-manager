@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Rename & edit': 'Название и настройки',
+  Duplicate: 'Дублировать',
+  'Move up in sidebar': 'Выше в боковой панели',
+  'Move down in sidebar': 'Ниже в боковой панели',
   Properties: 'Свойства',
   Aliases: 'Псевдонимы',
   'Tag aliases': 'Псевдонимы тегов',

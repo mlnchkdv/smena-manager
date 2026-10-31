@@ -1270,7 +1270,7 @@ test('project cards stay compact and open through background and keyboard withou
       key: `CARD${index}`,
       name: index === 0 ? 'Проект с очень длинным названием для проверки карточки / Long project title' : `Card project ${index}`,
       status,
-      desc: index === 1 ? '' : 'Описание проекта без лишнего пустого пространства.',
+      desc: index === 1 ? 'No description yet.' : 'Описание проекта без лишнего пустого пространства.',
       due: '2030-11-28',
       milestones: [],
     })),
@@ -1294,6 +1294,7 @@ test('project cards stay compact and open through background and keyboard withou
       await page.setViewportSize({ width, height });
       await page.goto('/e2e-team/projects');
       await expect(page.locator('.project-card')).toHaveCount(4);
+      await expect(page.locator('.project-card[data-id="card-1"] .desc')).toHaveText(language === 'Русский' ? 'Описания пока нет.' : 'No description yet.');
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       const geometry = await page.locator('.project-card').evaluateAll(cards =>
         cards.map(card => {
