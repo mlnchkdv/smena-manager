@@ -47,7 +47,7 @@ export function projectWhiteboard(project) {
         `<button class="whiteboard-edge-row" data-a="whiteboardEditEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.from)))} → ${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.to)))}</span><small>${esc(edge.label)}</small></button>`,
     )
     .join('');
-  return `<section class="project-whiteboard" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
+  return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
   ${
     editable
       ? `<details class="ui-menu whiteboard-add"><summary class="btn btn-primary btn-sm">${ic('plus', 15)}${T('Add', 'Добавить')}</summary><div>${[
@@ -62,7 +62,7 @@ export function projectWhiteboard(project) {
           )}</div></details>${button('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled')}${button('whiteboardRedo', 'redo-2', 'Redo', 'Повторить', state.redo.length ? '' : 'disabled')}`
       : `<span class="hint">${T('Read only', 'Только просмотр')}</span>`
   }
-  ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}${editable ? button('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${diagramViewsControl('board', project.id)}${button('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${whiteboardPortableControl(editable)}
+  ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}${editable ? button('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="whiteboardToggleOutline" aria-pressed="${state.outline}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</button>${diagramViewsControl('board', project.id)}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</button>${button('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${whiteboardPortableControl(editable)}
   </div><p id="whiteboard-help" class="sr">${T('Move cards by their title. Drag empty space to pan; pinch or Ctrl + wheel to zoom. Arrow keys on a selected card move it. Outline mode lists every card and connection.', 'Перемещайте карточки за заголовок. Пустое место — панорама; щипок или Ctrl + колесо — масштаб. Стрелки на выбранной карточке перемещают её. В списке доступны все карточки и связи.')}</p>
   ${
     state.outline

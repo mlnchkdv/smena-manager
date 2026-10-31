@@ -352,6 +352,20 @@ A.whiteboardArrange = el => {
   if (!['left', 'right', 'top', 'bottom', 'center-x', 'center-y', 'distribute-x', 'distribute-y'].includes(el.dataset.mode)) return;
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
 };
+const syncWhiteboardWindow = () => {
+  const v = window.visualViewport;
+  document.documentElement.style.setProperty('--whiteboard-window-height', `${v?.height || window.innerHeight}px`);
+  document.documentElement.style.setProperty('--whiteboard-window-top', `${v?.offsetTop || 0}px`);
+};
+window.visualViewport?.addEventListener('resize', syncWhiteboardWindow);
+window.visualViewport?.addEventListener('scroll', syncWhiteboardWindow);
+window.addEventListener('resize', syncWhiteboardWindow);
+A.whiteboardToggleFocus = () => {
+  whiteboardState().focus = !whiteboardState().focus;
+  syncWhiteboardWindow();
+  render();
+  document.querySelector('[data-a="whiteboardToggleFocus"]')?.focus();
+};
 A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
   render();
@@ -662,6 +676,29 @@ A.whiteboardRetryMaterials = () => {
 document.addEventListener(
   'keydown',
   e => {
+    if (current() && whiteboardState().focus && !S.ui.modals.length) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        A.whiteboardToggleFocus();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const panel = document.querySelector('.project-whiteboard.is-focused');
+        const items = [...(panel?.querySelectorAll('button:not([disabled]),summary,[tabindex="0"],input:not([disabled])') || [])].filter(
+          el => el.getClientRects().length,
+        );
+        const first = items[0],
+          last = items.at(-1);
+        if (e.shiftKey && (e.target === first || !panel?.contains(e.target))) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && (e.target === last || !panel?.contains(e.target))) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    }
     if (!e.target.closest('.project-whiteboard') || e.target.closest('input,textarea,select') || S.ui.modals.length) return;
     const s = whiteboardState();
     if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'a'].includes(e.key.toLowerCase())) {

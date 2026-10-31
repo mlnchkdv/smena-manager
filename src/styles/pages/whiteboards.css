@@ -250,3 +250,44 @@
     width: auto;
   }
 }
+
+.whiteboard-page .project-whiteboard.is-focused {
+  position: fixed;
+  inset: var(--whiteboard-window-top, 0px) 0 auto;
+  z-index: 49;
+  height: var(--whiteboard-window-height, 100dvh);
+  margin: 0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 0;
+  background: var(--surface);
+  box-sizing: border-box;
+}
+.whiteboard-page .is-focused .whiteboard-toolbar {
+  flex: 0 0 auto;
+  padding: 4px;
+  gap: 4px;
+}
+.whiteboard-page .is-focused :is(.whiteboard-viewport, .whiteboard-outline) {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overflow: auto;
+}
+.whiteboard-page .is-focused .whiteboard-help {
+  display: none;
+}
+.whiteboard-page .is-focused .whiteboard-selection {
+  flex: 0 0 auto;
+}
+@media (max-width: 640px), (max-height: 500px) {
+  .whiteboard-page .is-focused .whiteboard-count {
+    display: none;
+  }
+  .whiteboard-page .is-focused .whiteboard-toolbar .ibtn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
