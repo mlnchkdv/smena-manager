@@ -58,7 +58,13 @@ test('an ordinary member creates and configures owned workspaces without gaining
       // Submit and save on a genuinely narrow layout, not only inspect its form.
       await member.setViewportSize({ width: ru ? 320 : 390, height: 845 });
       const name = ru ? 'Личное пространство участника' : 'Member workspace';
+      await member.locator('#new-ws-name').fill('   ');
+      await member.locator('.workspace-create-dialog button[type="submit"]').click();
+      await expect(member.locator('#new-ws-name')).toBeFocused();
+      await expect(member.locator('#new-ws-name')).toHaveAttribute('aria-invalid', 'true');
+      await expect(member.locator('#new-ws-name-error')).toBeVisible();
       await member.locator('#new-ws-name').fill(name);
+      await expect(member.locator('#new-ws-name-error')).toHaveCount(0);
       await member.locator('#new-ws-description').fill('Owner-only settings test');
       await expect(member.locator('.workspace-create-dialog')).toContainText(ru ? 'Вы станете владельцем.' : 'You become the owner.');
       await member.locator('.workspace-create-dialog button[type="submit"]').click();

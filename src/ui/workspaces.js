@@ -133,10 +133,10 @@ workspaceModalRenderers.create = (
   m,
   H,
 ) => `${H(copy('Create workspace', 'Создать рабочее пространство'), copy('A separate place for projects, files and knowledge.', 'Отдельное место для проектов, файлов и базы знаний.'))}
-  <form data-submit="submitWorkspace"><div class="modal-b col" style="gap:16px">
+  <form data-submit="submitWorkspace" novalidate><div class="modal-b col" style="gap:16px">
     ${m.attempted ? `<p class="hint" role="status" translate="no">${copy('A creation request was already sent. Check its result using the original settings; retrying will not create a duplicate.', 'Запрос на создание уже отправлялся. Проверьте результат с исходными настройками; повторная проверка не создаст дубликат.')}</p>` : m.restored ? `<div class="row" style="flex-wrap:wrap;gap:8px"><span class="hint" role="status" translate="no">${copy('Draft restored', 'Черновик восстановлен')}</span><button class="btn btn-ghost btn-sm" type="button" data-a="restartWorkspaceCreation">${copy('Start over', 'Начать заново')}</button></div>` : ''}
     <fieldset style="border:0;padding:0;margin:0;min-width:0;display:contents" ${m.busy || m.attempted ? 'disabled' : ''}>
-    <label class="field"><span class="label">${t('Workspace name')}</span><input class="input" id="new-ws-name" maxlength="100" required autofocus data-in="workspaceDraft" data-k="name" value="${esc(m.name)}" placeholder="${esc(copy('For example, Product team', 'Например, Команда продукта'))}" ${m.busy ? 'disabled' : ''}></label>
+    <label class="field"><span class="label">${t('Workspace name')}</span><input class="input${m.nameError ? ' is-error' : ''}" id="new-ws-name" maxlength="100" required autofocus aria-invalid="${!!m.nameError}" ${m.nameError ? 'aria-describedby="new-ws-name-error"' : ''} data-in="workspaceDraft" data-k="name" value="${esc(m.name)}" placeholder="${esc(copy('For example, Product team', 'Например, Команда продукта'))}" ${m.busy ? 'disabled' : ''}>${m.nameError ? `<span class="err" id="new-ws-name-error" role="alert" translate="no">${esc(m.nameError)}</span>` : ''}</label>
     <label class="field"><span class="label">${t('Description')}</span><textarea class="textarea workspace-description" id="new-ws-description" aria-describedby="new-ws-description-hint" rows="3" maxlength="500" data-in="workspaceDraft" data-k="description" ${m.busy ? 'disabled' : ''}>${esc(m.description)}</textarea><small class="hint" id="new-ws-description-hint" data-description-count>${m.description.length} / 500</small></label>
     <div class="field"><span class="label">${t('Color')}</span>${colorPalette({ label: 'Workspace icon', value: m.color, colors: WORKSPACE_COLORS, action: 'workspaceDraftColor', size: 26 })}</div>
     <label class="row" style="align-items:flex-start;gap:10px"><input type="checkbox" data-in="workspaceDraft" data-k="includeMembers" ${m.includeMembers ? 'checked' : ''} ${m.busy ? 'disabled' : ''}><span>${copy('Include current workspace members', 'Добавить участников текущего пространства')}<span class="hint" style="display:block;margin-top:4px">${copy('They join as members. Guests retain read-only access.', 'Они получат роль участника. Гости сохранят доступ только для чтения.')}</span></span></label>
@@ -150,6 +150,13 @@ IN.workspaceDraft = el => {
   if (m?.type === 'workspaceCreate' && !m.busy && !m.attempted) {
     m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
     rememberCreation(m);
+    if (el.dataset.k === 'name' && m.nameError && el.value.trim()) {
+      m.nameError = '';
+      el.removeAttribute('aria-describedby');
+      el.setAttribute('aria-invalid', 'false');
+      el.classList.remove('is-error');
+      $('#new-ws-name-error')?.remove();
+    }
     if (el.dataset.k === 'description') el.closest('.field')?.querySelector('[data-description-count]')?.replaceChildren(`${el.value.length} / 500`);
   }
 };
@@ -167,10 +174,13 @@ A.submitWorkspace = async () => {
     m.name = $('#new-ws-name').value.trim();
     m.description = $('#new-ws-description').value.trim();
   }
-  if (!m.name) {
-    m.error = copy('Enter a workspace name.', 'Укажите название пространства.');
-    return render();
+  if (!m.name || m.name.length > 100) {
+    m.nameError = copy('Enter a name up to 100 characters.', 'Укажите название длиной до 100 символов.');
+    render();
+    $('#new-ws-name')?.focus();
+    return;
   }
+  m.nameError = '';
   m.attempted = true;
   rememberCreation(m);
   m.busy = true;
