@@ -364,6 +364,20 @@
   width: 16px;
   height: 16px;
 }
+.toggle-target {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.toggle-target:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .toggle {
   appearance: none;
   width: 30px;

@@ -35,6 +35,12 @@ table.tbl {
   gap: 5px;
   cursor: pointer;
   overflow: hidden;
+  min-height: 32px;
+}
+@media (pointer: coarse) {
+  .tbl th .thi {
+    min-height: 44px;
+  }
 }
 .tbl th .thi:hover {
   color: var(--text);
