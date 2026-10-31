@@ -39,18 +39,21 @@ export function pageMembers() {
   const role = u.memRole || 'all';
   const ms = D().members.filter(m => (role === 'all' || m.role === role) && (!q || m.name.toLowerCase().includes(q) || m.email.includes(q)));
   const isAdmin = S.ui.currentUser?.role === 'admin';
-  const tab = u.membersTab;
+  const tab = ['members', 'teams', 'roles'].includes(u.membersTab) ? u.membersTab : 'members';
   const activity = recordedActivityIndex(D(), visibleProjects().filter(canSee)).members;
   return `<div class="page wide" style="max-width:1200px">
     <div class="ph compact-page-head"><div><h1>Members</h1><p>${D().members.length} people in ${esc(D().ws.name)}</p></div>${isAdmin ? `<div class="acts"><button class="btn btn-primary" data-a="invite" aria-label="Add access" title="Add access">${ic('user-plus', 14)}<span class="hide-m">Add access</span></button></div>` : ''}</div>
-    <div class="tabs" style="margin-bottom:14px">${[
+    <div class="tabs" role="tablist" aria-label="Members" style="margin-bottom:14px">${[
       ['members', 'Members'],
       ['teams', 'Teams'],
       ['roles', 'Roles & permissions'],
     ]
-      .map(([k, n]) => `<button class="tab ${tab === k ? 'on' : ''}" data-a="set" data-k="membersTab" data-v="${k}">${n}</button>`)
+      .map(
+        ([k, n]) =>
+          `<button id="members-tab-${k}" class="tab ${tab === k ? 'on' : ''}" role="tab" aria-selected="${tab === k}" aria-controls="members-panel" data-a="set" data-k="membersTab" data-v="${k}">${n}</button>`,
+      )
       .join('')}</div>
-    ${
+    <div id="members-panel" role="tabpanel" aria-labelledby="members-tab-${tab}" tabindex="0">${
       tab === 'teams'
         ? `<div class="row" style="margin-bottom:12px"><span class="muted" style="font-size:13px">${teamsList().length} teams</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="newTeam">${ic('plus', 13)}New team</button></div>${teamsGrid()}`
         : tab === 'roles'
@@ -76,7 +79,7 @@ export function pageMembers() {
     </tbody></table>`
         : empty('search-x', 'No results found', 'No members match that search.', '', 'sm')
     }</div>`
-    }
+    }</div>
   </div>`;
 }
 export function permsTable() {
@@ -151,7 +154,7 @@ export function pageMember() {
   const acts = D()
     .activity.filter(a => a.by === m.id)
     .slice(0, 8);
-  const tab = S.ui.memTab || 'assigned';
+  const tab = S.ui.memTab === 'completed' ? 'completed' : 'assigned';
   return `<div class="page member-profile">
     <div class="row member-profile-head" style="gap:18px;margin-bottom:22px;flex-wrap:wrap;align-items:flex-start">
       ${av(m.id, 'xl ' + (m.last != null && m.last < 5 ? 'presence' : ''), false)}
@@ -166,13 +169,16 @@ export function pageMember() {
       <div class="stat"><span class="k">Completed tasks</span><span class="v">${done.length}</span></div>
       <div class="stat"><span class="k">Overdue</span><span class="v" style="${open.filter(isOver).length ? 'color:var(--red)' : ''}">${open.filter(isOver).length}</span></div>
     </div>
-    <div class="grid2"><section class="panel"><div class="tabs" style="padding:0 8px">${[
+    <div class="grid2"><section class="panel"><div class="tabs" role="tablist" aria-label="Assigned tasks" style="padding:0 8px">${[
       ['assigned', `Assigned · ${open.length}`],
       ['completed', `Completed · ${done.length}`],
     ]
-      .map(([k, n]) => `<button class="tab ${tab === k ? 'on' : ''}" data-a="set" data-k="memTab" data-v="${k}">${n}</button>`)
+      .map(
+        ([k, n]) =>
+          `<button id="member-tasks-tab-${k}" class="tab ${tab === k ? 'on' : ''}" role="tab" aria-selected="${tab === k}" aria-controls="member-tasks-panel" data-a="set" data-k="memTab" data-v="${k}">${n}</button>`,
+      )
       .join('')}</div>
-      ${(tab === 'assigned' ? sortTasks(open, { f: 'due', dir: 1 }) : done).map(t => miniRow(t, { av: false })).join('') || empty('list-checks', 'No tasks here', 'Nothing to show in this list.', '', 'sm')}</section>
+      <div id="member-tasks-panel" role="tabpanel" aria-labelledby="member-tasks-tab-${tab}" tabindex="0">${(tab === 'assigned' ? sortTasks(open, { f: 'due', dir: 1 }) : done).map(t => miniRow(t, { av: false })).join('') || empty('list-checks', 'No tasks here', 'Nothing to show in this list.', '', 'sm')}</div></section>
       <div class="stack"><section class="panel"><div class="panel-h"><h2>Active projects</h2></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span><span class="faint" style="font-size:12px">${p.lead === m.id ? 'Lead' : 'Member'}</span></div>`).join('') || '<div class="panel-b faint">No active projects</div>'}</section>
       <section class="panel"><div class="panel-h"><h2>Recent activity</h2></div><div class="panel-b feed">${acts.map(a => actHtml(a)).join('') || '<span class="faint">No recent activity</span>'}</div></section></div></div>
   </div>`;
