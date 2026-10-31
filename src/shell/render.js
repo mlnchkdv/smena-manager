@@ -8,6 +8,7 @@ import { applyPrefs } from '../core/theme.js';
 import { enhanceSelects, selectMenu } from '../ui/select.js';
 import { renderShell } from './layout.js';
 import { PROJECT_TABS } from '../shared/project-tabs.js';
+import { revealProjectView } from '../ui/project-view-picker.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
@@ -335,6 +336,7 @@ function refreshThumbnails() {
 
 let whiteboardModule;
 export function afterRender() {
+  revealProjectView();
   if (document.querySelector('.project-whiteboard')) {
     whiteboardModule ||= import('../features/project-whiteboard.js');
     void whiteboardModule

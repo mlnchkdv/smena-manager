@@ -1,0 +1,25 @@
+.project-view-picker {
+  display: none;
+}
+@media (max-width: 900px) {
+  .proj-h > .tabs {
+    display: none;
+  }
+  .project-view-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 6px 16px 10px;
+  }
+  .project-view-picker .select {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .project-view-picker > .ibtn {
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

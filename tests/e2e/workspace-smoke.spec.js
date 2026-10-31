@@ -2,6 +2,46 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('project view chooser exposes every view and retains selection across responsive transitions', async ({ page }) => {
+  await signIn(page);
+  const data = (await (await page.request.get('/api/workspace')).json()).data,
+    project = data.projects[0];
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      const picker = page.locator('.project-view-picker');
+      if (width <= 900) {
+        await expect(picker).toBeVisible();
+        await expect(picker.locator('select')).toHaveValue('whiteboard');
+        await expect(picker.locator('option')).toHaveCount(9);
+      } else {
+        await expect(picker).toBeHidden();
+        await expect(page.locator('.proj-h .tab.on')).toHaveText(language === 'Русский' ? 'Холст' : 'Whiteboard');
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+    await page.setViewportSize({ width: 390, height: 845 });
+    for (const tab of ['overview', 'board', 'list', 'table', 'calendar', 'timeline', 'files', 'activity', 'whiteboard']) {
+      await page.locator('#project-view-select').selectOption(tab);
+      await expect(page.locator('#project-view-select')).toHaveValue(tab);
+      await expect(page.locator('.pbody')).toBeVisible();
+    }
+    await page.reload();
+    await expect(page.locator('#project-view-select')).toHaveValue('whiteboard');
+    await page.screenshot({ path: `output/playwright/audit11-project-view-${language === 'Русский' ? 'ru' : 'en'}-390.png` });
+  }
+});
+
 test.setTimeout(180_000);
 // This file includes the 140-route responsive audit. Record failure screenshots
 // on every failure; collect full video/DOM traces on retries to avoid exhausting

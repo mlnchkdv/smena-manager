@@ -18,6 +18,7 @@ import { timelineHtml, tlControls } from '../views/timeline.js';
 import { filesHtml } from '../views/files.js';
 import { PROJECT_TABS } from '../shared/project-tabs.js';
 import { projectWhiteboard } from '../views/project-whiteboard.js';
+import { projectViewPicker } from '../ui/project-view-picker.js';
 
 export const PTABS = PROJECT_TABS;
 
@@ -63,7 +64,7 @@ export function pageProject() {
           <button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="More">${ic('ellipsis', 15)}</button>
         </div>
       </div>
-      <nav class="tabs" aria-label="Project views">
+      ${projectViewPicker(p, tab, views)}<nav class="tabs" aria-label="Project views">
         ${PTABS.map(([k, n, i]) => `<button ${tab === k ? 'aria-current="page"' : ''} class="tab ${tab === k ? 'on' : ''}" data-a="go" data-r="project" data-id="${p.id}" data-tab="${k}">${ic(i, 14)}${n}</button>`).join('')}
         ${views.map(v => `<button ${tab === 'v:' + v.id ? 'aria-current="page"' : ''} class="tab ${tab === 'v:' + v.id ? 'on' : ''}" data-a="go" data-r="project" data-id="${p.id}" data-tab="v:${v.id}" data-ctx="savedview" data-vid="${v.id}">${ic('list-filter', 14)}${esc(v.name)}</button>`).join('')}
         <button class="tab" data-a="saveView" data-id="${p.id}" data-tip="Save current filters as a view" aria-label="Save view">${ic('plus', 14)}</button>
