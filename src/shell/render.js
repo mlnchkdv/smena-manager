@@ -160,7 +160,8 @@ export function tryFocus(key) {
   }
   // Mobile filter choices can intentionally close their enclosing disclosure.
   // Its summary is the visible continuation when the chosen field is hidden.
-  if (el && el.offsetParent === null) el = el.closest('details:not([open])')?.querySelector(':scope > summary');
+  const closed = el?.closest('details:not([open])');
+  if (closed && !closed.querySelector(':scope > summary')?.contains(el)) el = closed.querySelector(':scope > summary');
   if (el && el.offsetParent !== null) {
     el.focus({ preventScroll: true });
     return document.activeElement === el;

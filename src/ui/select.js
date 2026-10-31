@@ -9,6 +9,11 @@ import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { knowledgeSelectOptions } from '../shared/knowledge-select-options.js';
 
+function focusSelectTrigger(btn) {
+  const summary = btn?.closest('details:not([open])')?.querySelector(':scope > summary');
+  (summary || btn)?.focus({ preventScroll: true });
+}
+
 export function enhanceSelects(root = document) {
   for (const sel of root.querySelectorAll('select.select:not([data-enhanced])')) {
     sel.dataset.enhanced = '1';
@@ -173,18 +178,22 @@ export const selectMenu = {
   },
   pick(i) {
     const { sel, btn } = this;
+    const identity = btn?.dataset.focusSelect;
     this.close(true);
     if (!sel || sel.disabled || !sel.options[i] || sel.options[i].disabled || sel.selectedIndex === i) return;
     sel.selectedIndex = i;
     sel.dispatchEvent(new Event('input', { bubbles: true }));
     sel.dispatchEvent(new Event('change', { bubbles: true }));
-    if (btn.isConnected) btn.focus({ preventScroll: true });
+    // The capture-phase menu handler can close the parent before this click,
+    // so no focused control may survive for render() to capture. Resolve anew.
+    if (document.activeElement === document.body || btn.isConnected)
+      focusSelectTrigger(document.querySelector(`[data-focus-select="${CSS.escape(identity)}"]`) || btn);
   },
   close(refocus) {
     if (!this.el) return;
     this.el.remove();
     this.btn?.setAttribute('aria-expanded', 'false');
-    if (refocus && this.btn?.isConnected) this.btn.focus({ preventScroll: true });
+    if (refocus && this.btn?.isConnected) focusSelectTrigger(this.btn);
     this.el = this.sel = this.btn = null;
   },
 };
