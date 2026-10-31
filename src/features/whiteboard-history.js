@@ -31,7 +31,7 @@ function form(m, H) {
             '',
           )}${version.board.nodes.length > (m.limit || 50) ? `<button class="btn btn-ghost" data-a="moreWhiteboardVersion">${T('Show more', 'Показать ещё')}</button>` : ''}</div>`
       : ''
-  }</div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button>${version && p && canEditProject(p, D().me, S.ui.currentUser?.role) ? `<button class="btn btn-primary" data-a="restoreWhiteboardVersion">${T('Restore version', 'Восстановить версию')}</button>` : ''}</div>`;
+  }</div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button>${version && p && !p.archived && canEditProject(p, D().me, S.ui.currentUser?.role) ? `<button class="btn btn-primary" data-a="restoreWhiteboardVersion">${T('Restore version', 'Восстановить версию')}</button>` : ''}</div>`;
 }
 A.whiteboardHistory = async () => {
   const p = current();
@@ -81,7 +81,7 @@ A.restoreWhiteboardVersion = () => {
   const m = active(),
     p = current(),
     v = m?.data?.versions.find(v => v.id === m.version);
-  if (!v || !p || !canEditProject(p, D().me, S.ui.currentUser?.role)) return;
+  if (!v || !p || p.archived || !canEditProject(p, D().me, S.ui.currentUser?.role)) return;
   const ready = () =>
     current()?.id === m.project &&
     m.scope === whiteboardScope(m.project) &&
