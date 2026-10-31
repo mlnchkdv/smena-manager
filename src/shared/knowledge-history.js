@@ -1,6 +1,7 @@
-const fields = ['title', 'summary', 'formatted_markdown', 'tags', 'category', 'folderId', 'typeId', 'properties', 'aliases', 'tagAliases'];
+const fields = ['title', 'summary', 'formatted_markdown', 'tags', 'category', 'folderId', 'typeId', 'properties', 'aliases', 'tagAliases', 'captureStatus'];
 export const KNOWLEDGE_VERSION_FIELDS = {
   typeId: 'Type',
+  captureStatus: 'Capture status',
   aliases: 'Aliases',
   tagAliases: 'Tag aliases',
   properties: 'Properties',

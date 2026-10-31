@@ -4,7 +4,7 @@ export function parseKnowledgeQuery(query) {
     text = [];
   for (const term of searchTerms(query)) {
     let match;
-    if ((match = term.match(/^(type|tag|has):(.+)$/))) rules.push({ field: match[1], value: match[2], op: '=' });
+    if ((match = term.match(/^(type|tag|has|capture):(.+)$/))) rules.push({ field: match[1], value: match[2], op: '=' });
     else if ((match = term.match(/^(field:[\w-]+|updated)(!=|<=|>=|=|<|>)(.+)$/))) rules.push({ field: match[1], op: match[2], value: match[3] });
     else text.push(term);
   }
@@ -12,6 +12,7 @@ export function parseKnowledgeQuery(query) {
 }
 export function matchesKnowledgeRules(note, rules) {
   return rules.every(rule => {
+    if (rule.field === 'capture') return note.captureStatus === rule.value;
     if (rule.field === 'type') return (note.typeId || 'note').toLowerCase() === rule.value;
     if (rule.field === 'tag') return [...(note.tags || []), ...(note.tagAliases || [])].some(tag => tag.toLocaleLowerCase() === rule.value);
     if (rule.field === 'has') return Object.hasOwn(note.properties || {}, rule.value) && note.properties[rule.value] !== '';

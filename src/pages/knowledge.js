@@ -1,3 +1,4 @@
+import '../features/knowledge.js';
 import '../ui/knowledge-tags.js';
 import { smartCollections } from '../ui/knowledge-queries.js';
 import '../ui/knowledge-templates.js';

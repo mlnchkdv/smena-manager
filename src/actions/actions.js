@@ -1849,6 +1849,7 @@ A.previewFile = el => {
   if (f) openModal({ type: 'filePreview', file: f, tid: f.task });
 };
 export async function handleFiles(files, ctx) {
+  const uploaded = [];
   if (!files || !files.length) return;
   const generation = getSessionGeneration();
   if (S.ui.offline) {
@@ -1902,6 +1903,7 @@ export async function handleFiles(files, ctx) {
       );
       if (generation !== getSessionGeneration()) return;
       applyExternalCoreSnapshot(result.data, uploadBase);
+      if (result.file) uploaded.push(result.file);
       save();
       S.ui.uploads = S.ui.uploads.filter(item => item !== up);
       render();
@@ -1913,6 +1915,7 @@ export async function handleFiles(files, ctx) {
       toast(error.message || `Upload failed: ${up.name}`, { kind: 'err', ms: 6000 });
     }
   }
+  return uploaded;
 }
 A.chooseStoredFiles = el => {
   const input = document.getElementById(el.dataset.picker);
@@ -3777,3 +3780,5 @@ A.clearKnowledgeCriterion = el => {
   if (el.dataset.field === 'tag') IN.knowledgeTag({ value: '' });
   else if (el.dataset.field === 'sort') IN.knowledgeSort({ value: 'updated' });
 };
+
+A.quickCapture = async () => (await import('../features/knowledge-capture.js')).openCapture();
