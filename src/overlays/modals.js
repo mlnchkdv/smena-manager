@@ -25,7 +25,8 @@ export function openModal(m) {
 }
 export function closeModal() {
   if (S.ui.atomicOperation) return;
-  S.ui.modals.pop();
+  const closed = S.ui.modals.pop();
   S.ui.pop = null;
   render();
+  closed?.onClose?.();
 }

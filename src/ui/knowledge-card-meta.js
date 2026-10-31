@@ -10,7 +10,7 @@ import { render } from '../shell/render.js';
 export function noteCardMeta(note) {
   const config = cardMetaPreferences(S.prefs.knowledgeCardMeta),
     type = noteType(note, D().ws);
-  const selected = config.fields[type.id] || type.fields.slice(0, 2).map(f => f.id);
+  const selected = (Object.hasOwn(config.fields, type.id) ? config.fields[type.id] : null) || type.fields.slice(0, 2).map(f => f.id);
   const values = type.fields
     .filter(f => selected.includes(f.id))
     .map(field => {
@@ -32,8 +32,8 @@ export function noteCardMeta(note) {
 }
 function form(m, H) {
   const type = noteTypes(D().ws).find(t => t.id === m.typeId) || noteTypes(D().ws)[0];
-  const selected = m.config.fields[type.id] || type.fields.slice(0, 2).map(f => f.id);
-  return `${H(kc('Card details', 'Сведения в карточках'))}<div class="modal-b" translate="no"><label class="knowledge-card-config-row"><input type="checkbox" data-in="cardMetaType" ${m.config.showType ? 'checked' : ''}>${kc('Show note type', 'Показывать тип заметки')}</label><label class="field">${kc('Note type', 'Тип заметки')}<select class="select" data-in="cardMetaChooseType">${noteTypes(
+  const selected = (Object.hasOwn(m.config.fields, type.id) ? m.config.fields[type.id] : null) || type.fields.slice(0, 2).map(f => f.id);
+  return `${H(kc('Card details', 'Сведения в карточках'))}<div class="modal-b" translate="no"><label class="knowledge-card-config-row"><input type="checkbox" data-in="cardMetaType" ${m.config.showType ? 'checked' : ''}>${kc('Show note type', 'Показывать тип заметки')}</label><label class="field">${kc('Note type', 'Тип заметки')}<select class="select" data-in="cardMetaChooseType" aria-label="${kc('Note type', 'Тип заметки')}">${noteTypes(
     D().ws,
   )
     .map(t => `<option value="${esc(t.id)}" ${t.id === type.id ? 'selected' : ''}>${esc(typeName(t))}</option>`)
@@ -69,7 +69,7 @@ IN.cardMetaField = el => {
   if (!m) return;
   const type = noteTypes(D().ws).find(t => t.id === m.typeId);
   if (!type?.fields.some(f => f.id === el.dataset.field)) return;
-  const fields = new Set(m.config.fields[type.id] || type.fields.slice(0, 2).map(f => f.id));
+  const fields = new Set((Object.hasOwn(m.config.fields, type.id) ? m.config.fields[type.id] : null) || type.fields.slice(0, 2).map(f => f.id));
   el.checked ? fields.add(el.dataset.field) : fields.delete(el.dataset.field);
   m.config.fields[type.id] = [...fields].slice(0, 3);
   render();

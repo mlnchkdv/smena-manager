@@ -19,11 +19,11 @@ const kinds = {
   member: ['Member', 'Участник'],
   project: ['Project', 'Проект'],
 };
-export function noteTypeFields(note, readOnly = false) {
+export function noteTypeFields(note, readOnly = false, expanded = false) {
   const type = noteType(note, D().ws),
     values = note.properties || {},
     disabled = readOnly || knowledgeEditBlocked();
-  return `<details class="knowledge-type-fields" ${knowledgeDisclosure(note.id, 'typed')} translate="no"><summary>${kc('Type and properties', 'Тип и свойства')}: ${esc(typeName(type))}</summary><label class="field"><span class="label">${kc('Note type', 'Тип заметки')}</span><select class="select" data-in="noteType" data-id="${esc(note.id)}" ${disabled ? 'disabled' : ''}>${noteTypes(
+  return `<details class="knowledge-type-fields" ${expanded ? 'open' : knowledgeDisclosure(note.id, 'typed')} translate="no"><summary>${kc('Type and properties', 'Тип и свойства')}: ${esc(typeName(type))}</summary><label class="field"><span class="label">${kc('Note type', 'Тип заметки')}</span><select class="select" data-in="noteType" data-id="${esc(note.id)}" ${disabled ? 'disabled' : ''}>${noteTypes(
     D().ws,
   )
     .map(item => `<option value="${esc(item.id)}" ${type.id === item.id ? 'selected' : ''}>${esc(typeName(item))}</option>`)
@@ -47,6 +47,30 @@ export function noteTypeFields(note, readOnly = false) {
     .join('')}</div></details>`;
 }
 const editable = () => S.ui.currentUser?.role !== 'viewer' && !knowledgeEditBlocked();
+A.openNoteProperties = el => {
+  const id = el.dataset.id || S.ui.knowledgeDrawer;
+  if (!D().knowledgeNotes.some(n => n.id === id)) return;
+  const scroll = document.querySelector('.knowledge-drawer-body')?.scrollTop || 0;
+  const workspace = D().ws.id || D().ws.url;
+  const restore = () => {
+    if (S.ui.knowledgeDrawer === id && workspace === (D().ws.id || D().ws.url)) {
+      const body = document.querySelector('.knowledge-drawer-body');
+      if (body) body.scrollTop = scroll;
+    }
+  };
+  openModal({
+    type: 'knowledgeTool',
+    onClose: () => {
+      restore();
+      requestAnimationFrame(restore);
+    },
+    noteId: id,
+    render: (m, H) => {
+      const note = D().knowledgeNotes.find(n => n.id === m.noteId);
+      return `${H(kc('Type and properties', 'Тип и свойства'))}<div class="modal-b">${note ? noteTypeFields(note, S.ui.currentUser?.role === 'viewer', true) : `<p>${kc('Note unavailable', 'Заметка недоступна')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Close', 'Закрыть')}</button></div>`;
+    },
+  });
+};
 const stamp = note => {
   note.updatedAt = new Date().toISOString();
   note.updatedBy = D().me;

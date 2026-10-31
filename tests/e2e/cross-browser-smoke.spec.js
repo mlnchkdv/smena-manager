@@ -8,7 +8,7 @@ test('knowledge card metadata is configurable and persists across languages and 
   snapshot.knowledgeNotes.push({
     id: 'metadata-card-a',
     title: 'Meeting / Встреча',
-    formatted_markdown: 'Test',
+    formatted_markdown: '## Heading\n\nLong paragraph for scrolling.\n\n'.repeat(120),
     typeId: 'meeting',
     properties: { date: '2026-10-31' },
     tags: [],
@@ -22,6 +22,24 @@ test('knowledge card metadata is configurable and persists across languages and 
     await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
     await page.goto('/e2e-team/knowledge');
     const card = page.locator('[data-id="metadata-card-a"].knowledge-preview-card');
+    await card.locator('.knowledge-preview-open').click();
+    const reader = page.locator('.knowledge-drawer');
+    await reader.locator('.knowledge-drawer-body').evaluate(e => {
+      e.scrollTop = 350;
+    });
+    const beforeScroll = await reader.locator('.knowledge-drawer-body').evaluate(e => e.scrollTop);
+    await reader.locator('[data-a="openNoteProperties"]').click();
+    const properties = page.locator('.modal[role="dialog"]');
+    await expect(properties.locator('.knowledge-type-fields')).toHaveAttribute('open', '');
+    await properties.locator('[data-in="noteProperty"][data-field="date"]').fill('2026-11-01');
+    await properties.locator('[data-a="closeModal"]').last().click();
+    await expect.poll(() => reader.locator('.knowledge-drawer-body').evaluate(e => e.scrollTop)).toBe(beforeScroll);
+    await reader.locator('[data-a="openNoteProperties"]').click();
+    await expect(properties).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(properties).toHaveCount(0);
+    await expect.poll(() => reader.locator('.knowledge-drawer-body').evaluate(e => e.scrollTop)).toBe(beforeScroll);
+    await reader.locator('[data-a="closeKnowledgeDrawer"]').click();
     for (const [width, height] of [
       [320, 740],
       [390, 845],
