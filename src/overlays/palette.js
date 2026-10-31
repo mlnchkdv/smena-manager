@@ -240,16 +240,14 @@ export function paletteItems() {
     });
   const out = groups.filter(g => g.items.length);
   if (sc === 'all' || sc === 'whiteboards') {
-    const items = (r.whiteboards || [])
-      .slice(0, lim)
-      .map(board => ({
-        icon: 'panels-top-left',
-        name: board.name,
-        authoredName: true,
-        sub: board.desc || tr('Whiteboards'),
-        authoredSub: true,
-        run: () => go('whiteboard', { id: board.id }),
-      }));
+    const items = (r.whiteboards || []).slice(0, lim).map(board => ({
+      icon: 'panels-top-left',
+      name: board.name,
+      authoredName: true,
+      sub: board.desc || tr('Whiteboards'),
+      authoredSub: true,
+      run: () => go('whiteboard', { id: board.id }),
+    }));
     if (items.length) out.push({ name: 'Whiteboards', items });
   }
   out.push({

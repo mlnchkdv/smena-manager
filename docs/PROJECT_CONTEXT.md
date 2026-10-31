@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**31.10.2026 — самостоятельные холсты / independent whiteboards:** [Current model, migration, ACLs, acceptance and UI/UX backlog](UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md). Whiteboards are workspace documents rather than project tabs. Read this update before changing old project links, compatibility aliases, history, graph or search.
+
 **31.10.2026 — реализация 11 пунктов / 11-item implementation:** read [UI_UX_DELIVERY_2026-10-31_ELEVEN.md](UI_UX_DELIVERY_2026-10-31_ELEVEN.md) for card fields, folder/search context, multiselect, server-only whiteboard history, guarded restore/import, personal diagram layouts and actual verification limits. This supersedes the original audit backlog. Physical iOS/Android acceptance remains pending.
 
 **31.10.2026 — холсты, граф и меню / whiteboards, graph and navigation:** see [UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md](UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md) for project whiteboard schema/access limits, personal graph physics/simple view, sidebar settings, Help relocation, responsive evidence and the next audit backlog.

@@ -1,5 +1,9 @@
 # Improvement status / Статус улучшений
 
+## Independent whiteboards / Самостоятельные холсты — 31 October 2026
+
+[Delivery and the next 12 UX priorities](UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md). Catalog, independent creation, project access inheritance, legacy link/history migration, archive, graph and search are implemented. Physical-device acceptance remains pending.
+
 ## Eleven-item audit delivery / Внедрение 11 пунктов — 31 October 2026
 
 [Implementation, commits and acceptance](UI_UX_DELIVERY_2026-10-31_ELEVEN.md). Software changes and bilingual guides are implemented; physical iOS/Android acceptance remains pending because no devices are currently available. / Программные изменения и инструкции готовы; проверка на реальных телефонах остаётся открытой.

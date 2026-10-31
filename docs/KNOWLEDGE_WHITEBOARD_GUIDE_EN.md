@@ -14,16 +14,18 @@ Updated for the 31 October 2026 audit implementation. In-app guidance is availab
 ## Three different tools
 
 - **Board** groups project tasks by status.
-- **Whiteboard** arranges cards, materials and frames within one project. Its connectors do not create global material relations.
+- **Whiteboard** arranges cards, materials and frames in an independent workspace document. Its connectors do not create global material relations.
 - **Graph** explores relationships across workspace materials.
 
 Every project view is available from the phone view selector. Desktop tabs reveal the selected view horizontally.
 
 ## Whiteboards
 
+Open Whiteboards in the workspace menu. Create a document without a project for workspace collaboration, or choose a project to inherit its access. Existing project boards and old links are preserved. The catalog offers search, grid/list, sort and recoverable archive. On phones, secondary controls are under Filters. Editing retains the original project association to avoid expanding access.
+
 Enable Select cards and tick several cards to align, distribute, copy or remove them. A frame includes cards contained within it. Ctrl/Cmd+A, C, V and Z work when the canvas has focus. Outline is useful for reading and editing on narrow screens.
 
-History loads on demand and requires current project read access. Up to five previous versions per project are retained within a shared 700,000-character budget. Restoring keeps the current board as a recovery version. If the board changes during review, reopen history. Local undo retains 12 commands and complements durable history.
+History loads on demand and requires current whiteboard read access. Up to five previous versions per whiteboard are retained within a shared 700,000-character budget. Restoring keeps the current board as a recovery version. If the board changes during review, reopen history. Local undo retains 12 commands and complements durable history.
 
 Layouts saves personal board camera and outline mode. Graph layouts also retain filters, positions and pins. Limits: 12 layouts per user/workspace, including three graph layouts, up to 250 positions each, and a 180,000-character preference document. They do not change colleagues’ layouts. Reset keeps named layouts. On a different screen size, Graph fits the saved positions to the viewport.
 

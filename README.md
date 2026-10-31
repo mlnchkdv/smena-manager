@@ -1,16 +1,18 @@
 # Smena Manager
 
+**RU / EN:** [Самостоятельные холсты и новый UI/UX-аудит / Independent whiteboards and UX audit](docs/UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md).
+
 **RU / EN:** [Внедрение 11 пунктов / 11-item delivery](docs/UI_UX_DELIVERY_2026-10-31_ELEVEN.md) · [Инструкции RU](docs/KNOWLEDGE_WHITEBOARD_GUIDE_RU.md) · [User guide EN](docs/KNOWLEDGE_WHITEBOARD_GUIDE_EN.md).
 
 ## Кратко / Short description
 
-**RU:** Smena Manager — совместное рабочее пространство команды: задачи, проекты, календарь, входящие, уведомления, файлы, база знаний, закладки и граф связей между материалами. Приложение поддерживает русский и английский языки, Google Sign-In, хранение JSON-документов в Google Drive и Web Push/Gmail-уведомления без PostgreSQL. Подробный двуязычный контекст для передачи другим моделям находится в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
+**RU:** Smena Manager — совместное рабочее пространство команды: задачи, проекты, календарь, входящие, уведомления, файлы, база знаний, закладки, самостоятельные холсты и граф связей между материалами. Приложение поддерживает русский и английский языки, Google Sign-In, хранение JSON-документов в Google Drive и Web Push/Gmail-уведомления без PostgreSQL. Подробный двуязычный контекст для передачи другим моделям находится в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
 
-**EN:** Smena Manager is a shared team workspace for tasks, projects, calendar, inbox, notifications, files, knowledge notes, bookmarks, and a graph connecting materials. It supports Russian and English, Google Sign-In, Drive-backed JSON documents, and Web Push/Gmail notifications without PostgreSQL. The detailed bilingual handoff context is available in [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
+**EN:** Smena Manager is a shared team workspace for tasks, projects, calendar, inbox, notifications, files, knowledge notes, bookmarks, independent whiteboards, and a graph connecting materials. It supports Russian and English, Google Sign-In, Drive-backed JSON documents, and Web Push/Gmail notifications without PostgreSQL. The detailed bilingual handoff context is available in [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
 
-**RU:** У проекта есть холст для карточек, материалов и связей, а у графа — упрощённый вид и переключаемая физика. Боковое меню настраивается лично; помощь находится в настройках. [Возможности, проверки и UI/UX-аудит](docs/UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md).
+**RU:** В разделе «Холсты» создаются самостоятельные документы для карточек, материалов и связей; при необходимости они наследуют доступ проекта. У графа есть упрощённый вид и переключаемая физика. Боковое меню настраивается лично; помощь находится в настройках. [Возможности, проверки и UI/UX-аудит](docs/UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md).
 
-**EN:** Each project has a whiteboard for cards, materials and connections. Graph offers simplified rendering and optional physics; sidebar preferences are personal, and Help lives in Settings. [Features, acceptance and UI/UX audit](docs/UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md).
+**EN:** The Whiteboards section contains independent documents for cards, materials and connections, with optional inherited project access. Graph offers simplified rendering and optional physics; sidebar preferences are personal, and Help lives in Settings. [Features, acceptance and UI/UX audit](docs/UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md).
 
 A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
 files, members, teams, activity and settings. The interface is being adapted into the Smena team's
