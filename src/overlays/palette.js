@@ -1,5 +1,6 @@
 import { isFavorite } from '../core/favorites.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
+import { folderTrail } from '../shared/knowledge-tools.js';
 /* ---------------- COMMAND PALETTE ---------------- */
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
@@ -217,7 +218,14 @@ export function paletteItems() {
         icon: 'file-text',
         name: note.title || 'Untitled note',
         authoredName: !!note.title,
-        sub: note.summary || knowledgeCategoryLabel(note.category) || tr('Knowledge base'),
+        sub: [
+          folderTrail(note.folderId, new Map(D().knowledgeFolders.map(folder => [folder.id, folder])))
+            .map(folder => folder.name)
+            .join(' / ') || tr('No folder'),
+          note.summary || knowledgeCategoryLabel(note.category),
+        ]
+          .filter(Boolean)
+          .join(' · '),
         authoredSub: !!(note.summary || note.category),
         run: () => A.goKnowledgeNote({ dataset: { id: note.id } }),
       })),

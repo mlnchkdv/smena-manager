@@ -1,4 +1,5 @@
 const NOUNS = {
+  result: { en: ['result', 'results'], ru: ['результат', 'результата', 'результатов'] },
   comment: { en: ['comment', 'comments'], ru: ['комментарий', 'комментария', 'комментариев'] },
   team: { en: ['team', 'teams'], ru: ['команда', 'команды', 'команд'] },
   folder: { en: ['folder', 'folders'], ru: ['папка', 'папки', 'папок'] },

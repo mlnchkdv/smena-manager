@@ -368,8 +368,15 @@
   text-align: left;
   border-bottom: 1px solid var(--border);
 }
-.graph-list-item > .trunc {
+.graph-list-copy {
   flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.graph-list-copy small {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
 }
 .graph-list-item.on {
   background: var(--accent-soft);
