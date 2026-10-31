@@ -1,4 +1,5 @@
 import { bindWikiReferences } from './relations.js';
+import { migrateProjectWhiteboards } from './whiteboards.js';
 // Fill omitted optional fields only. Malformed non-null values remain visible to validation.
 export function applyEntityDefaults(data) {
   const fill = (item, defaults) => {
@@ -13,6 +14,7 @@ export function applyEntityDefaults(data) {
     fill(project, { name: '', desc: '', status: 'planning', members: [], perms: {}, milestones: [], whiteboard: { version: 1, nodes: [], edges: [] } });
   for (const comment of Array.isArray(data.comments) ? data.comments : []) fill(comment, { text: '', re: {} });
   if (data.relations == null) data.relations = [];
+  migrateProjectWhiteboards(data);
   if (Array.isArray(data.knowledgeNotes)) bindWikiReferences(data.knowledgeNotes);
   return data;
 }

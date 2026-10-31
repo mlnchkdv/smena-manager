@@ -50,6 +50,7 @@ export function createEmptyDatabase() {
     me: null,
     members: [],
     projects: [],
+    whiteboards: [],
     tasks: [],
     comments: [],
     knowledgeNotes: [],

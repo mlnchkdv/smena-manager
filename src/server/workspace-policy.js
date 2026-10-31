@@ -1,6 +1,8 @@
 import { canEditProject, canReadProject, entityProjectId, projectAccess, trashProject, trashProjectId } from '../shared/project-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { validateWhiteboardRestore } from './whiteboard-history.js';
+import { mergeWhiteboards } from './whiteboard-policy.js';
+import { canReadWhiteboard } from '../shared/whiteboards.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { entityAllowed } from '../shared/relations.js';
@@ -18,6 +20,7 @@ export function projectWorkspace(database, user) {
   const memberId = memberForProfile(data, user)?.id || user.id;
   const readable = new Set((data.projects || []).filter(project => canReadProject(project, memberId, user.role)).map(project => project.id));
   data.projects = (data.projects || []).filter(project => readable.has(project.id));
+  data.whiteboards = (data.whiteboards || []).filter(board => canReadWhiteboard(database, board, memberId, user.role));
   const tasks = new Set((data.tasks || []).filter(task => readable.has(task.project)).map(task => task.id));
   data.tasks = (data.tasks || []).filter(task => tasks.has(task.id));
   data.comments = (data.comments || []).filter(comment => tasks.has(comment.task));
@@ -92,6 +95,7 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
   const readable = project => canReadProject(project, memberId, role);
   const editable = id => canEditProject(projects.get(id) || proposed.get(id), memberId, role);
   const commentable = id => projectAccess(projects.get(id) || proposed.get(id), memberId, role) >= 2;
+  mergeWhiteboards(current, candidate, incoming, role, memberId);
 
   // Material cards store identity only. Never copy private titles/content into another project's board.
   for (const project of candidate.projects || []) {

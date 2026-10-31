@@ -6,6 +6,7 @@ import { projectImageData } from './project-appearance.js';
 import { validNoteTypes, validNoteProperties } from './knowledge-types.js';
 import { validKnowledgeTemplates } from './knowledge-templates.js';
 import { validWhiteboard } from './project-whiteboard.js';
+import { validWhiteboardDocument } from './whiteboards.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -46,6 +47,8 @@ export class WorkspaceValidationError extends TypeError {
 export function validateWorkspaceData(value) {
   if (!isObject(value)) throw new WorkspaceValidationError(['workspace']);
   const invalid = [];
+  if (value.whiteboards != null && (!validEntityArray(value.whiteboards) || value.whiteboards.some(b => !validWhiteboardDocument(b))))
+    invalid.push('whiteboards');
   if (value.relations != null) {
     if (!validEntityArray(value.relations) || value.relations.length > 20000) invalid.push('relations');
     else
