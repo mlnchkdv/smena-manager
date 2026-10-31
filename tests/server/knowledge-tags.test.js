@@ -12,3 +12,7 @@ test('tag merges retain search aliases and note aliases bind stable links', () =
   const notes = bindWikiReferences([...next, { id: 'b', formatted_markdown: '[[Old name]]' }]);
   assert.equal(notes[1].wikiRefs[0].target, 'a');
 });
+
+test('tag merges canonicalize case variations without creating duplicate labels', () => {
+  assert.deepEqual(renameKnowledgeTag([{ tags: ['Old', 'New', 'new'] }], 'old', 'NEW')[0].tags, ['New']);
+});
