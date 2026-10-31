@@ -425,6 +425,7 @@ A.toggleKnowledgeFolderCards = () => {
   saveKnowledgePreferences();
   render();
 };
+A.closeKnowledgeViewOptions = () => document.querySelector('.knowledge-view-options > summary')?.focus({ preventScroll: true });
 IN.knowledgeFolderLayout = el => {
   S.ui.knowledgeFolderLayout = el.value === 'inline' ? 'inline' : 'block';
   saveKnowledgePreferences();

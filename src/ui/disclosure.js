@@ -107,7 +107,7 @@ document.addEventListener(
       return;
     }
     const parent = event.target.closest?.('.ui-menu');
-    closeActionMenus(event.target.closest?.('button[data-a],a[href]') ? null : parent);
+    closeActionMenus(event.target.closest?.('[data-keep-menu]') ? parent : event.target.closest?.('button[data-a],a[href]') ? null : parent);
   },
   true,
 );

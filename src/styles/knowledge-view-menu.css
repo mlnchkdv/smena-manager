@@ -1,0 +1,101 @@
+.knowledge-view-options > .knowledge-view-panel {
+  width: min(320px, calc(100vw - 24px));
+  padding: 0;
+  margin: 0;
+  gap: 0;
+  flex-wrap: nowrap;
+  max-height: min(620px, calc(100dvh - 96px));
+  overscroll-behavior: contain;
+  text-align: left;
+}
+.knowledge-view-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.knowledge-view-panel-head strong {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.knowledge-view-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid var(--divider);
+}
+.knowledge-view-section:last-child {
+  border-bottom: 0;
+}
+.knowledge-view-section h3 {
+  margin: 0 4px 5px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-3);
+}
+.knowledge-view-panel .knowledge-folder-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 4px;
+  margin: 0 0 6px;
+  min-width: 0;
+}
+.knowledge-view-panel .knowledge-folder-layout > span {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.knowledge-content-actions .knowledge-view-panel .knowledge-menu-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 8px;
+  gap: 9px;
+  white-space: normal;
+  line-height: 1.4;
+}
+.knowledge-menu-action > span:not(.knowledge-menu-check) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.knowledge-view-toggle[aria-pressed='true'] {
+  color: var(--text);
+  background: var(--surface-2);
+}
+.knowledge-menu-check {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--accent);
+}
+.knowledge-view-panel .knowledge-saved-view {
+  width: 100%;
+  max-width: none;
+}
+.knowledge-view-panel .knowledge-saved-view button:first-child {
+  flex: 1;
+  text-align: left;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .knowledge-content-actions .knowledge-view-panel .knowledge-menu-action,
+  .knowledge-view-panel .ibtn,
+  .knowledge-view-panel .knowledge-saved-view button {
+    min-height: 44px;
+  }
+  .knowledge-view-options > .knowledge-view-panel {
+    max-height: calc(100dvh - 130px);
+  }
+}

@@ -103,6 +103,67 @@ test('simplified graph preserves materials selection filters and personal prefer
   }
 });
 
+test('knowledge display menu stays usable and retains layout across languages and sizes', async ({ page, browserName }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  if (!snapshot.knowledgeFolders.some(f => f.id === 'view-menu-folder')) snapshot.knowledgeFolders.push({ id: 'view-menu-folder', name: 'Folder / Папка' });
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/knowledge');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      const menu = page.locator('.knowledge-view-options'),
+        panel = page.locator('.knowledge-view-panel');
+      if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
+      await expect(panel).toBeVisible();
+      const bounds = await panel.boundingBox();
+      expect(bounds.x).toBeGreaterThanOrEqual(7);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width - 7);
+      expect(bounds.y).toBeGreaterThanOrEqual(7);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(height - 7);
+      await expectNoPageOverflow(page);
+      expect(
+        await panel
+          .locator('.knowledge-menu-action')
+          .evaluateAll(els => els.every(el => getComputedStyle(el).justifyContent === 'flex-start' && el.scrollWidth - el.clientWidth <= 1)),
+      ).toBeTruthy();
+      const folders = panel.locator('[data-a="toggleKnowledgeFolderCards"]');
+      if ((await folders.getAttribute('aria-pressed')) === 'false') await folders.click();
+      await folders.click();
+      await expect(panel).toBeVisible();
+      await expect(panel.locator('[data-in="knowledgeFolderLayout"]')).toBeDisabled();
+      await folders.click();
+      await panel.locator('[data-in="knowledgeFolderLayout"]').selectOption('inline');
+      await panel.locator('[data-in="knowledgeNoteLayout"]').selectOption('list');
+      if ([390, 1366].includes(width))
+        await page.screenshot({ path: `output/playwright/knowledge-view-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
+      await panel.locator('[data-a="closeKnowledgeViewOptions"]').click();
+      await expect(menu.locator(':scope > summary')).toBeFocused();
+      await menu.locator(':scope > summary').click();
+      await panel.locator('[data-a="knowledgeArchive"]').click();
+      await expect(page.getByRole('dialog').getByRole('heading')).toHaveText(language === 'Русский' ? 'Архив базы знаний' : 'Knowledge archive');
+      await page.getByRole('dialog').locator('[data-a="closeModal"]').first().click();
+    }
+    await page.reload();
+    await page.locator('.knowledge-view-options > summary').click();
+    await expect(page.locator('[data-in="knowledgeNoteLayout"]')).toHaveValue('list');
+    await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
+    await page.keyboard.press('Escape');
+  }
+});
+
 test('core task flow and responsive shell work across browser engines', async ({ page, browserName }) => {
   await signIn(page);
   // Other suites share the account and can leave its server preference in EN.
