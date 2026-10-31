@@ -1,6 +1,5 @@
 export const PROJECT_TABS = Object.freeze([
   ['overview', 'Overview', 'layout-dashboard'],
-  ['whiteboard', 'Whiteboard', 'layout-dashboard'],
   ['board', 'Board', 'square-kanban'],
   ['list', 'List', 'list'],
   ['table', 'Table', 'table-2'],

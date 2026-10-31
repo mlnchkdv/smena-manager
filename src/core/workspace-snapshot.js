@@ -10,6 +10,7 @@ export function isEmptyWorkspace(snapshot) {
   const hasWorkspaceContent = [
     'workspaces',
     'projects',
+    'whiteboards',
     'tasks',
     'comments',
     'knowledgeNotes',

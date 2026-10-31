@@ -699,6 +699,8 @@ const RU = {
   'will be removed from the project.': 'будет удалён из проекта.',
   'will be removed from the project and its task.': 'будет удалён из проекта и связанной задачи.',
   'will be removed from the shared knowledge base.': 'будет удалена из общей базы знаний.',
+  Whiteboards: 'Холсты',
+  'New whiteboard': 'Новый холст',
   Bookmarks: 'Закладки',
   'Go to Bookmarks': 'Перейти к закладкам',
   'Add bookmark': 'Добавить закладку',

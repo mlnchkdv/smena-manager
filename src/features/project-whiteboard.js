@@ -2,11 +2,12 @@ import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelec
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
 import { A, IN } from '../actions/actions.js';
-import { D, S, proj } from '../core/store.js';
+import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
 import { whiteboardScope, whiteboardState, whiteboardLabel, wbText as T } from '../core/whiteboard-state.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
-import { canEditProject } from '../shared/project-access.js';
+import { canEditWhiteboard } from '../shared/whiteboards.js';
+import { currentWhiteboard } from '../core/whiteboard-state.js';
 import { entityAllowed } from '../shared/relations.js';
 import { BOARD_COLORS, whiteboardOf, validWhiteboard, whiteboardBounds, removeWhiteboardNode } from '../shared/project-whiteboard.js';
 import { esc, uid } from '../core/utils.js';
@@ -24,8 +25,8 @@ const colors = () => [
   T('Amber', 'Янтарный'),
   T('Rose', 'Розовый'),
 ];
-const current = () => (S.ui.route === 'project' && S.ui.params.tab === 'whiteboard' ? proj(S.ui.params.id) : null);
-const editable = p => p && !p.archived && canEditProject(p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
+const current = currentWhiteboard;
+const editable = p => p && !p.archived && canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
 const field = (name, label, value, type = 'text', extra = '') =>
   `<label class="field">${label}<input class="input" data-in="whiteboardField" data-field="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 const colorField = m =>
@@ -41,14 +42,14 @@ function modalForm(m, H) {
     const candidates = [
       ...D().knowledgeNotes.map(n => ({ key: `note:${n.id}`, title: n.title, kind: T('Note', 'Заметка') })),
       ...D()
-        .tasks.filter(t => t.project === p?.id)
+        .tasks.filter(t => !p?.project || t.project === p.project)
         .map(t => ({ key: `task:${t.id}`, title: t.title, kind: T('Task', 'Задача') })),
       ...D().links.map(l => ({ key: `bookmark:${l.id}`, title: l.title || l.url, kind: T('Bookmark', 'Закладка') })),
       ...(m.files || []).map(f => ({ key: `file:${f.id}`, title: f.name, kind: T('File', 'Файл') })),
     ]
       .filter(c => c.title.toLocaleLowerCase().includes(q))
       .slice(0, 50);
-    body = `<label class="field">${T('Search notes, project tasks, bookmarks and files', 'Поиск заметок, задач проекта, закладок и файлов')}<input class="input" autofocus data-in="whiteboardQuery" value="${esc(m.query)}"></label><p class="hint">${T('The card opens the original material. Access is checked separately. Up to 50 results; refine your search.', 'Карточка открывает оригинал. Доступ к материалу проверяется отдельно. До 50 результатов — уточните поиск.')}</p>${m.loading ? `<p role="status">${T('Searching files…', 'Ищем файлы…')}</p>` : ''}${candidates.map(c => `<button class="whiteboard-material-option" data-a="whiteboardChooseMaterial" data-key="${esc(c.key)}"><span>${esc(c.title)}</span><small>${c.kind}</small></button>`).join('') || `<p>${T('No matching materials.', 'Подходящих материалов нет.')}</p>`}<button class="btn btn-ghost btn-sm" data-a="whiteboardQueryFiles">${T('Refresh project files', 'Обновить файлы проекта')}</button>`;
+    body = `<label class="field">${T('Search notes, tasks, bookmarks and files', 'Поиск заметок, задач, закладок и файлов')}<input class="input" autofocus data-in="whiteboardQuery" value="${esc(m.query)}"></label><p class="hint">${T('The card opens the original material. Access is checked separately. Up to 50 results; refine your search.', 'Карточка открывает оригинал. Доступ к материалу проверяется отдельно. До 50 результатов — уточните поиск.')}</p>${m.loading ? `<p role="status">${T('Searching files…', 'Ищем файлы…')}</p>` : ''}${candidates.map(c => `<button class="whiteboard-material-option" data-a="whiteboardChooseMaterial" data-key="${esc(c.key)}"><span>${esc(c.title)}</span><small>${c.kind}</small></button>`).join('') || `<p>${T('No matching materials.', 'Подходящих материалов нет.')}</p>`}<button class="btn btn-ghost btn-sm" data-a="whiteboardQueryFiles">${T('Refresh available files', 'Обновить доступные файлы')}</button>`;
   } else if (m.kind === 'edge') {
     const select = (key, label) =>
       `<label class="field">${label}<select class="select" data-in="whiteboardField" data-field="${key}">${board.nodes.map(n => `<option value="${esc(n.id)}" ${m[key] === n.id ? 'selected' : ''}>${esc(whiteboardLabel(n))}</option>`).join('')}</select></label>`;
@@ -219,14 +220,14 @@ async function queryFiles() {
   m.error = '';
   render();
   try {
-    const result = await queryFileCatalog({ project: m.project, query: query.slice(0, 500), revision: S.ui.workspaceRevision, limit: 50 });
+    const result = await queryFileCatalog({ project: current()?.project || '', query: query.slice(0, 500), revision: S.ui.workspaceRevision, limit: 50 });
     if (activeModal() !== m || m.read !== token) return;
     await ensureFileIdentities((result.files || []).map(file => file.id));
     if (activeModal() !== m || m.read !== token) return;
     m.files = (result.files || []).map(file => D().files.find(item => item.id === file.id)).filter(Boolean);
   } catch {
     if (activeModal() === m && m.read === token)
-      m.error = T('Project files could not be loaded. Retry after synchronization.', 'Не удалось загрузить файлы проекта. Повторите после синхронизации.');
+      m.error = T('Files could not be loaded. Retry after synchronization.', 'Не удалось загрузить файлы. Повторите после синхронизации.');
   } finally {
     if (activeModal() === m && m.read === token) {
       m.loading = false;

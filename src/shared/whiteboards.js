@@ -19,6 +19,7 @@ export function canEditWhiteboard(data, board, memberId, role) {
   return (
     ['admin', 'editor'].includes(role) &&
     canReadWhiteboard(data, board, memberId, role) &&
+    !data.projects?.find(p => p.id === board.project)?.archived &&
     (!board.project ||
       canEditProject(
         data.projects?.find(p => p.id === board.project),

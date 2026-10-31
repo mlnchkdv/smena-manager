@@ -1,5 +1,5 @@
 const sections = new Set(
-  'home inbox mytasks favorites notifications search overview projects files tasks calendar timeline members teams activity knowledge bookmarks graph archive settings'.split(
+  'home inbox mytasks favorites notifications search overview projects files tasks calendar timeline members teams activity knowledge bookmarks whiteboards graph archive settings'.split(
     ' ',
   ),
 );
@@ -9,7 +9,7 @@ const key = (account, workspace) => `smena.workspace.section:${account}:${worksp
 
 export function rememberWorkspaceSection(storage, account, workspace, route, params = {}) {
   if (!account || !workspace) return;
-  const section = { project: 'projects', member: 'members', team: 'teams' }[route] || route;
+  const section = { project: 'projects', whiteboard: 'whiteboards', member: 'members', team: 'teams' }[route] || route;
   if (!sections.has(section)) return;
   try {
     storage.setItem(key(account, workspace), JSON.stringify({ route: section, sec: section === 'settings' ? params.sec : undefined }));

@@ -1,11 +1,12 @@
 import { A, IN, confirmDlg } from '../actions/actions.js';
-import { D, S, proj } from '../core/store.js';
+import { D, S } from '../core/store.js';
 import { whiteboardScope, whiteboardState, wbText as T } from '../core/whiteboard-state.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { parseWhiteboardImport, exportJsonCanvas } from '../shared/whiteboard-portable.js';
 import { pasteWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { entityAllowed } from '../shared/relations.js';
-import { canEditProject } from '../shared/project-access.js';
+import { canEditWhiteboard } from '../shared/whiteboards.js';
+import { currentWhiteboard } from '../core/whiteboard-state.js';
 import { whiteboardCommand } from './project-whiteboard.js';
 import { getWhiteboardVersions } from '../core/api.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
@@ -13,7 +14,7 @@ import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { esc, uid } from '../core/utils.js';
 import { toast } from '../ui/toast.js';
-const current = () => (S.ui.route === 'project' && S.ui.params.tab === 'whiteboard' ? proj(S.ui.params.id) : null);
+const current = currentWhiteboard;
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const active = () => {
   const m = S.ui.modals.at(-1);
@@ -33,11 +34,11 @@ const warning = key =>
     ),
   })[key] || key;
 function form(m, H) {
-  return `${H(T('Import whiteboard', 'Импорт холста'))}<div class="modal-b" translate="no"><p>${esc(m.file)} · ${esc(m.format)}</p><p>${m.board.nodes.length} ${T('cards', 'карточек')} · ${m.board.edges.length} ${T('connections', 'связей')}</p><p class="hint">${T('Destination project', 'Проект назначения')}: ${esc(current()?.name || '')}</p>${m.warnings.length ? `<ul>${m.warnings.map(w => `<li>${esc(warning(w))}</li>`).join('')}</ul>` : ''}<label class="field"><span>${T('Import mode', 'Режим импорта')}</span><select class="select" aria-label="${T('Import mode', 'Режим импорта')}" data-in="whiteboardImportMode"><option value="append" ${m.mode === 'append' ? 'selected' : ''}>${T('Add to current board', 'Добавить к текущему холсту')}</option><option value="replace" ${m.mode === 'replace' ? 'selected' : ''}>${T('Replace current board', 'Заменить текущий холст')}</option></select></label><p class="hint">${T('Up to 200 cards and 400 connections. Coordinates ±50,000; card width 160–2,000 and height 100–2,000. Replacement saves the current board in history.', 'До 200 карточек и 400 связей. Координаты ±50 000; ширина 160–2000, высота 100–2000. При замене текущий холст сохраняется в истории.')}</p></div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="applyWhiteboardImport">${T('Import', 'Импортировать')}</button></div>`;
+  return `${H(T('Import whiteboard', 'Импорт холста'))}<div class="modal-b" translate="no"><p>${esc(m.file)} · ${esc(m.format)}</p><p>${m.board.nodes.length} ${T('cards', 'карточек')} · ${m.board.edges.length} ${T('connections', 'связей')}</p><p class="hint">${T('Destination whiteboard', 'Холст назначения')}: ${esc(current()?.name || '')}</p>${m.warnings.length ? `<ul>${m.warnings.map(w => `<li>${esc(warning(w))}</li>`).join('')}</ul>` : ''}<label class="field"><span>${T('Import mode', 'Режим импорта')}</span><select class="select" aria-label="${T('Import mode', 'Режим импорта')}" data-in="whiteboardImportMode"><option value="append" ${m.mode === 'append' ? 'selected' : ''}>${T('Add to current board', 'Добавить к текущему холсту')}</option><option value="replace" ${m.mode === 'replace' ? 'selected' : ''}>${T('Replace current board', 'Заменить текущий холст')}</option></select></label><p class="hint">${T('Up to 200 cards and 400 connections. Coordinates ±50,000; card width 160–2,000 and height 100–2,000. Replacement saves the current board in history.', 'До 200 карточек и 400 связей. Координаты ±50 000; ширина 160–2000, высота 100–2000. При замене текущий холст сохраняется в истории.')}</p></div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="applyWhiteboardImport">${T('Import', 'Импортировать')}</button></div>`;
 }
 A.whiteboardImport = () => {
   const p = current();
-  if (!p || p.archived || !canEditProject(p, D().me, S.ui.currentUser?.role)) return;
+  if (!p || p.archived || !canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role)) return;
   const scope = whiteboardScope(p.id),
     base = structuredClone(whiteboardOf(p));
   const input = document.createElement('input');

@@ -16,6 +16,7 @@ const SIMPLE_ROUTES = new Set([
   'activity',
   'knowledge',
   'bookmarks',
+  'whiteboards',
   'graph',
   'settings',
   'archive',
@@ -61,10 +62,17 @@ export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') 
   const route = parsed.kind === 'home' && !parsed.slug ? defaultRoute : parsed.kind;
   if (route === 'settings') return { route, params: parsed.key ? { sec: parsed.key } : {} };
   if (route === 'graph') return { route, params: parsed.key ? { center: parsed.key } : {} };
+  if (route === 'whiteboard')
+    return (data.whiteboards || []).some(b => b.id === parsed.key) ? { route, params: { id: parsed.key } } : { route: 'nowhere', params: {} };
+  if (route === 'whiteboards') return { route, params: parsed.key === 'project' && parsed.detail ? { project: parsed.detail } : {} };
   if (SIMPLE_ROUTES.has(route)) return { route, params: {} };
 
   if (route === 'project') {
     const project = resolveEntity(data.projects, parsed.key);
+    if (project && parsed.detail === 'whiteboard') {
+      const board = (data.whiteboards || []).find(b => b.legacyProject === project.id);
+      return board ? { route: 'whiteboard', params: { id: board.id } } : { route: 'whiteboards', params: { project: project.id } };
+    }
     return project ? { route: 'project', params: { id: project.id, tab: parsed.detail || 'board' } } : { route: 'nowhere', params: {} };
   }
   if (route === 'task') {
@@ -101,6 +109,8 @@ export function appLocationPath(data, ui) {
     return `/${slug}/project/${encode(routeKey === project.key ? routeKey.toLowerCase() : routeKey)}${tab}`;
   }
   if (ui.route === 'member' && ui.params.id) return `/${slug}/member/${encode(ui.params.id)}`;
+  if (ui.route === 'whiteboard' && ui.params.id) return `/${slug}/whiteboard/${encode(ui.params.id)}`;
+  if (ui.route === 'whiteboards' && ui.params.project) return `/${slug}/whiteboards/project/${encode(ui.params.project)}`;
   if (ui.route === 'team' && ui.params.id) return `/${slug}/team/${encode(ui.params.id)}`;
   if (ui.route === 'settings') return `/${slug}/settings${ui.params.sec ? `/${encode(ui.params.sec)}` : ''}`;
   if (ui.route === 'home') return `/${slug}`;

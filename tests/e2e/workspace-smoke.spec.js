@@ -2,6 +2,112 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('standalone whiteboards create save archive retain legacy access and fit both languages at every size', async ({ page, browser }) => {
+  test.setTimeout(300000);
+  await signIn(page);
+  await page.goto('/e2e-team/whiteboards');
+  await page.locator('[data-a="newWhiteboard"]').click();
+  await page.locator('[data-in="whiteboardDocumentField"][data-field="name"]').fill('Workspace plan / План');
+  await page.locator('[data-in="whiteboardDocumentField"][data-field="desc"]').fill('Independent canvas');
+  await page.locator('[data-a="saveWhiteboardDocument"]').click();
+  await expect(page).toHaveURL(/\/whiteboard\//);
+  const publicPath = new URL(page.url()).pathname,
+    publicId = publicPath.split('/').at(-1);
+  await waitForSaved(page);
+  await page.locator('.whiteboard-add > summary').click();
+  await page.locator('.whiteboard-add [data-a="whiteboardNewText"]').click();
+  await page.locator('[data-in="whiteboardField"][data-field="title"]').fill('Independent card');
+  await page.locator('[data-in="whiteboardField"][data-field="text"]').fill('Saved outside projects');
+  await page.locator('[data-a="whiteboardSave"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-card-content')).toHaveText('Saved outside projects');
+  const publicData = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(publicData.whiteboards.find(b => b.id === publicId).project).toBe('');
+  expect(publicData.projects.every(p => !p.whiteboard.nodes.some(n => n.title === 'Independent card'))).toBeTruthy();
+  const project = publicData.projects[0];
+  project.private = true;
+  project.members = [publicData.me];
+  project.whiteboard = {
+    version: 1,
+    nodes: [{ id: 'legacy-kept', type: 'text', x: 0, y: 0, width: 220, height: 140, color: 'neutral', title: 'Legacy kept', text: 'Existing protected text' }],
+    edges: [],
+  };
+  expect((await page.request.put('/api/workspace', { data: { revision: publicData.revision, data: publicData } })).ok()).toBeTruthy();
+  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await expect(page).toHaveURL(new RegExp('/whiteboard/' + project.id + '$'));
+  await expect(page.locator('.whiteboard-card-content')).toHaveText('Existing protected text');
+  expect((await page.request.get(`/api/whiteboards/${project.id}/versions`)).ok()).toBeTruthy();
+  await page.goto(`/e2e-team/project/${project.id}`);
+  await expect(page.locator('.proj-h [data-tab="whiteboard"]')).toHaveCount(0);
+  const other = await browser.newContext();
+  try {
+    const editor = await other.newPage();
+    await signIn(editor, 'e2e-editor-access-id-2026-secure');
+    const filtered = (await (await editor.request.get('/api/workspace')).json()).data;
+    expect(filtered.whiteboards.some(b => b.id === project.id)).toBeFalsy();
+    expect(filtered.whiteboards.some(b => b.id === publicId)).toBeTruthy();
+    expect((await editor.request.get(`/api/whiteboards/${project.id}/versions`)).status()).toBe(404);
+    await editor.goto(`/e2e-team/whiteboard/${project.id}`);
+    await expect(editor.locator('.whiteboard-card')).toHaveCount(0);
+    await expect(editor.locator('body')).not.toContainText('Existing protected text');
+  } finally {
+    await other.close();
+  }
+  await page.goto('/e2e-team/whiteboards');
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto('/e2e-team/whiteboards');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      for (const view of ['grid', 'list']) {
+        if (width <= 640) await page.locator('[data-a="whiteboardCatalogFilters"]').click();
+        await page
+          .locator((width <= 640 ? '.modal ' : '.whiteboards-desktop-filters ') + '[data-in="whiteboardsFilter"][data-field="view"]')
+          .selectOption(view);
+        if (width <= 640) await page.locator('.modal [data-a="closeModal"]').last().click();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        await expect(page.locator(`.whiteboard-document-card [data-id="${publicId}"].whiteboard-document-open`)).toBeVisible();
+      }
+    }
+    await page.locator('[data-a="newWhiteboard"]').click();
+    await page.setViewportSize({ width: 320, height: 740 });
+    expect(await page.locator('.modal').evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
+    await page.locator('.modal [data-a="closeModal"]').first().click();
+  }
+  await page.goto(publicPath);
+  await page.locator('.whiteboard-document-menu > summary').click();
+  await page.locator('[data-a="editWhiteboardDocument"]').click();
+  await page.locator('[data-in="whiteboardDocumentField"][data-field="name"]').fill('Renamed workspace plan');
+  await page.locator('[data-a="saveWhiteboardDocument"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-document-heading h1')).toHaveText('Renamed workspace plan');
+  await page.locator('.whiteboard-document-menu > summary').click();
+  await page.locator('[data-a="toggleWhiteboardArchive"]').click();
+  await page.locator('[data-a="confirmOk"]').click();
+  await waitForSaved(page);
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.locator('[data-field="archive"][data-in="whiteboardsFilter"]').selectOption('archived');
+  await page.locator(`.whiteboard-document-card [data-a="openWhiteboardDocument"][data-id="${publicId}"]`).click();
+  await expect(page.locator('.whiteboard-add')).toHaveCount(0);
+  await expect(page.locator('.whiteboard-card-content')).toHaveText('Saved outside projects');
+  await page.locator('.whiteboard-document-menu > summary').click();
+  await page.locator('[data-a="toggleWhiteboardArchive"]').click();
+  await page.locator('[data-a="confirmOk"]').click();
+  await waitForSaved(page);
+  await page.reload();
+  await expect(page.locator('.whiteboard-add')).toBeVisible();
+});
+
 test('whiteboard native and Canvas interchange previews limitations checks access and preserves replacements', async ({ page }) => {
   test.setTimeout(240000);
   await signIn(page);
@@ -21,7 +127,7 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
       edges: [{ id: 'io-edge', from: 'io-text', to: 'io-material', arrow: true, color: 'neutral', label: 'Related' }],
     },
   };
-  const path = `/e2e-team/project/${project.id}/whiteboard`;
+  const path = await projectBoardPath(page, project.id, true);
   await page.goto(path);
   const upload = async (value, name = 'board.json') => {
     const menu = page.locator('.whiteboard-io');
@@ -106,6 +212,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
   const data = (await (await page.request.get('/api/workspace')).json()).data,
     project = data.projects[0];
+  const boardPath = await projectBoardPath(page, project.id);
   const saveLayout = async name => {
     await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
     await page.locator('[data-a="saveDiagramView"]').click();
@@ -126,7 +233,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   await page.locator('#graph-locate').selectOption('note:layout-note-0');
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-a="clearGraphSelection"]').click();
-  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await page.goto(boardPath);
   await page.locator('[data-a="whiteboardZoomIn"]').click();
   const scale = await page.locator('.whiteboard-scale').textContent();
   await saveLayout('Board plan');
@@ -136,7 +243,7 @@ test('personal graph and board layouts retain camera pins filters and account is
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
-    for (const route of ['/e2e-team/graph', `/e2e-team/project/${project.id}/whiteboard`]) {
+    for (const route of ['/e2e-team/graph', boardPath]) {
       await page.goto(route);
       for (const [width, height] of [
         [320, 740],
@@ -157,7 +264,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   try {
     const editor = await context.newPage();
     await signIn(editor, 'e2e-editor-access-id-2026-secure');
-    await editor.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await editor.goto(boardPath);
     await editor.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
     await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
   } finally {
@@ -178,7 +285,7 @@ test('whiteboard durable history restores safely rejects stale restore and follo
     edges: [],
   };
   expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
-  const path = `/e2e-team/project/${project.id}/whiteboard`;
+  const path = await projectBoardPath(page, project.id);
   await page.goto(path);
   await page.locator('.whiteboard-card [data-a="whiteboardEdit"]').click();
   await page.locator('[data-field="text"][data-in="whiteboardField"]').fill('Changed');
@@ -357,7 +464,7 @@ test('project view chooser exposes every view and retains selection across respo
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
-    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await page.goto(`/e2e-team/project/${project.id}/activity`);
     for (const [width, height] of [
       [320, 740],
       [390, 845],
@@ -369,22 +476,22 @@ test('project view chooser exposes every view and retains selection across respo
       const picker = page.locator('.project-view-picker');
       if (width <= 900) {
         await expect(picker).toBeVisible();
-        await expect(picker.locator('select')).toHaveValue('whiteboard');
-        await expect(picker.locator('option')).toHaveCount(9);
+        await expect(picker.locator('select')).toHaveValue('activity');
+        await expect(picker.locator('option')).toHaveCount(8);
       } else {
         await expect(picker).toBeHidden();
-        await expect(page.locator('.proj-h .tab.on')).toHaveText(language === 'Русский' ? 'Холст' : 'Whiteboard');
+        await expect(page.locator('.proj-h .tab.on')).toHaveText(language === 'Русский' ? 'Активность' : 'Activity');
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
     await page.setViewportSize({ width: 390, height: 845 });
-    for (const tab of ['overview', 'board', 'list', 'table', 'calendar', 'timeline', 'files', 'activity', 'whiteboard']) {
+    for (const tab of ['overview', 'board', 'list', 'table', 'calendar', 'timeline', 'files', 'activity']) {
       await page.locator('#project-view-select').selectOption(tab);
       await expect(page.locator('#project-view-select')).toHaveValue(tab);
       await expect(page.locator('.pbody')).toBeVisible();
     }
     await page.reload();
-    await expect(page.locator('#project-view-select')).toHaveValue('whiteboard');
+    await expect(page.locator('#project-view-select')).toHaveValue('activity');
     await page.screenshot({ path: `output/playwright/audit11-project-view-${language === 'Русский' ? 'ru' : 'en'}-390.png` });
   }
 });
@@ -1732,7 +1839,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await signIn(page);
   const workspace = (await (await page.request.get('/api/workspace')).json()).data;
   const project = workspace.projects[0],
-    path = `/e2e-team/project/${project.id}/whiteboard`;
+    path = await projectBoardPath(page, project.id);
   await page.goto(path);
   await expect(page.locator('.project-whiteboard')).toBeVisible();
   const add = async action => {
@@ -1810,7 +1917,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   data.projects.push({ ...project, id: 'second-whiteboard', key: 'WBT', whiteboard: { version: 1, nodes: [], edges: [] }, milestones: [] });
   data.projOrder.push('second-whiteboard');
   expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
-  await page.goto('/e2e-team/project/second-whiteboard/whiteboard');
+  await page.goto(await projectBoardPath(page, 'second-whiteboard'));
   await expect(page.locator('.project-whiteboard')).toBeVisible();
   await expect(page.locator('.whiteboard-card')).toHaveCount(0);
   for (const language of ['Русский', 'English (US)']) {
@@ -1933,3 +2040,24 @@ test('project cards stay compact and open through background and keyboard withou
     }
   }
 });
+
+async function projectBoardPath(page, projectId, reset = false) {
+  let data = (await (await page.request.get('/api/workspace')).json()).data;
+  let existing = data.whiteboards?.find(b => b.legacyProject === projectId);
+  if (!existing) {
+    data.projects.find(p => p.id === projectId).whiteboard = {
+      version: 1,
+      nodes: [{ id: 'fixture-init', type: 'text', x: 0, y: 0, width: 200, height: 120, color: 'neutral', title: '', text: '' }],
+      edges: [],
+    };
+    expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+    data = (await (await page.request.get('/api/workspace')).json()).data;
+    existing = data.whiteboards.find(b => b.legacyProject === projectId);
+    reset = true;
+  }
+  if (reset) {
+    data.projects.find(p => p.id === projectId).whiteboard = { version: 1, nodes: [], edges: [] };
+    expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  }
+  return `/e2e-team/whiteboard/${existing.id}`;
+}

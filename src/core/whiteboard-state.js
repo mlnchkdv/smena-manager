@@ -3,6 +3,13 @@ import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
 import { isRussian } from './i18n.js';
 import { entityAllowed, resolveGraphEntity } from '../shared/relations.js';
+import { whiteboardDocument, legacyWhiteboard } from '../shared/whiteboards.js';
+export const currentWhiteboard = () =>
+  S.ui.route === 'whiteboard'
+    ? whiteboardDocument(D(), S.ui.params.id)
+    : S.ui.route === 'project' && S.ui.params.tab === 'whiteboard'
+      ? legacyWhiteboard(D(), S.ui.params.id)
+      : null;
 export const wbText = (en, ru) => (isRussian() ? ru : en);
 export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.ui.activeWorkspace, D().ws.id || D().ws.url, id]);
 let state;

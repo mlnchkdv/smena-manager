@@ -3,7 +3,7 @@ import { diagramViewsControl } from '../ui/diagram-views.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
-import { canEditProject } from '../shared/project-access.js';
+import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T } from '../core/whiteboard-state.js';
 const button = (action, icon, en, ru, extra = '') =>
@@ -38,7 +38,7 @@ export function whiteboardEdges(board) {
 export function projectWhiteboard(project) {
   const board = whiteboardOf(project),
     state = whiteboardState(project.id),
-    editable = !project.archived && canEditProject(project, D().me, S.ui.currentUser?.role);
+    editable = !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
   if (!state.selected) state.selection = [];
   const selectedIds = (state.selection?.length ? state.selection : state.selected ? [state.selected] : []).filter(id => board.nodes.some(n => n.id === id));
   const edgeList = board.edges
@@ -47,7 +47,7 @@ export function projectWhiteboard(project) {
         `<button class="whiteboard-edge-row" data-a="whiteboardEditEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.from)))} → ${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.to)))}</span><small>${esc(edge.label)}</small></button>`,
     )
     .join('');
-  return `<section class="project-whiteboard" data-project="${esc(project.id)}" aria-label="${T('Project whiteboard', 'Холст проекта')}" translate="no"><div class="whiteboard-toolbar">
+  return `<section class="project-whiteboard" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
   ${
     editable
       ? `<details class="ui-menu whiteboard-add"><summary class="btn btn-primary btn-sm">${ic('plus', 15)}${T('Add', 'Добавить')}</summary><div>${[

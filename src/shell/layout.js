@@ -40,6 +40,8 @@ const lazyPageLoaders = {
   timeline: () => import('../views/timeline.js').then(module => module.pageWsTimeline),
   knowledge: () => import('../pages/knowledge.js').then(module => module.pageKnowledge),
   bookmarks: () => import('../pages/bookmarks.js').then(module => module.pageBookmarks),
+  whiteboards: () => import('../pages/whiteboards.js').then(module => module.pageWhiteboards),
+  whiteboard: () => import('../pages/whiteboards.js').then(module => module.pageWhiteboard),
   graph: () => import('../pages/graph.js').then(module => module.pageGraph),
   settings: () => import('../pages/settings.js').then(module => module.pageSettings),
   system: () => import('../pages/design-system.js').then(module => module.pageSystem),
@@ -128,6 +130,8 @@ export function renderPage() {
       activity: () => lazyPage('activity'),
       knowledge: () => lazyPage('knowledge'),
       bookmarks: () => lazyPage('bookmarks'),
+      whiteboards: () => lazyPage('whiteboards'),
+      whiteboard: () => lazyPage('whiteboard'),
       graph: () => lazyPage('graph'),
       settings: () => lazyPage('settings'),
       system: () => lazyPage('system'),
@@ -142,7 +146,7 @@ export function renderPage() {
 }
 
 export function sItem(route, label, icon, opt = {}) {
-  const on = S.ui.route === route && (!opt.id || S.ui.params.id === opt.id);
+  const on = (S.ui.route === route || (route === 'whiteboards' && S.ui.route === 'whiteboard')) && (!opt.id || S.ui.params.id === opt.id);
   return `<button class="sitem ${on ? 'on' : ''}" ${opt.userText ? 'translate="no"' : ''} data-a="${opt.act || 'go'}" data-r="${route}" ${opt.id ? `data-id="${opt.id}"` : ''} ${S.ui.collapsed ? `data-tip="${esc(label)}" data-tip-pos="right"` : ''} ${on ? 'aria-current="page"' : ''}>${ic(icon, 16)}<span class="trunc">${esc(label)}</span>${opt.ct ? `<span class="ct ${opt.dot ? 'dotc' : ''}">${opt.ct}</span>` : ''}${opt.kbd ? `<span class="ct hide-m"><kbd>${opt.kbd}</kbd></span>` : ''}</button>`;
 }
 export function renderSidebar() {
@@ -167,6 +171,7 @@ export function renderSidebar() {
     files: fileCount,
     knowledge: d.knowledgeNotes?.length,
     bookmarks: d.links?.filter(link => !link.is_archived).length,
+    whiteboards: d.whiteboards?.filter(board => !board.archived).length,
   };
   const items = group =>
     menu.order

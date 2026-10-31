@@ -44,6 +44,8 @@ export const ROUTE_NAMES = {
   activity: 'Activity',
   knowledge: 'Knowledge base',
   bookmarks: 'Bookmarks',
+  whiteboards: 'Whiteboards',
+  whiteboard: 'Whiteboard',
   graph: 'Graph',
   settings: 'Settings',
   system: 'Design system',
@@ -67,6 +69,8 @@ export const ROUTE_ICONS = {
   activity: 'activity',
   knowledge: 'library-big',
   bookmarks: 'bookmark',
+  whiteboards: 'panels-top-left',
+  whiteboard: 'panels-top-left',
   graph: 'network',
   teams: 'users',
   settings: 'settings',
@@ -76,6 +80,11 @@ export const ROUTE_ICONS = {
 };
 
 export function go(route, params = {}, opt = {}) {
+  if (route === 'project' && params.tab === 'whiteboard') {
+    const board = D().whiteboards?.find(b => b.legacyProject === params.id);
+    route = board ? 'whiteboard' : 'whiteboards';
+    params = board ? { id: board.id } : { project: params.id };
+  }
   if (S.ui.beforeWorkspaceSettingsLeave?.(route, params, opt) === false) return;
   closeActionMenus();
   if (route !== 'graph') S.ui.graphFocus = false;

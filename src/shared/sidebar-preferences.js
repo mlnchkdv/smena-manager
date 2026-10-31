@@ -12,6 +12,7 @@ export const SIDEBAR_ITEMS = Object.freeze([
   ['timeline', 'Timeline', 'chart-gantt', 'workspace'],
   ['knowledge', 'Knowledge base', 'library-big', 'workspace'],
   ['bookmarks', 'Bookmarks', 'bookmark', 'workspace'],
+  ['whiteboards', 'Whiteboards', 'panels-top-left', 'workspace'],
   ['graph', 'Graph', 'network', 'workspace'],
   ['members', 'Members', 'users', 'workspace'],
   ['activity', 'Activity', 'activity', 'workspace'],

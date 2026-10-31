@@ -44,6 +44,15 @@ test('app locations support regular routes and legacy hash links', () => {
 test('unknown entities open the not-found page', () => {
   assert.deepEqual(resolveAppLocation('/smena/task/missing', '', data), { route: 'nowhere', params: {} });
 });
+test('whiteboards have canonical independent URLs and legacy project links resolve without duplicating documents', () => {
+  const migrated = { ...data, whiteboards: [{ id: 'wb1', legacyProject: 'p1' }] };
+  assert.deepEqual(resolveAppLocation('/smena/project/web/whiteboard', '', migrated), { route: 'whiteboard', params: { id: 'wb1' } });
+  assert.deepEqual(resolveAppLocation('/smena/whiteboard/wb1', '', migrated), { route: 'whiteboard', params: { id: 'wb1' } });
+  assert.deepEqual(resolveAppLocation('/smena/whiteboard/missing', '', migrated), { route: 'nowhere', params: {} });
+  assert.deepEqual(resolveAppLocation('/smena/project/web/whiteboard', '', data), { route: 'whiteboards', params: { project: 'p1' } });
+  assert.equal(appLocationPath(migrated, { route: 'whiteboard', params: { id: 'wb1' } }), '/smena/whiteboard/wb1');
+  assert.equal(appLocationPath(migrated, { route: 'whiteboards', params: { project: 'p1' } }), '/smena/whiteboards/project/p1');
+});
 
 test('current workspace state produces canonical URLs', () => {
   assert.equal(appLocationPath(data, { route: 'home', params: {}, drawer: null, modals: [] }), '/smena');

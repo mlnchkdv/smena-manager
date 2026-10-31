@@ -45,8 +45,8 @@ export function helpGuides() {
       'projects',
       [
         T(
-          'Open a project → Whiteboard. On a phone, choose Whiteboard from the project view selector. Add text cards, linked materials and frames.',
-          'Откройте проект → «Холст». На телефоне выберите его в списке видов проекта. Добавьте текстовые карточки, материалы и рамки.',
+          'Open Whiteboards in the workspace menu and create a board. It can be independent or inherit a project’s access. Add text cards, linked materials and frames.',
+          'Откройте «Холсты» в меню пространства и создайте холст. Он может быть самостоятельным или наследовать доступ проекта. Добавьте карточки, материалы и рамки.',
         ),
         T(
           'Enable Select cards and tick several cards to align, distribute, copy or remove them. Drag to move the selection. A frame includes its contained cards. Ctrl/Cmd+A, C, V and Z work when the canvas has focus.',
@@ -81,8 +81,8 @@ export function helpGuides() {
       'graph',
       [
         T(
-          'Graph explores relations between materials; Whiteboard arranges cards inside one project; Board groups project tasks by status.',
-          'Граф показывает связи материалов; холст размещает карточки внутри проекта; доска группирует задачи по статусам.',
+          'Graph explores relations between materials; Whiteboard arranges cards in an independent document; Board groups project tasks by status.',
+          'Граф показывает связи материалов; холст размещает карточки в самостоятельном документе; доска группирует задачи по статусам.',
         ),
         T(
           'Choose a material to focus on its neighbors. Simplified graph reduces detail. Physics automatically settles nodes; turn it off to pause movement.',
