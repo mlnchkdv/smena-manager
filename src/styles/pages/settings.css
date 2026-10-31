@@ -50,6 +50,37 @@
 .settings-member-actions {
   flex-wrap: wrap;
 }
+.workspace-settings-actions {
+  display: grid;
+  gap: 8px;
+}
+.workspace-settings-actions > p {
+  margin: 0;
+}
+.set-in:has(.workspace-settings-form) > p.lead {
+  margin-bottom: 8px;
+}
+.set-in:has(.workspace-settings-form) > .settings-scope {
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .workspace-settings-actions {
+    position: fixed;
+    z-index: 44;
+    inset: auto 12px calc(76px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+  .workspace-settings-actions .row > .btn {
+    flex: 1;
+  }
+  .set-in:has(.workspace-settings-form) {
+    padding-bottom: 220px;
+  }
+}
 .settings-member-actions .btn {
   max-width: 100%;
   white-space: normal;

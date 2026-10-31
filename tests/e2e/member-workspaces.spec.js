@@ -67,6 +67,11 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
       const ownedPath = new URL(member.url()).pathname;
       await member.locator('#ws-name').fill(name + ' updated');
+      await expect(member.locator('#sync-indicator .sync-label')).toContainText(ru ? 'несохранённые' : 'Unsaved');
+      const actions = await member.locator('.workspace-settings-actions').boundingBox();
+      const bottomNav = await member.locator('.bottomnav').boundingBox();
+      expect(actions.y).toBeGreaterThan(50);
+      expect(actions.y + actions.height).toBeLessThanOrEqual(bottomNav.y);
       await member.locator('#ws-description').fill('Persisted owner changes');
       await member.locator('#ws-save').click();
       await saved(member);

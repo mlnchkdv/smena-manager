@@ -368,6 +368,7 @@ function updateWorkspaceSettingsFeedback() {
   }
   const button = $('#ws-save');
   if (button) button.disabled = !S.ui.workspaceSettingsDirty || !!S.ui.atomicOperation;
+  window.dispatchEvent?.(new CustomEvent('smena:workspace-settings-draft'));
 }
 window.addEventListener('smena:sync-status', ({ detail }) => {
   if (!S.ui.workspaceSettingsSubmitted || (detail.scope && detail.scope !== 'workspace')) return;

@@ -8,7 +8,7 @@ import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
-import { t as tr } from '../core/i18n.js';
+import { t as tr, isRussian } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { appLocationPath } from '../shared/app-location.js';
@@ -52,7 +52,7 @@ const lazyPageLoaders = {
 };
 
 function accountMenuLabel() {
-  return `${S.prefs.name}. ${tr('Account menu')}. ${tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
+  return `${S.prefs.name}. ${tr('Account menu')}. ${S.ui.workspaceSettingsDirty && systemConnectionState() === 'saved' ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
 }
 
 function accountAvatarStatus(memberId, size = '') {
@@ -275,13 +275,15 @@ export function crumbs() {
 export function renderTopbar() {
   const state = systemConnectionState();
   const sync = SYNC_PRESENTATION[state];
-  const syncTitle = state === 'saved' && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : tr(sync[1]);
+  const syncLabel = state === 'saved' && S.ui.workspaceSettingsDirty ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : tr(sync[1]);
+  const syncTitle =
+    state === 'saved' && !S.ui.workspaceSettingsDirty && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : syncLabel;
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" id="mnav-btn">${ic('menu', 17)}</button>
     <button class="workspace-context pillbtn" data-a="pop" data-pop="ws" title="${esc(D().ws.name)}" aria-label="${esc(tr('Switch workspace'))}: ${esc(D().ws.name)}"><span class="trunc" translate="no">${esc(D().ws.name)}</span>${ic('chevron-down', 12)}</button>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
-    <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label">${sync[1]}</span></span>
+    <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label" translate="no">${esc(syncLabel)}</span></span>
     <button class="topsearch" data-a="openPalette" aria-label="${esc(tr('Search or jump to…'))} ${MOD}K" aria-keyshortcuts="${MOD === '⌘' ? 'Meta' : 'Control'}+k">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd" aria-hidden="true">${MOD}K</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     ${S.ui.currentUser?.role === 'viewer' ? '' : `<button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>`}

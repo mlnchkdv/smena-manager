@@ -42,7 +42,7 @@ import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAnd
 import { toast } from './ui/toast.js';
 import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
-import { t as tr } from './core/i18n.js';
+import { t as tr, isRussian } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
@@ -131,17 +131,20 @@ function updateSyncIndicator(status) {
     invalid: 'Data error',
   };
   indicator.dataset.state = status;
+  const draftLabel = status === 'saved' && S.ui.workspaceSettingsDirty ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : '';
   document.querySelectorAll('.account-avatar-status').forEach(avatar => {
     avatar.dataset.state = status;
   });
   document.querySelectorAll('.account-menu-trigger').forEach(trigger => {
-    trigger.setAttribute('aria-label', `${tr('Account menu')}. ${tr(labels[status] || labels.saved)}`);
+    trigger.setAttribute('aria-label', `${tr('Account menu')}. ${draftLabel || tr(labels[status] || labels.saved)}`);
   });
   const label = indicator.querySelector('.sync-label');
-  if (label) label.textContent = tr(labels[status] || labels.saved);
+  if (label) label.textContent = draftLabel || tr(labels[status] || labels.saved);
   indicator.title =
-    status === 'saved' ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt || Date.now(), true)}` : tr(labels[status] || labels.saved);
+    draftLabel ||
+    (status === 'saved' ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt || Date.now(), true)}` : tr(labels[status] || labels.saved));
 }
+window.addEventListener('smena:workspace-settings-draft', () => updateSyncIndicator(S.ui.syncState || 'saved'));
 
 async function handleWorkspaceConflict() {
   if (conflictRecoveryPromise) return conflictRecoveryPromise;
