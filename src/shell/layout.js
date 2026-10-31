@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 /* ---------- shell ---------- */
 import { MOD, TODAY, diffD, esc, fmtTimestamp, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
@@ -210,7 +211,7 @@ export function renderSidebar() {
               <button class="sproject-expand" data-a="toggleExpand" data-id="${p.id}" aria-expanded="${open && !compact}" aria-controls="project-sections-${esc(p.id)}" aria-label="${esc(tr(open ? 'Collapse project sections' : 'Expand project sections'))}: ${esc(p.name)}">${ic('chevron-right', 13, 'chev ' + (open ? 'open' : ''))}</button>
               <a class="sproject-link" href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id } }))}" data-a="go" data-r="project" data-id="${p.id}" aria-label="${esc(p.name)}" title="${esc(p.name)}" ${on ? 'aria-current="page"' : ''} ${compact ? `data-tip="${esc(p.name)}" data-tip-pos="right"` : ''}>
               <span class="pico" style="--c:${pColor(p)}">${projectIconContent(p, 12)}</span><span class="trunc sproject-name" translate="no">${esc(p.name)}</span>
-              ${p.fav ? `<span class="fav">${ic('star', 11)}</span>` : ''}
+              ${isFavorite('project', p) ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               ${p.private ? `<span class="faint" style="margin-left:4px">${ic('lock', 11)}</span>` : ''}
               <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
               </a><button class="ibtn ibtn-xs sproject-options" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${esc(tr('Project options'))}: ${esc(p.name)}">${ic('ellipsis', 14)}</button>

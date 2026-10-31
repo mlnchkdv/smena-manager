@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder-shortcuts.js';
 import { knowledgeQueryContext } from '../ui/knowledge-query-context.js';
 import { knowledgeCreateMenu } from '../ui/knowledge-create-menu.js';
@@ -84,7 +85,7 @@ function notePreviewCard(note, folder, readOnly, folderIndex) {
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
     ${noteCardMeta(note)}${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
-  </button><div class="knowledge-preview-location">${folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="${actionLabel('Move note')}" title="${actionLabel('Move note')}">${ic('folder-input', 15)}</button><button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${actionLabel(note.favorite ? 'Remove from favorites' : 'Add to favorites')}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button>`}</article>`;
+  </button><div class="knowledge-preview-location">${folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="${actionLabel('Move note')}" title="${actionLabel('Move note')}">${ic('folder-input', 15)}</button>`}<button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${actionLabel(isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites')}" aria-pressed="${!!isFavorite('note', note)}" style="${isFavorite('note', note) ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button></article>`;
 }
 
 function folderPath(folderId, folders) {
@@ -120,6 +121,7 @@ export function pageKnowledge() {
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const view = knowledgeView(notes, {
+    favorites: S.prefs.favorites,
     query: S.ui.knowledgeQuery,
     folder: folderFilter,
     tag: S.ui.knowledgeTag,
@@ -189,7 +191,7 @@ export function pageKnowledge() {
             ? ''
             : `<nav class="knowledge-folders" data-keep="${esc(`knowledge-folders:${S.ui.knowledgeFolderQuery || ''}:${S.ui.knowledgeFolderNavOffset || 0}`)}" aria-label="Knowledge folders">
           <button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button>
-          <button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => note.favorite).length}</span></button>
+          <button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => isFavorite('note', note)).length}</span></button>
           <button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>
           ${folderTree(folderIndex, folderFilter, readOnly, S.ui.knowledgeCollapsedFolders || {}, S.ui.knowledgeFolderQuery || '')}</nav>`
         }

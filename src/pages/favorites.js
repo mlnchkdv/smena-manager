@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 /* ---------- FAVORITES ---------- */
 import { allTasks, canSee, visibleProjects } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
@@ -5,8 +6,8 @@ import { miniRow } from '../components/task-list.js';
 import { projectCard } from './projects.js';
 
 export function pageFavorites() {
-  const ps = visibleProjects().filter(p => p.fav && canSee(p));
-  const ts = allTasks().filter(t => t.fav);
+  const ps = visibleProjects().filter(p => isFavorite('project', p) && canSee(p));
+  const ts = allTasks().filter(t => isFavorite('task', t));
   return `<div class="page wide">
     <div class="ph"><div><h1>Favorites</h1><p>Projects and tasks you've starred for quick access.</p></div></div>
     ${

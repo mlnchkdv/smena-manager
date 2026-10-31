@@ -13,7 +13,8 @@ export function knowledgeServerPage(options) {
   const generation = getSessionGeneration(),
     owner = S.ui.currentUser?.id,
     revision = S.ui.documentRevisions.knowledge;
-  const key = JSON.stringify([generation, owner, revision, options]);
+  const favorites = S.prefs.favorites || '[]';
+  const key = JSON.stringify([generation, owner, revision, favorites, options]);
   if (state?.key === key) return state.result;
   clearTimeout(timer);
   state = { key, result: null };
@@ -29,6 +30,10 @@ export function knowledgeServerPage(options) {
       )
         return;
       if (result.revision !== revision) return;
+      if (result.favorites !== favorites) {
+        state = null;
+        return;
+      }
       state.result = result;
       render();
     } catch {

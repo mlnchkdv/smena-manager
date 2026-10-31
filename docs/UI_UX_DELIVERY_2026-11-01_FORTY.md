@@ -9,6 +9,13 @@
 - Добавлены поколение mount и проверка user/workspace scope; старые observer callbacks больше не могут уничтожить новый граф или менять его состояние.
 - Проверки: 3/3 graph-physics tests, targeted ESLint, production build и bundle budget — успешно. Production RU/EN/resize/navigation acceptance пока ожидается после деплоя.
 
+## 02 — Personal favorites
+
+- Tasks/projects/notes now read personal favorite overrides from validated user/workspace preferences, including explicit false values for old shared stars. Existing shared flags remain untouched as a non-destructive initial state. Readers can star notes without editing their content.
+- Preferences reset on workspace/account load; material rendering uses existing visible collections/ACLs. Server knowledge search receives only the authenticated member's preference, and the client rejects results based on an older favorite state.
+- A bounded 500-entry preference is validated server-side; removing a new personal star releases its entry. Parsed lookup maps are cached for large lists.
+- Acceptance: 601/601 server/shared tests, targeted lint, build and bundle budget (548.6/600 KiB). Tests cover two members, legacy overrides, unchanged shared records, reload serialization, invalid inputs and existing preference retry/account isolation. Production persistence test remains pending; no production stars were changed yet.
+
 ## Verification limits / Границы приёмки
 
 Физические iOS/Android остаются недоступны; смена browser viewport не заменяет жесты, экранную клавиатуру и PWA. Production материалы команды и права не изменяются ради проверки. Multi-user и опасные операции проверяются в изолированных фикстурах; production-запись требует конкретного согласованного сценария.

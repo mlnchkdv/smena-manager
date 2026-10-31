@@ -21,6 +21,7 @@ import {
 export const STORE_KEY = 'smena.v1';
 export const LEGACY_STORE_KEYS = ['gr8r.v2'];
 export const DEFAULT_PREFS = {
+  favorites: '[]',
   theme: 'system',
   accent: 'indigo',
   side: 'comfortable',

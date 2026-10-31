@@ -1,8 +1,9 @@
 import { createKnowledgeMatcher } from './knowledge-search.js';
 import { folderDescendants } from './knowledge-tools.js';
+import { favoriteFlag } from './personal-favorites.js';
 export function knowledgeView(
   notes,
-  { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0, recent = [], folders = [] } = {},
+  { query = '', folder = 'all', tag = '', activeId, sort = 'updated', limit = 200, offset = 0, recent = [], folders = [], favorites } = {},
 ) {
   const folderIds = folderDescendants(folder, folders);
   const selectedTag = String(tag).trim().toLocaleLowerCase();
@@ -18,7 +19,7 @@ export function knowledgeView(
         (folder === 'recent'
           ? recent.includes(note.id)
           : folder === 'favorites'
-            ? !!note.favorite
+            ? favoriteFlag(favorites, 'note', note)
             : folder === 'root'
               ? !note.folderId
               : folderIds.has(note.folderId)),
@@ -27,7 +28,8 @@ export function knowledgeView(
     .filter(matches)
     .sort((a, b) => {
       if (folder === 'recent') return recent.indexOf(a.id) - recent.indexOf(b.id);
-      if (Number(!!b.favorite) !== Number(!!a.favorite)) return Number(!!b.favorite) - Number(!!a.favorite);
+      const starred = Number(favoriteFlag(favorites, 'note', b)) - Number(favoriteFlag(favorites, 'note', a));
+      if (starred) return starred;
       if (sort === 'title') return String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity: 'base' });
       return time(b) - time(a);
     });

@@ -2,6 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyPersonalSettings, personalPreferenceData, persistReadStateBatches } from '../../src/shared/personal-settings.js';
 import { bindAccessProfiles } from '../../src/shared/member-identity.js';
+import { changedFavorite, favoriteFlag } from '../../src/shared/personal-favorites.js';
+import { knowledgeView } from '../../src/shared/knowledge-view.js';
+
+test('personal favorites preserve legacy flags without mutating another member or material', () => {
+  const note = { id: 'note', favorite: true, title: 'Note' };
+  const task = { id: 'task', fav: false };
+  const data = { members: [{ id: 'reader', role: 'Guest' }, { id: 'other' }], knowledgeNotes: [note], tasks: [task] };
+  const own = changedFavorite(undefined, 'note', note).value;
+  applyPersonalSettings(data, 'reader', { preferences: { favorites: own } });
+  assert.equal(favoriteFlag(data._userPrefs.reader.favorites, 'note', note), false);
+  assert.equal(favoriteFlag(data._userPrefs.other?.favorites, 'note', note), true);
+  assert.equal(note.favorite, true);
+  assert.equal(knowledgeView([note], { folder: 'favorites', favorites: own }).total, 0);
+  assert.equal(knowledgeView([note], { folder: 'favorites' }).total, 1);
+  const selected = changedFavorite(own, 'task', task).value;
+  applyPersonalSettings(data, 'reader', { preferences: { favorites: selected } });
+  assert.equal(favoriteFlag(JSON.parse(JSON.stringify(data))._userPrefs.reader.favorites, 'task', task), true);
+  assert.equal(task.fav, false);
+  assert.throws(() => applyPersonalSettings(data, 'reader', { preferences: { favorites: '[["role:owner",true]]' } }), /Invalid/);
+  assert.throws(() => applyPersonalSettings(data, 'reader', { preferences: { favorites: '[["task:x",true],["task:x",false]]' } }), /Invalid/);
+});
 
 test('spellcheck and deletion confirmation are persisted as booleans, including false', () => {
   assert.deepEqual(personalPreferenceData({ spell: false, confirmDel: false, role: 'Owner' }), { spell: false, confirmDel: false });

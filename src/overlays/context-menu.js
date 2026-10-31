@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 /* ---------------- CONTEXT MENUS ---------------- */
 import { ic } from '../core/icons.js';
 import { ST } from '../core/constants.js';
@@ -21,7 +22,7 @@ export function ctxMenu(p) {
       I('ctxPrio', 'signal-high', 'Priority…') +
       I('ctxMove', 'folder-input', 'Move to project…') +
       sep +
-      I('toggleFavTask', 'star', t.fav ? 'Remove from favorites' : 'Add to favorites') +
+      I('toggleFavTask', 'star', isFavorite('task', t) ? 'Remove from favorites' : 'Add to favorites') +
       I('copyLink', 'link', 'Copy link') +
       I('dupTask', 'copy', 'Duplicate') +
       I('archiveTask', 'archive', 'Archive') +
@@ -34,7 +35,7 @@ export function ctxMenu(p) {
     if (!pr) return '';
     return (
       I('openProject', 'arrow-up-right', 'Open') +
-      I('toggleFavProj', 'star', pr.fav ? 'Remove from favorites' : 'Add to favorites') +
+      I('toggleFavProj', 'star', isFavorite('project', pr) ? 'Remove from favorites' : 'Add to favorites') +
       I('editProject', 'pencil', 'Rename & edit') +
       I('share', 'share-2', 'Share') +
       I('copyLink', 'link', 'Copy link') +

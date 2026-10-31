@@ -87,6 +87,7 @@ import { captureUndo, undoCommand } from '../shared/undo.js';
 import { canEditProject } from '../shared/project-access.js';
 import { nextRecurrenceDate } from '../shared/calendar-time.js';
 import { persistPersonalChange, registerNotificationActions } from './notification-loader.js';
+import { changedFavorite } from '../shared/personal-favorites.js';
 import { changePdfPreviewPage } from '../core/file-preview.js';
 import { retryPersonalPreferences } from '../core/personal-preferences.js';
 import { nextTaskKey } from './task-key.js';
@@ -655,11 +656,24 @@ A.editKnowledgeNote = () => {
   document.getElementById('knowledge-title')?.focus();
 };
 A.toggleKnowledgeFavorite = el => {
-  mutate(() => {
-    const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
-    if (note) note.favorite = !note.favorite;
-  });
+  setPersonalFavorite(
+    'note',
+    knowledgeCollections().notes.find(item => item.id === el.dataset.id),
+  );
 };
+function setPersonalFavorite(kind, record) {
+  if (!record) return;
+  try {
+    const change = changedFavorite(S.prefs.favorites, kind, record);
+    S.prefs.favorites = change.value;
+    S.ui.pop = null;
+    save();
+    render();
+    toast(change.selected ? 'Added to favorites' : 'Removed from favorites', { ms: 1800 });
+  } catch (error) {
+    toast(error.message, { kind: 'err' });
+  }
+}
 A.setKnowledgeFolder = el => {
   const compactNavigation = !!S.ui.knowledgeFolderOverlay;
   S.ui.knowledgeOffset = 0;
@@ -1483,22 +1497,12 @@ A.toggleDone = el => {
   if (!wasDone && !S.ui.offline) toast(`Completed “${t.title}”`, { action: 'Undo', onAction: () => updateTask(t.id, { status: t.prevStatus || 'todo' }) });
 };
 A.toggleFavTask = el => {
-  const t = task(el.dataset.id);
-  mutate(() => {
-    t.fav = !t.fav;
-  });
-  S.ui.pop = null;
-  toast(t.fav ? 'Added to favorites' : 'Removed from favorites', { ms: 1800 });
-  render();
+  const item = allTasks().find(item => item.id === el.dataset.id);
+  setPersonalFavorite('task', item);
 };
 A.toggleFavProj = el => {
   const p = proj(el.dataset.id);
-  mutate(() => {
-    p.fav = !p.fav;
-  });
-  S.ui.pop = null;
-  render();
-  toast(p.fav ? `Added ${p.name} to favorites` : 'Removed from favorites', { ms: 1800 });
+  if (p && canSee(p)) setPersonalFavorite('project', p);
 };
 A.copyLink = el => {
   S.ui.pop = null;

@@ -5,8 +5,10 @@ import { validSidebar } from './sidebar-preferences.js';
 import { validCardMeta } from './knowledge-card-meta.js';
 import { validFolderPins } from './knowledge-folder-shortcuts.js';
 import { validDiagramViews } from './diagram-views.js';
+import { validFavorites } from './personal-favorites.js';
 
 const PREFERENCE_TYPES = Object.freeze({
+  favorites: 'string',
   knowledgeCardMeta: 'string',
   knowledgeFolderPins: 'string',
   diagramViews: 'string',
@@ -58,15 +60,24 @@ export function applyPersonalSettings(database, memberId, input) {
         typeof value !== PREFERENCE_TYPES[key] ||
         (typeof value === 'string' &&
           value.length >
-            (key === 'diagramViews'
-              ? 180000
-              : ['knowledgeQueries', 'knowledgeCardMeta'].includes(key)
-                ? 24000
-                : ['sidebar', 'knowledgeFolderPins'].includes(key)
-                  ? 6000
-                  : 180))
+            (key === 'favorites'
+              ? 120000
+              : key === 'diagramViews'
+                ? 180000
+                : ['knowledgeQueries', 'knowledgeCardMeta'].includes(key)
+                  ? 24000
+                  : ['sidebar', 'knowledgeFolderPins'].includes(key)
+                    ? 6000
+                    : 180))
       )
         invalid();
+      if (key === 'favorites') {
+        try {
+          if (!validFavorites(JSON.parse(value))) invalid();
+        } catch {
+          invalid();
+        }
+      }
       if (key === 'sidebar') {
         try {
           if (!validSidebar(JSON.parse(value))) invalid();

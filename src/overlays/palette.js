@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 /* ---------------- COMMAND PALETTE ---------------- */
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
@@ -93,7 +94,7 @@ export function paletteItems() {
     if (!q) {
       groups.push({ name: 'Suggestions', items: cmds.slice(0, 3).concat(cmds.filter(c => c.id === 'c-dark' || c.id === 'c-ws')) });
       const recent = sortTasks(
-        allTasks().filter(t => t.assignee === D().me || t.fav),
+        allTasks().filter(t => t.assignee === D().me || isFavorite('task', t)),
         { f: 'updated', dir: 1 },
       ).slice(0, 4);
       groups.push({

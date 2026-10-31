@@ -631,15 +631,23 @@ app.get('/api/knowledge/search', async (request, response, next) => {
       !/^\d{1,7}$/.test(offset)
     )
       return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
-    response.json(
-      indexedKnowledgePage(await getWorkspaceDatabase({ fields: ['knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions'] }), {
+    const database = await getWorkspaceDatabase({
+      fields: ['members', '_userPrefs', 'knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions'],
+    });
+    const member = memberForProfile(bindAccessProfiles(database, getAccessProfiles()), request.user);
+    if (!member) throw permissionError('profile');
+    const favorites = database._userPrefs?.[member.id]?.favorites || '[]';
+    response.json({
+      ...indexedKnowledgePage(database, {
         query: q,
         folder,
         tag,
         sort: sort === 'title' ? 'title' : 'updated',
         offset: Number(offset),
+        favorites,
       }),
-    );
+      favorites,
+    });
   } catch (error) {
     next(error);
   }

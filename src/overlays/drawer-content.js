@@ -1,3 +1,4 @@
+import { isFavorite } from '../core/favorites.js';
 import { noteTypeFields } from '../ui/knowledge-types.js';
 /* =====================================================================
    OVERLAYS: drawer, modals, popovers, context menus, command palette
@@ -68,15 +69,11 @@ export function knowledgeDrawerHtml(note) {
     preview && !readOnly
       ? `<button class="ibtn ibtn-sm knowledge-preview-edit" data-a="editKnowledgeNote" aria-label="Edit note" title="Edit note">${ic('pencil', 15)}</button>`
       : '';
-  const favorite = readOnly
-    ? ''
-    : `<button class="ibtn ibtn-sm knowledge-reader-favorite" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${note.favorite ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!note.favorite}" style="${note.favorite ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`;
+  const favorite = `<button class="ibtn ibtn-sm knowledge-reader-favorite" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${!!isFavorite('note', note)}" style="${isFavorite('note', note) ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>`;
   const outline = preview
     ? knowledgeOutline(
         previewMarkup,
-        readOnly
-          ? ''
-          : `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!note.favorite}">${ic('star', 15)}<span>${note.favorite ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
+        `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!isFavorite('note', note)}">${ic('star', 15)}<span>${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
       )
     : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
@@ -102,7 +99,7 @@ export function drawerHtml(t) {
       <button class="pillbtn" data-a="go" data-r="project" data-id="${p.id}" data-tab="board" style="font-size:12.5px"><span class="pdot" style="--c:${pColor(p)}"></span>${esc(p.name)}</button><span class="faint">/</span><span class="mono faint" style="font-size:11.5px;padding:0 6px">${t.key}</span>
       <span class="sp"></span>
       <button class="btn btn-sm task-completion-action ${t.status === 'done' ? 'btn-secondary' : 'btn-ghost'}" data-a="toggleDone" data-id="${t.id}" aria-label="${t.status === 'done' ? 'Reopen task' : 'Mark complete'}" title="${t.status === 'done' ? 'Reopen task' : 'Mark complete'}" style="${t.status === 'done' ? 'color:var(--green)' : ''}">${ic(t.status === 'done' ? 'circle-check' : 'circle', 14)}<span class="hide-m">${t.status === 'done' ? 'Completed' : 'Mark complete'}</span></button>
-      <button class="ibtn ibtn-sm" data-a="toggleFavTask" data-id="${t.id}" data-tip="${t.fav ? 'Unfavorite' : 'Favorite'}" aria-pressed="${t.fav}" aria-label="Favorite" style="${t.fav ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>
+      <button class="ibtn ibtn-sm" data-a="toggleFavTask" data-id="${t.id}" data-tip="${isFavorite('task', t) ? 'Unfavorite' : 'Favorite'}" aria-pressed="${isFavorite('task', t)}" aria-label="Favorite" style="${isFavorite('task', t) ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>
       <button class="ibtn ibtn-sm" data-a="copyLink" data-id="${t.id}" data-tip="Copy link" aria-label="Copy link">${ic('link', 15)}</button>
       <button class="ibtn ibtn-sm hide-m" data-a="toggleDrawerFull" data-tip="${u.drawerFull ? 'Side panel' : 'Full page'}" aria-label="Toggle full page">${ic(u.drawerFull ? 'minimize-2' : 'maximize-2', 15)}</button>
       <button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More">${ic('ellipsis', 15)}</button>
