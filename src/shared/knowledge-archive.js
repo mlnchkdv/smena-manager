@@ -218,7 +218,9 @@ export function buildKnowledgeArchive(data, files = []) {
         const ref = materialLink(label),
           wiki = note.wikiRefs?.find(r => r.label === label),
           key = ref?.key || (wiki?.target ? `note:${wiki.target}` : '');
-        const [kind, id] = key.split(':');
+        const separator = key.indexOf(':'),
+          kind = key.slice(0, separator),
+          id = key.slice(separator + 1);
         const path = kind === 'note' ? notePaths.get(id) : kind === 'file' ? filePaths.get(id) : '';
         if (!path) return raw;
         if (bang && ref?.block) return `![[${path.split('/').at(-1).replace(/\.md$/, '')}#^${ref.block}]]`;

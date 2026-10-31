@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { zipSync, strToU8 } from 'fflate';
+import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { buildKnowledgeArchive, readKnowledgeArchive, archivePath, mapArchiveFiles, parseCollectionCsv } from '../../src/shared/knowledge-archive.js';
 test('knowledge ZIP round trips raw text, properties, definitions and attachment bytes', () => {
   const data = {
@@ -16,6 +16,28 @@ test('knowledge ZIP round trips raw text, properties, definitions and attachment
   assert.deepEqual([...result.files[0].data], [1, 2, 3]);
   assert.equal(mapArchiveFiles(result.payload, { f: 'new' }).notes[0].assets['image.png'], 'new');
 });
+test('standalone archive links preserve opaque IDs containing colons', () => {
+  const bytes = buildKnowledgeArchive(
+    {
+      ws: {},
+      knowledgeNotes: [
+        { id: 'source', title: 'Source', formatted_markdown: '[[note:n:target|Target]]\n[[file:f:asset|Attachment]]' },
+        { id: 'n:target', title: 'Target', formatted_markdown: 'Body' },
+      ],
+    },
+    [{ id: 'f:asset', name: 'asset.txt', mimeType: 'text/plain', data: strToU8('Asset') }],
+  );
+  const entries = unzipSync(bytes);
+  const source = strFromU8(entries['notes/Source--source.md']);
+  const links = [...source.matchAll(/\]\(([^)]+)\)/g)];
+  assert.equal(links.length, 2);
+  for (const [, href] of links) {
+    const path = decodeURIComponent(new URL(href, 'https://archive.invalid/notes/Source--source.md').pathname.slice(1));
+    assert.ok(Object.hasOwn(entries, path), `Archive target must exist: ${path}`);
+  }
+  assert.equal(readKnowledgeArchive(bytes).payload.notes[0].formatted_markdown, '[[note:n:target|Target]]\n[[file:f:asset|Attachment]]');
+});
+
 test('Markdown vault imports preserve folders, frontmatter, local links, media and CSV collections', () => {
   let id = 0;
   const zip = zipSync({

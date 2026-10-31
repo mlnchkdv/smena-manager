@@ -80,7 +80,10 @@ async function render() {
       preview.onclick = async event => {
         const target = event.target.closest('[data-key]');
         if (!target) return;
-        const [kind, id] = target.dataset.key.split(':');
+        const key = target.dataset.key,
+          separator = key.indexOf(':'),
+          kind = key.slice(0, separator),
+          id = key.slice(separator + 1);
         const saved = items.find(i => i.kind === kind && i.id === id && i.workspace === item.workspace);
         if (!saved) return alert(words('This material is not kept offline.', 'Материал не сохранён офлайн.'));
         if (kind === 'file') download(saved.blob, saved.title);
