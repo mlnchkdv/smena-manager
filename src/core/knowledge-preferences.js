@@ -20,6 +20,7 @@ export function knowledgePreferences() {
     S.ui.knowledgeSelection = [];
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
+    S.ui.knowledgeCardDensity = value.cardDensity === 'comfortable' ? 'comfortable' : 'compact';
     S.ui.knowledgeNoteLayout = ['list', 'grid'].includes(value.noteLayout)
       ? value.noteLayout
       : window.matchMedia('(max-width: 640px)').matches
@@ -42,6 +43,7 @@ export function saveKnowledgePreferences() {
         folderRecent: S.ui.knowledgeFolderRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,
         folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
+        cardDensity: S.ui.knowledgeCardDensity === 'comfortable' ? 'comfortable' : 'compact',
         noteLayout: S.ui.knowledgeNoteLayout === 'list' ? 'list' : 'grid',
       }),
     );

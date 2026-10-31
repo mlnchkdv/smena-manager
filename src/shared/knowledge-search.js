@@ -71,3 +71,12 @@ export function knowledgeExcerpt(note, query, length = 180) {
   const start = Math.max(0, index - 45);
   return `${start ? '…' : ''}${text.slice(start, start + length)}${start + length < text.length ? '…' : ''}`;
 }
+// Catalog copy only: never rewrite source text or suppress actual search matches.
+export function noteCardExcerpt(note, query) {
+  if (query || note.summary || note.sourceFormat === 'text') return knowledgeExcerpt(note, query);
+  const body = String(note.formatted_markdown || '').replace(
+    /^# (?:Новая заметка\r?\n\r?\nДобавьте сюда знания, регламент или рабочие договорённости команды\.|New note\r?\n\r?\nAdd team knowledge, guidelines, or working agreements here\.)\s*/u,
+    '',
+  );
+  return knowledgeExcerpt({ ...note, formatted_markdown: body }, query);
+}

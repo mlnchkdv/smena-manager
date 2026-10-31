@@ -1414,6 +1414,17 @@
   -webkit-line-clamp: 3;
   overflow: hidden;
 }
+.knowledge-main[data-density='compact'] .knowledge-preview-open {
+  padding: 12px 48px 8px 12px;
+}
+.knowledge-main[data-density='compact'] .knowledge-preview-excerpt {
+  min-height: 0;
+  margin: 6px 0;
+  -webkit-line-clamp: 2;
+}
+.knowledge-main[data-density='compact'] .knowledge-card-meta {
+  margin-top: 4px;
+}
 .knowledge-preview-meta {
   margin-top: auto;
   color: var(--text-4);

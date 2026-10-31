@@ -23,6 +23,7 @@ const fields = [
   'knowledgeShowFolders',
   'knowledgeFolderLayout',
   'knowledgeNoteLayout',
+  'knowledgeCardDensity',
   'graphQuery',
   'graphKind',
   'graphProject',

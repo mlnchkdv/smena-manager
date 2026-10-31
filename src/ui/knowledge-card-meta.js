@@ -26,8 +26,9 @@ export function noteCardMeta(note) {
     })
     .filter(Boolean)
     .slice(0, 3);
-  return config.showType || values.length
-    ? `<div class="knowledge-card-meta" translate="no">${config.showType ? `<span class="knowledge-card-type">${ic('shapes', 12)}${esc(typeName(type))}</span>` : ''}${values.join('')}</div>`
+  const showType = config.showType && (type.id !== 'note' || !!S.prefs.knowledgeCardMeta);
+  return showType || values.length
+    ? `<div class="knowledge-card-meta" translate="no">${showType ? `<span class="knowledge-card-type">${ic('shapes', 12)}${esc(typeName(type))}</span>` : ''}${values.join('')}</div>`
     : '';
 }
 function form(m, H) {

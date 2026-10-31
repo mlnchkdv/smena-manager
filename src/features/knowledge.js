@@ -442,6 +442,11 @@ IN.knowledgeFolderLayout = el => {
   saveKnowledgePreferences();
   render();
 };
+IN.knowledgeCardDensity = el => {
+  S.ui.knowledgeCardDensity = el.value === 'comfortable' ? 'comfortable' : 'compact';
+  saveKnowledgePreferences();
+  render();
+};
 IN.knowledgeNoteLayout = el => {
   const main = document.querySelector('.knowledge-main');
   const anchor =
