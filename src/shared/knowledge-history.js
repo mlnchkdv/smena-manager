@@ -1,6 +1,8 @@
-const fields = ['title', 'summary', 'formatted_markdown', 'tags', 'category', 'folderId', 'typeId', 'properties'];
+const fields = ['title', 'summary', 'formatted_markdown', 'tags', 'category', 'folderId', 'typeId', 'properties', 'aliases', 'tagAliases'];
 export const KNOWLEDGE_VERSION_FIELDS = {
   typeId: 'Type',
+  aliases: 'Aliases',
+  tagAliases: 'Tag aliases',
   properties: 'Properties',
   title: 'Note title',
   summary: 'Summary',
@@ -10,7 +12,12 @@ export const KNOWLEDGE_VERSION_FIELDS = {
   folderId: 'Folder',
 };
 const snapshot = note =>
-  Object.fromEntries(fields.map(field => [field, note[field] ?? (field === 'tags' ? [] : field === 'properties' ? {} : field === 'typeId' ? 'note' : '')]));
+  Object.fromEntries(
+    fields.map(field => [
+      field,
+      note[field] ?? (['tags', 'aliases', 'tagAliases'].includes(field) ? [] : field === 'properties' ? {} : field === 'typeId' ? 'note' : ''),
+    ]),
+  );
 export const knowledgeVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;
 export function noteHistory(previous, next) {
   const history = Array.isArray(previous?.history) ? previous.history.slice(0, 5) : [];

@@ -4,7 +4,18 @@ import { markdownText } from './markdown-text.js';
 export { searchTerms } from './search-query.js';
 
 export const searchableNote = note =>
-  [note.title, note.summary, note.typeId, ...Object.values(note.properties || {}), note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
+  [
+    note.title,
+    note.summary,
+    note.typeId,
+    ...(note.aliases || []),
+    ...(note.tagAliases || []),
+    ...Object.values(note.properties || {}),
+    note.formatted_markdown,
+    ...(note.tags || []),
+  ]
+    .join(' ')
+    .toLocaleLowerCase();
 export function createKnowledgeMatcher(query) {
   const { terms, rules } = parseKnowledgeQuery(query);
   // A blank search must not read/lowercase the full text of every stored note.

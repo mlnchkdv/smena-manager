@@ -1,3 +1,4 @@
+import { noteAliases } from './knowledge-tags.js';
 import { knowledgeContext } from './knowledge-context.js';
 import '../features/knowledge-inline.js';
 import { noteTypeFields, kc } from './knowledge-types.js';
@@ -77,7 +78,7 @@ export function noteEditor(note, folders, readOnly) {
         )
         .join('')}</select></div>
     </div>
-    <div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
+    ${noteAliases(note, disabled)}<div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
     <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div></div>
     </div></details>
     ${knowledgeContext(note)}${knowledgeHistory(note, readOnly || conflict)}

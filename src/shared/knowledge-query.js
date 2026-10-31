@@ -13,7 +13,7 @@ export function parseKnowledgeQuery(query) {
 export function matchesKnowledgeRules(note, rules) {
   return rules.every(rule => {
     if (rule.field === 'type') return (note.typeId || 'note').toLowerCase() === rule.value;
-    if (rule.field === 'tag') return (note.tags || []).some(tag => tag.toLocaleLowerCase() === rule.value);
+    if (rule.field === 'tag') return [...(note.tags || []), ...(note.tagAliases || [])].some(tag => tag.toLocaleLowerCase() === rule.value);
     if (rule.field === 'has') return Object.hasOwn(note.properties || {}, rule.value) && note.properties[rule.value] !== '';
     const raw = rule.field === 'updated' ? note.updatedAt : note.properties?.[rule.field.slice(6)];
     if (raw == null || raw === '') return false;

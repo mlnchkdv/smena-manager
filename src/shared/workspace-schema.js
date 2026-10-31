@@ -1,3 +1,4 @@
+import { validAliases } from './knowledge-tags.js';
 import { validKnowledgeQueries } from './knowledge-query.js';
 import { ENTITY_COLLECTIONS, RELATION_TYPES } from './relations.js';
 import { assertFileFolder, validateProjectFileFolders } from './file-organization.js';
@@ -231,6 +232,7 @@ export function validateDocumentInput(name, value) {
     for (const id of [...path].reverse()) resolved.set(id, ++depth);
   }
   for (const item of value[contentField]) {
+    if (name === 'knowledge' && (!validAliases(item.aliases) || !validAliases(item.tagAliases))) invalid.push('knowledgeNotes.aliases');
     if (name === 'knowledge' && !validNoteProperties(item)) invalid.push('knowledgeNotes.properties');
     if (
       item.wikiRefs != null &&

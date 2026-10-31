@@ -33,8 +33,10 @@ function linksForNote(note) {
 export function bindWikiReferences(notes = []) {
   const titles = new Map();
   for (const note of notes) {
-    const key = normalizedTitle(note.title);
-    if (key) titles.set(key, [...(titles.get(key) || []), note.id]);
+    for (const name of [note.title, ...(note.aliases || [])]) {
+      const key = normalizedTitle(name);
+      if (key) titles.set(key, [...new Set([...(titles.get(key) || []), note.id])]);
+    }
   }
   for (const note of notes) {
     const previous = Array.isArray(note.wikiRefs) ? note.wikiRefs : [];
