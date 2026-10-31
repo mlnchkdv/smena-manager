@@ -12,6 +12,7 @@ import { searchAll } from '../core/search.js';
 import { t as tr, workspaceRoleLabel } from '../core/i18n.js';
 import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
+import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 
 export function commands() {
   return [
@@ -157,17 +158,15 @@ export function paletteItems() {
   if (sc === 'all' || sc === 'tasks')
     groups.push({
       name: 'Tasks',
-      items: r.tasks
-        .slice(0, lim)
-        .map(t => ({
-          html: stIcon(t.status),
-          name: t.title,
-          authoredName: true,
-          sub: proj(t.project).name,
-          authoredSub: true,
-          r: t.key,
-          run: () => A.openTask({ dataset: { id: t.id } }),
-        })),
+      items: r.tasks.slice(0, lim).map(t => ({
+        html: stIcon(t.status),
+        name: t.title,
+        authoredName: true,
+        sub: proj(t.project).name,
+        authoredSub: true,
+        r: t.key,
+        run: () => A.openTask({ dataset: { id: t.id } }),
+      })),
     });
   if (sc === 'all' || sc === 'projects')
     groups.push({
@@ -203,16 +202,14 @@ export function paletteItems() {
   if (sc === 'all' || sc === 'comments')
     groups.push({
       name: 'Comments',
-      items: r.comments
-        .slice(0, lim)
-        .map(c => ({
-          html: av(c.by, 'sm', false),
-          name: c.text,
-          authoredName: true,
-          sub: task(c.task).title,
-          authoredSub: true,
-          run: () => A.openTask({ dataset: { id: c.task } }),
-        })),
+      items: r.comments.slice(0, lim).map(c => ({
+        html: av(c.by, 'sm', false),
+        name: c.text,
+        authoredName: true,
+        sub: task(c.task).title,
+        authoredSub: true,
+        run: () => A.openTask({ dataset: { id: c.task } }),
+      })),
     });
   if (sc === 'all' || sc === 'knowledge')
     groups.push({
@@ -221,7 +218,7 @@ export function paletteItems() {
         icon: 'file-text',
         name: note.title || 'Untitled note',
         authoredName: !!note.title,
-        sub: note.summary || note.category || 'Knowledge base',
+        sub: note.summary || knowledgeCategoryLabel(note.category) || tr('Knowledge base'),
         authoredSub: !!(note.summary || note.category),
         run: () => A.goKnowledgeNote({ dataset: { id: note.id } }),
       })),
