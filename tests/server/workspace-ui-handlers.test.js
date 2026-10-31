@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { mergeWorkspaceSettings } from '../../src/shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../../src/shared/workspace-slug.js';
 import { canCreateWorkspace } from '../../src/shared/workspace-permissions.js';
+import { isActiveMember } from '../../src/shared/workspace-membership.js';
 
 // Execute the actual UI handlers with an isolated store and DOM boundary.
 // This catches regressions between a correct merge helper and the save action.
@@ -45,6 +46,8 @@ function fixture({ russian = false, active = 'default' } = {}) {
     mergeWorkspaceSettings,
     workspaceSlug,
     canCreateWorkspace,
+    isActiveMember,
+    workspaceRoleLabel: value => value,
     getActiveWorkspace: () => active,
     toast: message => notices.push(message),
     mutate: apply => {

@@ -1,13 +1,14 @@
 import { A, IN, confirmDlg } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { esc, $ } from '../core/utils.js';
-import { isRussian, t } from '../core/i18n.js';
+import { isRussian, t, workspaceRoleLabel } from '../core/i18n.js';
 import { getActiveWorkspace, workspaceDirectoryRequest, deleteAllWorkspaces } from '../core/api.js';
 import { workspaceSyncIsClean, retryWorkspaceSync } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
+import { isActiveMember } from '../shared/workspace-membership.js';
 import { openModal, closeModal, workspaceModalRenderers } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { mutate, toast } from './toast.js';
@@ -130,6 +131,12 @@ A.cancelWorkspaceCreation = () => {
   closeModal();
 };
 
+function creationMembers(m) {
+  if (!m.includeMembers)
+    return `<p class="hint" role="status" translate="no">${copy('Only you will have access initially.', 'Сначала доступ будет только у вас.')}</p>`;
+  const members = (D().members || []).filter(member => isActiveMember(member) && member.id !== D().me);
+  return `<section class="workspace-members-preview" aria-label="${copy('Members to include', 'Добавляемые участники')}" translate="no"><p class="hint" role="status">${copy('Additional members', 'Дополнительные участники')}: ${members.length}</p><ul>${members.map(member => `<li><span>${esc(member.name || member.email)}</span><small>${workspaceRoleLabel(['guest', 'viewer'].includes(String(member.role).toLowerCase()) ? 'viewer' : 'editor')}</small></li>`).join('')}</ul></section>`;
+}
 workspaceModalRenderers.create = (
   m,
   H,
@@ -142,6 +149,7 @@ workspaceModalRenderers.create = (
     <div class="field"><span class="label">${t('Color')}</span>${colorPalette({ label: 'Workspace icon', value: m.color, colors: WORKSPACE_COLORS, action: 'workspaceDraftColor', size: 26 })}</div>
     <label class="row" style="align-items:flex-start;gap:10px"><input type="checkbox" data-in="workspaceDraft" data-k="includeMembers" ${m.includeMembers ? 'checked' : ''} ${m.busy ? 'disabled' : ''}><span>${copy('Include current workspace members', 'Добавить участников текущего пространства')}<span class="hint" style="display:block;margin-top:4px">${copy('They join as members. Guests retain read-only access.', 'Они получат роль участника. Гости сохранят доступ только для чтения.')}</span></span></label>
     </fieldset>
+    ${creationMembers(m)}
     <p class="hint" style="margin:0">${copy('You become the owner. Content and permissions are managed separately in each workspace.', 'Вы станете владельцем. Данные и права в каждом пространстве настраиваются отдельно.')}</p>
     ${m.error ? `<p role="alert" style="color:var(--red);margin:0">${esc(m.error)}</p>` : ''}
   </div><div class="modal-f"><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceCreation" ${m.busy ? 'disabled' : ''}>${m.attempted ? t('Close') : t('Cancel')}</button><button type="submit" class="btn btn-primary ${m.busy ? 'is-loading' : ''}" ${m.busy ? 'disabled' : ''}>${copy(m.busy ? 'Checking creation…' : m.attempted ? 'Check creation' : 'Create workspace', m.busy ? 'Проверка создания…' : m.attempted ? 'Проверить создание' : 'Создать пространство')}</button></div></form>`;
@@ -151,6 +159,7 @@ IN.workspaceDraft = el => {
   if (m?.type === 'workspaceCreate' && !m.busy && !m.attempted) {
     m[el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
     rememberCreation(m);
+    if (el.dataset.k === 'includeMembers') render();
     if (el.dataset.k === 'name' && m.nameError && el.value.trim()) {
       m.nameError = '';
       el.removeAttribute('aria-describedby');

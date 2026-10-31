@@ -45,6 +45,12 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await expect(member.locator('.pop [data-a="newWorkspace"]')).toBeVisible();
       await expect(member.locator('.pop [data-sec="workspace"]')).toHaveCount(0);
       await member.locator('.pop [data-a="newWorkspace"]').click();
+      await expect(member.locator('[data-k="includeMembers"]')).not.toBeChecked();
+      await member.locator('[data-k="includeMembers"]').check();
+      await expect(member.locator('.workspace-members-preview li')).not.toHaveCount(0);
+      await expect(member.locator('.workspace-members-preview')).toContainText('Тестовый администратор');
+      await member.locator('[data-k="includeMembers"]').uncheck();
+      await expect(member.locator('.workspace-members-preview')).toHaveCount(0);
       for (const [width, height] of [
         [320, 676],
         [390, 845],

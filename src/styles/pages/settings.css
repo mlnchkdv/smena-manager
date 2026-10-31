@@ -54,6 +54,35 @@
   display: grid;
   gap: 8px;
 }
+.workspace-members-preview {
+  min-width: 0;
+}
+.workspace-members-preview p {
+  margin: 0 0 6px;
+}
+.workspace-members-preview ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.workspace-members-preview li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 6px;
+  border-bottom: 1px solid var(--divider);
+}
+.workspace-members-preview li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.workspace-members-preview small {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
 .workspace-settings-actions > p {
   margin: 0;
 }
