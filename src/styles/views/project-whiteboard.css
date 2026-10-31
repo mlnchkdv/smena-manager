@@ -413,3 +413,53 @@
   min-height: 36px;
   padding: 6px 0;
 }
+
+.whiteboard-tools {
+  position: relative;
+  flex-shrink: 0;
+}
+.whiteboard-tools > div {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  top: 100%;
+  width: min(300px, calc(100vw - 32px));
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-pop);
+}
+.whiteboard-tools:not([open]) > div {
+  display: none;
+}
+.whiteboard-tools > div > span {
+  width: 100%;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+@media (max-width: 640px) {
+  .whiteboard-toolbar {
+    gap: 2px;
+    padding: 4px;
+    flex-wrap: nowrap;
+  }
+  .whiteboard-toolbar .whiteboard-count,
+  .whiteboard-toolbar > .sp {
+    display: none;
+  }
+  .whiteboard-toolbar > button > span {
+    display: none;
+  }
+  .whiteboard-toolbar > button {
+    min-width: 44px;
+    padding-inline: 8px;
+  }
+  .whiteboard-tools {
+    margin-left: auto;
+  }
+}
