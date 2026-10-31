@@ -617,3 +617,36 @@ h3.sub {
     bottom: calc(76px + env(safe-area-inset-bottom));
   }
 }
+
+/* A saved reader may update without closing it; drafts still block reload. */
+.deployment-update {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 6px 10px;
+  max-width: min(500px, calc(100vw - 24px));
+  border-radius: var(--r-lg);
+}
+.deployment-update > [role='status'] {
+  flex: 1;
+  min-width: 100px;
+  font-size: var(--fs-xs);
+}
+.deployment-update .deployment-update-reason {
+  flex-basis: 100%;
+  order: 4;
+  font-size: var(--fs-xs);
+}
+.deployment-update .btn {
+  min-height: 36px;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .deployment-update {
+    inset-inline: 8px;
+    max-width: none;
+  }
+  .deployment-update .btn {
+    min-height: 44px;
+  }
+}

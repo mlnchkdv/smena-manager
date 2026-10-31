@@ -1,4 +1,8 @@
 // Deliberately conservative: the upgrade must never discard an open form or transfer.
+export function readOnlyDeploymentTarget(ui = {}) {
+  if (ui.modals?.length || ui.pop || ui.knowledgeDirty) return null;
+  return ui.knowledgeDrawer && ui.knowledgeDrawerView === 'preview' ? { kind: 'note', id: ui.knowledgeDrawer } : null;
+}
 export function failedOverlayTarget(ui = {}) {
   if (!ui.overlayLoadFailed || ui.modals?.length || ui.pop || ui.knowledgeDirty) return null;
   if (ui.knowledgeDrawer && ui.knowledgeDrawerView === 'preview') return { kind: 'note', id: ui.knowledgeDrawer };

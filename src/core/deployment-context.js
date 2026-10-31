@@ -1,6 +1,7 @@
+import { whiteboardState } from './whiteboard-state.js';
 import { D, S } from './store.js';
 import { render } from '../shell/render.js';
-import { failedOverlayTarget } from '../shared/deployment-recovery.js';
+import { failedOverlayTarget, readOnlyDeploymentTarget } from '../shared/deployment-recovery.js';
 const KEY = 'smena:deployment-return';
 const workspace = () => JSON.stringify([D().ws?.id, D().ws?.url]);
 let lastFocus = '';
@@ -21,6 +22,13 @@ const fields = [
   'knowledgeTag',
   'knowledgeShowFolders',
   'knowledgeFolderLayout',
+  'knowledgeNoteLayout',
+  'graphQuery',
+  'graphKind',
+  'graphProject',
+  'graphConnected',
+  'graphArchive',
+  'graphDepth',
   'searchQ',
   'searchCat',
 ];
@@ -37,7 +45,15 @@ export function saveDeploymentContext() {
         path: location.pathname,
         at: Date.now(),
         view,
-        overlay: failedOverlayTarget(S.ui),
+        overlay: failedOverlayTarget(S.ui) || readOnlyDeploymentTarget(S.ui),
+        overlayScroll: document.querySelector('.knowledge-drawer-body')?.scrollTop || 0,
+        boardView:
+          S.ui.route === 'whiteboard'
+            ? (() => {
+                const s = whiteboardState();
+                return { id: S.ui.params.id, x: s.x, y: s.y, zoom: s.zoom, outline: !!s.outline };
+              })()
+            : null,
         selector,
         focus: lastFocus.slice(0, 128),
         scroll: document.querySelector(selector)?.scrollTop || 0,
@@ -71,11 +87,24 @@ export function restoreDeploymentContext() {
     if (!current()) return observer.disconnect();
     const target = document.querySelector(value.selector === '.knowledge-main' ? '.knowledge-main' : '#main-content');
     if (!target || document.querySelector('[aria-busy="true"]')) return;
+    if (value.boardView && !document.querySelector('.project-whiteboard')) return;
     if (!applied) {
       applied = true;
       // Let route-local preference initializers run before restoring transient filters.
       for (const key of fields)
         if (['string', 'boolean'].includes(typeof value.view?.[key]) && String(value.view[key]).length <= 1000) S.ui[key] = value.view[key];
+      const b = value.boardView;
+      if (
+        b &&
+        S.ui.route === 'whiteboard' &&
+        b.id === S.ui.params.id &&
+        [b.x, b.y, b.zoom].every(Number.isFinite) &&
+        Math.abs(b.x) <= 10000000 &&
+        Math.abs(b.y) <= 10000000 &&
+        b.zoom >= 0.2 &&
+        b.zoom <= 2.5
+      )
+        Object.assign(whiteboardState(), { x: b.x, y: b.y, zoom: b.zoom, outline: !!b.outline, fit: false });
       const overlay = value.overlay;
       if (overlay?.kind === 'note' && D().knowledgeNotes.some(note => note.id === overlay.id)) {
         S.ui.knowledgeDrawer = overlay.id;
@@ -86,10 +115,12 @@ export function restoreDeploymentContext() {
       return;
     }
     if (document.querySelector('.files-page .panel[role="status"]')) return;
+    if (value.overlay?.kind === 'note' && !document.querySelector('.knowledge-drawer-body')) return;
     observer.disconnect();
     requestAnimationFrame(() => {
       if (!current()) return;
       document.querySelector(value.selector === '.knowledge-main' ? '.knowledge-main' : '#main-content')?.scrollTo(0, Math.max(0, Number(value.scroll) || 0));
+      document.querySelector('.knowledge-drawer-body')?.scrollTo(0, Math.max(0, Number(value.overlayScroll) || 0));
       if (typeof value.focus === 'string') document.getElementById(value.focus)?.focus({ preventScroll: true });
     });
   };

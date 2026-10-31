@@ -2,7 +2,7 @@ import { A } from '../actions/actions.js';
 import { S } from './store.js';
 import { workspaceSyncIsClean, workspaceSyncState } from './workspace-sync.js';
 import { personalPreferenceSyncState } from './personal-preferences.js';
-import { deploymentReloadSafe, failedOverlayTarget } from '../shared/deployment-recovery.js';
+import { deploymentReloadSafe, failedOverlayTarget, readOnlyDeploymentTarget } from '../shared/deployment-recovery.js';
 import { t } from './i18n.js';
 import { saveDeploymentContext } from './deployment-context.js';
 
@@ -24,7 +24,10 @@ export function installDeploymentRecovery(buildId) {
       personal: personalPreferenceSyncState(),
       uploads: S.ui.uploads,
       transfer: S.ui.fileDownload || (['preparing', 'ready'].includes(S.ui.fileNativeTransfer?.phase) && S.ui.fileNativeTransfer),
-      forms: failedOverlayTarget(S.ui) ? false : S.ui.modals?.length || S.ui.drawer || S.ui.knowledgeDrawer || S.ui.pop || S.ui.palette,
+      forms:
+        failedOverlayTarget(S.ui) || readOnlyDeploymentTarget(S.ui)
+          ? false
+          : S.ui.modals?.length || S.ui.drawer || S.ui.knowledgeDrawer || S.ui.pop || S.ui.palette,
       drafts: Object.values(S.ui.drafts || {}).some(value => Boolean(value)),
       loading: S.ui.loading,
       authBusy: S.ui.authBusy,
@@ -56,9 +59,12 @@ export function installDeploymentRecovery(buildId) {
     text.setAttribute('role', 'status');
     text.textContent = t(changed ? 'A new app version is available.' : 'This section could not load. Check for an app update.');
     const hint = document.createElement('small');
+    hint.className = canReload ? 'sr' : 'deployment-update-reason';
     hint.textContent = t(
       canReload ? 'Your saved data and current address will be kept.' : 'Save changes, close open forms and finish transfers before updating.',
     );
+    root.title = hint.textContent;
+    root.classList.toggle('is-blocked', !canReload);
     const button = document.createElement('button');
     button.className = 'btn btn-secondary btn-sm';
     button.textContent = t(changed ? (failedOverlayTarget(S.ui) ? 'Update and reopen' : 'Update app') : 'Check for update');

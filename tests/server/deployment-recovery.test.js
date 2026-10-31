@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deploymentReloadSafe, failedOverlayTarget } from '../../src/shared/deployment-recovery.js';
+import { deploymentReloadSafe, failedOverlayTarget, readOnlyDeploymentTarget } from '../../src/shared/deployment-recovery.js';
 
 test('only failed read-only overlays can be reopened after a deployment', () => {
   const preview = { overlayLoadFailed: true, knowledgeDrawer: 'n1', knowledgeDrawerView: 'preview' };
@@ -30,4 +30,12 @@ test('deployment reload requires a clean session with no forms, recovery errors 
   ]) {
     assert.equal(deploymentReloadSafe({ clean: true, ...block }), false, JSON.stringify(block));
   }
+});
+
+test('only a clean note preview is eligible for context-preserving updates', () => {
+  const ui = { knowledgeDrawer: 'n', knowledgeDrawerView: 'preview' };
+  assert.deepEqual(readOnlyDeploymentTarget(ui), { kind: 'note', id: 'n' });
+  for (const patch of [{ knowledgeDirty: true }, { knowledgeDrawerView: 'edit' }, { modals: [{}] }, { pop: {} }])
+    assert.equal(readOnlyDeploymentTarget({ ...ui, ...patch }), null);
+  assert.equal(readOnlyDeploymentTarget({ drawer: 'task' }), null);
 });
