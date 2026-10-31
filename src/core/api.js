@@ -145,8 +145,8 @@ export const prepareFileArchive = (ids, revision, signal) =>
 export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);
 export const retryNotificationDelivery = () => request('/api/notifications/retry', { method: 'POST' }, true);
 export const sendTestNotification = channel => request('/api/notifications/test', { method: 'POST', body: JSON.stringify({ channel }) }, true);
-export const commitPortableImport = (payload, revision, conflictPolicy) =>
-  request('/api/import/portable', { method: 'POST', body: JSON.stringify({ payload, revision, conflictPolicy }) }, true);
+export const commitPortableImport = (payload, revision, conflictPolicy, includeDefinitions) =>
+  request('/api/import/portable', { method: 'POST', body: JSON.stringify({ payload, revision, conflictPolicy, includeDefinitions }) }, true);
 
 export async function loginWithAccessId(accessId) {
   const result = await request('/api/auth/validate', {

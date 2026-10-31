@@ -389,19 +389,29 @@ export async function listWorkspaceBackups() {
   return storage.listDatabaseBackups();
 }
 
-export async function importPortableWorkspace(payload, expectedRevision, conflictPolicy = 'copy') {
+export async function importPortableWorkspace(payload, expectedRevision, conflictPolicy = 'copy', actor = { role: 'editor' }) {
+  const definitions = ['knowledgeTypes', 'knowledgeTemplates', 'knowledgeQueries'].some(key => Array.isArray(payload?.[key]) && payload[key].length);
+  if (definitions && actor.includeDefinitions === true && actor.role !== 'admin')
+    throw Object.assign(new Error('Only workspace administrators can import shared knowledge definitions.'), {
+      statusCode: 403,
+      code: 'DEFINITIONS_FORBIDDEN',
+    });
   if (!['copy', 'skip'].includes(conflictPolicy)) throw new TypeError('Invalid import conflict policy.');
   let backup;
   let counts;
   let report;
   const data = await mutateWorkspaceDatabase(
     async database => {
-      const result = mergePortableWorkspace(database, payload, { conflictPolicy });
+      const result = mergePortableWorkspace(database, payload, {
+        conflictPolicy,
+        includeDefinitions: actor.role === 'admin' && actor.includeDefinitions !== false,
+      });
       for (const name of DOCUMENT_NAMES) validateDocumentInput(name, workspaceDocumentData(name, result.data));
       backup = await backupSnapshot(database, 'Before portable import');
       counts = result.counts;
       report = result.report;
       database.relations = result.data.relations;
+      if (actor.role === 'admin') database.ws = result.data.ws;
       for (const name of DOCUMENT_NAMES) {
         Object.assign(database, workspaceDocumentData(name, result.data));
         const old = database._documentRevisions[name];

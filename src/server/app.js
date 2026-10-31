@@ -417,7 +417,12 @@ app.get('/api/recovery/export', requireRole('admin'), async (_request, response,
 
 app.post('/api/import/portable', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    response.json(await importPortableWorkspace(request.body?.payload, request.body?.revision, request.body?.conflictPolicy));
+    response.json(
+      await importPortableWorkspace(request.body?.payload, request.body?.revision, request.body?.conflictPolicy, {
+        role: request.user.role,
+        includeDefinitions: request.body?.includeDefinitions,
+      }),
+    );
   } catch (error) {
     next(error);
   }

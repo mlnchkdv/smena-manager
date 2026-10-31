@@ -1,3 +1,7 @@
+import { validNoteTypes, validNoteProperties } from './knowledge-types.js';
+import { validKnowledgeTemplates } from './knowledge-templates.js';
+import { validKnowledgeQueries } from './knowledge-query.js';
+import { materialLink } from './material-links.js';
 import { bindWikiReferences, RELATION_TYPES } from './relations.js';
 const IMPORTANCE = new Set(['low', 'medium', 'high', 'critical']);
 
@@ -42,6 +46,9 @@ function importShape(payload) {
   const hasVaultFolders = Array.isArray(payload.vault_folders) || Array.isArray(payload.knowledgeFolders);
   return {
     notes: list(payload.notes || payload.knowledgeNotes),
+    knowledgeTypes: payload.knowledgeTypes,
+    knowledgeTemplates: payload.knowledgeTemplates,
+    knowledgeQueries: payload.knowledgeQueries,
     relations: list(payload.relations),
     vaultFolders: list(payload.vault_folders || payload.knowledgeFolders),
     links: list(payload.links),
@@ -53,6 +60,9 @@ export function buildPortableWorkspace(data, exportedAt = new Date().toISOString
   return {
     format: 'smena-manager-portable',
     version: 2,
+    knowledgeTypes: list(data.ws?.knowledgeTypes),
+    knowledgeTemplates: list(data.ws?.knowledgeTemplates),
+    knowledgeQueries: list(data.ws?.knowledgeQueries),
     exported_at: exportedAt,
     notes: list(data.knowledgeNotes),
     vault_folders: list(data.knowledgeFolders).map(folder => ({
@@ -147,6 +157,34 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     linkFolders: [...list(current.linkFolders)],
     relations: structuredClone(list(current.relations)),
   };
+  const typeMapping = new Map();
+  if (options.includeDefinitions) {
+    for (const [field, valid] of [
+      ['knowledgeTypes', validNoteTypes],
+      ['knowledgeTemplates', validKnowledgeTemplates],
+      ['knowledgeQueries', validKnowledgeQueries],
+    ]) {
+      if (imported[field] != null && !valid(imported[field])) throw new TypeError('Invalid knowledge definitions.');
+      const existing = structuredClone(data.ws?.[field] || []),
+        used = new Set(existing.map(item => item.id));
+      for (const original of imported[field] || []) {
+        const item = structuredClone(original);
+        if (field === 'knowledgeTemplates') item.typeId = typeMapping.get(item.typeId) || item.typeId;
+        if (field === 'knowledgeQueries')
+          for (const [from, to] of typeMapping) if (from !== to) item.query = item.query.replace(new RegExp('type:' + from + '(?![\\w-])', 'gi'), 'type:' + to);
+        const same = existing.find(e => e.id === item.id);
+        if (same && JSON.stringify(same) === JSON.stringify(item)) {
+          if (field === 'knowledgeTypes') typeMapping.set(item.id, item.id);
+          continue;
+        }
+        const id = uniqueId(item.id, used, idFactory, 'import');
+        if (field === 'knowledgeTypes') typeMapping.set(item.id, id);
+        existing.push({ ...item, id });
+      }
+      if (!valid(existing)) throw new TypeError('Too many knowledge definitions.');
+      data.ws = { ...data.ws, [field]: existing };
+    }
+  }
   const entityMapping = new Map();
   const importedNotes = [];
   const counts = { notes: 0, knowledgeFolders: 0, links: 0, linkFolders: 0, skipped: 0, invalid: 0 };
@@ -194,6 +232,7 @@ export function mergePortableWorkspace(current, payload, options = {}) {
     importedNotes.push(id);
     data.knowledgeNotes.push({
       ...raw,
+      typeId: typeMapping.get(raw.typeId) || raw.typeId,
       id,
       title,
       category: text(raw.category) || 'General',
@@ -251,6 +290,8 @@ export function mergePortableWorkspace(current, payload, options = {}) {
       url: normalizedUrl,
       title: text(raw.title) || parsed.hostname,
       description: text(raw.description),
+      excerpt: typeof raw.excerpt === 'string' ? raw.excerpt.slice(0, 8000) : '',
+      readingStatus: ['unread', 'reading', 'done'].includes(raw.readingStatus) ? raw.readingStatus : raw.is_read ? 'done' : 'unread',
       site_name: text(raw.site_name) || parsed.hostname.replace(/^www\./, ''),
       preview_image: text(raw.preview_image),
       favicon_url: text(raw.favicon_url),
@@ -268,6 +309,14 @@ export function mergePortableWorkspace(current, payload, options = {}) {
   }
 
   for (const note of data.knowledgeNotes.filter(item => importedNotes.includes(item.id))) {
+    if (!validNoteProperties(note)) throw new TypeError('Invalid note properties.');
+    note.formatted_markdown = note.formatted_markdown.replace(/\[\[([^\]\n]+)\]\]/g, (raw, label) => {
+      const link = materialLink(label),
+        target = link && entityMapping.get(link.key);
+      return target ? `[[${target}${link.block ? '#^' + link.block : ''}|${link.label}]]` : raw;
+    });
+    if (note.materialTargets)
+      note.materialTargets = Object.fromEntries(Object.entries(note.materialTargets).map(([path, key]) => [path, entityMapping.get(key) || key]));
     note.wikiRefs = list(note.wikiRefs)
       .filter(ref => ref && typeof ref.label === 'string')
       .map(ref => ({ label: ref.label, target: entityMapping.get(`note:${ref.target}`)?.slice(5) || '' }));
