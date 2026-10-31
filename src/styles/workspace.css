@@ -679,6 +679,15 @@
   gap: 8px;
   max-width: 100%;
 }
+@media (max-width: 900px), (pointer: coarse) {
+  .member-profile-actions > :is(.btn, .ibtn) {
+    min-height: 44px;
+  }
+  .member-profile-actions > .ibtn {
+    width: 44px;
+    min-width: 44px;
+  }
+}
 @media (max-width: 640px) {
   .member-profile-actions {
     display: grid;
