@@ -1,7 +1,40 @@
 .project-view-picker {
   display: none;
 }
+.project-mobile-menu {
+  display: none;
+}
 @media (max-width: 900px) {
+  .proj-h {
+    padding-top: 6px;
+    gap: 4px;
+  }
+  .proj-h .t {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+  }
+  .proj-h .t > :is(.picon, .sp, .project-head-actions, [data-a='toggleFavProj']) {
+    display: none;
+  }
+  .proj-h h1 {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--fs-lg);
+  }
+  .project-mobile-menu {
+    display: inline-flex;
+    flex: 0 0 44px;
+    min-height: 44px;
+  }
+  .proj-h [data-pop='pstatus'] {
+    max-width: 120px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
   .proj-h > .tabs {
     display: none;
   }
@@ -10,7 +43,7 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    padding: 6px 16px 10px;
+    padding: 0 0 6px;
   }
   .project-view-picker .select {
     flex: 1;

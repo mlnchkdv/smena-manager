@@ -1,4 +1,5 @@
 import { isFavorite } from '../core/favorites.js';
+import { actionLabel } from '../ui/action-label.js';
 /* =====================================================================
    PROJECT PAGE + VIEWS: overview, board, list, table, calendar, timeline, files, activity
    ===================================================================== */
@@ -51,17 +52,18 @@ export function pageProject() {
     <div class="proj-h">
       <div class="t">
         ${pIcon(p, 'lg', 18)}
-        <h1 translate="no">${esc(p.name)}</h1>
+        <h1 translate="no" title="${esc(p.name)}">${esc(p.name)}</h1>
         <button class="ibtn ibtn-sm" data-a="toggleFavProj" data-id="${p.id}" data-tip="${isFavorite('project', p) ? 'Remove from favorites' : 'Add to favorites'}" aria-pressed="${isFavorite('project', p)}" aria-label="Favorite" style="${isFavorite('project', p) ? 'color:var(--amber)' : ''}">${ic('star', 15)}</button>
         <button class="pillbtn bordered" data-a="pop" data-pop="pstatus" data-id="${p.id}" aria-label="Project status" style="height:24px"><span class="pdot" style="--c:${PSTAT[p.status].c};border-radius:50%;width:7px;height:7px"></span>${PSTAT[p.status].name}${ic('chevron-down', 12)}</button>
         <span class="sp"></span>
-        <div class="row" style="gap:4px">
+        <div class="row project-head-actions" style="gap:4px">
           <button class="row" data-a="share" data-id="${p.id}" aria-label="Members" style="gap:0">${avStack(p.members, 5, 'md')}</button>
           <button class="ibtn ibtn-sm" data-a="share" data-id="${p.id}" data-tip="Add member" aria-label="Add member">${ic('user-plus', 15)}</button>
           <button class="btn btn-secondary btn-sm hide-m" data-a="share" data-id="${p.id}">${ic('share-2', 13)}Share</button>
           <button class="ibtn ibtn-sm" data-a="editProject" data-id="${p.id}" data-tip="Project settings" aria-label="Project settings">${ic('settings', 15)}</button>
           <button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="More">${ic('ellipsis', 15)}</button>
         </div>
+        <button class="ibtn project-mobile-menu" id="project-mobile-menu-${esc(p.id)}" data-a="ctxBtn" data-ctx="project" data-id="${esc(p.id)}" aria-label="${actionLabel('Project options', p.name)}">${ic('ellipsis', 18)}</button>
       </div>
       ${projectViewPicker(p, tab, views)}<nav class="tabs" aria-label="Project views">
         ${PTABS.map(([k, n, i]) => `<button ${tab === k ? 'aria-current="page"' : ''} class="tab ${tab === k ? 'on' : ''}" data-a="go" data-r="project" data-id="${p.id}" data-tab="${k}">${ic(i, 14)}${n}</button>`).join('')}
