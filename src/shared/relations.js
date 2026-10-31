@@ -1,5 +1,6 @@
 import { canEditProject, canReadProject, entityProjectId } from './project-access.js';
 import { bindWikiReferences } from './knowledge-links.js';
+import { folderTrail } from './knowledge-tools.js';
 export { bindWikiReferences } from './knowledge-links.js';
 
 export const ENTITY_COLLECTIONS = Object.freeze({ note: 'knowledgeNotes', bookmark: 'links', file: 'files', project: 'projects', task: 'tasks' });
@@ -26,6 +27,7 @@ export function workspaceGraph(data, options = {}) {
   const nodes = [];
   const visible = new Set();
   const projectMap = new Map((data.projects || []).map(project => [project.id, project]));
+  const noteFolders = new Map((data.knowledgeFolders || []).map(folder => [folder.id, folder]));
   const projectIds = new Set((data.projects || []).filter(project => options.includeArchived || !project.archived).map(project => project.id));
   for (const [kind, field] of Object.entries(ENTITY_COLLECTIONS)) {
     for (const item of data[field] || []) {
@@ -33,7 +35,17 @@ export function workspaceGraph(data, options = {}) {
       const project = kind === 'project' ? item.id : entityProjectId(item, data);
       if (!options.includeArchived && (item.archived || item.is_archived || (project && !projectIds.has(project)))) continue;
       if (project && !canReadProject(projectMap.get(project), options.memberId || data.me, options.role || 'viewer')) continue;
-      nodes.push({ key, kind, id: item.id, title: item.title || item.name || item.url || item.id, project, tags: item.tags || [], item });
+      const context = [
+        kind === 'note'
+          ? folderTrail(item.folderId, noteFolders)
+              .map(folder => folder.name)
+              .join(' / ')
+          : '',
+        projectMap.get(project)?.name || '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
+      nodes.push({ key, kind, id: item.id, title: item.title || item.name || item.url || item.id, project, context, tags: item.tags || [], item });
       visible.add(key);
     }
   }

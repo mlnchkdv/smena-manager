@@ -25,7 +25,7 @@ function publicNode(node) {
   const item = Object.fromEntries(
     ['summary', 'description', 'url'].filter(key => typeof node.item[key] === 'string').map(key => [key, node.item[key].slice(0, 1000)]),
   );
-  return { key: node.key, kind: node.kind, id: node.id, title: node.title, tags: node.tags, project: node.project, item };
+  return { key: node.key, kind: node.kind, id: node.id, title: node.title, tags: node.tags, project: node.project, context: node.context, item };
 }
 
 export function queryGraph(data, user, input) {

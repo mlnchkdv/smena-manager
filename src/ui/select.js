@@ -70,12 +70,12 @@ export const selectMenu = {
     menu.className = 'pop select-menu enter';
     menu.setAttribute('role', 'listbox');
     menu.setAttribute('data-pop-root', '');
-    const searchable = !!sel.closest('.knowledge-shell,.knowledge-drawer') && sel.options.length > 15;
+    const searchable = sel.hasAttribute('data-searchable') || (!!sel.closest('.knowledge-shell,.knowledge-drawer') && sel.options.length > 15);
     const optionHtml = options =>
       options
         .map(
           o =>
-            `<button type="button" class="mi" role="option" data-i="${o.index}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="trunc grow" ${sel.options[o.index]?.closest('[translate="no"]') ? 'translate="no"' : ''}>${esc(o.text)}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
+            `<button type="button" class="mi" role="option" data-i="${o.index}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><span class="grow select-option-copy"><span class="trunc" ${sel.options[o.index]?.closest('[translate="no"]') ? 'translate="no"' : ''}>${esc(o.text)}</span>${o.context ? `<small class="select-option-context" translate="no">${esc(o.context)}</small>` : ''}</span>${o.selected ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`,
         )
         .join('');
     if (searchable) {
@@ -141,7 +141,7 @@ export const selectMenu = {
         const query = repeated ? key : searchPrefix;
         const start = repeated ? i + 1 : Math.max(0, i);
         Array.from({ length: items.length }, (_, offset) => items[(start + offset) % items.length])
-          .find(item => item.querySelector('.grow').textContent.trim().toLocaleLowerCase().startsWith(query))
+          .find(item => item.querySelector('.trunc').textContent.trim().toLocaleLowerCase().startsWith(query))
           ?.focus();
       }
     });

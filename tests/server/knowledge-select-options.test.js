@@ -12,6 +12,9 @@ test('large pickers keep original option identities and reach choices beyond the
   assert.equal(result.options[0].index, 999);
   assert.equal(result.options[0].selected, true);
   assert.equal(knowledgeSelectOptions(options, 'нет').total, 0);
+  const contextual = knowledgeSelectOptions([{ text: 'Same title', dataset: { context: 'Note · Team / Policies' } }], 'policies same');
+  assert.equal(contextual.options[0].index, 0);
+  assert.equal(contextual.options[0].context, 'Note · Team / Policies');
 });
 test('folder trails reuse a shared identity map and guard malformed cycles', () => {
   const folders = [

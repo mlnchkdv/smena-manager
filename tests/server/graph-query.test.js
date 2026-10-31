@@ -89,3 +89,16 @@ test('graph reads fence core/document revisions and recheck membership before ex
   data.members[0].status = 'deactivated';
   assert.throws(() => queryGraph(data, user, options), { statusCode: 401 });
 });
+
+test('graph context disambiguates visible notes without exposing private project metadata', () => {
+  const data = fixture();
+  data.knowledgeFolders = [
+    { id: 'a', name: 'Policies' },
+    { id: 'b', name: 'Team', parentId: 'a' },
+  ];
+  data.knowledgeNotes[0].folderId = 'b';
+  data.projects[1].name = 'Hidden context';
+  const view = queryGraph(data, user, { ...options, kind: 'note' });
+  assert.equal(view.nodes.find(node => node.id === 'n').context, 'Policies / Team');
+  assert.equal(JSON.stringify(queryGraph(data, user, options)).includes('Hidden context'), false);
+});

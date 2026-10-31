@@ -64,7 +64,17 @@ export function pageGraph() {
         requestAnimationFrame(() => document.querySelector('.graph-detail')?.scrollIntoView({ block: 'nearest', behavior: 'auto' }));
     });
   const controls = `<div class="graph-controls"><button class="ibtn" data-a="graphControl" data-command="in" aria-label="Zoom in">${ic('plus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="out" aria-label="Zoom out">${ic('minus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="fit" aria-label="Fit graph">${ic('maximize', 15)}</button></div>`;
-  const navigator = `<div class="graph-locator"><label for="graph-locate">Locate material</label><select class="select" id="graph-locate" data-in="graphLocate"><option value="">Choose material</option>${view.nodes.map(node => `<option value="${esc(node.key)}" ${selected?.key === node.key ? 'selected' : ''} translate="no">${esc(node.title)}</option>`).join('')}</select></div>`;
+  const contexts = view.nodes.map(node =>
+    [tr(ENTITY_LABELS[node.kind]), node.context || (node.kind === 'note' ? tr('No folder') : '')].filter(Boolean).join(' · '),
+  );
+  const signatures = view.nodes.map((node, index) => `${node.title}\n${contexts[index]}`);
+  const navigator = `<div class="graph-locator"><label for="graph-locate">Locate material</label><select class="select" id="graph-locate" data-in="graphLocate" data-searchable><option value="">Choose material</option>${view.nodes
+    .map((node, index) => {
+      const duplicate = signatures.filter(signature => signature === signatures[index]).length > 1;
+      const context = contexts[index] + (duplicate ? ` · #${signatures.slice(0, index + 1).filter(signature => signature === signatures[index]).length}` : '');
+      return `<option value="${esc(node.key)}" data-context="${esc(context)}" ${selected?.key === node.key ? 'selected' : ''} translate="no">${esc(node.title)}</option>`;
+    })
+    .join('')}</select></div>`;
   const legend = Object.entries(GRAPH_KINDS)
     .filter(([kind]) => view.nodes.some(node => node.kind === kind))
     .map(([kind, meta]) => `<span class="graph-kind" style="--node-color:var(${meta.color})">${ic(meta.icon, 12)}<span>${ENTITY_LABELS[kind]}</span></span>`)
