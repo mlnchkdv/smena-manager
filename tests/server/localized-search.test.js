@@ -34,3 +34,29 @@ test('label popover searches translated names without translating authored lists
   S.ui.pop.q = 'Frontend';
   assert.match(context.popList(items), />Frontend</);
 });
+
+test('palette returns executable commands for visible translated and original names', () => {
+  const S = { ui: { palette: { mode: 'cmd', q: 'создать задачу' } } };
+  const source = readFileSync(new URL('../../src/overlays/palette.js', import.meta.url), 'utf8');
+  const run = () => {};
+  const context = {
+    S,
+    matchesLocalizedName,
+    tr: ru,
+    commands: () => [{ id: 'c-task', name: 'Create task', run }],
+    searchAll: () => ({ tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [] }),
+    esc: value => value,
+  };
+  vm.runInNewContext(
+    source
+      .slice(source.indexOf('export function paletteItems'), source.indexOf('export function ', source.indexOf('export function paletteItems') + 1))
+      .replace('export ', ''),
+    context,
+  );
+  for (const q of ['создать задачу', 'CREATE TASK']) {
+    S.ui.palette.q = q;
+    const command = context.paletteItems().find(group => group.name === 'Commands')?.items[0];
+    assert.equal(command?.id, 'c-task');
+    assert.equal(command?.run, run);
+  }
+});

@@ -13,6 +13,7 @@ import { t as tr, workspaceRoleLabel } from '../core/i18n.js';
 import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
 import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
+import { matchesLocalizedName } from '../shared/localized-search.js';
 
 export function commands() {
   return [
@@ -86,7 +87,7 @@ export function paletteItems() {
     return groups;
   }
   if (pl.mode === 'cmd') {
-    const cmds = commands().filter(c => !q || c.name.toLowerCase().includes(ql));
+    const cmds = commands().filter(c => matchesLocalizedName(c.name, q, tr, c.aliases));
     if (!q) {
       groups.push({ name: 'Suggestions', items: cmds.slice(0, 3).concat(cmds.filter(c => c.id === 'c-dark' || c.id === 'c-ws')) });
       const recent = sortTasks(
