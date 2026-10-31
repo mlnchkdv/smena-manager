@@ -1,5 +1,7 @@
 # Smena Manager
 
+**RU / EN:** [Внедрение 11 пунктов / 11-item delivery](docs/UI_UX_DELIVERY_2026-10-31_ELEVEN.md) · [Инструкции RU](docs/KNOWLEDGE_WHITEBOARD_GUIDE_RU.md) · [User guide EN](docs/KNOWLEDGE_WHITEBOARD_GUIDE_EN.md).
+
 ## Кратко / Short description
 
 **RU:** Smena Manager — совместное рабочее пространство команды: задачи, проекты, календарь, входящие, уведомления, файлы, база знаний, закладки и граф связей между материалами. Приложение поддерживает русский и английский языки, Google Sign-In, хранение JSON-документов в Google Drive и Web Push/Gmail-уведомления без PostgreSQL. Подробный двуязычный контекст для передачи другим моделям находится в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
