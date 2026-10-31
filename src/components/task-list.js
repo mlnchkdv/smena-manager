@@ -153,13 +153,13 @@ export function actHtml(a, opt = {}) {
 }
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);
-  return `<div class="mini ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-id="${t.id}" data-ctx="task">
+  return `<div class="mini mini-task ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-id="${t.id}" data-ctx="task">
     <label class="mini-complete-target"><input type="checkbox" class="check round" ${S.ui.currentUser?.role === 'viewer' ? 'disabled' : ''} ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Complete ${esc(t.title)}"></label>
-    <span data-tip="${ST[t.status].name}">${stIcon(t.status)}</span>
-    <button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</button>
+    <span class="mini-task-status" data-tip="${ST[t.status].name}">${stIcon(t.status)}</span>
+    <div class="mini-task-content"><button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</button><div class="mini-task-context">${opt.noProj ? '' : `<span class="trunc" translate="no">${esc(p?.name || '')}</span>`}${t.due ? dueHtml(t, false) : ''}</div></div>
     ${opt.noProj ? '' : `<span class="pj hide-m"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p.name)}</span></span>`}
-    <span data-tip="${PR[t.priority].name} priority">${prIcon(t.priority)}</span>
-    <span style="width:74px;text-align:right" class="hide-m">${dueHtml(t, false)}</span>
+    ${t.priority !== 'none' ? `<span data-tip="${PR[t.priority].name} priority">${prIcon(t.priority)}</span>` : ''}
+    <span style="width:74px;text-align:right" class="hide-m mini-task-due">${dueHtml(t, false)}</span>
     ${opt.av === false ? '' : av(t.assignee, 'sm')}
   </div>`;
 }
