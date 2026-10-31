@@ -38,7 +38,8 @@ export function validKnowledgeQueries(items) {
         item.name.trim() &&
         item.name.length <= 80 &&
         typeof item.query === 'string' &&
-        item.query.length <= 1000,
+        item.query.length <= 1000 &&
+        (item.query.match(/"[^"]+"|\S+/g) || []).length <= 16,
     )
   );
 }

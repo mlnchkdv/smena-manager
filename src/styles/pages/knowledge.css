@@ -1878,7 +1878,7 @@
 }
 .knowledge-context-result > span {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-3);
   white-space: pre-wrap;
 }
 
@@ -1912,12 +1912,12 @@
   padding: 10px 12px;
   margin-block: 8px;
   border-left: 3px solid var(--accent);
-  background: var(--bg-alt);
+  background: var(--surface-2);
   overflow-wrap: anywhere;
 }
 .knowledge-transclusion > strong {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text-3);
 }
 .knowledge-block-anchor {
   display: block;
@@ -1951,4 +1951,15 @@
   .knowledge-editor-mode > .knowledge-format-toggle {
     display: none;
   }
+}
+
+.knowledge-query-builder {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  min-width: 0;
+}
+.knowledge-tool-dialog :is(.field, input, textarea, select) {
+  min-width: 0;
+  max-width: 100%;
 }
