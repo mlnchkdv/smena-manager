@@ -1946,6 +1946,14 @@
 .knowledge-editor[data-pane='preview'] .knowledge-writing {
   grid-template-columns: minmax(0, 1fr);
 }
+.knowledge-editor[data-pane='preview'] .knowledge-desktop-preview {
+  display: none;
+}
+@media (max-height: 500px) {
+  .knowledge-desktop-preview {
+    display: none;
+  }
+}
 @media (min-width: 701px) and (min-height: 501px) {
   .knowledge-editor-mode > .knowledge-save-status,
   .knowledge-editor-mode > .knowledge-format-toggle {

@@ -17,6 +17,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Preview alongside': 'Предпросмотр рядом',
   'Team tasks': 'Задачи команды',
   'Your list is empty. Explore workspace tasks or switch to Team overview.':
     'Ваш список пуст. Посмотрите задачи пространства или переключитесь на обзор команды.',

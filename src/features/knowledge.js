@@ -321,13 +321,19 @@ A.setKnowledgeEditorPane = el => {
   restoreKnowledgeEditorPosition(pane);
 };
 A.toggleKnowledgeEditorPreview = () => {
+  if (S.ui.knowledgeEditorPane === 'preview') {
+    A.setKnowledgeEditorPane({ dataset: { pane: 'source' } });
+    return;
+  }
   if ((document.querySelector('.knowledge-editor')?.clientWidth || innerWidth) <= 700 || matchMedia('(max-height: 500px)').matches) {
     A.setKnowledgeEditorPane({ dataset: { pane: S.ui.knowledgeEditorPane === 'preview' ? 'source' : 'preview' } });
     return;
   }
+  captureKnowledgeEditorPosition();
   S.ui.knowledgeEditorPreview = !S.ui.knowledgeEditorPreview;
   if (!S.ui.knowledgeEditorPreview) S.ui.knowledgeEditorPane = 'source';
   render();
+  restoreKnowledgeEditorPosition('source');
 };
 window.addEventListener('resize', () => {
   const editor = document.querySelector('.knowledge-editor');
