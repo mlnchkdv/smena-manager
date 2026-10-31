@@ -22,6 +22,15 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.whiteboard-card-content')).toHaveText('Saved outside projects');
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.locator('[data-a="whiteboardToggleFocus"]').click();
+  const focusBox = await page.locator('.project-whiteboard.is-focused').boundingBox();
+  expect(focusBox.height).toBeLessThanOrEqual(391);
+  const canvasBox = await page.locator('.whiteboard-viewport').boundingBox();
+  expect(canvasBox.y + canvasBox.height).toBeLessThanOrEqual(391);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.project-whiteboard')).not.toHaveClass(/is-focused/);
+  await page.setViewportSize({ width: 1366, height: 768 });
   const demandResponse = await (await page.request.get('/api/workspace', { headers: { 'X-Smena-Whiteboards': 'demand' } })).json();
   expect(demandResponse.whiteboardCatalog.entries.find(b => b.id === publicId).cards).toBe(1);
   expect(demandResponse.data.whiteboards.every(b => !Object.hasOwn(b, 'whiteboard'))).toBeTruthy();
@@ -88,6 +97,13 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
     expect(await page.locator('.modal').evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
     await page.locator('.modal [data-a="closeModal"]').first().click();
   }
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.reload();
+  await expect(page.locator('.whiteboards-desktop-filters [data-field="view"]')).toHaveValue('list');
+  await page.locator('.whiteboards-desktop-filters [data-field="project"]').selectOption('none');
+  await page.reload();
+  await expect(page.locator('.whiteboards-desktop-filters [data-field="project"]')).toHaveValue('none');
+  await page.locator('[data-a="resetWhiteboardCatalog"]').click();
   await page.goto('/e2e-team/search');
   await page.locator('#search-page-q').fill('Saved outside projects');
   await page.locator(`[data-a="openRelatedEntity"][data-key="whiteboard:${publicId}"]`).click();
@@ -120,6 +136,18 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.whiteboard-add')).toBeVisible();
+  if (test.info().project.name === 'chromium') {
+    await page.locator('[data-a="whiteboardZoomIn"]').click();
+    const zoom = await page.locator('.whiteboard-scale').textContent();
+    await page.route('**/app-version.json', route => route.fulfill({ json: { version: 'e2e-next-whiteboard-build' } }));
+    await page.evaluate(() => window.dispatchEvent(new Event('vite:preloadError')));
+    const update = page.locator('.deployment-update button').first();
+    await expect(update).toBeEnabled();
+    await page.unroute('**/app-version.json');
+    await Promise.all([page.waitForEvent('domcontentloaded'), update.click()]);
+    await expect(page.locator('.whiteboard-scale')).toHaveText(zoom);
+    await expect(page.locator('.whiteboard-card-content')).toHaveText('Saved outside projects');
+  }
 });
 
 test('whiteboard native and Canvas interchange previews limitations checks access and preserves replacements', async ({ page }) => {
@@ -228,9 +256,22 @@ test('personal graph and board layouts retain camera pins filters and account is
     })),
   );
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
-  const data = (await (await page.request.get('/api/workspace')).json()).data,
-    project = data.projects.find(p => !p.private && p.access !== 'private') || data.projects[0];
-  const boardPath = await projectBoardPath(page, project.id);
+  const data = (await (await page.request.get('/api/workspace')).json()).data;
+  const publicBoardId = 'layout-board-public';
+  if (!data.whiteboards.some(b => b.id === publicBoardId)) {
+    data.whiteboards.push({
+      id: publicBoardId,
+      name: 'Shared layout test',
+      desc: '',
+      project: '',
+      by: data.me,
+      at: new Date().toISOString(),
+      archived: false,
+      whiteboard: { version: 1, nodes: [], edges: [] },
+    });
+    expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  }
+  const boardPath = `/e2e-team/whiteboard/${publicBoardId}`;
   const saveLayout = async name => {
     await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
     await page.locator('[data-a="saveDiagramView"]').click();
@@ -243,6 +284,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   await page.locator('#graph-locate').selectOption('note:layout-note-0');
   await page.locator('[data-a="toggleGraphPin"]').click();
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-a="toggleGraphPin"]')).toContainText(/Unpin|Открепить/);
   await page.locator('[data-a="clearGraphSelection"]').click();
   await page.locator('[data-command="in"]').click();
   await saveLayout('Graph plan');
@@ -255,6 +297,9 @@ test('personal graph and board layouts retain camera pins filters and account is
   await page.locator('[data-a="whiteboardZoomIn"]').click();
   const scale = await page.locator('.whiteboard-scale').textContent();
   await saveLayout('Board plan');
+  await expect(page.locator('[data-diagram-status]')).toContainText(/Saved|Сохранено/);
+  await page.locator('[data-a="whiteboardZoomIn"]').click();
+  await expect(page.locator('[data-diagram-status]')).toContainText(/Changed|Изменено/);
   await page.reload();
   await expect(page.locator('.whiteboard-scale')).toHaveText(scale);
   for (const language of ['Русский', 'English (US)']) {

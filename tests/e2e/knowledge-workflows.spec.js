@@ -79,6 +79,7 @@ test('quick capture preserves text when its file upload fails', async ({ page })
 });
 
 test('knowledge reading editing history search and mobile folders work in Russian and English', async ({ page }) => {
+  page.setDefaultTimeout(15000);
   await page.goto('/');
   await page.locator('#l-access').fill('e2e-access-id-2026-secure');
   await page.locator('#login-btn').click();
@@ -135,6 +136,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
   await page.locator('.knowledge-type-fields>summary').click();
   await expect(page.locator('[data-in="noteProperty"][data-field="review"]')).toHaveValue('2026-12-01');
+  await page.locator('.knowledge-outline > summary').click();
   await page.locator('.knowledge-reader-tools [data-a="keepKnowledgeOffline"]').click();
   await expect(page.locator('.toast')).toContainText('Доступно в офлайн-библиотеке', { timeout: 20000 });
   const offline = await page.context().newPage();
@@ -163,8 +165,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('#knowledge-body').fill('Second reference');
   await waitSaved(page);
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
-  await openViewOptions(page);
-  await page.locator('[data-a="knowledgeArchive"]').click();
+  await page.locator('[data-a="knowledgeLibraryTools"]').click();
+  await page.locator('[data-command="knowledgeArchive"]').click();
   await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText('Архив базы знаний');
   const downloadPromise = page.waitForEvent('download');
   await page.locator('[data-a="exportKnowledgeArchive"]').click();
@@ -201,14 +203,14 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('[data-in="knowledgeQuery"]').fill('"original knowledge"');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await expect(page.locator('.knowledge-preview-excerpt mark')).toHaveText('Original knowledge');
-  await openViewOptions(page);
-  await page.locator('[data-a="saveKnowledgeView"]').click();
+  await page.locator('[data-a="knowledgeLibraryTools"]').click();
+  await page.locator('[data-command="saveKnowledgeView"]').click();
   await page.locator('#prompt-in').fill('Pinned review');
   await page.locator('[data-a="promptSubmit"]').click();
   await page.reload();
-  await openViewOptions(page);
-  await expect(page.locator('[data-a="applyKnowledgeView"]')).toHaveText('Pinned review');
-  await page.locator('[data-a="applyKnowledgeView"]').click();
+  await page.locator('[data-a="knowledgeLibraryTools"]').click();
+  await expect(page.locator('[data-a="openSavedKnowledgeSearch"]')).toHaveText('Pinned review');
+  await page.locator('[data-a="openSavedKnowledgeSearch"]').click();
   await page.keyboard.press('Escape');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await page.locator('.knowledge-preview-open').click();
@@ -286,7 +288,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.screenshot({ path: 'output/playwright/knowledge-mixed-local-desktop-20261022.png' });
   await openViewOptions(page);
   await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
-  await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveCount(0);
+  await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toBeDisabled();
   await openViewOptions(page);
   await page.locator('[data-a="toggleKnowledgeFolderCards"]').click();
   await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveValue('inline');
@@ -299,13 +301,13 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
-    await openViewOptions(page);
-    await page.locator('[data-a="noteTemplates"]').click();
+    await page.locator('[data-a="knowledgeLibraryTools"]').click();
+    await page.locator('[data-command="noteTemplates"]').click();
     await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText(language === 'Русский' ? 'Шаблоны заметок' : 'Note templates');
     expect(await page.locator('.knowledge-tool-dialog').evaluate(el => el.getBoundingClientRect().right)).toBeLessThanOrEqual(321);
     await page.locator('.knowledge-tool-dialog [data-a="closeModal"]').last().click();
-    await openViewOptions(page);
-    await page.locator('[data-a="knowledgeArchive"]').click();
+    await page.locator('[data-a="knowledgeLibraryTools"]').click();
+    await page.locator('[data-command="knowledgeArchive"]').click();
     await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText(language === 'Русский' ? 'Архив базы знаний' : 'Knowledge archive');
     expect(await page.locator('.knowledge-tool-dialog').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
     await page.locator('.knowledge-tool-dialog [data-a="closeModal"]').last().click();
@@ -334,12 +336,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('[data-a="focusKnowledgeNotes"]')).toHaveAttribute('aria-label', language === 'Русский' ? 'К заметкам' : 'Jump to notes');
     await page.locator('[data-a="focusKnowledgeNotes"]').press('Enter');
     await expect(page.locator('.knowledge-preview-open').first()).toBeFocused();
-    const intakeGap = await page.locator('.knowledge-content-actions').evaluate(el => {
-      const a = el.querySelector('[data-a="chooseKnowledgeFiles"]').getBoundingClientRect();
-      const b = el.querySelector('[data-a="newKnowledgeNote"]').getBoundingClientRect();
-      return Math.abs(a.top - b.top) < 2 ? b.left - a.right : b.top - a.bottom;
-    });
-    expect(intakeGap).toBeGreaterThanOrEqual(7.5);
+    await expect(page.locator('.knowledge-content-actions [data-a="chooseKnowledgeFiles"]')).toBeHidden();
+    await expect(page.locator('.knowledge-create-label')).toBeVisible();
+    expect((await page.locator('.knowledge-create > [data-a="newKnowledgeNote"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
     await page.locator('#knowledge-import-files').setInputFiles(
       Array.from({ length: 4 }, (_, i) => ({
         name: `Mobile import ${i}.${i % 2 ? 'txt' : 'md'}`,
@@ -374,7 +373,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('[data-in="knowledgeFolderQuery"]')).not.toBeFocused();
     await expect(page.locator('.knowledge-sidebar')).toHaveAttribute('aria-label', folderLabel);
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
-    await page.locator('.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="kb-child"]').click();
+    await page.locator('.knowledge-sidebar .knowledge-folder[data-folder="kb-child"]').click();
     await expect(page.locator('#knowledge-view-title')).toBeFocused();
     await expect(page.locator('#knowledge-view-title')).toHaveAccessibleName('Guides');
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toHaveCount(0);
@@ -528,7 +527,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     ).toBeTruthy();
     await page.locator('.knowledge-content .knowledge-mobile-folder-button').click();
     await page.locator('[data-in="knowledgeFolderQuery"]').fill(`${parent} "Subfolder ${target}"`);
-    await page.locator(`.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="scale-folder-${target}"]`).click();
+    await page.locator(`.knowledge-sidebar .knowledge-folder[data-folder="scale-folder-${target}"]`).click();
     await expect(page.locator('#knowledge-view-title')).toBeFocused();
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     await expect(page.locator('.knowledge-folder-browser')).toHaveClass(/knowledge-folder-browser-compact/);

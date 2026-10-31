@@ -385,8 +385,8 @@ test('knowledge display menu stays usable and retains layout across languages an
         await page.screenshot({ path: `output/playwright/knowledge-view-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
       await panel.locator('[data-a="closeKnowledgeViewOptions"]').click();
       await expect(menu.locator(':scope > summary')).toBeFocused();
-      await menu.locator(':scope > summary').click();
-      await panel.locator('[data-a="knowledgeArchive"]').click();
+      await page.locator('[data-a="knowledgeLibraryTools"]').click();
+      await page.locator('[data-command="knowledgeArchive"]').click();
       await expect(page.getByRole('dialog').getByRole('heading')).toHaveText(language === 'Русский' ? 'Архив базы знаний' : 'Knowledge archive');
       await page.getByRole('dialog').locator('[data-a="closeModal"]').first().click();
     }
