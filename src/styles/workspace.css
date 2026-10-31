@@ -661,3 +661,35 @@
     margin: 0;
   }
 }
+.member-profile-identity {
+  min-width: min(220px, 100%);
+  overflow-wrap: anywhere;
+}
+.member-profile-email {
+  min-width: 0;
+  max-width: 100%;
+}
+.member-profile-email > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.member-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .member-profile-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 44px;
+    width: 100%;
+  }
+  .member-profile-actions > :is(.btn, .ibtn) {
+    min-width: 0;
+    min-height: 44px;
+    height: auto;
+    padding: 8px;
+    white-space: normal;
+  }
+}

@@ -151,13 +151,13 @@ export function pageMember() {
     .activity.filter(a => a.by === m.id)
     .slice(0, 8);
   const tab = S.ui.memTab || 'assigned';
-  return `<div class="page">
-    <div class="row" style="gap:18px;margin-bottom:22px;flex-wrap:wrap;align-items:flex-start">
+  return `<div class="page member-profile">
+    <div class="row member-profile-head" style="gap:18px;margin-bottom:22px;flex-wrap:wrap;align-items:flex-start">
       ${av(m.id, 'xl ' + (m.last != null && m.last < 5 ? 'presence' : ''), false)}
-      <div class="grow" style="min-width:220px"><div class="row" style="gap:10px;flex-wrap:wrap"><h1 style="font-size:var(--fs-2xl);margin:0;font-weight:600;letter-spacing:-.02em" translate="no">${esc(m.name)}</h1><span class="badge">${m.role === 'Owner' ? ic('crown', 11) : ''}${m.role}</span>${m.status === 'invited' ? '<span class="badge amber">Invite pending</span>' : ''}</div>
+      <div class="grow member-profile-identity"><div class="row" style="gap:10px;flex-wrap:wrap"><h1 style="font-size:var(--fs-2xl);margin:0;font-weight:600;letter-spacing:-.02em" translate="no">${esc(m.name)}</h1><span class="badge">${m.role === 'Owner' ? ic('crown', 11) : ''}${m.role}</span>${m.status === 'invited' ? '<span class="badge amber">Invite pending</span>' : ''}</div>
         <div class="muted" style="margin-top:3px"><span translate="no">${esc(m.title)}</span> · <span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div>
-        <div class="row faint" style="margin-top:8px;gap:14px;font-size:12.5px;flex-wrap:wrap"><span class="row" style="gap:5px">${ic('mail', 13)}<span style="user-select:all" translate="no">${esc(m.email)}</span></span><span class="row" style="gap:5px">${ic('map-pin', 13)}${esc(m.tz)}</span><span class="row" style="gap:5px">${ic('clock', 13)}${tr('Recorded activity')}: ${recordedMemberLabel(m, activity)}</span></div></div>
-      <div class="row"><button class="btn btn-secondary" data-a="copyText" data-text="${esc(m.email)}">${ic('copy', 14)}Copy email</button><button class="btn btn-primary" data-a="newTask" data-assignee="${m.id}">${ic('plus', 14)}Assign task</button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="More">${ic('ellipsis', 16)}</button></div>
+        <div class="row faint" style="margin-top:8px;gap:14px;font-size:12.5px;flex-wrap:wrap"><span class="row member-profile-email" style="gap:5px">${ic('mail', 13)}<span style="user-select:all" translate="no">${esc(m.email)}</span></span>${m.tz?.trim() ? `<span class="row" style="gap:5px">${ic('map-pin', 13)}<span translate="no">${esc(m.tz)}</span></span>` : ''}<span class="row" style="gap:5px">${ic('clock', 13)}${tr('Recorded activity')}: ${recordedMemberLabel(m, activity)}</span></div></div>
+      <div class="member-profile-actions"><button class="btn btn-secondary" data-a="copyText" data-text="${esc(m.email)}" aria-label="Copy email" title="Copy email">${ic('copy', 14)}<span class="hide-m">Copy email</span><span class="only-m">Copy</span></button><button class="btn btn-primary" data-a="newTask" data-assignee="${m.id}">${ic('plus', 14)}Assign task</button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="More">${ic('ellipsis', 16)}</button></div>
     </div>
     <div class="stats" style="margin-bottom:18px">
       <div class="stat"><span class="k">Active projects</span><span class="v">${ps.length}</span></div>
