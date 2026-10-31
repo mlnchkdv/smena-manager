@@ -1,5 +1,7 @@
 # Smena Manager
 
+**RU / EN:** [Внедрение 12 улучшений / 12-item delivery](docs/UI_UX_DELIVERY_2026-11-01_TWELVE.md).
+
 **RU / EN:** [Самостоятельные холсты и новый UI/UX-аудит / Independent whiteboards and UX audit](docs/UI_UX_AUDIT_2026-10-31_WORKSPACE_WHITEBOARDS.md).
 
 **RU / EN:** [Внедрение 11 пунктов / 11-item delivery](docs/UI_UX_DELIVERY_2026-10-31_ELEVEN.md) · [Инструкции RU](docs/KNOWLEDGE_WHITEBOARD_GUIDE_RU.md) · [User guide EN](docs/KNOWLEDGE_WHITEBOARD_GUIDE_EN.md).

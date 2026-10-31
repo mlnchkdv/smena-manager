@@ -1,6 +1,6 @@
 # Knowledge, whiteboards and graph: everyday workflows
 
-Updated for the 31 October 2026 audit implementation. In-app guidance is available under **Settings → Help & resources**.
+Updated on 1 November 2026 after the 12-item audit implementation. In-app guidance is available under **Settings → Help & resources**.
 
 ## Notes
 
@@ -10,6 +10,12 @@ Updated for the 31 October 2026 audit implementation. In-app guidance is availab
 4. Display → Card details chooses type visibility and up to three fields for each type. Empty values are hidden. This setting is personal and synced within the workspace.
 5. On phones, tap the folder name above the catalog. Pin frequent folders, use recent folders and Parent folder. The move dialog retains query and list position when returning.
 6. Check the explicit search scope. Switching to the whole library keeps the query. Expand conditions to remove one; all conditions must match (AND). A saved collection indicates when its query has been modified.
+
+## Display, reading and tools
+
+Display controls grid/compact list, folders and card details. Mobile import, ZIP, offline notes, templates, tags and saved searches are available through Library tools. New note retains its label on phones. A first mobile visit uses the compact list when no view has been saved; existing choices are retained.
+
+The reader hides empty sections and a first Markdown heading that exactly repeats the title. Source, TXT and history are unchanged. A clean reader can apply an app update and return to its reading position; editors, conflicts and transfers block the update.
 
 ## Three different tools
 
@@ -23,11 +29,13 @@ Every project view is available from the phone view selector. Desktop tabs revea
 
 Open Whiteboards in the workspace menu. Create a document without a project for workspace collaboration, or choose a project to inherit its access. Existing project boards and old links are preserved. The catalog offers search, grid/list, sort and recoverable archive. On phones, secondary controls are under Filters. Editing retains the original project association to avoid expanding access.
 
+Focus fits the canvas to the available window. Exit focus or Escape returns to the normal screen. Access badges show workspace or inherited project scope; Copy link does not grant additional access. Catalog view, filters, sort and return position are retained for your account and workspace on this device.
+
 Enable Select cards and tick several cards to align, distribute, copy or remove them. A frame includes cards contained within it. Ctrl/Cmd+A, C, V and Z work when the canvas has focus. Outline is useful for reading and editing on narrow screens.
 
-History loads on demand and requires current whiteboard read access. Up to five previous versions per whiteboard are retained within a shared 700,000-character budget. Restoring keeps the current board as a recovery version. If the board changes during review, reopen history. Local undo retains 12 commands and complements durable history.
+History shows the author and compares the selected version with the current state before restoration. It loads on demand and requires current whiteboard read access. Up to five previous versions per whiteboard are retained within a shared 700,000-character budget. Restoring keeps the current board as a recovery version. If the board changes during review, reopen history. Local undo retains 12 commands and complements durable history.
 
-Layouts saves personal board camera and outline mode. Graph layouts also retain filters, positions and pins. Limits: 12 layouts per user/workspace, including three graph layouts, up to 250 positions each, and a 180,000-character preference document. They do not change colleagues’ layouts. Reset keeps named layouts. On a different screen size, Graph fits the saved positions to the viewport.
+Layouts saves personal board camera and outline mode. Graph layouts also retain filters, positions and pins. Limits: 12 layouts per user/workspace, including three graph layouts, up to 250 positions each, and a 180,000-character preference document. Saved / Changed describes the selected personal layout. They do not change colleagues’ layouts. Reset keeps named layouts. On a different screen size, Graph fits the saved positions to the viewport.
 
 ### Interchange
 
