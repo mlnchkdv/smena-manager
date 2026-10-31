@@ -246,6 +246,21 @@
   text-align: left;
   cursor: pointer;
 }
+.mini-complete-target {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .mini-complete-target {
+    width: var(--control-target);
+    height: var(--control-target);
+  }
+  .mini-task-open {
+    min-height: var(--control-target);
+  }
+}
 .project-card-link {
   max-width: 100%;
   border: 0;
