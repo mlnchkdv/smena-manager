@@ -1,5 +1,6 @@
+import { appLocationPath } from '../shared/app-location.js';
 import { whiteboardCatalogState, saveWhiteboardCatalog } from '../core/whiteboard-catalog-state.js';
-import { A, IN, confirmDlg } from '../actions/actions.js';
+import { A, IN, confirmDlg, copy } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard, canReadWhiteboard, whiteboardDocument } from '../shared/whiteboards.js';
 import { canEditProject } from '../shared/project-access.js';
@@ -167,4 +168,10 @@ A.resetWhiteboardCatalog = () => {
   Object.assign(whiteboardCatalogState(), { query: '', project: '', archive: '', scroll: 0, limit: 50 });
   saveWhiteboardCatalog();
   go('whiteboards');
+};
+
+A.copyWhiteboardLink = el => {
+  const board = get(el.dataset.id);
+  if (!canReadWhiteboard(D(), board, D().me, S.ui.currentUser?.role)) return;
+  return copy(location.origin + appLocationPath(D(), { route: 'whiteboard', params: { id: board.id } }));
 };

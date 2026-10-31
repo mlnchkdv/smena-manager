@@ -321,3 +321,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.whiteboard-access-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+.whiteboard-access-badge svg {
+  flex: 0 0 auto;
+}
