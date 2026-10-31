@@ -1,4 +1,5 @@
-import { noteTypeFields } from './knowledge-types.js';
+import '../features/knowledge-inline.js';
+import { noteTypeFields, kc } from './knowledge-types.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, mem } from '../core/store.js';
@@ -61,7 +62,7 @@ export function noteEditor(note, folders, readOnly) {
       )
       .join(
         '',
-      )}<span class="sp"></span><button class="btn btn-ghost btn-sm knowledge-desktop-preview" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!showPreview}">Preview</button></div>
+      )}<button class="ibtn" data-a="insertKnowledgeMaterial" aria-label="${kc('Link material', 'Связать материал')}" title="[[" ${disabled}>${ic('at-sign', 15)}</button><span class="sp"></span><button class="btn btn-ghost btn-sm knowledge-desktop-preview" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!showPreview}">Preview</button></div>
     <div class="knowledge-writing${showPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" data-keep="knowledge-source:${note.id}" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${showPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
     <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body"><div class="knowledge-fields">
       <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''} translate="no">${esc(knowledgeCategoryLabel(value))}</option>`).join('')}</select></div>

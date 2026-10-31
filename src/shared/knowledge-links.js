@@ -1,3 +1,4 @@
+import { materialLink } from './material-links.js';
 const text = value => (typeof value === 'string' ? value.trim() : '');
 const normalizedTitle = value => cleanWikiTitle(value).toLocaleLowerCase('ru-RU');
 
@@ -11,7 +12,7 @@ export function extractWikiLinks(markdown) {
   for (const match of String(markdown || '').matchAll(/\[\[([^\]]+)\]\]/g)) {
     const title = cleanWikiTitle(match[1]);
     const key = normalizedTitle(title);
-    if (!title || seen.has(key)) continue;
+    if (!title || materialLink(title) || seen.has(key)) continue;
     seen.add(key);
     links.push(title);
   }

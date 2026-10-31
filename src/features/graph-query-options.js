@@ -5,7 +5,15 @@ export function graphQueryOptions(mode, source = '') {
     modal = ui.modals.at(-1);
   const options = { revision: ui.workspaceRevision, documents: ui.documentRevisions };
   if (mode === 'candidates')
-    return { ...options, mode, source: modal?.source, query: modal?.query || '', kind: modal?.kind || '', wikiOnly: !!modal?.wikiLabel };
+    return {
+      ...options,
+      mode,
+      source: modal?.source,
+      query: modal?.query || '',
+      kind: modal?.kind || '',
+      wikiOnly: !!modal?.wikiLabel,
+      inline: !!modal?.inline,
+    };
   if (mode === 'connections') return { ...options, mode: 'view', center: source, depth: 1, includeArchived: true };
   return {
     ...options,

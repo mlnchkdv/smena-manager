@@ -8,7 +8,7 @@ export function graphReadKey(mode, source = '') {
     modal = ui.modals.at(-1);
   const filters =
     mode === 'candidates'
-      ? [modal?.source, modal?.query, modal?.kind, !!modal?.wikiLabel]
+      ? [modal?.source, modal?.query, modal?.kind, !!modal?.wikiLabel, !!modal?.inline]
       : mode === 'connections'
         ? source
         : [ui.params.center, ui.graphDepth, ui.graphQuery, ui.graphKind, ui.graphProject, ui.graphConnected, ui.graphArchive];

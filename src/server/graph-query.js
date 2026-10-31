@@ -13,7 +13,7 @@ export function validateGraphQuery(input = {}) {
   if (options.kind && !Object.hasOwn(ENTITY_COLLECTIONS, options.kind)) throw new TypeError('Invalid graph type.');
   if (options.mode && !['view', 'candidates', 'export'].includes(options.mode)) throw new TypeError('Invalid graph mode.');
   if (options.depth !== undefined && ![1, 2].includes(Number(options.depth))) throw new TypeError('Invalid graph depth.');
-  for (const field of ['connectedOnly', 'includeArchived', 'wikiOnly'])
+  for (const field of ['connectedOnly', 'includeArchived', 'wikiOnly', 'inline'])
     if (options[field] !== undefined && typeof options[field] !== 'boolean') throw new TypeError('Invalid graph flag.');
   if (!Number.isSafeInteger(options.revision) || options.revision < 0) throw new TypeError('Invalid graph revision.');
   if (!options.documents || !['knowledge', 'bookmarks'].every(name => Number.isSafeInteger(options.documents[name]) && options.documents[name] >= 0))
@@ -47,7 +47,7 @@ export function queryGraph(data, user, input) {
         node.key !== options.source &&
         (!options.wikiOnly || node.kind === 'note') &&
         (!options.kind || node.kind === options.kind) &&
-        (!node.project || writable.has(node.project)) &&
+        (options.inline || !node.project || writable.has(node.project)) &&
         [node.title, node.item.url, ...(node.tags || [])].join(' ').toLocaleLowerCase().includes(query),
     );
     view = { nodes: nodes.slice(0, 50), total: nodes.length, truncated: nodes.length > 50, edges: [], unresolved: [] };

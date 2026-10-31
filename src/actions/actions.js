@@ -960,6 +960,7 @@ IN.relationType = el => {
 A.createRelation = async el => {
   const modal = S.ui.modals.at(-1);
   if (modal?.type !== 'relations' || !Object.hasOwn(RELATION_TYPES, modal.relationType)) return;
+  if (modal.inline) return (await import('../features/knowledge-inline.js')).insertInlineTarget(modal, el.dataset.key);
   const from = modal.source,
     to = el.dataset.key;
   if (!(await hydrateRelatedFiles([from, to])) || S.ui.modals.at(-1) !== modal) return;

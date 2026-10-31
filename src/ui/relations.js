@@ -1,3 +1,5 @@
+import { isRussian } from '../core/i18n.js';
+const kc = (en, ru) => (isRussian() ? ru : en);
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -51,7 +53,7 @@ export function relationPicker(m) {
         node =>
           node.key !== m.source &&
           (!m.wikiLabel || node.kind === 'note') &&
-          entityAllowed(D(), node.key, graphOptions(), true) &&
+          entityAllowed(D(), node.key, graphOptions(), !m.inline) &&
           (!m.kind || node.kind === m.kind) &&
           [node.title, node.item.url, ...(node.tags || [])].join(' ').toLocaleLowerCase().includes(query),
       );
@@ -74,5 +76,5 @@ export function relationPicker(m) {
       )
       .join('') ||
     `<p class="hint" role="status">${esc(remote && !remote.view ? remote.error || 'Loading connections…' : 'No matching materials.')}${remote?.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`
-  }</div>${(remote?.view?.total || candidates.length) > 50 ? '<p class="hint">Showing 50 materials. Refine your search.</p>' : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button></div>`;
+  }</div>${(remote?.view?.total || candidates.length) > 50 ? '<p class="hint">Showing 50 materials. Refine your search.</p>' : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button>${m.inline && m.query?.trim() ? `<button class="btn btn-primary" data-a="createInlineKnowledgeNote" translate="no">${kc('Create linked note', 'Создать связанную заметку')}</button>` : ''}</div>`;
 }

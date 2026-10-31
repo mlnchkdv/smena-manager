@@ -1,3 +1,4 @@
+import { materialReferences } from './material-links.js';
 import { canEditProject, canReadProject, entityProjectId } from './project-access.js';
 import { bindWikiReferences } from './knowledge-links.js';
 import { folderTrail } from './knowledge-tools.js';
@@ -60,6 +61,8 @@ export function workspaceGraph(data, options = {}) {
   for (const note of notes) {
     const from = entityKey('note', note.id);
     if (!visible.has(from)) continue;
+    for (const ref of materialReferences(note.formatted_markdown))
+      add({ id: `inline:${note.id}:${ref.key}`, from, to: ref.key, type: 'source', origin: 'wiki' });
     for (const ref of note.wikiRefs || []) {
       if (!ref.target || !noteIds.has(ref.target)) unresolved.push({ from, label: ref.label });
       else add({ id: `wiki:${note.id}:${ref.target}`, from, to: entityKey('note', ref.target), type: 'source', origin: 'wiki' });

@@ -1,3 +1,4 @@
+import { materialLink } from './material-links.js';
 import { Marked } from 'marked';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
 
@@ -116,6 +117,9 @@ export function renderKnowledgeMarkdown(source, options = {}) {
           case 'br':
             return '<br>';
           case 'knowledgeWiki': {
+            const material = materialLink(token.text);
+            if (material)
+              return `<button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(material.key)}">${escape(material.label)}</button>`;
             const target = options.wikiTargets?.get(token.text.trim().toLocaleLowerCase('ru-RU'));
             return target
               ? `<button class="knowledge-wiki-link" data-a="followKnowledgeWiki" data-id="${escape(target)}" data-source="${escape(options.sourceId || '')}">${escape(token.text)}</button>`
