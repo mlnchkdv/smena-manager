@@ -36,6 +36,48 @@ const expectFolderTileBounds = async page => {
     `Folder content exceeds its tile: ${overflow}`,
   ).toBeTruthy();
 };
+test('quick capture preserves text when its file upload fails', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
+  await page.locator('#login-btn').click();
+  await page.locator('#o-ws:visible,.shell:visible').first().waitFor();
+  if (await page.locator('#o-ws').isVisible()) {
+    await page.locator('#o-ws').fill('E2E Команда');
+    await page.locator('#o-url').fill('e2e-team');
+    await page.locator('#onb-next').click();
+    await page.locator('#onb-next').click();
+    await page.locator('#o-proj').fill('Проверка интерфейса');
+    await page.locator('#onb-next').click();
+    await page.locator('[data-a="onbNext"][data-skip="1"]').click();
+    await page.locator('[data-a="onbFinish"]').click();
+  }
+  await expect(page.locator('.shell')).toBeVisible();
+  await waitSaved(page);
+  const workspace = (await (await page.request.get('/api/workspace')).json()).data;
+  await page.route('**/api/files/upload', route => route.fulfill({ status: 503, json: { error: 'Simulated unavailable storage' } }));
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitSaved(page);
+    await page.locator('.topbar [data-pop="create"]').click();
+    await page.locator('[data-a="quickCapture"]').click();
+    const title = `Capture upload failure ${language}`;
+    await page.locator('[data-in="captureField"][data-field="title"]').fill(title);
+    await page.locator('[data-in="captureField"][data-field="text"]').fill('Do not lose this text / Не терять этот текст');
+    await page.locator('[data-in="captureField"][data-field="project"]').selectOption(workspace.projects[0].id);
+    await page.locator('[data-in="captureFiles"]').setInputFiles({ name: 'unavailable.txt', mimeType: 'text/plain', buffer: Buffer.from('small test') });
+    await page.locator('[data-a="saveQuickCapture"]').click();
+    await expect(page.locator('.toast').filter({ hasText: /Материал сохранён|Capture saved/ })).toBeVisible();
+    await waitSaved(page);
+    await page.reload();
+    await expect(page.locator('.shell')).toBeVisible();
+    const document = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+    const note = document.knowledgeNotes.find(note => note.title === title);
+    expect(note?.formatted_markdown).toContain('Do not lose this text / Не терять этот текст');
+    expect(note?.captureStatus).toBe('unprocessed');
+  }
+});
+
 test('knowledge reading editing history search and mobile folders work in Russian and English', async ({ page }) => {
   await page.goto('/');
   await page.locator('#l-access').fill('e2e-access-id-2026-secure');

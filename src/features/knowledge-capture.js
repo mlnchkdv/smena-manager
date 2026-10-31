@@ -55,21 +55,13 @@ A.saveQuickCapture = async () => {
     return render();
   }
   const generation = getSessionGeneration();
-  closeModal();
-  const files = m.files?.length ? await handleFiles(m.files, { project: m.project }) : [];
-  if (generation !== getSessionGeneration() || knowledgeEditBlocked()) return;
-  if (m.files?.length && !files?.length)
-    return toast(kc('No files were uploaded. Capture was not created.', 'Файлы не загружены. Материал не создан.'), { kind: 'err' });
-  const body = [
-    m.text,
-    ...(files || []).map(f => `[[file:${f.id}|${f.name}]]`),
-    m.project ? `[[project:${m.project}|${visibleProjects().find(p => p.id === m.project)?.name || m.project}]]` : '',
-  ]
+  const id = uid('kn');
+  const body = [m.text, m.project ? `[[project:${m.project}|${visibleProjects().find(p => p.id === m.project)?.name || m.project}]]` : '']
     .filter(Boolean)
     .join('\n\n');
-  mutate(() =>
+  const created = mutate(() =>
     D().knowledgeNotes.unshift({
-      id: uid('kn'),
+      id,
       title: m.title.trim() || kc('Captured material', 'Материал на разбор'),
       formatted_markdown: body,
       tags: [],
@@ -79,6 +71,23 @@ A.saveQuickCapture = async () => {
       updatedBy: D().me,
     }),
   );
+  if (!created) return;
+  closeModal();
+  if (!m.files?.length) return;
+  const files = await handleFiles(m.files, { project: m.project });
+  if (generation !== getSessionGeneration() || knowledgeEditBlocked()) return;
+  if (!files?.length)
+    return toast(kc('Capture saved. Files were not uploaded; you can add them later.', 'Материал сохранён. Файлы не загружены — их можно добавить позже.'), {
+      kind: 'err',
+    });
+  // Read the current note after the upload so concurrent edits are never replaced by the original draft.
+  const note = D().knowledgeNotes.find(n => n.id === id && !n.deletedAt);
+  if (!note) return;
+  mutate(() => {
+    note.formatted_markdown = [note.formatted_markdown, ...files.map(f => `[[file:${f.id}|${f.name}]]`)].filter(Boolean).join('\n\n');
+    note.updatedAt = new Date().toISOString();
+    note.updatedBy = D().me;
+  });
 };
 A.finishKnowledgeCapture = el => {
   if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
