@@ -16,6 +16,13 @@ test('sidebar preferences preserve personal order without accepting injected rou
   assert.equal(old.order[0], 'knowledge');
   assert.equal(validSidebar(old), true);
   assert.deepEqual(old.hidden, ['graph']);
+  const previous = { ...defaultSidebar(), order: defaultSidebar().order.filter(id => id !== 'whiteboards') };
+  assert.equal(validSidebar(previous), true);
+  const upgraded = sidebarPreferences(JSON.stringify(previous));
+  assert.equal(upgraded.order[upgraded.order.indexOf('bookmarks') + 1], 'whiteboards');
+  const account = { members: [{ id: 'owner' }] };
+  applyPersonalSettings(account, 'owner', { preferences: { sidebar: JSON.stringify(previous), lang: 'Русский' } });
+  assert.equal(account._userPrefs.owner.lang, 'Русский');
 });
 test('sidebar preferences belong only to the requesting member', () => {
   const data = { members: [{ id: 'one' }, { id: 'two' }] };

@@ -3,9 +3,17 @@ import { materialReferences } from './material-links.js';
 import { canEditProject, canReadProject, entityProjectId } from './project-access.js';
 import { bindWikiReferences } from './knowledge-links.js';
 import { folderTrail } from './knowledge-tools.js';
+import { canReadWhiteboard, canEditWhiteboard } from './whiteboards.js';
 export { bindWikiReferences } from './knowledge-links.js';
 
-export const ENTITY_COLLECTIONS = Object.freeze({ note: 'knowledgeNotes', bookmark: 'links', file: 'files', project: 'projects', task: 'tasks' });
+export const ENTITY_COLLECTIONS = Object.freeze({
+  note: 'knowledgeNotes',
+  bookmark: 'links',
+  file: 'files',
+  project: 'projects',
+  task: 'tasks',
+  whiteboard: 'whiteboards',
+});
 export const RELATION_TYPES = Object.freeze({ related: 'Related to', source: 'Source', example: 'Example', used: 'Used in' });
 export const entityKey = (kind, id) => `${kind}:${id}`;
 export function resolveGraphEntity(data, key) {
@@ -19,6 +27,8 @@ export function resolveGraphEntity(data, key) {
 export function entityAllowed(data, key, { role = 'viewer', memberId = data.me } = {}, write = false) {
   const entity = resolveGraphEntity(data, key);
   if (!entity || (write && !['admin', 'editor'].includes(role))) return false;
+  if (entity.kind === 'whiteboard')
+    return (!write || !entity.item.archived) && (write ? canEditWhiteboard : canReadWhiteboard)(data, entity.item, memberId, role);
   const projectId = entity.kind === 'project' ? entity.id : entityProjectId(entity.item, data);
   if (!projectId) return true;
   const project = (data.projects || []).find(item => item.id === projectId);
@@ -71,7 +81,7 @@ export function workspaceGraph(data, options = {}) {
     }
   }
   for (const node of nodes) {
-    if (node.kind === 'project')
+    if (node.kind === 'whiteboard' || (node.kind === 'project' && !(data.whiteboards || []).some(b => b.legacyProject === node.id)))
       for (const card of node.item.whiteboard?.nodes || [])
         if (card.type === 'material') add({ id: `whiteboard:${node.id}:${card.id}`, from: node.key, to: card.target, type: 'used', origin: 'automatic' });
     if (node.kind !== 'project' && node.project)

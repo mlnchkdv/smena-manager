@@ -6,8 +6,15 @@ import { ic } from '../core/icons.js';
 import { entityAllowed, RELATION_TYPES, workspaceGraph } from '../shared/relations.js';
 import { graphReadModel } from '../core/graph-query-state.js';
 
-export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task' };
-export const ENTITY_ICONS = { note: 'file-text', bookmark: 'bookmark', file: 'paperclip', project: 'folder', task: 'circle-check' };
+export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task', whiteboard: 'Whiteboard' };
+export const ENTITY_ICONS = {
+  note: 'file-text',
+  bookmark: 'bookmark',
+  file: 'paperclip',
+  project: 'folder',
+  task: 'circle-check',
+  whiteboard: 'panels-top-left',
+};
 export const graphOptions = () => ({ role: S.ui.currentUser?.role || 'viewer', memberId: D().me });
 let cachedGraph;
 export function relationGraph() {

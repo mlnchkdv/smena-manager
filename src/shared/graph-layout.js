@@ -4,6 +4,7 @@ export const GRAPH_KINDS = Object.freeze({
   file: { color: '--teal', icon: 'paperclip', shape: 'round-rectangle' },
   project: { color: '--blue', icon: 'folder', shape: 'round-hexagon' },
   task: { color: '--text-3', icon: 'circle-check', shape: 'ellipse' },
+  whiteboard: { color: '--violet', icon: 'panels-top-left', shape: 'round-rectangle' },
 });
 
 export const graphTopologyKey = graph =>

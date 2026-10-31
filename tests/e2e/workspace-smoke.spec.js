@@ -83,6 +83,15 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
     expect(await page.locator('.modal').evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(1);
     await page.locator('.modal [data-a="closeModal"]').first().click();
   }
+  await page.goto('/e2e-team/search');
+  await page.locator('#search-page-q').fill('Saved outside projects');
+  await page.locator(`[data-a="openRelatedEntity"][data-key="whiteboard:${publicId}"]`).click();
+  await expect(page).toHaveURL(new RegExp('/whiteboard/' + publicId + '$'));
+  await page.goto('/e2e-team/graph');
+  await expect(page.locator(`#graph-locate option[value="whiteboard:${publicId}"]`)).toHaveCount(1);
+  await page.locator('#graph-locate').selectOption('whiteboard:' + publicId);
+  await page.locator('.graph-detail [data-a="openRelatedEntity"]').click();
+  await expect(page).toHaveURL(new RegExp('/whiteboard/' + publicId + '$'));
   await page.goto(publicPath);
   await page.locator('.whiteboard-document-menu > summary').click();
   await page.locator('[data-a="editWhiteboardDocument"]').click();
@@ -184,7 +193,11 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
   expect(history.versions[0].board.nodes).toHaveLength(2);
   const latest = (await (await page.request.get('/api/workspace')).json()).data;
   const p = latest.projects.find(p => p.id === project.id);
-  p.whiteboard = native.board;
+  p.whiteboard = {
+    version: 1,
+    nodes: [{ id: 'stale-import', type: 'text', x: 0, y: 0, width: 200, height: 120, color: 'neutral', title: 'Stale import', text: 'Rejected' }],
+    edges: [],
+  };
   p.whiteboardReplaceBaseHash = 'a'.repeat(64);
   const stale = await page.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } });
   expect(stale.status()).toBe(409);
@@ -211,7 +224,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   );
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
   const data = (await (await page.request.get('/api/workspace')).json()).data,
-    project = data.projects[0];
+    project = data.projects.find(p => !p.private && p.access !== 'private') || data.projects[0];
   const boardPath = await projectBoardPath(page, project.id);
   const saveLayout = async name => {
     await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
@@ -1839,7 +1852,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await signIn(page);
   const workspace = (await (await page.request.get('/api/workspace')).json()).data;
   const project = workspace.projects[0],
-    path = await projectBoardPath(page, project.id);
+    path = await projectBoardPath(page, project.id, true);
   await page.goto(path);
   await expect(page.locator('.project-whiteboard')).toBeVisible();
   const add = async action => {

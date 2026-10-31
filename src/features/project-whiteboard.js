@@ -45,6 +45,9 @@ function modalForm(m, H) {
         .tasks.filter(t => !p?.project || t.project === p.project)
         .map(t => ({ key: `task:${t.id}`, title: t.title, kind: T('Task', 'Задача') })),
       ...D().links.map(l => ({ key: `bookmark:${l.id}`, title: l.title || l.url, kind: T('Bookmark', 'Закладка') })),
+      ...(D().whiteboards || [])
+        .filter(b => b.id !== p?.id && !b.archived && entityAllowed(D(), `whiteboard:${b.id}`, { role: S.ui.currentUser?.role, memberId: D().me }))
+        .map(b => ({ key: `whiteboard:${b.id}`, title: b.name, kind: T('Whiteboard', 'Холст') })),
       ...(m.files || []).map(f => ({ key: `file:${f.id}`, title: f.name, kind: T('File', 'Файл') })),
     ]
       .filter(c => c.title.toLocaleLowerCase().includes(q))

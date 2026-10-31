@@ -158,7 +158,7 @@ export function renderKnowledgeMarkdown(source, options = {}) {
           }
           case 'link': {
             const material = options.materialTarget?.(token.href);
-            if (material && /^(note|bookmark|file|project|task):[\p{L}\p{N}_.:@+-]+$/u.test(material))
+            if (material && /^(note|bookmark|file|project|task|whiteboard):[\p{L}\p{N}_.:@+-]+$/u.test(material))
               return `<button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(material)}">${child()}</button>`;
             const asset = options.asset?.(token.href);
             if (asset)

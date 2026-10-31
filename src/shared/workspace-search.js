@@ -1,8 +1,9 @@
 import { canReadProject } from './project-access.js';
 import { textMatcher } from './search-query.js';
+import { canReadWhiteboard } from './whiteboards.js';
 
 export function searchWorkspace(data, query, options = {}) {
-  const result = { tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [] };
+  const result = { tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [], whiteboards: [] };
   const q = String(query || '')
     .trim()
     .toLocaleLowerCase();
@@ -41,5 +42,14 @@ export function searchWorkspace(data, query, options = {}) {
   collect('comments', data.comments, comment => tasks.has(comment.task) && has(comment.text));
   collect('knowledge', data.knowledgeNotes, note => has([note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' ')));
   collect('bookmarks', data.links, link => has([link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' ')));
+  collect(
+    'whiteboards',
+    data.whiteboards,
+    board =>
+      !board.archived &&
+      (!board.project || projects.has(board.project)) &&
+      canReadWhiteboard(data, board, data.me, options.role || 'editor') &&
+      has([board.name, board.desc, ...(board.whiteboard?.nodes || []).filter(n => n.type !== 'material').map(n => [n.title, n.text].join(' '))].join(' ')),
+  );
   return result;
 }

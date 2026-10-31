@@ -65,7 +65,7 @@ export function validDiagramViews(v) {
         !only(c, ['center', 'query', 'kind', 'project', 'connected', 'archive', 'depth']) ||
         !text(c.center, 200) ||
         !text(c.query, 1000) ||
-        !['', 'note', 'task', 'project', 'bookmark', 'file'].includes(c.kind) ||
+        !['', 'note', 'task', 'project', 'bookmark', 'file', 'whiteboard'].includes(c.kind) ||
         !text(c.project, 180) ||
         !['', 'yes'].includes(c.connected) ||
         !['', 'yes'].includes(c.archive) ||

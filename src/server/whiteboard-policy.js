@@ -47,6 +47,7 @@ export function mergeWhiteboards(current, candidate, incoming, role, memberId) {
   for (const b of whiteboardDocuments(candidate)) {
     const before = old.get(b.id);
     if (before && same(before, b)) continue;
+    if (before?.archived && b.archived) denied('whiteboards.archived');
     const sourceAllowed = before
       ? canEditWhiteboard(current, before, memberId, role)
       : !b.project || !current.projects?.some(p => p.id === b.project) || canEditWhiteboard(current, b, memberId, role);
@@ -66,6 +67,10 @@ export function mergeWhiteboards(current, candidate, incoming, role, memberId) {
   for (const b of whiteboardDocuments(candidate))
     if (b.legacyProject) {
       const p = candidate.projects?.find(p => p.id === b.legacyProject);
-      if (p) p.whiteboard = structuredClone(b.whiteboard);
+      if (p) {
+        p.whiteboard = structuredClone(b.whiteboard);
+        delete p.whiteboardRestoreFrom;
+        delete p.whiteboardReplaceBaseHash;
+      }
     }
 }

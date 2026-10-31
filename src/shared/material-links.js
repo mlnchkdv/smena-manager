@@ -1,4 +1,4 @@
-const KEY = /^(note|project|task|bookmark|file):([\p{L}\p{N}_.:@+-]{1,180})$/u;
+const KEY = /^(note|project|task|bookmark|file|whiteboard):([\p{L}\p{N}_.:@+-]{1,180})$/u;
 export function materialLink(value) {
   const [target, ...label] = String(value).split('|');
   const [key, block] = target.split('#^');

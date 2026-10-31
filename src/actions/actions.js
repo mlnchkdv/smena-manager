@@ -1009,6 +1009,7 @@ A.openRelatedEntity = async el => {
   else if (entity.kind === 'bookmark') A.goBookmark({ dataset: { id: entity.id } });
   else if (entity.kind === 'file') A.previewFile({ dataset: { id: entity.id } });
   else if (entity.kind === 'task') A.openTask({ dataset: { id: entity.id } });
+  else if (entity.kind === 'whiteboard') go('whiteboard', { id: entity.id });
   else go('project', { id: entity.id });
 };
 A.showGraph = async el => (await import('../features/graph-actions.js')).showGraph(el);

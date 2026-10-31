@@ -54,7 +54,7 @@ import { fileExportRouter } from './file-export-routes.js';
 import { canEditProject, canReadProject, trashProject, trashProjectId } from '../shared/project-access.js';
 import { whiteboardHash, whiteboardVersions } from './whiteboard-history.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
-import { canReadWhiteboard, whiteboardDocument } from '../shared/whiteboards.js';
+import { canReadWhiteboard, whiteboardDocument, legacyWhiteboard } from '../shared/whiteboards.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { collectRetainedFiles, retainDetachedFile, sweepAbandonedUploads } from './file-retention.js';
 import { setSessionCookie } from './session-cookie.js';
@@ -504,7 +504,11 @@ app.get('/api/projects/:id/whiteboard-versions', async (request, response, next)
     const actor = memberForProfile(bindAccessProfiles(database, getAccessProfiles()), request.user)?.id || request.user.id;
     if (!project || !canReadProject(project, actor, request.user.role)) return response.status(404).json({ error: 'Project not found.' });
     response.setHeader('Cache-Control', 'no-store');
-    response.json({ board: whiteboardOf(project), baseHash: whiteboardHash(whiteboardOf(project)), versions: whiteboardVersions(database, project.id) });
+    response.json({
+      board: whiteboardOf(project),
+      baseHash: whiteboardHash(whiteboardOf(project)),
+      versions: whiteboardVersions(database, legacyWhiteboard(database, project.id)?.id || project.id),
+    });
   } catch (error) {
     next(error);
   }

@@ -16,7 +16,8 @@ export function validWhiteboard(board) {
     if (!['x', 'y', 'width', 'height'].every(k => Number.isSafeInteger(node[k]) && Math.abs(node[k]) <= 50000)) return false;
     if (node.width < 160 || node.width > 2000 || node.height < 100 || node.height > 2000 || !BOARD_COLORS.includes(node.color)) return false;
     if (node.type === 'material') {
-      if (node.title != null || node.text != null || !/^(note|task|project|bookmark|file):[\p{L}\p{N}_.:@+-]{1,180}$/u.test(node.target)) return false;
+      if (node.title != null || node.text != null || !/^(note|task|project|bookmark|file|whiteboard):[\p{L}\p{N}_.:@+-]{1,180}$/u.test(node.target))
+        return false;
     } else if (!text(node.title, 120) || !text(node.text, 6000) || node.target != null) return false;
   }
   const edges = new Set();

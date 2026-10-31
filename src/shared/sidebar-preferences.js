@@ -27,8 +27,8 @@ export function validSidebar(value) {
     value.version === 1 &&
     Object.keys(value).every(k => ['version', 'order', 'hidden', 'counts', 'projects', 'teams'].includes(k)) &&
     Array.isArray(value.order) &&
-    value.order.length === routes.length &&
-    new Set(value.order).size === routes.length &&
+    (value.order.length === routes.length || (value.order.length === routes.length - 1 && !value.order.includes('whiteboards'))) &&
+    new Set(value.order).size === value.order.length &&
     value.order.every(k => routes.includes(k)) &&
     Array.isArray(value.hidden) &&
     value.hidden.length <= routes.length &&
@@ -43,6 +43,7 @@ export function sidebarPreferences(raw) {
     const value = JSON.parse(raw || 'null');
     if (!value || value.version !== 1 || !Array.isArray(value.order) || !Array.isArray(value.hidden)) return defaults;
     const order = [...new Set(value.order.filter(k => routes.includes(k)))];
+    if (!order.includes('whiteboards') && order.includes('bookmarks')) order.splice(order.indexOf('bookmarks') + 1, 0, 'whiteboards');
     const normalized = {
       ...defaults,
       ...Object.fromEntries(['counts', 'projects', 'teams'].map(k => [k, typeof value[k] === 'boolean' ? value[k] : true])),

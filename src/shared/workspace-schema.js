@@ -258,7 +258,7 @@ export function validateDocumentInput(name, value) {
       (!isObject(item.materialTargets) ||
         Object.keys(item.materialTargets).length > 200 ||
         Object.entries(item.materialTargets).some(
-          ([path, key]) => path.length > 500 || typeof key !== 'string' || !/^(note|bookmark|file|project|task):[\p{L}\p{N}_.:@+-]+$/u.test(key),
+          ([path, key]) => path.length > 500 || typeof key !== 'string' || !/^(note|bookmark|file|project|task|whiteboard):[\p{L}\p{N}_.:@+-]+$/u.test(key),
         ))
     )
       invalid.push('knowledgeNotes.materialTargets');

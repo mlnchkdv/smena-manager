@@ -48,6 +48,7 @@ export function pageSearch() {
     ['comments', 'Comments'],
     ['knowledge', 'Knowledge base'],
     ['bookmarks', 'Bookmarks'],
+    ['whiteboards', 'Whiteboards'],
   ];
   const total = Object.values(totals).reduce((a, b) => a + b, 0);
   const visibleTotal = cat === 'all' ? total : totals[cat] || 0;
@@ -139,6 +140,16 @@ export function pageSearch() {
                           )
                         : `<span translate="no">${esc(knowledgeCategoryLabel(note.category))}</span>`
                     }</div></div>`,
+                )
+                .join(''),
+            ) +
+            sec(
+              'whiteboards',
+              'Whiteboards',
+              (r.whiteboards || [])
+                .map(
+                  board =>
+                    `<button class="mini" data-a="openRelatedEntity" data-key="whiteboard:${esc(board.id)}">${ic('panels-top-left', 15)}<span class="tt" translate="no">${hl(board.name, q)} <span class="faint">${hl(board.desc.slice(0, 90), q)}</span></span></button>`,
                 )
                 .join(''),
             ) +

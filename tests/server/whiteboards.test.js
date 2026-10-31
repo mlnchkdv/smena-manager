@@ -4,6 +4,8 @@ import { applyEntityDefaults } from '../../src/shared/workspace-defaults.js';
 import { canReadWhiteboard, canEditWhiteboard, migrateProjectWhiteboards, validWhiteboardDocument } from '../../src/shared/whiteboards.js';
 import { mergeClientWorkspace, projectWorkspace } from '../../src/server/workspace-policy.js';
 import { captureWhiteboardHistory, whiteboardVersions } from '../../src/server/whiteboard-history.js';
+import { workspaceGraph, entityAllowed } from '../../src/shared/relations.js';
+import { searchWorkspace } from '../../src/shared/workspace-search.js';
 const board = text => ({
   version: 1,
   nodes: [{ id: 'card', type: 'text', x: 0, y: 0, width: 220, height: 140, color: 'neutral', title: 'Title', text }],
@@ -93,4 +95,54 @@ test('independent shared boards are writable by editors but closed project relin
     () => mergeClientWorkspace(next, forge, 'editor', 'other'),
     e => e.code === 'ENTITY_FORBIDDEN',
   );
+  const archived = structuredClone(next);
+  archived.whiteboards.find(b => b.id === 'free').archived = true;
+  const changing = projectWorkspace(archived, { id: 'other', role: 'editor' });
+  changing.whiteboards[0].whiteboard.nodes[0].text = 'Cannot edit archive';
+  assert.throws(
+    () => mergeClientWorkspace(archived, changing, 'editor', 'other'),
+    e => e.code === 'ENTITY_FORBIDDEN',
+  );
+});
+test('independent whiteboards join graph and search without exposing closed project material', () => {
+  const data = fixture();
+  data.me = 'other';
+  data.whiteboards.push({
+    id: 'shared',
+    name: 'Shared diagram',
+    desc: 'Public description',
+    project: '',
+    archived: false,
+    by: 'owner',
+    at: '2026-10-31T00:00:00Z',
+    whiteboard: board('Searchable idea'),
+  });
+  data.whiteboards[1].whiteboard.nodes.push({
+    id: 'private-reference',
+    type: 'material',
+    x: 300,
+    y: 0,
+    width: 200,
+    height: 120,
+    color: 'neutral',
+    target: 'project:secret',
+  });
+  const graph = workspaceGraph(data, { memberId: 'other', role: 'editor' });
+  assert.equal(
+    graph.nodes.some(n => n.key === 'whiteboard:shared'),
+    true,
+  );
+  assert.equal(
+    graph.nodes.some(n => n.key === 'whiteboard:secret'),
+    false,
+  );
+  assert.equal(
+    graph.edges.some(e => e.to === 'project:secret'),
+    false,
+  );
+  assert.equal(entityAllowed(data, 'whiteboard:secret', { memberId: 'other', role: 'editor' }), false);
+  assert.equal(searchWorkspace(data, 'Searchable idea', { role: 'editor' }).whiteboards[0].id, 'shared');
+  assert.equal(searchWorkspace(data, 'Private text', { role: 'editor' }).whiteboards.length, 0);
+  data.whiteboards[1].archived = true;
+  assert.equal(searchWorkspace(data, 'Searchable idea', { role: 'editor' }).whiteboards.length, 0);
 });

@@ -78,7 +78,7 @@ export function parseWhiteboardImport(source) {
       warnings.add('files');
     } else {
       const url = string(n.url, 6000),
-        own = url.match(/^smena:\/\/material\/(note|task|project|bookmark|file)\/(.+)$/);
+        own = url.match(/^smena:\/\/material\/(note|task|project|bookmark|file|whiteboard)\/(.+)$/);
       if (own) {
         let id;
         try {

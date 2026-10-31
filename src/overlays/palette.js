@@ -19,6 +19,7 @@ export function commands() {
   return [
     { id: 'c-task', name: 'Create task', icon: 'plus', kbd: 'N', run: () => A.newTask(document.body) },
     { id: 'c-proj', name: 'Create project', icon: 'folder-plus', kbd: 'P', run: () => A.newProject() },
+    { id: 'c-whiteboard', name: 'Create whiteboard', icon: 'panels-top-left', run: () => A.newWhiteboard() },
     {
       id: 'c-search',
       name: 'Search workspace',
@@ -37,6 +38,7 @@ export function commands() {
     { id: 'c-tl', name: 'Go to Timeline', icon: 'chart-gantt', run: () => go('timeline') },
     { id: 'c-knowledge', name: 'Go to Knowledge base', icon: 'library-big', run: () => go('knowledge') },
     { id: 'c-bookmarks', name: 'Go to Bookmarks', icon: 'bookmark', run: () => go('bookmarks') },
+    { id: 'c-whiteboards', name: 'Go to Whiteboards', icon: 'panels-top-left', run: () => go('whiteboards') },
     { id: 'c-files', name: 'Go to Files', icon: 'files', run: () => go('files') },
     { id: 'c-graph', name: 'Go to Graph', icon: 'network', run: () => go('graph') },
     { id: 'c-mem', name: 'Go to Members', icon: 'users', run: () => go('members') },
@@ -237,6 +239,19 @@ export function paletteItems() {
       })),
     });
   const out = groups.filter(g => g.items.length);
+  if (sc === 'all' || sc === 'whiteboards') {
+    const items = (r.whiteboards || [])
+      .slice(0, lim)
+      .map(board => ({
+        icon: 'panels-top-left',
+        name: board.name,
+        authoredName: true,
+        sub: board.desc || tr('Whiteboards'),
+        authoredSub: true,
+        run: () => go('whiteboard', { id: board.id }),
+      }));
+    if (items.length) out.push({ name: 'Whiteboards', items });
+  }
   out.push({
     name: '',
     items: [
@@ -279,6 +294,7 @@ export function paletteHtml() {
             ['comments', 'Comments', 'message-square'],
             ['knowledge', 'Knowledge base', 'library-big'],
             ['bookmarks', 'Bookmarks', 'bookmark'],
+            ['whiteboards', 'Whiteboards', 'panels-top-left'],
           ]
             .map(([k, n, i]) => `<button role="tab" class="${pl.scope === k ? 'on' : ''}" data-a="palScope" data-v="${k}">${ic(i, 12)}${n}</button>`)
             .join('')}</div>`
