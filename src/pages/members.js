@@ -1,3 +1,4 @@
+import { knowledgeHub } from '../ui/knowledge-hub.js';
 import { actionLabel } from '../ui/action-label.js';
 /* ---------- MEMBERS / PROFILE / TEAMS ---------- */
 import { ago, esc } from '../core/utils.js';
@@ -180,6 +181,6 @@ export function pageMember() {
       .join('')}</div>
       <div id="member-tasks-panel" role="tabpanel" aria-labelledby="member-tasks-tab-${tab}" tabindex="0">${(tab === 'assigned' ? sortTasks(open, { f: 'due', dir: 1 }) : done).map(t => miniRow(t, { av: false })).join('') || empty('list-checks', 'No tasks here', 'Nothing to show in this list.', '', 'sm')}</div></section>
       <div class="stack"><section class="panel"><div class="panel-h"><h2>Active projects</h2></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span><span class="faint" style="font-size:12px">${p.lead === m.id ? 'Lead' : 'Member'}</span></div>`).join('') || '<div class="panel-b faint">No active projects</div>'}</section>
-      <section class="panel"><div class="panel-h"><h2>Recent activity</h2></div><div class="panel-b feed">${acts.map(a => actHtml(a)).join('') || '<span class="faint">No recent activity</span>'}</div></section></div></div>
+      ${knowledgeHub('member', m.id)}<section class="panel"><div class="panel-h"><h2>Recent activity</h2></div><div class="panel-b feed">${acts.map(a => actHtml(a)).join('') || '<span class="faint">No recent activity</span>'}</div></section></div></div>
   </div>`;
 }
