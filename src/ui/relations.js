@@ -76,5 +76,5 @@ export function relationPicker(m) {
       )
       .join('') ||
     `<p class="hint" role="status">${esc(remote && !remote.view ? remote.error || 'Loading connections…' : 'No matching materials.')}${remote?.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`
-  }</div>${(remote?.view?.total || candidates.length) > 50 ? '<p class="hint">Showing 50 materials. Refine your search.</p>' : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button>${m.inline && m.query?.trim() ? `<button class="btn btn-primary" data-a="createInlineKnowledgeNote" translate="no">${kc('Create linked note', 'Создать связанную заметку')}</button>` : ''}</div>`;
+  }</div>${(remote?.view?.total || candidates.length) > 50 ? '<p class="hint">Showing 50 materials. Refine your search.</p>' : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Cancel</button>${m.inline && !m.inline.asset && !m.inline.assetPath && m.query?.trim() ? `<button class="btn btn-primary" data-a="createInlineKnowledgeNote" translate="no">${kc('Create linked note', 'Создать связанную заметку')}</button>` : ''}</div>`;
 }

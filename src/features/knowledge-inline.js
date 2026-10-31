@@ -1,3 +1,4 @@
+import { render } from '../shell/render.js';
 import { assetPath } from '../shared/knowledge-assets.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { A } from '../actions/actions.js';
@@ -26,6 +27,7 @@ export function insertInlineTarget(modal, key) {
   const note = D().knowledgeNotes.find(n => n.id === modal.inline.id),
     options = graphOptions();
   const target = resolveGraphEntity(D(), key);
+  if ((modal.inline.asset || modal.inline.assetPath) && target?.kind !== 'file') return;
   if (
     !note ||
     !target ||
@@ -79,7 +81,7 @@ A.createInlineKnowledgeNote = () => {
     title = String(m?.query || '')
       .trim()
       .slice(0, 250);
-  if (!m?.inline || !title || S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  if (!m?.inline || m.inline.asset || m.inline.assetPath || !title || S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
   const id = uid('kn');
   if (
     mutate(() => {
@@ -105,5 +107,6 @@ A.attachKnowledgeMedia = () => {
   if (m?.inline) {
     m.kind = 'file';
     m.inline.asset = true;
+    render();
   }
 };
