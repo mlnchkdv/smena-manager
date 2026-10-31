@@ -7,6 +7,8 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
   await signIn(page);
   const snapshot = (await (await page.request.get('/api/workspace')).json()).data,
     project = snapshot.projects[0];
+  project.whiteboard = { version: 1, nodes: [], edges: [] };
+  expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
   const native = {
     format: 'smena-project-whiteboard',
     version: 1,
@@ -30,7 +32,7 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
     await expect(page.locator('[data-a="applyWhiteboardImport"]')).toBeVisible();
   };
   await upload(native);
-  await expect(page.locator('.modal-b')).toContainText('Недоступные материалы');
+  await expect(page.locator('.modal-b')).toContainText(/Недоступные материалы|Unavailable material references/);
   await page.locator('[data-a="applyWhiteboardImport"]').click();
   await waitForSaved(page);
   await page.reload();
@@ -86,7 +88,13 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
 test('personal graph and board layouts retain camera pins filters and account isolation', async ({ page, browser }) => {
   test.setTimeout(240000);
   await signIn(page);
+  expect(
+    (
+      await page.request.put('/api/preferences', { data: { preferences: { diagramViews: JSON.stringify({ version: 1, items: [], active: [], pins: [] }) } } })
+    ).ok(),
+  ).toBeTruthy();
   const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeNotes = snapshot.knowledgeNotes.filter(n => !n.id.startsWith('layout-note-'));
   snapshot.knowledgeNotes.push(
     ...Array.from({ length: 40 }, (_, i) => ({
       id: `layout-note-${i}`,
@@ -99,7 +107,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   const data = (await (await page.request.get('/api/workspace')).json()).data,
     project = data.projects[0];
   const saveLayout = async name => {
-    await page.locator('.diagram-view-menu > summary').click();
+    await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
     await page.locator('[data-a="saveDiagramView"]').click();
     await page.locator('[data-in="diagramViewName"]').fill(name);
     await page.locator('[data-a="commitDiagramView"]').click();
@@ -138,7 +146,7 @@ test('personal graph and board layouts retain camera pins filters and account is
         [1366, 768],
       ]) {
         await page.setViewportSize({ width, height });
-        await page.locator('.diagram-view-menu > summary').click();
+        await page.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
         await expect(page.locator('[data-a="loadDiagramView"]')).toHaveCount(1);
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         await page.keyboard.press('Escape');
@@ -150,7 +158,7 @@ test('personal graph and board layouts retain camera pins filters and account is
     const editor = await context.newPage();
     await signIn(editor, 'e2e-editor-access-id-2026-secure');
     await editor.goto(`/e2e-team/project/${project.id}/whiteboard`);
-    await editor.locator('.diagram-view-menu > summary').click();
+    await editor.locator('.diagram-view-menu:not(.whiteboard-io) > summary').click();
     await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
   } finally {
     await context.close();
