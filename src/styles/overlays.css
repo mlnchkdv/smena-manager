@@ -108,6 +108,41 @@
 .modal-f .sp {
   flex: 1;
 }
+.task-submit-short {
+  display: none;
+}
+@media (max-width: 640px) {
+  .task-form-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+  }
+  .task-form-footer > :is(.sp, .hide-m) {
+    display: none;
+  }
+  .task-form-footer > [data-a='closeModal'] {
+    grid-column: 2;
+  }
+  .task-form-footer .btn {
+    padding-inline: 10px;
+    white-space: nowrap;
+  }
+  .task-create-more {
+    min-width: 0;
+    min-height: var(--control-target);
+  }
+  .task-create-more .toggle {
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 360px) {
+  .task-submit-full {
+    display: none;
+  }
+  .task-submit-short {
+    display: inline;
+  }
+}
 .team-form .mi .r {
   display: block;
   min-width: 0;
