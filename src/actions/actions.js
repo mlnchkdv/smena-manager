@@ -656,7 +656,7 @@ A.toggleKnowledgeFavorite = el => {
   });
 };
 A.setKnowledgeFolder = el => {
-  const closedOverlay = !!(S.ui.knowledgeMobileFolders && S.ui.knowledgeFolderOverlay);
+  const compactNavigation = !!S.ui.knowledgeFolderOverlay;
   S.ui.knowledgeOffset = 0;
   S.ui.knowledgeMobileFolders = false;
   S.ui.knowledgeDrawer = null;
@@ -667,7 +667,7 @@ A.setKnowledgeFolder = el => {
   S.ui.knowledgeActive = null;
   S.ui.knowledgeLimit = 200;
   S.ui.knowledgeTag = '';
-  if (closedOverlay) {
+  if (compactNavigation) {
     S.ui.knowledgeFolderNavOpen = false;
     S.ui.knowledgeFolderQuery = '';
   }
@@ -687,7 +687,7 @@ A.setKnowledgeFolder = el => {
   render();
   // The mobile folder sheet disappears after navigation. Move focus to the
   // destination instead of leaving keyboard/screen-reader users on the body.
-  if (closedOverlay) document.getElementById('knowledge-view-title')?.focus({ preventScroll: true });
+  if (compactNavigation) document.getElementById('knowledge-view-title')?.focus({ preventScroll: true });
 };
 A.toggleKnowledgeFolder = el => {
   const id = el.dataset.folder;
