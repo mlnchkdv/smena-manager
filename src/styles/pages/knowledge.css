@@ -1865,3 +1865,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.knowledge-context-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  width: 100%;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.knowledge-context-result > span {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}

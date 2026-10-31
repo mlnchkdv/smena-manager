@@ -1,9 +1,9 @@
+import { knowledgeContext } from './knowledge-context.js';
 import '../features/knowledge-inline.js';
 import { noteTypeFields, kc } from './knowledge-types.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, mem } from '../core/store.js';
-import { relationsPanel } from './relations.js';
 import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 import { S } from '../core/store.js';
 import { knowledgeHistory } from './knowledge-history.js';
@@ -80,7 +80,7 @@ export function noteEditor(note, folders, readOnly) {
     <div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
     <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div></div>
     </div></details>
-    ${relationsPanel(`note:${note.id}`)}${knowledgeHistory(note, readOnly || conflict)}
+    ${knowledgeContext(note)}${knowledgeHistory(note, readOnly || conflict)}
   </section>`;
 }
 
