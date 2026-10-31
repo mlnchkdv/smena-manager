@@ -276,6 +276,9 @@
   height: auto;
   overflow: auto;
 }
+.whiteboard-page .is-focused .whiteboard-viewport {
+  overflow: hidden;
+}
 .whiteboard-page .is-focused .whiteboard-help {
   display: none;
 }
