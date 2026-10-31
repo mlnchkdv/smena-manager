@@ -1,4 +1,5 @@
 import { isFavorite } from '../core/favorites.js';
+import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 /* ---------------- COMMAND PALETTE ---------------- */
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
@@ -31,19 +32,13 @@ export function commands() {
         render();
       },
     },
-    { id: 'c-home', name: 'Go to Home', icon: 'house', kbd: 'G H', run: () => go('home') },
-    { id: 'c-inbox', name: 'Go to Inbox', icon: 'inbox', kbd: 'G I', run: () => go('inbox') },
-    { id: 'c-my', name: 'Go to My Tasks', icon: 'circle-check', kbd: 'G T', run: () => go('mytasks') },
-    { id: 'c-projs', name: 'Go to Projects', icon: 'folder-kanban', kbd: 'G P', run: () => go('projects') },
-    { id: 'c-cal', name: 'Go to Calendar', icon: 'calendar', kbd: 'G C', run: () => go('calendar') },
-    { id: 'c-tl', name: 'Go to Timeline', icon: 'chart-gantt', run: () => go('timeline') },
-    { id: 'c-knowledge', name: 'Go to Knowledge base', icon: 'library-big', run: () => go('knowledge') },
-    { id: 'c-bookmarks', name: 'Go to Bookmarks', icon: 'bookmark', run: () => go('bookmarks') },
-    { id: 'c-whiteboards', name: 'Go to Whiteboards', icon: 'panels-top-left', run: () => go('whiteboards') },
-    { id: 'c-files', name: 'Go to Files', icon: 'files', run: () => go('files') },
-    { id: 'c-graph', name: 'Go to Graph', icon: 'network', run: () => go('graph') },
-    { id: 'c-mem', name: 'Go to Members', icon: 'users', run: () => go('members') },
-    { id: 'c-set', name: 'Open settings', icon: 'settings', kbd: 'G S', run: () => go('settings') },
+    ...NAVIGATION_ITEMS.map(([route, name, icon]) => ({
+      id: 'c-go-' + route,
+      name: 'Go to ' + name,
+      icon,
+      kbd: { home: 'G H', inbox: 'G I', mytasks: 'G T', projects: 'G P', calendar: 'G C', settings: 'G S' }[route],
+      run: () => go(route),
+    })),
     { id: 'c-app', name: 'Appearance settings', icon: 'palette', run: () => go('settings', { sec: 'appearance' }) },
     {
       id: 'c-ws',

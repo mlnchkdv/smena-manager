@@ -17,6 +17,13 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Go to Favorites': 'Перейти в избранное',
+  'Go to Overview': 'Перейти к обзору',
+  'Go to Notifications': 'Перейти к уведомлениям',
+  'Go to Activity': 'Перейти к активности',
+  'Go to Teams': 'Перейти к командам',
+  'Go to Tasks': 'Перейти к задачам',
+  'Go to Archive': 'Перейти в архив',
   'completed subtask on': 'завершил(а) подзадачу в',
   'reopened subtask on': 'возобновил(а) подзадачу в',
   Field: 'Поле',

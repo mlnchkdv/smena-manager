@@ -17,6 +17,14 @@ export const SIDEBAR_ITEMS = Object.freeze([
   ['members', 'Members', 'users', 'workspace'],
   ['activity', 'Activity', 'activity', 'workspace'],
 ]);
+// Settings/archive/team directories are available through navigation even when
+// they are not customizable sidebar rows. Personal hiding never removes routes.
+export const NAVIGATION_ITEMS = Object.freeze([
+  ...SIDEBAR_ITEMS,
+  ['teams', 'Teams', 'users', 'workspace'],
+  ['archive', 'Archive', 'archive', 'workspace'],
+  ['settings', 'Settings', 'settings', 'personal'],
+]);
 const routes = SIDEBAR_ITEMS.map(item => item[0]);
 export const defaultSidebar = () => ({ version: 1, order: [...routes], hidden: [], counts: true, projects: true, teams: true });
 export function validSidebar(value) {
