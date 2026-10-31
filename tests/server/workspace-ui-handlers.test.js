@@ -185,6 +185,7 @@ test('uncertain creation keeps original payload and operation identity for recov
     throw new Error('Network timeout');
   };
   await f.context.A.submitWorkspace();
+  assert.equal(f.S.ui.modals.at(-1).checking, false);
   const operationId = f.S.ui.modals.at(-1).operationId;
   f.context.A.restartWorkspaceCreation();
   f.context.IN.workspaceDraft({ dataset: { k: 'name' }, value: 'Changed' });
@@ -193,6 +194,7 @@ test('uncertain creation keeps original payload and operation identity for recov
   f.context.openCreation();
   f.fields['#new-ws-name'].value = 'Changed DOM';
   await f.context.A.submitWorkspace();
+  assert.equal(f.S.ui.modals.at(-1).checking, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[1].operationId, operationId);
   assert.equal(calls[1].name, 'Team');

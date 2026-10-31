@@ -55,7 +55,10 @@ test('an ordinary member creates and configures owned workspaces without gaining
         [320, 676],
         [390, 845],
         [767, 1024],
+        [844, 390],
+        [1024, 767],
         [1366, 767],
+        [1920, 1080],
       ]) {
         await member.setViewportSize({ width, height });
         await expect(member.locator('.workspace-create-dialog')).toBeVisible();
@@ -73,8 +76,34 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await expect(member.locator('#new-ws-name-error')).toHaveCount(0);
       await member.locator('#new-ws-description').fill('Owner-only settings test');
       await expect(member.locator('.workspace-create-dialog')).toContainText(ru ? 'Вы станете владельцем.' : 'You become the owner.');
+      let releaseRequest;
+      const creationPayloads = [];
+      const delayedCreation = async route => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        creationPayloads.push(route.request().postDataJSON());
+        await new Promise(resolve => (releaseRequest = resolve));
+        if (creationPayloads.length === 1) {
+          expect((await route.fetch()).ok()).toBeTruthy();
+          return route.abort('failed');
+        }
+        return route.continue();
+      };
+      await member.route('**/api/workspaces', delayedCreation);
       await member.locator('.workspace-create-dialog button[type="submit"]').click();
+      await expect.poll(() => Boolean(releaseRequest)).toBeTruthy();
+      await expect(member.locator('.workspace-create-dialog button[type="submit"]')).toHaveText(ru ? 'Создание пространства…' : 'Creating workspace…');
+      releaseRequest();
+      releaseRequest = undefined;
+      await expect(member.locator('.workspace-create-dialog [role="alert"]')).toBeVisible();
+      await expect(member.locator('#new-ws-name')).toBeDisabled();
+      await expect(member.locator('[data-a="checkWorkspaceCreationList"]')).toBeVisible();
+      await member.locator('.workspace-create-dialog button[type="submit"]').click();
+      await expect.poll(() => Boolean(releaseRequest)).toBeTruthy();
+      await expect(member.locator('.workspace-create-dialog button[type="submit"]')).toHaveText(ru ? 'Проверка создания…' : 'Checking creation…');
+      expect(creationPayloads[1]).toEqual(creationPayloads[0]);
+      releaseRequest();
       await expect(member).toHaveURL(/\/settings\/workspace$/);
+      await member.unroute('**/api/workspaces', delayedCreation);
       await expect(member.locator('#ws-name')).toHaveValue(name);
       await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
       const ownedPath = new URL(member.url()).pathname;
@@ -87,7 +116,7 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await member.locator('#settings-section').selectOption('language');
       await expect(member.locator('.workspace-leave-dialog')).toBeVisible();
       await expect(member.locator('#settings-section')).toHaveValue('workspace');
-      await member.locator('.workspace-leave-dialog [data-a="closeModal"]').click();
+      await member.locator('.workspace-leave-dialog .modal-f [data-a="closeModal"]').click();
       await expect(member.locator('#ws-name')).toHaveValue(name + ' updated');
       await member.locator('#ws-description').fill('Persisted owner changes');
       await member.locator('#ws-save').click();
@@ -96,16 +125,27 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await expect(member.locator('#ws-name')).toHaveValue(name + ' updated');
       await expect(member.locator('#ws-description')).toHaveValue('Persisted owner changes');
       await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
+      await member.locator('#ws-description').fill('Saved before navigation');
+      await member.locator('#settings-section').selectOption('language');
+      await member.locator('[data-a="saveWorkspaceSettingsLeave"]').click();
+      await expect(member).toHaveURL(/\/settings\/language$/);
+      await member.goto(ownedPath);
+      await expect(member.locator('#ws-description')).toHaveValue('Saved before navigation');
       const directory = (await (await member.request.get('/api/workspaces')).json()).workspaces;
       await member.screenshot({ path: `output/playwright/member-owned-workspaces-2026-10-31/${ru ? 'ru' : 'en'}-settings-mobile.png` });
       expect(directory.find(item => item.url === ownedPath.split('/')[1]).role).toBe('admin');
       expect(directory.find(item => item.id === 'default').role).toBe('editor');
       const ownEntry = directory.find(item => item.url === ownedPath.split('/')[1]);
+      expect(directory.filter(item => item.name === name + ' updated')).toHaveLength(1);
+      expect(ownEntry.memberRole).toBe('Owner');
       for (const [width, height] of [
         [320, 676],
         [390, 845],
         [767, 1024],
+        [844, 390],
+        [1024, 767],
         [1366, 767],
+        [1920, 1080],
       ]) {
         await member.setViewportSize({ width, height });
         await expect(member.locator('#ws-name')).toBeEditable();

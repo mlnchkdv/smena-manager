@@ -144,6 +144,13 @@ A.cancelWorkspaceCreation = () => {
   }
   closeModal();
 };
+A.checkWorkspaceCreationList = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'workspaceCreate' || m.busy) return;
+  A.cancelWorkspaceCreation();
+  const trigger = $(innerWidth <= 900 ? '.topbar [data-pop="ws"]' : '.side [data-pop="ws"]');
+  if (trigger) A.pop(trigger);
+};
 
 function creationMembers(m) {
   if (!m.includeMembers)
@@ -155,7 +162,8 @@ workspaceModalRenderers.create = (
   m,
   H,
 ) => `${H(copy('Create workspace', 'Создать рабочее пространство'), copy('A separate place for projects, files and knowledge.', 'Отдельное место для проектов, файлов и базы знаний.'))}
-  <form data-submit="submitWorkspace" novalidate><div class="modal-b col" style="gap:16px">
+  <form data-submit="submitWorkspace" aria-busy="${!!m.busy}" novalidate><div class="modal-b col" style="gap:16px">
+    ${m.busy ? `<p class="hint" role="status" translate="no">${copy(m.checking ? 'Checking the result of your original request…' : 'Creating an independent workspace and setting up your owner access…', m.checking ? 'Проверяем результат исходного запроса…' : 'Создаём отдельное пространство и настраиваем ваш доступ владельца…')}</p>` : ''}
     ${m.attempted ? `<p class="hint" role="status" translate="no">${copy('A creation request was already sent. Check its result using the original settings; retrying will not create a duplicate.', 'Запрос на создание уже отправлялся. Проверьте результат с исходными настройками; повторная проверка не создаст дубликат.')}</p>` : m.restored ? `<div class="row" style="flex-wrap:wrap;gap:8px"><span class="hint" role="status" translate="no">${copy('Draft restored', 'Черновик восстановлен')}</span><button class="btn btn-ghost btn-sm" type="button" data-a="restartWorkspaceCreation">${copy('Start over', 'Начать заново')}</button></div>` : ''}
     <fieldset style="border:0;padding:0;margin:0;min-width:0;display:contents" ${m.busy || m.attempted ? 'disabled' : ''}>
     <label class="field"><span class="label">${t('Workspace name')}</span><input class="input${m.nameError ? ' is-error' : ''}" id="new-ws-name" maxlength="100" required autofocus aria-invalid="${!!m.nameError}" ${m.nameError ? 'aria-describedby="new-ws-name-error"' : ''} data-in="workspaceDraft" data-k="name" value="${esc(m.name)}" placeholder="${esc(copy('For example, Product team', 'Например, Команда продукта'))}" ${m.busy ? 'disabled' : ''}>${m.nameError ? `<span class="err" id="new-ws-name-error" role="alert" translate="no">${esc(m.nameError)}</span>` : ''}</label>
@@ -166,7 +174,8 @@ workspaceModalRenderers.create = (
     ${creationMembers(m)}
     <p class="hint" style="margin:0">${copy('You become the owner. Content and permissions are managed separately in each workspace.', 'Вы станете владельцем. Данные и права в каждом пространстве настраиваются отдельно.')}</p>
     ${m.error ? `<p role="alert" style="color:var(--red);margin:0">${esc(m.error)}</p>` : ''}
-  </div><div class="modal-f"><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceCreation" ${m.busy ? 'disabled' : ''}>${m.attempted ? t('Close') : t('Cancel')}</button><button type="submit" class="btn btn-primary ${m.busy ? 'is-loading' : ''}" ${m.busy ? 'disabled' : ''}>${copy(m.busy ? 'Checking creation…' : m.attempted ? 'Check creation' : 'Create workspace', m.busy ? 'Проверка создания…' : m.attempted ? 'Проверить создание' : 'Создать пространство')}</button></div></form>`;
+    ${m.attempted && !m.busy ? `<button type="button" class="btn btn-ghost" data-a="checkWorkspaceCreationList" translate="no">${copy('View workspace list', 'Посмотреть список пространств')}</button>` : ''}
+  </div><div class="modal-f"><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceCreation" ${m.busy ? 'disabled' : ''}>${m.attempted ? t('Close') : t('Cancel')}</button><button type="submit" class="btn btn-primary ${m.busy ? 'is-loading' : ''}" ${m.busy ? 'disabled' : ''}>${copy(m.busy ? (m.checking ? 'Checking creation…' : 'Creating workspace…') : m.attempted ? 'Check creation' : 'Create workspace', m.busy ? (m.checking ? 'Проверка создания…' : 'Создание пространства…') : m.attempted ? 'Проверить создание' : 'Создать пространство')}</button></div></form>`;
 
 IN.workspaceDraft = el => {
   const m = S.ui.modals.at(-1);
@@ -205,9 +214,11 @@ A.submitWorkspace = async () => {
     return;
   }
   m.nameError = '';
+  m.checking = !!m.attempted;
   m.attempted = true;
   rememberCreation(m);
   m.busy = true;
+  m.error = '';
   S.ui.atomicOperation = true;
   render();
   try {
@@ -231,8 +242,8 @@ A.submitWorkspace = async () => {
     location.assign(`/${encodeURIComponent(workspace.url)}/settings/workspace`);
   } catch (error) {
     m.error = copy(
-      'Could not create the workspace. Check your connection and try again.',
-      'Не удалось создать пространство. Проверьте подключение и повторите попытку.',
+      'Could not confirm creation. Your request is retained. Check its result or view the workspace list.',
+      'Не удалось подтвердить создание. Запрос сохранён. Проверьте результат или откройте список пространств.',
     );
     if (error.code === 'WORKSPACE_CREATING')
       m.error = copy(
