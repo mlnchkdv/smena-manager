@@ -1257,3 +1257,75 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(notice).toHaveCount(0);
   }
 });
+
+test('project cards stay compact and open through background and keyboard without menu collisions', async ({ page }) => {
+  await signIn(page);
+  const snapshot = await (await page.request.get('/api/workspace')).json();
+  const base = snapshot.data.projects[0];
+  snapshot.data.projects = [
+    ...snapshot.data.projects,
+    ...['planning', 'active', 'hold'].map((status, index) => ({
+      ...base,
+      id: `card-${index}`,
+      key: `CARD${index}`,
+      name: index === 0 ? 'Проект с очень длинным названием для проверки карточки / Long project title' : `Card project ${index}`,
+      status,
+      desc: index === 1 ? '' : 'Описание проекта без лишнего пустого пространства.',
+      due: '2030-11-28',
+      milestones: [],
+    })),
+  ];
+  snapshot.data.projOrder = snapshot.data.projects.map(project => project.id);
+  expect((await page.request.put('/api/workspace', { data: { revision: snapshot.data.revision, data: snapshot.data } })).ok()).toBeTruthy();
+  await page.reload();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1024, 768],
+      [1366, 768],
+      [1920, 1080],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto('/e2e-team/projects');
+      await expect(page.locator('.project-card')).toHaveCount(4);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      const geometry = await page.locator('.project-card').evaluateAll(cards =>
+        cards.map(card => {
+          const status = card.querySelector('.pstatus').getBoundingClientRect(),
+            menu = card.querySelector('.project-card-menu').getBoundingClientRect(),
+            due = card.querySelector('.project-card-due'),
+            link = card.querySelector('.project-card-link');
+          return {
+            overflow: card.scrollWidth - card.clientWidth,
+            collision: status.left < menu.right && status.right > menu.left && status.top < menu.bottom && status.bottom > menu.top,
+            wrap: due ? getComputedStyle(due).whiteSpace : 'nowrap',
+            href: link.getAttribute('href'),
+          };
+        }),
+      );
+      expect(geometry.every(card => card.overflow <= 1 && !card.collision && card.wrap === 'nowrap' && card.href?.includes('/project/'))).toBeTruthy();
+      const card = page.locator('.project-card[data-id="card-0"]');
+      await card.locator('.project-card-menu').click();
+      await expect(page.locator('[data-pop-root]')).toBeVisible();
+      await expect(page).toHaveURL(/\/projects$/);
+      await page.keyboard.press('Escape');
+      await card.click({ position: { x: 12, y: (await card.boundingBox()).height - 8 } });
+      await expect(page).toHaveURL(/\/project\/card0/);
+      await expect(page.locator('h1')).toContainText('Проект с очень длинным');
+      await page.goto('/e2e-team/projects');
+      await page.locator('.project-card[data-id="card-1"] .project-card-link').press('Enter');
+      await expect(page).toHaveURL(/\/project\/card1/);
+      if ([390, 1366].includes(width)) {
+        await page.goto('/e2e-team/projects');
+        await expect(page.locator('.project-card')).toHaveCount(4);
+        await page.screenshot({ path: `output/playwright/projects-cards-${language === 'Русский' ? 'ru' : 'en'}-${width}-20261031.png` });
+      }
+    }
+  }
+});

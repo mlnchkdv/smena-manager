@@ -1,3 +1,4 @@
+import { appLocationPath } from '../shared/app-location.js';
 /* ---------- PROJECTS ---------- */
 import { ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -14,12 +15,16 @@ export function projectCard(p, at) {
   const pr = progressOf(p.id);
   const open = ts.filter(t => t.status !== 'done').length;
   const locked = !canSee(p);
-  return `<article class="pcard" data-ctx="project" data-id="${p.id}">
-    <div class="row">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><button class="project-card-link trunc" data-a="go" data-r="project" data-id="${p.id}" aria-label="${esc(p.name)}" style="font-weight:600;font-size:14px">${esc(p.name)}</button>${p.fav ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}${p.private ? `<span class="faint" data-tip="Private project">${ic('lock', 12)}</span>` : ''}</div></div>${pStatus(p.status)}</div>
-    <div class="desc">${esc(p.desc)}</div>
-    ${locked ? `<div class="row faint" style="font-size:12px">${ic('lock', 12)}Restricted — request access to see tasks</div>` : `<div class="row" style="gap:10px">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num" style="font-size:12px;font-weight:500">${pr}%</span></div>`}
-    <div class="foot"><span class="row" style="gap:4px">${ic('circle-check', 12)}${locked ? '—' : `${ts.length - open}/${ts.length}`}</span><span class="row" style="gap:4px">${ic('calendar', 12)}${fmtDate(p.due)}</span><span class="row hide-m" style="gap:4px" title="Last recorded activity">${ic('clock', 12)}${locked ? '—' : activityLabel(at)}</span><span class="sp"></span>${avStack(p.members, 3)}</div>
-    <button class="ibtn ibtn-sm more" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Project options" style="background:var(--surface);box-shadow:0 0 0 1px var(--border)">${ic('ellipsis', 14)}</button>
+  const href = appLocationPath(D(), { route: 'project', params: { id: p.id } }),
+    name = esc(p.name),
+    openLabel = esc(`${t('Open project')}: ${p.name}`),
+    due = fmtDate(p.due),
+    activity = locked ? '—' : activityLabel(at);
+  return `<article class="pcard project-card" data-ctx="project" data-id="${esc(p.id)}" aria-label="${name}">
+    <div class="project-card-head">${pIcon(p)}<div class="project-card-identity"><div class="project-card-title-row"><h2><a class="project-card-link" href="${esc(href)}" data-a="go" data-r="project" data-id="${esc(p.id)}" aria-label="${name}" title="${name}" translate="no">${name}</a></h2>${p.fav ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}${p.private ? `<span class="faint" data-tip="Private project">${ic('lock', 12)}</span>` : ''}</div>${pStatus(p.status)}</div><button class="ibtn ibtn-sm project-card-menu" data-a="ctxBtn" data-ctx="project" data-id="${esc(p.id)}" aria-label="${esc(t('Project options'))}: ${name}" title="${esc(t('Project options'))}">${ic('ellipsis', 16)}</button></div>
+    <p class="desc" translate="no">${esc(p.desc || t('No description yet.'))}</p>
+    ${locked ? `<div class="row faint project-card-progress">${ic('lock', 12)}<span>Restricted — request access to see tasks</span></div>` : `<div class="project-card-progress">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num">${pr}%</span></div>`}
+    <div class="foot project-card-foot"><div class="project-card-stats"><span class="project-card-count" aria-label="${esc(t('Tasks'))}: ${locked ? '—' : `${ts.length - open}/${ts.length}`}">${ic('circle-check', 12)}<span class="num">${locked ? '—' : `${ts.length - open}/${ts.length}`}</span></span>${p.due ? `<span class="project-card-due" title="${esc(t('Due date'))}: ${esc(due)}">${ic('calendar', 12)}<time datetime="${esc(p.due)}" translate="no">${esc(due)}</time></span>` : ''}</div><div class="project-card-secondary"><span class="project-card-activity" title="${esc(t('Last recorded activity'))}">${ic('clock', 12)}<span translate="no">${esc(activity)}</span></span><a class="project-card-members" href="${esc(href)}" data-a="go" data-r="project" data-id="${esc(p.id)}" tabindex="-1" aria-label="${openLabel}">${avStack(p.members, 3)}</a></div></div>
   </article>`;
 }
 export function pageProjects() {
