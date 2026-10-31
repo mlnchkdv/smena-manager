@@ -1,3 +1,4 @@
+import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.js';
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -211,8 +212,12 @@ A.browseKnowledgeMove = el => {
   const m = moveModal();
   if (!m) return;
   if (el.dataset.folder && !D().knowledgeFolders.some(folder => folder.id === el.dataset.folder)) return;
-  Object.assign(m, { folder: el.dataset.folder || null, query: '', offset: 0 });
+  Object.assign(m, folderDestinationLocation(m, el.dataset.folder || null, document.querySelector('.knowledge-move-dialog .modal-b')?.scrollTop || 0));
   render();
+  requestAnimationFrame(() => {
+    const body = document.querySelector('.knowledge-move-dialog .modal-b');
+    if (body && moveModal() === m) body.scrollTop = m.returnScroll;
+  });
 };
 IN.knowledgeMoveQuery = el => {
   const m = moveModal();

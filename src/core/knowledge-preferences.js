@@ -16,6 +16,7 @@ export function knowledgePreferences() {
       ? value.views.filter(view => view && ['id', 'name', 'folder', 'query', 'tag', 'sort'].every(field => typeof view[field] === 'string')).slice(0, 20)
       : [];
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
+    S.ui.knowledgeFolderRecent = Array.isArray(value.folderRecent) ? value.folderRecent.filter(id => typeof id === 'string').slice(0, 12) : [];
     S.ui.knowledgeSelection = [];
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
@@ -34,6 +35,7 @@ export function saveKnowledgePreferences() {
       JSON.stringify({
         views: S.ui.knowledgeSavedViews || [],
         recent: S.ui.knowledgeRecent || [],
+        folderRecent: S.ui.knowledgeFolderRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,
         folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
         noteLayout: S.ui.knowledgeNoteLayout === 'list' ? 'list' : 'grid',

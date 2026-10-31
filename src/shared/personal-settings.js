@@ -3,9 +3,11 @@ import { resolveTimeZone } from './calendar-time.js';
 import { validKnowledgeQueries } from './knowledge-query.js';
 import { validSidebar } from './sidebar-preferences.js';
 import { validCardMeta } from './knowledge-card-meta.js';
+import { validFolderPins } from './knowledge-folder-shortcuts.js';
 
 const PREFERENCE_TYPES = Object.freeze({
   knowledgeCardMeta: 'string',
+  knowledgeFolderPins: 'string',
   sidebar: 'string',
   graphSimple: 'boolean',
   graphPhysics: 'boolean',
@@ -52,7 +54,8 @@ export function applyPersonalSettings(database, memberId, input) {
     for (const [key, value] of Object.entries(input.preferences)) {
       if (
         typeof value !== PREFERENCE_TYPES[key] ||
-        (typeof value === 'string' && value.length > (['knowledgeQueries', 'knowledgeCardMeta'].includes(key) ? 24000 : key === 'sidebar' ? 6000 : 180))
+        (typeof value === 'string' &&
+          value.length > (['knowledgeQueries', 'knowledgeCardMeta'].includes(key) ? 24000 : ['sidebar', 'knowledgeFolderPins'].includes(key) ? 6000 : 180))
       )
         invalid();
       if (key === 'sidebar') {
@@ -65,6 +68,13 @@ export function applyPersonalSettings(database, memberId, input) {
       if (key === 'knowledgeCardMeta') {
         try {
           if (!validCardMeta(JSON.parse(value))) invalid();
+        } catch {
+          invalid();
+        }
+      }
+      if (key === 'knowledgeFolderPins') {
+        try {
+          if (!validFolderPins(JSON.parse(value))) invalid();
         } catch {
           invalid();
         }

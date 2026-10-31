@@ -2,6 +2,64 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('large folder navigation preserves pinned destinations and move search context', async ({ page }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeFolders.push(
+    ...Array.from({ length: 500 }, (_, i) => ({ id: `large-${i}`, name: `Folder ${i}` })),
+    ...Array.from({ length: 10 }, (_, i) => ({ id: `deep-${i}`, name: `Deep ${i}`, parentId: i ? `deep-${i - 1}` : null })),
+  );
+  snapshot.knowledgeNotes.push({ id: 'quick-folder-note', title: 'Quick folder note', folderId: 'deep-9', formatted_markdown: 'Test', tags: [] });
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto('/e2e-team/knowledge');
+    await page.setViewportSize({ width: 390, height: 845 });
+    await page.locator('.knowledge-folder-title-button').click();
+    await page.locator('[data-in="knowledgeFolderQuery"]').fill('Deep 9');
+    await page.locator('.knowledge-folders [data-a="setKnowledgeFolder"][data-folder="deep-9"]').click();
+    await page.locator('.knowledge-folder-title-button').click();
+    const pin = page.locator('[data-a="pinKnowledgeFolder"]');
+    if ((await pin.getAttribute('aria-pressed')) !== 'true') await pin.click();
+    await waitForSaved(page);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+    await page.setViewportSize({ width: 390, height: 845 });
+    if (await page.locator('.knowledge-sidebar button.knowledge-mobile-folder-button').isVisible())
+      await page.locator('.knowledge-sidebar button.knowledge-mobile-folder-button').click();
+    await page.locator('.knowledge-preview-card[data-id="quick-folder-note"] .knowledge-preview-move').click();
+    const dialog = page.locator('.knowledge-move-dialog');
+    await dialog.locator('[data-in="knowledgeMoveQuery"]').fill('Folder 480');
+    await dialog.locator('.knowledge-move-row[data-folder="large-480"]').click();
+    await expect(dialog.locator('[data-a="browseKnowledgeMove"][aria-label]')).toHaveAccessibleName(
+      language === 'Русский' ? 'Родительская папка' : 'Parent folder',
+    );
+    await dialog.locator('[data-a="browseKnowledgeMove"][aria-label]').click();
+    await dialog.locator('.knowledge-move-quick > summary').click();
+    await dialog.locator('.knowledge-move-quick [data-folder="deep-9"]').click();
+    await expect(dialog.locator('[data-in="knowledgeMoveQuery"]')).toHaveValue('Folder 480');
+    await dialog.locator('[data-a="closeModal"]').last().click();
+    await page.reload();
+    await page.locator('.knowledge-folder-title-button').click();
+    await expect(page.locator('.knowledge-folder-quick-link[data-folder="deep-9"]')).toBeVisible();
+    await page.screenshot({ path: `output/playwright/audit11-folders-${language === 'Русский' ? 'ru' : 'en'}-390.png` });
+    if (await page.locator('.knowledge-sidebar button.knowledge-mobile-folder-button').isVisible())
+      await page.locator('.knowledge-sidebar button.knowledge-mobile-folder-button').click();
+  }
+});
+
 test('project view chooser exposes every view and retains selection across responsive transitions', async ({ page }) => {
   await signIn(page);
   const data = (await (await page.request.get('/api/workspace')).json()).data,

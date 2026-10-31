@@ -1,0 +1,55 @@
+.knowledge-folder-quick {
+  min-width: 0;
+}
+.knowledge-folder-quick details {
+  max-height: 168px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.knowledge-move-quick {
+  margin: 8px 0;
+}
+.knowledge-move-quick > button {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 44px;
+}
+.knowledge-folder-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.knowledge-folder-quick summary {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  padding: 6px 2px;
+  cursor: pointer;
+}
+.knowledge-folder-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.knowledge-folder-quick-link span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.knowledge-folder-quick-link:hover,
+.knowledge-folder-quick-link[aria-current='page'] {
+  background: var(--surface-2);
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .knowledge-folder-quick-link,
+  .knowledge-folder-quick summary {
+    min-height: 44px;
+  }
+}

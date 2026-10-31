@@ -1,3 +1,4 @@
+import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder-shortcuts.js';
 import { knowledgeCreateMenu } from '../ui/knowledge-create-menu.js';
 import { knowledgeViewOptions } from '../ui/knowledge-view-options.js';
 import { noteCardMeta } from '../ui/knowledge-card-meta.js';
@@ -108,6 +109,7 @@ function folderLabel(folderFilter, folders) {
 
 export function pageKnowledge() {
   knowledgePreferences();
+  installFolderShortcuts();
   const { notes, folders } = knowledgeData();
   const criteria = [
     ...(S.ui.knowledgeTag ? [{ key: 'tag', label: 'Tags', value: S.ui.knowledgeTag }] : []),
@@ -179,7 +181,7 @@ export function pageKnowledge() {
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">
         <div class="knowledge-head-main"><div class="knowledge-title-block"><span class="knowledge-pane-kicker">Folders</span><p translate="no">${uiCount(notes.length, 'note')} · ${uiCount(folders.length, 'folder')}</p></div>${readOnly ? '' : `<div class="knowledge-head-actions"><button class="ibtn" data-a="newKnowledgeFolder" aria-label="New folder" data-tip="New folder">${ic('folder-plus', 16)}</button></div>`}<button class="ibtn knowledge-mobile-folder-button" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders">${ic('x', 18)}</button></div>
-        <div class="knowledge-folder-toolbar"><button class="ibtn ibtn-xs knowledge-folder-section-toggle" data-a="toggleKnowledgeFolderNav" aria-label="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}" aria-expanded="${S.ui.knowledgeFolderNavOpen !== false}" title="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}">${ic(S.ui.knowledgeFolderNavOpen === false ? 'chevron-right' : 'chevron-down', 13)}</button><span class="label">Knowledge folders</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="expandKnowledgeFolders" aria-label="Expand all" title="Expand all">${ic('chevron-down', 13)}</button><button class="ibtn ibtn-xs" data-a="collapseKnowledgeFolders" aria-label="Collapse all" title="Collapse all">${ic('chevron-up', 13)}</button></div>
+        ${folderQuickLinks(folders, folderFilter)}<div class="knowledge-folder-toolbar"><button class="ibtn ibtn-xs knowledge-folder-section-toggle" data-a="toggleKnowledgeFolderNav" aria-label="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}" aria-expanded="${S.ui.knowledgeFolderNavOpen !== false}" title="${S.ui.knowledgeFolderNavOpen === false ? 'Expand folders' : 'Collapse folders'}">${ic(S.ui.knowledgeFolderNavOpen === false ? 'chevron-right' : 'chevron-down', 13)}</button><span class="label">Knowledge folders</span><span class="sp"></span><button class="ibtn ibtn-xs" data-a="expandKnowledgeFolders" aria-label="Expand all" title="Expand all">${ic('chevron-down', 13)}</button><button class="ibtn ibtn-xs" data-a="collapseKnowledgeFolders" aria-label="Collapse all" title="Collapse all">${ic('chevron-up', 13)}</button></div>
         ${S.ui.knowledgeFolderNavOpen === false ? '' : `<div class="inwrap knowledge-folder-search">${ic('search', 13)}<input class="input" data-in="knowledgeFolderQuery" value="${esc(S.ui.knowledgeFolderQuery || '')}" placeholder="Filter folders" aria-label="Filter folders"></div>`}
         ${
           S.ui.knowledgeFolderNavOpen === false

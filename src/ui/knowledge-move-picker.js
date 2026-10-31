@@ -1,4 +1,6 @@
-import { D } from '../core/store.js';
+import { folderPins } from '../shared/knowledge-folder-shortcuts.js';
+import { kc } from './knowledge-types.js';
+import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
@@ -13,6 +15,9 @@ export function knowledgeMovePicker(m) {
   const ids = new Set(m.ids);
   const selected = D().knowledgeNotes.filter(note => ids.has(note.id));
   const canMove = selected.length === m.ids.length && selected.some(note => (note.folderId || null) !== m.folder) && (!m.folder || index.byId.has(m.folder));
+  const quick = [...new Set([...folderPins(S.prefs.knowledgeFolderPins, D().knowledgeFolders), ...(S.ui.knowledgeFolderRecent || [])])]
+    .filter(id => index.byId.has(id))
+    .slice(0, 8);
   const destination = path.map(item => item.name).join(' / ') || t('No folder');
   return `<div class="modal-b" data-keep="${esc(`knowledge-move:${m.folder || ''}:${m.query || ''}:${start}`)}">
     <p class="hint"><span>Selected notes</span>: ${selected.length}</p>
@@ -20,6 +25,7 @@ export function knowledgeMovePicker(m) {
       .slice(0, 3)
       .map(note => `<li translate="no">${esc(note.title || t('Untitled note'))}</li>`)
       .join('')}${selected.length > 3 ? `<li class="hint">+${selected.length - 3}</li>` : ''}</ul>
+    ${m.folder ? `<button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="${esc(index.byId.get(m.folder)?.parentId || '')}" aria-label="${kc('Parent folder', 'Родительская папка')}">${ic('arrow-up', 15)}${kc('Parent folder', 'Родительская папка')}</button>` : ''}${quick.length ? `<details class="knowledge-move-quick" ${m.quickOpen ? 'open' : ''}><summary>${kc('Quick folders', 'Быстрые папки')}</summary>${quick.map(id => `<button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="${esc(id)}" translate="no">${ic('pin', 13)}${esc(index.byId.get(id).name)}</button>`).join('')}</details>` : ''}
     <nav class="knowledge-move-crumbs" aria-label="Destination folder"><button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="">${ic('folder-open', 14)}No folder</button>${path.map(item => `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="browseKnowledgeMove" data-folder="${esc(item.id)}" translate="no">${esc(item.name)}</button>`).join('')}</nav>
     <label class="field"><span class="sr">Find destination folder</span><input class="input" id="knowledge-move-search" data-in="knowledgeMoveQuery" value="${esc(m.query || '')}" placeholder="Find destination folder" autofocus></label>
     <div class="knowledge-move-folders">${
