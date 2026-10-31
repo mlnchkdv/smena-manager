@@ -26,14 +26,15 @@ export function pageHome() {
   const over = all.filter(isOver);
   const tab = S.ui.homeTab;
   const personal = readLayoutPreference('homeView', 'personal') !== 'team';
+  const work = personal ? mineAll : all;
   const lists = {
     upcoming: sortTasks(
-      mineAll.filter(t => t.status !== 'done' && !isOver(t)),
+      work.filter(t => t.status !== 'done' && !isOver(t)),
       { f: 'due', dir: 1 },
     ),
-    overdue: mineAll.filter(isOver),
+    overdue: work.filter(isOver),
     completed: sortTasks(
-      mineAll.filter(t => t.status === 'done'),
+      work.filter(t => t.status === 'done'),
       { f: 'updated', dir: 1 },
     ),
   };
@@ -46,7 +47,7 @@ export function pageHome() {
     return { lab, ts };
   };
   const dls = [dl('Today', 0, 0), dl('Tomorrow', 1, 1), dl('This week', 2, 7)];
-  return `<div class="page home-page layout-dashboard">
+  return `<div class="page home-page layout-dashboard${!cur.length ? ' home-work-empty' : ''}">
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span><span class="home-greeting-context"> · Here's what's happening across your workspace.</span></p></div>
       ${S.ui.currentUser?.role === 'viewer' ? '' : `<div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button></div>`}</div>
     <div class="seg home-view-switch" role="group" aria-label="Home view"><button data-a="setHomeView" data-view="personal" aria-pressed="${personal}" class="${personal ? 'on' : ''}">My work</button><button data-a="setHomeView" data-view="team" aria-pressed="${!personal}" class="${!personal ? 'on' : ''}">Team overview</button></div>
@@ -56,10 +57,10 @@ export function pageHome() {
       <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}Completed</span><span class="v">${doneWk.length}</span><span class="d up">this week</span></button>
       <button class="stat" data-a="goTasks" data-f="overdue"><span class="k">${ic('clock-alert', 14)}Overdue</span><span class="v" style="${over.length ? 'color:var(--red)' : ''}">${over.length}</span><span class="d ${over.length ? 'bad' : ''}">${over.length ? 'need attention' : 'all on track'}</span></button>
     </div></details>
-    <div class="grid2">
+    <div class="grid2 home-work-grid">
       <div class="stack">
         <section class="panel home-task-panel" aria-labelledby="h-mytasks">
-          <div class="panel-h"><h2 id="h-mytasks">My tasks</h2>
+          <div class="panel-h"><h2 id="h-mytasks">${personal ? 'My tasks' : 'Team tasks'}</h2>
             <div class="acts"><div class="seg home-task-tabs" role="tablist" aria-labelledby="h-mytasks">${[
               ['upcoming', 'Upcoming'],
               ['overdue', 'Overdue'],
@@ -71,7 +72,7 @@ export function pageHome() {
               )
               .join('')}</div>
             <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="mytasks" data-tip="Open My Tasks" aria-label="Open My Tasks">${ic('arrow-up-right', 15)}</button></div></div>
-${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? 'Every task assigned to you is on schedule.' : 'Add a task to get things moving.', `<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>`, 'sm')}
+${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? 'Every task assigned to you is on schedule.' : personal && open.length ? 'Your list is empty. Explore workspace tasks or switch to Team overview.' : 'Add a task to get things moving.', `<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>`, 'sm')}
           ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="mytasks">View all ${lists[tab].length} tasks ${ic('arrow-right', 13)}</button>` : ''}
         </section>
         <section class="panel">
@@ -88,7 +89,7 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
         </section>
       </div>
       <div class="stack">
-        <section class="panel">
+        <section class="panel home-deadlines-panel">
           <div class="panel-h"><h2>Upcoming deadlines</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="calendar">${ic('calendar', 13)}Calendar</button></div></div>
           <div class="panel-b" style="padding-bottom:6px">
           ${dls
@@ -109,7 +110,7 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
             .join('')}
           </div>
         </section>
-        <section class="panel">
+        <section class="panel home-activity-panel">
           <div class="panel-h"><h2>Recent activity</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="activity">View all</button></div></div>
           <div class="panel-b feed lined">${D()
             .activity.slice(0, 7)

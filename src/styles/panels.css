@@ -10,6 +10,23 @@
   width: fit-content;
   margin-bottom: 12px;
 }
+@media (max-width: 900px) {
+  .home-work-empty .home-work-grid > .stack {
+    display: contents;
+  }
+  .home-work-empty .home-task-panel {
+    order: 0;
+  }
+  .home-work-empty .home-deadlines-panel {
+    order: 1;
+  }
+  .home-work-empty .home-work-grid > .stack > .panel:not(.home-task-panel):not(.home-deadlines-panel) {
+    order: 2;
+  }
+  .home-work-empty .home-work-grid > .stack > .home-activity-panel {
+    order: 3;
+  }
+}
 .home-team-summary {
   margin-bottom: 16px;
 }
