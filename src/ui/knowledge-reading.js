@@ -10,6 +10,7 @@ import { knowledgeRelations } from '../shared/knowledge-links.js';
 export const knowledgeMarkdownOptions = (note = {}) => ({
   plainText: note.sourceFormat === 'text',
   sourceId: note.id,
+  materialTarget: url => note.materialTargets?.[url] || '',
   asset: url => {
     const asset = knowledgeAsset(url, note.assets);
     return asset

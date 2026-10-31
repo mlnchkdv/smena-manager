@@ -156,6 +156,9 @@ export function renderKnowledgeMarkdown(source, options = {}) {
               : `<span class="knowledge-wiki-link unresolved" title="${escape(options.unresolvedLabel || 'Unresolved wiki link')}">${escape(token.text)}</span>`;
           }
           case 'link': {
+            const material = options.materialTarget?.(token.href);
+            if (material && /^(note|bookmark|file|project|task):[\p{L}\p{N}_.:@+-]+$/u.test(material))
+              return `<button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(material)}">${child()}</button>`;
             const asset = options.asset?.(token.href);
             if (asset)
               return `<button class="knowledge-wiki-link" data-a="openKnowledgeFilePage" data-id="${escape(asset.id)}" data-page="${asset.page || 1}">${child()}</button>`;

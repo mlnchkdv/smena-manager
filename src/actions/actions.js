@@ -3818,3 +3818,5 @@ A.keepFileOffline = async el => (await import('../features/offline-knowledge.js'
 A.offlineKnowledge = async () => (await import('../features/offline-knowledge.js')).reviewOfflineChanges();
 
 A.keepBookmarkOffline = async el => (await import('../features/offline-knowledge.js')).pinBookmark(el);
+
+A.knowledgeArchive = async () => (await import('../features/knowledge-archive.js')).openKnowledgeArchive();

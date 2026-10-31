@@ -1,3 +1,6 @@
+import { zipSync, strToU8 } from 'fflate';
+import { readKnowledgeArchive } from '../../src/shared/knowledge-archive.js';
+import fs from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 test.setTimeout(360000);
 const waitSaved = async page => {
@@ -118,6 +121,38 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('#knowledge-body').fill('Second reference');
   await waitSaved(page);
   await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
+  await openViewOptions(page);
+  await page.locator('[data-a="knowledgeArchive"]').click();
+  await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText('Архив базы знаний');
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('[data-a="exportKnowledgeArchive"]').click();
+  const archiveDownload = await downloadPromise;
+  const exported = readKnowledgeArchive(await fs.readFile(await archiveDownload.path()));
+  expect(exported.payload.notes).toHaveLength(2);
+  const importZip = zipSync({
+    'Guides/From ZIP.md': strToU8('# From ZIP\n\nArchive body\n\n![Pixel](../assets/pixel.png)'),
+    'assets/pixel.png': Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/X1kAAAAASUVORK5CYII=', 'base64'),
+  });
+  await page.locator('[data-in="readKnowledgeArchive"]').setInputFiles({ name: 'vault.zip', mimeType: 'application/zip', buffer: Buffer.from(importZip) });
+  const core = await (await page.request.get('/api/workspace')).json();
+  await page.locator('[data-in="archiveOption"][data-field="project"]').selectOption(core.data.projects[0].id);
+  await page.locator('[data-a="importKnowledgeArchive"]').click();
+  await expect(page.locator('.knowledge-tool-dialog')).toHaveCount(0, { timeout: 20000 });
+  await waitSaved(page);
+  await page.reload();
+  const imported = await (await page.request.get('/api/workspace-documents/knowledge')).json();
+  const zippedNote = imported.data.knowledgeNotes.find(n => n.title === 'From ZIP');
+  expect(zippedNote).toBeTruthy();
+  expect(zippedNote.formatted_markdown).toContain('../assets/pixel.png');
+  const assetId = zippedNote.assets['../assets/pixel.png'];
+  expect(assetId).toBeTruthy();
+  expect((await page.request.get(`/api/files/${assetId}/content`)).ok()).toBeTruthy();
+  const cleaned = {
+    knowledgeNotes: imported.data.knowledgeNotes.filter(n => ['kb-a', 'kb-b'].includes(n.id)),
+    knowledgeFolders: imported.data.knowledgeFolders.filter(f => ['kb-parent', 'kb-child', 'kb-long'].includes(f.id)),
+  };
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: imported.data.revision, data: cleaned } })).ok()).toBeTruthy();
+  await page.reload();
   await page.locator('[data-in="knowledgeQuery"]').fill('type:instruction field:review<2026-12-02');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await expect(page.locator('.knowledge-preview-open')).toContainText('Knowledge Beta');
@@ -222,6 +257,16 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    await openViewOptions(page);
+    await page.locator('[data-a="noteTemplates"]').click();
+    await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText(language === 'Русский' ? 'Шаблоны заметок' : 'Note templates');
+    expect(await page.locator('.knowledge-tool-dialog').evaluate(el => el.getBoundingClientRect().right)).toBeLessThanOrEqual(321);
+    await page.locator('.knowledge-tool-dialog [data-a="closeModal"]').last().click();
+    await openViewOptions(page);
+    await page.locator('[data-a="knowledgeArchive"]').click();
+    await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText(language === 'Русский' ? 'Архив базы знаний' : 'Knowledge archive');
+    expect(await page.locator('.knowledge-tool-dialog').evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+    await page.locator('.knowledge-tool-dialog [data-a="closeModal"]').last().click();
     await expect(page.locator('[data-in="knowledgeFolderLayout"]')).toHaveAttribute(
       'aria-label',
       language === 'Русский' ? 'Отображение папок' : 'Folder display',

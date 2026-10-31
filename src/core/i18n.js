@@ -17,6 +17,12 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Properties: 'Свойства',
+  Aliases: 'Псевдонимы',
+  'Tag aliases': 'Псевдонимы тегов',
+  'Capture status': 'Статус разбора',
+  'Linked assets': 'Связанные вложения',
+  'Imported links': 'Импортированные ссылки',
   'About workspace roles': 'О ролях в пространстве',
   Commands: 'Команды',
   'Manage sign-in access': 'Управление доступом ко входу',

@@ -11,10 +11,12 @@ const fields = [
   'tagAliases',
   'captureStatus',
   'assets',
+  'materialTargets',
 ];
 export const KNOWLEDGE_VERSION_FIELDS = {
   typeId: 'Type',
   assets: 'Linked assets',
+  materialTargets: 'Imported links',
   captureStatus: 'Capture status',
   aliases: 'Aliases',
   tagAliases: 'Tag aliases',
@@ -31,7 +33,13 @@ const snapshot = note =>
     fields.map(field => [
       field,
       note[field] ??
-        (['tags', 'aliases', 'tagAliases'].includes(field) ? [] : ['properties', 'assets'].includes(field) ? {} : field === 'typeId' ? 'note' : ''),
+        (['tags', 'aliases', 'tagAliases'].includes(field)
+          ? []
+          : ['properties', 'assets', 'materialTargets'].includes(field)
+            ? {}
+            : field === 'typeId'
+              ? 'note'
+              : ''),
     ]),
   );
 export const knowledgeVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;

@@ -247,6 +247,16 @@ export function validateDocumentInput(name, value) {
         Object.entries(item.assets).some(([path, id]) => path.length > 500 || !validIdentity(id)))
     )
       invalid.push('knowledgeNotes.assets');
+    if (
+      name === 'knowledge' &&
+      item.materialTargets != null &&
+      (!isObject(item.materialTargets) ||
+        Object.keys(item.materialTargets).length > 200 ||
+        Object.entries(item.materialTargets).some(
+          ([path, key]) => path.length > 500 || typeof key !== 'string' || !/^(note|bookmark|file|project|task):[\p{L}\p{N}_.:@+-]+$/u.test(key),
+        ))
+    )
+      invalid.push('knowledgeNotes.materialTargets');
     if (name === 'knowledge' && !validNoteProperties(item)) invalid.push('knowledgeNotes.properties');
     if (
       item.wikiRefs != null &&
