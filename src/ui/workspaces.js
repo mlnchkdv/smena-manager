@@ -7,6 +7,7 @@ import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { personalPreferenceSyncState } from '../core/personal-preferences.js';
 import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
+import { canCreateWorkspace } from '../shared/workspace-permissions.js';
 import { openModal, closeModal, workspaceModalRenderers } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { mutate, toast } from './toast.js';
@@ -73,7 +74,7 @@ export function switchWorkspace(el) {
 }
 
 export function openWorkspaceCreation() {
-  if (S.ui.currentUser?.role !== 'admin' || !canLeave()) return;
+  if (!canCreateWorkspace(S.ui.currentUser?.role) || !canLeave()) return;
   S.ui.mnav = false;
   let draft;
   try {
@@ -212,7 +213,11 @@ A.submitWorkspace = async () => {
     }
     if (error.code === 'WORKSPACE_INPUT_INVALID')
       m.error = copy('Check the workspace name, description and color.', 'Проверьте название, описание и цвет пространства.');
-    if (error.status === 403) m.error = copy('Only an administrator can create workspaces.', 'Создавать пространства может только администратор.');
+    if (error.status === 403)
+      m.error = copy(
+        'You no longer have permission to create a workspace. Refresh the page to check your access.',
+        'У вас больше нет прав на создание пространства. Обновите страницу, чтобы проверить доступ.',
+      );
     if (error.code === 'WORKSPACE_LIMIT') m.error = copy('The workspace limit has been reached (50).', 'Достигнут лимит рабочих пространств (50).');
     if (error.status === 400 || error.status === 403 || error.code === 'WORKSPACE_LIMIT') {
       m.attempted = false;

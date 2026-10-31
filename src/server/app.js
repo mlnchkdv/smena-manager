@@ -166,7 +166,7 @@ app.post('/api/workspaces/:id/archive', async (request, response, next) => {
   }
 });
 app.use('/api', requireWorkspace);
-app.post('/api/workspaces', requireRole('admin'), async (request, response, next) => {
+app.post('/api/workspaces', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.status(201).json({ workspace: await createWorkspace(request.user, request.body, request.configuredProfiles) });
   } catch (error) {

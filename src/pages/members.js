@@ -85,6 +85,7 @@ export function permsTable() {
     ['Comment on tasks', 1, 1, 1, 1],
     ['Create and edit tasks', 1, 1, 1, 0],
     ['Create projects', 1, 1, 1, 0],
+    ['Create workspace', 1, 1, 1, 0],
     ['Invite members', 1, 1, 0, 0],
     ['Manage roles', 1, 1, 0, 0],
     ['Workspace settings', 1, 1, 0, 0],

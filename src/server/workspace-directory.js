@@ -13,6 +13,7 @@ import { bindAccessProfiles, bindInitialAdministrator, memberForProfile } from '
 import { isActiveMember } from '../shared/workspace-membership.js';
 import { mergeAccessProfiles, workspaceMemberRole, workspaceAccessProfiles } from '../shared/workspace-access.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
+import { canCreateWorkspace } from '../shared/workspace-permissions.js';
 
 const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs'];
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
@@ -79,7 +80,6 @@ export async function directoryLoginProfiles(configured) {
 }
 
 export async function createWorkspace(identity, input, configured = []) {
-  if (identity.role !== 'admin') throw forbidden();
   const name = typeof input?.name === 'string' ? input.name.trim() : '';
   const description = typeof input?.description === 'string' ? input.description.trim() : '';
   const color = input?.color || '#5A67D8';
@@ -90,7 +90,8 @@ export async function createWorkspace(identity, input, configured = []) {
     });
   const sourceScope = workspaceScope();
   const source = await readWorkspaceCore(sourceScope);
-  workspaceUser(source, identity, { legacy: sourceScope === 'default', configured });
+  const creatorAccess = workspaceUser(source, identity, { legacy: sourceScope === 'default', configured });
+  if (!canCreateWorkspace(creatorAccess.role)) throw forbidden();
   const operation = input?.operationId || randomUUID();
   if (!/^[\da-f-]{36}$/iu.test(operation)) throw Object.assign(new Error('Invalid creation operation.'), { statusCode: 400, code: 'WORKSPACE_INPUT_INVALID' });
   const key = createHash('sha256')

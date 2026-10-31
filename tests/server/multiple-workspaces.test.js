@@ -87,6 +87,7 @@ test('workspace provisioning isolates concurrent data, files, membership, backup
   assert.equal((await listUserWorkspaces(owner, [owner, guest])).length, 3, 'restores cannot replace the global directory');
   assert.throws(() => inWorkspace('../escape', () => getWorkspaceDatabase()), /Invalid workspace/u);
   await assert.rejects(createWorkspace(guest, { name: 'Denied' }), /access/u);
+  await assert.rejects(createWorkspace({ ...guest, role: 'admin' }, { name: 'Stale privileged profile' }), /access/u);
 });
 
 test('HTTP workspace boundary rejects nonmembers and traversal, applies per-workspace roles and keeps global sessions', async () => {
@@ -145,6 +146,46 @@ test('HTTP workspace boundary rejects nonmembers and traversal, applies per-work
     assert.equal((await call(profile, '/api/auth/me', a.id)).status, 200);
     assert.equal((await call(profile, '/api/workspace', b.id)).status, 403);
     assert.equal((await call(profile, '/api/workspace', 'default')).status, 403);
+    const createdResponse = await call(profile, '/api/workspaces', a.id, {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Member-owned workspace' }),
+    });
+    assert.equal(createdResponse.status, 201);
+    const owned = (await createdResponse.json()).workspace;
+    const ownedResponse = await call(profile, '/api/workspace', owned.id);
+    assert.equal(ownedResponse.status, 200);
+    const ownedData = (await ownedResponse.json()).data;
+    assert.equal(ownedData.members.length, 1);
+    assert.equal(ownedData.members[0].role, 'Owner');
+    assert.equal(ownedData.members[0].email, profile.email);
+    ownedData.ws.name = 'Configured by its creator';
+    assert.equal(
+      (
+        await call(profile, '/api/workspace', owned.id, {
+          method: 'PUT',
+          body: JSON.stringify({ revision: ownedData.revision, data: ownedData }),
+        })
+      ).status,
+      200,
+    );
+    assert.equal((await (await call(profile, '/api/workspace', owned.id)).json()).data.ws.name, 'Configured by its creator');
+    const sourceData = (await (await call(profile, '/api/workspace', a.id)).json()).data;
+    const sourceName = sourceData.ws.name;
+    sourceData.ws.name = 'Forbidden source edit';
+    assert.equal(
+      (
+        await call(profile, '/api/workspace', a.id, {
+          method: 'PUT',
+          body: JSON.stringify({ revision: sourceData.revision, data: sourceData }),
+        })
+      ).status,
+      200,
+    );
+    assert.equal((await (await call(profile, '/api/workspace', a.id)).json()).data.ws.name, sourceName, 'source administrator fields remain protected');
+    const ownedDirectory = await listUserWorkspaces(profile);
+    assert.equal(ownedDirectory.find(item => item.id === owned.id).role, 'admin');
+    assert.equal(ownedDirectory.find(item => item.id === a.id).role, 'editor');
+    assert.equal((await call(profile, '/api/workspace', b.id)).status, 403);
   } finally {
     await new Promise(resolve => server.close(resolve));
   }

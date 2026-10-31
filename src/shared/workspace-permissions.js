@@ -6,6 +6,7 @@ const clone = value => structuredClone(value);
 export function canWriteWorkspace(role) {
   return role === 'admin' || role === 'editor';
 }
+export const canCreateWorkspace = canWriteWorkspace;
 export const canManageTeams = role => role === 'admin';
 
 export function adminFieldsChanged(current, next) {

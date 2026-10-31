@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { randomUUID } from 'node:crypto';
 import { mergeWorkspaceSettings } from '../../src/shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../../src/shared/workspace-slug.js';
+import { canCreateWorkspace } from '../../src/shared/workspace-permissions.js';
 
 // Execute the actual UI handlers with an isolated store and DOM boundary.
 // This catches regressions between a correct merge helper and the save action.
@@ -42,6 +43,7 @@ function fixture({ russian = false, active = 'default' } = {}) {
     t: value => value,
     mergeWorkspaceSettings,
     workspaceSlug,
+    canCreateWorkspace,
     getActiveWorkspace: () => active,
     toast: message => notices.push(message),
     mutate: apply => {
@@ -149,6 +151,19 @@ test('cancel discards an unsubmitted creation draft while closing preserves an e
   assert.equal(f.storage.size, 0);
   f.context.openCreation();
   assert.equal(f.S.ui.modals.at(-1).name, '');
+});
+
+test('members can open creation but retain read-only settings in their source workspace', () => {
+  for (const role of ['admin', 'editor', 'viewer']) {
+    const f = fixture();
+    f.S.ui.currentUser.role = role;
+    f.S.ui.workspaceSettingsDirty = false;
+    f.context.openCreation();
+    assert.equal(f.S.ui.modals.length, role === 'viewer' ? 0 : 1);
+    f.S.ui.workspaceSettingsDirty = true;
+    f.context.saveSettings();
+    assert.equal(f.writes(), role === 'admin' ? 1 : 0);
+  }
 });
 
 test('uncertain creation keeps original payload and operation identity for recovery', async () => {
