@@ -2,6 +2,7 @@ import { ENTITY_COLLECTIONS, RELATION_TYPES } from './relations.js';
 import { assertFileFolder, validateProjectFileFolders } from './file-organization.js';
 import { projectImageData } from './project-appearance.js';
 import { validNoteTypes, validNoteProperties } from './knowledge-types.js';
+import { validKnowledgeTemplates } from './knowledge-templates.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -71,6 +72,7 @@ export function validateWorkspaceData(value) {
   if (value.tfa != null && typeof value.tfa !== 'boolean') invalid.push('tfa');
   if (isObject(value.ws)) {
     if (value.ws.knowledgeTypes != null && !validNoteTypes(value.ws.knowledgeTypes)) invalid.push('ws.knowledgeTypes');
+    if (value.ws.knowledgeTemplates != null && !validKnowledgeTemplates(value.ws.knowledgeTemplates)) invalid.push('ws.knowledgeTemplates');
     if (value.ws.c != null && (typeof value.ws.c !== 'string' || !/^#[\da-f]{6}$/iu.test(value.ws.c))) invalid.push('ws.c');
     for (const field of ['name', 'url', 'description'])
       if (value.ws[field] != null && (typeof value.ws[field] !== 'string' || value.ws[field].length > 500)) invalid.push(`ws.${field}`);
