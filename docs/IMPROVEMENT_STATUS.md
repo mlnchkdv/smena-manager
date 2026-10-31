@@ -1,5 +1,9 @@
 # Improvement status / Статус улучшений
 
+## Whiteboards and navigation — 31 October 2026 / Холсты и навигация
+
+Delivered project whiteboards, simplified graph, opt-in physics, compact knowledge Display, personal sidebar customization and Help in Settings. Usage, schema/rights, production versus local acceptance and the next 11 recommendations: [audit and handoff](UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md). / Выполненные возможности, проверки и следующий пакет из 11 рекомендаций описаны в отчёте.
+
 ## Knowledge tools — 31 October 2026 / Инструменты знаний
 
 Implementation of requested Capacities-inspired items 1–8 and 14–19, project-card fixes, usage, data boundaries and verification limits: [CAPACITIES_DELIVERY_2026-10-31.md](CAPACITIES_DELIVERY_2026-10-31.md). / Реализация запрошенных возможностей, инструкции, размещение данных и ограничения приёмки описаны в отдельном отчёте. Earlier knowledge limitations below are historical where superseded by this report.

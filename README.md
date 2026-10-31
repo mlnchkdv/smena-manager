@@ -6,6 +6,10 @@
 
 **EN:** Smena Manager is a shared team workspace for tasks, projects, calendar, inbox, notifications, files, knowledge notes, bookmarks, and a graph connecting materials. It supports Russian and English, Google Sign-In, Drive-backed JSON documents, and Web Push/Gmail notifications without PostgreSQL. The detailed bilingual handoff context is available in [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md).
 
+**RU:** У проекта есть холст для карточек, материалов и связей, а у графа — упрощённый вид и переключаемая физика. Боковое меню настраивается лично; помощь находится в настройках. [Возможности, проверки и UI/UX-аудит](docs/UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md).
+
+**EN:** Each project has a whiteboard for cards, materials and connections. Graph offers simplified rendering and optional physics; sidebar preferences are personal, and Help lives in Settings. [Features, acceptance and UI/UX audit](docs/UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md).
+
 A team task manager with dashboards, inbox, projects, boards, lists, tables, calendars, timelines,
 files, members, teams, activity and settings. The interface is being adapted into the Smena team's
 own workspace, with knowledge notes, project files, bookmarks and material connections already available.

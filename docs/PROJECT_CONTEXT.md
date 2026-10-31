@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**31.10.2026 — холсты, граф и меню / whiteboards, graph and navigation:** see [UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md](UI_UX_AUDIT_2026-10-31_KNOWLEDGE_PROJECTS.md) for project whiteboard schema/access limits, personal graph physics/simple view, sidebar settings, Help relocation, responsive evidence and the next audit backlog.
+
 **31.10.2026 — типы знаний, блоки, офлайн и ZIP / knowledge types, blocks, offline and ZIP:** read [CAPACITIES_DELIVERY_2026-10-31.md](CAPACITIES_DELIVERY_2026-10-31.md) before changing the new note fields, workspace definitions, material links, attachment bindings, offline queues or portable import. It records user-facing entry points, role boundaries, limits and verification evidence. Main knowledge actions are loaded with the knowledge page; keep heavy tools lazy to preserve the entry bundle budget.
 
 **29.10.2026 — рабочие пространства / multiple workspaces:** создание, переключение, отдельные участники/данные/файлы/копии и настройки; исходное пространство остаётся в legacy storage. Before changing authentication, storage, downloads or cron, read [`WORKSPACES.md`](WORKSPACES.md): it documents namespace boundaries, global sessions, Drive provisioning, automation and verification limits.
