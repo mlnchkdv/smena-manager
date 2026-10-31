@@ -4,6 +4,12 @@
 .project-mobile-menu {
   display: none;
 }
+.project-status-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 @media (max-width: 900px) {
   .proj-h {
     padding-top: 6px;
