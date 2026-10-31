@@ -304,8 +304,11 @@ const layoutObserver = new ResizeObserver(() => {
     if (S.ui.route !== 'knowledge') return;
     const compact = knowledgeFolderOverlay(innerWidth, S.ui.collapsed, layoutMain.clientWidth);
     if (compact !== S.ui.knowledgeFolderOverlay) {
+      const folderFocus = !!document.activeElement?.closest('.knowledge-sidebar');
       S.ui.knowledgeMobileFolders = false;
       render();
+      if (folderFocus && (document.activeElement === document.body || document.activeElement?.closest('[inert]')))
+        document.getElementById('knowledge-view-title')?.focus({ preventScroll: true });
     }
   });
 });
