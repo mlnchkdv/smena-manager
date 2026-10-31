@@ -26,6 +26,8 @@ export function modalHtml(m) {
       return wrap('sm workspace-create-dialog', workspaceModalRenderers.create(m, H));
     case 'workspaceLeave':
       return wrap('sm workspace-leave-dialog', workspaceModalRenderers.leave(m, H));
+    case 'workspaceOpening':
+      return wrap('sm', workspaceModalRenderers.opening(m));
     case 'fileFolderForm':
       return wrap('sm', fileModalRenderers.fileFolderForm(m, H));
     case 'fileMove':

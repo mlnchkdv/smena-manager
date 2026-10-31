@@ -9,6 +9,7 @@ import { mergeWorkspaceSettings } from '../shared/workspace-settings-draft.js';
 import { workspaceSlug } from '../shared/workspace-slug.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
 import { isActiveMember } from '../shared/workspace-membership.js';
+import { rememberWorkspaceSection, workspaceSectionDestination } from '../shared/workspace-navigation.js';
 import { openModal, closeModal, workspaceModalRenderers } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { mutate, toast } from './toast.js';
@@ -72,8 +73,21 @@ export function switchWorkspace(el) {
     S.ui.pop = null;
     return render();
   }
-  if (canLeave(() => switchWorkspace(el))) location.assign(`/${encodeURIComponent(target.url)}/home`);
+  if (!canLeave(() => switchWorkspace(el))) return;
+  let storage;
+  try {
+    storage = sessionStorage;
+  } catch {
+    /* Optional memory. */
+  }
+  rememberWorkspaceSection(storage, S.ui.currentUser?.id, getActiveWorkspace(), S.ui.route, S.ui.params);
+  const destination = workspaceSectionDestination(storage, S.ui.currentUser?.id, target);
+  S.ui.atomicOperation = true;
+  openModal({ type: 'workspaceOpening', name: target.name });
+  location.assign(destination);
 }
+workspaceModalRenderers.opening = m =>
+  `<div class="modal-b" role="status" aria-live="polite" translate="no"><h2 id="mt-workspaceOpening">${copy('Opening workspace…', 'Открываем пространство…')}</h2><p>${esc(m.name)}</p></div>`;
 
 export function openWorkspaceCreation() {
   if (!canCreateWorkspace(S.ui.currentUser?.role) || !canLeave(openWorkspaceCreation)) return;

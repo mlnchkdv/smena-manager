@@ -7,6 +7,7 @@ import { mergeWorkspaceSettings } from '../../src/shared/workspace-settings-draf
 import { workspaceSlug } from '../../src/shared/workspace-slug.js';
 import { canCreateWorkspace } from '../../src/shared/workspace-permissions.js';
 import { isActiveMember } from '../../src/shared/workspace-membership.js';
+import { rememberWorkspaceSection, workspaceSectionDestination } from '../../src/shared/workspace-navigation.js';
 
 // Execute the actual UI handlers with an isolated store and DOM boundary.
 // This catches regressions between a correct merge helper and the save action.
@@ -47,6 +48,8 @@ function fixture({ russian = false, active = 'default' } = {}) {
     workspaceSlug,
     canCreateWorkspace,
     isActiveMember,
+    rememberWorkspaceSection,
+    workspaceSectionDestination,
     workspaceRoleLabel: value => value,
     getActiveWorkspace: () => active,
     toast: message => notices.push(message),

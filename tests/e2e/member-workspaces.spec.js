@@ -162,15 +162,14 @@ test('an ordinary member creates and configures owned workspaces without gaining
       await saved(member);
       await member.locator('.workspace-context[data-pop="ws"]').click();
       await member.locator('.pop [data-a="switchWs"][data-v="default"]').click();
-      await expect(member).toHaveURL(/\/e2e-team\/home$/);
+      await expect(member).toHaveURL(ru ? /\/e2e-team\/home$/ : /\/e2e-team\/knowledge$/);
       await expect(member.locator('html')).toHaveAttribute('lang', ru ? 'ru' : 'en');
       await member.goto('/e2e-team/knowledge');
       await expect(member.locator('.knowledge-shell')).toBeVisible();
       await expect(member.getByText(noteTitle, { exact: true })).toHaveCount(0);
       await member.locator('.workspace-context[data-pop="ws"]').click();
       await member.locator(`.pop [data-a="switchWs"][data-v="${ownEntry.id}"]`).click();
-      await expect(member).toHaveURL(new RegExp(`/${ownEntry.url}/home$`));
-      await member.goto(`/${ownEntry.url}/knowledge`);
+      await expect(member).toHaveURL(new RegExp(`/${ownEntry.url}/knowledge$`));
       await expect(member.getByText(noteTitle, { exact: true }).first()).toBeVisible();
       await member.goto('/e2e-team/settings/workspace');
       console.log(`Member-owned isolation and mobile switcher verified: ${language}`);
