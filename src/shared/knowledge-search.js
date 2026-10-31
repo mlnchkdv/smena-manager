@@ -3,7 +3,7 @@ import { markdownText } from './markdown-text.js';
 import { searchTerms } from './search-query.js';
 export { searchTerms } from './search-query.js';
 
-export const searchableNote = note => [note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
+export const searchableNote = note => [note.title, note.summary, note.typeId, ...Object.values(note.properties || {}), note.formatted_markdown, ...(note.tags || [])].join(' ').toLocaleLowerCase();
 export function createKnowledgeMatcher(query) {
   const terms = searchTerms(query);
   // A blank search must not read/lowercase the full text of every stored note.

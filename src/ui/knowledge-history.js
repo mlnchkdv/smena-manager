@@ -22,7 +22,7 @@ function versionComparison(note, version) {
         : t('No folder');
     if (field === 'tags') return (Array.isArray(data) ? data : []).join(', ') || t('None');
     if (field === 'category') return knowledgeCategoryLabel(data) || t('None');
-    return data || t('None');
+    return (data && typeof data === 'object' ? JSON.stringify(data) : data) || t('None');
   };
   const text = knowledgeTextComparison(note.formatted_markdown, change.restored.formatted_markdown);
   return `<section class="knowledge-version-comparison" aria-label="What will change"><h4>What will change</h4>${change.missingFolder ? '<p class="alert warn">The original folder no longer exists. This version will be restored without a folder.</p>' : ''}${

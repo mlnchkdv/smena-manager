@@ -2271,3 +2271,5 @@ export function translateApp() {
   translateElement(document.getElementById('app'));
   translateElement(document.getElementById('layer'));
 }
+
+export const workspaceDraftLabel = () => (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes');

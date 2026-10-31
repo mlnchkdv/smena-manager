@@ -1815,3 +1815,34 @@
     font-size: 16px;
   }
 }
+
+.knowledge-type-fields {
+  margin-block: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.knowledge-type-fields summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.knowledge-type-fields .field {
+  margin-top: 10px;
+}
+.knowledge-type-definition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.knowledge-tool-dialog .modal-b {
+  display: grid;
+  gap: 12px;
+}
+.knowledge-tool-dialog .modal-f {
+  flex-wrap: wrap;
+}
+@media (max-width: 480px) {
+  .knowledge-type-definition {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -80,6 +80,17 @@ test('knowledge reading editing history search and mobile folders work in Russia
   };
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.data.revision, data } })).ok()).toBeTruthy();
   await page.goto('/e2e-team/knowledge');
+  await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
+  await page.locator('.knowledge-preview-edit').click();
+  await page.locator('.knowledge-type-fields>summary').click();
+  await page.locator('[data-in="noteType"]').selectOption('instruction');
+  await page.locator('[data-in="noteProperty"][data-field="review"]').fill('2026-12-01');
+  await waitSaved(page);
+  await page.reload();
+  await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
+  await page.locator('.knowledge-type-fields>summary').click();
+  await expect(page.locator('[data-in="noteProperty"][data-field="review"]')).toHaveValue('2026-12-01');
+  await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
   await page.locator('[data-in="knowledgeQuery"]').fill('"original knowledge"');
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(1);
   await expect(page.locator('.knowledge-preview-excerpt mark')).toHaveText('Original knowledge');

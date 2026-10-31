@@ -8,7 +8,7 @@ import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
 import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
-import { t as tr, isRussian } from '../core/i18n.js';
+import { t as tr, workspaceDraftLabel } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { appLocationPath } from '../shared/app-location.js';
@@ -52,7 +52,7 @@ const lazyPageLoaders = {
 };
 
 function accountMenuLabel() {
-  return `${S.prefs.name}. ${tr('Account menu')}. ${S.ui.workspaceSettingsDirty && systemConnectionState() === 'saved' ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
+  return `${S.prefs.name}. ${tr('Account menu')}. ${S.ui.workspaceSettingsDirty && systemConnectionState() === 'saved' ? workspaceDraftLabel() : tr(SYNC_PRESENTATION[systemConnectionState()][1])}`;
 }
 
 function accountAvatarStatus(memberId, size = '') {
@@ -275,7 +275,7 @@ export function crumbs() {
 export function renderTopbar() {
   const state = systemConnectionState();
   const sync = SYNC_PRESENTATION[state];
-  const syncLabel = state === 'saved' && S.ui.workspaceSettingsDirty ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : tr(sync[1]);
+  const syncLabel = state === 'saved' && S.ui.workspaceSettingsDirty ? workspaceDraftLabel() : tr(sync[1]);
   const syncTitle =
     state === 'saved' && !S.ui.workspaceSettingsDirty && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : syncLabel;
   return `<header class="topbar">

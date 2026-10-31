@@ -42,7 +42,7 @@ import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAnd
 import { toast } from './ui/toast.js';
 import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
-import { t as tr, isRussian } from './core/i18n.js';
+import { t as tr, workspaceDraftLabel } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
@@ -131,7 +131,7 @@ function updateSyncIndicator(status) {
     invalid: 'Data error',
   };
   indicator.dataset.state = status;
-  const draftLabel = status === 'saved' && S.ui.workspaceSettingsDirty ? (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes') : '';
+  const draftLabel = status === 'saved' && S.ui.workspaceSettingsDirty ? workspaceDraftLabel() : '';
   document.querySelectorAll('.account-avatar-status').forEach(avatar => {
     avatar.dataset.state = status;
   });
