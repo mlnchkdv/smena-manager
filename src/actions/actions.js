@@ -1488,6 +1488,15 @@ A.toggleDrawerFull = () => {
   S.ui.drawerFull = !S.ui.drawerFull;
   render();
 };
+A.jumpTaskComments = () => {
+  S.ui.drawerTab = 'comments';
+  render();
+  requestAnimationFrame(() => {
+    const discussion = document.querySelector('.task-discussion');
+    discussion?.scrollIntoView({ block: 'start' });
+    discussion?.focus({ preventScroll: true });
+  });
+};
 A.toggleDone = el => {
   const t = task(el.dataset.id);
   if (!t) return;

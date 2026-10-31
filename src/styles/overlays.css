@@ -283,6 +283,22 @@
 .dsec {
   margin-top: 26px;
 }
+.task-extra-properties {
+  margin-block: 10px;
+  border-block: 1px solid var(--divider);
+}
+.task-extra-properties > summary {
+  min-height: 40px;
+  padding-block: 10px;
+  cursor: pointer;
+  color: var(--text-2);
+}
+.task-extra-properties .kv {
+  margin-block: 4px 10px;
+}
+.task-discussion {
+  scroll-margin-top: 12px;
+}
 .dsec-h {
   display: flex;
   align-items: center;
