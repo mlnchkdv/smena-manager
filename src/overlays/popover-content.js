@@ -13,11 +13,12 @@ import { locale, isRussian, t as tr, workspaceRoleLabel } from '../core/i18n.js'
 
 import { tgt } from './popovers.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
+import { matchesLocalizedName } from '../shared/localized-search.js';
 export function popList(items, opt = {}) {
   const q = (S.ui.pop.q || '').toLowerCase();
-  const list = items.filter(it => !q || it.name.toLowerCase().includes(q));
-  return `${opt.search ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${opt.search}" value="${esc(S.ui.pop.q || '')}" aria-label="${opt.search}"></div>` : ''}
-    ${list.map(it => `<button class="mi" data-a="${it.act || 'popPick'}" data-v="${esc(it.id)}" role="menuitemradio" aria-checked="${!!it.on}">${it.html || ''}<span class="trunc">${esc(it.name)}</span>${it.kbd ? `<span class="r"><kbd>${it.kbd}</kbd></span>` : ''}${it.on ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`).join('') || `<div class="mi faint" style="cursor:default">No matches</div>`}`;
+  const list = items.filter(it => (opt.localized ? matchesLocalizedName(it.name, q, tr) : !q || it.name.toLowerCase().includes(q)));
+  return `${opt.search ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${esc(tr(opt.search))}" value="${esc(S.ui.pop.q || '')}" aria-label="${esc(tr(opt.search))}"></div>` : ''}
+    ${list.map(it => `<button class="mi" data-a="${it.act || 'popPick'}" data-v="${esc(it.id)}" role="menuitemradio" aria-checked="${!!it.on}">${it.html || ''}<span class="trunc">${esc(opt.localized ? tr(it.name) : it.name)}</span>${it.kbd ? `<span class="r"><kbd>${it.kbd}</kbd></span>` : ''}${it.on ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`).join('') || `<div class="mi faint" style="cursor:default">${esc(tr('No matches'))}</div>`}`;
 }
 export function miniCal(p, val) {
   const m = parse(p.m);
@@ -147,7 +148,7 @@ export function popHtml(p) {
           on: t?.labels.includes(l.id),
           act: 'popToggleLabel',
         })),
-        { search: 'Filter labels…' },
+        { search: 'Filter labels…', localized: true },
       );
       break;
     case 'project':

@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Filter labels…': 'Поиск меток…',
+  'No matches': 'Совпадений нет',
   Workspaces: 'Рабочие пространства',
   'Find workspace': 'Найти пространство',
   'Create workspace': 'Создать пространство',
