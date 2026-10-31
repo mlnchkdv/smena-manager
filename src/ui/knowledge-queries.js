@@ -1,3 +1,4 @@
+import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S, save, visibleProjects } from '../core/store.js';
 import { esc, uid } from '../core/utils.js';
@@ -23,7 +24,7 @@ export function smartCollections() {
           `<div class="row"><button class="btn btn-ghost grow" data-a="applyKnowledgeQuery" data-id="${esc(item.id)}" data-shared="${shared ? '1' : ''}" translate="no">${esc(item.name)}</button>${!shared || S.ui.currentUser?.role === 'admin' ? `<button class="ibtn" data-a="editKnowledgeQuery" data-id="${esc(item.id)}" data-shared="${shared ? '1' : ''}" aria-label="${kc('Edit collection', 'Изменить подборку')}">…</button>` : ''}</div>`,
       )
       .join('');
-  return `<details class="knowledge-smart-collections" translate="no"><summary>${kc('Smart collections', 'Умные подборки')}</summary><button class="btn btn-ghost" data-a="knowledgeCaptureCollection">${kc('To process', 'На разбор')}</button>${section(personal(), false)}${section(D().ws.knowledgeQueries || [], true)}<button class="btn btn-ghost" data-a="newKnowledgeQuery">${kc('New collection', 'Новая подборка')}</button></details>`;
+  return `<details class="knowledge-smart-collections" ${knowledgeDisclosure('catalog', 'collections')} translate="no"><summary>${kc('Smart collections', 'Умные подборки')}</summary><button class="btn btn-ghost" data-a="knowledgeCaptureCollection">${kc('To process', 'На разбор')}</button>${section(personal(), false)}${section(D().ws.knowledgeQueries || [], true)}<button class="btn btn-ghost" data-a="newKnowledgeQuery">${kc('New collection', 'Новая подборка')}</button></details>`;
 }
 function builder(m) {
   const b = m.builder || {},
@@ -82,10 +83,12 @@ A.removeKnowledgeQuery = () => persist(S.ui.modals.at(-1), true);
 A.applyKnowledgeQuery = el => {
   const item = (el.dataset.shared === '1' ? D().ws.knowledgeQueries : personal())?.find(q => q.id === el.dataset.id);
   if (!item) return;
+  S.ui.knowledgeActiveCollection = { id: item.id, name: item.name, query: item.query, owner: S.ui.currentUser?.id, workspace: D().ws.id || D().ws.url };
   S.ui.knowledgeQuery = item.query;
   S.ui.knowledgeFolder = 'all';
   S.ui.knowledgeTag = '';
   S.ui.knowledgeOffset = 0;
+  S.ui.knowledgeMobileFolders = false;
   render();
 };
 

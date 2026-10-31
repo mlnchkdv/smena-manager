@@ -1,4 +1,5 @@
 import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder-shortcuts.js';
+import { knowledgeQueryContext } from '../ui/knowledge-query-context.js';
 import { knowledgeCreateMenu } from '../ui/knowledge-create-menu.js';
 import { knowledgeViewOptions } from '../ui/knowledge-view-options.js';
 import { noteCardMeta } from '../ui/knowledge-card-meta.js';
@@ -212,7 +213,7 @@ export function pageKnowledge() {
           .map(tag => `<option value="${esc(tag)}" ${S.ui.knowledgeTag === tag ? 'selected' : ''} translate="no">${esc(tag)}</option>`)
           .join(
             '',
-          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details>${knowledgeSelectionStart(visible)}</div>${filterCriteria(criteria, 'clearKnowledgeCriterion')}
+          )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details>${knowledgeSelectionStart(visible)}</div>${filterCriteria(criteria, 'clearKnowledgeCriterion')}${knowledgeQueryContext(folderFilter, activeFolder?.name || t(folderLabel(folderFilter, folders)))}
         ${inlineFolders ? '' : folderCards}
         ${foldersAvailable && !inlineFolders ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}

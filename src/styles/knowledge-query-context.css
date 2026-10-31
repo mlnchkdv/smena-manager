@@ -1,0 +1,51 @@
+.knowledge-query-context {
+  margin: 8px 0;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  min-width: 0;
+}
+.knowledge-query-scope {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.knowledge-query-scope strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.knowledge-query-context summary {
+  cursor: pointer;
+  padding: 5px 0;
+}
+.knowledge-query-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px 0;
+}
+.knowledge-query-chips button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-height: 30px;
+  background: var(--surface);
+}
+.knowledge-query-chips span {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .knowledge-query-chips button,
+  .knowledge-query-context summary {
+    min-height: 44px;
+  }
+}

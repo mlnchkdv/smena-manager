@@ -1,6 +1,24 @@
 .knowledge-folder-quick {
   min-width: 0;
 }
+.knowledge-shell[data-folder-overlay='true'] .knowledge-sidebar-head {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-sidebar-head .knowledge-folder-quick {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  max-height: 25dvh;
+  overflow-y: auto;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-sidebar-head .knowledge-folders {
+  grid-row: 4;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-folder-footer {
+  grid-row: 5;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-smart-collections {
+  grid-column: 1 / -1;
+}
 .knowledge-folder-quick details {
   max-height: 168px;
   overflow-y: auto;

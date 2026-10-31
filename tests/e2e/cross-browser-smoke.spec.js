@@ -1,5 +1,68 @@
 import { expect, test } from '@playwright/test';
 
+test('knowledge search explains scope and removes individual conditions without losing quoted text', async ({ page }) => {
+  test.setTimeout(180000);
+  page.setDefaultTimeout(15000);
+  await signIn(page);
+  const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeFolders.push({ id: 'scope-folder', name: 'Scope folder' });
+  snapshot.knowledgeNotes.push(
+    ...[1, 2].map(i => ({
+      id: `scope-note-${i}`,
+      title: 'Quarterly Review ' + i,
+      typeId: 'meeting',
+      properties: { date: '2026-10-31' },
+      formatted_markdown: 'Quarterly Review',
+      folderId: i === 1 ? 'scope-folder' : null,
+      tags: [],
+    })),
+  );
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/knowledge');
+    await page.setViewportSize({ width: 390, height: 845 });
+    await page.locator('.knowledge-folder-title-button').click();
+    await page.locator('[data-in="knowledgeFolderQuery"]').fill('Scope folder');
+    await page.locator('.knowledge-folders [data-a="setKnowledgeFolder"][data-folder="scope-folder"]').click();
+    const query = page.locator('#knowledge-search');
+    await query.fill('type:meeting "Quarterly Review" field:date>=2026-10-31');
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(1);
+    await expect(page.locator('.knowledge-query-scope')).toContainText('Scope folder');
+    await page.locator('.knowledge-query-context details > summary').click();
+    await expect(page.locator('.knowledge-query-chips button')).toHaveCount(3);
+    await page.locator('[data-a="removeKnowledgeQueryToken"][data-index="0"]').click();
+    await expect(query).toHaveValue('"Quarterly Review" field:date>=2026-10-31');
+    await page.locator('[data-a="clearKnowledgeScope"]').click();
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(2);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expectNoPageOverflow(page);
+    }
+    await page.setViewportSize({ width: 390, height: 845 });
+    await page.locator('.knowledge-folder-title-button').click();
+    await page.locator('.knowledge-smart-collections > summary').click();
+    await page.locator('[data-a="newKnowledgeQuery"]').click();
+    await page.locator('[data-in="knowledgeQueryDraft"][data-field="name"]').fill('Scope collection');
+    await page.locator('[data-a="saveKnowledgeQuery"]').click();
+    await page.waitForTimeout(650);
+    await page.locator('[data-a="applyKnowledgeQuery"]').filter({ hasText: 'Scope collection' }).first().click();
+    await expect(page.locator('.knowledge-shell')).not.toHaveClass(/folders-open/);
+    await expect(page.locator('.knowledge-query-context')).toContainText('Scope collection');
+    await page.locator('[data-a="removeKnowledgeQueryToken"]').first().click();
+    await expect(page.locator('.knowledge-query-context')).toContainText(language === 'Русский' ? 'Запрос изменён' : 'Modified query');
+  }
+});
+
 test('knowledge creation menus expose types templates and library tools on mobile and desktop', async ({ page }) => {
   page.setDefaultTimeout(15000);
   test.setTimeout(180000);
