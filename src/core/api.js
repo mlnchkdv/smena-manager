@@ -1,3 +1,4 @@
+import { hydrateWhiteboards, whiteboardCatalogWrite, wantWhiteboard } from './whiteboard-catalog-transport.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';
 import { parseAppLocation } from '../shared/app-location.js';
@@ -88,6 +89,7 @@ async function request(path, options = {}, authenticated = false) {
   if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (authenticated) {
     headers.set('X-Smena-File-Catalog', 'demand');
+    headers.set('X-Smena-Whiteboards', 'demand');
     const token = getSessionToken();
     if (!token && !allowCookieOnly) throw new ApiError('Authentication required.', 401, 'AUTH_REQUIRED');
     if (token !== 'cookie') headers.set('Authorization', `Bearer ${token}`);
@@ -120,21 +122,25 @@ async function request(path, options = {}, authenticated = false) {
     if (response.status === 401 && authenticated && generation === sessionGeneration) clearSession();
     throw error;
   }
-  if (catalogHydration && body.fileCatalog) {
+  if (catalogHydration && (body.fileCatalog || body.whiteboardCatalog)) {
     const { requestFileIdentities } = await import('./file-catalog-transport.js');
     assertSessionGeneration(generation);
     if (typeof location !== 'undefined') {
       const target = parseAppLocation(location.pathname);
+      if (target.kind === 'whiteboard' && target.key) wantWhiteboard(target.key, generation);
       if (target.kind === 'file' && target.key) requestFileIdentities([target.key], generation);
     }
     body.data = await readCatalogSnapshot(body, generation);
     delete body.fileCatalog;
+    delete body.whiteboardCatalog;
     if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   }
   return returnMeta ? { body, headers: response.headers, notModified } : body;
 }
 
 export const getAuthConfig = () => request('/api/auth/config');
+export const searchWhiteboards = (query, limit, offset) =>
+  request(`/api/whiteboards/search?${new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })}`, {}, true);
 export const getWhiteboardVersions = id => request(`/api/whiteboards/${encodeURIComponent(id)}/versions`, {}, true);
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const listFileExports = () => request('/api/files/exports', {}, true);
@@ -211,7 +217,9 @@ async function readCatalogSnapshot(result, generation = sessionGeneration) {
     if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
     try {
       const snapshot = result || (await request('/api/workspace', { catalogHydration: false }, true));
-      return await hydrateFileCatalog(snapshot, (path, options = {}) => request(path, options, true), generation);
+      const send = (path, options = {}) => request(path, options, true);
+      const data = await hydrateWhiteboards(snapshot, send, generation);
+      return await hydrateFileCatalog({ ...snapshot, data }, send, generation);
     } catch (error) {
       if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
       result = null;
@@ -221,6 +229,10 @@ async function readCatalogSnapshot(result, generation = sessionGeneration) {
 
 export const queryFileCatalog = options => request('/api/files/catalog/query', { method: 'POST', body: JSON.stringify(options) }, true);
 export const queryWorkspaceGraph = options => request('/api/graph/query', { method: 'POST', body: JSON.stringify(options) }, true);
+export async function loadWhiteboardDocument(id) {
+  wantWhiteboard(id, sessionGeneration);
+  return getWorkspace();
+}
 export async function loadFileIdentities(ids, replace = false) {
   const generation = sessionGeneration;
   const { requestFileIdentities } = await import('./file-catalog-transport.js');
@@ -325,7 +337,7 @@ export async function putWorkspace(data, revision) {
   const { catalogWrite } = await import('./file-catalog-transport.js');
   assertSessionGeneration(generation);
   const coreData = workspaceCoreData(data);
-  const payload = catalogWrite(coreData, revision, generation);
+  const payload = catalogWrite(whiteboardCatalogWrite(coreData, generation), revision, generation);
   const actualBytes = new TextEncoder().encode(JSON.stringify({ ...payload, revision })).byteLength;
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
     throw new ApiError('Workspace data exceeds the 4 MB synchronization limit.', 413, 'WORKSPACE_TOO_LARGE', {
@@ -380,6 +392,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/files/upload');
     xhr.setRequestHeader('X-Smena-File-Catalog', 'demand');
+    xhr.setRequestHeader('X-Smena-Whiteboards', 'demand');
     xhr.withCredentials = true;
     if (token !== 'cookie') xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     if (sessionAccount) xhr.setRequestHeader('X-Smena-Account', encodeURIComponent(sessionAccount));
@@ -403,6 +416,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
           if (body.fileCatalog) {
             body.data = await readCatalogSnapshot(body, generation);
             delete body.fileCatalog;
+            delete body.whiteboardCatalog;
           }
           if (generation !== sessionGeneration)
             throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });

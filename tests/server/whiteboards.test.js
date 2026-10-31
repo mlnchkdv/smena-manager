@@ -1,3 +1,5 @@
+import { whiteboardCatalogProjection, restoreWhiteboardBodies } from '../../src/server/whiteboard-catalog.js';
+import { hydrateWhiteboards, wantWhiteboard, whiteboardCatalogWrite, whiteboardBodyAvailable } from '../../src/core/whiteboard-catalog-transport.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyEntityDefaults } from '../../src/shared/workspace-defaults.js';
@@ -145,4 +147,41 @@ test('independent whiteboards join graph and search without exposing closed proj
   assert.equal(searchWorkspace(data, 'Private text', { role: 'editor' }).whiteboards.length, 0);
   data.whiteboards[1].archived = true;
   assert.equal(searchWorkspace(data, 'Searchable idea', { role: 'editor' }).whiteboards.length, 0);
+});
+
+test('whiteboard demand catalog omits bodies and aliases while metadata edits preserve canonical content', async () => {
+  const data = fixture();
+  data.revision = 9;
+  const wire = whiteboardCatalogProjection(projectWorkspace(data, { id: 'owner', role: 'admin' }));
+  assert.equal(wire.data.whiteboards[0].whiteboard, undefined);
+  assert.equal(wire.data.projects[0].whiteboard, undefined);
+  assert.equal(JSON.stringify(wire).includes('Private text'), false);
+  let calls = 0;
+  const send = async () => {
+    calls++;
+    return { board: data.whiteboards[0].whiteboard, hash: wire.whiteboardCatalog.entries[0].hash, revision: 9 };
+  };
+  const unloaded = await hydrateWhiteboards(wire, send, 'demand-one');
+  assert.equal(calls, 0);
+  assert.equal(whiteboardBodyAvailable('secret'), false);
+  const metadata = whiteboardCatalogWrite(unloaded, 'demand-one');
+  metadata.whiteboards[0].name = 'Renamed';
+  const merged = mergeClientWorkspace(data, restoreWhiteboardBodies(data, metadata), 'admin', 'owner');
+  assert.equal(merged.whiteboards[0].whiteboard.nodes[0].text, 'Private text');
+  assert.equal(merged.projects[0].whiteboard.nodes[0].text, 'Private text');
+  wantWhiteboard('secret', 'demand-one');
+  const loaded = await hydrateWhiteboards(wire, send, 'demand-one');
+  assert.equal(calls, 1);
+  assert.equal(whiteboardBodyAvailable('secret'), true);
+  assert.equal(whiteboardCatalogWrite(loaded, 'demand-one').whiteboards[0].whiteboard, undefined);
+  loaded.whiteboards[0].whiteboard.nodes[0].text = 'Edited body';
+  const edit = whiteboardCatalogWrite(loaded, 'demand-one');
+  assert.equal(edit.whiteboards[0].whiteboard.nodes[0].text, 'Edited body');
+  assert.equal(mergeClientWorkspace(data, restoreWhiteboardBodies(data, edit), 'admin', 'owner').whiteboards[0].whiteboard.nodes[0].text, 'Edited body');
+  const hidden = whiteboardCatalogProjection(projectWorkspace(data, { id: 'other', role: 'editor' }));
+  await hydrateWhiteboards(hidden, send, 'demand-other');
+  assert.equal(whiteboardBodyAvailable('secret'), false);
+  assert.equal(hidden.whiteboardCatalog.entries.length, 0);
+  assert.throws(() => restoreWhiteboardBodies(data, { whiteboards: [{ id: 'unknown' }] }), /requires its content/);
+  assert.equal(data.whiteboards[0].whiteboard.nodes[0].text, 'Private text');
 });

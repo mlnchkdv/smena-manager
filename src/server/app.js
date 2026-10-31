@@ -1,3 +1,5 @@
+import { searchWorkspace } from '../shared/workspace-search.js';
+import { whiteboardCatalogProjection, restoreWhiteboardBodies } from './whiteboard-catalog.js';
 import express from 'express';
 import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
@@ -181,6 +183,7 @@ app.use('/api', (request, response, next) => {
   response.json = body => {
     if (body?.data && Array.isArray(body.data.projects) && Array.isArray(body.data.tasks)) {
       body = { ...body, data: projectWorkspace(workspaceCoreData(bindAccessProfiles(body.data, getAccessProfiles())), request.user) };
+      if (request.get('x-smena-whiteboards') === 'demand') body = { ...body, ...whiteboardCatalogProjection(body.data) };
       const catalogMode = request.get('x-smena-file-catalog');
       if (request.query.fileCatalog === 'pages' || ['pages', 'demand'].includes(catalogMode)) {
         const { files, ...core } = body.data;
@@ -484,6 +487,46 @@ app.get('/api/workspace', async (request, response, next) => {
   }
 });
 
+app.get('/api/whiteboards/search', async (request, response, next) => {
+  try {
+    const q = String(request.query.q || '').slice(0, 1000);
+    const database = await getWorkspaceDatabase({ catalog: 'metadata' });
+    const data = projectWorkspace(workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())), request.user);
+    data.me = memberForProfile(data, request.user)?.id || request.user.id;
+    const totals = {},
+      offsets = { whiteboards: Math.max(0, Number(request.query.offset) || 0) };
+    const results = searchWorkspace(data, q, { role: request.user.role, totals, offsets, limit: Number(request.query.limit) || 30 });
+    response.setHeader('Cache-Control', 'no-store');
+    response.json({
+      whiteboards: results.whiteboards.map(b => {
+        const copy = { ...b };
+        delete copy.whiteboard;
+        return copy;
+      }),
+      total: totals.whiteboards || 0,
+      offset: offsets.whiteboards || 0,
+      revision: database.revision,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/whiteboards/:id/content', async (request, response, next) => {
+  try {
+    const database = await getWorkspaceDatabase({ catalog: 'metadata' });
+    const board = whiteboardDocument(database, request.params.id);
+    const actor = memberForProfile(bindAccessProfiles(database, getAccessProfiles()), request.user)?.id || request.user.id;
+    if (!canReadWhiteboard(database, board, actor, request.user.role)) return response.status(404).json({ error: 'Whiteboard not found.' });
+    if (!Number.isSafeInteger(Number(request.query.revision)) || Number(request.query.revision) !== database.revision)
+      throw new RevisionConflictError(database.revision);
+    response.setHeader('Cache-Control', 'no-store');
+    response.json({ board: whiteboardOf(board), hash: whiteboardHash(whiteboardOf(board)), revision: database.revision });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/whiteboards/:id/versions', async (request, response, next) => {
   try {
     const database = await getWorkspaceDatabase({ catalog: 'metadata' });
@@ -534,18 +577,21 @@ app.get('/api/workspace/revision', async (request, response, next) => {
 
 app.put('/api/workspace', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    const incoming = workspaceCoreData(request.body?.data);
+    const rawIncoming = workspaceCoreData(request.body?.data);
+    const demandBoards = request.get('x-smena-whiteboards') === 'demand';
+    const incoming = rawIncoming;
     const actorMemberId = memberForProfile(bindAccessProfiles(request.workspaceSnapshot, getAccessProfiles()), request.user)?.id || request.user.id;
-    if (request.get('x-smena-file-catalog') === 'demand' && request.body?.fileChanges) {
+    if (request.get('x-smena-file-catalog') === 'demand' && (request.body?.fileChanges?.upsert?.length || request.body?.fileChanges?.remove?.length)) {
+      const fileIncoming = demandBoards ? restoreWhiteboardBodies(await getWorkspaceDatabase({ catalog: 'metadata' }), rawIncoming) : incoming;
       const patched =
-        (await tryMutateWorkspaceFileRemoval(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles())) ||
-        (await tryMutateWorkspaceFiles(incoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles()));
+        (await tryMutateWorkspaceFileRemoval(fileIncoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles())) ||
+        (await tryMutateWorkspaceFiles(fileIncoming, request.body.fileChanges, request.body?.revision, request.user, getAccessProfiles()));
       if (patched) return response.json({ data: workspaceCoreData(patched) });
     }
     let knownNotifications;
     const data = await mutateWorkspaceDatabase(
       stored => {
-        let nextData = incoming;
+        let nextData = demandBoards ? restoreWhiteboardBodies(stored, rawIncoming) : incoming;
         if (request.body?.fileChanges) {
           if (Object.hasOwn(nextData, 'files')) throw new TypeError('Do not mix a complete catalog and file changes.');
           // Reconstruct and authorize against the same canonical snapshot that

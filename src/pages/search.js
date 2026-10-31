@@ -2,7 +2,7 @@
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, mem, pColor, proj, task } from '../core/store.js';
-import { searchAll } from '../core/search.js';
+import { searchAll, clearWhiteboardSearch } from '../core/search.js';
 import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
@@ -15,6 +15,10 @@ import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 import { recentSearches, rememberSearch, clearSearchHistory } from '../core/search-history.js';
 import { A, KEY } from '../actions/actions.js';
 import { render } from '../shell/render.js';
+A.retryWhiteboardSearch = () => {
+  clearWhiteboardSearch();
+  render();
+};
 A.clearSearchHistory = () => {
   clearSearchHistory();
   render();
@@ -65,6 +69,7 @@ export function pageSearch() {
     <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</span></button>`).join('')}</div>
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${k === 'all' ? total : totals[k] || 0}${demandFiles && ['all', 'files'].includes(k) ? '+' : ''}</option>`).join('')}</select></div>
     ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content">${demandFiles ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
+    ${q && ['all', 'whiteboards'].includes(cat) && r.whiteboardStatus ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? (r.whiteboardStatus === 'error' ? 'Поиск в содержимом холстов недоступен.' : 'Поиск в содержимом холстов…') : r.whiteboardStatus === 'error' ? 'Whiteboard content search is unavailable.' : 'Searching whiteboard content…'}${r.whiteboardStatus === 'error' ? `<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">${t('Try again')}</button>` : ''}</p>` : ''}
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${recentSearches()

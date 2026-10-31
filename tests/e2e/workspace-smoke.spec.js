@@ -22,6 +22,10 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.whiteboard-card-content')).toHaveText('Saved outside projects');
+  const demandResponse = await (await page.request.get('/api/workspace', { headers: { 'X-Smena-Whiteboards': 'demand' } })).json();
+  expect(demandResponse.whiteboardCatalog.entries.find(b => b.id === publicId).cards).toBe(1);
+  expect(demandResponse.data.whiteboards.every(b => !Object.hasOwn(b, 'whiteboard'))).toBeTruthy();
+  expect(demandResponse.data.projects.every(p => !Object.hasOwn(p, 'whiteboard'))).toBeTruthy();
   const publicData = (await (await page.request.get('/api/workspace')).json()).data;
   expect(publicData.whiteboards.find(b => b.id === publicId).project).toBe('');
   expect(publicData.projects.every(p => !p.whiteboard.nodes.some(n => n.title === 'Independent card'))).toBeTruthy();
@@ -48,6 +52,7 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
     expect(filtered.whiteboards.some(b => b.id === project.id)).toBeFalsy();
     expect(filtered.whiteboards.some(b => b.id === publicId)).toBeTruthy();
     expect((await editor.request.get(`/api/whiteboards/${project.id}/versions`)).status()).toBe(404);
+    expect((await editor.request.get(`/api/whiteboards/${project.id}/content?revision=${filtered.revision}`)).status()).toBe(404);
     await editor.goto(`/e2e-team/whiteboard/${project.id}`);
     await expect(editor.locator('.whiteboard-card')).toHaveCount(0);
     await expect(editor.locator('body')).not.toContainText('Existing protected text');
