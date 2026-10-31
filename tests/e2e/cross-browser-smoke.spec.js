@@ -63,6 +63,40 @@ test('knowledge search explains scope and removes individual conditions without 
   }
 });
 
+test('task help explains note board graph and recovery workflows in both languages at every size', async ({ page }) => {
+  test.setTimeout(180000);
+  await signIn(page);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/settings/help');
+    await expect(page.locator('.help-guides > details')).toHaveCount(6);
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [768, 1024],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await expectNoPageOverflow(page);
+      for (const guide of await page.locator('.help-guides > details').all()) {
+        if (!(await guide.evaluate(e => e.open))) await guide.locator('summary').click();
+        await expect(guide.locator('li')).toHaveCount(3);
+        await expect(guide.locator('button')).toBeVisible();
+      }
+      await expectNoPageOverflow(page);
+    }
+    await expect(page.locator('.help-guides')).toContainText(
+      language === 'Русский' ? 'JSON Canvas не импортирует целое хранилище Obsidian' : 'JSON Canvas is not a complete Obsidian vault import',
+    );
+    await page.locator('.help-guides > details').first().locator('button').click();
+    await expect(page).toHaveURL(/knowledge$/);
+  }
+});
+
 test('knowledge creation menus expose types templates and library tools on mobile and desktop', async ({ page }) => {
   page.setDefaultTimeout(15000);
   test.setTimeout(180000);

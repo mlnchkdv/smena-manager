@@ -1,0 +1,28 @@
+.help-guides {
+  display: grid;
+  gap: 8px;
+  margin-block: 20px;
+}
+.help-guides > details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 14px;
+}
+.help-guides summary {
+  min-height: 44px;
+  padding-block: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.help-guides ol {
+  padding-left: 22px;
+  margin: 4px 0 14px;
+  line-height: 1.65;
+}
+.help-guides li + li {
+  margin-top: 8px;
+}
+.help-guides details > button {
+  margin-bottom: 14px;
+}
