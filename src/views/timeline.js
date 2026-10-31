@@ -3,7 +3,7 @@ import { pageIntroduction } from '../ui/page-introduction.js';
 /* ---------- TIMELINE ---------- */
 import { $, MON, MONL, TODAY, addD, diffD, esc, fmtDate, parse, iso } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { S, allTasks, canSee, pColor, proj, task, taskProg, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, canSee, pColor, proj, task, taskProg, visibleProjects } from '../core/store.js';
 import { av, empty, stIcon } from '../ui/helpers.js';
 import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { startOfWeek } from '../core/calendar-layout.js';
@@ -43,6 +43,8 @@ export function tlControls(key = 'timeline') {
   return `${collectionOptions(options, { key: `timeline:${key}`, label: 'Timeline view', active: !listMode() && S.ui.tlZoom === 'month' })}<input type="date" class="input tl-date-picker" data-in="tlAnchor" value="${S.ui.tlAnchor || iso(TODAY)}" aria-label="Focus date"><button class="btn btn-ghost" data-a="tlToday" aria-label="Today" title="Today">${ic('crosshair', 14)}<span class="hide-m">Today</span></button>`;
 }
 export function timelineHtml(ts, key, p) {
+  const previous = document.getElementById('tl-right');
+  if (previous?.dataset.viewportKey && !S.ui.tlResetPosition) rememberTimelinePosition(previous);
   if (listMode()) {
     const items = [
       ...ts.filter(t => t.due).map(t => ({ date: t.due, task: t })),
@@ -213,16 +215,24 @@ export function tlAfter() {
   const r = $('#tl-right'),
     l = $('#tl-rows');
   if (!r || !l) return;
+  const k = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, $('.tl').dataset.tlKey, S.ui.tlZoom, S.ui.tlAnchor || '']);
+  r.dataset.viewportKey = k;
+  const savedPosition = S.ui.tlPositions?.[k];
+  r.scrollLeft = !S.ui.tlResetPosition && savedPosition ? savedPosition.left : Math.max(0, +$('.tl').dataset.tlAnchor - 160);
+  r.scrollTop = !S.ui.tlResetPosition && savedPosition ? savedPosition.top : 0;
+  S.ui.tlResetPosition = false;
+  rememberTimelinePosition(r);
   r.onscroll = () => {
+    if (!r.isConnected) return;
     l.scrollTop = r.scrollTop;
+    rememberTimelinePosition(r);
   };
   l.scrollTop = r.scrollTop;
-  const k = $('.tl').dataset.tlKey + S.ui.tlZoom + (S.ui.tlAnchor || '');
-  S.ui.tlInit = S.ui.tlInit || {};
-  if (!S.ui.tlInit[k]) {
-    S.ui.tlInit[k] = 1;
-    r.scrollLeft = Math.max(0, +$('.tl').dataset.tlAnchor - 160);
-  }
+}
+function rememberTimelinePosition(element) {
+  const positions = (S.ui.tlPositions ||= {});
+  positions[element.dataset.viewportKey] = { left: element.scrollLeft, top: element.scrollTop };
+  if (Object.keys(positions).length > 100) delete positions[Object.keys(positions)[0]];
 }
 export function pageWsTimeline() {
   const key = 'tl';
@@ -239,7 +249,7 @@ export function focusTimelineDate(value = '') {
   if (value && (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(parse(value).getTime()))) return;
   S.ui.tlAnchor = value || iso(TODAY);
   S.ui.tlAnchorKey = null;
-  S.ui.tlInit = {};
+  S.ui.tlResetPosition = true;
   render();
   requestAnimationFrame(() => {
     const anchor = document.querySelector('[data-tl-focus]');
@@ -248,6 +258,6 @@ export function focusTimelineDate(value = '') {
       anchor.focus({ preventScroll: true });
     }
     const chart = $('#tl-right');
-    if (chart) chart.scrollTo({ left: Math.max(0, +$('.tl').dataset.tlToday - 160), behavior: 'smooth' });
+    if (chart) chart.scrollTo({ left: Math.max(0, +$('.tl').dataset.tlAnchor - 160), behavior: 'smooth' });
   });
 }

@@ -18,6 +18,10 @@
 
 ## Verification limits / Границы приёмки
 
+### 04 — Timeline position
+
+Replaced a persistent first-mount flag with actual scroll positions scoped to user, workspace, timeline, scale and anchor date. Capture before chart→agenda unmount and restore on remount; old detached scroll callbacks are ignored. Today/date selection explicitly resets the current position, and custom date focus now uses the selected anchor rather than today's date. Targeted timeline tests and lint passed; production resize/anchor verification follows deployment.
+
 ### 03 — Localization
 
 Localized subtask completion/reopen events, filter help/fields/operators/selection, and the favorite-limit message. Custom Select accessible names translate their label while preserving authored option text. Team/comment counts use shared RU/EN plural rules; graph hint spans have word separation. Targeted localization/activity tests: 6/6; targeted lint passed. Production RU/EN visual acceptance is tracked separately after deployment.
