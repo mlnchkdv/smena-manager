@@ -15,13 +15,13 @@ export function kcard(t, opt = {}) {
   const ac = t.attachments.length;
   const sd = t.subtasks.filter(s => s.done).length;
   const p = proj(t.project);
-  return `<div class="kcard ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}${fxc('moved', t.id)}" draggable="true" data-drag-card="${t.id}" data-a="openTask" data-id="${t.id}" data-ctx="task" role="button" tabindex="0" aria-label="${esc(t.title)}">
+  return `<article class="kcard ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}${fxc('moved', t.id)}" draggable="false" data-drag-card="${t.id}" data-id="${t.id}" data-ctx="task" aria-label="${esc(t.title)}">
     ${t.labels.length ? `<div class="labels">${t.labels.map(lbl).join('')}</div>` : ''}
-    <div class="top">${t.status === 'done' ? `<span class="done-ic" style="margin:2px 7px 0 0;display:inline-flex" aria-label="Done">${stIcon('done', 14)}</span>` : ''}<div class="title" translate="no">${esc(t.title)}</div></div>
+    <div class="top">${t.status === 'done' ? `<span class="done-ic" style="margin:2px 7px 0 0;display:inline-flex" aria-label="Done">${stIcon('done', 14)}</span>` : ''}<button class="title board-card-open" data-a="openTask" data-id="${t.id}" aria-label="${actionLabel('Open task', t.title, t.key)}" translate="no">${esc(t.title)}</button></div>
     ${t.subtasks.length ? `<div class="subp">${ic('list-checks', 12)}<span class="num">${sd}/${t.subtasks.length}</span>${progBar(Math.round((sd / t.subtasks.length) * 100), sd === t.subtasks.length ? 'green' : '')}</div>` : ''}
     <div class="meta">
       ${opt.showProj ? `<span class="m" data-tip="${esc(p.name)}"><span class="pdot" style="--c:${pColor(p)}"></span></span>` : ''}
-      <span class="key">${t.key}</span>
+      <span class="key">${t.key}</span><span class="board-drag-handle" draggable="true" data-drag-card="${t.id}" aria-hidden="true" data-tip="Drag to move">${ic('grip-vertical', 13)}</span>
       <button class="m" data-a="pop" data-pop="priority" data-id="${t.id}" data-tip="${PR[t.priority].name}" aria-label="Priority: ${PR[t.priority].name}">${prIcon(t.priority, 13)}</button>
       ${t.due ? `<button class="m" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}" aria-label="Due date">${dueHtml(t)}</button>` : ''}
       ${t.recur ? `<span class="m" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 12)}</span>` : ''}
@@ -30,7 +30,7 @@ export function kcard(t, opt = {}) {
       <button class="m board-assignee" data-a="pop" data-pop="assignee" data-id="${t.id}" data-tip="${esc(mem(t.assignee)?.name || 'Unassigned')}" style="margin-left:auto" aria-label="${actionLabel('Assignee', mem(t.assignee)?.name || tr('Unassigned'), t.title)}" translate="no">${av(t.assignee, 'sm', false)}</button>
     </div>
     <div class="hacts"><button class="ibtn ibtn-xs" data-a="toggleDone" data-id="${t.id}" data-tip="${t.status === 'done' ? 'Reopen' : 'Mark complete'}" aria-label="${t.status === 'done' ? 'Reopen' : 'Mark complete'}">${ic(t.status === 'done' ? 'rotate-ccw' : 'check', 13)}</button><button class="ibtn ibtn-xs" data-a="editTask" data-id="${t.id}" data-tip="Quick edit" aria-label="Quick edit">${ic('pencil', 12)}</button><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="${actionLabel('Task options', t.title, t.key)}">${ic('ellipsis', 13)}</button></div>
-  </div>`;
+  </article>`;
 }
 export function boardHtml(ts, key, opt = {}) {
   const commentCounts = new Map();

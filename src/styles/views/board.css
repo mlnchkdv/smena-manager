@@ -133,6 +133,33 @@
   flex: 1;
   min-width: 0;
   word-wrap: break-word;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+.board-card-open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r);
+}
+.board-card-open:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.kcard .meta :is(button, .board-drag-handle),
+.kcard .hacts {
+  position: relative;
+  z-index: 2;
+}
+.board-drag-handle {
+  display: inline-flex;
+  cursor: grab;
+  color: var(--text-3);
+  padding: 4px;
 }
 .kcard.done .title {
   color: var(--text-3);
@@ -149,7 +176,8 @@
   box-shadow: 0 0 0 1px var(--border);
   padding: 1px;
 }
-.kcard:hover .hacts {
+.kcard:hover .hacts,
+.kcard:focus-within .hacts {
   display: flex;
 }
 .kcard .labels {

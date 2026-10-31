@@ -34,8 +34,8 @@ document.addEventListener('dragstart', e => {
   } catch {
     /* not supported here; safe to skip */
   }
-  const vis = row ? row.closest('.trow') : el;
-  if (row)
+  const vis = row ? row.closest('.trow') : card?.closest('.kcard') || el;
+  if (row || card)
     try {
       e.dataTransfer.setDragImage(vis, 20, 18);
     } catch {
