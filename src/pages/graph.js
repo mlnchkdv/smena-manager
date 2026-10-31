@@ -68,7 +68,7 @@ export function pageGraph() {
     [tr(ENTITY_LABELS[node.kind]), node.context || (node.kind === 'note' ? tr('No folder') : '')].filter(Boolean).join(' · '),
   );
   const signatures = view.nodes.map((node, index) => `${node.title}\n${contexts[index]}`);
-  const navigator = `<div class="graph-locator"><label for="graph-locate">Locate material</label><select class="select" id="graph-locate" data-in="graphLocate" data-searchable><option value="">Choose material</option>${view.nodes
+  const navigator = `<div class="graph-locator"><label for="graph-locate">Locate material</label><select class="select" id="graph-locate" data-in="graphLocate" data-searchable data-preserve-search><option value="">Choose material</option>${view.nodes
     .map((node, index) => {
       const duplicate = signatures.filter(signature => signature === signatures[index]).length > 1;
       const context = contexts[index] + (duplicate ? ` · #${signatures.slice(0, index + 1).filter(signature => signature === signatures[index]).length}` : '');

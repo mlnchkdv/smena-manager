@@ -188,6 +188,7 @@ export function makeFocusable() {
 }
 export function render() {
   captureKnowledgeDisclosures();
+  const selectState = selectMenu.capture();
   // A background read may redraw the page while an option/search has focus.
   // Close to its trigger before capturing focus, then restore the rebuilt trigger.
   if (selectMenu.el?.contains(document.activeElement)) selectMenu.close(true);
@@ -282,6 +283,7 @@ export function render() {
     if (live && !S.ui.loading) live.textContent = title.split(' · ').slice(0, -1).join(', ');
   }
   afterRender();
+  selectMenu.restore(selectState);
   syncBrowserLocation();
 }
 let thumbnailModule;

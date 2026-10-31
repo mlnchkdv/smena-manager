@@ -65,6 +65,33 @@ export const selectMenu = {
   el: null,
   sel: null,
   btn: null,
+  capture() {
+    if (!this.sel?.hasAttribute('data-preserve-search') || !this.el?.contains(document.activeElement)) return null;
+    const input = this.el.querySelector('input');
+    return {
+      identity: this.btn.dataset.focusSelect,
+      value: this.sel.value,
+      query: input?.value || '',
+      start: input?.selectionStart,
+      end: input?.selectionEnd,
+      option: this.sel.options[document.activeElement.dataset.i]?.value,
+    };
+  },
+  restore(state) {
+    if (!state) return;
+    const btn = document.querySelector(`[data-focus-select="${CSS.escape(state.identity)}"]`);
+    const sel = btn?.previousElementSibling;
+    if (!sel?.matches('select[data-preserve-search]') || sel.disabled || sel.value !== state.value || !btn.offsetParent || btn.closest('[inert]')) return;
+    this.open(sel, btn);
+    const input = this.el.querySelector('input');
+    if (input) {
+      input.value = state.query;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      if (state.start != null) input.setSelectionRange(state.start, state.end);
+    }
+    const option = [...this.el.querySelectorAll('[data-i]')].find(item => sel.options[item.dataset.i]?.value === state.option);
+    option?.focus({ preventScroll: true });
+  },
   toggle(sel, btn) {
     this.sel === sel && this.el ? this.close() : this.open(sel, btn);
   },
