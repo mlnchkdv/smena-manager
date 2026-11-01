@@ -6,6 +6,7 @@ import { av, empty, fmtComment } from '../ui/helpers.js';
 import { cellAssignee, cellDue, cellPrio, cellStatus } from '../components/task-list.js';
 import { commentHtml, mentionPicker } from '../overlays/drawer-content.js';
 import { isRussian, t as tr } from '../core/i18n.js';
+import { searchTerms } from '../shared/search-query.js';
 import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
@@ -14,6 +15,15 @@ IN.inboxCategory = el => A.set({ dataset: { k: 'inboxCat', v: el.value } });
 import { render } from '../shell/render.js';
 import { notificationReadButton } from '../ui/notification-controls.js';
 
+IN.inboxQuery = el => {
+  S.ui.inboxQuery = el.value.slice(0, 500);
+  render();
+};
+A.clearInboxQuery = () => {
+  S.ui.inboxQuery = '';
+  render();
+  document.querySelector('[data-in="inboxQuery"]')?.focus();
+};
 A.toggleInboxPreview = () => {
   writeLayoutPreference('inboxPreview', !readLayoutPreference('inboxPreview', true));
   render();
@@ -37,7 +47,28 @@ export function pageInbox() {
   const count = k => ns.filter(n => (k === 'all' || n.type === k) && !n.read).length;
   ns = ns.filter(n => cat === 'all' || n.type === cat);
   if (S.ui.inboxUnread) ns = ns.filter(n => !n.read);
-  const sel = myNotification(S.ui.inboxSel);
+  const query = (S.ui.inboxQuery || '').trim();
+  const terms = searchTerms(query).slice(0, 16);
+  if (terms.length)
+    ns = ns.filter(n => {
+      const target = n.task ? task(n.task) : null;
+      const project = proj(n.project || target?.project);
+      const haystack = [
+        mem(n.by)?.name,
+        target?.title,
+        target?.key,
+        project?.name,
+        notificationSnippet(n, isRussian() ? 'ru' : 'en'),
+        tr(notificationAction(n, isRussian() ? 'ru' : 'en')),
+        tr(cats.find(([type]) => type === n.type)?.[1] || ''),
+        n.type,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLocaleLowerCase();
+      return terms.every(term => haystack.includes(term));
+    });
+  const sel = ns.some(n => n.id === S.ui.inboxSel) ? myNotification(S.ui.inboxSel) : null;
   const preview = readLayoutPreference('inboxPreview', true);
   return `<div class="page flush">
     <div class="inbox-grid ${innerWidth <= 900 || (document.querySelector('.main')?.clientWidth || innerWidth - (S.ui.collapsed ? 56 : 252)) < 760 ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''} ${preview ? '' : 'preview-hidden'}">
@@ -45,7 +76,7 @@ export function pageInbox() {
         <div class="inbox-heading"><h1>Inbox</h1><div class="inbox-heading-actions">
           <label class="row"><input type="checkbox" class="toggle" data-a="toggleUnreadOnly" ${S.ui.inboxUnread ? 'checked' : ''}>Unread</label>
           <button class="ibtn ibtn-sm" data-a="toggleInboxPreview" aria-label="Preview pane" title="Preview pane" aria-pressed="${preview}">${ic(preview ? 'panel-right-close' : 'panel-right-open', 15)}</button><button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div></div>
-        <div class="inbox-category-picker"><select class="select" data-in="inboxCategory" aria-label="Inbox category">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''}>${tr(n)}${count(k) ? ` · ${count(k)}` : ''}</option>`).join('')}</select></div><div class="tabs inbox-tabs" role="tablist" aria-label="Inbox categories">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>
+        <div class="inbox-search inwrap">${ic('search', 14)}<input class="input" data-in="inboxQuery" aria-label="${isRussian() ? 'Поиск во входящих' : 'Search inbox'}" placeholder="${isRussian() ? 'Автор, задача, проект или текст' : 'Author, task, project or text'}" value="${esc(S.ui.inboxQuery || '')}">${query ? `<button class="ibtn" data-a="clearInboxQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div><div class="inbox-category-picker"><select class="select" data-in="inboxCategory" aria-label="Inbox category">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''}>${tr(n)}${count(k) ? ` · ${count(k)}` : ''}</option>`).join('')}</select></div><div class="tabs inbox-tabs" role="tablist" aria-label="Inbox categories">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>
         <div class="inbox-list" data-keep="inbox-list">
           ${
             ns.length
@@ -60,8 +91,12 @@ export function pageInbox() {
                   .join('')
               : empty(
                   'inbox',
-                  "You're all caught up.",
-                  S.ui.inboxUnread ? 'No unread notifications in this category.' : 'New mentions, assignments, and comments will show up here.',
+                  query ? 'No results found' : "You're all caught up.",
+                  query
+                    ? 'Try another category or a broader search term.'
+                    : S.ui.inboxUnread
+                      ? 'No unread notifications in this category.'
+                      : 'New mentions, assignments, and comments will show up here.',
                   '',
                   'sm',
                 )

@@ -572,3 +572,17 @@
     min-width: 0;
   }
 }
+.inbox-search {
+  margin: 0 12px 8px;
+  flex-shrink: 0;
+}
+.inbox-search > input {
+  min-width: 0;
+  padding-right: 38px;
+}
+.inbox-search > button {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
