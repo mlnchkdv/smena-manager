@@ -167,8 +167,9 @@ export function pageKnowledge() {
     .join('');
   const activeFolder = folders.find(folder => folder.id === folderFilter);
   const foldersAvailable = S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || !!activeFolder);
-  const inlineFolders = foldersAvailable && S.ui.knowledgeFolderLayout === 'inline';
-  const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders, hasNotes: visible.length > 0 });
+  const searching = Boolean(String(S.ui.knowledgeQuery || '').trim());
+  const inlineFolders = foldersAvailable && S.ui.knowledgeFolderLayout === 'inline' && !searching;
+  const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders, hasNotes: visible.length > 0, searching });
   const excludedDestinations = activeFolder ? folderDescendants(activeFolder.id, folders) : new Set();
   const folderMove =
     activeFolder && !readOnly

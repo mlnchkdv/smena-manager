@@ -5,8 +5,9 @@ import { S } from '../core/store.js';
 import { knowledgeFolderChildren } from '../shared/knowledge-folder-index.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { knowledgeFolderPageSize } from '../shared/knowledge-layout.js';
+import { kc } from './knowledge-types.js';
 
-export function knowledgeFolderCards(index, folder, readOnly, { inline = false, hasNotes = false } = {}) {
+export function knowledgeFolderCards(index, folder, readOnly, { inline = false, hasNotes = false, searching = false } = {}) {
   if (S.ui.knowledgeShowFolders === false || (folder !== 'all' && !index.byId.has(folder))) return '';
   const parent = folder === 'all' ? null : folder;
   const children = index.children.get(parent) || [];
@@ -24,5 +25,5 @@ export function knowledgeFolderCards(index, folder, readOnly, { inline = false, 
   </section>`;
   return inline
     ? html
-    : `<details class="knowledge-folder-disclosure" ${knowledgeDisclosure(`catalog:${folder}`, 'folders')}><summary><span>Folders</span><span class="num">${children.length}</span></summary>${html}</details>`;
+    : `<details class="knowledge-folder-disclosure" ${knowledgeDisclosure(`catalog:${folder}${searching ? ':search' : ''}`, 'folders')}><summary><span translate="no">${searching ? kc('Folder navigation', 'Навигация по папкам') : kc('Folders', 'Папки')}</span><span class="num">${children.length}</span></summary>${html}</details>`;
 }
