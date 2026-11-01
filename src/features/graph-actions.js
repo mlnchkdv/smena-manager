@@ -62,6 +62,7 @@ A.toggleGraphFilters = () => {
 A.toggleGraphFocus = () => {
   S.ui.graphFocus = !S.ui.graphFocus;
   render();
+  document.querySelector('[data-a="toggleGraphFocus"]')?.focus({ preventScroll: true });
 };
 A.toggleGraphInteraction = () => {
   S.ui.graphInteract = !S.ui.graphInteract;

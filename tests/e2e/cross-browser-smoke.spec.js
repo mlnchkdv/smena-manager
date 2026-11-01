@@ -1,5 +1,31 @@
 import { expect, test } from '@playwright/test';
 
+test('focused graph cycles visible controls and lets its modal own Escape in both languages', async ({ page }) => {
+  await signIn(page);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/graph');
+    await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+    await page.locator('[data-a="toggleGraphFocus"]').click();
+    const first = page.locator('.graph-head summary').first();
+    await first.focus();
+    await page.keyboard.press('Shift+Tab');
+    expect(await page.evaluate(() => !!document.activeElement.closest('.graph-page.is-focused'))).toBeTruthy();
+    await page.locator('.graph-controls [data-command="fit"]').focus();
+    await page.keyboard.press('Tab');
+    await expect(first).toBeFocused();
+    await page.locator('[data-a="graphDisplayOptions"]').click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.modal')).toHaveCount(0);
+    await expect(page.locator('.graph-page')).toHaveClass(/is-focused/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.graph-page')).not.toHaveClass(/is-focused/);
+    await expect(page.locator('[data-a="toggleGraphFocus"]')).toBeFocused();
+  }
+});
+
 test('post audit optional deadlines file preview navigation and collection controls persist in both languages', async ({ page }) => {
   test.setTimeout(240000);
   page.setDefaultTimeout(15000);

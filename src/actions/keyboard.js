@@ -9,6 +9,7 @@ import { A, KEY } from './actions.js';
 import { moveTabFocus } from '../ui/tabs.js';
 import { moveColorFocus } from '../ui/color-palette.js';
 import { flushLocalSave } from '../core/store.js';
+import { overlayAboveDiagram, trapSurfaceTab } from '../ui/diagram-focus.js';
 
 export let gPending = 0;
 document.addEventListener('keydown', e => {
@@ -89,33 +90,10 @@ document.addEventListener('keydown', e => {
               ? $('.side')
               : S.ui.drawer && S.ui.drawerFull
                 ? $('.drawer')
-                : null;
-    if (box && !pl) {
-      const f = [
-        ...box.querySelectorAll(
-          'a[href],summary,button:not([disabled]),input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),[contenteditable="true"]',
-        ),
-      ].filter(x => {
-        if (x.tabIndex < 0 || !x.getClientRects().length || x.closest('[inert],[aria-hidden="true"]') || getComputedStyle(x).visibility === 'hidden')
-          return false;
-        for (let parent = x.parentElement; parent && parent !== box; parent = parent.parentElement)
-          if (parent.matches('details:not([open])') && !parent.querySelector(':scope > summary')?.contains(x)) return false;
-        return true;
-      });
-      if (f.length) {
-        const i = f.indexOf(document.activeElement);
-        if (e.shiftKey && i <= 0) {
-          e.preventDefault();
-          f[f.length - 1].focus();
-          return;
-        }
-        if (!e.shiftKey && (i === f.length - 1 || i === -1)) {
-          e.preventDefault();
-          f[0].focus();
-          return;
-        }
-      }
-    }
+                : !overlayAboveDiagram()
+                  ? $('.graph-page.is-focused,.project-whiteboard.is-focused')
+                  : null;
+    if (!pl && trapSurfaceTab(e, box)) return;
   }
   // Arrow keys move through open menus and pickers.
   if (S.ui.pop && !pl && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End')) {

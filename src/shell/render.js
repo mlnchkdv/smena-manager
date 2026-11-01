@@ -112,8 +112,9 @@ export function focusKey(el) {
   const parts = FKEYS.filter(k => d[k] != null).map(k => `[data-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}="${CSS.escape(d[k])}"]`);
   if (!parts.length) return null;
   const selector = el.tagName.toLowerCase() + parts.join('');
-  const surface = el.closest('.drawer,.modal');
-  return surface && surface !== el ? `${surface.matches('.drawer') ? '.drawer' : '.modal'} ${selector}` : selector;
+  const surfaces = ['knowledge-drawer', 'drawer', 'modal', 'whiteboard-selection', 'graph-detail'];
+  const surface = el.closest(surfaces.map(name => '.' + name).join(','));
+  return surface && surface !== el ? `.${surfaces.find(name => surface.classList.contains(name))} ${selector}` : selector;
 }
 export function tryFocus(key) {
   if (!key) return false;

@@ -754,21 +754,6 @@ document.addEventListener(
         A.whiteboardToggleFocus();
         return;
       }
-      if (e.key === 'Tab') {
-        const panel = document.querySelector('.project-whiteboard.is-focused');
-        const items = [...(panel?.querySelectorAll('button:not([disabled]),summary,[tabindex="0"],input:not([disabled])') || [])].filter(
-          el => el.getClientRects().length,
-        );
-        const first = items[0],
-          last = items.at(-1);
-        if (e.shiftKey && (e.target === first || !panel?.contains(e.target))) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && (e.target === last || !panel?.contains(e.target))) {
-          e.preventDefault();
-          first?.focus();
-        }
-      }
     }
     if (!e.target.closest('.project-whiteboard') || e.target.closest('input,textarea,select') || S.ui.modals.length) return;
     const s = whiteboardState();
