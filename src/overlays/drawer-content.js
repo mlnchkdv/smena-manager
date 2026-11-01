@@ -25,6 +25,7 @@ import { knowledgeContext } from '../ui/knowledge-context.js';
 import { knowledgeMetadata } from '../ui/knowledge-metadata.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { redundantMarkdownSummary } from '../shared/markdown-text.js';
+import { knowledgeFind } from '../ui/knowledge-find.js';
 import { knowledgeOutline } from '../ui/knowledge-outline.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
@@ -50,7 +51,8 @@ export function knowledgeDrawerHtml(note) {
   const folders = Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [];
   const preview = S.ui.knowledgeDrawerView !== 'edit';
   const previewSource = knowledgeReadingSource(note);
-  const previewMarkup = knowledgeReadingHtml(note, previewSource);
+  const found = preview ? knowledgeFind(knowledgeReadingHtml(note, previewSource), note.id) : null;
+  const previewMarkup = found?.markup || knowledgeReadingHtml(note, previewSource);
   const updated = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
   const navigation = preview
     ? knowledgePreviewNavigation(S.ui.knowledgePreviewContext, {
@@ -82,7 +84,7 @@ export function knowledgeDrawerHtml(note) {
     : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
     <div class="drawer-h${preview ? ' knowledge-reader-head' : ''}"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span><span class="knowledge-reader-tools">${pager}<button class="ibtn knowledge-reader-properties" data-a="openNoteProperties" data-id="${esc(note.id)}" aria-label="${isRussian() ? 'Тип и свойства' : 'Type and properties'}" title="${isRussian() ? 'Тип и свойства' : 'Type and properties'}">${ic('sliders-horizontal', 15)}</button>${editAction}${outline || favorite}</span><button class="ibtn ibtn-sm knowledge-reader-close" data-a="closeKnowledgeDrawer" data-tip="${tr('Close')}  Esc" aria-label="Close">${ic('x', 16)}</button></div>
-    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${knowledgeLocation(note)}${preview ? previewBody + knowledgeContext(note, { reading: true }) : noteEditor(note, folders, readOnly)}</div>
+    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${knowledgeLocation(note)}${found?.bar || ''}${preview ? previewBody + knowledgeContext(note, { reading: true }) : noteEditor(note, folders, readOnly)}</div>
   </aside>`;
 }
 

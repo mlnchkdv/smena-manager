@@ -22,6 +22,7 @@ import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
+import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 
@@ -313,6 +314,7 @@ export function afterRender() {
   }
   resizeKnowledgeTitle();
   refreshKnowledgeOutline();
+  refreshKnowledgeFind();
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {
     knowledgeTableModule ||= import('../ui/knowledge-table.js');
     void knowledgeTableModule
