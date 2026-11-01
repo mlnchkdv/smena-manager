@@ -83,7 +83,7 @@ export function notifText(n) {
 }
 export const notifSnippet = n => fmtComment(notificationSnippet(n, isRussian() ? 'ru' : 'en'));
 export function notifIcon(n) {
-  if (n.by) return av(n.by, 'md', false);
+  if (n.by) return av(n.by, 'md', false, true);
   const i =
     n.type === 'security'
       ? 'shield-alert'

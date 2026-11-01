@@ -7,8 +7,8 @@ import { D, S } from '../core/store.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T, wbCount as C } from '../core/whiteboard-state.js';
-const button = (action, icon, en, ru, extra = '') =>
-  `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru))}" title="${esc(T(en, ru))}" ${extra}>${ic(icon, 16)}</button>`;
+const button = (action, icon, en, ru, extra = '', context = '') =>
+  `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru) + (context ? ': ' + context : ''))}" title="${esc(T(en, ru) + (context ? ': ' + context : ''))}" ${extra}>${ic(icon, 16)}</button>`;
 const icons = { text: 'sticky-note', material: 'file-text', group: 'square-dashed' };
 function outlineHtml(board, editable, state) {
   const query = (state.outlineQuery || '').trim().toLocaleLowerCase();
@@ -35,7 +35,7 @@ export function whiteboardCard(node, editable, outline = false) {
     state = whiteboardState();
   const material = node.type === 'material' ? whiteboardMaterial(node) : null;
   return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px"`}>
-    <div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`) : ''}</div>
+    <div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`, whiteboardLabel(node)) : ''}</div>
     ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? `<p class="hint">${esc(T('Linked material · opens the original', 'Связанный материал · открывается оригинал'))}</p>${material ? `<button class="btn btn-secondary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${esc(T('Open material', 'Открыть материал'))}</button>` : `<p class="hint">${esc(T('It may have been removed, or access is unavailable.', 'Возможно, материал удалён или нет доступа.'))}</p><button class="link" data-a="whiteboardRetryMaterials">${esc(T('Retry', 'Повторить'))}</button>`}` : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
   </article>`;
 }

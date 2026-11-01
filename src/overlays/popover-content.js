@@ -117,7 +117,7 @@ export function popHtml(p) {
           { id: '', name: 'Unassigned', html: av(null, 'sm', false), on: !sb.assignee },
           ...D()
             .members.filter(m => m.status !== 'deactivated')
-            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false), on: sb.assignee === m.id })),
+            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false, true), on: sb.assignee === m.id })),
         ],
         { search: 'Assign subtask to…' },
       );
@@ -135,7 +135,7 @@ export function popHtml(p) {
           { id: '', name: 'Unassigned', html: av(null, 'sm', false), on: !t?.assignee },
           ...D()
             .members.filter(m => m.status !== 'deactivated')
-            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false), on: t?.assignee === m.id })),
+            .map(m => ({ id: m.id, name: m.name + (m.id === D().me ? ` ${tr('(you)')}` : ''), html: av(m.id, 'sm', false, true), on: t?.assignee === m.id })),
         ],
         { search: 'Assign to…' },
       );
@@ -395,7 +395,7 @@ export function popHtml(p) {
       break;
     case 'bulk-assignee':
       inner = [{ id: '', name: 'Unassigned' }, ...D().members]
-        .map(m => `<button class="mi" data-a="bulkSet" data-f="assignee" data-v="${m.id}">${av(m.id || null, 'sm', false)}${esc(m.name)}</button>`)
+        .map(m => `<button class="mi" data-a="bulkSet" data-f="assignee" data-v="${m.id}">${av(m.id || null, 'sm', false, true)}${esc(m.name)}</button>`)
         .join('');
       break;
   }

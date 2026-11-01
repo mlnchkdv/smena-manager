@@ -7,7 +7,7 @@ import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { t } from '../core/i18n.js';
 import { projectImageData } from '../shared/project-appearance.js';
 
-export function av(id, cls = '', tip = true) {
+export function av(id, cls = '', tip = true, decorative = false) {
   const m = mem(id);
   if (!m) return `<span class="av empty ${cls}" ${tip ? 'data-tip="Unassigned"' : ''}>${ic('user', 11)}</span>`;
   const ini = m.name
@@ -15,7 +15,7 @@ export function av(id, cls = '', tip = true) {
     .map(x => x[0])
     .join('')
     .slice(0, 2);
-  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} aria-label="${esc(m.name)}" translate="no">${ini}</span>`;
+  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} ${decorative ? 'aria-hidden="true"' : `aria-label="${esc(m.name)}"`} translate="no">${ini}</span>`;
 }
 export function avStack(ids, max = 4, cls = 'sm') {
   const v = ids.slice(0, max);

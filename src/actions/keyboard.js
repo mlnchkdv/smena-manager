@@ -50,6 +50,20 @@ document.addEventListener('keydown', e => {
     }
   }
   const pl = S.ui.palette;
+  if (
+    !typing &&
+    !mod &&
+    !e.altKey &&
+    !e.shiftKey &&
+    !pl &&
+    S.ui.modals.at(-1)?.type === 'filePreview' &&
+    S.ui.modals.at(-1)?.previewContext?.ids.length > 1 &&
+    ['ArrowLeft', 'ArrowRight'].includes(e.key)
+  ) {
+    e.preventDefault();
+    A.stepFilePreview({ dataset: { direction: e.key === 'ArrowRight' ? '1' : '-1' } });
+    return;
+  }
   if (moveTabFocus(e) || moveColorFocus(e)) return;
   if (mod && e.key.toLowerCase() === 'k') {
     e.preventDefault();

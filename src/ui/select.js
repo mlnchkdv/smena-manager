@@ -45,6 +45,11 @@ export function enhanceSelects(root = document) {
       sel.getAttribute('aria-label') ||
       (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`)?.textContent) ||
       sel.closest('label')?.querySelector(':scope > span')?.textContent ||
+      [...(sel.closest('label')?.childNodes || [])]
+        .filter(node => node.nodeType === 3)
+        .map(node => node.textContent)
+        .join(' ')
+        .trim() ||
       'Choose';
     if (sel.id) btn.dataset.for = sel.id;
     const sync = () => {

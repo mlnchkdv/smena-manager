@@ -30,7 +30,7 @@ const editable = p => p && !p.archived && canEditWhiteboard(D(), p, D().me, S.ui
 const field = (name, label, value, type = 'text', extra = '') =>
   `<label class="field">${label}<input class="input" data-in="whiteboardField" data-field="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 const colorField = m =>
-  `<label class="field">${T('Color', 'Цвет')}<select class="select" data-in="whiteboardField" data-field="color">${BOARD_COLORS.map((c, i) => `<option value="${c}" ${c === m.color ? 'selected' : ''}>${colors()[i]}</option>`).join('')}</select></label>`;
+  `<label class="field">${T('Color', 'Цвет')}<select class="select" data-in="whiteboardField" data-field="color" aria-label="${T('Color', 'Цвет')}">${BOARD_COLORS.map((c, i) => `<option value="${c}" ${c === m.color ? 'selected' : ''}>${colors()[i]}</option>`).join('')}</select></label>`;
 function modalForm(m, H) {
   const p = current(),
     board = whiteboardOf(p);
