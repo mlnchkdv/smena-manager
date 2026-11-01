@@ -887,6 +887,21 @@
   font-size: var(--fs-md);
   height: 100%;
 }
+.pal-close {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 6px;
+  width: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 8px;
+}
+@media (max-width: 640px) {
+  .pal-close kbd,
+  .palette .pal-f {
+    display: none;
+  }
+}
 .pal-scope {
   display: flex;
   gap: 4px;
