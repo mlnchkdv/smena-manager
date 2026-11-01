@@ -242,6 +242,7 @@ const RU = {
   'Files in this tree': 'Файлов в этой ветке',
   'Direct files': 'Файлов непосредственно в папке',
   'Directed connection': 'Направленная связь',
+  'Save search on this device': 'Сохранить поиск на этом устройстве',
   'Automatic connection': 'Автоматическая связь',
   'Simple view hides arrows and line styles. Select a material to inspect its connections.':
     'Простой вид скрывает стрелки и стили линий. Выберите материал, чтобы изучить его связи.',

@@ -390,7 +390,7 @@ window.addEventListener('pagehide', () => {
 A.saveKnowledgeView = () =>
   openModal({
     type: 'prompt',
-    title: 'Save search',
+    title: 'Save search on this device',
     label: 'Name',
     value: S.ui.knowledgeQuery || '',
     run: name => {

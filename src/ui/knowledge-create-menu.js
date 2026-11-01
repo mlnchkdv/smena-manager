@@ -12,7 +12,7 @@ import { render } from '../shell/render.js';
 export function knowledgeSavedSearchShortcuts() {
   const views = (S.ui.knowledgeSavedViews || []).filter(view => view.pinned);
   if (!views.length) return '';
-  return `<nav class="knowledge-pinned-searches" aria-label="${kc('Pinned searches on this device', 'Закреплённые поиски на этом устройстве')}"><h3 class="hint" translate="no">${kc('Pinned searches', 'Закреплённые поиски')}</h3>${views.map(view => `<button class="knowledge-folder" data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" title="${esc(view.name)}">${ic('bookmark', 14)}<span class="trunc" translate="no">${esc(view.name)}</span></button>`).join('')}</nav>`;
+  return `<nav class="knowledge-pinned-searches" aria-label="${kc('Pinned searches on this device', 'Закреплённые поиски на этом устройстве')}"><h3 class="hint" translate="no">${kc('Pinned searches · this device', 'Закреплённые поиски · это устройство')}</h3>${views.map(view => `<button class="knowledge-folder" data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" title="${esc(view.name)}">${ic('bookmark', 14)}<span class="trunc" translate="no">${esc(view.name)}</span></button>`).join('')}</nav>`;
 }
 A.pinKnowledgeSearch = el => {
   const view = S.ui.knowledgeSavedViews?.find(view => view.id === el.dataset.id);
@@ -47,11 +47,11 @@ A.knowledgeLibraryTools = () =>
   openModal({
     type: 'knowledgeTool',
     render: (_m, H) =>
-      `${H(kc('Library tools', 'Инструменты базы знаний'))}<div class="modal-b knowledge-library-tools" translate="no">${commands()
+      `${H(kc('Library tools', 'Инструменты базы знаний'))}<div class="modal-b knowledge-library-tools" translate="no"><p class="hint">${kc('Saved searches stay on this device. Smart collections belong to the workspace.', 'Сохранённые поиски остаются на этом устройстве. Умные подборки принадлежат пространству.')}</p>${commands()
         .map(([a, i, en, ru]) => `<button class="btn btn-secondary" data-a="openKnowledgeLibraryTool" data-command="${a}">${ic(i, 16)}${kc(en, ru)}</button>`)
         .join(
           '',
-        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches', 'Сохранённые поиски')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="pinKnowledgeSearch" data-id="${esc(view.id)}" aria-pressed="${!!view.pinned}" aria-label="${esc((view.pinned ? kc('Unpin search', 'Открепить поиск') : kc('Pin search', 'Закрепить поиск')) + ': ' + view.name)}">${ic(view.pinned ? 'pin-off' : 'pin', 14)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
+        )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches · this device', 'Сохранённые поиски · это устройство')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="pinKnowledgeSearch" data-id="${esc(view.id)}" aria-pressed="${!!view.pinned}" aria-label="${esc((view.pinned ? kc('Unpin search', 'Открепить поиск') : kc('Pin search', 'Закрепить поиск')) + ': ' + view.name)}">${ic(view.pinned ? 'pin-off' : 'pin', 14)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
   });
 A.openKnowledgeLibraryTool = el => {
   if (commands().some(([a]) => a === el.dataset.command)) {
