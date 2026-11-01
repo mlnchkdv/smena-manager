@@ -1913,7 +1913,34 @@ A.filePreview = el => {
 A.previewFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
-  if (f) openModal({ type: 'filePreview', file: f, tid: f.task });
+  if (f && entityAllowed(D(), `file:${f.id}`, graphOptions(), true))
+    openModal({
+      type: 'filePreview',
+      file: f,
+      tid: f.task,
+      previewContext: {
+        owner: getSessionGeneration(),
+        workspace: S.ui.activeWorkspace,
+        ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
+      },
+    });
+};
+A.stepFilePreview = el => {
+  const m = S.ui.modals.at(-1),
+    context = m?.previewContext;
+  if (
+    m?.type !== 'filePreview' ||
+    !context ||
+    context.owner !== getSessionGeneration() ||
+    context.workspace !== S.ui.activeWorkspace ||
+    ![-1, 1].includes(Number(el.dataset.direction))
+  )
+    return;
+  const id = context.ids[context.ids.indexOf(m.file.id) + Number(el.dataset.direction)];
+  const file = D().files.find(f => f.id === id);
+  if (!file || !entityAllowed(D(), `file:${id}`, graphOptions(), true)) return;
+  closeModal();
+  openModal({ type: 'filePreview', file, tid: file.task, previewContext: context });
 };
 export async function handleFiles(files, ctx) {
   const uploaded = [];

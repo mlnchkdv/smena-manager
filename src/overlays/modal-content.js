@@ -16,6 +16,7 @@ import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
 // Registered by the lazy file feature before a file dialog can be opened.
 import { fileModalRenderers, workspaceModalRenderers } from './modals.js';
 import { TEMPLATES, SHORTCUTS } from './modal-data.js';
+import { fileFolderPath } from '../shared/file-organization.js';
 
 export function modalHtml(m) {
   const H = (title, sub = '') =>
@@ -302,6 +303,9 @@ export function shortcutsModal(H) {
 export function filePreviewModal(m, H) {
   ensureFilePreview(m, render);
   const f = m.file;
+  const context = m.previewContext,
+    at = context?.ids.indexOf(f.id) ?? -1;
+  const path = [proj(f.project)?.name, ...fileFolderPath(proj(f.project), f.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
   const t = FT[f.type] || FT.other;
   const preview = m.preview;
   const content =
@@ -311,7 +315,7 @@ export function filePreviewModal(m, H) {
         ? `<pre class="file-preview-text" translate="no">${esc(preview.text)}</pre>`
         : `<div class="file-preview-message" role="status">${preview.kind === 'loading' ? 'Loading preview…' : preview.kind === 'error' ? esc(preview.message) : 'Preview is unavailable for this format or size. Download the file to open it.'}</div>`;
   return `${H(`<span translate="no">${esc(f.name)}</span>`, `${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} ${esc(mem(f.by)?.name || tr('You'))} ${ago(f.at)}`)}
-  <div class="modal-b" data-keep="file-preview:${esc(f.id)}">${preview.kind === 'pdf' ? `<div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page - 1}" ${preview.loading || preview.page === 1 ? 'disabled' : ''}>Previous</button><span><span>Page</span> ${preview.page} / ${preview.pages}</span><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page + 1}" ${preview.loading || preview.page === preview.pages ? 'disabled' : ''}>Next</button></div>` : ''}<div class="file-preview-content" aria-busy="${Boolean(preview.loading)}">${content}</div>
+  <div class="modal-b" data-keep="file-preview:${esc(f.id)}"><p class="hint" translate="no">${esc(path)}</p>${context?.ids.length > 1 ? `<nav class="row" style="justify-content:space-between;margin-bottom:8px" aria-label="Files"><button class="btn btn-secondary btn-sm" data-a="stepFilePreview" data-direction="-1" ${at <= 0 ? 'disabled' : ''}>Previous file</button><span class="hint num">${at + 1} / ${context.ids.length}</span><button class="btn btn-secondary btn-sm" data-a="stepFilePreview" data-direction="1" ${at < 0 || at >= context.ids.length - 1 ? 'disabled' : ''}>Next file</button></nav>` : ''}${preview.kind === 'pdf' ? `<div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page - 1}" ${preview.loading || preview.page === 1 ? 'disabled' : ''}>Previous</button><span><span>Page</span> ${preview.page} / ${preview.pages}</span><button class="btn btn-secondary btn-sm" data-a="pdfPreviewPage" data-page="${preview.page + 1}" ${preview.loading || preview.page === preview.pages ? 'disabled' : ''}>Next</button></div>` : ''}<div class="file-preview-content" aria-busy="${Boolean(preview.loading)}">${content}</div>
   ${preview.kind === 'pdf' ? `<details translate="no"><summary>${document.documentElement.lang === 'ru' ? 'Текст страницы и выделение' : 'Page text and highlights'}</summary><p data-pdf-page-text style="user-select:text;white-space:pre-wrap">${esc(preview.text || '')}</p>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="capturePdfExcerpt">${document.documentElement.lang === 'ru' ? 'Выделенное в заметку' : 'Save selection as note'}</button>` : ''}</details>` : ''}${m.tid ? `<div class="row faint" style="font-size:12.5px">${ic('link', 13)}${tr('Attached to')} <button class="link" data-a="openTask" data-id="${m.tid}">${esc(task(m.tid)?.title)}</button></div>` : ''}${relationsPanel(`file:${f.id}`)}</div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-fid="${f.id}">${ic('link', 14)}Copy link</button>${f.storageName ? `<button class="btn btn-secondary" data-a="downloadStoredFile" data-id="${f.id}">${ic('download', 14)}Download</button><button class="btn btn-secondary" data-a="keepFileOffline" data-id="${esc(f.id)}" translate="no">${document.documentElement.lang === 'ru' ? 'Сохранить офлайн' : 'Keep offline'}</button>` : ''}<span class="sp"></span><button class="btn btn-primary" data-a="closeModal">Close</button></div>`;
 }
