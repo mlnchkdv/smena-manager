@@ -273,6 +273,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   }
   const boardPath = `/e2e-team/whiteboard/${publicBoardId}`;
   const saveLayout = async name => {
+    await openBoardTools(page);
     await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
     await page.locator('[data-a="saveDiagramView"]').click();
     await page.locator('[data-in="diagramViewName"]').fill(name);
@@ -316,6 +317,7 @@ test('personal graph and board layouts retain camera pins filters and account is
         [1366, 768],
       ]) {
         await page.setViewportSize({ width, height });
+        await openBoardTools(page);
         await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
         await expect(page.locator('[data-a="loadDiagramView"]')).toHaveCount(1);
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -328,6 +330,7 @@ test('personal graph and board layouts retain camera pins filters and account is
     const editor = await context.newPage();
     await signIn(editor, 'e2e-editor-access-id-2026-secure');
     await editor.goto(boardPath);
+    await openBoardTools(editor);
     await editor.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
     await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
   } finally {
@@ -357,6 +360,7 @@ test('whiteboard durable history restores safely rejects stale restore and follo
   const history = await (await page.request.get(`/api/projects/${project.id}/whiteboard-versions`)).json(),
     version = history.versions.find(v => v.board.nodes[0]?.text === 'Original');
   expect(version).toBeTruthy();
+  await openBoardTools(page);
   await page.locator('[data-a="whiteboardHistory"]').click();
   await page.locator(`[data-a="chooseWhiteboardVersion"][data-id="${version.id}"]`).click();
   await page.locator('[data-a="restoreWhiteboardVersion"]').click();
@@ -390,6 +394,7 @@ test('whiteboard durable history restores safely rejects stale restore and follo
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
     await page.goto(path);
+    await openBoardTools(page);
     await page.locator('[data-a="whiteboardHistory"]').click();
     await expect(page.locator('.whiteboard-version-list button').first()).toBeVisible();
     for (const [width, height] of [
@@ -428,6 +433,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
   const read = async () => (await (await page.request.get('/api/workspace')).json()).data.projects.find(p => p.id === project.id).whiteboard;
   expect((await read()).nodes.map(n => n.y)).toEqual([0, 0, 0]);
   await page.locator('[data-a="whiteboardCopy"]').click();
+  await openBoardTools(page);
   await page.locator('[data-a="whiteboardPaste"]').click();
   await waitForSaved(page);
   expect((await read()).nodes.length).toBe(6);
@@ -435,6 +441,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
   await page.locator('[data-a="whiteboardUndo"]').click();
   await waitForSaved(page);
   expect((await read()).nodes.length).toBe(3);
+  await openBoardTools(page);
   await page.locator('[data-a="whiteboardRedo"]').click();
   await waitForSaved(page);
   await page.reload();
@@ -2123,4 +2130,9 @@ async function projectBoardPath(page, projectId, reset = false) {
     expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
   }
   return `/e2e-team/whiteboard/${existing.id}`;
+}
+
+async function openBoardTools(page) {
+  const tools = page.locator('.whiteboard-tools');
+  if ((await tools.count()) && (await tools.getAttribute('open')) === null) await tools.locator(':scope > summary').click();
 }
