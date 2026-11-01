@@ -485,6 +485,14 @@
   align-items: center;
   gap: 5px;
 }
+.graph-key-line {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.graph-legend > .hint {
+  flex-basis: 100%;
+}
 .graph-kind > .i {
   color: var(--node-color);
 }

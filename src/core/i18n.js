@@ -241,6 +241,10 @@ const RU = {
   'Folders in this tree': 'Папок в этой ветке',
   'Files in this tree': 'Файлов в этой ветке',
   'Direct files': 'Файлов непосредственно в папке',
+  'Directed connection': 'Направленная связь',
+  'Automatic connection': 'Автоматическая связь',
+  'Simple view hides arrows and line styles. Select a material to inspect its connections.':
+    'Простой вид скрывает стрелки и стили линий. Выберите материал, чтобы изучить его связи.',
   'The whole folder tree moves within this project. Access permissions stay unchanged.':
     'Вся ветка папок перемещается внутри проекта. Права доступа не меняются.',
   'Include subfolders': 'Включить вложенные папки',
