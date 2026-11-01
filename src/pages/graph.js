@@ -104,7 +104,7 @@ export function pageGraph() {
     })
     .join(
       '',
-    )}</select><button class="btn btn-secondary graph-touch-control" data-a="toggleGraphInteraction" aria-pressed="${!!ui.graphInteract}">${ui.graphInteract ? 'Scroll page' : 'Interact with graph'}</button></div>`;
+    )}</select><button class="btn btn-secondary graph-touch-control" data-a="toggleGraphInteraction" aria-pressed="${!!ui.graphInteract}">Interact with graph</button></div>`;
   const legend =
     Object.entries(GRAPH_KINDS)
       .filter(([kind]) => view.nodes.some(node => node.kind === kind))
