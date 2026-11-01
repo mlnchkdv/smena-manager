@@ -15,6 +15,7 @@ let context = '',
   personalViewKey = '';
 let disconnectObserver;
 let savedView;
+let manualCamera = false;
 let resizeObserver;
 let topology = '';
 let mountGeneration = 0;
@@ -41,6 +42,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             selected: instance.nodes(':selected').first().id(),
             physics: physicsEnabled,
             running: !!runningLayout,
+            manual: manualCamera,
           }
         : savedView?.scope === scopeKey
           ? savedView
@@ -76,6 +78,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         physics,
         running: false,
         selected: '',
+        manual: true,
       };
     } else if (personalViewKey && personalViewKey !== personalKey && !active) previous = null;
     personalViewKey = personalKey;
@@ -292,11 +295,12 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     instance.on('zoom pan dragfree lock unlock', () => window.dispatchEvent(new Event('smena:diagram-layout-changed')));
     instance.on('zoom', updateDensity);
     instance.on('pan', updateDensity);
+    manualCamera = !!previous?.manual;
     if (previous?.signature === signature) {
       instance.nodes().positions(node => pins.get(node.id()) || previous.positions.get(node.id()) || positions.get(node.id()));
-      if (previous.width === container.clientWidth && previous.height === container.clientHeight) {
+      if (manualCamera || (previous.width === container.clientWidth && previous.height === container.clientHeight)) {
         instance.zoom(previous.zoom);
-        instance.pan(previous.pan);
+        instance.pan({ x: previous.pan.x + (container.clientWidth - previous.width) / 2, y: previous.pan.y + (container.clientHeight - previous.height) / 2 });
       } else {
         instance.fit(undefined, 35);
         if (instance.zoom() > 1.2) {
@@ -354,6 +358,9 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       if (physics) simulate(false);
     });
     instance.on('tap', 'node', event => onSelect(event.target.id()));
+    instance.on('mousedown touchstart scrollzoom', () => {
+      manualCamera = true;
+    });
     if (simple)
       instance.on('tap', event => {
         if (event.target !== cy || !event.renderedPosition) return;
@@ -376,11 +383,13 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       height = container.clientHeight;
     const ownedResizeObserver = new ResizeObserver(() => {
       if (!current() || (width === container.clientWidth && height === container.clientHeight)) return;
+      const delta = { x: (container.clientWidth - width) / 2, y: (container.clientHeight - height) / 2 };
       width = container.clientWidth;
       height = container.clientHeight;
       instance.resize();
-      instance.fit(undefined, 35);
-      if (instance.zoom() > 1.2) {
+      if (manualCamera) instance.panBy(delta);
+      else instance.fit(undefined, 35);
+      if (!manualCamera && instance.zoom() > 1.2) {
         instance.zoom(1.2);
         instance.center();
       }
@@ -398,6 +407,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             scope: scopeKey,
             physics,
             running: !!runningLayout,
+            manual: manualCamera,
             signature,
             width,
             height,
@@ -419,6 +429,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
 }
 window.addEventListener('smena:graph-control', event => {
   if (!instance) return;
+  manualCamera = event.detail !== 'fit';
   if (event.detail === 'fit') instance.fit(undefined, 35);
   else if (event.detail === 'selection') {
     const selected = instance.nodes(':selected');
