@@ -542,3 +542,6 @@
 .whiteboard-minimap[hidden] {
   display: none;
 }
+.project-whiteboard:not(.is-focused) .whiteboard-selection {
+  bottom: var(--bottom-nav-height, 0px);
+}
