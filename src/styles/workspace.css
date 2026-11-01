@@ -719,6 +719,34 @@
 .project-status-link:hover {
   background: var(--surface-2);
 }
+@container workspace (max-width: 520px) {
+  .set .themecards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .set .themecards .tcard {
+    padding: 6px;
+    min-height: 60px;
+    justify-content: flex-end;
+  }
+  .set .themecards .tprev {
+    display: none !important;
+  }
+  .set .themecards .tcard.on .tprev {
+    display: grid !important;
+    height: 54px;
+  }
+  .set .themecards .tcard > .row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px !important;
+    font-size: var(--fs-xs) !important;
+    text-align: center;
+  }
+  .set .themecards .tcard > .row > .sp {
+    display: none;
+  }
+}
 @media (max-width: 640px), (pointer: coarse) {
   .project-status-link {
     min-height: 44px;
