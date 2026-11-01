@@ -20,7 +20,7 @@ import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
-import { closeActionMenus, positionActionMenus } from '../ui/disclosure.js';
+import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
@@ -152,6 +152,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  captureActionMenuState();
   captureKnowledgeDisclosures();
   const selectState = selectMenu.capture();
   // A background read may redraw the page while an option/search has focus.
