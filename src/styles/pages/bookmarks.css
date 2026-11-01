@@ -306,3 +306,30 @@
     flex: 1;
   }
 }
+
+.bookmark-card-foot {
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+}
+.bookmark-read-state {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
+.bookmark-card:not(:has(.bookmark-reading-details)) .bookmark-description {
+  display: block;
+}
+.bookmark-card .bookmark-tags:empty {
+  display: none;
+}
+.bookmark-card-foot > span:not(.sp) {
+  min-width: 0;
+}
+@media (max-width: 420px) {
+  .bookmark-read-state {
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
