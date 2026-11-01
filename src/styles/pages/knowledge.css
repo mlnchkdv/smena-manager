@@ -2034,6 +2034,6 @@
   max-width: 100%;
 }
 
-.knowledge-editor[data-pane='preview'] :is(.knowledge-format-toolbar, .knowledge-format-toggle) {
+.knowledge-editor:is([data-pane='preview'], [data-pane='blocks']) :is(.knowledge-format-toolbar, .knowledge-format-toggle) {
   display: none;
 }
