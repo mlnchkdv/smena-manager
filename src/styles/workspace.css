@@ -711,3 +711,17 @@
   color: var(--text-2);
   cursor: pointer;
 }
+
+.project-status-link {
+  padding: 4px;
+  border-radius: var(--r-sm);
+}
+.project-status-link:hover {
+  background: var(--surface-2);
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .project-status-link {
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+}
