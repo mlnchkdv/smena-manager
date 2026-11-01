@@ -102,7 +102,7 @@ test('focused graph cycles visible controls and lets its modal own Escape in bot
   }
 });
 
-test('post audit optional deadlines file preview navigation and collection controls persist in both languages', async ({ page }) => {
+test('post audit optional deadlines file preview navigation and collection controls persist in both languages', async ({ page, browserName }) => {
   test.setTimeout(240000);
   page.setDefaultTimeout(15000);
   await signIn(page);
@@ -118,7 +118,7 @@ test('post audit optional deadlines file preview navigation and collection contr
     await page.goto('/e2e-team/projects');
     await page.locator('.content [data-a="newProject"]').first().click();
     await expect(page.locator('#p-due')).toHaveValue('');
-    const name = `Optional deadline ${language}`;
+    const name = `Optional deadline ${language} ${browserName}`;
     await page.locator('#p-name').fill(name);
     await page.locator('[data-a="submitProject"]').click();
     await saved();
@@ -129,7 +129,7 @@ test('post audit optional deadlines file preview navigation and collection contr
     expect(project?.due).toBeFalsy();
     await page.goto(`/e2e-team/project/${project.id}/overview`);
     await expect(page.locator('.content')).not.toContainText('Ended');
-    const prefix = `Audit file ${language}`;
+    const prefix = `Audit file ${language} ${browserName}`;
     for (const i of [1, 2]) {
       const snapshot = (await (await page.request.get('/api/workspace')).json()).data;
       const response = await page.request.post('/api/files/upload', {
