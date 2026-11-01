@@ -1,8 +1,8 @@
 # Повторный глубокий UI/UX-аудит / Deep UI/UX re-audit — 1 November 2026
 
-**Статус: новый план, не реализация.** После внедрения предыдущих 40 пунктов основной сайт повторно проверен через авторизованный интерфейс. Выявлены **9 ошибок и 22 рекомендации по удобству**. Исправления приложения в рамках этого аудита не вносились.
+**Статус: исторический исходный план.** Все R01–R31 впоследствии реализованы: [отчёт о внедрении и приёмке](UI_UX_DELIVERY_2026-11-01_THIRTY_ONE.md). Ниже сохранены исходные наблюдения до реализации: после предыдущих 40 пунктов выявлены **9 ошибок и 22 рекомендации по удобству**. Исправления приложения в рамках самого аудита не вносились.
 
-**EN.** This is a new proposed backlog, not an implementation report. A fresh authenticated production audit after the previous forty-item delivery found nine defects supported by UI observations or source inspection, plus twenty-two usability recommendations. Product changes, write acceptance and hardware-device acceptance are not claimed here.
+**EN.** This is the historical problem statement. R01–R31 have since been implemented; see the linked delivery for current behavior, commits and acceptance limits. The original audit below found nine defects plus twenty-two usability recommendations and did not itself implement product changes or repeat write/hardware acceptance.
 
 Основной сайт: [smena-manager.vercel.app](https://smena-manager.vercel.app/). Локальная точка сравнения: `e71662d`; последняя реализация приложения — `6e07ad7`. [Предыдущие 40 изменений и их собственные проверки](UI_UX_DELIVERY_2026-11-01_FORTY.md) остаются выполненным историческим этапом. Новые пункты имеют отдельные идентификаторы **R01–R31**.
 

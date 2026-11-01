@@ -1,6 +1,6 @@
 # Knowledge, whiteboards and graph: everyday workflows
 
-Updated on 1 November 2026 after the 12-item audit implementation. In-app guidance is available under **Settings → Help & resources**.
+Updated on 1 November 2026 after R01–R31. In-app guidance is available under **Settings → Help & resources**. [Changes and verification limits](UI_UX_DELIVERY_2026-11-01_THIRTY_ONE.md).
 
 ## Notes
 
@@ -14,6 +14,12 @@ Updated on 1 November 2026 after the 12-item audit implementation. In-app guidan
 ## Display, reading and tools
 
 Display controls grid/compact list, folders and card details. Mobile import, ZIP, offline notes, templates, tags and saved searches are available through Library tools. New note retains its label on phones. A first mobile visit uses the compact list when no view has been saved; existing choices are retained.
+
+On desktop, Display can hide the folder pane, adjust its width or reset it. This is personal to the account/workspace on this device; phones keep the separate folder panel. Card density inherits the interface appearance until explicitly overridden; choosing the interface setting removes the local override.
+
+The path above an open note navigates to its folder. Wait for unsaved text to finish saving first. The reader actions menu includes Version history and Download source. Blocks shows move tools for the active block, with unavailable directions disabled. Source formatting belongs to Editor mode.
+
+A saved search on this device is a personal shortcut. Use smart collections for shared selection rules; these mechanisms have different persistence scopes.
 
 The reader hides empty sections and a first Markdown heading that exactly repeats the title. Source, TXT and history are unchanged. A clean reader can apply an app update and return to its reading position; editors, conflicts and transfers block the update.
 
@@ -33,9 +39,11 @@ Focus fits the canvas to the available window. Exit focus or Escape returns to t
 
 Enable Select cards and tick several cards to align, distribute, copy or remove them. A frame includes cards contained within it. Ctrl/Cmd+A, C, V and Z work when the canvas has focus. Outline is useful for reading and editing on narrow screens.
 
+A click/tap selects a card without changing the document. A linked material has Open material in the screen-space selection panel, independent of canvas zoom. On phones, Scroll page / Move canvas chooses the gesture mode; a new mobile session starts with page scrolling. Outline searches card content and frame titles; matching frames show their contained cards. Find on canvas returns to the chosen result.
+
 History shows the author and compares the selected version with the current state before restoration. It loads on demand and requires current whiteboard read access. Up to five previous versions per whiteboard are retained within a shared 700,000-character budget. Restoring keeps the current board as a recovery version. If the board changes during review, reopen history. Local undo retains 12 commands and complements durable history.
 
-Layouts saves personal board camera and outline mode. Graph layouts also retain filters, positions and pins. Limits: 12 layouts per user/workspace, including three graph layouts, up to 250 positions each, and a 180,000-character preference document. Saved / Changed describes the selected personal layout. They do not change colleagues’ layouts. Reset keeps named layouts. On a different screen size, Graph fits the saved positions to the viewport.
+Layouts saves personal board camera and outline mode. Graph layouts also retain filters, positions and pins. Limits: 12 layouts per user/workspace, including three graph layouts, up to 250 positions each, and a 180,000-character preference document. Saved / Changed describes the selected personal layout. They do not change colleagues’ layouts. Reset keeps named layouts. Manual graph zoom and semantic center survive window resizing; Fit graph explicitly returns to content fitting. The compact graph legend explains colors and connection directions.
 
 ### Interchange
 
