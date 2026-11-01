@@ -1,5 +1,77 @@
 import { expect, test } from '@playwright/test';
 
+test('post audit optional deadlines file preview navigation and collection controls persist in both languages', async ({ page }) => {
+  test.setTimeout(240000);
+  page.setDefaultTimeout(15000);
+  await signIn(page);
+  const saved = async () => {
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  };
+  for (const language of ['Русский', 'English (US)']) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await saved();
+    await page.goto('/e2e-team/projects');
+    await page.locator('.content [data-a="newProject"]').first().click();
+    await expect(page.locator('#p-due')).toHaveValue('');
+    const name = `Optional deadline ${language}`;
+    await page.locator('#p-name').fill(name);
+    await page.locator('[data-a="submitProject"]').click();
+    await saved();
+    await page.reload();
+    await expect(page.locator('.shell')).toBeVisible();
+    const root = (await (await page.request.get('/api/workspace')).json()).data;
+    const project = root.projects.find(p => p.name === name);
+    expect(project?.due).toBeFalsy();
+    await page.goto(`/e2e-team/project/${project.id}/overview`);
+    await expect(page.locator('.content')).not.toContainText('Ended');
+    const prefix = `Audit file ${language}`;
+    for (const i of [1, 2]) {
+      const snapshot = (await (await page.request.get('/api/workspace')).json()).data;
+      const response = await page.request.post('/api/files/upload', {
+        multipart: {
+          file: { name: `${prefix} ${i}.txt`, mimeType: 'text/plain', buffer: Buffer.from(`File ${i}`) },
+          project: project.id,
+          revision: String(snapshot.revision),
+        },
+      });
+      expect(response.status()).toBe(201);
+    }
+    await page.goto('/e2e-team/files');
+    await page.locator('[data-in="fileQ"]').fill(prefix);
+    await expect(page.locator('.workspace-file-open')).toHaveCount(2);
+    await page.locator('.workspace-file-card [data-a="toggleFavoriteMaterial"]').first().click();
+    await saved();
+    await page.locator('.workspace-file-open').first().click();
+    const title = await page.locator('.modal h2').innerText();
+    await expect(page.locator('.file-preview-text')).toBeVisible();
+    await page.locator('[data-a="stepFilePreview"][data-direction="1"]').click();
+    await expect(page.locator('.modal h2')).not.toHaveText(title);
+    await expect(page.locator('.file-preview-text')).toBeVisible();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.locator('.modal h2')).toHaveText(title);
+    await page.keyboard.press('Escape');
+    await page.goto('/e2e-team/favorites');
+    await page.locator('[data-in="favoriteQuery"]').fill(prefix);
+    await expect(page.locator('.favorite-material')).toHaveCount(1);
+    await page.locator('[data-in="favoriteSort"]').selectOption('name');
+    await page.reload();
+    await page.locator('[data-in="favoriteQuery"]').fill(prefix);
+    await expect(page.locator('.favorite-material')).toHaveCount(1);
+    await page.goto('/e2e-team/activity');
+    await page.locator('[data-in="actFrom"]').fill('2099-01-01');
+    await expect(page.locator('.activity-page .feed')).toHaveCount(0);
+    await page.locator('[data-a="resetActivityDates"]').click();
+    expect(await page.locator('.activity-page time').count()).toBeLessThanOrEqual(50);
+    for (const width of [320, 390, 767, 1024, 1366, 1920]) {
+      await page.setViewportSize({ width, height: width < 768 ? 845 : 768 });
+      await expectNoPageOverflow(page);
+    }
+  }
+});
+
 test('knowledge search explains scope and removes individual conditions without losing quoted text', async ({ page }) => {
   test.setTimeout(180000);
   page.setDefaultTimeout(15000);
