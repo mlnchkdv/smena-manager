@@ -727,6 +727,33 @@
 .graph-detail-expand {
   display: none;
 }
+@media (max-width: 1100px) {
+  .graph-page:not(.is-focused) .graph-layout.has-detail {
+    flex: 1 0 460px;
+    grid-template-rows: minmax(240px, 1fr) minmax(200px, auto);
+  }
+  .graph-page:not(.is-focused) .graph-layout.has-detail .graph-stage {
+    min-height: 240px;
+    grid-template-rows: auto minmax(160px, 1fr);
+  }
+  .graph-page:not(.is-focused) .has-detail .graph-help {
+    display: none;
+  }
+  .graph-page:not(.is-focused) .graph-detail {
+    min-height: 200px;
+    max-height: min(360px, 48dvh);
+  }
+}
+@media (min-width: 641px) and (max-width: 1100px) and (max-height: 500px) {
+  .graph-page:not(.is-focused) .graph-layout.has-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 42%);
+    grid-template-rows: minmax(240px, 1fr);
+    flex-basis: 240px;
+  }
+  .graph-page:not(.is-focused) .graph-detail {
+    max-height: 280px;
+  }
+}
 @media (max-width: 900px) {
   .graph-detail-expand {
     display: inline-flex;
