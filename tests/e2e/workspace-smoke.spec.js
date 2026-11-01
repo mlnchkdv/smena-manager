@@ -6,7 +6,8 @@ test('focused whiteboards yield keyboard ownership to readers and command menus 
   await signIn(page);
   await waitForSaved(page);
   const knowledge = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
-  (knowledge.knowledgeNotes ||= []).push({ id: 'nested-focus-note', title: 'Nested reader', formatted_markdown: '# Reader\n\nFocus test', tags: [] });
+  knowledge.knowledgeNotes = (knowledge.knowledgeNotes || []).filter(n => n.id !== 'nested-focus-note');
+  knowledge.knowledgeNotes.push({ id: 'nested-focus-note', title: 'Nested reader', formatted_markdown: '# Reader\n\nFocus test', tags: [] });
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: knowledge.revision, data: knowledge } })).ok()).toBeTruthy();
   const data = (await (await page.request.get('/api/workspace')).json()).data;
   const project = data.projects[0];
