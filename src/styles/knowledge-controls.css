@@ -416,3 +416,13 @@
 .knowledge-editor[data-pane='blocks'] .knowledge-line-wrap {
   display: none;
 }
+.knowledge-drawer:has(.knowledge-editor.is-focused) > .drawer-h {
+  min-height: 38px;
+  padding-block: 2px;
+}
+.knowledge-drawer:has(.knowledge-editor.is-focused) > .drawer-h :is(.knowledge-drawer-brand, .knowledge-drawer-brand + .faint) {
+  display: none;
+}
+.knowledge-drawer:has(.knowledge-editor.is-focused) .knowledge-location {
+  display: none;
+}
