@@ -681,6 +681,12 @@
   grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
 @media (max-width: 640px) {
+  .graph-page .graph-toolbar:not(:has(.graph-display-trigger)) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .graph-page .graph-toolbar > .graph-search {
+    grid-column: 1 / -1;
+  }
   .graph-page .graph-toolbar:has(.graph-display-trigger) {
     grid-template-columns: auto auto minmax(0, 1fr);
   }
