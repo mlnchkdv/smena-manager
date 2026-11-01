@@ -288,7 +288,7 @@ test('simplified graph preserves materials selection filters and personal prefer
     await page.locator('[data-a="graphDisplayOptions"]').click();
     await expect(page.locator('[data-a="toggleGraphSimple"]')).toBeVisible();
   };
-  const close = () => page.locator('.modal [data-a="closeModal"]').click();
+  const close = () => page.locator('.modal [data-a="closeModal"]').first().click();
   for (const language of ['Русский', 'English (US)']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);

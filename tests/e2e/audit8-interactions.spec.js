@@ -336,7 +336,7 @@ test('forty audit: atomic 200-file import retry personal stars focused editor an
   await page.locator('#knowledge-import-files').setInputFiles(files.slice(0, 51));
   await expect(page.locator('.knowledge-import-review li')).toHaveCount(51);
   await expect(page.locator('[data-a="confirmPortableImport"]')).toBeDisabled();
-  await page.locator('.modal [data-a="closeModal"]').click();
+  await page.locator('.modal [data-a="closeModal"]').first().click();
   document = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
   expect(document.knowledgeNotes.filter(n => n.title.startsWith('Queue '))).toHaveLength(200);
   await page.goto('/e2e-team/calendar');
