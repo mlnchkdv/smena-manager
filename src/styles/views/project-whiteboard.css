@@ -5,7 +5,7 @@
   margin: 12px 20px;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  overflow: hidden;
+  overflow: clip;
   background: var(--surface);
 }
 .whiteboard-toolbar {
@@ -281,6 +281,10 @@
   color: var(--text-3);
 }
 .whiteboard-selection {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: var(--surface);
   display: flex;
   align-items: center;
   gap: 4px;
