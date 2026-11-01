@@ -23,3 +23,20 @@ test('viewport signatures change on filters/topology changes, not selection or t
   assert.notEqual(graphTopologyKey({ ...graph, edges: [] }), signature);
   assert.deepEqual([...graphPositions({ nodes: [], edges: [] })], []);
 });
+
+test('isolated and connected 1,000-node layouts retain distinct positions; screen hit picks the nearest dot', async t => {
+  const { nearestGraphHit } = await import('../../src/shared/graph-hit.js');
+  for (const count of [100, 1000]) {
+    const start = performance.now();
+    const positions = graphPositions({ nodes: Array.from({ length: count }, (_, i) => ({ key: `note:${i}` })), edges: [] });
+    assert.equal(positions.size, count);
+    assert.equal(new Set([...positions.values()].map(p => `${p.x}:${p.y}`)).size, count);
+    t.diagnostic(`${count} isolated nodes: ${Math.round(performance.now() - start)} ms`);
+  }
+  const points = [
+    { id: 'a', x: 10, y: 10 },
+    { id: 'b', x: 40, y: 10 },
+  ];
+  assert.equal(nearestGraphHit(points, { x: 30, y: 20 }), 'b');
+  assert.equal(nearestGraphHit(points, { x: 200, y: 10 }), null);
+});

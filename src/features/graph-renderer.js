@@ -1,3 +1,4 @@
+import { nearestGraphHit } from '../shared/graph-hit.js';
 import { D, S } from '../core/store.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
 import { activeDiagramView, diagramScope, registerGraphLayoutReader } from '../core/diagram-view-state.js';
@@ -219,7 +220,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           },
         },
         {
-          selector: 'node.simple:selected, node.simple.simple-hover',
+          selector: 'node.simple:selected, node.simple.simple-hover, node.simple.simple-neighbor',
           style: {
             width: 16,
             height: 16,
@@ -241,7 +242,21 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const updateDensity = () => {
       if (!current() || !cy.renderer()) return;
       const zoom = instance.zoom();
-      if (simple) return;
+      if (simple) {
+        const labels = graphOverviewLabels(graph, new Map(cy.nodes().map(node => [node.id(), node.renderedPosition()])), {
+          width: cy.width(),
+          height: cy.height(),
+          selected,
+        });
+        cy.batch(() =>
+          cy.nodes().forEach(node => {
+            const active = node.id() === selected;
+            node.style({ width: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom), height: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom) });
+            node.toggleClass('simple-neighbor', !!selected && neighbors.has(node.id()) && labels.has(node.id()));
+          }),
+        );
+        return;
+      }
       if (denseGraph) instance.nodes().toggleClass('dense-hidden', zoom < 0.75);
       {
         const overview = zoom < 0.85;
@@ -339,6 +354,16 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       if (physics) simulate(false);
     });
     instance.on('tap', 'node', event => onSelect(event.target.id()));
+    if (simple)
+      instance.on('tap', event => {
+        if (event.target !== cy || !event.renderedPosition) return;
+        const id = nearestGraphHit(
+          cy.nodes().map(node => ({ id: node.id(), ...node.renderedPosition() })),
+          event.renderedPosition,
+          matchMedia('(pointer: coarse)').matches ? 22 : 12,
+        );
+        if (id) onSelect(id);
+      });
     instance.on('mouseover', 'node', event => {
       container.style.cursor = 'pointer';
       if (simple) event.target.addClass('simple-hover');
