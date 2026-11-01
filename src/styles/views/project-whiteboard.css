@@ -493,3 +493,9 @@
     padding-inline: 8px;
   }
 }
+.whiteboard-outline-group-tools {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

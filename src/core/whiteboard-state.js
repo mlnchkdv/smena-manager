@@ -1,3 +1,4 @@
+import { readLayoutPreference } from './view-layout-preferences.js';
 import { activeDiagramView } from './diagram-view-state.js';
 import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
@@ -30,6 +31,11 @@ export function whiteboardState(id = S.ui.params.id) {
       selection: [],
       multiSelect: false,
       outline: false,
+      collapsedGroups: Object.fromEntries(
+        Object.entries(readLayoutPreference('whiteboard-outline:' + id, {}) || {})
+          .filter(([key, value]) => typeof key === 'string' && value === true)
+          .slice(0, 200),
+      ),
       navigationMode: matchMedia('(max-width: 640px), (pointer: coarse)').matches ? 'scroll' : 'pan',
       undo: [],
       redo: [],

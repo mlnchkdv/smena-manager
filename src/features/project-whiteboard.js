@@ -1,3 +1,4 @@
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -397,11 +398,24 @@ A.whiteboardLocate = el => {
     document.querySelector(`[data-board-drag="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
   });
 };
+A.whiteboardOutlineGroups = el => {
+  const s = whiteboardState();
+  s.collapsedGroups = Object.fromEntries(
+    whiteboardOf(current())
+      .nodes.filter(n => n.type === 'group')
+      .map(n => [n.id, el.dataset.collapse === 'true']),
+  );
+  writeLayoutPreference('whiteboard-outline:' + s.id, s.collapsedGroups);
+  render();
+};
 document.addEventListener(
   'toggle',
   event => {
-    if (event.target.matches?.('details[data-board-group]') && current())
-      (whiteboardState().collapsedGroups ||= {})[event.target.dataset.boardGroup] = !event.target.open;
+    if (event.target.matches?.('details[data-board-group]') && event.target.isConnected && current() && !whiteboardState().outlineQuery) {
+      const s = whiteboardState();
+      (s.collapsedGroups ||= {})[event.target.dataset.boardGroup] = !event.target.open;
+      writeLayoutPreference('whiteboard-outline:' + s.id, s.collapsedGroups);
+    }
   },
   true,
 );

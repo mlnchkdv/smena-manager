@@ -21,7 +21,7 @@ function outlineHtml(board, editable, state) {
   const matches = board.nodes.filter(
     n => n.type !== 'group' && (matchingFrames.some(f => f.id === owner(n)) || `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(query)),
   );
-  return `<label class="field"><span class="sr">${T('Search cards', 'Поиск карточек')}</span><input class="input" data-in="whiteboardOutlineQuery" value="${esc(state.outlineQuery || '')}" placeholder="${T('Search cards', 'Поиск карточек')}"></label><p class="hint" role="status">${C(matches.length + frames.filter(f => matchingFrames.includes(f) || matches.some(n => owner(n) === f.id)).length, 'result')}</p>${matches
+  return `${frames.length ? `<div class="whiteboard-outline-group-tools"><button class="btn btn-ghost btn-sm" data-a="whiteboardOutlineGroups" data-collapse="false">${T('Expand all', 'Развернуть все')}</button><button class="btn btn-ghost btn-sm" data-a="whiteboardOutlineGroups" data-collapse="true" ${query ? 'disabled' : ''}>${T('Collapse all', 'Свернуть все')}</button></div>` : ''}<label class="field"><span class="sr">${T('Search cards', 'Поиск карточек')}</span><input class="input" data-in="whiteboardOutlineQuery" value="${esc(state.outlineQuery || '')}" placeholder="${T('Search cards', 'Поиск карточек')}"></label><p class="hint" role="status">${C(matches.length + frames.filter(f => matchingFrames.includes(f) || matches.some(n => owner(n) === f.id)).length, 'result')}</p>${matches
     .filter(n => !owner(n))
     .map(card)
     .join('')}${frames
