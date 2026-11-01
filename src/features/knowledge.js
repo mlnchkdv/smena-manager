@@ -460,7 +460,7 @@ IN.knowledgeFolderLayout = el => {
   render();
 };
 IN.knowledgeCardDensity = el => {
-  S.ui.knowledgeCardDensity = el.value === 'comfortable' ? 'comfortable' : 'compact';
+  S.ui.knowledgeCardDensity = ['comfortable', 'compact'].includes(el.value) ? el.value : '';
   saveKnowledgePreferences();
   render();
 };

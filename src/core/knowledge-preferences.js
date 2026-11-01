@@ -22,7 +22,7 @@ export function knowledgePreferences() {
     S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(value.paneWidth) || 300));
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
-    S.ui.knowledgeCardDensity = value.cardDensity === 'comfortable' ? 'comfortable' : 'compact';
+    S.ui.knowledgeCardDensity = ['comfortable', 'compact'].includes(value.cardDensity) ? value.cardDensity : '';
     S.ui.knowledgeNoteLayout = ['list', 'grid'].includes(value.noteLayout)
       ? value.noteLayout
       : window.matchMedia('(max-width: 640px)').matches
@@ -47,7 +47,7 @@ export function saveKnowledgePreferences() {
         folderRecent: S.ui.knowledgeFolderRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,
         folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
-        cardDensity: S.ui.knowledgeCardDensity === 'comfortable' ? 'comfortable' : 'compact',
+        cardDensity: S.ui.knowledgeCardDensity || '',
         noteLayout: S.ui.knowledgeNoteLayout === 'list' ? 'list' : 'grid',
       }),
     );

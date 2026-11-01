@@ -206,7 +206,7 @@ export function pageKnowledge() {
         ${S.ui.knowledgeImportStatus ? `<div class="knowledge-import-status" role="status">${esc(S.ui.knowledgeImportStatus)}</div>` : ''}
       </div>
     </aside>
-    <div class="knowledge-main" data-density="${S.ui.knowledgeCardDensity || 'compact'}" data-keep="${esc(`knowledge-main:${folderFilter}:${S.ui.knowledgeQuery || ''}:${S.ui.knowledgeTag || ''}:${S.ui.knowledgeSort || ''}:${start}`)}">
+    <div class="knowledge-main" data-density="${S.ui.knowledgeCardDensity || S.prefs.density || 'comfortable'}" data-keep="${esc(`knowledge-main:${folderFilter}:${S.ui.knowledgeQuery || ''}:${S.ui.knowledgeTag || ''}:${S.ui.knowledgeSort || ''}:${start}`)}">
       <section class="knowledge-content" aria-label="Knowledge notes">
 
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options" ${knowledgeDisclosure(`folder:${folderFilter}`, 'settings')}><summary>Folder options</summary>${folderMove}</details>` : ''}
