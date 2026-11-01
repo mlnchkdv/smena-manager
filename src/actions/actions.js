@@ -30,7 +30,7 @@ import {
 import { fileType, fsize } from '../ui/helpers.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { detachTaskFile } from '../shared/file-identity.js';
-import { filePreferences, saveFilePreferences } from '../core/file-preferences.js';
+import { filePreferences, saveFilePreferences, fileContext } from '../core/file-preferences.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
@@ -3251,6 +3251,7 @@ A.searchPage = el => {
 A.searchAllFileResults = () => {
   const query = S.ui.searchQ || '';
   filePreferences();
+  fileContext();
   Object.assign(S.ui, { fileQ: query, fileProject: 'all', fileFolder: null, fileType: 'all', filePage: 0 });
   go('files');
 };
