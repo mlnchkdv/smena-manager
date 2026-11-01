@@ -2585,7 +2585,7 @@ A.newProject = () => {
   }
   const availableTeams = teamsList();
   const initialTeam = primaryTeamId(availableTeams, me().team);
-  S.ui.pform = { name: '', desc: '', icon: 'folder', iconImage: null, color: 'indigo', team: initialTeam, lead: D().me, due: dOff(30), tmpl: 'blank' };
+  S.ui.pform = { name: '', desc: '', icon: 'folder', iconImage: null, color: 'indigo', team: initialTeam, lead: D().me, due: '', tmpl: 'blank' };
   S.ui.projectIconQuery = '';
   S.ui.errors = {};
   S.ui.pop = null;
@@ -2657,7 +2657,7 @@ export function createProject(f, tmplId) {
     status: 'planning',
     team: primaryTeamId(teamsList(), f.team),
     lead: f.lead,
-    due: f.due || dOff(30),
+    due: f.due || null,
     start: dOff(0),
     fav: false,
     members: [...new Set([D().me, f.lead])],
