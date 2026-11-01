@@ -96,6 +96,9 @@
 .whiteboard-edges g {
   --wb-accent: var(--border-strong);
 }
+.whiteboard-edges g {
+  --wb-accent: var(--text-3);
+}
 .project-whiteboard [data-color='violet'] {
   --wb-accent: var(--accent);
 }
@@ -114,7 +117,7 @@
 .whiteboard-edges path {
   fill: none;
   stroke: var(--wb-accent);
-  stroke-width: 2;
+  stroke-width: calc(1.6px / var(--whiteboard-zoom, 1));
 }
 .whiteboard-edges marker path {
   fill: var(--text-3);

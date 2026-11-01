@@ -540,7 +540,10 @@ function paintView() {
   const s = whiteboardState(),
     world = document.querySelector('.whiteboard-world');
   refreshWhiteboardMinimap(s);
-  if (world) world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
+  if (world) {
+    world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
+    world.style.setProperty('--whiteboard-zoom', String(s.zoom));
+  }
   const scale = document.querySelector('.whiteboard-scale');
   if (scale) scale.textContent = Math.round(s.zoom * 100) + '%';
   window.dispatchEvent(new Event('smena:diagram-layout-changed'));
