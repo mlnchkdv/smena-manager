@@ -381,7 +381,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
       await page.keyboard.press('Tab');
     }
     expect(reached.has('knowledgeFolderQuery')).toBeTruthy();
-    expect(reached.has('kb-child')).toBeTruthy();
+    // Folder rows now have one Tab entry; arrows reach children without selecting.
+    const rows = page.locator('.knowledge-folders button[data-a="setKnowledgeFolder"]');
+    await rows.first().focus();
+    const folderStops = new Set();
+    for (let step = 0; step < 12; step++) {
+      folderStops.add(await page.evaluate(() => document.activeElement?.getAttribute('data-folder')));
+      await page.keyboard.press('ArrowDown');
+    }
+    expect(folderStops.has('kb-child')).toBeTruthy();
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
     await page.locator('.knowledge-sidebar .knowledge-folder[data-folder="kb-child"]').click();
     await expect(page.locator('#knowledge-view-title')).toBeFocused();
