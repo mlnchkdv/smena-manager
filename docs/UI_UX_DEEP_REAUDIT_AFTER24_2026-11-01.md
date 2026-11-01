@@ -1,8 +1,10 @@
 # Повторный глубокий UI/UX-аудит после N01–N24 / Deep production re-audit
 
-**1 ноября 2026 · новый план Q01–Q18, ещё не внедрён.** Проверен авторизованный [основной сайт](https://smena-manager.vercel.app/). Результат: **6 подтверждённых визуальных/текстовых дефектов и 12 предложений по удобству**. Критического блокирования навигации в проверенных сценариях не обнаружено. Код приложения в этом этапе не менялся.
+**Статус внедрения / Delivery status:** Q01–Q18 реализованы. [Изменения, commits, RU/EN-приёмка и ограничения публикации](UI_UX_DELIVERY_2026-11-01_EIGHTEEN.md). Этот файл сохраняет исходные наблюдения аудита, а не текущий список отсутствующих функций.
 
-**EN.** This is a new proposed backlog, not an implementation report: six supported presentation/copy defects and twelve usability opportunities. No critical navigation blocker was found in the reviewed flows. Runtime code was not changed.
+**1 ноября 2026 · исходный план Q01–Q18.** Проверен авторизованный [основной сайт](https://smena-manager.vercel.app/). Результат аудита: **6 подтверждённых визуальных/текстовых дефектов и 12 предложений по удобству**. Критического блокирования навигации в проверенных сценариях не обнаружено. Сам аудит код приложения не менял.
+
+**EN.** Original audit baseline: six supported presentation/copy defects and twelve usability opportunities. All 18 code items are now implemented; use the linked delivery report for current publication and acceptance status. The observations below remain historical evidence.
 
 Предыдущие **N01–N24 уже внедрены и опубликованы**, включая последние три исправления. Их не нужно реализовывать повторно. [Отчёт о публикации и предыдущая приёмка](UI_UX_PRODUCTION_FOLLOWUP_2026-11-01.md). Новый список использует отдельные идентификаторы **Q01–Q18**.
 

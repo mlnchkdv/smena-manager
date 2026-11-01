@@ -1,6 +1,6 @@
 # Smena Manager
 
-**01.11.2026 — актуальный повторный аудит / latest proposed backlog:** [Q01–Q18: 6 подтверждённых дефектов и 12 улучшений удобства / Six presentation defects and twelve usability opportunities](docs/UI_UX_DEEP_REAUDIT_AFTER24_2026-11-01.md). Основной сайт, RU/EN, 7 размеров; новый пакет пока не внедрён. Runtime code unchanged; physical-device and production-write acceptance remain separate.
+**01.11.2026 — Q01–Q18 внедрены / implemented:** [18 улучшений, commits и проверка RU/EN / Delivery and verification](docs/UI_UX_DELIVERY_2026-11-01_EIGHTEEN.md). Production `c39d29b` включает все 18 пунктов; две финальные правки проверки ещё ожидают публикации из-за лимита Vercel. All 18 base items are live; two follow-ups await release. Physical-device acceptance remains pending.
 
 **01.11.2026 — новый глубокий аудит / new re-audit:** [N01–N24: 7 подтверждённых проблем и 17 UX-предложений / Seven supported defects and seventeen usability improvements](docs/UI_UX_DEEP_REAUDIT_AFTER31_2026-11-01.md). Все 24 пункта реализованы: [изменения, проверки и ограничение публикации / delivery, verification and deployment limit](docs/UI_UX_DELIVERY_2026-11-01_TWENTY_FOUR.md). Все три финальные правки опубликованы и проверены: [production RU/EN × 7 размеров / published production verification](docs/UI_UX_PRODUCTION_FOLLOWUP_2026-11-01.md).
 
