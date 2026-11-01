@@ -36,6 +36,23 @@
   font-weight: 500;
   color: var(--text-3);
 }
+.knowledge-density-inheritance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  margin: 4px;
+}
+.knowledge-content-actions .knowledge-density-inheritance > .btn {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+  padding: 6px 8px;
+}
 .knowledge-view-panel .knowledge-folder-layout {
   display: flex;
   flex-direction: column;

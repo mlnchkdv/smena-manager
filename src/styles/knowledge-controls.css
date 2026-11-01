@@ -355,7 +355,8 @@
   .knowledge-content-actions :is(.knowledge-create-short, .hide-m) {
     display: none;
   }
-  .knowledge-content-actions .btn {
+  .knowledge-content-actions > .btn,
+  .knowledge-content-actions > .knowledge-create > .btn {
     width: 44px;
     padding-inline: 0;
     flex: 0 0 auto;
