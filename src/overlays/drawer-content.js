@@ -78,13 +78,14 @@ export function knowledgeDrawerHtml(note) {
   const outline = preview
     ? knowledgeOutline(
         previewMarkup,
-        noteUtilities(note) +
+        `<button class="btn btn-ghost" data-a="knowledgeReaderToStart">${isRussian() ? 'К началу заметки' : 'Back to top'}</button>` +
+          noteUtilities(note) +
           `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!isFavorite('note', note)}">${ic('star', 15)}<span>${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
       )
     : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">
     <div class="drawer-h${preview ? ' knowledge-reader-head' : ''}"><span class="knowledge-drawer-brand">${ic('library', 15)}<span>Knowledge base</span></span><span class="faint">/</span><span class="mono faint trunc" id="knowledge-drawer-title" translate="no">${esc(note.title || 'Untitled note')}</span><span class="sp"></span><span class="knowledge-reader-tools">${pager}<button class="ibtn knowledge-reader-properties" data-a="openNoteProperties" data-id="${esc(note.id)}" aria-label="${isRussian() ? 'Тип и свойства' : 'Type and properties'}" title="${isRussian() ? 'Тип и свойства' : 'Type and properties'}">${ic('sliders-horizontal', 15)}</button>${editAction}${outline || favorite}</span><button class="ibtn ibtn-sm knowledge-reader-close" data-a="closeKnowledgeDrawer" data-tip="${tr('Close')}  Esc" aria-label="Close">${ic('x', 16)}</button></div>
-    <div class="drawer-b knowledge-drawer-body" data-keep="knowledge-drawer:${note.id}">${knowledgeLocation(note)}${found?.bar || ''}${preview ? previewBody + knowledgeContext(note, { reading: true }) : noteEditor(note, folders, readOnly)}</div>
+    <div class="drawer-b knowledge-drawer-body" data-reading-note="${esc(note.id)}" data-keep="knowledge-drawer:${note.id}">${knowledgeLocation(note)}${found?.bar || ''}${preview ? previewBody + knowledgeContext(note, { reading: true }) : noteEditor(note, folders, readOnly)}</div>
   </aside>`;
 }
 

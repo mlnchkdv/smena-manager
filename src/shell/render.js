@@ -26,6 +26,7 @@ import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
 import { refreshFolderKeyboard } from '../ui/knowledge-folder-keyboard.js';
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
+import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 
 export const ROUTE_NAMES = {
@@ -156,6 +157,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  captureReaderPosition();
   captureActionMenuState();
   captureKnowledgeDisclosures();
   const selectState = selectMenu.capture();
@@ -317,6 +319,7 @@ export function afterRender() {
   resizeKnowledgeTitle();
   refreshKnowledgeOutline();
   refreshKnowledgeFind();
+  restoreReaderPosition();
   refreshFolderKeyboard();
   refreshGraphListKeyboard();
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {

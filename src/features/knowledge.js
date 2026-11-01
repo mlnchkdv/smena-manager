@@ -14,6 +14,8 @@ import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { knowledgeHeadingSlug } from '../shared/knowledge-markdown.js';
+import { readerToStart } from '../ui/knowledge-reader-position.js';
+A.knowledgeReaderToStart = readerToStart;
 A.knowledgeAnchor = (el, event) => {
   event?.preventDefault();
   const content = el.closest('.knowledge-quick-content') || el.closest('.knowledge-drawer')?.querySelector('.knowledge-quick-content');
