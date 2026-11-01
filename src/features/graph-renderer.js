@@ -245,6 +245,15 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const updateDensity = () => {
       if (!current() || !cy.renderer()) return;
       const zoom = instance.zoom();
+      cy.batch(() =>
+        cy.edges().forEach(edge => {
+          const highlighted = edge.hasClass('highlight');
+          edge.style({
+            width: (highlighted ? 1.8 : denseGraph ? 0.8 : 1) / Math.max(zoom, 0.01),
+            opacity: highlighted ? 0.95 : denseGraph ? 0.5 : !simple && edge.data('automatic') ? 0.7 : 0.78,
+          });
+        }),
+      );
       if (simple) {
         const labels = graphOverviewLabels(graph, new Map(cy.nodes().map(node => [node.id(), node.renderedPosition()])), {
           width: cy.width(),
