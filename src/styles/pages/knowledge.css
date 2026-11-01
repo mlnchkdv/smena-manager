@@ -1959,6 +1959,16 @@
   font-family: var(--mono);
   resize: vertical;
 }
+.knowledge-editable-block[data-active='true'] {
+  border-color: var(--accent);
+}
+.knowledge-block-actions {
+  display: flex;
+  margin-left: auto;
+}
+.knowledge-editable-block > .row {
+  flex-wrap: wrap;
+}
 .knowledge-editor[data-pane='blocks'] .knowledge-format-toolbar {
   display: none;
 }
