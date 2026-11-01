@@ -65,7 +65,7 @@ const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams'
 export function srow(t, d, ctl) {
   ctl = ctl.replace(/data-setting-control aria-label="[^"]*"/gu, () => `aria-label="${esc(t)}"`);
   const toggleId = ctl.match(/id="(setting-toggle-[^"]+)"/)?.[1];
-  return `<div class="srow"><div>${toggleId ? `<label class="t" for="${toggleId}">${t}</label>` : `<div class="t">${t}</div>`}${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
+  return `<div class="srow${toggleId ? ' srow-toggle' : ''}"><div>${toggleId ? `<label class="t" for="${toggleId}">${t}</label>` : `<div class="t">${t}</div>`}${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
 }
 export const tog = (k, on, src = 'pref') =>
   `<label class="toggle-target"><input id="setting-toggle-${src}-${esc(k)}" type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} data-setting-control aria-label="${k}"></label>`;
@@ -228,7 +228,16 @@ export function settingsBody(sec, title) {
           : isRussian()
             ? 'Общие настройки текущего пространства. Изменения затрагивают его участников.'
             : 'Shared settings for the current workspace. Changes affect its members.';
-  const H = lead => `<h1>${title}</h1><p class="lead">${lead}</p><p class="hint settings-scope" translate="no">${scope} <b>${esc(d.ws.name)}</b></p>`;
+  const scopeLabel =
+    sec === 'security'
+      ? tr('Account')
+      : sec === 'projects'
+        ? tr('Personal and shared settings')
+        : personal
+          ? tr('Personal settings')
+          : tr('Workspace settings');
+  const H = lead =>
+    `<h1>${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>`;
   switch (sec) {
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu <kbd>CtrlK</kbd></button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;

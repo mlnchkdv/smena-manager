@@ -612,6 +612,8 @@ const RU = {
     'Это запись события, а не текущий статус системы. Актуальные проверки доступны в диагностике; готовность настроек не подтверждает доставку.',
   'The event does not identify a delivery channel.': 'Канал доставки в этом событии не указан.',
   'All roles': 'Все роли',
+  'Personal and shared settings': 'Личные и общие настройки',
+  'Personal settings': 'Личные настройки',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',

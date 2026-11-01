@@ -588,3 +588,37 @@
 .capacity-row[data-state='over-limit'] {
   color: var(--red);
 }
+
+.settings-scope > summary {
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  padding-block: 6px;
+  color: var(--text-3);
+}
+.settings-scope > p {
+  margin-block: 6px 12px;
+}
+.srow {
+  padding-block: 10px;
+  gap: 16px;
+}
+.srow > div {
+  min-width: 0;
+}
+.set-in .srow.srow-toggle {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.set-in .srow.srow-toggle > .row {
+  justify-content: flex-end;
+}
+@media (max-width: 640px) {
+  .set-in .srow.srow-toggle {
+    gap: 8px;
+  }
+  .srow .d {
+    font-size: var(--fs-xs);
+    line-height: 1.45;
+  }
+}
