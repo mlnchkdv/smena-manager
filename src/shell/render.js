@@ -22,6 +22,7 @@ import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
+import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
 import { refreshFolderKeyboard } from '../ui/knowledge-folder-keyboard.js';
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
@@ -317,6 +318,7 @@ export function afterRender() {
   refreshKnowledgeOutline();
   refreshKnowledgeFind();
   refreshFolderKeyboard();
+  refreshGraphListKeyboard();
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {
     knowledgeTableModule ||= import('../ui/knowledge-table.js');
     void knowledgeTableModule
