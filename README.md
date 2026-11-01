@@ -1,5 +1,7 @@
 # Smena Manager
 
+**01.11.2026 — новый глубокий аудит / new re-audit:** [N01–N24: 7 подтверждённых проблем и 17 UX-предложений / Seven supported defects and seventeen usability improvements](docs/UI_UX_DEEP_REAUDIT_AFTER31_2026-11-01.md). Новый план ещё не внедрён. / This is a proposed backlog, not a new delivery.
+
 **01.11.2026 — внедрение R01–R31 / delivery:** [Все 31 правка, commits, production RU/EN × 7 размеров и результаты проверок / All thirty-one changes and verification](docs/UI_UX_DELIVERY_2026-11-01_THIRTY_ONE.md). [Повторный аудит / Re-audit](docs/UI_UX_DEEP_REAUDIT_AFTER40_2026-11-01.md) сохранён как исходный план. Physical-device acceptance remains pending.
 
 **RU / EN:** [Внедрены все 40 UI/UX-улучшений: изменения, commits и результаты проверки / All 40 UI/UX improvements delivered](docs/UI_UX_DELIVERY_2026-11-01_FORTY.md). [Исходный аудит / Original audit](docs/UI_UX_DEEP_AUDIT_2026-11-01.md) сохранён как историческая точка сравнения. Physical-device acceptance remains pending.
