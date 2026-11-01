@@ -17,7 +17,7 @@ import { subtaskHtml } from '../features/subtasks.js';
 import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 import { safeRichText } from '../ui/rich-text.js';
 import { relationsPanel } from '../ui/relations.js';
-import { noteEditor } from '../ui/knowledge-editor.js';
+import { noteEditor, noteUtilities } from '../ui/knowledge-editor.js';
 import { knowledgeLocation } from '../ui/knowledge-location.js';
 import { knowledgeReadingSource } from '../shared/knowledge-markdown.js';
 import { knowledgeReadingHtml } from '../ui/knowledge-reading.js';
@@ -76,7 +76,8 @@ export function knowledgeDrawerHtml(note) {
   const outline = preview
     ? knowledgeOutline(
         previewMarkup,
-        `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!isFavorite('note', note)}">${ic('star', 15)}<span>${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
+        noteUtilities(note) +
+          `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!isFavorite('note', note)}">${ic('star', 15)}<span>${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
       )
     : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">

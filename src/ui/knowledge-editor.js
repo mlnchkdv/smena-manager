@@ -18,6 +18,21 @@ import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
 import { knowledgeVersionFits } from '../shared/knowledge-history.js';
+import { openModal } from '../overlays/modals.js';
+export function noteUtilities(note) {
+  return `<button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
+}
+A.viewKnowledgeHistory = el => {
+  const id = el.dataset.id;
+  if (!D().knowledgeNotes.some(n => n.id === id)) return;
+  openModal({
+    type: 'knowledgeTool',
+    render: (_m, H) => {
+      const note = D().knowledgeNotes.find(n => n.id === id);
+      return `${H(kc('Version history', 'История версий'))}<div class="modal-b">${note ? knowledgeHistory(note, S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked(), true) : '<p>Material unavailable</p>'}</div>`;
+    },
+  });
+};
 
 A.downloadKnowledgeNoteSource = el => {
   const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
@@ -65,7 +80,7 @@ export function noteEditor(note, folders, readOnly) {
         <label class="sr" for="knowledge-title">Note title</label>
         <textarea rows="1" class="knowledge-title" id="knowledge-title" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="title" placeholder="Untitled note" ${disabled}>${esc(note.title)}</textarea>
       </div>
-      <div class="knowledge-editor-meta-row"><div class="knowledge-meta">${ic('clock-3', 12)}<span>Updated ${ago(noteTime(note.updatedAt))}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}<span class="knowledge-save-status knowledge-wide-save" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span></div>${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<details class="ui-menu knowledge-note-actions"><summary class="ibtn" aria-label="More actions">${ic('ellipsis', 16)}</summary><div>${note.captureStatus === 'unprocessed' ? `<button class="btn btn-ghost" data-a="finishKnowledgeCapture" data-id="${esc(note.id)}" translate="no">${kc('Finish processing', 'Завершить разбор')}</button>` : ''}<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost" data-a="showKnowledgeProperties">Note properties</button><button class="btn btn-danger-ghost" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button></div></details>`}</div>
+      <div class="knowledge-editor-meta-row"><div class="knowledge-meta">${ic('clock-3', 12)}<span>Updated ${ago(noteTime(note.updatedAt))}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}<span class="knowledge-save-status knowledge-wide-save" aria-hidden="true" data-knowledge-save-status>${knowledgeSaveLabel()}</span></div>${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<details class="ui-menu knowledge-note-actions"><summary class="ibtn" aria-label="More actions">${ic('ellipsis', 16)}</summary><div>${noteUtilities(note)}${note.captureStatus === 'unprocessed' ? `<button class="btn btn-ghost" data-a="finishKnowledgeCapture" data-id="${esc(note.id)}" translate="no">${kc('Finish processing', 'Завершить разбор')}</button>` : ''}<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost" data-a="showKnowledgeProperties">Note properties</button><button class="btn btn-danger-ghost" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button></div></details>`}</div>
     </div>
     <span class="sr" role="status" aria-live="polite" data-knowledge-save-status>${knowledgeSaveLabel()}</span>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
