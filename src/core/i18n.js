@@ -611,6 +611,7 @@ const RU = {
   'This is a recorded event, not a live health status. Open diagnostics for current checks; configuration readiness does not confirm delivery.':
     'Это запись события, а не текущий статус системы. Актуальные проверки доступны в диагностике; готовность настроек не подтверждает доставку.',
   'The event does not identify a delivery channel.': 'Канал доставки в этом событии не указан.',
+  'All roles': 'Все роли',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',

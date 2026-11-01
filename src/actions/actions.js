@@ -3871,3 +3871,15 @@ A.keepBookmarkOffline = async el => (await import('../features/offline-knowledge
 A.knowledgeArchive = async () => (await import('../features/knowledge-archive.js')).openKnowledgeArchive();
 
 A.newWhiteboard = async el => (await import('../features/whiteboards.js')).newWhiteboard(el);
+
+IN.memberRoleFilter = el => {
+  if (['all', 'Owner', 'Admin', 'Member', 'Guest'].includes(el.value)) {
+    S.ui.memRole = el.value;
+    render();
+  }
+};
+A.clearMemberFilters = () => {
+  S.ui.memRole = 'all';
+  S.ui.memQ = '';
+  render();
+};
