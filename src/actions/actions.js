@@ -3894,3 +3894,19 @@ IN.favoriteKind = el => {
   S.ui.favoriteKind = el.value;
   render();
 };
+
+IN.calendarLayer = el => {
+  const bit = Number(el.dataset.bit);
+  if (![1, 2, 4, 8].includes(bit)) return;
+  const value = S.prefs.calendarLayers ?? 3;
+  S.prefs.calendarLayers = el.checked ? value | bit : value & ~bit;
+  save();
+  render();
+};
+A.openCalendarPlan = el => {
+  const project = proj(el.dataset.project);
+  if (!project || !canSee(project)) return;
+  closePop();
+  if (el.dataset.kind === 'milestone') A.manageMilestones({ dataset: { id: project.id } });
+  else go('project', { id: project.id, tab: 'overview' });
+};

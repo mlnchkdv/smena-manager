@@ -25,3 +25,18 @@ test('overflow honors the already-filtered task set without reintroducing exclud
 test('workspace calendar includes matching items across projects, events first', () => {
   assert.deepEqual(calendarDayItems(tasks, events, date), [{ ev: events[0] }, { ev: events[1] }, { t: tasks[0] }, { t: tasks[1] }]);
 });
+
+test('optional plan layers honor project scope, ACL input and date-only boundaries without creating tasks', () => {
+  const projects = [
+    { id: 'a', due: date, milestones: [{ id: 'm', name: 'Launch', date }] },
+    { id: 'b', due: date },
+  ];
+  const plan = calendarDayItems(tasks, events, date, 'a', { projects, layers: 12 });
+  assert.equal(plan.length, 2);
+  assert.equal(plan[0].milestone.id, 'm');
+  assert.equal(plan[1].deadline, true);
+  assert.ok(plan.every(item => !item.t && !item.ev && item.p.id === 'a'));
+  assert.deepEqual(calendarDayItems(tasks, events, date, '', { projects: [], layers: 15 }), []);
+  assert.deepEqual(calendarDayItems(tasks, events, date, '', { projects, layers: 0 }), []);
+  assert.deepEqual(calendarDayItems(tasks, events, '2026-10-17', '', { projects, layers: 12 }), []);
+});

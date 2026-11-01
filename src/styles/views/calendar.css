@@ -354,3 +354,40 @@
 .cal-agenda-earlier[open] > summary {
   margin-bottom: 12px;
 }
+
+.calendar-layers {
+  align-self: flex-start;
+  position: relative;
+  margin: 0 12px 4px;
+}
+.calendar-layers > div {
+  padding: 12px;
+  width: min(340px, calc(100vw - 48px));
+}
+.calendar-layers label {
+  min-height: 44px;
+  gap: 10px;
+}
+.cal-type-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 12px 8px;
+}
+.cal-type-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.calendar-plan-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-left: 3px solid var(--c);
+  text-align: left;
+}
+.calendar-plan-item small {
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+  margin-left: auto;
+}

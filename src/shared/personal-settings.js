@@ -9,6 +9,7 @@ import { validFavorites } from './personal-favorites.js';
 
 const PREFERENCE_TYPES = Object.freeze({
   favorites: 'string',
+  calendarLayers: 'number',
   knowledgeCardMeta: 'string',
   knowledgeFolderPins: 'string',
   diagramViews: 'string',
@@ -71,6 +72,7 @@ export function applyPersonalSettings(database, memberId, input) {
                     : 180))
       )
         invalid();
+      if (key === 'calendarLayers' && (!Number.isInteger(value) || value < 0 || value > 15)) invalid();
       if (key === 'favorites') {
         try {
           if (!validFavorites(JSON.parse(value))) invalid();

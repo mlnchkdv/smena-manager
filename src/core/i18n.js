@@ -634,6 +634,15 @@ const RU = {
   'Some favorites could not be loaded. Retry to check current access.': 'Часть избранного не загрузилась. Повторите запрос для проверки актуального доступа.',
   'Use a star on a task, project, note, bookmark, file or whiteboard. Only your favorites change.':
     'Отметьте звездой задачу, проект, заметку, закладку, файл или холст. Изменится только ваше избранное.',
+  'Calendar layers': 'Слои календаря',
+  Events: 'События',
+  'Project deadline': 'Срок проекта',
+  'Project deadlines': 'Сроки проектов',
+  'All calendar layers are hidden.': 'Все слои календаря скрыты.',
+  'No dates in selected layers.': 'В выбранных слоях дат нет.',
+  'No dates in the selected calendar layers this month.': 'В этом месяце в выбранных слоях дат нет.',
+  'Task filters apply to tasks. The project filter applies to every layer. Dates without a time stay on their original day.':
+    'Фильтры задач применяются к задачам, фильтр проекта — ко всем слоям. Даты без времени остаются на исходном дне.',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',

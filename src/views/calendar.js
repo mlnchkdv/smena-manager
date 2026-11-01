@@ -3,11 +3,12 @@ import { MONL, TODAY, WD, addD, diffD, esc, fmtDate, iso, parse } from '../core/
 import { calendarMode } from '../core/calendar-preferences.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ic } from '../core/icons.js';
-import { D, S, allTasks, pColor, proj } from '../core/store.js';
+import { S, allTasks, pColor, proj } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { fxc } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
-import { calendarDayItems } from '../shared/calendar-items.js';
+import { calendarItemsForView } from '../core/calendar-data.js';
+import { calendarPlanItem } from '../ui/calendar-plan-item.js';
 import { t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
@@ -15,9 +16,10 @@ import { segmentedControl } from '../ui/segmented-control.js';
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
   const mode = calendarMode();
-  const itemsOn = ds => calendarDayItems(ts, opt.events ? D().events : [], ds, opt.project);
+  const itemsOn = ds => calendarItemsForView(ts, ds, opt);
   const wdn = Array.from({ length: 7 }, (_, i) => WD[(i + S.prefs.weekStart) % 7]);
   const chip = it => {
+    if (it.milestone || it.deadline) return calendarPlanItem(it);
     if (it.ev) {
       const p = proj(it.ev.project);
       return `<button class="cev event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}" title="${esc(it.ev.title)} · ${it.ev.time}"><span class="num faint" style="font-size:11px">${it.ev.time}</span><span class="trunc">${esc(it.ev.title)}</span><span class="cal-item-project">${esc(p.name)}</span></button>`;
@@ -37,7 +39,7 @@ export function calendarHtml(ts, opt = {}) {
     const day = ds =>
       `<section data-cal-date="${ds}" ${target === ds ? 'data-calendar-anchor tabindex="-1"' : ''}>${target === ds && ds !== S.ui.calAgendaAnchor ? `<p class="hint" role="status">${ds > S.ui.calAgendaAnchor ? 'Next scheduled day' : 'No later items. Showing the nearest earlier items.'}</p>` : ''}<h3>${fmtDate(ds, true)}</h3>${itemsOn(ds).map(chip).join('')}</section>`;
     const earlier = target ? scheduled.filter(ds => ds < target) : [];
-    body = `<div class="cal-agenda">${earlier.length ? `<details class="cal-agenda-earlier" ${disclosureAttributes('calendar-earlier:' + S.ui.calDate)}><summary><span>Earlier days</span> · ${earlier.length}</summary>${earlier.map(day).join('')}</details>` : ''}${(target ? scheduled.filter(ds => ds >= target) : scheduled).map(day).join('') || '<p class="empty" role="status">No scheduled items this month.</p>'}</div>`;
+    body = `<div class="cal-agenda">${earlier.length ? `<details class="cal-agenda-earlier" ${disclosureAttributes('calendar-earlier:' + S.ui.calDate)}><summary><span>Earlier days</span> · ${earlier.length}</summary>${earlier.map(day).join('')}</details>` : ''}${(target ? scheduled.filter(ds => ds >= target) : scheduled).map(day).join('') || '<p class="empty" role="status">No dates in the selected calendar layers this month.</p>'}</div>`;
   } else if (mode === 'month') {
     label = `${MONL[cur.getMonth()]} ${cur.getFullYear()}`;
     const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
@@ -72,6 +74,7 @@ export function calendarHtml(ts, opt = {}) {
         <div class="wcol-b" data-drop-day="${ds}">${
           items
             .map(it => {
+              if (it.milestone || it.deadline) return calendarPlanItem(it, 'wcard');
               if (it.ev) {
                 const p = proj(it.ev.project);
                 return `<button class="wcard event" translate="no" style="--c:${pColor(p)}" data-a="pop" data-pop="event" data-id="${it.ev.id}"><span class="t"><span class="pdot" style="--c:${pColor(p)};border-radius:50%"></span>${esc(it.ev.title)}</span><span class="m">${ic('clock', 11)}${it.ev.time} · ${esc(p.name)}</span></button>`;
@@ -112,6 +115,29 @@ export function calendarHtml(ts, opt = {}) {
         ],
       })}
     </div>
+    <details class="calendar-layers ui-menu"><summary class="btn btn-ghost btn-sm">${ic('layers', 14)}Calendar layers</summary><div>${[
+      [1, 'Tasks'],
+      [2, 'Events'],
+      [4, 'Milestones'],
+      [8, 'Project deadlines'],
+    ]
+      .map(
+        ([bit, label]) =>
+          `<label class="row"><input type="checkbox" data-in="calendarLayer" data-bit="${bit}" ${(S.prefs.calendarLayers ?? 3) & bit ? 'checked' : ''}>${t(label)}</label>`,
+      )
+      .join(
+        '',
+      )}<p class="hint">Task filters apply to tasks. The project filter applies to every layer. Dates without a time stay on their original day.</p></div></details><div class="cal-type-legend hint" role="status">${
+      [
+        [1, 'circle-check', 'Tasks'],
+        [2, 'clock', 'Events'],
+        [4, 'diamond', 'Milestones'],
+        [8, 'flag', 'Project deadlines'],
+      ]
+        .filter(([bit]) => (S.prefs.calendarLayers ?? 3) & bit)
+        .map(([, icon, label]) => `<span>${ic(icon, 12)}${t(label)}</span>`)
+        .join('') || t('All calendar layers are hidden.')
+    }</div>
     ${body}
   </div>`;
 }

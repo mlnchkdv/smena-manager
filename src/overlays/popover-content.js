@@ -5,7 +5,8 @@ import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, me, mem, pColor, proj, systemConnectionState, task, visibleProjects } from '../core/store.js';
 import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
 import { FIELDS, applyView, viewOf } from '../shell/view-engine.js';
-import { calendarDayItems } from '../shared/calendar-items.js';
+import { calendarItemsForView } from '../core/calendar-data.js';
+import { calendarPlanItem } from '../ui/calendar-plan-item.js';
 import { TCOLS } from '../views/table.js';
 import { startOfWeek } from '../core/calendar-layout.js';
 import { ctxMenu } from './context-menu.js';
@@ -338,7 +339,11 @@ export function popHtml(p) {
     }
     case 'daylist': {
       const ds = p.date;
-      const items = calendarDayItems(applyView(allTasks(), viewOf(p.key || 'cal')), p.calendarEvents ? D().events : [], ds, p.calendarProject);
+      const items = calendarItemsForView(applyView(allTasks(), viewOf(p.key || 'cal')), ds, {
+        key: p.key,
+        events: p.calendarEvents,
+        project: p.calendarProject,
+      });
       const evs = items.filter(item => item.ev).map(item => item.ev);
       const ts = items.filter(item => item.t).map(item => item.t);
       inner =
@@ -355,7 +360,11 @@ export function popHtml(p) {
               `<button class="mi" data-a="openTask" data-id="${x.id}">${stIcon(x.status)}<span class="trunc" translate="no">${esc(x.title)}</span><span class="r">${av(x.assignee, 'sm', false)}</span></button>`,
           )
           .join('') +
-        (!items.length ? '<p class="hint" style="padding:8px">No tasks</p>' : '') +
+        items
+          .filter(item => item.milestone || item.deadline)
+          .map(item => calendarPlanItem(item, 'mi'))
+          .join('') +
+        (!items.length ? '<p class="hint" style="padding:8px">No dates in selected layers.</p>' : '') +
         (S.ui.currentUser?.role !== 'viewer'
           ? `<div class="msep"></div><button class="mi" data-a="newTask" data-due="${ds}" ${p.calendarProject ? `data-project="${p.calendarProject}"` : ''}>${ic('plus', 14)}Add task</button>`
           : '');
