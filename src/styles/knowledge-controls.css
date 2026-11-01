@@ -371,14 +371,16 @@
 
 @media (max-width: 640px) {
   .knowledge-editor-mode .seg {
-    flex: 1;
+    flex: 1 0 100%;
     min-width: 0;
+    flex-wrap: nowrap;
   }
   .knowledge-editor-mode .seg button {
     flex: 1;
     min-width: 0;
     padding-inline: 6px;
     font-size: var(--fs-xs);
+    white-space: nowrap;
   }
   .knowledge-editor-mode > .knowledge-save-status {
     flex-shrink: 0;
