@@ -71,9 +71,9 @@ export function pageHome() {
                   `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}"><span class="home-task-tab-label">${n}</span><span class="faint num">${lists[k].length}</span></button>`,
               )
               .join('')}</div>
-            <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="mytasks" data-tip="Open My Tasks" aria-label="Open My Tasks">${ic('arrow-up-right', 15)}</button></div></div>
-${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? 'Every task assigned to you is on schedule.' : personal && open.length ? 'Your list is empty. Explore workspace tasks or switch to Team overview.' : 'Add a task to get things moving.', `<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>`, 'sm')}
-          ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="mytasks">View all ${lists[tab].length} tasks ${ic('arrow-right', 13)}</button>` : ''}
+            <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="${personal ? 'mytasks' : 'tasks'}" data-tip="${personal ? 'Open My Tasks' : 'Tasks'}" aria-label="${personal ? 'Open My Tasks' : 'Tasks'}">${ic('arrow-up-right', 15)}</button></div></div>
+${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : 'No tasks here', tab === 'overdue' ? (personal ? 'Every task assigned to you is on schedule.' : 'No overdue team tasks.') : personal && open.length ? 'Your list is empty. Explore workspace tasks or switch to Team overview.' : 'Add a task to get things moving.', `<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>`, 'sm')}
+          ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="${personal ? 'mytasks' : 'tasks'}">View all ${lists[tab].length} tasks ${ic('arrow-right', 13)}</button>` : ''}
         </section>
         <section class="panel">
           <div class="panel-h"><h2>Project progress</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="projects">All projects</button></div></div>
