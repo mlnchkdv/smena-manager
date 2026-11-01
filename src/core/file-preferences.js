@@ -8,6 +8,41 @@ export function fileFolderView() {
     : { compact: S.ui.fileFolderLayout === 'compact', collapsed: S.ui.fileFoldersCollapsed === true };
 }
 let loadedKey;
+let activeContext;
+const contexts = new Map();
+const contextFields = [
+  'fileQ',
+  'fileProject',
+  'fileFolder',
+  'fileRecursive',
+  'fileType',
+  'fileUploadProject',
+  'fileSelection',
+  'fileFolderOffset',
+  'fileFolderQuery',
+  'fileSelectedPreset',
+];
+export function fileContext(projectId = null) {
+  const next = projectId || 'workspace';
+  if (next === activeContext) return;
+  if (activeContext) contexts.set(activeContext, Object.fromEntries(contextFields.map(field => [field, S.ui[field]])));
+  Object.assign(
+    S.ui,
+    contexts.get(next) || {
+      fileQ: '',
+      fileProject: projectId || 'all',
+      fileFolder: null,
+      fileRecursive: false,
+      fileType: 'all',
+      fileUploadProject: projectId || '',
+      fileSelection: [],
+      fileFolderOffset: 0,
+      fileFolderQuery: '',
+      fileSelectedPreset: '',
+    },
+  );
+  activeContext = next;
+}
 const key = () => fileViewKey(S.ui.currentUser?.id, D().ws?.id || D().ws?.url);
 export function filePreferences() {
   const next = key();
@@ -18,6 +53,8 @@ export function filePreferences() {
   S.ui.fileNativeTransfer?.controller.abort();
   S.ui.fileNativeTransfer = null;
   loadedKey = next;
+  activeContext = null;
+  contexts.clear();
   let storage;
   try {
     storage = localStorage;

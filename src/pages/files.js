@@ -13,7 +13,7 @@ import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js
 import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { fileFolderBrowser, visibleFileFolderKeys } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
-import { filePreferences } from '../core/file-preferences.js';
+import { filePreferences, fileContext as selectFileContext } from '../core/file-preferences.js';
 import { filePresetsHtml } from '../ui/file-presets.js';
 import { fileTransferPanel } from '../ui/file-transfer.js';
 import { fileExportsPanel } from '../ui/file-exports.js';
@@ -112,6 +112,7 @@ function uploadsHtml() {
 
 export function pageFiles(projectId = null) {
   filePreferences();
+  selectFileContext(projectId);
   const projects = visibleProjects().filter(project => canSee(project) && (!projectId || project.id === projectId));
   const projectIds = new Set(projects.map(project => project.id));
   const writable = projects.filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
@@ -142,7 +143,7 @@ export function pageFiles(projectId = null) {
   let files = filterIndexedFiles(index, { project: projectFilter, folder: currentFolder?.id, recursive: S.ui.fileRecursive, type: typeFilter, query, sort });
 
   const pageSize = S.ui.filePageSize || 100;
-  const pageKey = `files:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
+  const pageKey = `files:${projectId || 'workspace'}:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
   const remote = demandFilePage({
     context: projectId || 'all',
     project: projectFilter,
