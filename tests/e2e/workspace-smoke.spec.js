@@ -1984,6 +1984,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(1);
   await waitForSaved(page);
   const download = page.waitForEvent('download');
+  await openBoardTools(page);
   await page.locator('.whiteboard-io > summary').click();
   await page.locator('[data-a="whiteboardExport"]').click();
   expect(JSON.parse(await readFile(await (await download).path(), 'utf8')).board.nodes).toHaveLength(4);

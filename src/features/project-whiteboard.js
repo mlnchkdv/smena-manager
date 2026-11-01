@@ -371,6 +371,34 @@ A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
   render();
 };
+IN.whiteboardOutlineQuery = el => {
+  whiteboardState().outlineQuery = el.value;
+  render();
+};
+A.whiteboardLocate = el => {
+  const node = whiteboardOf(current()).nodes.find(n => n.id === el.dataset.id);
+  if (!node) return;
+  const s = whiteboardState();
+  Object.assign(s, { selected: node.id, selection: [node.id], outline: false, fit: false, autoFit: false });
+  render();
+  requestAnimationFrame(() => {
+    const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
+    if (!box || s !== whiteboardState()) return;
+    s.zoom = Math.min(1, (box.width - 48) / node.width, (box.height - 48) / node.height);
+    s.x = box.width / 2 - (node.x + node.width / 2) * s.zoom;
+    s.y = box.height / 2 - (node.y + node.height / 2) * s.zoom;
+    paintView();
+    document.querySelector(`[data-board-drag="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
+  });
+};
+document.addEventListener(
+  'toggle',
+  event => {
+    if (event.target.matches?.('details[data-board-group]') && current())
+      (whiteboardState().collapsedGroups ||= {})[event.target.dataset.boardGroup] = !event.target.open;
+  },
+  true,
+);
 A.whiteboardNewEdge = () => {
   const board = whiteboardOf(current());
   if (!editable(current())) return;

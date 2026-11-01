@@ -10,6 +10,26 @@ import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T, wbCo
 const button = (action, icon, en, ru, extra = '') =>
   `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru))}" title="${esc(T(en, ru))}" ${extra}>${ic(icon, 16)}</button>`;
 const icons = { text: 'sticky-note', material: 'file-text', group: 'square-dashed' };
+function outlineHtml(board, editable, state) {
+  const query = (state.outlineQuery || '').trim().toLocaleLowerCase();
+  const frames = board.nodes.filter(n => n.type === 'group').sort((a, b) => a.width * a.height - b.width * b.height);
+  const owner = n =>
+    frames.find(f => n.id !== f.id && n.x >= f.x && n.y >= f.y && n.x + n.width <= f.x + f.width && n.y + n.height <= f.y + f.height)?.id || '';
+  const card = n =>
+    `<div class="whiteboard-outline-entry">${whiteboardCard(n, editable, true)}<button class="btn btn-ghost btn-sm" data-a="whiteboardLocate" data-id="${esc(n.id)}">${ic('locate', 14)}${T('Find on canvas', 'Найти на холсте')}</button></div>`;
+  const matches = board.nodes.filter(n => n.type !== 'group' && `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(query));
+  return `<label class="field"><span class="sr">${T('Search cards', 'Поиск карточек')}</span><input class="input" data-in="whiteboardOutlineQuery" value="${esc(state.outlineQuery || '')}" placeholder="${T('Search cards', 'Поиск карточек')}"></label><p class="hint" role="status">${C(matches.length, 'card')}</p>${matches
+    .filter(n => !owner(n))
+    .map(card)
+    .join('')}${frames
+    .map(f => {
+      const children = matches.filter(n => owner(n) === f.id);
+      return !children.length && query
+        ? ''
+        : `<details class="whiteboard-outline-group" data-board-group="${esc(f.id)}" ${query || !state.collapsedGroups?.[f.id] ? 'open' : ''}><summary><span translate="no">${esc(whiteboardLabel(f))}</span> · ${C(children.length, 'card')}</summary>${card(f)}${children.map(card).join('')}</details>`;
+    })
+    .join('')}${!matches.length && query ? `<p class="hint">${T('No matching cards.', 'Карточки не найдены.')}</p>` : ''}`;
+}
 export function whiteboardCard(node, editable, outline = false) {
   const label = esc(whiteboardLabel(node)),
     state = whiteboardState();
@@ -66,7 +86,7 @@ export function projectWhiteboard(project) {
   </div><p id="whiteboard-help" class="sr">${T('Move cards by their title. Drag empty space to pan; pinch or Ctrl + wheel to zoom. Arrow keys on a selected card move it. Outline mode lists every card and connection.', 'Перемещайте карточки за заголовок. Пустое место — панорама; щипок или Ctrl + колесо — масштаб. Стрелки на выбранной карточке перемещают её. В списке доступны все карточки и связи.')}</p>
   ${
     state.outline
-      ? `<div class="whiteboard-outline">${board.nodes.map(n => whiteboardCard(n, editable, true)).join('') || `<p class="hint">${T('No cards yet. Add your first idea or material.', 'Карточек пока нет. Добавьте идею или материал.')}</p>`}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
+      ? `<div class="whiteboard-outline">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
       : `<div class="whiteboard-viewport" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})">${whiteboardEdges(board)}${[
           ...board.nodes,
         ]
