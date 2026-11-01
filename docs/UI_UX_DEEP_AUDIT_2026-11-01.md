@@ -1,6 +1,6 @@
 # Глубокий UI/UX-аудит Smena Manager — 1 ноября 2026 / Deep UI/UX audit
 
-Статус: **аудит и план, 40 пунктов ещё не внедрены**. Проверен основной сайт [smena-manager.vercel.app](https://smena-manager.vercel.app/) после [внедрения предыдущих 12 улучшений](UI_UX_DELIVERY_2026-11-01_TWELVE.md). Исходная версия репозитория: `b018c44`, ветка `main`. Дата отчёта указана по Europe/Saratov.
+Статус: **исторический аудит и исходный план**. Все 40 пунктов впоследствии реализованы: [изменения, commits, проверки и ограничения приёмки / implementation and acceptance](UI_UX_DELIVERY_2026-11-01_FORTY.md). Наблюдения ниже относятся к исходной версии, а не описывают текущие неисправности. Проверен основной сайт [smena-manager.vercel.app](https://smena-manager.vercel.app/) после [внедрения предыдущих 12 улучшений](UI_UX_DELIVERY_2026-11-01_TWELVE.md). Исходная версия репозитория: `b018c44`, ветка `main`. Дата отчёта указана по Europe/Saratov.
 
 Приложение стало заметно согласованнее: основные страницы укладываются в ширину экрана, каталоги имеют мобильные представления, холсты и граф доступны отдельно, меню «Вид» базы знаний стало компактнее. Следующий этап должен устранить ошибки состояния и неоднозначные действия, затем улучшить плотность и навигацию. Простое уменьшение всех кнопок ухудшит сенсорное управление и не решит эти проблемы.
 
@@ -446,7 +446,7 @@
 
 ## 8. English handoff
 
-This is a **read-only production UI/UX audit and a proposed 40-item backlog**, not a delivery report. Baseline: `b018c44`. The previous 12-item delivery remains implemented; do not reintroduce its old layout or mark its features as missing.
+This is the **historical read-only production UI/UX audit and original 40-item backlog**, not the current delivery report. All 40 items were subsequently implemented; see [delivery and acceptance](UI_UX_DELIVERY_2026-11-01_FORTY.md) for current behavior and limits. Baseline: `b018c44`. The previous 12-item delivery remains implemented; do not reintroduce its old layout or mark its features as missing.
 
 The owner session was checked in Russian and English at seven measured CSS sizes: 320×740, 390×845, 767×1024, 1024×767, 844×390, 1366×767, and 1920×1080. Coverage includes every main section, all 18 Settings pages, all eight project views, knowledge reader/editor/folders, an existing whiteboard, graph canvas/list/inspector, dialogs, workspace navigation, and search. Dark mode was sampled for Knowledge, Projects, and Graph. Ordinary ready pages did not produce document-wide horizontal overflow; internal clipping and excessive vertical use remain.
 

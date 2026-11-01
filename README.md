@@ -1,6 +1,6 @@
 # Smena Manager
 
-**RU / EN:** [Глубокий аудит всех разделов: 40 новых UI/UX-приоритетов / Deep audit and 40 proposed priorities](docs/UI_UX_DEEP_AUDIT_2026-11-01.md). Это план, а не отчёт о внедрении. / Proposed, not implemented.
+**RU / EN:** [Внедрены все 40 UI/UX-улучшений: изменения, commits и результаты проверки / All 40 UI/UX improvements delivered](docs/UI_UX_DELIVERY_2026-11-01_FORTY.md). [Исходный аудит / Original audit](docs/UI_UX_DEEP_AUDIT_2026-11-01.md) сохранён как историческая точка сравнения. Physical-device acceptance remains pending.
 
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](docs/UI_UX_DELIVERY_2026-11-01_TWELVE.md).
 

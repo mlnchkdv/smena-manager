@@ -1,6 +1,6 @@
 # Improvement status / Статус улучшений
 
-**01.11.2026 — новый аудит / new audit:** [40 proposed UI/UX improvements](UI_UX_DEEP_AUDIT_2026-11-01.md), with production evidence, priorities and acceptance criteria. **Not implemented in this audit.** / План ещё не внедрён. Covers RU/EN and seven sizes; graph lifecycle errors, personal favorites, mobile clipping, timeline context, knowledge editing, diagrams and catalog ergonomics are separated from recommendations and unverified cases.
+**01.11.2026 — внедрение 40 пунктов / forty-item delivery:** [Все изменения, commits, проверки и ограничения / Implementation and acceptance](UI_UX_DELIVERY_2026-11-01_FORTY.md). All 40 code changes are delivered: graph lifecycle, personal favorites, responsive task/navigation controls, knowledge editing/import, diagrams, catalogs, recovery preview and calendar layers. Production RU/EN and seven sizes were checked; isolated fixtures cover writes and permissions. Physical-device acceptance remains pending. [Исходный аудит / Original audit](UI_UX_DEEP_AUDIT_2026-11-01.md) — исторический план, а не список текущих неисправностей.
 
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](UI_UX_DELIVERY_2026-11-01_TWELVE.md).
 
