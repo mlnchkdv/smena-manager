@@ -1,3 +1,4 @@
+import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
@@ -507,9 +508,38 @@ A.whiteboardExport = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+A.whiteboardToggleMinimap = () => {
+  const state = whiteboardState();
+  state.minimap = !state.minimap;
+  writeLayoutPreference('whiteboard-minimap', state.minimap);
+  render();
+};
+A.whiteboardMinimap = (el, event) => {
+  if (!event?.detail) return A.whiteboardFit();
+  const b = JSON.parse(el.dataset.box),
+    rect = el.getBoundingClientRect(),
+    viewport = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
+  if (!viewport) return;
+  const s = whiteboardState();
+  s.x = viewport.width / 2 - (b.x + ((event.clientX - rect.left) / rect.width) * b.width) * s.zoom;
+  s.y = viewport.height / 2 - (b.y + ((event.clientY - rect.top) / rect.height) * b.height) * s.zoom;
+  s.fit = s.autoFit = false;
+  paintView();
+};
+document.addEventListener('keydown', event => {
+  if (!event.target.matches?.('.whiteboard-minimap') || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const s = whiteboardState();
+  s.x += event.key === 'ArrowLeft' ? 80 : event.key === 'ArrowRight' ? -80 : 0;
+  s.y += event.key === 'ArrowUp' ? 80 : event.key === 'ArrowDown' ? -80 : 0;
+  s.fit = s.autoFit = false;
+  paintView();
+});
 function paintView() {
   const s = whiteboardState(),
     world = document.querySelector('.whiteboard-world');
+  refreshWhiteboardMinimap(s);
   if (world) world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
   const scale = document.querySelector('.whiteboard-scale');
   if (scale) scale.textContent = Math.round(s.zoom * 100) + '%';
