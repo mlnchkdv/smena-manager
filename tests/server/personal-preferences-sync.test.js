@@ -62,6 +62,47 @@ test('read coordination waits for an active preference write without starting an
   assert.equal(f.sync.state().pending, false);
 });
 
+test('read coordination includes a queued preference still saving its recovery journal', async () => {
+  let releaseJournal;
+  const journalGate = new Promise(resolve => {
+    releaseJournal = resolve;
+  });
+  let journalEntered;
+  const entered = new Promise(resolve => {
+    journalEntered = resolve;
+  });
+  let writes = 0;
+  const sync = createPersonalPreferenceSync({
+    session: () => 1,
+    write: async () => {
+      writes++;
+    },
+    createJournal: () => ({
+      read: async () => null,
+      acknowledge: async () => {},
+      save: async () => {
+        journalEntered();
+        await journalGate;
+      },
+    }),
+  });
+  await sync.configure('alice', { graphPhysics: true });
+  await sync.settled();
+  const pending = sync.queue('alice', { graphPhysics: false });
+  await entered;
+  let settled = false;
+  const waiting = sync.settled().then(() => {
+    settled = true;
+  });
+  await Promise.resolve();
+  assert.equal(writes, 0);
+  assert.equal(settled, false);
+  releaseJournal();
+  await Promise.all([pending, waiting]);
+  assert.equal(writes, 1);
+  assert.equal(sync.state().pending, false);
+});
+
 test('preferences retry without another edit and preserve only changed fields', async () => {
   const writes = [];
   let fails = true;

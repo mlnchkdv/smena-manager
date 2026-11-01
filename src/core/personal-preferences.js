@@ -22,6 +22,7 @@ export function createPersonalPreferenceSync(options = {}) {
   let lastInput = {};
   let journal;
   let active;
+  let queued = new Set();
   let retryTimer;
   let retryDelay = 1000;
   let status = 'saved';
@@ -98,6 +99,7 @@ export function createPersonalPreferenceSync(options = {}) {
       const run = generation;
       if (retryTimer) cancel(retryTimer);
       retryTimer = active = null;
+      queued = new Set();
       retryDelay = 1000;
       owner = id;
       sessionAtConfigure = session();
@@ -118,25 +120,37 @@ export function createPersonalPreferenceSync(options = {}) {
       void flush();
       return { ...desired };
     },
-    async queue(id, preferences) {
-      if (!id || id !== owner || session() !== sessionAtConfigure) return;
-      const input = personalPreferenceData(preferences);
-      const delta = changedFields(lastInput, input);
-      lastInput = input;
-      if (!Object.keys(delta).length) return active;
-      desired = { ...desired, ...delta };
-      const run = generation;
-      try {
-        await journal.save({ base: confirmed, local: desired });
-      } catch (error) {
-        if (current(run)) notify({ status: 'recovery_unavailable', error, owner });
-      }
-      if (current(run)) return flush();
+    queue(id, preferences) {
+      const ownQueue = queued;
+      const operation = queuePreference(id, preferences);
+      ownQueue.add(operation);
+      return operation.finally(() => ownQueue.delete(operation));
     },
     retry: flush,
-    settled: () => active || Promise.resolve(),
+    async settled() {
+      const run = generation;
+      // queue() persists its recovery journal before flush() assigns active.
+      // Include that phase so fenced reads cannot race an already queued edit.
+      while (current(run) && (queued.size || active)) await Promise.all([...queued, ...(active ? [active] : [])]);
+    },
     state: () => ({ owner, status, pending: Object.keys(changedFields(confirmed, desired)).length > 0 }),
   };
+
+  async function queuePreference(id, preferences) {
+    if (!id || id !== owner || session() !== sessionAtConfigure) return;
+    const input = personalPreferenceData(preferences);
+    const delta = changedFields(lastInput, input);
+    lastInput = input;
+    if (!Object.keys(delta).length) return active;
+    desired = { ...desired, ...delta };
+    const run = generation;
+    try {
+      await journal.save({ base: confirmed, local: desired });
+    } catch (error) {
+      if (current(run)) notify({ status: 'recovery_unavailable', error, owner });
+    }
+    if (current(run)) return flush();
+  }
 }
 
 const sync = createPersonalPreferenceSync();
