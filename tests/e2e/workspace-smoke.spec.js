@@ -2,6 +2,63 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('whiteboard outline searches frame titles and children at the two hundred card limit', async ({ page }) => {
+  await signIn(page);
+  await waitForSaved(page);
+  const data = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = data.projects[0];
+  const nodes = Array.from({ length: 40 }, (_, frame) => {
+    const x = (frame % 8) * 1000,
+      y = Math.floor(frame / 8) * 1000;
+    return [
+      { id: `frame-${frame}`, type: 'group', x, y, width: 800, height: 800, color: 'neutral', title: `Scope-${frame} / Область-${frame}`, text: '' },
+      ...Array.from({ length: 4 }, (_, child) => ({
+        id: `child-${frame}-${child}`,
+        type: 'text',
+        x: x + 20,
+        y: y + 40 + child * 160,
+        width: 240,
+        height: 120,
+        color: 'violet',
+        title: `Idea-${frame}-${child} / Идея-${frame}-${child}`,
+        text: 'Searchable body / Текст для поиска',
+      })),
+    ];
+  }).flat();
+  project.whiteboard = { version: 1, nodes, edges: [] };
+  expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  const path = `/e2e-team/project/${project.id}/whiteboard`;
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(path);
+    await expect(page.locator('.whiteboard-card')).toHaveCount(200);
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    const search = page.locator('[data-in="whiteboardOutlineQuery"]');
+    await search.fill('Scope-39 /');
+    await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(5);
+    await expect(page.locator('.whiteboard-outline [role="status"]')).toHaveText(language === 'Русский' ? '5 результатов' : '5 results');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [844, 390],
+      [1366, 768],
+    ]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
+    await search.fill('Idea-39-3');
+    await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(2);
+    await search.fill('absent-card-title');
+    await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(0);
+    await search.fill('');
+    await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(200);
+  }
+  const after = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(after.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(nodes);
+});
+
 test('standalone whiteboards create save archive retain legacy access and fit both languages at every size', async ({ page, browser }) => {
   test.setTimeout(300000);
   await signIn(page);
