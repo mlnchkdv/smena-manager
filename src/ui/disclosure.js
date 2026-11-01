@@ -37,7 +37,8 @@ export function positionActionMenus() {
 }
 export function closeActionMenus(except = null) {
   document.querySelectorAll('.ui-menu[open]').forEach(menu => {
-    if (menu !== except) setMenuOpen(menu, false);
+    // Opening a nested tools menu must not close the ancestor that contains it.
+    if (menu !== except && !(except && menu.contains(except))) setMenuOpen(menu, false);
   });
 }
 addEventListener('resize', positionActionMenus);
