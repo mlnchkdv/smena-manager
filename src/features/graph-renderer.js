@@ -254,7 +254,13 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         cy.batch(() =>
           cy.nodes().forEach(node => {
             const active = node.id() === selected;
-            node.style({ width: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom), height: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom) });
+            node.style({
+              width: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom),
+              height: Math.max(active ? 18 : 12, (active ? 14 : 9) / zoom),
+              'font-size': 12 / zoom,
+              'text-max-width': 130 / zoom,
+              'text-margin-y': 8 / zoom,
+            });
             node.toggleClass('simple-neighbor', !!selected && neighbors.has(node.id()) && labels.has(node.id()));
           }),
         );
