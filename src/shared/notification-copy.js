@@ -27,6 +27,8 @@ export function notificationLocale(data, memberId, fallback = 'en') {
 
 export function notificationAction(notification, locale = 'en') {
   const text = notification?.text || '';
+  if (notification?.type === 'system' && !notification.by && text === 'System check needs attention')
+    return locale === 'ru' ? 'Зафиксирован системный сбой' : 'Recorded system incident';
   if (locale !== 'ru') return text;
   if (RU[text]) return RU[text];
   const moved = /^moved to (.+)$/u.exec(text);

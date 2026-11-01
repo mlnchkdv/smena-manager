@@ -608,6 +608,9 @@ const RU = {
   'Open a note to find it here later.': 'Откройте заметку — она появится здесь для быстрого возврата.',
   'Star useful notes to keep them close at hand.': 'Отметьте полезные заметки звёздочкой, чтобы быстро их находить.',
   'Create a note or import TXT and Markdown files.': 'Создайте заметку или импортируйте файлы TXT и Markdown.',
+  'This is a recorded event, not a live health status. Open diagnostics for current checks; configuration readiness does not confirm delivery.':
+    'Это запись события, а не текущий статус системы. Актуальные проверки доступны в диагностике; готовность настроек не подтверждает доставку.',
+  'The event does not identify a delivery channel.': 'Канал доставки в этом событии не указан.',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',
