@@ -4,20 +4,38 @@ import { ic } from '../core/icons.js';
 import { PR, STATUSES } from '../core/constants.js';
 import { D, S, commentsOf, mem, pColor, proj } from '../core/store.js';
 import { av, dueHtml, lbl, prIcon, progBar, stIcon } from '../ui/helpers.js';
-import { fxc } from '../shell/render.js';
+import { fxc, render } from '../shell/render.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
-import { uiCount, t as tr } from '../core/i18n.js';
+import { uiCount, t as tr, isRussian } from '../core/i18n.js';
 import { actionLabel } from '../ui/action-label.js';
 import { A } from '../actions/actions.js';
 
 A.focusBoardColumn = el => {
-  const board = document.querySelector(`.board[data-board-key="${CSS.escape(el.dataset.key)}"]`);
-  const column = board?.querySelector(`[data-drop-col="${CSS.escape(el.dataset.status)}"]`);
+  let board = document.querySelector(`.board[data-board-key="${CSS.escape(el.dataset.key)}"]`);
+  let column = board?.querySelector(`[data-drop-col="${CSS.escape(el.dataset.status)}"]`);
+  if (column?.dataset.a === 'expandEmptyBoardColumn') {
+    A.expandEmptyBoardColumn(column);
+    board = document.querySelector(`.board[data-board-key="${CSS.escape(el.dataset.key)}"]`);
+    column = board?.querySelector(`[data-drop-col="${CSS.escape(el.dataset.status)}"]`);
+  }
   if (!column) return;
   const left =
     board.scrollLeft + column.getBoundingClientRect().left - board.getBoundingClientRect().left - parseFloat(getComputedStyle(board).paddingLeft || 0);
   board.scrollTo({ left, behavior: S.prefs.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+};
+
+A.toggleBoardEmptyColumns = el => {
+  const key = el.dataset.key;
+  writeLayoutPreference(`board-empty:${key}`, !readLayoutPreference(`board-empty:${key}`, false));
+  S.ui.expandedEmptyColumns = {};
+  render();
+};
+A.expandEmptyBoardColumn = el => {
+  (S.ui.expandedEmptyColumns ||= {})[el.dataset.ck] = true;
+  render();
+  document.querySelector(`.board [data-ck="${CSS.escape(el.dataset.ck)}"] .addcard`)?.focus({ preventScroll: true });
 };
 
 export function kcard(t, opt = {}) {
@@ -43,18 +61,23 @@ export function kcard(t, opt = {}) {
   </article>`;
 }
 export function boardHtml(ts, key, opt = {}) {
+  const compactEmpty = readLayoutPreference(`board-empty:${key}`, false);
+  const emptyLabel = isRussian() ? 'Сворачивать пустые колонки' : 'Collapse empty columns';
+  const options = `<div class="board-view-options"><button class="btn btn-ghost btn-sm" data-a="toggleBoardEmptyColumns" data-key="${esc(key)}" aria-pressed="${compactEmpty}" title="${isRussian() ? 'Личный вид · это устройство' : 'Personal view · this device'}" translate="no">${ic('columns-3', 14)}${emptyLabel}${compactEmpty ? ic('check', 14) : ''}</button></div>`;
   const commentCounts = new Map();
   for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
   const navigation = `<nav class="board-column-nav" aria-label="${tr('Board columns')}">${STATUSES.map(status => `<button class="btn btn-secondary btn-sm" data-a="focusBoardColumn" data-key="${esc(key)}" data-status="${status.id}">${stIcon(status.id, 13)}<span>${status.name}</span><span class="num">${ts.filter(task => task.status === status.id).length}</span></button>`).join('')}</nav>`;
-  return `${navigation}<div class="board" data-board-key="${esc(key)}" data-keep="board:${key}">${STATUSES.map(s => {
+  return `${options}${navigation}<div class="board" data-board-key="${esc(key)}" data-keep="board:${key}">${STATUSES.map(s => {
     const col = ts.filter(t => t.status === s.id).sort((a, b) => a.order - b.order);
     const ck = key + ':' + s.id;
     const pageKey = `board:${ck}`;
     const window = listWindow(col, S.ui.listPages?.[pageKey]);
+    if (compactEmpty && !col.length && !S.ui.expandedEmptyColumns?.[ck])
+      return `<button class="bcol collapsed" data-a="expandEmptyBoardColumn" data-ck="${esc(ck)}" data-drop-col="${s.id}" data-key="${esc(key)}" aria-label="${esc(tr('Expand') + ' ' + tr(s.name))}" title="${esc(tr('Expand') + ' ' + tr(s.name))}">${stIcon(s.id)}<span class="vname">${s.name}<span class="faint">0</span></span></button>`;
     if (S.ui.collapsedCols[ck])
       return `<div class="bcol collapsed" data-a="toggleCol" data-ck="${ck}" data-drop-col="${s.id}" data-key="${key}" role="button" aria-label="Expand ${s.name}" title="Expand">${stIcon(s.id)}<span class="vname">${s.name}<span class="faint">${col.length}</span></span></div>`;
     const comp = S.ui.composer && S.ui.composer.ctx === key && S.ui.composer.group === s.id;
-    return `<section class="bcol" data-drop-col="${s.id}" data-key="${key}" aria-label="${s.name}">
+    return `<section class="bcol" data-ck="${esc(ck)}" data-drop-col="${s.id}" data-key="${key}" aria-label="${s.name}">
       <div class="bcol-h">${stIcon(s.id)}<span>${s.name}</span><span class="cnt">${col.length}</span>
         <span class="acts"><button class="ibtn ibtn-xs" data-a="startComposer" data-ctx="${key}" data-group="${s.id}" data-gb='${JSON.stringify({ status: s.id, ...(opt.project ? { project: opt.project } : {}) })}' data-tip="Add task" aria-label="Add task to ${s.name}">${ic('plus', 14)}</button><button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="column" data-id="${s.id}" data-key="${key}" aria-label="Column options">${ic('ellipsis', 14)}</button></span></div>
       <div class="bcol-b" data-col-body="${s.id}">

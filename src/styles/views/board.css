@@ -4,6 +4,15 @@
 .board-column-nav {
   display: none;
 }
+.board-view-options {
+  padding: 4px var(--gutter);
+  display: flex;
+  justify-content: flex-end;
+}
+.board-view-options .btn {
+  white-space: normal;
+  text-align: start;
+}
 @media (max-width: 640px) {
   .board-column-nav {
     display: flex;
