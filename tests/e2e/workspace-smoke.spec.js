@@ -285,7 +285,7 @@ test('personal graph and board layouts retain camera pins filters and account is
   await page.locator('#graph-locate').selectOption('note:layout-note-0');
   await page.locator('[data-a="toggleGraphPin"]').click();
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('[data-a="toggleGraphPin"]')).toContainText(/Unpin|Открепить/);
+  await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-label', /Unpin|Открепить/);
   await page.locator('[data-a="clearGraphSelection"]').click();
   await page.locator('[data-command="in"]').click();
   await saveLayout('Graph plan');

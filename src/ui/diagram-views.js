@@ -133,7 +133,7 @@ A.loadDiagramView = el => {
     });
     go('graph', { center: c.center });
   } else {
-    Object.assign(whiteboardState(item.project), item.layout, { fit: false });
+    Object.assign(whiteboardState(item.project), item.layout, { fit: false, autoFit: false });
     render();
   }
 };

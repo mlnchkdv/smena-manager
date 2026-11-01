@@ -105,7 +105,7 @@ export function restoreDeploymentContext() {
         b.zoom >= 0.2 &&
         b.zoom <= 2.5
       )
-        Object.assign(whiteboardState(), { x: b.x, y: b.y, zoom: b.zoom, outline: !!b.outline, fit: false });
+        Object.assign(whiteboardState(), { x: b.x, y: b.y, zoom: b.zoom, outline: !!b.outline, fit: false, autoFit: false });
       const overlay = value.overlay;
       if (overlay?.kind === 'note' && D().knowledgeNotes.some(note => note.id === overlay.id)) {
         S.ui.knowledgeDrawer = overlay.id;
