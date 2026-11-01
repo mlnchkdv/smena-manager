@@ -5,8 +5,10 @@ import { unzipSync, strFromU8 } from 'fflate';
 test('focused whiteboards yield keyboard ownership to readers and command menus in both languages', async ({ page }) => {
   await signIn(page);
   await waitForSaved(page);
+  const knowledge = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  (knowledge.knowledgeNotes ||= []).push({ id: 'nested-focus-note', title: 'Nested reader', formatted_markdown: '# Reader\n\nFocus test', tags: [] });
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: knowledge.revision, data: knowledge } })).ok()).toBeTruthy();
   const data = (await (await page.request.get('/api/workspace')).json()).data;
-  data.knowledgeNotes.push({ id: 'nested-focus-note', title: 'Nested reader', formatted_markdown: '# Reader\n\nFocus test', tags: [] });
   const project = data.projects[0];
   project.whiteboard = {
     version: 1,
