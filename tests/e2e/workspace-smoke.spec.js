@@ -2,6 +2,51 @@ import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
+test('focused whiteboards yield keyboard ownership to readers and command menus in both languages', async ({ page }) => {
+  await signIn(page);
+  await waitForSaved(page);
+  const data = (await (await page.request.get('/api/workspace')).json()).data;
+  data.knowledgeNotes.push({ id: 'nested-focus-note', title: 'Nested reader', formatted_markdown: '# Reader\n\nFocus test', tags: [] });
+  const project = data.projects[0];
+  project.whiteboard = {
+    version: 1,
+    nodes: [{ id: 'focus-card', type: 'material', target: 'note:nested-focus-note', x: 0, y: 0, width: 260, height: 160, color: 'violet' }],
+    edges: [],
+  };
+  expect((await page.request.put('/api/workspace', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitForSaved(page);
+    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await page.locator('[data-a="whiteboardToggleFocus"]').click();
+    await page.locator('[data-board-drag="focus-card"]').click();
+    const opener = page.locator('.whiteboard-selection [data-a="openRelatedEntity"]');
+    await opener.click();
+    const close = page.locator('.knowledge-drawer [data-a="closeKnowledgeDrawer"]');
+    await close.focus();
+    await page.keyboard.press('Tab');
+    await expect(close).not.toBeFocused();
+    await expect(page.locator('.knowledge-drawer')).toContainText('Nested reader');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.knowledge-drawer')).toHaveCount(0);
+    await expect(page.locator('.project-whiteboard')).toHaveClass(/is-focused/);
+    await expect(opener).toBeFocused();
+    await page.keyboard.press('Control+k');
+    await expect(page.locator('.palette')).toBeVisible();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.palette')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.palette')).toHaveCount(0);
+    await expect(page.locator('.project-whiteboard')).toHaveClass(/is-focused/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.project-whiteboard')).not.toHaveClass(/is-focused/);
+  }
+  expect((await (await page.request.get('/api/workspace')).json()).data.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(
+    project.whiteboard.nodes,
+  );
+});
+
 test('whiteboard outline searches frame titles and children at the two hundred card limit', async ({ page }) => {
   await signIn(page);
   await waitForSaved(page);

@@ -16,6 +16,7 @@ import { openModal, closeModal } from '../overlays/modals.js';
 import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { whiteboardEdges } from '../views/project-whiteboard.js';
+import { overlayAboveDiagram } from '../ui/diagram-focus.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -745,6 +746,7 @@ A.whiteboardRetryMaterials = () => {
 document.addEventListener(
   'keydown',
   e => {
+    if (overlayAboveDiagram()) return;
     if (current() && whiteboardState().focus && !S.ui.modals.length) {
       if (e.key === 'Escape') {
         e.preventDefault();
