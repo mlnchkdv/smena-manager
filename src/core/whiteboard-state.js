@@ -18,7 +18,22 @@ let state;
 export function whiteboardState(id = S.ui.params.id) {
   const scope = whiteboardScope(id);
   if (state?.scope !== scope) {
-    state = { scope, id, x: 32, y: 32, zoom: 1, fit: true, autoFit: true, selected: '', selection: [], multiSelect: false, outline: false, undo: [], redo: [] };
+    state = {
+      scope,
+      id,
+      x: 32,
+      y: 32,
+      zoom: 1,
+      fit: true,
+      autoFit: true,
+      selected: '',
+      selection: [],
+      multiSelect: false,
+      outline: false,
+      navigationMode: matchMedia('(max-width: 640px), (pointer: coarse)').matches ? 'scroll' : 'pan',
+      undo: [],
+      redo: [],
+    };
     const view = activeDiagramView('board', id);
     if (view) Object.assign(state, view.layout, { fit: false, autoFit: false });
   }

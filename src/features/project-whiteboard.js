@@ -371,6 +371,11 @@ A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
   render();
 };
+A.whiteboardTogglePan = () => {
+  const s = whiteboardState();
+  s.navigationMode = s.navigationMode === 'pan' ? 'scroll' : 'pan';
+  render();
+};
 IN.whiteboardOutlineQuery = el => {
   whiteboardState().outlineQuery = el.value;
   render();
@@ -542,6 +547,7 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
+  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll') return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
@@ -698,6 +704,7 @@ export function mountProjectWhiteboard() {
       'wheel',
       e => {
         if (e.target.closest('.whiteboard-navigation')) return;
+        if (whiteboardState().navigationMode === 'scroll' && !e.ctrlKey && !e.metaKey) return;
         e.preventDefault();
         const s = whiteboardState();
         if (e.ctrlKey || e.metaKey) {

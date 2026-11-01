@@ -72,6 +72,17 @@
   left: 0;
   transform-origin: 0 0;
 }
+.whiteboard-gesture {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  flex-wrap: wrap;
+}
+.whiteboard-viewport[data-navigation='scroll'] {
+  touch-action: pan-y;
+  cursor: default;
+}
 .whiteboard-edges {
   position: absolute;
   top: 0;
