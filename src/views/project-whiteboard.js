@@ -102,7 +102,7 @@ export function projectWhiteboard(project) {
   }
   ${
     state.selected
-      ? `<div class="whiteboard-selection"><span class="trunc">${selectedIds.length > 1 ? T('Selected', 'Выбрано') + ': ' + selectedIds.length : esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${selectedMaterial ? `<button class="btn btn-secondary btn-sm" data-a="openRelatedEntity" data-key="${esc(selectedMaterial.target)}">${ic('arrow-up-right', 16)}${T('Open material', 'Открыть материал')}</button>` : ''}${
+      ? `<div class="whiteboard-selection"><span class="trunc">${selectedIds.length > 1 ? T('Selected', 'Выбрано') + ': ' + selectedIds.length : esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${selectedIds.length === 1 && !state.outline ? button('whiteboardLocate', 'locate', 'Show card', 'Показать карточку', `data-id="${esc(state.selected)}"`) : ''}${selectedMaterial ? `<button class="btn btn-secondary btn-sm" data-a="openRelatedEntity" data-key="${esc(selectedMaterial.target)}">${ic('arrow-up-right', 16)}${T('Open material', 'Открыть материал')}</button>` : ''}${
           editable
             ? `${button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку')}${button('whiteboardNewEdge', 'move-right', 'Connect card', 'Связать карточку')}${button('whiteboardCopy', 'copy', 'Copy cards', 'Копировать карточки')}${
                 selectedIds.length > 1
