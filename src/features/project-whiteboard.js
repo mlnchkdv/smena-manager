@@ -799,6 +799,7 @@ document.addEventListener(
         return;
       }
     }
+    if (e.target.closest('.whiteboard-minimap')) return;
     if (!e.target.closest('.project-whiteboard') || e.target.closest('input,textarea,select') || S.ui.modals.length) return;
     const s = whiteboardState();
     if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'a'].includes(e.key.toLowerCase())) {
