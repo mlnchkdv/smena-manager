@@ -101,6 +101,23 @@ test('whiteboard outline searches frame titles and children at the two hundred c
     await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(0);
     await search.fill('');
     await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(200);
+    await page.locator('[data-a="whiteboardOutlineGroups"][data-collapse="true"]').click();
+    await expect(page.locator('.whiteboard-outline-group[open]')).toHaveCount(0);
+    await page.reload();
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    await expect(page.locator('.whiteboard-outline-group[open]')).toHaveCount(0);
+    await page.locator('[data-a="whiteboardOutlineGroups"][data-collapse="false"]').click();
+    await expect(page.locator('.whiteboard-outline-group[open]')).toHaveCount(40);
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    await page.locator('.whiteboard-tools > summary').click();
+    if ((await page.locator('[data-a="whiteboardToggleMinimap"]').getAttribute('aria-pressed')) !== 'true')
+      await page.locator('[data-a="whiteboardToggleMinimap"]').click();
+    await page.keyboard.press('Escape');
+    const minimap = page.locator('.whiteboard-minimap');
+    await expect(minimap).toBeVisible();
+    const before = await page.locator('[data-minimap-camera]').getAttribute('x');
+    await minimap.press('ArrowRight');
+    expect(await page.locator('[data-minimap-camera]').getAttribute('x')).not.toBe(before);
   }
   const after = (await (await page.request.get('/api/workspace')).json()).data;
   expect(after.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(nodes);

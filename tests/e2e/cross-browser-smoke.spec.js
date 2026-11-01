@@ -43,7 +43,7 @@ test('reaudit reader matches range selection and personal views work in both lan
     await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
     await page.locator('[data-a="editKnowledgeBlock"]').first().click();
     await expect(page.locator('[data-in="knowledgeBlockText"]')).toHaveAttribute('aria-label', /Block text 1|Текст блока 1/);
-    await page.locator('[data-a="closeKnowledgeDrawer"]').click();
+    await page.locator('.knowledge-drawer button[data-a="closeKnowledgeDrawer"]').click();
     await page.locator('[data-in="knowledgeQuery"]').fill('N24Selection');
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(4);
     await page.locator('[data-in="knowledgeSelect"]').first().click();
