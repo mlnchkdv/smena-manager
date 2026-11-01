@@ -261,9 +261,19 @@ export function pageFiles(projectId = null) {
             : fileTable(window.items)
           : empty(
               searched ? 'search-x' : projects.length ? 'folder-open' : 'folder-plus',
-              searched ? 'No files found' : currentFolder ? 'This folder is empty' : projects.length ? 'No files yet' : 'Create a project first',
               searched
-                ? 'Try changing the search or filters.'
+                ? 'No files match these filters'
+                : currentFolder
+                  ? 'This folder is empty'
+                  : projectFilter !== 'all' && projects.length
+                    ? 'This project has no files yet'
+                    : projects.length
+                      ? 'No files yet'
+                      : projectId
+                        ? 'Access to these files is unavailable.'
+                        : 'Create a project first',
+              searched
+                ? 'Change the search or filters. Other folders or projects may contain files.'
                 : projects.length
                   ? readOnly
                     ? 'Editors can upload the first shared file.'
@@ -271,7 +281,7 @@ export function pageFiles(projectId = null) {
                       ? 'Upload files here or move existing project files into this folder.'
                       : 'Upload the first document, design, or team asset.'
                   : 'Files are organized by project, so create one before uploading.',
-              !searched && S.ui.currentUser?.role !== 'viewer' && !projects.length
+              !searched && !projectId && S.ui.currentUser?.role !== 'viewer' && !projects.length
                 ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
                 : '',
               '',
