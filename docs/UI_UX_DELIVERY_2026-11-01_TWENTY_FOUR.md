@@ -6,13 +6,15 @@
 
 **EN.** All 24 code items are implemented and pushed as individual logical commits. Authenticated production verification used the owner account, both locales and seven viewport sizes. Team materials, permissions, email and backups were not modified. Only view state and personal language were changed; Russian was restored.
 
-**Публикация ограничена / Deployment limitation.** Production reports build `72306d9ecaaf3b6609a494ef0ecd1bb16a99624f`, containing all N01–N24 features. A subsequent deployment attempt was rejected by Vercel: `api-deployments-free-per-day`, more than 100 deployments, retry after 24 hours. No plan or billing changes were made. Three final runtime corrections are pushed and locally verified but **not yet verified on production**:
+**Публикация подтверждена / Publication confirmed.** Production now reports build `2d1bc88047b9dfa3bccf9851806b7b77fd0fa399`. All three final corrections below are live and passed a fresh RU/EN seven-size production check: **84/84 cases**. See [the follow-up report](UI_UX_PRODUCTION_FOLLOWUP_2026-11-01.md).
+
+**История ограничения / Historical limitation.** The original production review used build `72306d9`. A later manual deployment was rejected by Vercel with `api-deployments-free-per-day`. Git integration subsequently published the current build; no billing changes were made. The original pending commits were:
 
 - `e825ec7`: sticky search-match controls while scrolling long notes.
 - `e01ebf1`: sticky whiteboard selection reserves the mobile bottom-navigation height.
 - `f7a83f0`: project names and task identifiers explicitly opt out of UI translation in home, overview and task lists.
 
-После восстановления лимита нужно опубликовать актуальный `main` и повторить эти три проверки. HTTP 200 существующей сборки не означает публикацию последних commits. / Once the deployment allowance is available, publish current `main` and repeat these three checks. A successful response from the existing build is not proof that later commits are live.
+Эти три проверки теперь завершены на опубликованной сборке. HTTP 200 сам по себе по-прежнему не доказывает версию: использованы build SHA, Vercel READY и фактические UI-проверки. / These checks are now complete against the published build; the version was confirmed through SHA, READY status and live UI behavior, not HTTP 200 alone.
 
 ## Изменения по пунктам / Changes by item
 
@@ -32,7 +34,7 @@
 | N12 | Focus-редактор скрывает лишний бренд/path и сокращает шапку. / Focused editing reduces reader chrome.                                                                                                                              | `998be7e`, `6c919b8`            |
 | N13 | Один Tab-вход в папки, Up/Down/Home/End и Left/Right для родителя/ветки; активный путь выделен. / Roving folder focus, hierarchical arrows and active-path indication. Folder pagination remains bounded.                          | `ea28f53`                       |
 | N14 | Shift+click и Shift+Space выделяют диапазон текущей видимой страницы; выбор за её пределами обозначается отдельно. / Range selection is page-scoped with explicit off-page selection counts.                                       | `60ae407`                       |
-| N15 | Действия выделения холста закреплены в screen-space, доступны на низком экране. / Sticky selection actions remain reachable in short normal views. See pending mobile-nav correction above.                                        | `fd318b2`                       |
+| N15 | Действия выделения холста закреплены в screen-space, доступны на низком экране. / Sticky selection actions remain reachable in short normal views. The final mobile-nav correction is now verified in the production follow-up.    | `fd318b2`                       |
 | N16 | Миниатюра получает bounded geometry и заголовки собственных текстовых карточек/рамок, для материалов — типовой fallback. / Catalog thumbnails include bounded board-owned titles and type fallbacks.                               | `f74db71`                       |
 | N17 | Collapse/Expand all; свёрнутые рамки сохраняются лично для аккаунта/пространства/холста. Поиск временно раскрывает совпадения. / Personal outline group state and bulk controls.                                                   | `b3eee9f`                       |
 | N18 | Необязательная миникарта только при выходящем за экран содержимом; клик и стрелки перемещают камеру, Enter выполняет Fit. / Optional offscreen minimap, pointer and keyboard camera navigation.                                    | `a12bfd4`, `e9fff43`, `d95eba7` |
@@ -59,7 +61,7 @@
 - **12/12 targeted UI tests passed** in Chromium, Firefox and WebKit. Each new flow checks RU/EN: reader matches, source/caret preservation, range selection, personal view reload, nested focus/return, graph Focus and a 200-card/40-frame outline with collapse persistence and minimap keyboard isolation.
 - Final sticky-control rerun: **6/6 passed** across Chromium, Firefox and WebKit, including a long-note match jump with reachable find controls and whiteboard selection above mobile bottom navigation. These are repeats of two targeted scenarios with stronger geometry assertions, not six additional unique features.
 - A broader seven-scenario acceptance run completed **6 passed / 1 failed**; the remaining WebKit case expected a native date edit to commit before blur. After adding the normal Tab/blur commit, its targeted rerun passed (**1/1**). This covers file preview/navigation, favorites/activity persistence, note editing/history/import/mobile folders and the all-route RU/EN desktop sweep in three engines. The successful rerun is recorded separately, not represented as a clean original run.
-- Production was checked at CSS widths **320, 390, 767, 1024, 844 landscape, 1366 and 1920**. **167 accepted geometry rows** (88 RU / 79 EN) had no root overflow above 1px or dialogs outside viewport bounds. Interim loading/local-context rows and obsolete sticky-panel repros were excluded; they are retained in the raw matrix. Accepted geometry rows and private screenshots remain under `output/n24-production/`; they are intentionally outside Git. The matrix records the published build, not the deployment-blocked follow-ups.
+- Production was checked at CSS widths **320, 390, 767, 1024, 844 landscape, 1366 and 1920**. **167 accepted geometry rows** (88 RU / 79 EN) had no root overflow above 1px or dialogs outside viewport bounds. Interim loading/local-context rows and obsolete sticky-panel repros were excluded; they are retained in the raw matrix. Accepted geometry rows and private screenshots remain under `output/n24-production/`; they are intentionally outside Git. This original matrix records build 72306d9. The final corrections now have their own successful production follow-up against build 2d1bc88.
 - Live checks confirmed: match navigation `1/11 → 2/11`; Shift-selection of six notes followed by clear; localized block input; unchanged source while switching wrap; nested reader Tab/Escape and exact opener return in RU/EN; collapsed frame state after reload; minimap camera keys without Undo changes; graph list End with one tab stop; named local context and depth in both locales; Inbox author search and filtered-empty states; direct file counts, page scope and previous-file navigation; mobile account/status menu; Russian restored with `saved` status.
 - `npm run build`, initial JS budget **583.6 KiB / 600 KiB**, full ESLint and token-reference checks passed. Build retains the existing large-chunk warning.
 - Initial broader checks exposed test-fixture issues: a duplicate seeded note across engines, repeated file-name prefixes, a close-button selector matching the scrim, and an old Tab-every-folder assumption. Fixtures/selectors were corrected. Project-name/task-key translation boundaries were also corrected in code.
@@ -70,7 +72,7 @@ Physical iOS/Android hardware, touch gestures, software-keyboard obstruction and
 
 ## Как продолжать / Handoff
 
-1. Treat N01–N24 as implemented code, not a fresh backlog. Keep the deployment limitation separate from feature completion.
-2. After Vercel permits a new deployment, publish current `main`. Confirm `/app-version.json` matches that commit, use the normal update panel, then verify the sticky find bar, mobile selection above the bottom navigation and translation opt-outs. Do not alter plan/billing or repeatedly retry a rejected deployment.
+1. Treat N01–N24 as implemented and published. Read the follow-up for fresh production acceptance of the three final corrections.
+2. For later releases, confirm `/app-version.json` matches the intended runtime commit and use the normal update panel before verification. Do not confuse a historical quota error with the current publication state.
 3. Retain canonical Drive/version/ACL checks and bounded catalog APIs when extending previews or thumbnails.
 4. Future mobile hardware acceptance remains a separate task; team production materials must not become load-test fixtures.

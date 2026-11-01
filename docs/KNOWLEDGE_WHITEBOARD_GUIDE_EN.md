@@ -12,7 +12,7 @@ Updated on 1 November 2026 after R01–R31. In-app guidance is available under *
 - Graph List uses arrows/Home/End for focus and Enter to select a material. Nested overlays own the keyboard above diagram Focus.
 - On phones the header status icon opens the account menu and data-save details. It does not certify email/push delivery.
 
-[Deployment status and verification limits](UI_UX_DELIVERY_2026-11-01_TWENTY_FOUR.md): three final corrections await the Vercel daily allowance.
+[The three final corrections are published](UI_UX_PRODUCTION_FOLLOWUP_2026-11-01.md): production was verified in Russian and English at seven viewport sizes.
 
 ## Notes
 
