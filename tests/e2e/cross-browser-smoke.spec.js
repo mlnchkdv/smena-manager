@@ -273,6 +273,7 @@ test('simplified graph preserves materials selection filters and personal prefer
   await signIn(page);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
   const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  snapshot.knowledgeNotes = snapshot.knowledgeNotes.filter(n => !n.id.startsWith('simple-graph-'));
   snapshot.knowledgeNotes.push(
     ...Array.from({ length: 100 }, (_, i) => ({
       id: `simple-graph-${i}`,
@@ -283,37 +284,48 @@ test('simplified graph preserves materials selection filters and personal prefer
     })),
   );
   expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
+  const show = async () => {
+    await page.locator('[data-a="graphDisplayOptions"]').click();
+    await expect(page.locator('[data-a="toggleGraphSimple"]')).toBeVisible();
+  };
+  const close = () => page.locator('.modal [data-a="closeModal"]').click();
   for (const language of ['Русский', 'English (US)']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await page.waitForTimeout(650);
     await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
     await page.goto('/e2e-team/graph');
-    const toggle = page.locator('.graph-simple-toggle');
-    await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
-    if ((await toggle.getAttribute('aria-pressed')) === 'true') await toggle.click();
-    const summary = await page.locator('.graph-summary').textContent();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.locator('.graph-summary')).toHaveText(summary);
-    const physics = page.locator('.graph-physics-toggle');
-    if ((await physics.getAttribute('aria-pressed')) !== 'true') await physics.click();
     const canvas = page.locator('#knowledge-graph-canvas');
+    await expect(canvas.locator('canvas').first()).toBeVisible();
+    const summary = await page.locator('.graph-summary').textContent();
+    await show();
+    const simple = page.locator('[data-a="toggleGraphSimple"]'),
+      physics = page.locator('[data-a="toggleGraphPhysics"]');
+    if ((await simple.getAttribute('aria-pressed')) === 'true') await simple.click();
+    await simple.click();
+    await expect(simple).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.graph-summary')).toHaveText(summary);
+    if ((await physics.getAttribute('aria-pressed')) !== 'true') await physics.click();
     await expect(canvas).toHaveAttribute('data-physics', 'on');
     await expect(canvas).toHaveAttribute('data-physics-state', 'settled', { timeout: 10000 });
     await physics.click();
     await expect(canvas).toHaveAttribute('data-physics', 'off');
-    await page.waitForTimeout(200);
+    await close();
+    await page.waitForTimeout(300);
     const frozen = await canvas.screenshot();
     await page.waitForTimeout(400);
     const { PNG } = await import('pngjs');
     expect(PNG.sync.read(frozen).data.equals(PNG.sync.read(await canvas.screenshot()).data)).toBeTruthy();
+    await show();
     await physics.click();
+    await close();
     await page.waitForTimeout(650);
     await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
     await page.reload();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await show();
+    await expect(simple).toHaveAttribute('aria-pressed', 'true');
     await expect(physics).toHaveAttribute('aria-pressed', 'true');
+    await close();
     for (const [width, height] of [
       [320, 740],
       [390, 845],
@@ -322,8 +334,10 @@ test('simplified graph preserves materials selection filters and personal prefer
     ]) {
       await page.setViewportSize({ width, height });
       await expectNoPageOverflow(page);
-      await expect(toggle).toHaveAccessibleName(language === 'Русский' ? 'Упрощённый вид' : 'Simplified graph');
-      await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
+      await show();
+      await expect(simple).toHaveAccessibleName(language === 'Русский' ? 'Упрощённый граф' : 'Simplified graph');
+      await close();
+      await expect(canvas.locator('canvas').first()).toBeVisible();
       if ([390, 1366].includes(width))
         await page.screenshot({ path: `output/playwright/graph-simple-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
     }
@@ -333,7 +347,9 @@ test('simplified graph preserves materials selection filters and personal prefer
     await page.locator('[data-k="graphView"][data-v="list"]').click();
     await expect(page.locator('.graph-list')).toBeVisible();
     await page.locator('[data-k="graphView"][data-v="graph"]').click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await show();
+    await expect(simple).toHaveAttribute('aria-pressed', 'true');
+    await close();
   }
 });
 
