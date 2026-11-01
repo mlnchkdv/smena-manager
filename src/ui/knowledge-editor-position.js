@@ -10,7 +10,7 @@ function position() {
   }
   const id = document.querySelector('#knowledge-body')?.dataset.id;
   if (!id) return null;
-  if (!positions.has(id)) positions.set(id, { source: 0, preview: 0, cursor: [0, 0, 'none'], inputScroll: 0 });
+  if (!positions.has(id)) positions.set(id, { source: 0, preview: 0, cursor: [0, 0, 'none'], inputScroll: 0, inputLeft: 0 });
   if (positions.size > 20) positions.delete(positions.keys().next().value);
   return positions.get(id);
 }
@@ -23,6 +23,7 @@ export function captureKnowledgeEditorPosition() {
   if (input.offsetParent !== null) {
     value.cursor = [input.selectionStart, input.selectionEnd, input.selectionDirection];
     value.inputScroll = input.scrollTop;
+    value.inputLeft = input.scrollLeft;
   }
 }
 export function restoreKnowledgeEditorPosition(pane) {
@@ -33,6 +34,7 @@ export function restoreKnowledgeEditorPosition(pane) {
     (input.disabled ? document.getElementById('knowledge-pane-source') : input)?.focus({ preventScroll: true });
     input.setSelectionRange(...value.cursor);
     input.scrollTop = value.inputScroll;
+    input.scrollLeft = value.inputLeft;
   } else document.querySelector(`[data-a="setKnowledgeEditorPane"][data-pane="${pane}"]`)?.focus({ preventScroll: true });
   document.querySelector('.knowledge-drawer-body')?.scrollTo(0, value[pane]);
 }
