@@ -1438,6 +1438,8 @@ const RU = {
   'No recent activity': 'Нет недавней активности',
   'Nothing to show in this list.': 'В этом списке пока ничего нет.',
   'No activity yet': 'Активности пока нет',
+  'No matching activity.': 'Нет событий по заданным условиям.',
+  'Change the filters or clear them to see more events.': 'Измените или сбросьте фильтры, чтобы увидеть другие события.',
   "Everything that's changed across the workspace.": 'Все изменения в рабочем пространстве.',
   'Status changes': 'Изменения статуса',
   'Changes to tasks and projects will appear here.': 'Здесь появятся изменения задач и проектов.',

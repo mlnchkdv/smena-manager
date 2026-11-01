@@ -18,11 +18,16 @@ A.resetActivityDates = () => {
   S.ui.actTo = '';
   render();
 };
+A.resetActivityFilters = () => {
+  Object.assign(S.ui, { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '' });
+  render();
+};
 
 export function pageActivity() {
   const f = S.ui.actFilter || 'all';
   const who = S.ui.actWho || 'all';
-  let as = D().activity.filter(a => !a.project || canSee(proj(a.project)));
+  const available = D().activity.filter(a => !a.project || canSee(proj(a.project)));
+  let as = available;
   if (f !== 'all')
     as = as.filter(a =>
       f === 'comments'
@@ -66,7 +71,14 @@ export function pageActivity() {
         ? Object.entries(b)
             .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${list.map(a => actHtml(a, { proj: true })).join('')}</div>`)
             .join('')
-        : empty('activity', 'No activity yet', 'Changes to tasks and projects will appear here.')
+        : available.length && (f !== 'all' || who !== 'all' || from || to)
+          ? empty(
+              'search',
+              'No matching activity.',
+              'Change the filters or clear them to see more events.',
+              '<button class="btn btn-secondary" data-a="resetActivityFilters">Clear filters</button>',
+            )
+          : empty('activity', 'No activity yet', 'Changes to tasks and projects will appear here.')
     }${paginationHtml(page, key)}
   </div>`;
 }
