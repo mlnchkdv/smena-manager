@@ -1,8 +1,8 @@
 # Q01–Q18: внедрение и проверка / Delivery and verification
 
-**1 ноября 2026. Все 18 программных пунктов реализованы, каждый отдельным commit и push в `main`.** Основной сайт проверен на RU/EN, в светлой и тёмной теме. На момент финальной проверки `/app-version.json` сообщает `c39d29b6178003b355915c79ee03d543772e3b06`: эта версия содержит все Q01–Q18 и часть дополнительных исправлений приёмки. Две последние правки пока только в Git — см. раздел публикации ниже.
+**1 ноября 2026. Все 18 программных пунктов реализованы, каждый отдельным commit и push в `main`.** Основной сайт проверен на RU/EN, в светлой и тёмной теме. Финальный `/app-version.json` сообщает `b90ebe611b93f23443dcc60e4e8bfa0f2af4e27d`: эта версия содержит все Q01–Q18 и все дополнительные исправления приёмки. После повторного входа обе последние правки отдельно проверены на основном сайте в RU/EN.
 
-**EN. All 18 code items are implemented and individually committed/pushed.** Production build `c39d29b` includes Q01–Q18 and several acceptance fixes. Two final follow-ups are still awaiting publication; implementation and production acceptance are separate statuses.
+**EN. All 18 code items are implemented and individually committed/pushed.** Production build `b90ebe6` includes Q01–Q18 and all acceptance follow-ups. The last two corrections were separately verified live in RU/EN after sign-in was renewed.
 
 Исходные факты и критерии: [аудит Q01–Q18 / original audit](UI_UX_DEEP_REAUDIT_AFTER24_2026-11-01.md). N01–N24 остаются реализованными; этот пакет не повторяет их.
 
@@ -36,8 +36,8 @@
 - `dfd0fff`: переведена подсказка Enter/Esc у создания задачи. / Localized composer hint.
 - `70a4135`: длинный счётчик файлов занимает отдельную строку над мобильными кнопками. / Mobile preview-counter layout.
 - `c39d29b`: курсор поискового поля графа сохраняется при смене вида и последующих фоновых ответах, без перехвата фокуса. / Preserve graph-query selection across redraws.
-- `eb0cf73`: явные доступные имена команд перехода к заголовку исходника. **Ещё не опубликовано.** / Explicit source-outline action names; pending publication.
-- `d06e0ea`: исправлен первый переход из общего поиска в каталог: контекст Files инициализируется до установки запроса. **Ещё не опубликовано.** / Cold search-to-Files context ordering; pending publication.
+- `eb0cf73`: явные доступные имена команд перехода к заголовку исходника. **Опубликовано и проверено в `b90ebe6`.** / Explicit source-outline action names; published and verified in `b90ebe6`.
+- `d06e0ea`: исправлен первый переход из общего поиска в каталог: контекст Files инициализируется до установки запроса. **Опубликовано и проверено в `b90ebe6`.** / Cold search-to-Files context ordering; published and verified in `b90ebe6`.
 - `c581890`: `.vercelignore` исключает локальные fixtures, секреты и скриншоты из ручной публикации. / Exclude local-only artifacts from manual deployment.
 
 ## Проверки / Verification
@@ -51,11 +51,11 @@
 
 **Браузер / Browser**
 
-- Сохранено **161 геометрическое наблюдение: 131 production и 30 локальных**. В этих замерах нет горизонтального overflow корневой страницы; у измеренных кнопок режимов заметки `scrollWidth` не превышает ширину кнопки. Эти числа относятся к геометрии, а не к количеству проверенных бизнес-сценариев. / Geometry observations are not a count of functional scenarios.
+- Сохранено **168 геометрических наблюдений: 138 production и 30 локальных**. В этих замерах нет горизонтального overflow корневой страницы; у измеренных кнопок режимов заметки `scrollWidth` не превышает ширину кнопки. Эти числа относятся к геометрии, а не к количеству проверенных бизнес-сценариев. / Geometry observations are not a count of functional scenarios.
 - Основная production-матрица RU/EN: фактические ширины **320, 390, 640, 767, 1025, 1367 px**, низкий landscape **844×390**. Есть дополнительные узкие проверки 300/326 px. Округление около breakpoint сохранено в исходных замерах; 767 px не выдаётся за ровно 768. / Actual observed viewport dimensions are recorded, including rounding and additional narrow stress cases.
 - Проверены каталог и редактор знаний, задачи, закладки, список графа, холст, предпросмотр файлов, справка клавиатуры и поиск. RU — светлая тема, EN — тёмная; локально обе локализации также проверены на изменённых контролах. / Both languages and themes were exercised across the affected surfaces.
 - Функционально: место чтения и «К началу»; приоритет найденного фрагмента; переход Source к offset 1836 с неизменным исходником; меню массового выбора; сброс только плотности; сохранение настройки пустых колонок после новой загрузки; раскрытие пустого статуса и composer без сохранения задачи; курсор графа `8 → 8` после смены вида; контекст списка без повторов; показ карточки при масштабе 1 без добавления Undo; эффективная толщина связей около 1.6 px при Fit; отдельные счётчики каталога и файла.
-- Последний cold search-to-Files fix локально проверен после новой загрузки: `catalog` остаётся в поле Files, находятся два изолированных TXT. Его production-проверка ожидает публикации `d06e0ea`. / Cold query preservation passed locally; live acceptance remains pending.
+- Cold search-to-Files проверен локально после новой загрузки (`catalog`, два изолированных TXT) и отдельно на production в новых RU/EN-загрузках: запрос `ТЕСТ` сохраняется в Files. Новые доступные имена Source-команд также подтверждены в RU/EN: caret 275, нужный заголовок у курсора, исходный текст полностью совпадает до/после. / Fresh RU/EN production sessions passed cold query preservation and explicitly named source-heading navigation without document changes.
 - Материалы и права команды не менялись. Новые записи и загрузки выполнялись только в `.data/q18` на локальном сервере без Google/Gmail/Redis credentials. Оставленные ранее production TXT, папки и экспорт не удалялись. / Team content and access were unchanged; mutations were limited to isolated local fixtures.
 - Перед окончанием production-проверки возвращены русский язык, светлая тема и исходный табличный вид задач; плотность карточек и режим папок production не менялись. / Personal RU/light/table settings were restored.
 
@@ -63,14 +63,14 @@
 
 ## Публикация и оставшаяся приёмка / Publication and remaining acceptance
 
-Проверка публичного `/app-version.json` после основного прогона: **`c39d29b`**. Ручная попытка Vercel вернула `api-deployments-free-per-day` (более 100, повторить через 24 часа). Автопубликация из Git успела довести сайт до `c39d29b`, поэтому нельзя описывать весь пакет как неопубликованный. Вместе с тем `eb0cf73` и `d06e0ea` на основном сайте пока не подтверждены и не считаются принятыми там.
+Финальная проверка публичного `/app-version.json`: **`b90ebe611b93f23443dcc60e4e8bfa0f2af4e27d`**. Ручная попытка Vercel ранее вернула `api-deployments-free-per-day`, но последующая автопубликация из Git завершилась. В production подтверждены все Q01–Q18, включая `eb0cf73` и `d06e0ea`; оба финальных сценария прошли после повторного входа в RU/EN.
 
-**EN.** Production is at `c39d29b`, not the final Git head. Manual deployment hit Vercel's daily deployment limit. The explicit source-action labels and cold query-order correction remain release/production-acceptance tasks; do not mark them live based only on a successful push.
+**EN.** Production is verified at `b90ebe6`, including all code corrections. A manual deployment encountered the daily cap earlier; subsequent Git auto-publication succeeded. Both final scenarios passed live RU/EN acceptance. Later documentation-only commits need not change the runtime SHA.
 
-После снятия лимита: опубликовать актуальный `main`, сверить version SHA, проверить первый переход из свежей страницы Search в Files с непустым запросом в RU/EN, а также Source headings на узком экране. Перезаписывать данные команды для этого не требуется.
+Последняя приёмка: свежая загрузка Search → запрос `ТЕСТ` → Files сохраняет запрос в обоих языках. Source-команды имеют локализованные доступные имена; переход устанавливает caret 275 к выбранному заголовку, исходник до/после идентичен. Записи в материалы команды для этих проверок не требовались.
 
-В конце длительного production-прогона сервер вернул `Session expired.`. Штатная кнопка Google не восстановила вход в автоматизации; отправлен запрос пользователю повторно войти. Это произошло после перечисленных проверок и возврата языка/темы, но ограничивает дальнейшую авторизованную перепроверку. Сроки и проверки безопасности сессий не ослаблялись.
+В конце первого длительного production-прогона сервер вернул `Session expired.`. Пользователь восстановил вход, после чего завершены финальные проверки, включая новые загрузки RU/EN. Возвращены русский язык и светлая тема; срок действия и проверки безопасности сессий не менялись.
 
-**EN.** The server session expired near the end of acceptance. A normal Google sign-in attempt did not renew it through automation; manual sign-in was requested. No session security checks were weakened.
+**EN.** The initial long-running session expired. The user renewed sign-in, and final checks then completed successfully, including fresh RU/EN loads. RU/light preferences were restored; session-security policy was unchanged.
 
 Физические iOS/Android, экранная клавиатура, жесты настоящего устройства, cross-account/member/viewer production-ACL и запись/восстановление production-материалов этим UI-пакетом не сертифицированы. Existing shared/server ACL tests passed; the viewport run is not a substitute for physical-device or production write/recovery acceptance.
