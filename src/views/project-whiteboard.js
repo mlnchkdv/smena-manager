@@ -17,18 +17,21 @@ function outlineHtml(board, editable, state) {
     frames.find(f => n.id !== f.id && n.x >= f.x && n.y >= f.y && n.x + n.width <= f.x + f.width && n.y + n.height <= f.y + f.height)?.id || '';
   const card = n =>
     `<div class="whiteboard-outline-entry">${whiteboardCard(n, editable, true)}<button class="btn btn-ghost btn-sm" data-a="whiteboardLocate" data-id="${esc(n.id)}">${ic('locate', 14)}${T('Find on canvas', 'Найти на холсте')}</button></div>`;
-  const matches = board.nodes.filter(n => n.type !== 'group' && `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(query));
-  return `<label class="field"><span class="sr">${T('Search cards', 'Поиск карточек')}</span><input class="input" data-in="whiteboardOutlineQuery" value="${esc(state.outlineQuery || '')}" placeholder="${T('Search cards', 'Поиск карточек')}"></label><p class="hint" role="status">${C(matches.length, 'card')}</p>${matches
+  const matchingFrames = frames.filter(f => whiteboardLabel(f).toLocaleLowerCase().includes(query));
+  const matches = board.nodes.filter(
+    n => n.type !== 'group' && (matchingFrames.some(f => f.id === owner(n)) || `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(query)),
+  );
+  return `<label class="field"><span class="sr">${T('Search cards', 'Поиск карточек')}</span><input class="input" data-in="whiteboardOutlineQuery" value="${esc(state.outlineQuery || '')}" placeholder="${T('Search cards', 'Поиск карточек')}"></label><p class="hint" role="status">${C(matches.length + frames.filter(f => matchingFrames.includes(f) || matches.some(n => owner(n) === f.id)).length, 'result')}</p>${matches
     .filter(n => !owner(n))
     .map(card)
     .join('')}${frames
     .map(f => {
       const children = matches.filter(n => owner(n) === f.id);
-      return !children.length && query
+      return !children.length && query && !matchingFrames.includes(f)
         ? ''
         : `<details class="whiteboard-outline-group" data-board-group="${esc(f.id)}" ${query || !state.collapsedGroups?.[f.id] ? 'open' : ''}><summary><span translate="no">${esc(whiteboardLabel(f))}</span> · ${C(children.length, 'card')}</summary>${card(f)}${children.map(card).join('')}</details>`;
     })
-    .join('')}${!matches.length && query ? `<p class="hint">${T('No matching cards.', 'Карточки не найдены.')}</p>` : ''}`;
+    .join('')}${!matches.length && !matchingFrames.length && query ? `<p class="hint">${T('No matching cards.', 'Карточки не найдены.')}</p>` : ''}`;
 }
 export function whiteboardCard(node, editable, outline = false) {
   const label = esc(whiteboardLabel(node)),

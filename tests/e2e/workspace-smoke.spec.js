@@ -1975,6 +1975,10 @@ test('project whiteboards persist cards connections layout and inherited access 
   await expect(page.locator('.whiteboard-card')).toHaveCount(4);
   await expect(page.locator('.whiteboard-edges g')).toHaveCount(1);
   await page.locator('[data-a="whiteboardToggleOutline"]').click();
+  await page.locator('[data-in="whiteboardOutlineQuery"]').fill('Scope / Область');
+  await expect(page.locator('.whiteboard-outline .whiteboard-card[data-kind="group"]')).toHaveCount(1);
+  await expect(page.locator('.whiteboard-outline')).not.toContainText('No matching cards.');
+  await page.locator('[data-in="whiteboardOutlineQuery"]').fill('');
   await page.locator(`[data-board-drag="${second.id}"]`).click();
   await page.locator('[data-a="whiteboardDelete"]').click();
   await expect(page.locator('.whiteboard-card')).toHaveCount(3);
