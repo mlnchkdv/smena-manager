@@ -1,5 +1,7 @@
 # Improvement status / Статус улучшений
 
+**01.11.2026 — повторный аудит после 40 правок / post-delivery re-audit:** [R01–R31: 9 ошибок и 22 рекомендации, production RU/EN × 7 размеров, приоритеты и приёмка](UI_UX_DEEP_REAUDIT_AFTER40_2026-11-01.md). **Предложено, ещё не внедрено / Proposed, not implemented.** Материалы команды не изменялись; сохранение/restore и реальные телефоны этим проходом не подтверждались. / This pass audited viewing and interaction; it did not repeat production writes or hardware-device acceptance.
+
 **01.11.2026 — внедрение 40 пунктов / forty-item delivery:** [Все изменения, commits, проверки и ограничения / Implementation and acceptance](UI_UX_DELIVERY_2026-11-01_FORTY.md). All 40 code changes are delivered: graph lifecycle, personal favorites, responsive task/navigation controls, knowledge editing/import, diagrams, catalogs, recovery preview and calendar layers. Production RU/EN and seven sizes were checked; isolated fixtures cover writes and permissions. Physical-device acceptance remains pending. [Исходный аудит / Original audit](UI_UX_DEEP_AUDIT_2026-11-01.md) — исторический план, а не список текущих неисправностей.
 
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](UI_UX_DELIVERY_2026-11-01_TWELVE.md).

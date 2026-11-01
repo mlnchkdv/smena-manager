@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**01.11.2026 — свежий аудит после реализации 40 пунктов / fresh post-delivery audit:** [Новый план R01–R31, доказательства и порядок внедрения / New proposed backlog and acceptance](UI_UX_DEEP_REAUDIT_AFTER40_2026-11-01.md). Nine defects plus twenty-two usability proposals; **not implemented yet**. Read before changing folder focus traps, zero-drag whiteboard selection, normal-mode graph details, camera resize or optional project dates. Production RU/EN and seven sizes were inspected without material writes; do not infer production save/restore, member ACL or physical-device acceptance from this audit.
+
 **01.11.2026 — реализация 40 UI/UX-пунктов / forty-item delivery:** [Implemented behavior, commits, data boundaries and acceptance](UI_UX_DELIVERY_2026-11-01_FORTY.md). All 40 items are implemented. Read this before changing personal favorites, import queue/atomic confirmation, graph disposal, camera restoration, contextual file state, trash preview or calendar layers. Production RU/EN and seven viewport sizes were checked; write/conflict/member workflows use isolated fixtures. Physical iOS/Android acceptance remains pending. [Исходный аудит / Original audit](UI_UX_DEEP_AUDIT_2026-11-01.md) is a historical baseline, not the current missing-feature list.
 
 **RU / EN:** [Внедрение 12 улучшений / 12-item delivery](UI_UX_DELIVERY_2026-11-01_TWELVE.md).
