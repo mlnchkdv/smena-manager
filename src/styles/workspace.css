@@ -753,3 +753,34 @@
     padding-inline: 8px;
   }
 }
+.knowledge-bulk-options {
+  order: 2;
+}
+.knowledge-bulk-move {
+  order: 1;
+}
+.knowledge-bulk > [data-a='clearKnowledgeSelection'] {
+  order: 3;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .knowledge-range-hint {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .knowledge-bulk.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px 44px;
+    gap: 4px;
+    padding: 8px;
+    overflow: visible;
+    max-height: none;
+  }
+  .knowledge-bulk.active > .knowledge-selection-count {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+  .knowledge-main:has(.knowledge-bulk.active) {
+    padding-bottom: 200px;
+  }
+}
