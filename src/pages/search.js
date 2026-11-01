@@ -11,7 +11,6 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 import { t, uiCount } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { materialLocation } from '../ui/material-location.js';
-import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 import { recentSearches, rememberSearch, clearSearchHistory } from '../core/search-history.js';
 import { A, KEY } from '../actions/actions.js';
 import { render } from '../shell/render.js';
@@ -65,7 +64,7 @@ export function pageSearch() {
       ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div>${k === 'files' && demandFiles ? '<p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
-    <h1 class="sr">Search</h1>
+    <h1 class="search-page-title">Search</h1>
     ${q && demandFiles && ['all', 'files'].includes(cat) ? `<section class="search-file-continuation panel" aria-label="Files"><p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Search file catalog</button></section>` : ''}
     ${q ? `<p class="hint search-result-status" role="status">${esc(uiCount(visibleTotal, 'result'))}${demandFiles ? ' · ' + t('Use Files to search the complete file catalog.') : ''}</p>` : ''}
     <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" data-key-enter="rememberSearch" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
@@ -146,7 +145,7 @@ export function pageSearch() {
                               .join(' / '),
                             `search:${note.id}`,
                           )
-                        : `<span translate="no">${esc(knowledgeCategoryLabel(note.category))}</span>`
+                        : `<span>${t('No folder')}</span>`
                     }</div></div>`,
                 )
                 .join(''),
@@ -157,7 +156,7 @@ export function pageSearch() {
               (r.whiteboards || [])
                 .map(
                   board =>
-                    `<button class="mini" data-a="openRelatedEntity" data-key="whiteboard:${esc(board.id)}">${ic('panels-top-left', 15)}<span class="tt" translate="no">${hl(board.name, q)} <span class="faint">${hl(board.desc.slice(0, 90), q)}</span></span></button>`,
+                    `<button class="mini" data-a="openRelatedEntity" data-key="whiteboard:${esc(board.id)}">${ic('panels-top-left', 15)}<span class="tt" translate="no">${hl(board.name, q)} <span class="faint">${esc(t('Whiteboards'))} · ${esc(D().projects.find(p => p.id === board.project)?.name || t('Workspace'))}</span><span class="faint">${hl(board.desc.slice(0, 90), q)}</span></span></button>`,
                 )
                 .join(''),
             ) +
