@@ -23,6 +23,7 @@ import { disposeClosedPreviews } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
+import { captureGraphQueryPosition, restoreGraphQueryPosition } from '../ui/graph-query-position.js';
 import { refreshFolderKeyboard } from '../ui/knowledge-folder-keyboard.js';
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
@@ -157,6 +158,7 @@ export function makeFocusable() {
   }
 }
 export function render() {
+  captureGraphQueryPosition();
   captureReaderPosition();
   captureActionMenuState();
   captureKnowledgeDisclosures();
@@ -255,6 +257,7 @@ export function render() {
     if (live && !S.ui.loading) live.textContent = title.split(' · ').slice(0, -1).join(', ');
   }
   afterRender();
+  restoreGraphQueryPosition();
   selectMenu.restore(selectState);
   syncBrowserLocation();
 }
