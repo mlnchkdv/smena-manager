@@ -164,6 +164,8 @@ test('post audit optional deadlines file preview navigation and collection contr
     await expect(page.locator('.favorite-material')).toHaveCount(1);
     await page.goto('/e2e-team/activity');
     await page.locator('[data-in="actFrom"]').fill('2099-01-01');
+    // WebKit commits a manually entered native date when the field loses focus.
+    await page.locator('[data-in="actFrom"]').press('Tab');
     await expect(page.locator('.activity-page .feed')).toHaveCount(0);
     await page.locator('[data-a="resetActivityDates"]').click();
     expect(await page.locator('.activity-page time').count()).toBeLessThanOrEqual(50);
