@@ -349,6 +349,7 @@ window.addEventListener('resize', () => {
   }
 });
 A.formatKnowledge = el => {
+  if (S.ui.knowledgeEditorPane === 'preview') return;
   const input = document.getElementById('knowledge-body');
   if (!input || input.disabled || knowledgeEditBlocked()) return;
   const selected = input.value.slice(input.selectionStart, input.selectionEnd);

@@ -2033,3 +2033,7 @@
   min-width: 0;
   max-width: 100%;
 }
+
+.knowledge-editor[data-pane='preview'] :is(.knowledge-format-toolbar, .knowledge-format-toggle) {
+  display: none;
+}
