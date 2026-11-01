@@ -1,5 +1,81 @@
 import { expect, test } from '@playwright/test';
 
+test('reaudit reader matches range selection and personal views work in both languages', async ({ page }) => {
+  test.setTimeout(240000);
+  await signIn(page);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+  const data = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  const source = '# One\n\nn24needle first\n\n## Two\n\n' + 'Long source line '.repeat(100) + '\n\n## Three\n\nEnd\n\n## Four\n\nn24needle last';
+  data.knowledgeNotes = data.knowledgeNotes.filter(n => !n.id.startsWith('n24-'));
+  data.knowledgeNotes.push(
+    ...Array.from({ length: 4 }, (_, i) => ({ id: `n24-${i}`, title: `N24Selection ${i}`, formatted_markdown: i ? 'Other source' : source, tags: [] })),
+  );
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await page.goto('/e2e-team/knowledge');
+    await page.locator('[data-in="knowledgeQuery"]').fill('n24needle');
+    await page.locator('.knowledge-preview-open').filter({ hasText: 'N24Selection 0' }).click();
+    await expect(page.locator('[data-knowledge-match]')).toHaveCount(2);
+    await page.locator('[data-a="stepKnowledgeMatch"][data-direction="1"]').click();
+    await expect(page.locator('[data-knowledge-match="1"]')).toHaveAttribute('aria-current', 'true');
+    await page.locator('.knowledge-outline:not(.knowledge-reader-actions)>summary').click();
+    await expect(page.locator('.knowledge-outline nav')).toBeVisible();
+    await expect(page.locator('.knowledge-outline nav [data-a="viewKnowledgeHistory"]')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await page.locator('.knowledge-preview-edit').click();
+    const input = page.locator('#knowledge-body');
+    await expect(input).toHaveValue(source);
+    await input.focus();
+    await input.evaluate(el => el.setSelectionRange(12, 24));
+    const before = await input.evaluate(el => [el.selectionStart, el.selectionEnd]);
+    const wrap = await input.getAttribute('wrap');
+    await page.locator('[data-a="toggleKnowledgeLineWrap"]').click();
+    await expect(input).toHaveAttribute('wrap', wrap === 'off' ? 'soft' : 'off');
+    expect(await input.evaluate(el => [el.selectionStart, el.selectionEnd])).toEqual(before);
+    await expect(input).toHaveValue(source);
+    await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
+    await expect(page.locator('.knowledge-reader-location')).not.toBeVisible();
+    await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
+    await page.locator('[data-a="editKnowledgeBlock"]').first().click();
+    await expect(page.locator('[data-in="knowledgeBlockText"]')).toHaveAttribute('aria-label', /Block text 1|Текст блока 1/);
+    await page.locator('[data-a="closeKnowledgeDrawer"]').click();
+    await page.locator('[data-in="knowledgeQuery"]').fill('N24Selection');
+    await expect(page.locator('.knowledge-preview-card')).toHaveCount(4);
+    await page.locator('[data-in="knowledgeSelect"]').first().click();
+    await page
+      .locator('[data-in="knowledgeSelect"]')
+      .last()
+      .click({ modifiers: ['Shift'] });
+    await expect(page.locator('[data-in="knowledgeSelect"]:checked')).toHaveCount(4);
+    await page.locator('[data-a="clearKnowledgeSelection"]').click();
+    await page.goto('/e2e-team/favorites');
+    await page.locator('[data-in="favoriteQuery"]').fill('Remember this query');
+    await page.reload();
+    await expect(page.locator('[data-in="favoriteQuery"]')).toHaveValue('Remember this query');
+    await page.locator('[data-a="resetFavoriteView"]').click();
+    await expect(page.locator('[data-in="favoriteQuery"]')).toHaveValue('');
+    for (const [width, height] of [
+      [320, 740],
+      [390, 845],
+      [844, 390],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto('/e2e-team/inbox');
+      await page.locator('[data-in="inboxQuery"]').fill('absent-notification-n24');
+      await expect(page.locator('.inbox-list')).toContainText(language === 'Русский' ? 'Ничего не найдено' : 'No results found');
+      if (width <= 640) await expect(page.locator('.mobile-sync-entry')).toBeVisible();
+      await expectNoPageOverflow(page);
+    }
+  }
+  const after = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  expect(after.knowledgeNotes.find(n => n.id === 'n24-0').formatted_markdown).toBe(source);
+});
+
 test('focused graph cycles visible controls and lets its modal own Escape in both languages', async ({ page }) => {
   await signIn(page);
   for (const language of ['Русский', 'English (US)']) {
