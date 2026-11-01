@@ -391,3 +391,19 @@
   color: var(--text-3);
   margin-left: auto;
 }
+
+.calendar-layers > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  max-height: min(420px, 65dvh);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.calendar-layers:not([open]) > div {
+  display: none;
+}
