@@ -586,3 +586,24 @@
   top: 50%;
   transform: translateY(-50%);
 }
+.mobile-sync-entry {
+  display: none;
+}
+@media (max-width: 640px) {
+  .topbar .mobile-sync-entry {
+    display: inline-flex;
+    width: 32px;
+    min-width: 32px;
+    flex-shrink: 0;
+    color: var(--green);
+  }
+  .mobile-sync-entry[data-state='syncing'] {
+    color: var(--accent);
+  }
+  .mobile-sync-entry[data-state='offline'] {
+    color: var(--text-3);
+  }
+  .mobile-sync-entry:is([data-state='conflict'], [data-state='unavailable'], [data-state='invalid'], [data-state='too_large']) {
+    color: var(--red);
+  }
+}
