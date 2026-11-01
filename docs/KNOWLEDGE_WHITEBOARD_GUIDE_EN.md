@@ -2,6 +2,18 @@
 
 Updated on 1 November 2026 after R01–R31. In-app guidance is available under **Settings → Help & resources**. [Changes and verification limits](UI_UX_DELIVERY_2026-11-01_THIRTY_ONE.md).
 
+## New after N01–N24
+
+- Note search opens the reader with highlighted body matches and previous/next controls. A title, tag or metadata match may have no body highlight.
+- Contents has its own list button; history, source download and offline actions live in the ellipsis menu.
+- Wrap lines changes source display while preserving text and caret. It is personal to this device and workspace.
+- Use arrows, Home/End and Left/Right in folders; Enter opens the focused folder. Shift+click or Shift+Space selects a note range on the current page.
+- Outline can collapse/expand every frame. More tools contains an optional minimap: arrows pan the camera; Enter fits the board. These actions do not edit cards.
+- Graph List uses arrows/Home/End for focus and Enter to select a material. Nested overlays own the keyboard above diagram Focus.
+- On phones the header status icon opens the account menu and data-save details. It does not certify email/push delivery.
+
+[Deployment status and verification limits](UI_UX_DELIVERY_2026-11-01_TWENTY_FOUR.md): three final corrections await the Vercel daily allowance.
+
 ## Notes
 
 1. Open the arrow next to New note to choose a type or template. The main button creates a regular note.

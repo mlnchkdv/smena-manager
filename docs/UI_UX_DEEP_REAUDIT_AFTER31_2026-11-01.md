@@ -4,6 +4,8 @@
 
 **EN.** This is a proposed backlog, not a delivery report. A fresh authenticated production review found seven supported defects and seventeen usability opportunities. Existing [R01–R31 changes](UI_UX_DELIVERY_2026-11-01_THIRTY_ONE.md) remain delivered; the new identifiers are **N01–N24**.
 
+**Текущее состояние / Current status:** N01–N24 реализованы в коде. См. [отчёт о внедрении и ограничение Vercel](UI_UX_DELIVERY_2026-11-01_TWENTY_FOUR.md). Ниже сохранены исходные факты и критерии аудита; это не новый список невнедрённых функций. / Implemented in code; the original evidence below is historical, not a new missing-feature list.
+
 ## 1. Результат и границы / Outcome and scope
 
 Внешняя компоновка стала устойчивой. В принятой матрице не найдено горизонтального переполнения корневой страницы более чем на 1px. Панели заметок, мобильные папки, Canvas/Outline, отдельный каталог холстов, инспектор графа, формы проекта и пространства помещаются. Следующий этап должен улучшить **вложенные взаимодействия и чтение контекста**, а не снова уменьшать все кнопки и переделывать работающую навигацию.
