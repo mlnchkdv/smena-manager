@@ -4,8 +4,10 @@ import { t } from '../core/i18n.js';
 
 let scope;
 let expanded = new Set();
+const menuAnchors = new WeakMap();
 function setMenuOpen(menu, open) {
   menu.open = open;
+  if (open) menuAnchors.set(menu, menu.querySelector(':scope > summary')?.getBoundingClientRect());
   // Synchronize remembered disclosures before an action replaces the DOM.
   menu.dispatchEvent(new Event('toggle'));
   if (open) positionActionMenus();
@@ -50,7 +52,13 @@ document.addEventListener(
     const scroller = event.target;
     document.querySelectorAll('.ui-menu[open]').forEach(menu => {
       // A menu may scroll internally. Only its moving ancestors invalidate the anchor.
-      if (scroller?.contains(menu) && !menu.contains(scroller)) setMenuOpen(menu, false);
+      if (scroller?.contains(menu) && !menu.contains(scroller)) {
+        const before = menuAnchors.get(menu),
+          after = menu.querySelector(':scope > summary')?.getBoundingClientRect();
+        // Fractional viewport rounding/scroll-into-view must not dismiss a menu
+        // between pointer down and activation of an otherwise visible option.
+        if (!before || !after || Math.hypot(after.x - before.x, after.y - before.y) > 2) setMenuOpen(menu, false);
+      }
     });
   },
   { capture: true, passive: true },
@@ -74,6 +82,7 @@ document.addEventListener(
     if (!key || !el.isConnected) return;
     disclosureOpen(key);
     el.open ? expanded.add(key) : expanded.delete(key);
+    if (el.open && !menuAnchors.has(el)) menuAnchors.set(el, el.querySelector(':scope > summary')?.getBoundingClientRect());
     expanded = new Set([...expanded].slice(-100));
     const summary = el.querySelector(':scope > summary[data-open-label]');
     if (summary) summary.textContent = t(el.open ? summary.dataset.openLabel : summary.dataset.closedLabel);
