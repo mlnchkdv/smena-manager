@@ -463,3 +463,14 @@
     margin-left: auto;
   }
 }
+
+@media (max-width: 380px) {
+  .whiteboard-toolbar .whiteboard-add > summary > span {
+    display: none;
+  }
+  .whiteboard-toolbar .whiteboard-add > summary {
+    width: 44px;
+    min-width: 44px;
+    padding-inline: 8px;
+  }
+}
