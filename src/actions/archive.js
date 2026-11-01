@@ -1,10 +1,12 @@
+import { trashRestorePlan } from '../shared/trash-recovery.js';
+import { t } from '../core/i18n.js';
 /* =====================================================================
    ACTIONS · ARCHIVE: restore and purge
    ===================================================================== */
 import { esc } from '../core/utils.js';
 import { D, S, logAct, task } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
-import { A, confirmDlg, deleteTasks } from './actions.js';
+import { A, IN, confirmDlg, deleteTasks } from './actions.js';
 import { purgeWorkspaceTrash } from '../core/api.js';
 import { applyWorkspaceSnapshot } from '../core/bootstrap.js';
 import { queueWorkspaceSync } from '../core/workspace-sync.js';
@@ -57,9 +59,11 @@ function restoreTrash(item) {
     }
   } else if (item.kind === 'note') {
     if (D().knowledgeNotes.some(note => note.id === data.note?.id)) return false;
+    if (data.note.folderId && !D().knowledgeFolders.some(f => f.id === data.note.folderId)) data.note.folderId = null;
     D().knowledgeNotes.push(data.note);
   } else if (item.kind === 'bookmark') {
     if (D().links.some(link => link.id === data.link?.id)) return false;
+    if (data.link.folder && !D().linkFolders.some(f => f.id === data.link.folder)) data.link.folder = null;
     D().links.push(data.link);
   } else if (item.kind === 'file') {
     if (!D().projects.some(project => project.id === data.file?.project) || D().files.some(file => file.id === data.file?.id)) return false;
@@ -74,12 +78,24 @@ function restoreTrash(item) {
 A.restoreTrash = el => {
   const item = (D().trash || []).find(entry => entry.id === el.dataset.id);
   if (!item) return;
-  let restored = false;
-  const changed = mutate(() => {
-    restored = restoreTrash(item);
+  const plan = trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role);
+  if (plan.error) return toast(t(plan.error), { kind: 'err' });
+  confirmDlg({
+    title: 'Restore item?',
+    body: `<b translate="no">${esc(item.name)}</b><p>${t('Destination')}: <span translate="no">${esc(plan.target || t('No folder'))}</span></p>${plan.missingFolder ? `<p class="alert warn">${t('The original folder is missing. The item will be restored without a folder.')}</p>` : ''}${plan.sameName ? `<p>${t('An item with the same name exists. Both will be kept with their own IDs.')}</p>` : ''}`,
+    ok: 'Restore',
+    run: () => {
+      const current = D().trash.find(entry => entry.id === item.id);
+      if (!current) return;
+      const check = trashRestorePlan(current, D(), D().me, S.ui.currentUser?.role);
+      if (check.error) return toast(t(check.error), { kind: 'err' });
+      let restored = false;
+      const changed = mutate(() => {
+        restored = restoreTrash(current);
+      });
+      if (changed && restored) toast(`“${item.name}” restored.`);
+    },
   });
-  if (changed && restored) toast(`“${item.name}” restored.`);
-  else if (changed) toast('The item could not be restored because its parent project was deleted or its ID is already in use.', { kind: 'err', ms: 7000 });
 };
 
 A.purgeTrash = el => {
@@ -102,4 +118,15 @@ A.purgeTrash = el => {
       }
     },
   });
+};
+
+IN.trashQuery = el => {
+  S.ui.trashQuery = el.value;
+  render();
+};
+IN.trashFilter = el => {
+  if (['trashKind', 'trashContext', 'trashPeriod'].includes(el.dataset.field)) {
+    S.ui[el.dataset.field] = el.value;
+    render();
+  }
 };
