@@ -4,7 +4,7 @@ package-lock.json
 .generated
 .data
 .vercel
-output/playwright
+output
 .playwright-cli
 playwright-report
 test-results
