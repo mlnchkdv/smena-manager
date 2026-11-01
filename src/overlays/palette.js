@@ -36,6 +36,7 @@ export function commands() {
     ...NAVIGATION_ITEMS.map(([route, name, icon]) => ({
       id: 'c-go-' + route,
       name: 'Go to ' + name,
+      aliases: [name, tr(name)],
       icon,
       kbd: { home: 'G H', inbox: 'G I', mytasks: 'G T', projects: 'G P', calendar: 'G C', settings: 'G S' }[route],
       run: () => go(route),
