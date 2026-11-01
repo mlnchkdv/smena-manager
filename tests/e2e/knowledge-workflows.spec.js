@@ -374,6 +374,14 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-sidebar[role="dialog"]')).toBeVisible();
     await expect(page.locator('[data-in="knowledgeFolderQuery"]')).not.toBeFocused();
     await expect(page.locator('.knowledge-sidebar')).toHaveAttribute('aria-label', folderLabel);
+    // Native summaries must participate in the same focus loop as the tree.
+    const reached = new Set();
+    for (let step = 0; step < 40; step++) {
+      reached.add(await page.evaluate(() => document.activeElement?.getAttribute('data-in') || document.activeElement?.getAttribute('data-folder')));
+      await page.keyboard.press('Tab');
+    }
+    expect(reached.has('knowledgeFolderQuery')).toBeTruthy();
+    expect(reached.has('kb-child')).toBeTruthy();
     await page.locator('[data-in="knowledgeFolderQuery"]').fill('Guides');
     await page.locator('.knowledge-sidebar .knowledge-folder[data-folder="kb-child"]').click();
     await expect(page.locator('#knowledge-view-title')).toBeFocused();

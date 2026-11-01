@@ -79,9 +79,15 @@ document.addEventListener('keydown', e => {
     if (box && !pl) {
       const f = [
         ...box.querySelectorAll(
-          'a[href],button:not([disabled]),input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),[contenteditable="true"]',
+          'a[href],summary,button:not([disabled]),input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"]),[contenteditable="true"]',
         ),
-      ].filter(x => x.offsetParent !== null);
+      ].filter(x => {
+        if (x.tabIndex < 0 || !x.getClientRects().length || x.closest('[inert],[aria-hidden="true"]') || getComputedStyle(x).visibility === 'hidden')
+          return false;
+        for (let parent = x.parentElement; parent && parent !== box; parent = parent.parentElement)
+          if (parent.matches('details:not([open])') && !parent.querySelector(':scope > summary')?.contains(x)) return false;
+        return true;
+      });
       if (f.length) {
         const i = f.indexOf(document.activeElement);
         if (e.shiftKey && i <= 0) {
