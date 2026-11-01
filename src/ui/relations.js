@@ -1,10 +1,11 @@
-import { isRussian } from '../core/i18n.js';
+import { isRussian, t as tr } from '../core/i18n.js';
 const kc = (en, ru) => (isRussian() ? ru : en);
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { entityAllowed, RELATION_TYPES, workspaceGraph } from '../shared/relations.js';
 import { graphReadModel } from '../core/graph-query-state.js';
+import { graphChoiceContexts } from '../shared/graph-list-context.js';
 
 export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task', whiteboard: 'Whiteboard' };
 export const ENTITY_ICONS = {
@@ -65,6 +66,8 @@ export function relationPicker(m) {
           (!m.kind || node.kind === m.kind) &&
           [node.title, node.item.url, ...(node.tags || [])].join(' ').toLocaleLowerCase().includes(query),
       );
+  const choiceLabels = Object.fromEntries(Object.entries(ENTITY_LABELS).map(([kind, label]) => [kind, tr(label)]));
+  const contexts = graphChoiceContexts(candidates, choiceLabels, tr('No folder'));
   return `<div class="modal-h"><h2>Add connection</h2><button class="ibtn" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div><div class="modal-b relation-picker"><label class="label" for="relation-search">Find material</label><input id="relation-search" class="input" data-in="relationQuery" value="${esc(m.query || '')}" placeholder="Search notes, bookmarks, files, projects and tasks" autofocus><div class="relation-picker-filters"><label class="field"><span class="label">Material type</span><select class="select" data-in="relationKind" aria-label="Material type" ${m.wikiLabel ? 'disabled' : ''}><option value="">All types</option>${Object.entries(
     ENTITY_LABELS,
   )
@@ -80,7 +83,7 @@ export function relationPicker(m) {
       .slice(0, 50)
       .map(
         node =>
-          `<button class="relation-candidate" data-a="createRelation" data-key="${esc(node.key)}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="trunc" translate="no">${esc(node.title)}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`,
+          `<button class="relation-candidate" data-a="createRelation" data-key="${esc(node.key)}" aria-label="${esc([node.title, choiceLabels[node.kind], contexts.get(node.key)].filter(Boolean).join(' · '))}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="relation-candidate-copy" translate="no"><span>${esc(node.title)}</span>${contexts.get(node.key) ? `<small>${esc(contexts.get(node.key))}</small>` : ''}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`,
       )
       .join('') ||
     `<p class="hint" role="status">${esc(remote && !remote.view ? remote.error || 'Loading connections…' : 'No matching materials.')}${remote?.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`

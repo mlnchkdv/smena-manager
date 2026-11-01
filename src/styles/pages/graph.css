@@ -610,6 +610,21 @@
 .relation-candidate > .trunc {
   flex: 1;
 }
+.relation-candidate-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.relation-candidate-copy small {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.relation-candidate > .badge {
+  flex-shrink: 0;
+}
 .relation-unresolved {
   margin-top: 12px;
   color: var(--text-3);

@@ -13,3 +13,21 @@ export function graphListContext(node, kindLabel = '', noFolder = '') {
   }
   return node.kind === 'note' && !context ? noFolder : '';
 }
+
+// Only disambiguate the authorized, bounded candidate set supplied by the caller.
+export function graphChoiceContexts(nodes, labels = {}, noFolder = '') {
+  const groups = new Map();
+  const result = new Map();
+  for (const node of nodes) {
+    const context = graphListContext(node, labels[node.kind] || '', noFolder);
+    result.set(node.key, context);
+    const identity = JSON.stringify([node.kind, String(node.title || '').toLocaleLowerCase(), context]);
+    if (!groups.has(identity)) groups.set(identity, []);
+    groups.get(identity).push(node.key);
+  }
+  for (const keys of groups.values()) {
+    if (keys.length < 2) continue;
+    keys.sort().forEach((key, index) => result.set(key, [result.get(key), `${index + 1}/${keys.length}`].filter(Boolean).join(' · ')));
+  }
+  return result;
+}
