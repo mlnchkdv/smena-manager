@@ -643,6 +643,8 @@ const RU = {
   'Task filters apply to tasks. The project filter applies to every layer. Dates without a time stay on their original day.':
     'Фильтры задач применяются к задачам, фильтр проекта — ко всем слоям. Даты без времени остаются на исходном дне.',
   'No overdue team tasks.': 'У команды нет просроченных задач.',
+  'Pin node': 'Закрепить узел',
+  'Unpin node': 'Открепить узел',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',

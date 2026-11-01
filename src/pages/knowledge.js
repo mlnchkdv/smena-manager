@@ -189,7 +189,7 @@ export function pageKnowledge() {
         ${
           S.ui.knowledgeFolderNavOpen === false
             ? ''
-            : `<p class="hint knowledge-folder-count-scope">Folder counts include subfolders.</p><nav class="knowledge-folders" data-keep="${esc(`knowledge-folders:${S.ui.knowledgeFolderQuery || ''}:${S.ui.knowledgeFolderNavOffset || 0}`)}" aria-label="Knowledge folders">
+            : `<nav class="knowledge-folders" data-keep="${esc(`knowledge-folders:${S.ui.knowledgeFolderQuery || ''}:${S.ui.knowledgeFolderNavOffset || 0}`)}" aria-label="Knowledge folders"><p class="hint knowledge-folder-count-scope">Folder counts include subfolders.</p>
           <button class="knowledge-folder${folderFilter === 'all' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="all" aria-current="${folderFilter === 'all' ? 'page' : 'false'}">${ic('library', 14)}<span class="trunc">All notes</span><span class="knowledge-folder-count">${notes.length}</span></button>
           <button class="knowledge-folder${folderFilter === 'favorites' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="favorites" aria-current="${folderFilter === 'favorites' ? 'page' : 'false'}">${ic('star', 14)}<span class="trunc">Favorites</span><span class="knowledge-folder-count">${notes.filter(note => isFavorite('note', note)).length}</span></button>
           <button class="knowledge-folder${folderFilter === 'root' ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="root" aria-current="${folderFilter === 'root' ? 'page' : 'false'}">${ic('folder-open', 14)}<span class="trunc">No folder</span><span class="knowledge-folder-count">${notes.filter(note => !note.folderId).length}</span></button>

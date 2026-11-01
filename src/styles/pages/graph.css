@@ -751,3 +751,37 @@
     white-space: normal;
   }
 }
+
+@media (max-width: 900px) and (min-height: 501px) {
+  .graph-page.is-focused .graph-layout.has-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .graph-page.is-focused .graph-layout.has-detail .graph-stage {
+    flex: 1;
+    width: 100%;
+    min-height: 100px;
+  }
+  .graph-page.is-focused .graph-detail {
+    position: static;
+    flex: 0 1 auto;
+    max-height: 38%;
+    min-height: 170px;
+    width: 100%;
+  }
+  .graph-page.is-focused .graph-detail.is-expanded {
+    max-height: 70%;
+  }
+}
+@media (max-width: 900px) and (max-height: 500px) {
+  .graph-page.is-focused .graph-layout.has-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 42%);
+  }
+  .graph-page.is-focused .graph-detail {
+    position: static;
+    max-height: 100%;
+    min-height: 0;
+  }
+}

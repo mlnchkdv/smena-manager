@@ -137,7 +137,7 @@ test('audit eight: authored palette text, select and folder focus, graph context
       await page.locator('.topbar [data-a="openPalette"]').click();
       await page.locator('#pal-in').fill('Frontend');
       await expect(page.locator('.pi .pi-name').filter({ hasText: 'Frontend сайта' })).toHaveCount(1);
-      expect((await page.locator('.pi .pi-name').filter({ hasText: 'Frontend сайта' }).boundingBox()).width).toBeGreaterThan(80);
+      await expect.poll(async () => (await page.locator('.pi .pi-name').filter({ hasText: 'Frontend сайта' }).boundingBox())?.width || 0).toBeGreaterThan(80);
       await expect(page.locator('.pi .sub').filter({ hasText: 'Design' })).toHaveCount(1);
       await expect(
         page.locator('.pi .pi-name').filter({ hasText: ru ? 'Все результаты по запросу «Frontend»' : 'View all results for “Frontend”' }),

@@ -128,13 +128,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.goto('/e2e-team/knowledge');
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
   await page.locator('.knowledge-preview-edit').click();
-  await page.locator('.knowledge-type-fields>summary').click();
+  if (await page.locator('.knowledge-properties:not([open])').count()) await page.locator('.knowledge-properties>summary').click();
+  if (await page.locator('.knowledge-type-fields:not([open])').count()) await page.locator('.knowledge-type-fields>summary').click();
   await page.locator('[data-in="noteType"]').selectOption('instruction');
   await page.locator('[data-in="noteProperty"][data-field="review"]').fill('2026-12-01');
   await waitSaved(page);
   await page.reload();
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
-  await page.locator('.knowledge-type-fields>summary').click();
+  if (await page.locator('.knowledge-properties:not([open])').count()) await page.locator('.knowledge-properties>summary').click();
+  if (await page.locator('.knowledge-type-fields:not([open])').count()) await page.locator('.knowledge-type-fields>summary').click();
   await expect(page.locator('[data-in="noteProperty"][data-field="review"]')).toHaveValue('2026-12-01');
   await page.locator('.knowledge-outline > summary').click();
   await page.locator('.knowledge-reader-tools [data-a="keepKnowledgeOffline"]').click();
