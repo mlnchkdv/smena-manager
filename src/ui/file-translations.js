@@ -1,5 +1,6 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'Updating files. The last loaded page remains visible.': 'Обновляем файлы. Пока показана последняя загруженная страница.',
   'No files match these filters': 'По этим условиям файлов нет',
   'This project has no files yet': 'В этом проекте пока нет файлов',
   'Change the search or filters. Other folders or projects may contain files.': 'Измените поиск или фильтры. В других папках или проектах могут быть файлы.',

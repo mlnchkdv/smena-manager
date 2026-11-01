@@ -156,7 +156,7 @@ export function pageFiles(projectId = null) {
     offset: (S.ui.listPages?.[pageKey] || 0) * pageSize,
     countFolders: visibleFileFolderKeys(projectFilter, currentFolder, index),
   });
-  if (remote) files = (remote.files || []).map(file => D().files.find(item => item.id === file.id)).filter(Boolean);
+  if (remote) files = (remote.files || []).map(file => index.files.find(item => item.id === file.id)).filter(Boolean);
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
     : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
@@ -252,8 +252,9 @@ export function pageFiles(projectId = null) {
     ${fileTransferPanel()}
     ${activeExports ? exportPanel : ''}</section>
     ${fileSelectionBar(window.items, files, remote)}
+    ${remote?.refreshing ? `<div class="catalog-context-status" role="status"><span>${tr(remote.error || 'Updating files. The last loaded page remains visible.')}</span>${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryFileCatalog">Try again</button>' : ''}</div>` : ''}
     ${
-      remote?.loading
+      remote?.loading && !remote.refreshing
         ? filePagePending(remote, view)
         : files.length
           ? view === 'grid'

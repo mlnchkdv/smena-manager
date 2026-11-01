@@ -15,9 +15,12 @@ let loaded,
   error = '',
   failed = '';
 const context = () => `${getSessionGeneration()}:${S.data.ws?.id || S.data.ws?.url}:${S.ui.workspaceRevision}`;
+const ownerScope = () => `${getSessionGeneration()}:${S.data.ws?.id || S.data.ws?.url}`;
 export function demandFilePage(options) {
   if (fileCatalogInfo()?.mode !== 'demand') return null;
   const key = JSON.stringify([context(), options]);
+  const scope = ownerScope(),
+    query = JSON.stringify(options);
   if (loaded?.key === key) return loaded.page;
   if (pending !== key && failed !== key && !pending) {
     pending = key;
@@ -41,7 +44,7 @@ export function demandFilePage(options) {
             if (snapshot.revision !== page.revision)
               throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
             applyExternalCoreSnapshot(snapshot, base);
-            loaded = { key: JSON.stringify([context(), options]), page };
+            loaded = { key: JSON.stringify([context(), options]), scope, query, page };
             error = failed = '';
           },
           async () => {
@@ -55,6 +58,7 @@ export function demandFilePage(options) {
         );
       } catch (cause) {
         if (!cause.staleSession) {
+          if (cause.status === 401 || cause.status === 403 || cause.code === 'AUTH_REQUIRED') loaded = null;
           error = catalogLoadError(cause);
           failed = key;
         }
@@ -74,7 +78,8 @@ export function demandFilePage(options) {
       }
     });
   }
-  return { loading: true, error: failed === key ? error : '' };
+  const previous = loaded?.scope === scope && loaded.query === query ? loaded.page : null;
+  return { ...(previous || {}), loading: true, refreshing: !!previous, error: failed === key ? error : '' };
 }
 A.retryFileCatalog = () => {
   failed = error = '';
