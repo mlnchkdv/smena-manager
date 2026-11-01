@@ -573,7 +573,7 @@ export function settingsBody(sec, title) {
         H('Move faster with the keyboard.') +
         SHORTCUTS.map(
           ([g, list]) =>
-            `<div class="sblock" style="margin-top:18px"><h2>${g}</h2>${list.map(([n, k]) => `<div class="srow" style="padding:9px 0"><span>${n}</span><span class="row" style="gap:4px">${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</span></div>`).join('')}</div>`,
+            `<div class="sblock shortcut-reference"><h2>${g}</h2>${list.map(([n, k]) => `<div class="shortcut-reference-row"><span>${n}</span><span class="shortcut-reference-keys">${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</span></div>`).join('')}</div>`,
         ).join('')
       );
     case 'security':

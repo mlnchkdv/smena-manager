@@ -630,3 +630,21 @@
     line-height: 1.45;
   }
 }
+.shortcut-reference {
+  margin-top: 18px;
+}
+.shortcut-reference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.shortcut-reference-keys {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px;
+}
