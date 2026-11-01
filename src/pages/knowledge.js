@@ -110,6 +110,12 @@ function folderLabel(folderFilter, folders) {
 }
 
 export function pageKnowledge() {
+  if (S.ui.knowledgeImportReading && S.ui.knowledgeImportOwner !== JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url])) {
+    S.ui.knowledgeImportAbort?.abort();
+    S.ui.knowledgeImportAbort = null;
+    S.ui.knowledgeImportReading = false;
+    S.ui.knowledgeImportStatus = '';
+  }
   knowledgePreferences();
   installFolderShortcuts();
   const { notes, folders } = knowledgeData();

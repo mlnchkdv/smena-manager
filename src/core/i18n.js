@@ -1116,6 +1116,7 @@ const RU = {
   'Create project': 'Создать проект',
   'Archive project': 'Архивировать проект',
   'Delete project': 'Удалить проект',
+  'Remove from favorites': 'Убрать из избранного',
   'Add to favorites': 'Добавить в избранное',
   'Added to favorites': 'Добавлено в избранное',
   'Copy link': 'Копировать ссылку',

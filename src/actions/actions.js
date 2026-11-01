@@ -536,6 +536,7 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
   const destination = knowledgeCollections().folders.some(folder => folder.id === folderId) ? folderId : null;
   const controller = new AbortController();
   S.ui.knowledgeImportAbort = controller;
+  S.ui.knowledgeImportOwner = JSON.stringify([owner, workspace]);
   S.ui.knowledgeImportReading = true;
   S.ui.knowledgeImportStatus = '';
   render();
