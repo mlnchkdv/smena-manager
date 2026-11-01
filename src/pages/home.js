@@ -92,9 +92,11 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
         <section class="panel home-deadlines-panel">
           <div class="panel-h"><h2>Upcoming deadlines</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="calendar">${ic('calendar', 13)}Calendar</button></div></div>
           <div class="panel-b" style="padding-bottom:6px">
-          ${dls
-            .map(
-              g => `<div style="margin-bottom:10px"><div class="row" style="font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:4px">${g.lab}<span class="faint" style="font-weight:500">${g.ts.length}</span></div>
+          ${
+            dls
+              .filter(g => g.ts.length)
+              .map(
+                g => `<div style="margin-bottom:10px"><div class="row" style="font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:4px">${g.lab}<span class="faint" style="font-weight:500">${g.ts.length}</span></div>
             ${
               g.ts.length
                 ? g.ts
@@ -106,8 +108,9 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
                     .join('') + (g.ts.length > 4 ? `<div class="faint" style="font-size:11.5px;padding-left:16px">+${g.ts.length - 4} more</div>` : '')
                 : `<div class="faint" style="font-size:12.5px;padding:4px 0 2px">Nothing due</div>`
             }</div>`,
-            )
-            .join('')}
+              )
+              .join('') || '<p class="hint">Nothing due</p>'
+          }
           </div>
         </section>
         <section class="panel home-activity-panel">
