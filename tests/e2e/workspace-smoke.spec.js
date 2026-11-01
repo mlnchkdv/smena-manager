@@ -119,6 +119,19 @@ test('whiteboard outline searches frame titles and children at the two hundred c
     const before = await page.locator('[data-minimap-camera]').getAttribute('x');
     await minimap.press('ArrowRight');
     expect(await page.locator('[data-minimap-camera]').getAttribute('x')).not.toBe(before);
+    await page.setViewportSize({ width: 390, height: 845 });
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
+    await page.locator('.whiteboard-outline [data-board-drag]').first().click();
+    await expect
+      .poll(() =>
+        page.locator('.whiteboard-selection').evaluate(el => {
+          const nav = document.querySelector('.bottomnav').getBoundingClientRect();
+          return el.getBoundingClientRect().bottom - nav.top;
+        }),
+      )
+      .toBeLessThanOrEqual(1);
+    await page.locator('[data-a="whiteboardDeselect"]').click();
+    await page.locator('[data-a="whiteboardToggleOutline"]').click();
   }
   const after = (await (await page.request.get('/api/workspace')).json()).data;
   expect(after.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(nodes);

@@ -5,7 +5,12 @@ test('reaudit reader matches range selection and personal views work in both lan
   await signIn(page);
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
   const data = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
-  const source = '# One\n\nn24needle first\n\n## Two\n\n' + 'Long source line '.repeat(100) + '\n\n## Three\n\nEnd\n\n## Four\n\nn24needle last';
+  const source =
+    '# One\n\nn24needle first\n\n## Two\n\n' +
+    'Long source line '.repeat(100) +
+    '\n\n' +
+    'A paragraph for reading position.\n\n'.repeat(100) +
+    '## Three\n\nEnd\n\n## Four\n\nn24needle last';
   data.knowledgeNotes = data.knowledgeNotes.filter(n => !n.id.startsWith('n24-'));
   data.knowledgeNotes.push(
     ...Array.from({ length: 4 }, (_, i) => ({ id: `n24-${i}`, title: `N24Selection ${i}`, formatted_markdown: i ? 'Other source' : source, tags: [] })),
@@ -23,6 +28,15 @@ test('reaudit reader matches range selection and personal views work in both lan
     await expect(page.locator('[data-knowledge-match]')).toHaveCount(2);
     await page.locator('[data-a="stepKnowledgeMatch"][data-direction="1"]').click();
     await expect(page.locator('[data-knowledge-match="1"]')).toHaveAttribute('aria-current', 'true');
+    await expect
+      .poll(async () =>
+        page.locator('.knowledge-find').evaluate(el => {
+          const bar = el.getBoundingClientRect(),
+            body = el.closest('.knowledge-drawer-body').getBoundingClientRect();
+          return bar.top >= body.top - 1 && bar.bottom <= body.bottom + 1;
+        }),
+      )
+      .toBeTruthy();
     await page.locator('.knowledge-outline:not(.knowledge-reader-actions)>summary').click();
     await expect(page.locator('.knowledge-outline nav')).toBeVisible();
     await expect(page.locator('.knowledge-outline nav [data-a="viewKnowledgeHistory"]')).toHaveCount(0);
