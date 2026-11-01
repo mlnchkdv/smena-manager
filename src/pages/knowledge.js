@@ -44,6 +44,7 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
   const page = knowledgeFolderRows(index, { query, collapsed, offset: S.ui.knowledgeFolderNavOffset || 0, revealId: S.ui.knowledgeRevealFolder });
   S.ui.knowledgeFolderNavOffset = page.start;
   S.ui.knowledgeRevealFolder = null;
+  const activePath = new Set(folderTrail(activeId, index.byId).map(f => f.id));
   const html = page.rows
     .map(({ folder, depth, hasChildren, isCollapsed }) => {
       const path = folderTrail(folder.id, index.byId)
@@ -59,7 +60,7 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
         !readOnly && S.ui.knowledgeOrganize
           ? `<input type="checkbox" data-in="knowledgeFolderSelect" data-id="${esc(folder.id)}" aria-label="${actionLabel('Select folder', path)}" ${(S.ui.knowledgeFolderSelection || []).includes(folder.id) ? 'checked' : ''}>`
           : '';
-      return `<div class="knowledge-folder-node"><div class="knowledge-folder-line">${selectFolder}${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${index.counts.get(folder.id) || 0}</span></button>${actions}</div></div>`;
+      return `<div class="knowledge-folder-node${activePath.has(folder.id) ? ' in-active-path' : ''}"><div class="knowledge-folder-line">${selectFolder}${toggle}<button draggable="${!readOnly}" data-knowledge-drag="folder" class="knowledge-folder${activeId === folder.id ? ' on' : ''}" data-a="setKnowledgeFolder" data-folder="${folder.id}" style="--folder-depth:${Math.min(depth, 5)}" aria-current="${activeId === folder.id ? 'page' : 'false'}">${ic(hasChildren && !isCollapsed ? 'folder-open' : 'folder', 14)}<span class="trunc" translate="no">${esc(folder.name)}</span><span class="knowledge-folder-count">${index.counts.get(folder.id) || 0}</span></button>${actions}</div></div>`;
     })
     .join('');
   return (

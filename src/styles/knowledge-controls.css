@@ -426,3 +426,6 @@
 .knowledge-drawer:has(.knowledge-editor.is-focused) .knowledge-reader-location {
   display: none;
 }
+.knowledge-folder-node.in-active-path > .knowledge-folder-line {
+  border-inline-start: 2px solid var(--accent);
+}
