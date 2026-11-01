@@ -9,7 +9,7 @@ import { captureKnowledgeEditorPosition } from './knowledge-editor-position.js';
 export function sourceOutline(note) {
   const headings = knowledgeSourceHeadings(note);
   if (!headings.length) return '';
-  return `<details class="ui-menu knowledge-outline knowledge-source-outline"><summary class="ibtn" aria-label="${kc('Source sections', 'Разделы исходника')}" title="${kc('Source sections', 'Разделы исходника')}">${ic('list-tree', 16)}</summary><div><nav aria-label="${kc('Source sections', 'Разделы исходника')}">${headings.map(h => `<button class="knowledge-outline-link" data-a="knowledgeSourceHeading" data-id="${esc(note.id)}" data-title="${esc(h.title)}" data-level="${h.level}" data-ordinal="${h.ordinal}" style="--outline-depth:${h.level - 1}" translate="no">${esc(h.title)}</button>`).join('')}</nav></div></details>`;
+  return `<details class="ui-menu knowledge-outline knowledge-source-outline"><summary class="ibtn" aria-label="${kc('Source sections', 'Разделы исходника')}" title="${kc('Source sections', 'Разделы исходника')}">${ic('list-tree', 16)}</summary><div><nav aria-label="${kc('Source sections', 'Разделы исходника')}">${headings.map(h => `<button class="knowledge-outline-link" aria-label="${esc(kc('Go to source section', 'К разделу исходника') + ': ' + h.title)}" data-a="knowledgeSourceHeading" data-id="${esc(note.id)}" data-title="${esc(h.title)}" data-level="${h.level}" data-ordinal="${h.ordinal}" style="--outline-depth:${h.level - 1}" translate="no">${esc(h.title)}</button>`).join('')}</nav></div></details>`;
 }
 
 A.knowledgeSourceHeading = el => {
