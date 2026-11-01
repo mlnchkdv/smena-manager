@@ -2134,5 +2134,6 @@ async function projectBoardPath(page, projectId, reset = false) {
 
 async function openBoardTools(page) {
   const tools = page.locator('.whiteboard-tools');
+  if (/\/whiteboard\//.test(new URL(page.url()).pathname)) await expect(tools).toBeVisible();
   if ((await tools.count()) && (await tools.getAttribute('open')) === null) await tools.locator(':scope > summary').click();
 }
