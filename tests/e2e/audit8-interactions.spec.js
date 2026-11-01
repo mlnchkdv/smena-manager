@@ -272,3 +272,80 @@ test('audit eight: authored palette text, select and folder focus, graph context
     await page.locator('.modal-f [data-a="closeModal"]').click();
   }
 });
+
+test('forty audit: atomic 200-file import retry personal stars focused editor and calendar layers persist', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
+  await page.locator('#login-btn').click();
+  await page.locator('#o-ws:visible,.shell:visible').first().waitFor();
+  if (await page.locator('#o-ws').isVisible()) {
+    await page.locator('#o-ws').fill('E2E Команда');
+    await page.locator('#o-url').fill('e2e-team');
+    await page.locator('#onb-next').click();
+    await page.locator('#onb-next').click();
+    await page.locator('#o-proj').fill('Design');
+    await page.locator('#onb-next').click();
+    await page.locator('[data-a="onbNext"][data-skip="1"]').click();
+    await page.locator('[data-a="onbFinish"]').click();
+  }
+  await saved(page);
+  await page.goto('/e2e-team/knowledge');
+  const files = Array.from({ length: 200 }, (_, i) => ({
+    name: `Queue-${String(i).padStart(3, '0')}.txt`,
+    mimeType: 'text/plain',
+    buffer: Buffer.from(`Queue body ${i} / Текст ${i}`),
+  }));
+  await page.locator('#knowledge-import-files').setInputFiles(files);
+  await expect(page.locator('.knowledge-import-review li')).toHaveCount(200);
+  let interrupted = false;
+  await page.route('**/api/import/portable', route => {
+    interrupted = true;
+    return route.fulfill({ status: 503, json: { error: 'Temporary fixture failure' } });
+  });
+  await page.locator('[data-a="confirmPortableImport"]').click();
+  await expect.poll(() => interrupted).toBe(true);
+  await expect(page.locator('[data-a="confirmPortableImport"]')).toBeEnabled();
+  let document = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  expect(document.knowledgeNotes.filter(n => n.title.startsWith('Queue-'))).toHaveLength(0);
+  await page.unroute('**/api/import/portable');
+  await page.locator('[data-a="confirmPortableImport"]').click();
+  await expect(page.locator('[data-a="confirmPortableImport"]')).toHaveCount(0, { timeout: 30000 });
+  await saved(page);
+  document = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  expect(document.knowledgeNotes.filter(n => n.title.startsWith('Queue-'))).toHaveLength(200);
+  await page.locator('[data-in="knowledgeQuery"]').fill('Queue-000');
+  await expect(page.locator('[data-a="toggleKnowledgeFavorite"]')).toHaveCount(1);
+  const original = document.knowledgeNotes.find(n => n.title === 'Queue-000');
+  await page.locator('[data-a="toggleKnowledgeFavorite"]').click();
+  await saved(page);
+  await page.reload();
+  await page.locator('[data-in="knowledgeQuery"]').fill('Queue-000');
+  await expect(page.locator('[data-a="toggleKnowledgeFavorite"]')).toHaveAttribute('aria-pressed', 'true');
+  const after = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data.knowledgeNotes.find(n => n.id === original.id);
+  expect(after).toEqual(original);
+  await page.locator('.knowledge-preview-open').click();
+  await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
+  for (const width of [390, 1366]) {
+    await page.setViewportSize({ width, height: 845 });
+    await expect(page.locator('#knowledge-body')).toHaveValue('Queue body 0 / Текст 0');
+    expect((await page.locator('#knowledge-body').boundingBox()).height).toBeGreaterThan(180);
+  }
+  await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
+  await page.goto('/e2e-team/knowledge');
+  await page.locator('#knowledge-import-files').setInputFiles(files.slice(0, 51));
+  await expect(page.locator('.knowledge-import-review li')).toHaveCount(51);
+  await page.locator('[data-a="confirmPortableImport"]').click();
+  await expect(page.locator('[data-a="confirmPortableImport"]')).toHaveCount(0, { timeout: 30000 });
+  document = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  expect(document.knowledgeNotes.filter(n => n.title.startsWith('Queue-'))).toHaveLength(200);
+  await page.goto('/e2e-team/calendar');
+  await page.locator('.calendar-layers > summary').click();
+  await page.locator('.calendar-layers input[data-bit="4"]').check();
+  await page.locator('.calendar-layers input[data-bit="8"]').check();
+  await saved(page);
+  await page.reload();
+  await page.locator('.calendar-layers > summary').click();
+  await expect(page.locator('.calendar-layers input[data-bit="4"]')).toBeChecked();
+  await expect(page.locator('.calendar-layers input[data-bit="8"]')).toBeChecked();
+});
