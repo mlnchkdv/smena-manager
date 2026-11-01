@@ -603,6 +603,7 @@ const RU = {
   'A project belongs to one primary team. Adding it here moves it from its current team.':
     'У каждого проекта есть одна основная команда. Добавление сюда перенесёт проект из текущей команды.',
   'Account menu': 'Меню аккаунта',
+  Account: 'Аккаунт',
   'Not found': 'Не найдено',
   'Design system': 'Дизайн-система',
   'System states': 'Состояния системы',
