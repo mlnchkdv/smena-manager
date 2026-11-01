@@ -81,6 +81,7 @@ import { isRussian, templateText, t } from '../core/i18n.js';
 import { resolveAppLocation, entityRouteKey } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 import { disableWebPush, enableWebPush, syncWebPushSubscription } from '../core/push-subscriptions.js';
+import { browserNotificationState } from '../core/browser-notifications.js';
 import { hasEnabledPushPreferences } from '../shared/push-client.js';
 import { primaryTeamId } from '../shared/team-relations.js';
 import { captureUndo, undoCommand } from '../shared/undo.js';
@@ -3515,7 +3516,7 @@ IN.workspacePermToggle = el => {
   save();
 };
 IN.npToggle = async el => {
-  if (el.checked && el.dataset.k.startsWith('push_')) {
+  if (el.checked && el.dataset.k.startsWith('push_') && browserNotificationState() === 'granted') {
     try {
       await enableWebPush();
       S.ui.pushState = 'ready';
@@ -3539,6 +3540,21 @@ IN.npToggle = async el => {
   }
   render();
   toast('Notification preferences saved', { ms: 1500 });
+};
+A.connectPush = async () => {
+  if (S.ui.pushState === 'checking' || !hasEnabledPushPreferences(myNotificationPreferences())) return;
+  S.ui.pushState = 'checking';
+  render();
+  try {
+    await enableWebPush();
+    S.ui.pushState = 'ready';
+    toast('Browser notifications are connected.', { ms: 2200 });
+  } catch (error) {
+    S.ui.pushState =
+      error.code === 'PUSH_DISABLED' ? 'unavailable' : error.code === 'PUSH_BLOCKED' ? 'denied' : error.code === 'PUSH_UNSUPPORTED' ? 'unsupported' : 'error';
+    toast(error.message || 'Background notifications could not be connected.', { kind: 'err', ms: 6000 });
+  }
+  render();
 };
 A.retryPush = async () => {
   S.ui.pushState = 'checking';

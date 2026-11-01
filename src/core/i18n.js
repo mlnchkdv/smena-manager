@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Connect this device': 'Подключить это устройство',
+  'Choose notification types below, then connect this device to allow browser alerts.':
+    'Выберите типы ниже и подключите это устройство, чтобы разрешить уведомления браузера.',
+  'Selected types are saved separately from this device connection.': 'Выбранные типы сохраняются отдельно от подключения этого устройства.',
   'Reset view': 'Сбросить вид',
   'Large note: text can be saved, but new individual versions are not created. Download the source before major edits.':
     'Большая заметка: текст сохраняется, но новые индивидуальные версии не создаются. Перед крупной правкой скачайте исходник.',

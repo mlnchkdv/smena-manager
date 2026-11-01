@@ -13,6 +13,8 @@ import { SHORTCUTS } from '../overlays/modals.js';
 import { LANGUAGES, isRussian, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 import { browserNotificationState } from '../core/browser-notifications.js';
+import { webPushSupport } from '../core/push-subscriptions.js';
+import { hasEnabledPushPreferences, pushDeviceState } from '../shared/push-client.js';
 import { storageCapacityPanel } from '../ui/storage-capacity.js';
 import { contentCounts } from '../shared/content-counts.js';
 import { segmentedControl } from '../ui/segmented-control.js';
@@ -481,7 +483,7 @@ export function settingsBody(sec, title) {
       );
     case 'notif-push': {
       const permission = browserNotificationState();
-      const pushState = permission === 'granted' ? S.ui.pushState : permission;
+      const pushState = pushDeviceState(permission, S.ui.pushState, webPushSupport());
       const state = {
         ready: ['Browser notifications are connected to this device.', 'ok'],
         idle: ['Browser notifications are allowed. Turn on the types you need below.', 'info'],
@@ -490,15 +492,15 @@ export function settingsBody(sec, title) {
         error: ['The browser notification connection needs attention.', 'danger'],
         granted: ['Browser notifications are allowed. Reconnect this device to finish setup.', 'info'],
         denied: ['Browser notifications are blocked. Allow them in your browser site settings.', 'danger'],
-        default: ['Turn on a notification type below to allow browser alerts.', 'info'],
+        default: ['Choose notification types below, then connect this device to allow browser alerts.', 'info'],
         unsupported: ['This browser does not support system notifications.', 'danger'],
       }[pushState] || ['The browser notification status is unavailable.', 'danger'];
-      const retry = ['error', 'granted'].includes(pushState)
-        ? `<button class="btn btn-secondary btn-sm" data-a="retryPush">${ic('refresh-cw', 13)}Reconnect</button>`
+      const retry = ['default', 'idle', 'error', 'granted'].includes(pushState)
+        ? `<button class="btn btn-secondary btn-sm" data-a="connectPush" ${hasEnabledPushPreferences(np) ? '' : 'disabled'}>${ic('bell-ring', 13)}Connect this device</button>`
         : '';
       return (
         H(`Receive system alerts even when ${PRODUCT_NAME} is closed.`) +
-        `<div class="alert ${state[1]}" style="margin-bottom:14px">${ic(pushState === 'ready' ? 'circle-check' : ['default', 'idle', 'checking'].includes(pushState) ? 'bell-ring' : 'circle-alert', 16)}<span class="grow">${state[0]}</span>${retry}</div>` +
+        `<div class="col" style="gap:8px;margin-bottom:14px"><div class="alert ${state[1]}">${ic(pushState === 'ready' ? 'circle-check' : ['default', 'idle', 'checking'].includes(pushState) ? 'bell-ring' : 'circle-alert', 16)}<span class="grow">${state[0]}</span></div>${retry ? `<div>${retry}</div><p class="hint">Selected types are saved separately from this device connection.</p>` : ''}</div>` +
         srow('Mentions', '', tog('push_mention', np.push_mention, 'np')) +
         srow('Assignments', '', tog('push_assign', np.push_assign, 'np')) +
         srow('Comments', '', tog('push_comment', np.push_comment, 'np')) +

@@ -11,6 +11,11 @@ export function hasEnabledPushPreferences(preferences) {
   return PUSH_PREFERENCE_KEYS.some(key => preferences?.[key] === true);
 }
 
+export function pushDeviceState(permission, connection, supported = true) {
+  if (!supported) return 'unsupported';
+  return permission === 'granted' ? connection || 'granted' : permission;
+}
+
 export function applicationServerKeyMatches(subscription, publicKey) {
   const current = subscription?.options?.applicationServerKey;
   if (!current) return true;
