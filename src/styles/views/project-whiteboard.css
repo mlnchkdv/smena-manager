@@ -434,6 +434,10 @@
   border-radius: var(--r);
   box-shadow: var(--shadow-pop);
 }
+.whiteboard-selection > :is(button, details > summary) {
+  min-height: 44px;
+  min-width: 44px;
+}
 .whiteboard-tools:not([open]) > div {
   display: none;
 }

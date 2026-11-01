@@ -42,6 +42,7 @@ export function projectWhiteboard(project) {
     editable = !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
   if (!state.selected) state.selection = [];
   const selectedIds = (state.selection?.length ? state.selection : state.selected ? [state.selected] : []).filter(id => board.nodes.some(n => n.id === id));
+  const selectedMaterial = selectedIds.length === 1 ? board.nodes.find(n => n.id === selectedIds[0] && n.type === 'material' && whiteboardMaterial(n)) : null;
   const edgeList = board.edges
     .map(
       edge =>
@@ -77,7 +78,7 @@ export function projectWhiteboard(project) {
   }
   ${
     state.selected
-      ? `<div class="whiteboard-selection"><span class="trunc">${selectedIds.length > 1 ? T('Selected', 'Выбрано') + ': ' + selectedIds.length : esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${
+      ? `<div class="whiteboard-selection"><span class="trunc">${selectedIds.length > 1 ? T('Selected', 'Выбрано') + ': ' + selectedIds.length : esc(whiteboardLabel(board.nodes.find(n => n.id === state.selected) || { type: 'text' }))}</span>${selectedMaterial ? `<button class="btn btn-secondary btn-sm" data-a="openRelatedEntity" data-key="${esc(selectedMaterial.target)}">${ic('arrow-up-right', 16)}${T('Open material', 'Открыть материал')}</button>` : ''}${
           editable
             ? `${button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку')}${button('whiteboardNewEdge', 'move-right', 'Connect card', 'Связать карточку')}${button('whiteboardCopy', 'copy', 'Copy cards', 'Копировать карточки')}${
                 selectedIds.length > 1
