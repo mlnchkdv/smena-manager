@@ -896,6 +896,19 @@
   min-height: 44px;
   padding-inline: 8px;
 }
+.search-file-continuation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.search-file-continuation p {
+  margin: 0;
+  flex: 1 1 220px;
+}
 @media (max-width: 640px) {
   .pal-close kbd,
   .palette .pal-f {

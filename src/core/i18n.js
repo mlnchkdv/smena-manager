@@ -243,6 +243,7 @@ const RU = {
   'Direct files': 'Файлов непосредственно в папке',
   'Directed connection': 'Направленная связь',
   'Save search on this device': 'Сохранить поиск на этом устройстве',
+  'Search file catalog': 'Искать в каталоге файлов',
   'Automatic connection': 'Автоматическая связь',
   'Simple view hides arrows and line styles. Select a material to inspect its connections.':
     'Простой вид скрывает стрелки и стили линий. Выберите материал, чтобы изучить его связи.',
