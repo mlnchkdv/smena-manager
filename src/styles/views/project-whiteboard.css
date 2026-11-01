@@ -539,3 +539,6 @@
     height: 60px;
   }
 }
+.whiteboard-minimap[hidden] {
+  display: none;
+}
