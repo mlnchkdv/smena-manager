@@ -1926,9 +1926,36 @@ A.previewFile = el => {
       previewContext: {
         owner: getSessionGeneration(),
         workspace: S.ui.activeWorkspace,
+        pageKey: el.closest('.files-page')?.dataset.previewPageKey,
+        page: Number(el.closest('.files-page')?.dataset.previewPage || 0),
+        pages: Number(el.closest('.files-page')?.dataset.previewPages || 1),
         ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
       },
     });
+};
+A.continueFilePreviewPage = el => {
+  const m = S.ui.modals.at(-1),
+    c = m?.previewContext;
+  const page = Number(el.dataset.page);
+  if (
+    m?.type !== 'filePreview' ||
+    !c ||
+    c.owner !== getSessionGeneration() ||
+    c.workspace !== S.ui.activeWorkspace ||
+    !Number.isInteger(page) ||
+    page < 0 ||
+    page >= c.pages ||
+    document.querySelector('.files-page')?.dataset.previewPageKey !== c.pageKey
+  )
+    return;
+  closeModal();
+  A.listPage({ dataset: { key: c.pageKey, page } });
+  const heading = document.querySelector('.files-page h1');
+  if (heading) {
+    heading.tabIndex = -1;
+    heading.focus();
+    heading.scrollIntoView({ block: 'start' });
+  }
 };
 A.stepFilePreview = el => {
   const m = S.ui.modals.at(-1),
