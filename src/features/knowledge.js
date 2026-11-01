@@ -115,11 +115,31 @@ A.stepKnowledgePreview = el => {
   const target = document.querySelector(`.knowledge-preview-pager [data-direction="${direction}"]:not([disabled])`);
   (target || document.querySelector('.knowledge-preview-position'))?.focus({ preventScroll: true });
 };
+const rangeSelection = new WeakSet();
+for (const type of ['click', 'keydown'])
+  document.addEventListener(
+    type,
+    event => {
+      if (event.shiftKey && (type === 'click' || event.key === ' ')) {
+        const input = event.target.closest?.('[data-in="knowledgeSelect"]');
+        if (input) rangeSelection.add(input);
+      }
+    },
+    true,
+  );
 IN.knowledgeSelect = el => {
   const card = el.closest('.knowledge-preview-card');
   const top = card?.getBoundingClientRect().top;
   const set = new Set(S.ui.knowledgeSelection || []);
-  el.checked ? set.add(el.dataset.id) : set.delete(el.dataset.id);
+  const ids = [...document.querySelectorAll('.knowledge-preview-card [data-in="knowledgeSelect"]')].map(input => input.dataset.id);
+  const scope = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, S.ui.knowledgeFolder, S.ui.knowledgeQuery, S.ui.knowledgeSort, ids]);
+  const anchor = S.ui.knowledgeSelectionAnchor;
+  const a = anchor?.scope === scope ? ids.indexOf(anchor.id) : -1;
+  const b = ids.indexOf(el.dataset.id);
+  const range = rangeSelection.has(el) && a >= 0 && b >= 0 ? ids.slice(Math.min(a, b), Math.max(a, b) + 1) : [el.dataset.id];
+  rangeSelection.delete(el);
+  for (const id of range) el.checked ? set.add(id) : set.delete(id);
+  if (a < 0 || range.length === 1) S.ui.knowledgeSelectionAnchor = { id: el.dataset.id, scope };
   S.ui.knowledgeSelection = [...set];
   render();
   // Selection adds folder-receive buttons above the list. Keep the clicked card

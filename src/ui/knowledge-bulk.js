@@ -2,6 +2,7 @@ import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { collectionSelection } from './collection-layout.js';
+import { kc } from './knowledge-types.js';
 import { ic } from '../core/icons.js';
 export function knowledgeSelectionStart(visible) {
   const known = new Set(D().knowledgeNotes.map(note => note.id));
@@ -19,7 +20,7 @@ export function knowledgeBulkToolbar(visible) {
   return collectionSelection(
     `<button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-pressed="${pageSelected}" ${!visible.length ? 'disabled' : ''}>${pageSelected ? 'Deselect page' : 'Select page'}</button>${
       selected.size
-        ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection">Clear selection</button><button class="btn btn-secondary btn-sm" data-a="moveKnowledgeNote">Move selected notes</button><button class="btn btn-danger-ghost btn-sm" data-a="trashKnowledgeSelection">Move to trash</button>`
+        ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b><span class="hint"> · ${kc('Shift selects a range on this page', 'Shift выбирает диапазон на этой странице')}</span>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection">Clear selection</button><button class="btn btn-secondary btn-sm" data-a="moveKnowledgeNote">Move selected notes</button><button class="btn btn-danger-ghost btn-sm" data-a="trashKnowledgeSelection">Move to trash</button>`
         : ''
     }`,
     'Note selection',
