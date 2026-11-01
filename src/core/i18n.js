@@ -244,6 +244,7 @@ const RU = {
   'Directed connection': 'Направленная связь',
   'Save search on this device': 'Сохранить поиск на этом устройстве',
   'Search file catalog': 'Искать в каталоге файлов',
+  'Search favorites': 'Поиск в избранном',
   'Previous file': 'Предыдущий файл',
   'Next file': 'Следующий файл',
   'Automatic connection': 'Автоматическая связь',
