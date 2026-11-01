@@ -423,6 +423,6 @@
 .knowledge-drawer:has(.knowledge-editor.is-focused) > .drawer-h :is(.knowledge-drawer-brand, .knowledge-drawer-brand + .faint) {
   display: none;
 }
-.knowledge-drawer:has(.knowledge-editor.is-focused) .knowledge-location {
+.knowledge-drawer:has(.knowledge-editor.is-focused) .knowledge-reader-location {
   display: none;
 }
