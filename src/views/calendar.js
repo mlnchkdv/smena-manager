@@ -115,7 +115,7 @@ export function calendarHtml(ts, opt = {}) {
         ],
       })}
     </div>
-    <details class="calendar-layers ui-menu"><summary class="btn btn-ghost btn-sm">${ic('layers', 14)}Calendar layers</summary><div>${[
+    <details class="calendar-layers ui-menu" ${disclosureAttributes('calendar-layers')}><summary class="btn btn-ghost btn-sm">${ic('layers', 14)}Calendar layers</summary><div>${[
       [1, 'Tasks'],
       [2, 'Events'],
       [4, 'Milestones'],

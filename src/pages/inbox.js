@@ -126,7 +126,13 @@ export function inboxPreview(n) {
   const p = n.project ? proj(n.project) : t ? proj(t.project) : null;
   if (n.type === 'security' || n.type === 'system') {
     const isSystem = n.type === 'system';
-    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic(isSystem ? 'triangle-alert' : 'shield-alert', 16)}<div><b>${esc(isSystem ? notificationAction(n, isRussian() ? 'ru' : 'en') : tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px" translate="no">${esc(notificationSnippet(n, isRussian() ? 'ru' : 'en'))}</div>` : ''}<p class="hint" translate="no">${fmtTimestamp(n.at)}</p>${isSystem ? '<p class="hint">This is a recorded event, not a live health status. Open diagnostics for current checks; configuration readiness does not confirm delivery.</p><p class="hint">The event does not identify a delivery channel.</p>' : ''}</div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="${isSystem ? 'notif-push' : 'security'}">${ic(isSystem ? 'activity' : 'monitor-smartphone', 14)}${isSystem ? 'Open diagnostics' : 'Review active sessions'}</button></div></div>`;
+    const channel = n.snippet?.includes('Email digest delivery failed')
+      ? 'Digest channel: email.'
+      : n.snippet?.includes('Notification delivery failed')
+        ? 'The event does not identify a delivery channel.'
+        : '';
+    const incidentExplanation = `<p class="hint">This is a recorded event, not a live health status. Open diagnostics for current checks; configuration readiness does not confirm delivery.</p>${channel ? `<p class="hint">${esc(tr(channel))}</p>` : ''}`;
+    return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic(isSystem ? 'triangle-alert' : 'shield-alert', 16)}<div><b>${esc(isSystem ? notificationAction(n, isRussian() ? 'ru' : 'en') : tr(n.text))}</b>${n.snippet ? `<div class="muted" style="margin-top:2px" translate="no">${esc(notificationSnippet(n, isRussian() ? 'ru' : 'en'))}</div>` : ''}<p class="hint" translate="no">${fmtTimestamp(n.at)}</p>${isSystem ? incidentExplanation : ''}</div></div><div style="margin-top:14px"><button class="btn btn-secondary" data-a="go" data-r="settings" data-sec="${isSystem ? 'notif-push' : 'security'}">${ic(isSystem ? 'activity' : 'monitor-smartphone', 14)}${isSystem ? 'Open diagnostics' : 'Review active sessions'}</button></div></div>`;
   }
   if (!t) {
     const missing = n.task ? 'The related task is no longer available.' : p ? '' : 'The related project is no longer available.';
