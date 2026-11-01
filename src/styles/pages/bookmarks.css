@@ -308,7 +308,8 @@
 }
 
 .bookmark-card-foot {
-  gap: 6px;
+  display: grid;
+  gap: 4px;
   margin-top: 10px;
   padding-top: 8px;
 }
@@ -325,11 +326,24 @@
 .bookmark-card-foot > span:not(.sp) {
   min-width: 0;
 }
-@media (max-width: 420px) {
-  .bookmark-read-state {
-    max-width: 70px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.bookmark-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.bookmark-card-meta > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.bookmark-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
 }
