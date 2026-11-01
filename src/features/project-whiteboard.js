@@ -570,6 +570,8 @@ function move(e) {
     return;
   }
   if (g.kind === 'move') {
+    if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 5) return;
+    g.moved = true;
     g.dx = Math.round((e.clientX - g.x) / s.zoom / 10) * 10;
     g.dy = Math.round((e.clientY - g.y) / s.zoom / 10) * 10;
     g.dx = Math.max(...g.nodes.map(n => -50000 - n.x), Math.min(...g.nodes.map(n => 50000 - n.x), g.dx));
@@ -623,6 +625,9 @@ function up(e, cancel = false) {
           n.y += g.dy;
         }
     });
+  } else if (g.kind === 'move' && g.scope === whiteboardState().scope) {
+    // Selection is view state, including a captured pointer with zero movement.
+    render();
   }
 }
 export function mountProjectWhiteboard() {

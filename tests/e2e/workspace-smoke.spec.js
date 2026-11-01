@@ -1939,6 +1939,10 @@ test('project whiteboards persist cards connections layout and inherited access 
   await page.locator('[data-a="whiteboardSave"]').click();
   await waitForSaved(page);
   await page.locator('[data-a="whiteboardFit"]').click();
+  await page.locator(`[data-board-drag="${first.id}"]`).click();
+  await expect(page.locator('.whiteboard-selection')).toBeVisible();
+  const afterSelection = (await (await page.request.get('/api/workspace')).json()).data;
+  expect(afterSelection.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(board.nodes);
   const handle = page.locator(`[data-board-drag="${first.id}"]`),
     box = await handle.boundingBox();
   const edgeBefore = await page.locator('.whiteboard-edges g path').getAttribute('d');
