@@ -1,5 +1,6 @@
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
+import { kc } from './knowledge-types.js';
 
 export function knowledgeOutline(markup, actions = '') {
   const template = document.createElement('template');
@@ -8,7 +9,11 @@ export function knowledgeOutline(markup, actions = '') {
   if (headings.length < 4 && !actions) return '';
   const hasOutline = headings.length >= 4;
   const base = headings.reduce((level, heading) => Math.min(level, Number(heading.tagName.slice(1))), 6);
-  return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="${hasOutline ? 'Contents and actions' : 'Note actions'}" title="${hasOutline ? 'Contents and actions' : 'Note actions'}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${actions}${
+  const utilities = actions
+    ? `<details class="ui-menu knowledge-outline knowledge-reader-actions"><summary class="ibtn" aria-label="${kc('Note actions', 'Действия с заметкой')}" title="${kc('Note actions', 'Действия с заметкой')}">${ic('ellipsis', 16)}</summary><div>${actions}</div></details>`
+    : '';
+  if (!hasOutline) return utilities;
+  return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="${kc('On this page', 'На этой странице')}" title="${kc('On this page', 'На этой странице')}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${
     hasOutline
       ? `<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
           .map(
@@ -17,7 +22,7 @@ export function knowledgeOutline(markup, actions = '') {
           )
           .join('')}</nav>`
       : ''
-  }</div></details>`;
+  }</div></details>${utilities}`;
 }
 
 export function refreshKnowledgeOutline() {
