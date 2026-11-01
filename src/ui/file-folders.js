@@ -1,3 +1,4 @@
+import { t as tr } from '../core/i18n.js';
 import { actionLabel } from './action-label.js';
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
@@ -69,7 +70,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
                 const menu = archived
                   ? `<button class="btn btn-ghost btn-sm" data-a="restoreFileFolder" ${target}>${ic('rotate-ccw', 14)}Restore folder</button>`
                   : `<details class="files-folder-menu ui-menu" ${fileFolderMenu(project.id, folder.id)}><summary aria-label="${actionLabel('Folder actions', folder.name, context)}" title="${actionLabel('Folder actions', folder.name, context)}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="renameFileFolder" ${target}>${ic('pencil', 14)}Rename folder</button><button class="btn btn-ghost btn-sm" data-a="moveFileFolder" ${target}>${ic('folder-input', 14)}Move folder</button><button class="btn btn-ghost btn-sm" data-a="archiveFileFolder" ${target} ${nonempty ? 'disabled' : ''} title="Only an empty file folder can be archived.">${ic('archive', 14)}Archive folder</button></div></details>`;
-                return `<article class="files-folder-tile" aria-labelledby="folder-title-${esc(project.id)}-${esc(folder.id)}"><${archived ? 'div' : 'button'} class="files-folder-open" ${archived ? '' : `data-a="openFileFolder" ${target}`} title="${esc(folder.name)}">${ic(archived ? 'archive' : 'folder', 24)}<strong id="folder-title-${esc(project.id)}-${esc(folder.id)}" translate="no">${esc(folder.name)}</strong><span class="faint" translate="no">${esc(context)}</span>${archived ? '' : `<small><span>Direct files</span>: ${count}</small>`}</${archived ? 'div' : 'button'}>${writable ? menu : ''}</article>`;
+                return `<article class="files-folder-tile" aria-labelledby="folder-title-${esc(project.id)}-${esc(folder.id)}"><${archived ? 'div' : 'button'} class="files-folder-open" ${archived ? '' : `data-a="openFileFolder" ${target}`} title="${esc(folder.name)}">${ic(archived ? 'archive' : 'folder', 24)}<strong id="folder-title-${esc(project.id)}-${esc(folder.id)}" translate="no">${esc(folder.name)}</strong><span class="faint" translate="no">${esc(context)}</span>${archived ? '' : `<small title="${esc(tr('Files in this folder only, excluding subfolders.'))}"><span>Direct files</span>: ${count}</small>`}</${archived ? 'div' : 'button'}>${writable ? menu : ''}</article>`;
               })
               .join('')}</div>`
           : query
