@@ -308,14 +308,35 @@ test('simplified graph preserves materials selection filters and personal prefer
     if ((await physics.getAttribute('aria-pressed')) !== 'true') await physics.click();
     await expect(canvas).toHaveAttribute('data-physics', 'on');
     await expect(canvas).toHaveAttribute('data-physics-state', 'settled', { timeout: 10000 });
+    let revisionRetry = 0;
+    const revisionRace = async route => {
+      revisionRetry++;
+      if (revisionRetry === 1)
+        return route.fulfill({
+          status: 409,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { message: 'The workspace changed. Retry loading files.', code: 'REVISION_CONFLICT' } }),
+        });
+      return route.continue();
+    };
+    await page.route('**/api/graph/query', revisionRace);
     await physics.click();
     await expect(canvas).toHaveAttribute('data-physics', 'off');
+    await expect.poll(() => revisionRetry).toBeGreaterThanOrEqual(2);
+    await page.unroute('**/api/graph/query', revisionRace);
     await close();
-    await page.waitForTimeout(300);
-    const frozen = await canvas.screenshot();
+    // Saving personal preferences may replace the graph container. Capture the
+    // settled, synchronized renderer rather than a node retired during saving.
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    await expect(canvas).toHaveAttribute('data-physics-state', 'off');
+    await expect(canvas.locator('canvas').first()).toBeVisible();
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    // Compare the renderer's node bitmap. Element screenshots may scroll a
+    // fractional WebKit viewport and change rasterization without graph motion.
+    const nodeBitmap = () => canvas.locator('canvas[data-id="layer2-node"]').evaluate(el => el.toDataURL());
+    const frozen = await nodeBitmap();
     await page.waitForTimeout(400);
-    const { PNG } = await import('pngjs');
-    expect(PNG.sync.read(frozen).data.equals(PNG.sync.read(await canvas.screenshot()).data)).toBeTruthy();
+    expect(await nodeBitmap()).toBe(frozen);
     await show();
     await physics.click();
     await close();
