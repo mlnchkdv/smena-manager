@@ -378,3 +378,12 @@
     grid-column: 1/-1;
   }
 }
+
+.favorite-material {
+  gap: 10px;
+  padding: 8px 12px;
+}
+.favorite-material > button:first-child {
+  text-align: left;
+  min-height: 44px;
+}

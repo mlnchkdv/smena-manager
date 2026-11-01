@@ -3883,3 +3883,14 @@ A.clearMemberFilters = () => {
   S.ui.memQ = '';
   render();
 };
+
+A.toggleFavoriteMaterial = el => {
+  const key = el.dataset.key;
+  if (!entityAllowed(D(), key, graphOptions())) return;
+  const entity = resolveGraphEntity(D(), key);
+  if (entity) setPersonalFavorite(entity.kind, entity.item);
+};
+IN.favoriteKind = el => {
+  S.ui.favoriteKind = el.value;
+  render();
+};

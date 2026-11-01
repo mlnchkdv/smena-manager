@@ -629,6 +629,11 @@ const RU = {
   'An item with this ID already exists. Nothing will be overwritten.': 'Элемент с таким ID уже существует. Ничего не будет перезаписано.',
   'The original folder is missing. The item will be restored without a folder.': 'Исходная папка отсутствует. Элемент будет восстановлен без папки.',
   'An item with the same name exists. Both will be kept with their own IDs.': 'Элемент с таким именем уже существует. Оба сохранятся с собственными ID.',
+  'Personal shortcuts to materials you can currently access.': 'Личные ссылки на доступные вам материалы.',
+  'Loading favorite files…': 'Загружаем избранные файлы…',
+  'Some favorites could not be loaded. Retry to check current access.': 'Часть избранного не загрузилась. Повторите запрос для проверки актуального доступа.',
+  'Use a star on a task, project, note, bookmark, file or whiteboard. Only your favorites change.':
+    'Отметьте звездой задачу, проект, заметку, закладку, файл или холст. Изменится только ваше избранное.',
   'Material details': 'Сведения о материале',
   'Expand or reduce details': 'Развернуть или уменьшить сведения',
   'Folder counts include subfolders.': 'Числа у папок включают заметки в подпапках.',

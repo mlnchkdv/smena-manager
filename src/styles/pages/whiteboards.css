@@ -336,3 +336,10 @@
 .whiteboard-access-badge svg {
   flex: 0 0 auto;
 }
+
+.whiteboard-document-personal {
+  position: absolute;
+  right: 52px;
+  top: 8px;
+  z-index: 2;
+}
