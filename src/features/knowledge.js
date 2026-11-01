@@ -409,6 +409,22 @@ A.saveKnowledgeView = () =>
       render();
     },
   });
+A.toggleKnowledgePane = () => {
+  S.ui.knowledgePaneHidden = !S.ui.knowledgePaneHidden;
+  saveKnowledgePreferences();
+  render();
+};
+A.resetKnowledgePane = () => {
+  S.ui.knowledgePaneHidden = false;
+  S.ui.knowledgePaneWidth = 300;
+  saveKnowledgePreferences();
+  render();
+};
+IN.knowledgePaneWidth = el => {
+  S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(el.value) || 300));
+  document.querySelector('.knowledge-shell')?.style.setProperty('--knowledge-pane-width', S.ui.knowledgePaneWidth + 'px');
+  saveKnowledgePreferences();
+};
 A.applyKnowledgeView = el => {
   const view = S.ui.knowledgeSavedViews?.find(view => view.id === el.dataset.id);
   if (!view) return;

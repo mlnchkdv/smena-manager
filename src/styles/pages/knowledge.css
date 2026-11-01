@@ -2047,3 +2047,18 @@
 .knowledge-editor:is([data-pane='preview'], [data-pane='blocks']) :is(.knowledge-format-toolbar, .knowledge-format-toggle) {
   display: none;
 }
+.knowledge-shell[data-folder-overlay='false'] {
+  grid-template-columns: var(--knowledge-pane-width, 300px) minmax(0, 1fr);
+}
+.knowledge-shell[data-folder-overlay='false'][data-pane-hidden='true'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.knowledge-shell[data-folder-overlay='false'][data-pane-hidden='true'] > .knowledge-sidebar {
+  display: none;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-pane-options {
+  display: none;
+}
+.knowledge-pane-options input {
+  width: 100%;
+}

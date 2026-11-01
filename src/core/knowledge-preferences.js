@@ -18,6 +18,8 @@ export function knowledgePreferences() {
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
     S.ui.knowledgeFolderRecent = Array.isArray(value.folderRecent) ? value.folderRecent.filter(id => typeof id === 'string').slice(0, 12) : [];
     S.ui.knowledgeSelection = [];
+    S.ui.knowledgePaneHidden = value.paneHidden === true;
+    S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(value.paneWidth) || 300));
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
     S.ui.knowledgeCardDensity = value.cardDensity === 'comfortable' ? 'comfortable' : 'compact';
@@ -39,6 +41,8 @@ export function saveKnowledgePreferences() {
       key(),
       JSON.stringify({
         views: S.ui.knowledgeSavedViews || [],
+        paneHidden: !!S.ui.knowledgePaneHidden,
+        paneWidth: S.ui.knowledgePaneWidth || 300,
         recent: S.ui.knowledgeRecent || [],
         folderRecent: S.ui.knowledgeFolderRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,
