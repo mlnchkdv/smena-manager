@@ -2062,3 +2062,28 @@
 .knowledge-pane-options input {
   width: 100%;
 }
+.knowledge-reader-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.knowledge-reader-location button {
+  max-width: min(240px, 80vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 4px;
+  color: inherit;
+}
+.knowledge-reader-location button:hover {
+  color: var(--accent);
+}
+@media (max-width: 640px) {
+  .knowledge-reader-location button {
+    min-height: 44px;
+  }
+}
