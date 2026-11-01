@@ -34,7 +34,7 @@ function preview(b) {
     .slice(0, 40)
     .map(
       n =>
-        `<rect x="${n.x}" y="${n.y}" width="${n.width}" height="${n.height}" rx="8" fill="${colors[n.color]}" fill-opacity="${n.type === 'group' ? '.12' : '.4'}" stroke="${colors[n.color]}" stroke-width="${Math.max(1, 1 / scale)}"/>`,
+        `<rect x="${n.x}" y="${n.y}" width="${n.width}" height="${n.height}" rx="8" fill="${colors[n.color]}" fill-opacity="${n.type === 'group' ? '.12' : '.4'}" stroke="${colors[n.color]}" stroke-width="${Math.max(1, 1 / scale)}"/>${n.width * scale >= 40 ? `<text x="${n.x + 6 / scale}" y="${n.y + 14 / scale}" fill="var(--text)" font-size="${10 / scale}">${esc((n.title || T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Material' : 'Text', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Материал' : 'Текст')).slice(0, Math.max(3, Math.floor((n.width * scale) / 6) - 2)))}</text>` : ''}`,
     )
     .join(
       '',

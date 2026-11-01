@@ -1,5 +1,5 @@
 import { whiteboardHash } from './whiteboard-history.js';
-// Metadata contains geometry only, never cached material labels or text.
+// Bounded geometry and board-owned titles only. Material bodies, targets and cached labels never enter this DTO.
 export function whiteboardCatalogProjection(data) {
   const entries = (data.whiteboards || []).map(b => ({
     id: b.id,
@@ -7,7 +7,18 @@ export function whiteboardCatalogProjection(data) {
     cards: b.whiteboard.nodes.length,
     connections: b.whiteboard.edges.length,
     thumbnail: {
-      nodes: b.whiteboard.nodes.slice(0, 40).map(({ id, type, x, y, width, height, color }) => ({ id, type, x, y, width, height, color })),
+      nodes: b.whiteboard.nodes
+        .slice(0, 40)
+        .map(({ id, type, x, y, width, height, color, title }) => ({
+          id,
+          type,
+          x,
+          y,
+          width,
+          height,
+          color,
+          ...(type !== 'material' && title ? { title: String(title).slice(0, 64) } : {}),
+        })),
       edges: b.whiteboard.edges.slice(0, 60).map(({ from, to }) => ({ from, to })),
     },
   }));
