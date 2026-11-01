@@ -1,0 +1,18 @@
+# Keep manual deployments equivalent to a clean Git checkout.
+node_modules/
+dist/
+.git/
+.vercel/
+.data/
+.generated/
+.playwright-cli/
+playwright-report/
+test-results/
+output/
+.env*
+!.env.example
+access-ids*.json
+!access-ids.example.json
+*.log
+.DS_Store
+__MACOSX/
