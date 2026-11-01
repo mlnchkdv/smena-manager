@@ -1,4 +1,5 @@
 /* ---------- ACTIVITY ---------- */
+import { collectionView, collectionPage, saveCollectionView, resetCollectionView } from '../core/collection-view-state.js';
 import { dayBucket, esc } from '../core/utils.js';
 import { D, S, canSee, proj } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
@@ -18,12 +19,14 @@ A.resetActivityDates = () => {
   S.ui.actTo = '';
   render();
 };
+const activityDefaults = { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '' };
 A.resetActivityFilters = () => {
-  Object.assign(S.ui, { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '' });
+  resetCollectionView(collectionView('activity', activityDefaults));
   render();
 };
 
 export function pageActivity() {
+  const viewState = collectionView('activity', activityDefaults);
   const f = S.ui.actFilter || 'all';
   const who = S.ui.actWho || 'all';
   const available = D().activity.filter(a => !a.project || canSee(proj(a.project)));
@@ -45,7 +48,8 @@ export function pageActivity() {
   const end = to ? new Date(to + 'T23:59:59.999').getTime() : Infinity;
   as = as.filter(a => Number(new Date(a.at)) >= start && Number(new Date(a.at)) <= end).sort((a, b) => Number(new Date(b.at)) - Number(new Date(a.at)));
   const key = JSON.stringify(['activity', D().ws.id || D().ws.url, D().me, f, who, from, to]);
-  const page = listWindow(as, S.ui.listPages?.[key], 50);
+  const page = listWindow(as, collectionPage(viewState, key), 50);
+  saveCollectionView(viewState, page.page);
   const b = {};
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
@@ -65,7 +69,7 @@ export function pageActivity() {
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join(
         '',
-      )}</select></div><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"><label class="field"><span>From date</span><input type="date" class="input" data-in="actFrom" value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input type="date" class="input" data-in="actTo" value="${esc(to)}" min="${esc(from)}"></label>${from || to ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button>' : ''}</div><p class="hint" role="status"><span>Results</span>: ${page.total}</p>
+      )}</select></div><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"><label class="field"><span>From date</span><input type="date" class="input" data-in="actFrom" value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input type="date" class="input" data-in="actTo" value="${esc(to)}" min="${esc(from)}"></label>${from || to ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button>' : ''}</div><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button><p class="hint" role="status"><span>Results</span>: ${page.total}</p>
     ${
       as.length
         ? Object.entries(b)
