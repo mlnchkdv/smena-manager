@@ -1,3 +1,4 @@
+import { spatialNeighbor } from '../shared/spatial-navigation.js';
 import { D, S } from '../core/store.js';
 
 const selector = '.knowledge-preview-open, .knowledge-folder-card';
@@ -40,20 +41,12 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Home') target = items[0];
   else if (event.key === 'End') target = items.at(-1);
   else {
-    const rect = current.getBoundingClientRect();
-    const x = rect.left + rect.width / 2,
-      y = rect.top + rect.height / 2;
-    const horizontal = ['ArrowLeft', 'ArrowRight'].includes(event.key);
-    const direction = ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 1;
-    target = items
-      .map(el => {
-        const r = el.getBoundingClientRect();
-        const dx = r.left + r.width / 2 - x,
-          dy = r.top + r.height / 2 - y;
-        return { el, primary: (horizontal ? dx : dy) * direction, cross: Math.abs(horizontal ? dy : dx) };
-      })
-      .filter(item => item.primary > 2)
-      .sort((a, b) => a.primary + a.cross * 3 - (b.primary + b.cross * 3))[0]?.el;
+    const next = spatialNeighbor(
+      items.map(el => el.getBoundingClientRect()),
+      items.indexOf(current),
+      event.key,
+    );
+    target = items[next];
   }
   event.preventDefault();
   if (!target) return;
