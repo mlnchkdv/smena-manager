@@ -2087,3 +2087,12 @@
     min-height: 44px;
   }
 }
+
+.note-properties-section > h3 {
+  margin: 0 0 12px;
+  font-size: var(--fs-sm);
+}
+.note-properties-section + .knowledge-type-fields,
+.knowledge-type-fields + .note-properties-section {
+  margin-top: 16px;
+}

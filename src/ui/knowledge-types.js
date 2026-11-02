@@ -73,7 +73,7 @@ A.openNoteProperties = el => {
     noteId: id,
     render: (m, H) => {
       const note = D().knowledgeNotes.find(n => n.id === m.noteId);
-      return `${H(kc('Note properties', 'Свойства заметки'))}<div class="modal-b">${note ? noteMetadataFields(note, D().knowledgeFolders || [], !editable()) + noteTypeFields(note, !editable(), true) : `<p>${kc('Note unavailable', 'Заметка недоступна')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Close', 'Закрыть')}</button></div>`;
+      return `${H(kc('Note properties', 'Свойства заметки'))}<div class="modal-b">${note ? noteMetadataFields(note, D().knowledgeFolders || [], !editable()) + noteTypeFields(note, !editable(), true) + noteMetadataFields(note, [], !editable(), 'details') : `<p>${kc('Note unavailable', 'Заметка недоступна')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Close', 'Закрыть')}</button></div>`;
     },
   });
 };
