@@ -841,3 +841,23 @@
     min-height: 0;
   }
 }
+
+@media (min-width: 641px) and (max-height: 500px) {
+  .graph-page:not(.is-focused) .graph-head {
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+  .graph-page:not(.is-focused) .graph-head p {
+    display: none;
+  }
+  .graph-page:not(.is-focused) .graph-toolbar {
+    gap: 6px;
+  }
+  .graph-page:not(.is-focused) .graph-options {
+    margin-block: 6px;
+  }
+  .graph-page:not(.is-focused) .graph-help {
+    margin-block: 4px;
+    font-size: var(--fs-xs);
+  }
+}
