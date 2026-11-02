@@ -44,6 +44,7 @@
 }
 .knowledge-preview-location {
   padding: 0 16px 8px;
+  min-height: 40px;
   min-width: 0;
   color: var(--text-3);
   font-size: var(--fs-xs);
@@ -74,7 +75,7 @@
     min-height: var(--control-target);
   }
   .knowledge-preview-location {
-    min-height: var(--control-target);
+    min-height: 52px;
   }
 }
 .knowledge-note-location {
