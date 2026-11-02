@@ -632,3 +632,15 @@
     height: max(240px, calc(100dvh - 170px));
   }
 }
+.whiteboard-gesture-help > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding-inline: 8px;
+  font-size: var(--fs-xs);
+}
+.whiteboard-gesture-help[open] .hint {
+  display: block;
+  max-width: 36em;
+}

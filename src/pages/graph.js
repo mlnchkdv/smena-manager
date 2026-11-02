@@ -3,7 +3,7 @@ import { preparePersonalGraph } from '../core/diagram-view-state.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
 import { D, S, visibleProjects } from '../core/store.js';
 import { esc } from '../core/utils.js';
-import { t as tr } from '../core/i18n.js';
+import { isRussian, t as tr } from '../core/i18n.js';
 import { ic } from '../core/icons.js';
 import { empty } from '../ui/helpers.js';
 import { ENTITY_ICONS, ENTITY_LABELS, graphOptions, relationsPanel } from '../ui/relations.js';
@@ -105,7 +105,7 @@ export function pageGraph() {
     })
     .join(
       '',
-    )}</select><button class="btn btn-secondary graph-touch-control" data-a="toggleGraphInteraction" aria-pressed="${!!ui.graphInteract}">Interact with graph</button></div>`;
+    )}</select><button class="btn btn-secondary graph-touch-control" data-a="toggleGraphInteraction" aria-pressed="${!!ui.graphInteract}">${isRussian() ? (ui.graphInteract ? 'Режим: граф' : 'Режим: прокрутка') : ui.graphInteract ? 'Mode: graph' : 'Mode: page scroll'}</button></div>`;
   const legend =
     Object.entries(GRAPH_KINDS)
       .filter(([kind]) => view.nodes.some(node => node.kind === kind))
