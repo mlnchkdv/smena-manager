@@ -1,6 +1,6 @@
 # Повторный глубокий UI/UX-аудит после W01–W10
 
-**2 ноября 2026 · X01–X16 · Новый план, ещё не внедрён.**
+**2 ноября 2026 · X01–X16 · Исторический исходный план; все 16 программных пунктов внедрены.** [Изменения, commits, production-проверка и оставшиеся ограничения / Delivery and acceptance](UI_UX_DELIVERY_2026-11-02_SIXTEEN.md). Наблюдения ниже относятся к исходной версии до исправлений.
 
 Проверен авторизованный [основной сайт](https://smena-manager.vercel.app/), production `c99733c81730fb986de04753b74a1ef22a676aa9`. Последний программный commit — `38f50db`; W01–W10 остаются [внедрёнными](UI_UX_DELIVERY_2026-11-02_TEN.md). Этот документ описывает новые наблюдения, а не отменяет предыдущие исправления.
 
@@ -178,7 +178,7 @@
 
 ## English handoff
 
-**Proposed, not implemented.** Production `c99733c` was reviewed after delivered W01–W10. The new package contains four supported UI defects and twelve usability improvements. No new P0/P1 blocker was observed in the inspected flows. This is not a write/recovery, security or load-test certification.
+**Historical baseline; all sixteen software items are now implemented.** See the [delivery and verification report](UI_UX_DELIVERY_2026-11-02_SIXTEEN.md). The observations below describe production `c99733c`, reviewed after delivered W01–W10 and before the X changes. The new package contains four supported UI defects and twelve usability improvements. No new P0/P1 blocker was observed in the inspected flows. This is not a write/recovery, security or load-test certification.
 
 Both languages were inspected at seven actual CSS viewport sizes. The matrix above is selective, not a full cross-product. Primary navigation, eighteen settings sections and eight project tabs were reviewed on phone/laptop layouts. Screenshots supplemented DOM/source inspection; loading states and capture failures were excluded from conclusions. Team content and permissions were not edited. Only an already-read work notification was opened; unread count stayed one. Temporary language/theme/project-view changes were restored. A final reload restored the authenticated session and original language/theme.
 
