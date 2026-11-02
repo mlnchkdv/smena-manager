@@ -13,7 +13,7 @@ export function knowledgeOutline(markup, actions = '') {
     ? `<details class="ui-menu knowledge-outline knowledge-reader-actions"><summary class="ibtn" aria-label="${kc('Note actions', 'Действия с заметкой')}" title="${kc('Note actions', 'Действия с заметкой')}">${ic('ellipsis', 16)}</summary><div>${actions}</div></details>`
     : '';
   if (!hasOutline) return utilities;
-  return `<details class="ui-menu knowledge-outline"><summary class="ibtn" aria-label="${kc('On this page', 'На этой странице')}" title="${kc('On this page', 'На этой странице')}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${
+  return `<details class="ui-menu knowledge-outline knowledge-reader-outline"><summary class="ibtn" aria-label="${kc('On this page', 'На этой странице')}" title="${kc('On this page', 'На этой странице')}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${
     hasOutline
       ? `<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
           .map(
@@ -26,7 +26,7 @@ export function knowledgeOutline(markup, actions = '') {
 }
 
 export function refreshKnowledgeOutline() {
-  const outline = document.querySelector('.knowledge-outline');
+  const outline = document.querySelector('.knowledge-reader-outline');
   const body = outline?.closest('.knowledge-drawer')?.querySelector('.knowledge-drawer-body');
   if (!body) return;
   const headings = [...body.querySelectorAll('[data-knowledge-heading]')];
@@ -34,7 +34,7 @@ export function refreshKnowledgeOutline() {
   const atEnd = body.scrollHeight > body.clientHeight + 2 && body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
   const current = (atEnd ? headings.at(-1) : headings.findLast(heading => heading.getBoundingClientRect().top <= top)) || headings[0];
   outline.querySelectorAll('.knowledge-outline-link').forEach(link => {
-    if (link.dataset.anchor === current?.dataset.knowledgeHeading) link.setAttribute('aria-current', 'location');
+    if (current?.dataset.knowledgeHeading && link.dataset.anchor === current.dataset.knowledgeHeading) link.setAttribute('aria-current', 'location');
     else link.removeAttribute('aria-current');
   });
 }
