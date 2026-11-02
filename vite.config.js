@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { icons as lucide } from 'lucide';
+import { SYNC_PRESENTATION } from './src/shared/sync-presentation.js';
 
 /* `virtual:icons` exports only the Lucide icons the source actually names, as inline SVG markup,
    so the bundle carries ~170 icons instead of the full set. Any quoted kebab-case token in src/
@@ -25,6 +26,9 @@ function lucideSubset() {
     resolveId: s => (s === id ? resolved : null),
     load(s) {
       if (s !== resolved) return null;
+      for (const [state, [icon]] of Object.entries(SYNC_PRESENTATION)) {
+        if (!lucide[pascal(icon)]) throw new Error(`Unsupported system status icon: ${state} / ${icon}`);
+      }
       const text = walk(path.resolve('src'))
         .map(f => fs.readFileSync(f, 'utf8'))
         .join('\n');

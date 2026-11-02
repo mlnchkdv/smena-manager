@@ -14,18 +14,10 @@ import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { SIDEBAR_ITEMS, sidebarPreferences } from '../shared/sidebar-preferences.js';
+import { SYNC_PRESENTATION } from '../shared/sync-presentation.js';
 
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
-const SYNC_PRESENTATION = {
-  syncing: ['loader', 'Saving…'],
-  saved: ['cloud-check', 'Saved'],
-  offline: ['wifi-off', 'Offline'],
-  unavailable: ['cloud-alert', 'Service unavailable'],
-  conflict: ['git-merge', 'Conflict'],
-  too_large: ['database-zap', 'Limit exceeded'],
-  invalid: ['triangle-alert', 'Data error'],
-};
 const lazyPageLoaders = {
   inbox: () => import('../pages/inbox.js').then(module => module.pageInbox),
   mytasks: () => import('../pages/my-tasks.js').then(module => module.pageMyTasks),
