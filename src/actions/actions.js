@@ -649,6 +649,11 @@ A.previewKnowledgeNote = el => {
 };
 A.goKnowledgeNote = el => {
   if (!D().knowledgeNotes.some(note => note.id === el.dataset.id)) return;
+  // Command results can open the reader before the knowledge feature is loaded.
+  if (typeof el.dataset.query === 'string') {
+    const query = el.dataset.query.trim().slice(0, 1000);
+    S.ui.knowledgeFind = query ? { query, owner: S.ui.currentUser?.id, workspace: D().ws.id || D().ws.url, index: 0 } : null;
+  }
   S.ui.palette = null;
   S.ui.pop = null;
   A.previewKnowledgeNote(el);
