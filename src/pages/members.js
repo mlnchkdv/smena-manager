@@ -1,3 +1,4 @@
+import { memberMatches } from '../shared/member-search.js';
 import { teamTaskView } from '../shared/team-task-view.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { knowledgeHub } from '../ui/knowledge-hub.js';
@@ -12,7 +13,7 @@ import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
-import { t as tr, uiCount } from '../core/i18n.js';
+import { isRussian, t as tr, uiCount } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 
 const teamDescription = value => (!value || value === 'No description yet.' ? tr('No description yet.') : value);
@@ -32,14 +33,14 @@ const memberRoleControl = (m, isAdmin) =>
 
 function mobileMembers(members, isAdmin, activity) {
   if (!members.length) return `<div class="only-m">${empty('search-x', 'No results found', 'No members match that search.', '', 'sm')}</div>`;
-  return `<div class="only-m member-mobile-list">${members.map(m => `<article class="panel member-mobile-card" aria-labelledby="member-card-name-${esc(m.id)}"><div class="member-mobile-heading"><button class="member-mobile-open" aria-labelledby="member-card-name-${esc(m.id)}" data-a="go" data-r="member" data-id="${esc(m.id)}">${av(m.id, 'md', false, true)}<span><b id="member-card-name-${esc(m.id)}" translate="no">${esc(m.name)}</b>${m.id === D().me ? '<span class="faint">(you)</span>' : ''}<small translate="no">${esc(m.email)}</small></span></button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${esc(m.id)}" aria-label="${actionLabel('Member options', m.name, m.email)}" title="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 15)}</button></div><div class="member-mobile-meta">${memberRoleControl(m, isAdmin)}${memberAccessBadge(m)}</div><div class="row muted">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div><details class="member-mobile-details"><summary>Details</summary><dl><div><dt>Active projects</dt><dd>${visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length}</dd></div><div><dt>Open tasks</dt><dd>${allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length}</dd></div><div><dt>Recorded activity</dt><dd>${recordedMemberLabel(m, activity)}</dd></div></dl></details></article>`).join('')}</div>`;
+  return `<div class="only-m member-mobile-list">${members.map(m => `<article class="panel member-mobile-card" aria-labelledby="member-card-name-${esc(m.id)}"><div class="member-mobile-heading"><button class="member-mobile-open" aria-labelledby="member-card-name-${esc(m.id)}" data-a="go" data-r="member" data-id="${esc(m.id)}">${av(m.id, 'md', false, true)}<span><b id="member-card-name-${esc(m.id)}" translate="no">${esc(m.name)}</b>${m.id === D().me ? '<span class="faint">(you)</span>' : ''}${m.title ? `<small class="member-job-title" translate="no">${esc(m.title)}</small>` : ''}<small translate="no">${esc(m.email)}</small></span></button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${esc(m.id)}" aria-label="${actionLabel('Member options', m.name, m.email)}" title="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 15)}</button></div><div class="member-mobile-meta">${memberRoleControl(m, isAdmin)}${memberAccessBadge(m)}</div><div class="row muted">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div><details class="member-mobile-details"><summary>Details</summary><dl><div><dt>Active projects</dt><dd>${visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length}</dd></div><div><dt>Open tasks</dt><dd>${allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length}</dd></div><div><dt>Recorded activity</dt><dd>${recordedMemberLabel(m, activity)}</dd></div></dl></details></article>`).join('')}</div>`;
 }
 
 export function pageMembers() {
   const u = S.ui;
   const q = (u.memQ || '').toLowerCase();
   const role = u.memRole || 'all';
-  const ms = D().members.filter(m => (role === 'all' || m.role === role) && (!q || m.name.toLowerCase().includes(q) || m.email.includes(q)));
+  const ms = D().members.filter(m => (role === 'all' || m.role === role) && memberMatches(m, q, team(m.team)?.name || TM[m.team]?.name));
   const isAdmin = S.ui.currentUser?.role === 'admin';
   const tab = ['members', 'teams', 'roles'].includes(u.membersTab) ? u.membersTab : 'members';
   const activity = recordedActivityIndex(D(), visibleProjects().filter(canSee)).members;
@@ -61,7 +62,7 @@ export function pageMembers() {
         : tab === 'roles'
           ? permsTable()
           : `
-    <div class="member-filter-toolbar"><div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="mem-q" data-in="memQ" placeholder="Search by name or email" value="${esc(u.memQ || '')}" aria-label="Search members"></div>
+    <div class="member-filter-toolbar"><div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="mem-q" data-in="memQ" placeholder="${isRussian() ? 'Имя, почта, должность или команда' : 'Name, email, job title or team'}" value="${esc(u.memQ || '')}" aria-label="Search members"></div>
       <label class="member-role-filter"><span class="sr">Filter by role</span><select class="select" data-in="memberRoleFilter" aria-label="Filter by role">${['all', ...ROLES].map(r => `<option value="${r}" ${role === r ? 'selected' : ''}>${r === 'all' ? 'All roles' : r}</option>`).join('')}</select></label><span class="hint num" role="status">${ms.length} / ${D().members.length}</span>${q || role !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="clearMemberFilters">Clear filters</button>' : ''}</div>
     ${mobileMembers(ms, isAdmin, activity)}<div class="panel hide-m" style="overflow-x:auto">${
       ms.length
@@ -70,7 +71,7 @@ export function pageMembers() {
       .map(m => {
         const ap = visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length;
         const ot = allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length;
-        return `<tr data-ctx="member" data-id="${m.id}"><td style="padding-left:14px"><button class="row" data-a="go" data-r="member" data-id="${m.id}" style="gap:10px;text-align:left">${av(m.id, 'md', false, true)}<span class="col"><b style="font-weight:500"><span translate="no">${esc(m.name)}</span>${m.id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</b><span class="faint" style="font-size:12px" translate="no">${esc(m.email)}</span></span></button></td>
+        return `<tr data-ctx="member" data-id="${m.id}"><td style="padding-left:14px"><button class="row" data-a="go" data-r="member" data-id="${m.id}" style="gap:10px;text-align:left">${av(m.id, 'md', false, true)}<span class="col"><b style="font-weight:500"><span translate="no">${esc(m.name)}</span>${m.id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</b>${m.title ? `<span class="member-job-title faint" translate="no">${esc(m.title)}</span>` : ''}<span class="faint" style="font-size:12px" translate="no">${esc(m.email)}</span></span></button></td>
       <td style="text-align:left">${isAdmin && m.role !== 'Owner' && m.id !== D().me ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${m.role}</span>`}</td>
       <td style="text-align:left"><span class="row">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></span></td><td class="num">${ap}</td><td class="num">${ot}</td>
       <td style="text-align:left" class="muted">${recordedMemberLabel(m, activity)}</td>
