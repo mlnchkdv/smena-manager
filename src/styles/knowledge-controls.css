@@ -81,6 +81,7 @@
 .knowledge-table-wrap.is-wide-table table {
   table-layout: auto;
   width: max(100%, calc(var(--table-columns) * 12rem));
+  max-width: none;
 }
 .knowledge-table-expanded:not(.is-wide-table) table {
   width: 100%;
