@@ -63,3 +63,22 @@ test('notification channels use recipient language, localize system statuses and
   assert.match(pushMessagePayload(notification, data).title, /На проверке/u);
   assert.equal(pushMessagePayload(notification, data).url, '/team/task/t');
 });
+test('read sign-ins collapse within their workspace while unread alerts remain explicit', () => {
+  const rows = [
+    { id: 'unread', type: 'security', read: false, workspace: 'a' },
+    { id: 'read-a', type: 'security', read: true, workspace: 'a' },
+    { id: 'work', type: 'mention', read: true },
+    { id: 'old-a', type: 'security', read: true, workspace: 'a' },
+    { id: 'read-b', type: 'security', read: true, workspace: 'b' },
+  ];
+  const before = structuredClone(rows),
+    groups = inboxEventGroups(rows);
+  assert.equal(groups[0].securityHistory, false);
+  assert.equal(groups[1].securityHistory, true);
+  assert.deepEqual(
+    groups[1].earlier.map(n => n.id),
+    ['old-a'],
+  );
+  assert.equal(groups[3].notification.id, 'read-b');
+  assert.deepEqual(rows, before);
+});

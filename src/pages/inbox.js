@@ -89,12 +89,13 @@ export function pageInbox() {
           ${
             ns.length
               ? inboxEventGroups(ns)
-                  .map(
-                    ({ notification, earlier }) =>
-                      inboxItem(notification, sel?.id === notification.id) +
-                      (earlier.length
-                        ? `<details class="inbox-system-history" ${earlier.some(n => sel?.id === n.id) ? 'open' : ''}><summary><span>Earlier system events</span> · ${earlier.length}${earlier.some(n => !n.read) ? ' · <span>Unread</span>' : ''}</summary>${earlier.map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
-                        : ''),
+                  .map(({ notification, earlier, securityHistory }) =>
+                    securityHistory
+                      ? `<details class="inbox-system-history" ${[notification, ...earlier].some(n => sel?.id === n.id) ? 'open' : ''}><summary>${isRussian() ? 'Прочитанная история входов' : 'Read sign-in history'} · ${earlier.length + 1}</summary>${[notification, ...earlier].map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
+                      : inboxItem(notification, sel?.id === notification.id) +
+                        (earlier.length
+                          ? `<details class="inbox-system-history" ${earlier.some(n => sel?.id === n.id) ? 'open' : ''}><summary><span>Earlier system events</span> · ${earlier.length}${earlier.some(n => !n.read) ? ' · <span>Unread</span>' : ''}</summary>${earlier.map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
+                          : ''),
                   )
                   .join('')
               : empty(
