@@ -878,3 +878,23 @@
   color: var(--text-3);
   font-size: var(--fs-xs);
 }
+
+@media (min-width: 641px) and (max-height: 500px) {
+  .graph-page:not(.is-focused) {
+    padding: 8px 12px;
+  }
+  .graph-page:not(.is-focused) .graph-meta {
+    margin-block: 4px;
+  }
+  .graph-page:not(.is-focused) .graph-help {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .graph-page:not(.is-focused) .graph-locator {
+    padding-block: 4px;
+  }
+}
