@@ -3,7 +3,9 @@ import { D, S } from '../core/store.js';
 const selector = '.knowledge-preview-open, .knowledge-folder-card';
 let scope, last;
 function rows() {
-  return [...document.querySelectorAll(`.knowledge-main ${selector.split(', ').join(', .knowledge-main ')}`)].filter(el => el.getClientRects().length);
+  return [...document.querySelectorAll(`.knowledge-main ${selector.split(', ').join(', .knowledge-main ')}`)].filter(
+    el => el.getClientRects().length && !el.closest('details:not([open])'),
+  );
 }
 const key = el => `${el.dataset.a}:${el.dataset.id || el.dataset.folder}`;
 export function refreshKnowledgeGridKeyboard() {
@@ -18,6 +20,14 @@ export function refreshKnowledgeGridKeyboard() {
     el.tabIndex = el === chosen ? 0 : -1;
   });
 }
+document.addEventListener(
+  'toggle',
+  event => {
+    if (event.target.matches?.('.knowledge-main details')) refreshKnowledgeGridKeyboard();
+  },
+  true,
+);
+
 document.addEventListener('focusin', event => {
   if (event.target.matches?.(selector) && event.target.closest('.knowledge-main')) last = key(event.target);
 });
