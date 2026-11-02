@@ -84,7 +84,14 @@ A.applyBookmarkBatch = el => {
     )
       return;
   } catch (error) {
-    return toast(error.message, { kind: 'err' });
+    const messages = {
+      'Permission denied': T('Permission denied', 'Недостаточно прав'),
+      'Select up to 60 bookmarks': T('Select up to 60 bookmarks', 'Выберите от 1 до 60 закладок'),
+      'Invalid operation': T('Invalid operation', 'Недопустимое действие'),
+      'Folder unavailable': T('Folder unavailable', 'Папка недоступна'),
+      'Use a tag of 1–64 characters': T('Use a tag of 1–64 characters', 'Введите тег длиной от 1 до 64 символов'),
+    };
+    return toast(messages[error.message] || T('Could not update bookmarks.', 'Не удалось изменить закладки.'), { kind: 'err' });
   }
   closeModal();
   toast(

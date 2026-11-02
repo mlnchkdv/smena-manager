@@ -35,5 +35,6 @@ test('read-only, invalid destination and oversized batches fail before changes',
       'admin',
     ),
   );
+  assert.throws(() => applyBookmarkBatch(data, ['one'], { type: 'addTag', tag: ' ' }, 'editor'));
   assert.deepEqual(data, before);
 });
