@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { activityDateExtra, activityVerbForm, activityTransitionExtra } from '../../src/shared/activity-copy.js';
+import { activityDateExtra, activityVerbForm, activityTransitionExtra, activityMoveExtra } from '../../src/shared/activity-copy.js';
 import { countLabel } from '../../src/shared/count-label.js';
 
 test('new activity date values render independently of the creation language', () => {
@@ -47,6 +47,16 @@ test('legacy status transitions translate known labels without changing arbitrar
   assert.equal(activityTransitionExtra('from Custom to To Do', 'moved', 'ru-RU'), null);
   assert.equal(activityTransitionExtra('from __proto__ to To Do', 'moved', 'ru-RU'), null);
   assert.equal(activityTransitionExtra('from Done to To Do', 'renamed', 'ru-RU'), null);
+});
+
+test('project moves retain event-time labels and legacy moves never invent a status', () => {
+  const activity = { verb: 'moved', change: { field: 'project', from: 'a', value: 'b', fromLabel: 'Old name', valueLabel: 'New name' } };
+  assert.equal(activityMoveExtra(activity, 'ru-RU'), 'из проекта «Old name» в проект «New name»');
+  assert.equal(activityMoveExtra(activity, 'en-US'), 'from project “Old name” to project “New name”');
+  assert.equal(activityMoveExtra({ verb: 'moved', extra: 'to СозвонУм' }, 'ru-RU'), 'в «СозвонУм»');
+  assert.equal(activityMoveExtra({ verb: 'moved', change: { field: 'status', from: 'done', value: 'todo' } }, 'ru-RU'), 'из «Готово» в «К выполнению»');
+  assert.equal(activityMoveExtra({ verb: 'moved', change: { field: 'status', from: 'done', value: 'todo' } }, 'en-US'), 'from Done to To Do');
+  assert.equal(activityMoveExtra({ verb: 'assigned', extra: 'to СозвонУм' }, 'ru-RU'), null);
 });
 test('shared material counts agree in Russian and English, including 21', () => {
   const counts = [0, 1, 2, 5, 21];

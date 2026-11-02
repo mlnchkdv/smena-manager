@@ -66,3 +66,26 @@ export function activityTransitionExtra(value, verb, locale = 'en-US') {
     to = Object.hasOwn(statuses, toKey) ? statuses[toKey] : null;
   return from && to ? `из «${from}» в «${to}»` : null;
 }
+
+export function activityMoveExtra(activity, locale = 'en-US') {
+  if (activity.verb !== 'moved') return null;
+  const ru = locale.startsWith('ru');
+  const change = activity.change;
+  if (change?.field === 'project' && typeof change.valueLabel === 'string') {
+    const from = typeof change.fromLabel === 'string' && change.fromLabel ? change.fromLabel : '';
+    return ru
+      ? `${from ? `из проекта «${from}» ` : ''}в проект «${change.valueLabel}»`
+      : `${from ? `from project “${from}” ` : ''}to project “${change.valueLabel}”`;
+  }
+  if (change?.field === 'status') {
+    const en = { backlog: 'Backlog', todo: 'To Do', progress: 'In Progress', review: 'Review', done: 'Done' };
+    const names = ru ? { backlog: 'Бэклог', todo: 'К выполнению', progress: 'В работе', review: 'На проверке', done: 'Готово' } : en;
+    if (Object.hasOwn(names, change.from) && Object.hasOwn(names, change.value))
+      return ru ? `из «${names[change.from]}» в «${names[change.value]}»` : `from ${names[change.from]} to ${names[change.value]}`;
+  }
+  const transition = activityTransitionExtra(activity.extra, activity.verb, locale);
+  if (transition !== null) return transition;
+  const legacyTarget = /^to (.+)$/u.exec(String(activity.extra || ''));
+  // Legacy "to X" is ambiguous. Never infer a status or project from today's names.
+  return legacyTarget ? (ru ? `в «${legacyTarget[1]}»` : `to ${legacyTarget[1]}`) : null;
+}

@@ -5,7 +5,7 @@
    ===================================================================== */
 import { S } from './store.js';
 import { countLabel } from '../shared/count-label.js';
-import { activityTransitionExtra } from '../shared/activity-copy.js';
+import { activityMoveExtra } from '../shared/activity-copy.js';
 
 export const LANGUAGES = [
   ['English (US)', 'English (US)'],
@@ -2349,15 +2349,14 @@ export function t(value) {
   return translated ? lead + translated + tail : raw;
 }
 
-export function activityExtra(value, verb) {
-  const transition = activityTransitionExtra(value, verb, isRussian() ? 'ru-RU' : 'en-US');
+export function activityExtra(value, verb, change = null) {
+  const transition = activityMoveExtra({ extra: value, verb, change }, isRussian() ? 'ru-RU' : 'en-US');
   if (transition !== null) return transition;
   if (!isRussian() || !value) return value;
   const match = String(value).match(/^to (.+)$/u);
   if (!match) return t(value);
   const rawTarget = RU[match[1]] || match[1];
   const target = rawTarget.replace(/^[“"]|[”"]$/gu, '');
-  if (verb === 'moved') return `в статус «${target}»`;
   if (verb === 'changed priority of') return `на «${target}»`;
   if (verb === 'assigned') return `исполнителю ${target}`;
   if (verb === 'renamed') return `в «${target}»`;

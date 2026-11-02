@@ -161,7 +161,7 @@ export function applyPatch(t, patch) {
         t.prevStatus = old;
         logAct('completed', t);
         fxSet({ done: t.id });
-      } else logAct('moved', t, `from ${ST[old].name} to ${ST[nv].name}`);
+      } else logAct('moved', t, `from ${ST[old].name} to ${ST[nv].name}`, { field: 'status', from: old, value: nv });
       if (nv === 'done' && t.recur && t.due) {
         const nd = nextRecurrenceDate(t.due, t.recur);
         if (D().tasks.some(item => item.recurrenceOf === t.id && item.recurrenceFromDue === t.due)) continue;
@@ -189,7 +189,7 @@ export function applyPatch(t, patch) {
     else if (k === 'project') {
       const p = proj(nv);
       t.key = nextKey(p);
-      logAct('moved', t, `to ${p.name}`);
+      logAct('moved', t, `to ${p.name}`, { field: 'project', from: old, value: nv, fromLabel: proj(old)?.name || '', valueLabel: p.name });
     } else if (k === 'labels') logAct('updated labels on', t);
     else if (k === 'title') logAct('renamed', t, `to “${nv}”`);
     else if (k === 'recur') logAct('set repeat on', t, nv ? nv.toLowerCase() : 'off');
