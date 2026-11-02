@@ -40,3 +40,29 @@ test('isolated and connected 1,000-node layouts retain distinct positions; scree
   assert.equal(nearestGraphHit(points, { x: 30, y: 20 }), 'b');
   assert.equal(nearestGraphHit(points, { x: 200, y: 10 }), null);
 });
+
+test('screen-space hit candidates preserve ambiguity at every zoom and exclude distant or invalid positions', async () => {
+  const { graphHitCandidates } = await import('../../src/shared/graph-hit.js');
+  for (const zoom of [0.2, 1, 3]) {
+    const pan = { x: 120, y: 80 };
+    const points = [
+      { id: 'a', x: pan.x, y: pan.y },
+      { id: 'b', x: pan.x + 4 * zoom, y: pan.y },
+      { id: 'far', x: pan.x + 200, y: pan.y },
+      { id: 'bad', x: NaN, y: 0 },
+    ];
+    assert.deepEqual(graphHitCandidates(points, pan), ['a', 'b']);
+    assert.deepEqual(graphHitCandidates(points, { x: 0, y: 0 }), []);
+  }
+  assert.deepEqual(graphHitCandidates([{ id: 'a', x: 0, y: 0 }], { x: NaN, y: 0 }), []);
+  assert.deepEqual(
+    graphHitCandidates(
+      [
+        { id: 'b', x: 0, y: 0 },
+        { id: 'a', x: 0, y: 0 },
+      ],
+      { x: 0, y: 0 },
+    ),
+    ['a', 'b'],
+  );
+});

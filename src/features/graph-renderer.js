@@ -1,4 +1,5 @@
-import { nearestGraphHit } from '../shared/graph-hit.js';
+import { graphHitCandidates } from '../shared/graph-hit.js';
+import { chooseGraphHit } from './graph-actions.js';
 import { D, S } from '../core/store.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
 import { activeDiagramView, diagramScope, registerGraphLayoutReader } from '../core/diagram-view-state.js';
@@ -372,20 +373,24 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     instance.on('free', 'node', () => {
       if (physics) simulate(false);
     });
-    instance.on('tap', 'node', event => onSelect(event.target.id()));
     instance.on('mousedown touchstart scrollzoom', () => {
       manualCamera = true;
     });
-    if (simple)
-      instance.on('tap', event => {
-        if (event.target !== cy || !event.renderedPosition) return;
-        const id = nearestGraphHit(
-          cy.nodes().map(node => ({ id: node.id(), ...node.renderedPosition() })),
-          event.renderedPosition,
-          matchMedia('(pointer: coarse)').matches ? 22 : 12,
-        );
-        if (id) onSelect(id);
-      });
+    instance.on('tap', event => {
+      const touch = event.originalEvent?.pointerType === 'touch' || event.originalEvent?.type?.startsWith('touch') || matchMedia('(pointer: coarse)').matches;
+      if (!touch && !simple) {
+        if (event.target !== cy && event.target.isNode?.()) onSelect(event.target.id());
+        return;
+      }
+      if (!event.renderedPosition) return;
+      const ids = graphHitCandidates(
+        cy.nodes().map(node => ({ id: node.id(), ...node.renderedPosition() })),
+        event.renderedPosition,
+        touch ? 22 : 12,
+      );
+      if (ids.length === 1) onSelect(ids[0]);
+      else if (ids.length > 1) chooseGraphHit(ids.map(id => graph.nodes.find(node => node.key === id)).filter(Boolean), onSelect);
+    });
     instance.on('mouseover', 'node', event => {
       container.style.cursor = 'pointer';
       if (simple) event.target.addClass('simple-hover');

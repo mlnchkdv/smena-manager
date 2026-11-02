@@ -861,3 +861,20 @@
     font-size: var(--fs-xs);
   }
 }
+
+.graph-hit-choices {
+  display: grid;
+  gap: 8px;
+}
+.graph-hit-choices > button {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  min-height: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.graph-hit-choices small {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}

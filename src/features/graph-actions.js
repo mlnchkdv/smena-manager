@@ -1,4 +1,8 @@
 import { openModal, closeModal } from '../overlays/modals.js';
+import { esc } from '../core/utils.js';
+import { graphListContext } from '../shared/graph-list-context.js';
+import { ENTITY_LABELS } from '../ui/relations.js';
+import { t } from '../core/i18n.js';
 import { ic } from '../core/icons.js';
 import { isRussian } from '../core/i18n.js';
 import { D, S, save } from '../core/store.js';
@@ -102,4 +106,34 @@ A.graphDisplayFocus = () => {
 A.toggleGraphInspector = () => {
   S.ui.graphInspectorExpanded = !S.ui.graphInspectorExpanded;
   render();
+};
+
+const hitScope = () =>
+  JSON.stringify([
+    S.ui.currentUser?.id,
+    D().ws.id || D().ws.url,
+    S.ui.route,
+    S.ui.graphCenter,
+    S.ui.graphQuery,
+    S.ui.graphKind,
+    S.ui.graphProject,
+    S.ui.graphArchive,
+  ]);
+export function chooseGraphHit(nodes, onSelect) {
+  const scope = hitScope();
+  openModal({
+    type: 'knowledgeTool',
+    graphHits: nodes,
+    graphHitScope: scope,
+    graphHitSelect: onSelect,
+    render: (m, H) =>
+      `${H(isRussian() ? 'Выбрать материал' : 'Choose material')}<div class="modal-b graph-hit-choices">${scope === hitScope() ? m.graphHits.map(node => `<button class="btn btn-secondary" data-a="chooseNearbyGraphNode" data-key="${esc(node.key)}"><span translate="no">${esc(node.title)}</span><small translate="no">${esc(graphListContext(node, t(ENTITY_LABELS[node.kind]), t('No folder')) || t(ENTITY_LABELS[node.kind]))}</small></button>`).join('') : `<p>${t('Material unavailable')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${t('Cancel')}</button></div>`,
+  });
+}
+A.chooseNearbyGraphNode = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.graphHitScope !== hitScope() || !m.graphHits?.some(node => node.key === el.dataset.key)) return;
+  const select = m.graphHitSelect;
+  closeModal();
+  select(el.dataset.key);
 };
