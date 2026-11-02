@@ -1,7 +1,16 @@
 import { trashLocation } from '../shared/trash-recovery.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
-import { t } from '../core/i18n.js';
+import { t, isRussian } from '../core/i18n.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+const archiveCategories = ['overview', 'tasks', 'projects', 'trash'];
+A.archiveCategory = el => {
+  if (!archiveCategories.includes(el.dataset.category)) return;
+  writeLayoutPreference('archive-category', el.dataset.category);
+  render();
+};
 /* ---------- archive ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -11,7 +20,8 @@ import { empty, pIcon, stIcon } from '../ui/helpers.js';
 import { actionLabel } from '../ui/action-label.js';
 
 export function pageArchive() {
-  const tab = S.ui.archTab || 'tasks';
+  const stored = readLayoutPreference('archive-category', 'overview');
+  const tab = archiveCategories.includes(stored) ? stored : 'overview';
   const ts = D()
     .tasks.filter(t => t.archived && canSee(proj(t.project)) && !proj(t.project)?.archived)
     .sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
@@ -33,41 +43,50 @@ export function pageArchive() {
   const row = (lead, title, sub, when, restoreAct, delAct, id) =>
     `<article class="mini" style="min-height:52px;cursor:default;gap:12px" aria-label="${esc(title)}">${lead}<div class="grow" style="min-width:0"><div class="trunc" style="font-weight:500" translate="no">${esc(title)}</div><div class="faint trunc" style="font-size:12px">${sub}</div></div><span class="faint hide-m" style="font-size:12px;white-space:nowrap">${when}</span><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${esc(id)}" aria-label="${actionLabel('Restore', title, id)}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${esc(id)}" data-tip="Delete permanently" aria-label="${actionLabel('Delete permanently', title, id)}" style="color:var(--red)">${ic('trash-2', 15)}</button></article>`;
   const trashNames = { task: 'Task', project: 'Project', note: 'Note', bookmark: 'Bookmark', file: 'File' };
+  const categories = [
+    ['tasks', 'Tasks', ts.length],
+    ['projects', 'Projects', ps.length],
+    ['trash', 'Trash', trash.length],
+  ];
+  const overview = `<section class="panel" style="padding:16px"><h2>${isRussian() ? 'Всего материалов' : 'Total items'}: ${ts.length + ps.length + trash.length}</h2><p>${isRussian() ? 'Архив и корзина хранятся отдельно. Выберите раздел для просмотра и восстановления.' : 'Archived work and trash are separate. Choose a category to review and restore items.'}</p><div class="archive-category-grid">${categories.map(([key, label, count]) => `<button class="btn btn-secondary" data-a="archiveCategory" data-category="${key}"><span>${t(label)}</span><strong class="num">${count}</strong></button>`).join('')}</div></section>`;
   const body =
-    tab === 'trash'
-      ? page.total
-        ? `<div class="panel" style="overflow:hidden">${page.items.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${esc(trashLocation(item, D()) || t('No folder'))}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
-        : `<div class="panel">${empty('trash-2', trash.length ? 'No matching items' : 'Trash is empty', trash.length ? 'Change the search or filters.' : 'Deleted tasks, projects, notes, bookmarks, and files will appear here.', '')}</div>`
-      : tab === 'tasks'
-        ? ts.length
-          ? `<div class="panel" style="overflow:hidden">${ts
-              .map(t => {
-                const p = proj(t.project);
-                return row(
-                  stIcon(t.status, 15),
-                  t.title,
-                  `<span class="mono">${t.key}</span> · ${esc(p.name)}`,
-                  t.archivedAt ? 'Archived ' + ago(t.archivedAt) : 'Archived',
-                  'restoreTask',
-                  'purgeTask',
-                  t.id,
-                );
-              })
-              .join('')}</div>`
-          : `<div class="panel">${empty('archive', 'No archived tasks', 'Archive finished or abandoned tasks to keep boards focused. They wait here until you restore them.', '')}</div>`
-        : ps.length
-          ? `<div class="panel" style="overflow:hidden">${ps.map(p => row(pIcon(p, '', 14), p.name, `${D().tasks.filter(t => t.project === p.id).length} tasks · ${PSTAT[p.status].name}`, p.archivedAt ? 'Archived ' + ago(p.archivedAt) : 'Archived', 'restoreProject', 'delProject', p.id)).join('')}</div>`
-          : `<div class="panel">${empty('archive', 'No archived projects', 'Archived projects disappear from the sidebar and project lists but keep every task, file, and comment.', '')}</div>`;
+    tab === 'overview'
+      ? overview
+      : tab === 'trash'
+        ? page.total
+          ? `<div class="panel" style="overflow:hidden">${page.items.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${esc(trashLocation(item, D()) || t('No folder'))}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
+          : `<div class="panel">${empty('trash-2', trash.length ? 'No matching items' : 'Trash is empty', trash.length ? 'Change the search or filters.' : 'Deleted tasks, projects, notes, bookmarks, and files will appear here.', '')}</div>`
+        : tab === 'tasks'
+          ? ts.length
+            ? `<div class="panel" style="overflow:hidden">${ts
+                .map(t => {
+                  const p = proj(t.project);
+                  return row(
+                    stIcon(t.status, 15),
+                    t.title,
+                    `<span class="mono">${t.key}</span> · ${esc(p.name)}`,
+                    t.archivedAt ? 'Archived ' + ago(t.archivedAt) : 'Archived',
+                    'restoreTask',
+                    'purgeTask',
+                    t.id,
+                  );
+                })
+                .join('')}</div>`
+            : `<div class="panel">${empty('archive', 'No archived tasks', 'Archive finished or abandoned tasks to keep boards focused. They wait here until you restore them.', '')}</div>`
+          : ps.length
+            ? `<div class="panel" style="overflow:hidden">${ps.map(p => row(pIcon(p, '', 14), p.name, `${D().tasks.filter(t => t.project === p.id).length} tasks · ${PSTAT[p.status].name}`, p.archivedAt ? 'Archived ' + ago(p.archivedAt) : 'Archived', 'restoreProject', 'delProject', p.id)).join('')}</div>`
+            : `<div class="panel">${empty('archive', 'No archived projects', 'Archived projects disappear from the sidebar and project lists but keep every task, file, and comment.', '')}</div>`;
   return `<div class="page" style="max-width:900px">
     <div class="ph"><div><h1>Archive</h1><p>Archived work is hidden everywhere else. Restore it any time, or delete it for good.</p></div></div>
     <div class="tabs" style="margin-bottom:14px" role="tablist" aria-label="Archive">${[
+      ['overview', 'Overview', ts.length + ps.length + trash.length],
       ['tasks', 'Tasks', ts.length],
       ['projects', 'Projects', ps.length],
       ['trash', 'Trash', trash.length],
     ]
       .map(
         ([k, n, c]) =>
-          `<button role="tab" aria-selected="${tab === k}" class="tab ${tab === k ? 'on' : ''}" data-a="set" data-k="archTab" data-v="${k}">${n}<span class="cnt">${c}</span></button>`,
+          `<button role="tab" aria-selected="${tab === k}" class="tab ${tab === k ? 'on' : ''}" data-a="archiveCategory" data-category="${k}">${n}<span class="cnt">${c}</span></button>`,
       )
       .join('')}</div>
     ${tab === 'trash' ? filters : ''}${body}${tab === 'trash' ? paginationHtml(page, pageKey) : ''}

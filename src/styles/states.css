@@ -142,3 +142,15 @@
     border-radius: var(--r-sm);
   }
 }
+
+.archive-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.archive-category-grid > button {
+  justify-content: space-between;
+  min-height: 44px;
+  white-space: normal;
+}
