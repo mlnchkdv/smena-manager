@@ -248,8 +248,10 @@ export function crumbs() {
   const u = S.ui,
     r = u.route,
     out = [];
-  const c = (label, act = '', cur = false, icon = '', userText = false) =>
-    `<button class="${cur ? 'cur' : ''}" ${userText ? 'translate="no"' : ''} ${act}>${icon}${esc(label)}</button>`;
+  const c = (label, act = '', cur = false, icon = '', userText = false) => {
+    const tag = act ? 'button' : 'span';
+    return `<${tag} class="${cur ? 'cur' : ''}" ${cur ? 'aria-current="page"' : ''} ${userText ? 'translate="no"' : ''} ${act}>${icon}${esc(label)}</${tag}>`;
+  };
   if (r === 'project') {
     const p = proj(u.params.id);
     out.push(c('Projects', 'data-a="go" data-r="projects"'));
