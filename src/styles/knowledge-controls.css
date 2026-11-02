@@ -516,6 +516,9 @@
 }
 /* Short screens need catalog content before secondary context and prose. */
 @media (min-width: 641px) and (max-height: 500px) {
+  .knowledge-main {
+    padding-block: 8px;
+  }
   .knowledge-content {
     padding-block: 8px;
   }
