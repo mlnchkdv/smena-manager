@@ -1,3 +1,7 @@
+import { activityMatcher } from '../shared/activity-view.js';
+import { calendarDate } from '../shared/calendar-time.js';
+import { isRussian } from '../core/i18n.js';
+const T = (en, ru) => (isRussian() ? ru : en);
 /* ---------- ACTIVITY ---------- */
 import { collectionView, collectionPage, saveCollectionView, resetCollectionView } from '../core/collection-view-state.js';
 import { dayBucket, esc } from '../core/utils.js';
@@ -19,7 +23,23 @@ A.resetActivityDates = () => {
   S.ui.actTo = '';
   render();
 };
-const activityDefaults = { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '' };
+IN.actQuery = el => {
+  S.ui.actQuery = el.value.slice(0, 500);
+  render();
+};
+IN.actProject = el => {
+  S.ui.actProject = el.value;
+  render();
+};
+A.activityPeriod = el => {
+  const today = calendarDate(new Date(), S.prefs.tz),
+    start = new Date(today + 'T00:00:00Z');
+  start.setUTCDate(start.getUTCDate() - Math.max(0, Number(el.dataset.days) - 1));
+  S.ui.actFrom = start.toISOString().slice(0, 10);
+  S.ui.actTo = today;
+  render();
+};
+const activityDefaults = { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '', actQuery: '', actProject: 'all' };
 A.resetActivityFilters = () => {
   resetCollectionView(collectionView('activity', activityDefaults));
   render();
@@ -29,7 +49,13 @@ export function pageActivity() {
   const viewState = collectionView('activity', activityDefaults);
   const f = S.ui.actFilter || 'all';
   const who = S.ui.actWho || 'all';
-  const available = D().activity.filter(a => !a.project || canSee(proj(a.project)));
+  const tasks = new Map((D().tasks || []).map(t => [t.id, t]));
+  const available = D().activity.filter(a => {
+    const id = a.project || tasks.get(a.task)?.project;
+    return !id || canSee(proj(id));
+  });
+  const query = S.ui.actQuery || '',
+    project = S.ui.actProject || 'all';
   let as = available;
   if (f !== 'all')
     as = as.filter(a =>
@@ -44,10 +70,8 @@ export function pageActivity() {
   if (who !== 'all') as = as.filter(a => a.by === who);
   const from = S.ui.actFrom || '',
     to = S.ui.actTo || '';
-  const start = from ? new Date(from + 'T00:00:00').getTime() : -Infinity;
-  const end = to ? new Date(to + 'T23:59:59.999').getTime() : Infinity;
-  as = as.filter(a => Number(new Date(a.at)) >= start && Number(new Date(a.at)) <= end).sort((a, b) => Number(new Date(b.at)) - Number(new Date(a.at)));
-  const key = JSON.stringify(['activity', D().ws.id || D().ws.url, D().me, f, who, from, to]);
+  as = as.filter(activityMatcher(D(), { query, project, from, to, zone: S.prefs.tz })).sort((a, b) => Number(new Date(b.at)) - Number(new Date(a.at)));
+  const key = JSON.stringify(['activity', D().ws.id || D().ws.url, D().me, f, who, from, to, query, project]);
   const page = listWindow(as, collectionPage(viewState, key), 50);
   saveCollectionView(viewState, page.page);
   const b = {};
@@ -65,17 +89,22 @@ export function pageActivity() {
         ['projects', 'Projects'],
       ],
     })}
-    <select class="select" style="height:26px;width:auto;font-size:12px" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
+    <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Object or project', 'Объект или проект')}" value="${esc(query)}"><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All projects', 'Все проекты')}</option>${D()
+      .projects.filter(canSee)
+      .map(p => `<option value="${esc(p.id)}" ${project === p.id ? 'selected' : ''} translate="no">${esc(p.name)}</option>`)
+      .join(
+        '',
+      )}</select><select class="select" style="height:26px;width:auto;font-size:12px" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join(
         '',
-      )}</select></div><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"><label class="field"><span>From date</span><input type="date" class="input" data-in="actFrom" value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input type="date" class="input" data-in="actTo" value="${esc(to)}" min="${esc(from)}"></label>${from || to ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button>' : ''}</div><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button><p class="hint" role="status"><span>Results</span>: ${page.total}</p>
+      )}</select></div><details class="activity-date-options"><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-secondary btn-sm" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button><label class="field"><span>From date</span><input type="date" class="input" data-in="actFrom" value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input type="date" class="input" data-in="actTo" value="${esc(to)}" min="${esc(from)}"></label>${from || to ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button>' : ''}</div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button><p class="hint" role="status"><span>Results</span>: ${page.total}</p>
     ${
       as.length
         ? Object.entries(b)
             .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${list.map(a => actHtml(a, { proj: true })).join('')}</div>`)
             .join('')
-        : available.length && (f !== 'all' || who !== 'all' || from || to)
+        : available.length && (f !== 'all' || who !== 'all' || from || to || query || project !== 'all')
           ? empty(
               'search',
               'No matching activity.',
