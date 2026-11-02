@@ -520,9 +520,7 @@ A.newKnowledgeNote = el => {
       extracted_skills: [],
       tags: [],
       wikilinks: [],
-      formatted_markdown: isRussian()
-        ? '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.'
-        : '# New note\n\nAdd team knowledge, guidelines, or working agreements here.',
+      formatted_markdown: '',
       folderId:
         S.ui.knowledgeFolder &&
         !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) &&
