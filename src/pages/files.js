@@ -1,3 +1,4 @@
+import { materialLocationLabel } from '../shared/material-location-label.js';
 import { materialFavorite } from '../ui/material-favorite.js';
 import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
@@ -66,7 +67,7 @@ function fileContext(file) {
 function textFileLocation(file, linkedTask) {
   const project = proj(file.project);
   const path = [project?.name, ...fileFolderPath(project, file.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
-  return `<details class="ui-menu workspace-file-location" ${disclosureAttributes(`file-location:${file.id}`)}><summary aria-label="${esc(tr('Show full path'))}: ${esc(path)}" title="${esc(path)}">${ic('folder', 13)}<span class="trunc" translate="no">${esc(path || tr('No folder'))}</span>${ic('chevron-down', 12)}</summary><div><p translate="no">${esc(path)}</p>${projectChip(file)}${folderChip(file)}${linkedTask ? `<button class="btn btn-ghost" data-a="openTask" data-id="${esc(linkedTask.id)}">${ic('link', 13)}${esc(linkedTask.key)}</button>` : ''}</div></details>`;
+  return `<details class="ui-menu workspace-file-location" ${disclosureAttributes(`file-location:${file.id}`)}><summary aria-label="${esc(tr('Show full path'))}: ${esc(path)}" title="${esc(path)}">${ic('folder', 13)}<span class="trunc" translate="no">${esc(materialLocationLabel(path) || tr('No folder'))}</span>${ic('chevron-down', 12)}</summary><div><p translate="no">${esc(path)}</p>${projectChip(file)}${folderChip(file)}${linkedTask ? `<button class="btn btn-ghost" data-a="openTask" data-id="${esc(linkedTask.id)}">${ic('link', 13)}${esc(linkedTask.key)}</button>` : ''}</div></details>`;
 }
 
 function fileCard(file) {
