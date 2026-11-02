@@ -63,16 +63,16 @@ export function pageSearch() {
       : '';
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
-      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div>${k === 'files' && demandFiles ? '<p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
+      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div><div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
     <h1 class="search-page-title">Search</h1>
-    ${q && demandFiles && ['all', 'files'].includes(cat) ? `<section class="search-file-continuation panel" aria-label="Files"><p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Search file catalog</button></section>` : ''}
     ${q ? `<p class="hint search-result-status" role="status">${esc(uiCount(visibleTotal, 'result'))}${demandFiles && ['all', 'files'].includes(cat) ? ' · ' + fileScopePending : ''}</p>` : ''}
     <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" data-key-enter="rememberSearch" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
     <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${categoryCount(k)}</span></button>`).join('')}</div>
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${categoryCount(k)}</option>`).join('')}</select></div>
-    ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content">${demandFiles ? '<button class="btn btn-ghost btn-sm" data-a="searchAllFileResults">Show all files</button>' : ''}<button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
+    ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content"><button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
+    ${q && demandFiles && ['all', 'files'].includes(cat) ? `<section class="search-file-continuation panel" aria-label="Files"><p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Search file catalog</button></section>` : ''}
     ${q && ['all', 'whiteboards'].includes(cat) && r.whiteboardStatus ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? (r.whiteboardStatus === 'error' ? 'Поиск в содержимом холстов недоступен.' : 'Поиск в содержимом холстов…') : r.whiteboardStatus === 'error' ? 'Whiteboard content search is unavailable.' : 'Searching whiteboard content…'}${r.whiteboardStatus === 'error' ? `<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">${t('Try again')}</button>` : ''}</p>` : ''}
     ${
       !q
@@ -179,7 +179,7 @@ export function pageSearch() {
             )
           : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
             ? ''
-            : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'Use Files to search the complete file catalog.' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+            : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }
