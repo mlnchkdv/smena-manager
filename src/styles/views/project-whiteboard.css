@@ -574,3 +574,19 @@
 .project-whiteboard:not(.is-focused) .whiteboard-selection {
   bottom: var(--bottom-nav-height, 0px);
 }
+
+.whiteboard-card-choice[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.whiteboard-card-choice > span {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.whiteboard-card-choice > strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
