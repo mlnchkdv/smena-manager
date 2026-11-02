@@ -1,20 +1,16 @@
 import { blockEditor } from './knowledge-block-editor.js';
 import { sourceOutline } from './knowledge-source-outline.js';
 import '../features/knowledge-capture.js';
-import { noteAliases } from './knowledge-tags.js';
 import { knowledgeContext } from './knowledge-context.js';
 import '../features/knowledge-inline.js';
-import { noteTypeFields, kc } from './knowledge-types.js';
+import { kc } from './knowledge-types.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, mem } from '../core/store.js';
 import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 import { S } from '../core/store.js';
 import { knowledgeHistory } from './knowledge-history.js';
-import { folderTrail } from '../shared/knowledge-tools.js';
-import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { knowledgeLivePreview } from './knowledge-live-preview.js';
-import { KNOWLEDGE_CATEGORIES, knowledgeCategoryLabel } from './knowledge-category.js';
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
@@ -80,8 +76,6 @@ export function noteEditor(note, folders, readOnly) {
   const showPreview = S.ui.knowledgeEditorPreview || pane === 'preview';
   const conflict = knowledgeEditBlocked();
   const disabled = readOnly || conflict ? 'disabled' : '';
-  const categories = [...new Set([...KNOWLEDGE_CATEGORIES, note.category].filter(Boolean))];
-  const folderIndex = new Map(folders.map(folder => [folder.id, folder]));
   return `<section class="knowledge-editor${S.ui.knowledgeFormatExpanded ? ' formatting-expanded' : ''}${S.ui.knowledgeEditorFocus ? ' is-focused' : ''}" data-pane="${pane}" aria-label="Note editor">
     <div class="knowledge-editor-head">
       <div class="knowledge-heading-title">
@@ -111,22 +105,7 @@ export function noteEditor(note, folders, readOnly) {
         '',
       )}<button class="ibtn" data-a="attachKnowledgeMedia" aria-label="${kc('Insert file or image', 'Вставить файл или изображение')}" ${disabled}>${ic('paperclip', 15)}</button><button class="ibtn" data-a="insertKnowledgeMaterial" aria-label="${kc('Link material', 'Связать материал')}" title="[[" ${disabled}>${ic('at-sign', 15)}</button><span class="sp"></span><button class="btn btn-ghost btn-sm knowledge-desktop-preview" data-a="toggleKnowledgeEditorPreview" aria-pressed="${!!showPreview}">Preview alongside</button></div>
     ${pane === 'blocks' ? blockEditor(note, disabled) : ''}<div ${pane === 'blocks' ? 'hidden' : ''} class="knowledge-writing${showPreview ? ' with-preview' : ''}"><div class="field knowledge-body-field"><label class="sr" for="knowledge-body">Content</label><textarea class="textarea knowledge-body" id="knowledge-body" wrap="${readLayoutPreference('knowledge-line-wrap', true) ? 'soft' : 'off'}" data-keep="knowledge-source:${note.id}" data-in="knowledgeField" data-id="${note.id}" data-field="formatted_markdown" placeholder="Write the note in Markdown. Use [[Note name]] to link related material." ${disabled}>${esc(note.formatted_markdown || '')}</textarea></div>${showPreview ? `<div class="knowledge-live-preview">${knowledgeLivePreview(note)}</div>` : ''}</div><span class="hint">Markdown and [[wiki links]] are stored as plain text and remain portable.</span>
-    <details class="knowledge-properties" ${knowledgeDisclosure(note.id, 'properties')}><summary>Note properties</summary><div class="knowledge-properties-body">${noteTypeFields(note, readOnly)}<div class="knowledge-fields">
-      <div class="field"><label class="label" for="knowledge-category">Category</label><select class="select" id="knowledge-category" data-in="knowledgeField" data-id="${note.id}" data-field="category" ${disabled}>${categories.map(value => `<option value="${esc(value)}" ${note.category === value ? 'selected' : ''} translate="no">${esc(knowledgeCategoryLabel(value))}</option>`).join('')}</select></div>
-      <div class="field"><label class="label" for="knowledge-folder">Folder</label><select class="select" id="knowledge-folder" data-in="knowledgeField" data-id="${note.id}" data-field="folderId" ${disabled}><option value="">No folder</option>${folders
-        .map(
-          folder =>
-            `<option value="${folder.id}" ${note.folderId === folder.id ? 'selected' : ''} translate="no">${esc(
-              folderTrail(folder.id, folderIndex)
-                .map(item => item.name)
-                .join(' / '),
-            )}</option>`,
-        )
-        .join('')}</select></div>
-    </div>
-    ${noteAliases(note, disabled)}<div class="knowledge-fields knowledge-fields-secondary"><div class="field"><label class="label" for="knowledge-summary">Summary</label><input class="input" id="knowledge-summary" value="${esc(note.summary || '')}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="summary" placeholder="A short description of the note" ${disabled}></div>
-    <div class="field"><label class="label" for="knowledge-tags">Tags</label><input class="input" id="knowledge-tags" value="${esc((note.tags || []).join(', '))}" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="tags" placeholder="process, onboarding, team" ${disabled}><span class="hint">Separate tags with commas.</span></div></div>
-    </div></details>
+    <button class="btn btn-ghost" data-a="openNoteProperties" data-id="${esc(note.id)}">${ic('sliders-horizontal', 15)}Note properties</button>
     ${knowledgeContext(note)}${knowledgeHistory(note, readOnly || conflict)}
   </section>`;
 }

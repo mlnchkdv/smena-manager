@@ -1,3 +1,5 @@
+import { noteMetadataFields } from './knowledge-note-fields.js';
+import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
 import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { updateKnowledgeSaveStatus } from './knowledge-save-status.js';
 import { A, IN } from '../actions/actions.js';
@@ -50,12 +52,16 @@ const editable = () => S.ui.currentUser?.role !== 'viewer' && !knowledgeEditBloc
 A.openNoteProperties = el => {
   const id = el.dataset.id || S.ui.knowledgeDrawer;
   if (!D().knowledgeNotes.some(n => n.id === id)) return;
+  const editing = !!document.querySelector('#knowledge-body');
+  const pane = S.ui.knowledgeEditorPane || 'source';
+  captureKnowledgeEditorPosition();
   const scroll = document.querySelector('.knowledge-drawer-body')?.scrollTop || 0;
   const workspace = D().ws.id || D().ws.url;
   const restore = () => {
     if (S.ui.knowledgeDrawer === id && workspace === (D().ws.id || D().ws.url)) {
       const body = document.querySelector('.knowledge-drawer-body');
       if (body) body.scrollTop = scroll;
+      if (editing) restoreKnowledgeEditorPosition(pane);
     }
   };
   openModal({
@@ -67,7 +73,7 @@ A.openNoteProperties = el => {
     noteId: id,
     render: (m, H) => {
       const note = D().knowledgeNotes.find(n => n.id === m.noteId);
-      return `${H(kc('Type and properties', 'Тип и свойства'))}<div class="modal-b">${note ? noteTypeFields(note, S.ui.currentUser?.role === 'viewer', true) : `<p>${kc('Note unavailable', 'Заметка недоступна')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Close', 'Закрыть')}</button></div>`;
+      return `${H(kc('Note properties', 'Свойства заметки'))}<div class="modal-b">${note ? noteMetadataFields(note, D().knowledgeFolders || [], !editable()) + noteTypeFields(note, !editable(), true) : `<p>${kc('Note unavailable', 'Заметка недоступна')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Close', 'Закрыть')}</button></div>`;
     },
   });
 };
