@@ -125,3 +125,20 @@
   color: var(--text-2);
   margin: 0 0 12px;
 }
+@media (max-width: 640px), (pointer: coarse) {
+  .task-state-notice > span {
+    min-width: 0;
+  }
+  .task-state-notice .link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 4px 8px;
+    margin-inline: 2px;
+    max-width: 100%;
+    white-space: normal;
+    vertical-align: middle;
+    border-radius: var(--r-sm);
+  }
+}
