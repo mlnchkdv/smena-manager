@@ -183,6 +183,7 @@ export function render() {
     knowledgeDrawer: S.ui.knowledgeDrawer,
     pal: !!S.ui.palette,
     sub: !!S.ui.subOpen,
+    inbox: S.ui.route === 'inbox' ? S.ui.inboxSel : null,
   };
   // Entrances animate only on the render where the surface first appears.
   const fx = S.ui.fx || (S.ui.fx = {});
@@ -258,6 +259,13 @@ export function render() {
     if (live && !S.ui.loading) live.textContent = title.split(' · ').slice(0, -1).join(', ');
   }
   afterRender();
+  const inbox = document.querySelector('.inbox-narrow.has-selection .inbox-prev');
+  if (inbox && !S.ui.pop && !S.ui.modals.length && !S.ui.drawer && !S.ui.palette && (prevOv.inbox !== ov.inbox || !render._inboxModal)) {
+    inbox.querySelector('[data-k="inboxSel"]')?.focus({ preventScroll: true });
+  } else if (!inbox && prevOv.inbox && !ov.inbox && S.ui.route === 'inbox') {
+    document.querySelector('.notification-open[data-id="' + CSS.escape(prevOv.inbox) + '"]')?.focus({ preventScroll: true });
+  }
+  render._inboxModal = !!inbox;
   restoreGraphQueryPosition();
   selectMenu.restore(selectState);
   syncBrowserLocation();
@@ -365,17 +373,18 @@ export function afterRender() {
   }
   const shell = document.querySelector('.shell');
   if (shell) shell.inert = !!document.querySelector('.knowledge-drawer') || !!S.ui.modals.length || !!S.ui.palette || !!(S.ui.drawer && S.ui.drawerFull);
+  const inboxModal = !!document.querySelector('.inbox-narrow.has-selection');
   const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && S.ui.knowledgeFolderOverlay;
   const knowledgeMain = document.querySelector('.knowledge-main');
   if (knowledgeMain) knowledgeMain.inert = !!mobileFolders;
   document.querySelectorAll('.side,.topbar,.bottomnav').forEach(el => {
-    el.inert = !!mobileFolders;
+    el.inert = !!mobileFolders || inboxModal;
   });
   const mobileNav = innerWidth <= 900;
   const navOpen = mobileNav && S.ui.mnav;
   const side = document.querySelector('.side');
   if (side) {
-    side.inert = !!mobileFolders || (mobileNav && !navOpen);
+    side.inert = !!mobileFolders || inboxModal || (mobileNav && !navOpen);
     side.setAttribute('aria-hidden', String(side.inert));
     side.setAttribute('role', navOpen ? 'dialog' : 'navigation');
     if (navOpen) side.setAttribute('aria-modal', 'true');
@@ -390,7 +399,7 @@ export function afterRender() {
     if (bottomNav) bottomNavObserver.observe(bottomNav);
     updateBottomNavHeight();
   }
-  if (bottom) bottom.inert = !!navOpen || !!mobileFolders;
+  if (bottom) bottom.inert = !!navOpen || !!mobileFolders || inboxModal;
   if (mobileFolders) {
     const sidebar = document.querySelector('.knowledge-sidebar');
     sidebar?.setAttribute('role', 'dialog');

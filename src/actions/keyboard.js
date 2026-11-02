@@ -91,7 +91,7 @@ document.addEventListener('keydown', e => {
               : S.ui.drawer && S.ui.drawerFull
                 ? $('.drawer')
                 : !overlayAboveDiagram()
-                  ? $('.graph-page.is-focused,.project-whiteboard.is-focused')
+                  ? $('.inbox-narrow.has-selection .inbox-prev,.graph-page.is-focused,.project-whiteboard.is-focused')
                   : null;
     if (!pl && trapSurfaceTab(e, box)) return;
   }
@@ -175,6 +175,10 @@ document.addEventListener('keydown', e => {
       if (typing) t.blur();
       S.ui.lastSub = S.ui.subOpen.sid;
       A.closeSub();
+      return;
+    }
+    if (document.querySelector('.inbox-narrow.has-selection') && !S.ui.drawer) {
+      A.set({ dataset: { k: 'inboxSel', v: '' } });
       return;
     }
     if (S.ui.knowledgeDrawer) {

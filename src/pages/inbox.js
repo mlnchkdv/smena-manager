@@ -70,9 +70,10 @@ export function pageInbox() {
     });
   const sel = ns.some(n => n.id === S.ui.inboxSel) ? myNotification(S.ui.inboxSel) : null;
   const preview = readLayoutPreference('inboxPreview', true);
+  const narrow = innerWidth <= 900 || (document.querySelector('.main')?.clientWidth || innerWidth - (S.ui.collapsed ? 56 : 252)) < 760;
   return `<div class="page flush">
-    <div class="inbox-grid ${innerWidth <= 900 || (document.querySelector('.main')?.clientWidth || innerWidth - (S.ui.collapsed ? 56 : 252)) < 760 ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''} ${preview ? '' : 'preview-hidden'}">
-      <div class="inbox-feed" style="border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0">
+    <div class="inbox-grid ${narrow ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''} ${preview ? '' : 'preview-hidden'}">
+      <div class="inbox-feed" ${narrow && sel ? 'inert' : ''} style="border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0">
         <div class="inbox-heading"><h1>Inbox</h1><div class="inbox-heading-actions">
           <label class="row"><input type="checkbox" class="toggle" data-a="toggleUnreadOnly" ${S.ui.inboxUnread ? 'checked' : ''}>Unread</label>
           <button class="ibtn ibtn-sm" data-a="toggleInboxPreview" aria-label="Preview pane" title="Preview pane" aria-pressed="${preview}">${ic(preview ? 'panel-right-close' : 'panel-right-open', 15)}</button><button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div></div>
@@ -103,7 +104,7 @@ export function pageInbox() {
           }
         </div>
       </div>
-      <div class="inbox-prev">${sel ? inboxPreview(sel) : `<div class="fullstate"><div class="box"><div class="empty-state" style="padding:0"><div class="glyph">${ic('mail-open', 20)}</div><h2 class="es-h">Select a notification</h2><p>Read the conversation and reply without leaving your inbox.</p></div></div></div>`}</div>
+      <div class="inbox-prev" ${narrow && sel ? `role="dialog" aria-modal="true" aria-label="${tr('Conversation')}" tabindex="-1"` : ''}>${sel ? inboxPreview(sel) : `<div class="fullstate"><div class="box"><div class="empty-state" style="padding:0"><div class="glyph">${ic('mail-open', 20)}</div><h2 class="es-h">Select a notification</h2><p>Read the conversation and reply without leaving your inbox.</p></div></div></div>`}</div>
     </div>
   </div>`;
 }
