@@ -92,7 +92,7 @@ export function pageGraph() {
       S.prefs.motion === 'reduce' || (S.prefs.motion === 'system' && matchMedia('(prefers-reduced-motion: reduce)').matches),
       `${S.ui.currentUser?.id}:${D().ws.id || D().ws.url}`,
     );
-  const controls = `<div class="graph-controls"><button class="ibtn" data-a="graphControl" data-command="in" aria-label="Zoom in">${ic('plus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="out" aria-label="Zoom out">${ic('minus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="fit" aria-label="Fit graph">${ic('maximize', 15)}</button></div>`;
+  const controls = `<div class="graph-controls"><button class="ibtn" data-a="graphControl" data-command="in" aria-label="Zoom in">${ic('plus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="out" aria-label="Zoom out">${ic('minus', 15)}</button><button class="ibtn" data-a="graphControl" data-command="fit" aria-label="Fit graph">${ic('maximize', 15)}</button><button class="ibtn" data-a="graphControl" data-command="repack" aria-label="${isRussian() ? 'Упаковать под экран' : 'Pack for screen'}" title="${isRussian() ? 'Упаковать под экран' : 'Pack for screen'}">${ic('layout-grid', 15)}</button></div>`;
   const contexts = view.nodes.map(node =>
     [tr(ENTITY_LABELS[node.kind]), node.context || (node.kind === 'note' ? tr('No folder') : '')].filter(Boolean).join(' · '),
   );

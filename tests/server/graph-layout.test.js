@@ -66,3 +66,14 @@ test('screen-space hit candidates preserve ambiguity at every zoom and exclude d
     ['a', 'b'],
   );
 });
+test('viewport packing adapts isolated components without losing nodes at 30/200/500', () => {
+  for (const count of [30, 200, 500]) {
+    const graph = { nodes: Array.from({ length: count }, (_, i) => ({ key: `note:${i}` })), edges: [] };
+    const ratio = viewport => {
+      const points = [...graphPositions(graph, '', viewport).values()];
+      assert.equal(new Set(points.map(p => `${p.x}:${p.y}`)).size, count);
+      return (Math.max(...points.map(p => p.x)) + 150) / (Math.max(...points.map(p => p.y)) + 130);
+    };
+    assert.ok(ratio({ width: 390, height: 600 }) < ratio({ width: 844, height: 240 }));
+  }
+});

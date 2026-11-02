@@ -11,7 +11,7 @@ export const graphTopologyKey = graph =>
   JSON.stringify([graph.nodes.map(node => node.key).sort(), graph.edges.map(edge => `${edge.from}\0${edge.to}\0${edge.type || ''}`).sort()]);
 
 /** Deterministic component packing: no simulation jitter or positions saved in shared data. */
-export function graphPositions(graph, center = '') {
+export function graphPositions(graph, center = '', viewport = {}) {
   const adjacency = new Map(graph.nodes.map(node => [node.key, new Set()]));
   for (const edge of graph.edges) {
     adjacency.get(edge.from)?.add(edge.to);
@@ -52,10 +52,11 @@ export function graphPositions(graph, center = '') {
     components.push({ root, local, minX, minY, width: maxX - minX, height: maxY - minY, count: keys.length });
   }
   components.sort((a, b) => b.count - a.count || a.root.localeCompare(b.root));
+  const ratio = viewport.width > 0 && viewport.height > 0 ? Math.max(0.25, Math.min(4, viewport.width / viewport.height)) : 1.6;
   const targetWidth = Math.max(
     1,
     ...components.map(component => component.width),
-    Math.sqrt(components.reduce((sum, component) => sum + component.width * component.height, 0) * 1.6),
+    Math.sqrt(components.reduce((sum, component) => sum + component.width * component.height, 0) * ratio),
   );
   const positions = new Map();
   let x = 0,

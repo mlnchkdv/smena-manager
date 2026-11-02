@@ -20,6 +20,7 @@ let manualCamera = false;
 let resizeObserver;
 let topology = '';
 let mountGeneration = 0;
+let repackViewport;
 let runningLayout,
   physicsTimer,
   physicsEnabled = false;
@@ -62,7 +63,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const css = getComputedStyle(container);
     const signature = graphTopologyKey(graph);
     topology = signature;
-    const positions = graphPositions(graph, center);
+    const positions = graphPositions(graph, center, { width: container.clientWidth, height: container.clientHeight });
     const cfg = diagramPreferences(S.prefs.diagramViews),
       saved = activeDiagramView('graph'),
       active = saved?.context.center === center ? saved : null;
@@ -101,6 +102,15 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     );
     const neighbors = new Set(graph.edges.filter(edge => edge.from === selected || edge.to === selected).flatMap(edge => [edge.from, edge.to]));
     if (selected) neighbors.add(selected);
+    repackViewport = () => {
+      if (!instance || instance.container() !== container) return;
+      runningLayout?.stop();
+      clearTimeout(physicsTimer);
+      const packed = graphPositions(graph, center, { width: container.clientWidth, height: container.clientHeight });
+      instance.nodes().positions(node => (node.locked() ? node.position() : packed.get(node.id())));
+      instance.fit(undefined, 35);
+      manualCamera = true;
+    };
     const denseGraph = graph.nodes.length > 80 || graph.edges.length > 160;
     const elements = [
       ...graph.nodes.map(node => ({
@@ -449,6 +459,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
 }
 window.addEventListener('smena:graph-control', event => {
   if (!instance) return;
+  if (event.detail === 'repack') return repackViewport?.();
   manualCamera = event.detail !== 'fit';
   if (event.detail === 'fit') instance.fit(undefined, 35);
   else if (event.detail === 'selection') {
