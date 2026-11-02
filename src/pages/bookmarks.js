@@ -1,3 +1,4 @@
+import '../features/bookmark-batch.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
@@ -76,7 +77,7 @@ function bookmarkCard(link, folders, readOnly) {
   const importance = IMPORTANCE[link.importance] || IMPORTANCE.medium;
   const host = link.site_name || parsed.hostname.replace(/^www\./, '');
   const actionName = action => actionLabel(action, link.title || host, [folder?.name, parsed.hostname].filter(Boolean).join(' / '));
-  return `<article aria-labelledby="bookmark-title-${esc(link.id)}" class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'}">
+  return `<article aria-labelledby="bookmark-title-${esc(link.id)}" class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'} ${readOnly ? '' : 'is-selectable'}">${readOnly ? '' : `<label class="bookmark-select"><input type="checkbox" data-in="bookmarkSelect" data-id="${esc(link.id)}" aria-label="${esc(kc('Select bookmark', 'Выбрать закладку') + ': ' + (link.title || host))}" ${S.ui.bookmarkSelection?.includes(link.id) ? 'checked' : ''}></label>`}
     <div class="bookmark-card-top">
       <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
       <div class="grow min0"><a id="bookmark-title-${esc(link.id)}" class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
@@ -110,7 +111,14 @@ export function pageBookmarks() {
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const page = bookmarkView(links, { query, folder: folderFilter, scope, page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope }) });
   S.ui.listPages.bookmarks = page.page;
+  const selectionKey = JSON.stringify([D().me, D().ws.id || D().ws.url, query, folderFilter, scope, page.page]);
+  if (S.ui.bookmarkSelectionKey !== selectionKey) {
+    S.ui.bookmarkSelectionNotice = !!S.ui.bookmarkSelection?.length;
+    S.ui.bookmarkSelection = [];
+    S.ui.bookmarkSelectionKey = selectionKey;
+  }
   const filtered = page.items;
+  S.ui.bookmarkPageIds = filtered.map(item => item.id);
   const unread = links.filter(link => !link.is_archived && !link.is_read).length;
 
   return `<div class="bookmarks-page layout-catalog">
@@ -137,6 +145,8 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       'Bookmark filters',
       'bookmark-toolbar',
     )}
+    ${!readOnly && filtered.length ? `<div class="bookmark-bulk row" style="flex-wrap:wrap;gap:8px"><label class="row"><input type="checkbox" data-in="bookmarkSelectPage" ${filtered.every(item => S.ui.bookmarkSelection?.includes(item.id)) ? 'checked' : ''}>${kc('Select page', 'Выбрать страницу')}</label><span role="status">${kc('Selected: ', 'Выбрано: ')}${S.ui.bookmarkSelection?.length || 0}</span>${S.ui.bookmarkSelection?.length ? `<button class="btn btn-secondary" data-a="bookmarkBatch">${kc('Actions', 'Действия')}</button><button class="btn btn-ghost" data-a="clearBookmarkSelection">${kc('Clear selection', 'Снять выбор')}</button>` : ''}</div>` : ''}
+    ${S.ui.bookmarkSelectionNotice ? `<p class="hint" role="status">${kc('Selection cleared because the view changed.', 'Выбор снят после изменения представления.')}</p>` : ''}
     ${
       filtered.length
         ? `<p class="hint num" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</p><div class="bookmark-grid ${layout === 'list' ? 'is-list' : ''}">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`

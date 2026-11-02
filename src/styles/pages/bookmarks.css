@@ -375,3 +375,25 @@
 .bookmark-grid.is-list .bookmark-title {
   min-height: 44px;
 }
+.bookmark-card.is-selectable {
+  position: relative;
+  padding-inline-start: 52px;
+}
+.bookmark-grid.is-list .bookmark-card.is-selectable {
+  padding-inline-start: 52px;
+}
+.bookmark-select {
+  position: absolute;
+  inset: 6px auto auto 4px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+.bookmark-bulk {
+  margin-block: 8px;
+  min-height: 44px;
+}
+.bookmark-bulk > label {
+  min-height: 44px;
+}
