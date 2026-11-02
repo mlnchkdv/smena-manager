@@ -1,6 +1,6 @@
 # Smena Manager
 
-**02.11.2026 — новый UI/UX-аудит / new re-audit:** [W01–W10: две проблемы интерфейса и восемь улучшений / Two supported issues and eight usability improvements](docs/UI_UX_DEEP_REAUDIT_AFTER14_2026-11-02.md). Основной сайт проверен на RU/EN и разных размерах; исходные V01–V14 остаются реализованными. New proposal after V01–V14; application code is unchanged by this audit.
+**02.11.2026 — W01–W10 внедрены / delivered:** [10 улучшений, commits, проверки и ограничения / Ten improvements, verification and limits](docs/UI_UX_DELIVERY_2026-11-02_TEN.md). Production `38f50db` включает все пункты и исправления приёмки. RU/EN, восемь размеров в общем охвате; 621/621 tests. [Исходный аудит / Historical audit](docs/UI_UX_DEEP_REAUDIT_AFTER14_2026-11-02.md). Physical-device and screenshot-based visual acceptance remain outstanding.
 
 **02.11.2026 — V01–V14 внедрены / delivered:** [14 улучшений, commits и проверка RU/EN на восьми размерах / Fourteen improvements and verification](docs/UI_UX_DELIVERY_2026-11-02_FOURTEEN.md). Production `bbcc623` включает все пункты и два исправления приёмки. [Исходный аудит / Historical audit](docs/UI_UX_DEEP_REAUDIT_AFTER18_2026-11-01.md). Physical-device acceptance remains pending.
 

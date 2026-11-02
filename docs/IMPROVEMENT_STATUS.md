@@ -1,5 +1,7 @@
 # Improvement status / Статус улучшений
 
+**02.11.2026 — W01–W10 внедрены / delivered:** [10 изменений, commits, production и границы приёмки / Delivery and acceptance](UI_UX_DELIVERY_2026-11-02_TEN.md). Production `38f50db`; RU/EN и разные размеры, 621/621 tests. Изолированный массив: 162 заметки/33 папки. Physical-device gestures and screenshot-based visual acceptance remain outstanding.
+
 **01.11.2026 — следующий пакет V01–V14 / next package:** [Повторный глубокий аудит после Q01–Q18 / New production audit](UI_UX_DEEP_REAUDIT_AFTER18_2026-11-01.md). **План, ещё не внедрён / Planned, not implemented:** 5 подтверждённых дефектов и 9 UX-улучшений. Production `e189324`, RU/EN, восемь размеров, 897 замеров геометрии без корневого горизонтального overflow; отдельно выявлено внутреннее переполнение окна «Вид». Материалы и права команды не менялись. Previous Q01–Q18 remain delivered.
 
 **01.11.2026 — Q01–Q18 опубликованы / published:** [18 пунктов, commits и приёмка / Delivery and acceptance](UI_UX_DELIVERY_2026-11-01_EIGHTEEN.md). Production `b90ebe6` включает все 18 пунктов и все финальные исправления. После повторного входа подтверждены RU/EN cold Search-to-Files и Source-команды без изменения текста. RU/EN, обе темы, разные размеры; 611/611 server/shared tests, 168 геометрических наблюдений. Physical-device and production write/recovery acceptance remain separate.
