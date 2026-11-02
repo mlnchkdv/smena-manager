@@ -648,3 +648,23 @@
   flex-wrap: wrap;
   gap: 4px;
 }
+.team-task-scope .seg {
+  display: flex;
+  flex-wrap: wrap;
+}
+.team-task-scope .seg button {
+  white-space: normal;
+  flex: 1 1 130px;
+}
+.team-task-scope p {
+  margin: 8px 0 0;
+}
+.team-task-pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.team-task-pagination > span {
+  margin-right: auto;
+}

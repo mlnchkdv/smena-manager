@@ -17,6 +17,12 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Task scope': 'Область задач',
+  'Assigned to team': 'Назначены участникам',
+  'In team projects': 'В проектах команды',
+  'Team task pages': 'Страницы задач команды',
+  'Open tasks in this team’s visible projects, regardless of assignee.': 'Открытые задачи в доступных проектах команды, независимо от исполнителя.',
+  'Open tasks assigned to team members, across visible projects.': 'Открытые задачи участников команды во всех доступных проектах.',
   'Wide columns': 'Широкие столбцы',
   'Scroll sideways to read all columns.': 'Прокрутите по горизонтали, чтобы прочитать все столбцы.',
   'Connect this device': 'Подключить это устройство',

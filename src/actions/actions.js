@@ -311,6 +311,18 @@ A.toggleMaterialLocation = (el, event) => {
   if (details) details.open = !details.open;
 };
 A.openProject = el => go('project', { id: el.dataset.id, tab: S.prefs.defaultTab || 'board' });
+A.teamTaskScope = el => {
+  if (S.ui.route !== 'team' || !['assigned', 'projects'].includes(el.dataset.v)) return;
+  S.ui.teamTaskView = { key: (S.ui.activeWorkspace || 'default') + ':' + S.ui.params.id, scope: el.dataset.v, page: 0 };
+  render();
+};
+A.teamTaskPage = el => {
+  if (S.ui.route !== 'team') return;
+  const key = (S.ui.activeWorkspace || 'default') + ':' + S.ui.params.id;
+  const previous = S.ui.teamTaskView?.key === key ? S.ui.teamTaskView : {};
+  S.ui.teamTaskView = { ...previous, key, page: Math.max(0, Number(el.dataset.page) || 0) };
+  render();
+};
 A.set = el => {
   const k = el.dataset.k;
   let v = el.dataset.v;

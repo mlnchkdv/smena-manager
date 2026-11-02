@@ -1,3 +1,5 @@
+import { teamTaskView } from '../shared/team-task-view.js';
+import { segmentedControl } from '../ui/segmented-control.js';
 import { knowledgeHub } from '../ui/knowledge-hub.js';
 import { actionLabel } from '../ui/action-label.js';
 /* ---------- MEMBERS / PROFILE / TEAMS ---------- */
@@ -130,15 +132,31 @@ export function pageTeam() {
   if (!t) return page404();
   const ms = D().members.filter(m => m.team === t.id);
   const ps = visibleProjects().filter(p => p.team === t.id);
-  const ts = allTasks().filter(x => ms.some(m => m.id === x.assignee) && x.status !== 'done');
+  const key = (S.ui.activeWorkspace || 'default') + ':' + t.id;
+  const view = S.ui.teamTaskView?.key === key ? S.ui.teamTaskView : {};
+  const scope = view.scope === 'projects' ? 'projects' : 'assigned';
+  const ts = teamTaskView(
+    sortTasks(allTasks(), { f: 'due', dir: 1 }),
+    ms.map(m => m.id),
+    ps.filter(canSee).map(p => p.id),
+    scope,
+    view.page,
+  );
   return `<div class="page">
     <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${t.c}">${ic(t.icon, 18)}</span><div><h1 translate="no">${esc(t.name)}</h1><p style="margin:2px 0 0" translate="no">${esc(teamDescription(t.desc))}</p></div></div>${canManageTeams(S.ui.currentUser?.role) ? `<div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${t.id}">${ic('pencil', 14)}Edit team</button><button class="btn btn-secondary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
     <div class="grid2"><div class="stack">
       <section class="panel"><div class="panel-h"><h2>Projects</h2><span class="faint">${ps.length}</span></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span>${pStatus(p.status)}<span class="row" style="width:120px">${progBar(progressOf(p.id))}</span></div>`).join('') || '<div class="panel-b faint">No projects</div>'}</section>
-      <section class="panel"><div class="panel-h"><h2>Open tasks</h2><span class="faint">${ts.length}</span></div>${sortTasks(ts, { f: 'due', dir: 1 })
-        .slice(0, 8)
-        .map(x => miniRow(x))
-        .join('')}</section>
+      <section class="panel"><div class="panel-h"><h2>Open tasks</h2><span class="faint">${ts.total}</span></div><div class="panel-b team-task-scope">${segmentedControl(
+        {
+          label: tr('Task scope'),
+          action: 'teamTaskScope',
+          value: scope,
+          items: [
+            ['assigned', tr('Assigned to team')],
+            ['projects', tr('In team projects')],
+          ],
+        },
+      )}<p class="hint">${tr(scope === 'projects' ? 'Open tasks in this team’s visible projects, regardless of assignee.' : 'Open tasks assigned to team members, across visible projects.')}</p></div>${ts.rows.map(x => miniRow(x)).join('') || '<div class="panel-b faint">No tasks here</div>'}${ts.pages > 1 ? `<nav class="panel-b team-task-pagination" aria-label="${tr('Team task pages')}"><span class="hint" role="status">${ts.start}–${ts.end} / ${ts.total}</span><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page - 1}" ${ts.page === 0 ? 'disabled' : ''}>Previous</button><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page + 1}" ${ts.page + 1 === ts.pages ? 'disabled' : ''}>Next</button></nav>` : ''}</section>
     </div>
     <section class="panel" style="align-self:start"><div class="panel-h"><h2>Members</h2><span class="faint">${ms.length}</span></div>${ms.map(m => `<div class="mini" style="min-height:48px" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false, true)}<div class="grow"><div style="font-weight:500" translate="no">${esc(m.name)}</div><div class="faint" style="font-size:12px" translate="no">${esc(m.title)}</div></div><span class="badge">${m.role}</span></div>`).join('')}</section></div>
   </div>`;
