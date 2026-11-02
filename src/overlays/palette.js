@@ -17,6 +17,8 @@ import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
 import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 import { matchesLocalizedName } from '../shared/localized-search.js';
+import { knowledgeExcerpt, knowledgeSearchContext } from '../shared/knowledge-search.js';
+import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 
 export function commands() {
   return [
@@ -223,12 +225,15 @@ export function paletteItems() {
           folderTrail(note.folderId, new Map(D().knowledgeFolders.map(folder => [folder.id, folder])))
             .map(folder => folder.name)
             .join(' / ') || tr('No folder'),
-          note.summary || knowledgeCategoryLabel(note.category),
+          knowledgeSearchContext(note, q)?.label === 'Import metadata'
+            ? tr('Match in import metadata')
+            : knowledgeExcerpt(note, q, 140) || knowledgeCategoryLabel(note.category),
         ]
           .filter(Boolean)
           .join(' · '),
-        authoredSub: !!(note.summary || note.category),
-        run: () => A.goKnowledgeNote({ dataset: { id: note.id } }),
+        authoredSub: true,
+        highlightSub: true,
+        run: () => A.goKnowledgeNote({ dataset: { id: note.id, query: q } }),
       })),
     });
   if (sc === 'all' || sc === 'bookmarks')
@@ -311,7 +316,7 @@ export function paletteHtml() {
                 `<div class="pal-group">${g.name ? `<div class="pal-sec">${g.name}</div>` : ''}${g.items
                   .map(it => {
                     const i = idx++;
-                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
+                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${it.highlightSub ? highlightKnowledge(it.sub, pl.q.trim()) : esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
                       it.kbd
                         ? it.kbd
                             .split(' ')

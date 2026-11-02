@@ -73,7 +73,7 @@ for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNot
     const grid = name === 'openKnowledgeNote' && opener?.matches?.('.knowledge-preview-open') && opener.closest('.knowledge-preview-grid');
     const results = name === 'goKnowledgeNote' && opener?.closest?.('.search-page');
     if (name !== 'previewKnowledgeNote') {
-      const query = grid ? S.ui.knowledgeQuery : results ? document.getElementById('search-page-q')?.value : '';
+      const query = opener?.dataset?.query ?? (grid ? S.ui.knowledgeQuery : results ? document.getElementById('search-page-q')?.value : '');
       S.ui.knowledgeFind = query?.trim()
         ? { query: query.trim().slice(0, 1000), owner: S.ui.currentUser?.id, workspace: D().ws.id || D().ws.url, index: 0 }
         : null;
