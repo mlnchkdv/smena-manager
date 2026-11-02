@@ -166,7 +166,7 @@ export function timelineHtml(ts, key, p) {
       if (r.type === 'g')
         return `<div class="tl-row g">${r.G.html || ''}${esc(r.G.name)}<span class="faint" style="font-weight:500">${r.G.tasks.length}</span></div>`;
       const t = r.t;
-      return `<div class="tl-row" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc grow" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}" translate="no">${esc(t.title)}</span>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}<button class="btn btn-ghost btn-sm tl-locate" data-a="tlLocate" data-date="${esc(t.due)}" aria-label="${isRussian() ? 'Показать срок' : 'Locate date'}: ${esc(t.title)} · ${fmtDate(t.due)}" title="${isRussian() ? 'Показать срок' : 'Locate date'}">${ic('locate', 12)}${fmtDate(t.due)}</button>${av(t.assignee, 'sm')}</div>`;
+      return `<div class="tl-row" role="group" tabindex="-1" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<button class="trunc grow tl-task-title" data-a="openTask" data-id="${t.id}" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}" translate="no">${esc(t.title)}</button>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}<button class="btn btn-ghost btn-sm tl-locate" data-a="tlLocate" data-date="${esc(t.due)}" aria-label="${isRussian() ? 'Показать срок' : 'Locate date'}: ${esc(t.title)} · ${fmtDate(t.due)}" title="${isRussian() ? 'Показать срок' : 'Locate date'}">${ic('locate', 12)}${fmtDate(t.due)}</button>${av(t.assignee, 'sm')}</div>`;
     })
     .join('');
   if (!rows.length)
