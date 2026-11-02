@@ -25,7 +25,7 @@ import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
 import { captureGraphQueryPosition, restoreGraphQueryPosition } from '../ui/graph-query-position.js';
 import { refreshFolderKeyboard } from '../ui/knowledge-folder-keyboard.js';
-import { refreshKnowledgeGridKeyboard } from '../ui/knowledge-grid-keyboard.js';
+let knowledgeGridKeyboard, knowledgeGridKeyboardLoading;
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
@@ -325,7 +325,14 @@ export function afterRender() {
   refreshKnowledgeFind();
   restoreReaderPosition();
   refreshFolderKeyboard();
-  refreshKnowledgeGridKeyboard();
+  if (S.ui.route === 'knowledge') {
+    if (knowledgeGridKeyboard) knowledgeGridKeyboard.refreshKnowledgeGridKeyboard();
+    else
+      knowledgeGridKeyboardLoading ||= import('../ui/knowledge-grid-keyboard.js').then(module => {
+        knowledgeGridKeyboard = module;
+        if (S.ui.route === 'knowledge') module.refreshKnowledgeGridKeyboard();
+      });
+  }
   refreshGraphListKeyboard();
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {
     knowledgeTableModule ||= import('../ui/knowledge-table.js');
