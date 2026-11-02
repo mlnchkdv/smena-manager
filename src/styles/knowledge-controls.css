@@ -514,3 +514,50 @@
 .knowledge-folder-node.in-active-path > .knowledge-folder-line {
   border-inline-start: 2px solid var(--accent);
 }
+/* Short screens need catalog content before secondary context and prose. */
+@media (min-width: 641px) and (max-height: 500px) {
+  .knowledge-content {
+    padding-block: 8px;
+  }
+  .knowledge-breadcrumbs:has(> .knowledge-crumb-current:only-child) {
+    display: none;
+  }
+  .knowledge-content-head {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .knowledge-content-head > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+  }
+  .knowledge-content-head :is(h1, p) {
+    margin: 0;
+  }
+  .knowledge-content-head p {
+    font-size: var(--fs-xs);
+    flex-shrink: 0;
+  }
+  .knowledge-content-actions {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+  .knowledge-content-actions :is(.hide-m, .knowledge-create-short) {
+    display: none;
+  }
+  .knowledge-content-actions :is(.btn, summary) {
+    min-height: 44px;
+    min-width: 44px;
+    padding-inline: 8px;
+  }
+  .knowledge-content-toolbar {
+    margin-block: 6px;
+  }
+  .knowledge-folder-disclosure {
+    margin-block: 6px;
+  }
+}
