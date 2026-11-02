@@ -1,3 +1,5 @@
+import { A } from '../actions/actions.js';
+import { isRussian } from '../core/i18n.js';
 import { render } from '../shell/render.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 /* ---------- TIMELINE ---------- */
@@ -17,6 +19,7 @@ export const timelineListMode = () =>
   S.ui.tlPresentation ? S.ui.tlPresentation === 'list' : (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
 const listMode = timelineListMode;
 
+A.tlLocate = el => focusTimelineDate(el.dataset.date);
 export function tlControls(key = 'timeline') {
   const options = `<div class="seg" role="group" aria-label="Timeline presentation"><button class="${listMode() ? 'on' : ''}" aria-pressed="${listMode()}" data-a="set" data-k="tlPresentation" data-v="list">List</button><button class="${!listMode() ? 'on' : ''}" aria-pressed="${!listMode()}" data-a="set" data-k="tlPresentation" data-v="chart">Timeline</button></div>${
     listMode()
@@ -88,7 +91,7 @@ export function timelineHtml(ts, key, p) {
     if (g !== 'none') rows.push({ type: 'g', G });
     G.tasks.sort((a, b) => ((a.start || a.due) > (b.start || b.due) ? 1 : -1)).forEach(t => rows.push({ type: 't', t }));
   });
-  const RH = 36;
+  const RH = innerWidth <= 640 || matchMedia('(pointer: coarse)').matches ? 48 : 36;
   const H = rows.length * RH;
   const W = nDays * dw;
   const rowY = {};
@@ -163,7 +166,7 @@ export function timelineHtml(ts, key, p) {
       if (r.type === 'g')
         return `<div class="tl-row g">${r.G.html || ''}${esc(r.G.name)}<span class="faint" style="font-weight:500">${r.G.tasks.length}</span></div>`;
       const t = r.t;
-      return `<div class="tl-row" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc grow" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}" translate="no">${esc(t.title)}</span>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}${av(t.assignee, 'sm')}</div>`;
+      return `<div class="tl-row" data-a="openTask" data-id="${t.id}">${stIcon(t.status, 13)}<span class="trunc grow" style="${t.status === 'done' ? 'color:var(--text-3)' : ''}" translate="no">${esc(t.title)}</span>${t.subtasks.length ? `<span class="faint num" style="font-size:11px">${t.subtasks.filter(s => s.done).length}/${t.subtasks.length}</span>` : ''}<button class="btn btn-ghost btn-sm tl-locate" data-a="tlLocate" data-date="${esc(t.due)}" aria-label="${isRussian() ? 'Показать срок' : 'Locate date'}: ${esc(t.title)} · ${fmtDate(t.due)}" title="${isRussian() ? 'Показать срок' : 'Locate date'}">${ic('locate', 12)}${fmtDate(t.due)}</button>${av(t.assignee, 'sm')}</div>`;
     })
     .join('');
   if (!rows.length)
@@ -174,7 +177,7 @@ export function timelineHtml(ts, key, p) {
       `<button class="btn btn-primary btn-sm" data-a="newTask" ${p ? `data-project="${p.id}"` : ''}>${ic('plus', 14)}New task</button>`,
     );
   const todayX = diffD(TODAY, rs) * dw;
-  return `<div class="tl" data-tl-today="${todayX}" data-tl-anchor="${X(S.ui.tlAnchor || iso(TODAY))}" data-tl-key="${key}">
+  return `<div class="tl" style="--tl-row-height:${RH}px" data-tl-today="${todayX}" data-tl-anchor="${X(S.ui.tlAnchor || iso(TODAY))}" data-tl-key="${key}">
     <div class="tl-left"><div class="tl-head">Task</div><div class="tl-rows" id="tl-rows">${left}<div style="height:40px"></div></div></div>
     <div class="tl-right" id="tl-right" data-keep="tl:${key}:${S.ui.tlZoom}:${S.ui.tlAnchor || ''}">
       <div class="tl-head" style="width:${W}px"><div class="tl-months">${months.map(m => `<div style="width:${m.n * dw}px"><span>${MONL[m.d.getMonth()]} ${m.d.getFullYear()}</span></div>`).join('')}</div><div class="tl-days">${days}</div></div>

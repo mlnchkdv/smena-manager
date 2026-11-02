@@ -66,7 +66,7 @@
   overflow: hidden;
 }
 .tl-row {
-  height: 36px;
+  height: var(--tl-row-height, 36px);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -160,7 +160,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 36px;
+  height: var(--tl-row-height, 36px);
   border-bottom: 1px solid var(--divider);
 }
 .tl-rowbg.g {
@@ -268,4 +268,14 @@
   padding: 6px 10px;
   border-left: 2px solid var(--accent);
   scroll-margin-top: 12px;
+}
+.tl-locate {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .tl-locate {
+    min-height: 44px;
+  }
 }
