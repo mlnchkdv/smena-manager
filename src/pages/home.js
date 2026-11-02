@@ -1,4 +1,5 @@
 /* ---------- HOME ---------- */
+import { appLocationPath } from '../shared/app-location.js';
 import { DAY, TODAY, diffD, esc, fmtDate, fmtFullDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, allTasks, canSee, isOver, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
@@ -82,7 +83,7 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
             .filter(canSee)
             .map(p => {
               const pr = progressOf(p.id);
-              return `<tr data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td class="home-project-name"><span class="row">${pIcon(p, '', 14)}<b style="font-weight:500" translate="no">${esc(p.name)}</b></span></td><td class="home-project-status">${pStatus(p.status)}</td><td class="home-project-progress"><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td class="home-project-due num muted"><span class="home-project-meta-icon">${ic('calendar', 12)}</span>${fmtDate(p.due)}</td><td class="home-project-team">${avStack(p.members, 3)}</td></tr>`;
+              return `<tr data-a="go" data-r="project" data-id="${p.id}" data-tab="overview"><td class="home-project-name"><span class="row">${pIcon(p, '', 14)}<a href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id, tab: 'overview' } }))}" data-a="go" data-r="project" data-id="${esc(p.id)}" data-tab="overview" style="font-weight:500" translate="no">${esc(p.name)}</a></span></td><td class="home-project-status">${pStatus(p.status)}</td><td class="home-project-progress"><span class="row">${progBar(pr, p.status === 'risk' ? 'red' : '')}<span class="num faint" style="font-size:11.5px;width:30px">${pr}%</span></span></td><td class="home-project-due num muted"><span class="home-project-meta-icon">${ic('calendar', 12)}</span>${fmtDate(p.due)}</td><td class="home-project-team">${avStack(p.members, 3)}</td></tr>`;
             })
             .join('')}
           </tbody></table></div>
