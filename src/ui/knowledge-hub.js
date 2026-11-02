@@ -3,7 +3,9 @@ import { esc } from '../core/utils.js';
 import { isRussian } from '../core/i18n.js';
 import { hubNotes } from '../shared/knowledge-hub.js';
 import { relationsPanel } from './relations.js';
+import { projectMaterialHub } from './project-material-hub.js';
 export function knowledgeHub(kind, id) {
+  if (kind === 'project') return projectMaterialHub(id);
   const notes = hubNotes(D(), kind, id),
     ru = isRussian();
   return `<section class="panel knowledge-hub"><div class="panel-h"><h2 translate="no">${ru ? 'Знания и материалы' : 'Knowledge and materials'}</h2><span class="badge">${notes.length}</span></div><div class="panel-b">${

@@ -507,6 +507,8 @@ A.toggleSide = () => {
 /* ---------- knowledge base ---------- */
 A.newKnowledgeNote = el => {
   if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const hubSource = el?.dataset?.hubSource;
+  if (hubSource && (!hubSource.startsWith('project:') || !entityAllowed(D(), hubSource, graphOptions(), true))) return;
   const selectedType = noteTypes(D().ws).find(t => t.id === el?.dataset?.typeId);
   mutate(() => {
     const { notes } = knowledgeCollections();
@@ -533,6 +535,11 @@ A.newKnowledgeNote = el => {
       createdAt: now,
       updatedAt: now,
     };
+    if (hubSource) {
+      note.folderId = null;
+      D().relations ||= [];
+      D().relations.push({ id: uid('rel'), from: hubSource, to: `note:${note.id}`, type: 'related', createdBy: D().me, createdAt: now });
+    }
     notes.unshift(note);
     S.ui.knowledgeActive = null;
     S.ui.knowledgeDrawer = note.id;
