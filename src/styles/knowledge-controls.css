@@ -2,6 +2,49 @@
 .knowledge-reader-tools {
   display: contents;
 }
+.knowledge-compact-location {
+  display: none;
+}
+@media (max-height: 500px) {
+  .knowledge-drawer.full:has(.knowledge-editor) {
+    top: 8px;
+    bottom: 8px;
+  }
+  .knowledge-drawer:has(.knowledge-editor:not(.is-focused)) > .drawer-h {
+    min-height: 44px;
+  }
+  .knowledge-drawer:has(.knowledge-editor:not(.is-focused)) > .drawer-h > :is(.knowledge-drawer-brand, .faint, #knowledge-drawer-title, .sp) {
+    display: none;
+  }
+  .knowledge-drawer:has(.knowledge-editor:not(.is-focused)) .knowledge-compact-location {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+  }
+  .knowledge-compact-location .knowledge-reader-location {
+    flex-wrap: nowrap;
+    margin: 0;
+    min-width: max-content;
+  }
+  .knowledge-drawer:has(.knowledge-editor) > .knowledge-drawer-body {
+    padding: 8px 16px 16px;
+  }
+  .knowledge-drawer:has(.knowledge-editor) > .knowledge-drawer-body > .knowledge-reader-location {
+    display: none;
+  }
+  .knowledge-drawer .knowledge-editor {
+    gap: 6px;
+  }
+  .knowledge-drawer .knowledge-editor-head {
+    margin: 0;
+    padding: 0;
+  }
+  .knowledge-drawer .knowledge-editor-mode {
+    margin-block: 0;
+    padding-block: 0;
+  }
+}
 .knowledge-table-tools {
   display: flex;
   justify-content: flex-end;
