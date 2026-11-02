@@ -153,7 +153,7 @@ export function pageTitle() {
 /* Anything clickable is keyboard-reachable: non-native [data-a] controls get a role and a tab stop. */
 export function makeFocusable() {
   for (const el of document.querySelectorAll('[data-a]:not(button):not(a):not(input):not(label):not(select):not(textarea):not([tabindex])')) {
-    if (el.matches('.scrim,.modal-wrap,.drawer-scrim,.side-scrim')) continue;
+    if (el.matches('tr,.scrim,.modal-wrap,.drawer-scrim,.side-scrim')) continue;
     el.tabIndex = 0;
     if (!el.hasAttribute('role')) el.setAttribute('role', el.dataset.a === 'go' ? 'link' : 'button');
   }
