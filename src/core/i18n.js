@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Wide columns': 'Широкие столбцы',
+  'Scroll sideways to read all columns.': 'Прокрутите по горизонтали, чтобы прочитать все столбцы.',
   'Connect this device': 'Подключить это устройство',
   'Choose notification types below, then connect this device to allow browser alerts.':
     'Выберите типы ниже и подключите это устройство, чтобы разрешить уведомления браузера.',

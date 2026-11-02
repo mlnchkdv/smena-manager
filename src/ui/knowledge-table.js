@@ -1,8 +1,39 @@
 import { ic } from '../core/icons.js';
 import { esc } from '../core/utils.js';
 import { t } from '../core/i18n.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 
 let active;
+const widthControls = new WeakMap();
+function setTableWidth(wrapper, wide = readLayoutPreference('knowledge-table-wide', false)) {
+  wrapper.classList.toggle('is-wide-table', wide);
+  wrapper.dataset.readingColumns = 'true';
+  wrapper.style.setProperty('--table-columns', wrapper.querySelectorAll('thead th').length || 1);
+  const controls = widthControls.get(wrapper);
+  if (controls) {
+    controls.button.setAttribute('aria-pressed', String(wide));
+    controls.hint.hidden = !wide;
+  }
+}
+function tableWidthTools(wrapper) {
+  const tools = document.createElement('div');
+  tools.className = 'knowledge-table-width-tools';
+  const button = document.createElement('button');
+  button.className = 'btn btn-ghost btn-sm';
+  button.textContent = t('Wide columns');
+  const hint = document.createElement('span');
+  hint.className = 'hint knowledge-table-scroll-hint';
+  hint.textContent = t('Scroll sideways to read all columns.');
+  widthControls.set(wrapper, { button, hint });
+  button.addEventListener('click', () => {
+    const wide = !wrapper.classList.contains('is-wide-table');
+    writeLayoutPreference('knowledge-table-wide', wide);
+    document.querySelectorAll('.knowledge-table-wrap[data-reading-columns]').forEach(item => setTableWidth(item, wide));
+  });
+  tools.append(button, hint);
+  setTableWidth(wrapper);
+  return tools;
+}
 
 function expandTable(wrapper, opener) {
   if (active) return;
@@ -17,6 +48,7 @@ function expandTable(wrapper, opener) {
   const clone = table.cloneNode(true);
   clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
   expanded.append(clone);
+  expanded.before(tableWidthTools(expanded));
   const body = opener.closest('.knowledge-drawer-body');
   const scroll = body?.scrollTop;
   let returnFocus = true;
@@ -65,9 +97,10 @@ export function refreshKnowledgeTables() {
     wrapper.dataset.expandable = 'true';
     const table = wrapper.querySelector('table');
     const columns = table?.querySelectorAll('thead th').length || 0;
-    if (columns < 3 && ![...wrapper.querySelectorAll('th,td')].some(cell => cell.textContent.length > 160)) return;
+    if (columns < 2) return;
     const tools = document.createElement('div');
     tools.className = 'knowledge-table-tools';
+    tools.append(tableWidthTools(wrapper));
     const button = document.createElement('button');
     button.className = 'btn btn-ghost btn-sm';
     button.setAttribute('aria-label', `${t('Expand table')}: ${wrapper.getAttribute('aria-label') || t('Table')}`);

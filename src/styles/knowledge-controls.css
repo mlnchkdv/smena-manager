@@ -48,7 +48,42 @@
 .knowledge-table-tools {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
   margin-top: 12px;
+}
+.knowledge-table-width-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px 8px;
+  flex: 1 1 180px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.knowledge-table-width-tools .btn {
+  white-space: normal;
+}
+.knowledge-table-width-tools [aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.knowledge-table-width-tools .hint {
+  flex: 1 1 140px;
+  margin: 0;
+  font-size: var(--fs-xs);
+}
+.knowledge-table-dialog > .knowledge-table-width-tools {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.knowledge-table-wrap.is-wide-table table {
+  table-layout: auto;
+  width: max(100%, calc(var(--table-columns) * 12rem));
+}
+.knowledge-table-expanded:not(.is-wide-table) table {
+  width: 100%;
 }
 .knowledge-table-tools + .knowledge-table-wrap {
   margin-top: 4px;
