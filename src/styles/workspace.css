@@ -804,3 +804,9 @@
     padding-bottom: 200px;
   }
 }
+.inbox-comment.is-target {
+  border-inline-start: 3px solid var(--accent);
+  padding-inline-start: 8px;
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+}

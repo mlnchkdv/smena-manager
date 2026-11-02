@@ -8,6 +8,7 @@ import { commentHtml, mentionPicker } from '../overlays/drawer-content.js';
 import { isRussian, t as tr } from '../core/i18n.js';
 import { searchTerms } from '../shared/search-query.js';
 import { notificationAction, notificationSnippet } from '../shared/notification-copy.js';
+import { inboxConversation } from '../shared/inbox-conversation.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A, IN } from '../actions/actions.js';
@@ -29,6 +30,12 @@ A.toggleInboxPreview = () => {
   render();
 };
 
+A.inboxHistory = el => {
+  const n = myNotification(S.ui.inboxSel);
+  if (!n || !task(n.task)) return;
+  S.ui.inboxWindow = { id: n.id, start: Number(el.dataset.start), end: Number(el.dataset.end) };
+  render();
+};
 export function pageInbox() {
   const cats = [
     ['all', 'All'],
@@ -176,7 +183,9 @@ export function inboxPreview(n) {
   }
   if (!p)
     return `<div style="padding:24px 28px"><button class="btn btn-sm btn-ghost" data-a="set" data-k="inboxSel" data-v="" style="margin:-4px 0 12px -8px">${ic('arrow-left', 14)}Back</button><div class="alert warn">${ic('archive', 16)}<div><b>The task's project is no longer available.</b>${n.snippet ? `<div class="muted" style="margin-top:2px">${esc(n.snippet)}</div>` : ''}</div></div></div>`;
-  const cs = commentsOf(t.id).slice(-4);
+  const context = inboxConversation(commentsOf(t.id), n, S.ui.inboxWindow);
+  const history = (start, end, label) =>
+    `<button class="btn btn-secondary btn-sm" data-a="inboxHistory" data-start="${start}" data-end="${end}">${label}</button>`;
   return `<div class="row" style="height:46px;padding:0 16px;border-bottom:1px solid var(--border);gap:8px;flex-shrink:0">
       <button class="ibtn ibtn-sm" data-a="set" data-k="inboxSel" data-v="" aria-label="Back">${ic('arrow-left', 15)}</button>
       <span class="pdot" style="--c:${pColor(p)}"></span><span class="muted" style="font-size:12.5px" translate="no">${esc(p.name)}</span><span class="faint mono">${t.key}</span><span class="sp"></span>
@@ -185,7 +194,10 @@ export function inboxPreview(n) {
       <h2 style="font-size:var(--fs-xl);margin:0 0 10px;font-weight:600;letter-spacing:-.015em" translate="no">${esc(t.title)}</h2>
       <div class="row" style="flex-wrap:wrap;gap:4px;margin-bottom:18px">${cellStatus(t)}${cellAssignee(t)}${cellPrio(t)}${cellDue(t)}</div>
       <div class="eyebrow" style="margin-bottom:4px">Conversation</div>
-      ${cs.length ? cs.map(commentHtml).join('') : `<p class="muted">${esc(n.snippet)}</p>`}
+      ${!context.target && n.snippet ? `<blockquote class="alert info" translate="no">${notifSnippet(n)}</blockquote><p class="hint">${isRussian() ? 'Отрывок выбранного уведомления. Точное сообщение недоступно; ниже последние комментарии.' : 'Selected notification excerpt. The exact message is unavailable; recent comments appear below.'}</p>` : ''}
+      ${context.start ? history(Math.max(0, context.start - 8), context.end, isRussian() ? 'Предыдущие сообщения' : 'Earlier messages') : ''}
+      ${context.items.map(c => `<section class="inbox-comment ${c.id === context.target ? 'is-target' : ''}" ${c.id === context.target ? `aria-label="${isRussian() ? 'Сообщение из уведомления' : 'Message from notification'}"` : ''}>${commentHtml(c)}</section>`).join('')}
+      ${context.end < context.total ? history(context.start, Math.min(context.total, context.end + 8), isRussian() ? 'Следующие сообщения' : 'Later messages') : ''}
       <div style="margin-top:10px;position:relative"><div class="cbox"><textarea id="inbox-reply" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Reply… use @ to mention" aria-label="Reply">${esc(S.ui.drafts[t.id] || '')}</textarea>
       <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><span class="sp"></span><span class="faint" style="font-size:11.5px">${MOD}+Enter to send</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Reply</button></div></div>${mentionPicker(t.id)}</div>
     </div>`;
