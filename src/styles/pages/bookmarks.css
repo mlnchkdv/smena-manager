@@ -347,3 +347,31 @@
   justify-content: flex-end;
   gap: 4px;
 }
+.bookmark-grid.is-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.bookmark-grid.is-list .bookmark-card {
+  min-height: 0;
+  padding: 12px 16px;
+  gap: 8px;
+}
+.bookmark-grid.is-list .bookmark-site-icon {
+  width: 30px;
+  height: 30px;
+}
+.bookmark-grid.is-list .bookmark-description {
+  -webkit-line-clamp: 1;
+  min-height: 0;
+  margin-block: 0;
+}
+.bookmark-grid.is-list .bookmark-card-foot {
+  margin-top: 0;
+  padding-top: 6px;
+}
+.bookmark-grid.is-list .bookmark-tags {
+  margin-block: 0;
+}
+.bookmark-grid.is-list .bookmark-title {
+  min-height: 44px;
+}

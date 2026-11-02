@@ -1,3 +1,6 @@
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
 import { materialFavorite } from '../ui/material-favorite.js';
 import { receiveWebCapture } from '../ui/web-capture.js';
 import { isRussian } from '../core/i18n.js';
@@ -91,8 +94,13 @@ function bookmarkCard(link, folders, readOnly) {
   </article>`;
 }
 
+A.setBookmarkLayout = el => {
+  writeLayoutPreference('bookmarkLayout', el.dataset.value === 'list' ? 'list' : 'grid');
+  render();
+};
 export function pageBookmarks() {
   if (location.hash.startsWith('#capture=')) queueMicrotask(receiveWebCapture);
+  const layout = readLayoutPreference('bookmarkLayout', 'grid');
   const { links, folders } = bookmarksData();
   const query = String(S.ui.bookmarkQuery || '')
     .trim()
@@ -113,7 +121,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
       ${collectionOptions(
-        `<label class="label" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
+        `<div class="seg" role="group" aria-label="${kc('Bookmark view', 'Вид закладок')}">${['grid', 'list'].map(value => `<button data-a="setBookmarkLayout" data-value="${value}" aria-pressed="${layout === value}" class="${layout === value ? 'on' : ''}">${ic(value === 'grid' ? 'layout-grid' : 'list', 14)}${value === 'grid' ? kc('Grid', 'Плитка') : kc('List', 'Список')}</button>`).join('')}</div><label class="label" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',
@@ -131,7 +139,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
     )}
     ${
       filtered.length
-        ? `<p class="hint num" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</p><div class="bookmark-grid">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
+        ? `<p class="hint num" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</p><div class="bookmark-grid ${layout === 'list' ? 'is-list' : ''}">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
         : empty(
             'bookmark-x',
             scope === 'archived' ? 'No archived bookmarks' : 'No bookmarks found',
