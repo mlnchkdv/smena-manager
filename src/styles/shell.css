@@ -650,3 +650,16 @@ h3.sub {
     min-height: 44px;
   }
 }
+
+.topsearch-shortcut .shortcut-reference-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.topsearch-shortcut kbd {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+}

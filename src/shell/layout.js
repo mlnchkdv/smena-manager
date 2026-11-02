@@ -1,3 +1,4 @@
+import { shortcut } from '../ui/shortcut.js';
 import { isFavorite } from '../core/favorites.js';
 /* ---------- shell ---------- */
 import { MOD, TODAY, diffD, esc, fmtTimestamp, parse } from '../core/utils.js';
@@ -288,7 +289,7 @@ export function renderTopbar() {
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
     <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label" translate="no">${esc(syncLabel)}</span></span>
-    <button class="topsearch" data-a="openPalette" aria-label="${esc(tr('Search or jump to…'))} ${MOD}K" aria-keyshortcuts="${MOD === '⌘' ? 'Meta' : 'Control'}+k">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd" aria-hidden="true">${MOD}K</span></button>
+    <button class="topsearch" data-a="openPalette" aria-label="${esc(tr('Search or jump to…'))} ${MOD} + K" aria-keyshortcuts="${MOD === '⌘' ? 'Meta' : 'Control'}+k">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd topsearch-shortcut" aria-hidden="true">${shortcut([MOD, 'K'])}</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>
     ${S.ui.currentUser?.role === 'viewer' ? '' : `<button class="btn btn-secondary btn-sm" data-a="pop" data-pop="create" aria-haspopup="menu" aria-label="Create new">${ic('plus', 14)}<span class="hide-m">New</span>${ic('chevron-down', 12, 'hide-m')}</button>`}
     <button class="ibtn mobile-sync-entry" data-a="pop" data-pop="user" data-state="${state}" aria-label="${esc(tr('System status') + ': ' + syncLabel)}" title="${esc(syncTitle)}">${ic(sync[0], 16)}<span class="sr" translate="no">${esc(syncLabel)}</span></button><button class="ibtn hide-m account-menu-button account-menu-trigger" data-a="pop" data-pop="user" title="${esc(accountMenuLabel())}">${accountAvatarStatus(D().me, 'md')}<span class="sr">${esc(accountMenuLabel())}</span></button>

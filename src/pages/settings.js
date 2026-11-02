@@ -3,7 +3,7 @@ import { helpGuides } from '../ui/help-guides.js';
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
    ===================================================================== */
 import { refreshWorkspaces, workspaceSettingsFeedback } from '../ui/workspaces.js';
-import { dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
+import { MOD, dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
 import { av, fsize, pIcon } from '../ui/helpers.js';
@@ -243,7 +243,7 @@ export function settingsBody(sec, title) {
     `<h1>${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>`;
   switch (sec) {
     case 'help':
-      return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu <kbd>CtrlK</kbd></button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
+      return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
     case 'workspace': {
       void refreshWorkspaces(false);
       const copy = (en, ru) => (isRussian() ? ru : en);
