@@ -397,3 +397,42 @@
 .bookmark-bulk > label {
   min-height: 44px;
 }
+.bookmark-grid.is-list .bookmark-card-actions > [data-a='copyBookmark'] {
+  display: none;
+}
+.bookmark-grid.is-list .bookmark-tags:empty {
+  display: none;
+}
+@media (min-width: 1000px) {
+  .bookmark-grid.is-list .bookmark-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+    align-items: start;
+    gap: 4px 16px;
+  }
+  .bookmark-grid.is-list .bookmark-card-top,
+  .bookmark-grid.is-list .bookmark-description,
+  .bookmark-grid.is-list .bookmark-tags {
+    grid-column: 1;
+  }
+  .bookmark-grid.is-list .bookmark-card-foot {
+    grid-column: 2;
+    grid-row: 1;
+    border: 0;
+    padding: 0;
+  }
+  .bookmark-grid.is-list .bookmark-card-meta {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .bookmark-grid.is-list .bookmark-card-actions {
+    justify-content: flex-end;
+  }
+  .bookmark-grid.is-list .bookmark-title {
+    min-height: 28px;
+  }
+  .bookmark-grid.is-list .bookmark-card > details {
+    grid-column: 1 / -1;
+  }
+}
