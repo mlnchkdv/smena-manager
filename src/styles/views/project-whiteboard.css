@@ -72,6 +72,32 @@
   left: 0;
   transform-origin: 0 0;
 }
+.whiteboard-viewport[data-overview='true'] .whiteboard-card-head > .ibtn,
+.whiteboard-viewport[data-overview='true'] .whiteboard-card-content button {
+  display: none;
+}
+.whiteboard-card-choices {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+}
+.whiteboard-card-choice {
+  display: grid;
+  gap: 4px;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.whiteboard-card-choice:hover {
+  background: var(--surface-2);
+}
+.whiteboard-card-choice small {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
 .whiteboard-gesture {
   display: flex;
   align-items: center;

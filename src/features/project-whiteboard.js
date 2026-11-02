@@ -19,6 +19,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { whiteboardEdges } from '../views/project-whiteboard.js';
 import { overlayAboveDiagram } from '../ui/diagram-focus.js';
+import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -284,6 +285,37 @@ A.whiteboardSelect = (el, event) => {
   }
   render();
 };
+function openCardChooser(ids) {
+  const p = current();
+  if (!p) return;
+  openModal({
+    type: 'whiteboardTool',
+    project: p.id,
+    scope: whiteboardScope(p.id),
+    kind: 'pick',
+    ids,
+    query: '',
+    render: (m, H) => {
+      const available = whiteboardOf(current() || {}).nodes.filter(n => !m.ids || m.ids.includes(n.id));
+      const matches = available.filter(n => `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(m.query.trim().toLocaleLowerCase()));
+      return `${H(T('Choose card', 'Выбрать карточку'))}<div class="modal-b"><label class="field">${T('Search cards', 'Поиск карточек')}<input class="input" data-in="whiteboardPickQuery" value="${esc(m.query)}" autofocus></label><div class="whiteboard-card-choices">${matches.map(n => `<button class="whiteboard-card-choice" data-a="whiteboardPickCard" data-id="${esc(n.id)}"><strong>${esc(whiteboardLabel(n))}</strong><small>${T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Linked material' : 'Text card', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Связанный материал' : 'Текстовая карточка')} · ${available.indexOf(n) + 1}/${available.length}</small></button>`).join('') || `<p>${T('No matching cards.', 'Карточки не найдены.')}</p>`}</div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button></div>`;
+    },
+  });
+}
+A.whiteboardPickFromList = () => openCardChooser();
+IN.whiteboardPickQuery = el => {
+  const m = activeModal();
+  if (m?.kind !== 'pick') return;
+  m.query = el.value;
+  render();
+};
+A.whiteboardPickCard = el => {
+  const m = activeModal();
+  if (m?.kind !== 'pick' || !whiteboardOf(current()).nodes.some(n => n.id === el.dataset.id && (!m.ids || m.ids.includes(n.id)))) return;
+  const id = el.dataset.id;
+  closeModal();
+  A.whiteboardSelect({ dataset: { id } });
+};
 IN.whiteboardSelection = el => {
   const s = whiteboardState(),
     ids = new Set(selectedIds());
@@ -543,6 +575,7 @@ function paintView() {
   if (world) {
     world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
     world.style.setProperty('--whiteboard-zoom', String(s.zoom));
+    world.closest('.whiteboard-viewport').dataset.overview = String(s.zoom < 0.65);
   }
   const scale = document.querySelector('.whiteboard-scale');
   if (scale) scale.textContent = Math.round(s.zoom * 100) + '%';
@@ -613,6 +646,12 @@ function down(e) {
     viewport.setPointerCapture(e.pointerId);
     return;
   }
+  if (s.zoom < 0.65 && !e.target.closest('.whiteboard-navigation,.whiteboard-minimap')) {
+    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   const handle = e.target.closest('[data-board-drag]');
   if (handle && (e.shiftKey || e.ctrlKey || e.metaKey)) {
     pointers.delete(e.pointerId);
@@ -644,6 +683,7 @@ function move(e) {
     return;
   }
   if (g.kind === 'pan') {
+    g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
     s.x = g.panX + e.clientX - g.x;
     s.y = g.panY + e.clientY - g.y;
     s.fit = false;
@@ -681,6 +721,7 @@ function up(e, cancel = false) {
   const g = gesture;
   gesture = null;
   if (!g) return;
+  if (g.kind === 'pan' && g.moved) whiteboardState().overviewPanUntil = Date.now() + 300;
   if (cancel) {
     resetPreview();
     return;
@@ -743,6 +784,26 @@ export function mountProjectWhiteboard() {
   }
   if (next && !mounted.has(next)) {
     mounted.add(next);
+    next.addEventListener(
+      'click',
+      event => {
+        const s = whiteboardState();
+        if (event.detail === 0 || s.zoom >= 0.65 || event.target.closest('.whiteboard-navigation,.whiteboard-minimap')) return;
+        if (Date.now() < (s.overviewPanUntil || 0)) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        const box = next.getBoundingClientRect();
+        const ids = whiteboardPickCandidates(whiteboardOf(current()).nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s);
+        if (!ids.length) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (ids.length === 1) A.whiteboardSelect({ dataset: { id: ids[0] } });
+        else openCardChooser(ids);
+      },
+      true,
+    );
     next.addEventListener('pointerdown', down);
     next.addEventListener('pointermove', move);
     next.addEventListener('pointerup', e => up(e));
