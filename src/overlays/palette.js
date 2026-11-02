@@ -1,3 +1,4 @@
+import { shortcut } from '../ui/shortcut.js';
 import { isFavorite } from '../core/favorites.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
@@ -317,12 +318,7 @@ export function paletteHtml() {
                   .map(it => {
                     const i = idx++;
                     return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${it.highlightSub ? highlightKnowledge(it.sub, pl.q.trim()) : esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
-                      it.kbd
-                        ? it.kbd
-                            .split(' ')
-                            .map(k => `<kbd>${k}</kbd>`)
-                            .join('')
-                        : ''
+                      it.kbd ? shortcut(it.kbd) : ''
                     }</span></div>`;
                   })
                   .join('')}</div>`,

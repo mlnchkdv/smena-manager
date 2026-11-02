@@ -9,6 +9,7 @@ import { D, S, me, myNotificationPreferences } from '../core/store.js';
 import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
+import { shortcut } from '../ui/shortcut.js';
 import { SHORTCUTS } from '../overlays/modals.js';
 import { LANGUAGES, isRussian, t as tr } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
@@ -575,7 +576,7 @@ export function settingsBody(sec, title) {
         H('Move faster with the keyboard.') +
         SHORTCUTS.map(
           ([g, list]) =>
-            `<div class="sblock shortcut-reference"><h2>${g}</h2>${list.map(([n, k]) => `<div class="shortcut-reference-row"><span>${n}</span><span class="shortcut-reference-keys">${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</span></div>`).join('')}</div>`,
+            `<div class="sblock shortcut-reference"><h2>${g}</h2>${list.map(([n, k]) => `<div class="shortcut-reference-row"><span>${n}</span>${shortcut(k)}</div>`).join('')}</div>`,
         ).join('')
       );
     case 'security':

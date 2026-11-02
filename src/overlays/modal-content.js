@@ -15,6 +15,7 @@ import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
 import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
 // Registered by the lazy file feature before a file dialog can be opened.
 import { fileModalRenderers, workspaceModalRenderers } from './modals.js';
+import { shortcut } from '../ui/shortcut.js';
 import { TEMPLATES, SHORTCUTS } from './modal-data.js';
 import { fileFolderPath } from '../shared/file-organization.js';
 
@@ -298,7 +299,7 @@ export function confirmModal(m) {
   <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : needs ? '' : 'autofocus'}>Cancel</button><button class="btn ${m.danger ? 'btn-danger' : 'btn-primary'} ${m.busy ? 'is-loading' : ''}" data-a="confirmOk" ${ok ? '' : 'disabled'}>${esc(m.busy ? m.busyLabel : m.ok)}</button></div>`;
 }
 export function shortcutsModal(H) {
-  return `${H('Keyboard shortcuts')}<div class="modal-b" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row" style="height:30px;font-size:13px;border-bottom:1px solid var(--divider)"><span class="grow">${n}</span>${k.map((x, i) => `${i && k[0] === 'G' ? '<span class="faint" style="font-size:11px">then</span>' : ''}<kbd>${x}</kbd>`).join('')}</div>`).join('')}</div>`).join('')}</div>`;
+  return `${H('Keyboard shortcuts')}<div class="modal-b" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row" style="height:30px;font-size:13px;border-bottom:1px solid var(--divider)"><span class="grow">${n}</span>${shortcut(k)}</div>`).join('')}</div>`).join('')}</div>`;
 }
 export function filePreviewModal(m, H) {
   ensureFilePreview(m, render);

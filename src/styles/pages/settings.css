@@ -648,6 +648,10 @@
   flex-wrap: wrap;
   gap: 4px;
 }
+.shortcut-separator {
+  color: var(--text-3);
+  font-size: 11px;
+}
 .team-task-scope .seg {
   display: flex;
   flex-wrap: wrap;
