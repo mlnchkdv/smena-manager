@@ -1,4 +1,6 @@
 import { whiteboardMinimap } from '../ui/whiteboard-minimap.js';
+import { A } from '../actions/actions.js';
+import { toast } from '../ui/toast.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { whiteboardPortableControl } from '../ui/whiteboard-portable.js';
 import { diagramViewsControl } from '../ui/diagram-views.js';
@@ -11,6 +13,26 @@ import { whiteboardLabel, whiteboardMaterial, whiteboardState, wbText as T, wbCo
 const button = (action, icon, en, ru, extra = '', context = '') =>
   `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru) + (context ? ': ' + context : ''))}" title="${esc(T(en, ru) + (context ? ': ' + context : ''))}" ${extra}>${ic(icon, 16)}</button>`;
 const icons = { text: 'sticky-note', material: 'file-text', group: 'square-dashed' };
+// The view can arrive before its interaction chunk. Keep the first navigation
+// action rather than dropping it while afterRender imports that chunk.
+for (const action of ['whiteboardPickFromList', 'whiteboardTogglePan']) {
+  if (A[action]) continue;
+  const load = async () => {
+    const scope = whiteboardState().scope,
+      route = S.ui.route,
+      params = JSON.stringify(S.ui.params);
+    try {
+      await import('../features/project-whiteboard.js');
+      if (whiteboardState().scope === scope && S.ui.route === route && JSON.stringify(S.ui.params) === params && !S.ui.modals.length && A[action] !== load)
+        A[action]();
+    } catch {
+      toast(T('Unable to load board tools. Refresh and try again.', 'Не удалось загрузить инструменты холста. Обновите страницу и повторите.'), {
+        kind: 'err',
+      });
+    }
+  };
+  A[action] = load;
+}
 function outlineHtml(board, editable, state) {
   const query = (state.outlineQuery || '').trim().toLocaleLowerCase();
   const frames = board.nodes.filter(n => n.type === 'group').sort((a, b) => a.width * a.height - b.width * b.height);
