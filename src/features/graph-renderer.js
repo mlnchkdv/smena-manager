@@ -1,4 +1,7 @@
 import { graphHitCandidates } from '../shared/graph-hit.js';
+import { graphRenderKey } from '../shared/graph-render-key.js';
+import { retainGraphSurface } from '../shared/graph-surface.js';
+import { registerGraphSurfaceRestorer } from '../shell/render.js';
 import { chooseGraphHit } from './graph-actions.js';
 import { D, S } from '../core/store.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
@@ -11,7 +14,17 @@ import { t } from '../core/i18n.js';
 import { graphPhysicsOptions } from '../shared/graph-physics.js';
 import { disposeGraph } from '../shared/graph-disposal.js';
 
+registerGraphSurfaceRestorer(() => {
+  const surface = instance?.container();
+  return surface
+    ? () => {
+        if (!S.ui.auth && S.ui.route === 'graph') retainGraphSurface(surface, document.getElementById('knowledge-graph-canvas'), diagramScope());
+      }
+    : null;
+});
 let instance;
+let mountedKey = '',
+  rendererSerial = 0;
 let context = '',
   personalViewKey = '';
 let disconnectObserver;
@@ -32,6 +45,28 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const container = document.getElementById('knowledge-graph-canvas');
     if (!container) return;
     const scopeKey = JSON.stringify([scope, center]);
+    const css = getComputedStyle(container);
+    const key = graphRenderKey(graph, [
+      requestedScope,
+      scopeKey,
+      selected,
+      simple,
+      physics,
+      reducedMotion,
+      S.prefs.diagramViews,
+      S.ui.diagramViewNonce || 0,
+      ...['--text', '--surface', '--text-3', '--accent', '--font', ...Object.values(GRAPH_KINDS).map(meta => meta.color)].map(color =>
+        css.getPropertyValue(color),
+      ),
+    ]);
+    if (instance && !instance.destroyed() && instance.container() === container && mountedKey === key) {
+      const status = document.querySelector('[data-graph-physics-status]');
+      if (status) status.textContent = t(container.dataset.physicsState === 'running' ? 'Settling layout…' : 'Layout settled');
+      return;
+    }
+    mountedKey = key;
+    container.dataset.graphScope = requestedScope;
+    container.dataset.graphRenderer = String(++rendererSerial);
     let previous =
       instance && context === scopeKey
         ? {
@@ -60,7 +95,6 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     container.dataset.physics = physics ? 'on' : 'off';
     physicsEnabled = physics;
     container.dataset.physicsState = physics ? 'settled' : 'off';
-    const css = getComputedStyle(container);
     const signature = graphTopologyKey(graph);
     topology = signature;
     const positions = graphPositions(graph, center, { width: container.clientWidth, height: container.clientHeight });
@@ -359,7 +393,8 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         clearTimeout(physicsTimer);
         runningLayout = null;
         container.dataset.physicsState = 'settled';
-        if (status) status.textContent = t('Layout settled');
+        const liveStatus = document.querySelector('[data-graph-physics-status]');
+        if (liveStatus) liveStatus.textContent = t('Layout settled');
         if (fit) {
           cy.fit(undefined, 45);
           if (cy.zoom() > 1.2) {

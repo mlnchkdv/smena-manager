@@ -158,6 +158,10 @@ export function makeFocusable() {
     if (!el.hasAttribute('role')) el.setAttribute('role', el.dataset.a === 'go' ? 'link' : 'button');
   }
 }
+let graphSurfaceRestorer;
+export const registerGraphSurfaceRestorer = restorer => {
+  graphSurfaceRestorer = restorer;
+};
 export function render() {
   captureGraphQueryPosition();
   captureReaderPosition();
@@ -211,7 +215,9 @@ export function render() {
     /* not supported here; safe to skip */
   }
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
+  const restoreGraphSurface = graphSurfaceRestorer?.();
   $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
+  restoreGraphSurface?.();
   $('#layer').innerHTML = renderLayer();
   translateApp();
   normalizeTablists();
