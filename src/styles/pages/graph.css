@@ -264,12 +264,18 @@
 .graph-stage {
   position: relative;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
   background-color: var(--surface);
   background-image: radial-gradient(var(--border) 0.7px, transparent 0.7px);
   background-size: 22px 22px;
+}
+.graph-stage #knowledge-graph-canvas {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 .graph-locator {
   display: flex;
