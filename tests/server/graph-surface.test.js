@@ -38,3 +38,11 @@ test('renderer identity ignores response ordering but responds to material, acce
   assert.notEqual(key, graphRenderKey({ ...graph, nodes: graph.nodes.slice(0, 1) }, ['owner', 'light', false]));
   assert.notEqual(key, graphRenderKey({ ...graph, nodes: graph.nodes.map(n => ({ ...n, title: n.title + ' changed' })) }, ['owner', 'light', false]));
 });
+
+test('retention moves the wrapper, keeping the Cytoscape container under its original observed parent', () => {
+  const surface = { dataset: { graphScope: 'session', graphTopology: 'a-b' }, setAttribute() {} };
+  const canvas = { parentElement: surface };
+  const replacement = { dataset: { graphTopology: 'a-b' }, getAttribute: () => 'Graph', replaceWith: element => assert.equal(element, surface) };
+  retainGraphSurface(surface, replacement, 'session');
+  assert.equal(canvas.parentElement, surface);
+});

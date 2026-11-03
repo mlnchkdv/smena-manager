@@ -16,10 +16,10 @@ import { createGraphDragPhysics } from '../shared/graph-drag-physics.js';
 import { disposeGraph } from '../shared/graph-disposal.js';
 
 registerGraphSurfaceRestorer(() => {
-  const surface = instance?.container();
+  const surface = instance?.container()?.parentElement;
   return surface
     ? () => {
-        if (!S.ui.auth && S.ui.route === 'graph') retainGraphSurface(surface, document.getElementById('knowledge-graph-canvas'), diagramScope());
+        if (!S.ui.auth && S.ui.route === 'graph') retainGraphSurface(surface, document.querySelector('.graph-surface'), diagramScope());
       }
     : null;
 });
@@ -64,10 +64,11 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     if (instance && !instance.destroyed() && instance.container() === container && mountedKey === key) {
       const status = document.querySelector('[data-graph-physics-status]');
       if (status) status.textContent = t(container.dataset.physicsState === 'running' ? 'Settling layout…' : 'Layout settled');
+      instance.resize();
       return;
     }
     mountedKey = key;
-    container.dataset.graphScope = requestedScope;
+    container.parentElement.dataset.graphScope = requestedScope;
     container.dataset.graphRenderer = String(++rendererSerial);
     let previous =
       instance && context === scopeKey
@@ -546,6 +547,18 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     ownedDisconnectObserver.observe(document.getElementById('app'), { childList: true, subtree: true });
   });
 }
+let scrollFrame;
+document.addEventListener(
+  'scroll',
+  () => {
+    if (scrollFrame || !instance) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = null;
+      if (instance && !instance.destroyed() && instance.container().isConnected) instance.resize();
+    });
+  },
+  true,
+);
 window.addEventListener('smena:graph-control', event => {
   if (!instance) return;
   if (event.detail === 'repack') return repackViewport?.();
