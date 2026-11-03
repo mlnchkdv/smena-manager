@@ -184,6 +184,21 @@
   flex-direction: column;
   gap: 16px;
 }
+.overview-portfolio {
+  align-self: start;
+  min-width: 0;
+}
+.overview-portfolio-table {
+  min-width: 640px;
+  width: 100%;
+}
+.overview-portfolio-table :is(th, td):last-child {
+  white-space: nowrap;
+  padding-right: 14px;
+}
+.overview-portfolio-table td:nth-child(2) .row {
+  gap: 6px;
+}
 /* rows inside a bordered panel draw separators between themselves only, never against the panel edge */
 .panel > .mini:first-child {
   border-top: 0;
