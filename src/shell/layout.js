@@ -8,7 +8,6 @@ import { D, S, allTasks, canSee, mem, myNotifications, pColor, proj, systemConne
 import { av, projectIconContent } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
 import { skeleton } from './skeletons.js';
-import { pageHome } from '../pages/home.js';
 import { page404, stateFailed } from '../pages/errors.js';
 import { t as tr, workspaceDraftLabel } from '../core/i18n.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
@@ -20,6 +19,7 @@ import { SYNC_PRESENTATION } from '../shared/sync-presentation.js';
 const lazyPages = new Map();
 const lazyPagePromises = new Map();
 const lazyPageLoaders = {
+  home: () => import('../pages/home.js').then(module => module.pageHome),
   inbox: () => import('../pages/inbox.js').then(module => module.pageInbox),
   mytasks: () => import('../pages/my-tasks.js').then(module => module.pageMyTasks),
   favorites: () => import('../pages/favorites.js').then(module => module.pageFavorites),
@@ -104,7 +104,6 @@ export function renderPage() {
   const r = S.ui.route;
   try {
     const P = {
-      home: pageHome,
       inbox: () => lazyPage('inbox'),
       mytasks: () => lazyPage('mytasks'),
       favorites: () => lazyPage('favorites'),
