@@ -4,7 +4,6 @@ import { knowledgeDisclosure } from './knowledge-disclosure.js';
 import { updateKnowledgeSaveStatus } from './knowledge-save-status.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S, save, visibleProjects } from '../core/store.js';
-import { ic } from '../core/icons.js';
 import { esc, uid } from '../core/utils.js';
 import { isRussian } from '../core/i18n.js';
 import { mutate } from './toast.js';
@@ -22,10 +21,6 @@ const kinds = {
   member: ['Member', 'Участник'],
   project: ['Project', 'Проект'],
 };
-export function noteTypeBadge(note) {
-  const name = typeName(noteType(note, D().ws));
-  return `<button class="knowledge-note-type" data-a="openNoteProperties" data-id="${esc(note.id)}" data-section="type" aria-label="${esc(kc('Note type', 'Тип заметки') + ': ' + name)}" translate="no">${ic('tag', 13)}<span>${esc(name)}</span>${ic('chevron-down', 12)}</button>`;
-}
 export function noteTypeFields(note, readOnly = false, expanded = false) {
   const type = noteType(note, D().ws),
     values = note.properties || {},

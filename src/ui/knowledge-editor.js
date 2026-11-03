@@ -15,7 +15,7 @@ import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
 import { knowledgeVersionFits } from '../shared/knowledge-history.js';
-import { noteTypeBadge } from './knowledge-types.js';
+import { noteTypeBadge } from './knowledge-type-badge.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { openModal } from '../overlays/modals.js';
 export function noteUtilities(note) {

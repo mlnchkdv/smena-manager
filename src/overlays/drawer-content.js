@@ -1,6 +1,6 @@
 import { isFavorite } from '../core/favorites.js';
 import { activityVerbForm } from '../shared/activity-copy.js';
-import { noteTypeBadge } from '../ui/knowledge-types.js';
+import { noteTypeBadge } from '../ui/knowledge-type-badge.js';
 /* =====================================================================
    OVERLAYS: drawer, modals, popovers, context menus, command palette
    ===================================================================== */
