@@ -345,3 +345,8 @@
 .whiteboard-access-badge svg {
   flex: 0 0 auto;
 }
+@media (max-width: 640px), (pointer: coarse) {
+  .whiteboard-document-info h2 {
+    padding-right: 96px;
+  }
+}
