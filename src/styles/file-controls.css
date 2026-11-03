@@ -202,6 +202,12 @@
 .workspace-file-card.textual .workspace-file-card-context {
   flex: 1;
 }
+.workspace-file-card.textual .workspace-file-card-foot > .sp {
+  display: none;
+}
+.workspace-file-card.textual .workspace-file-card-foot > .ibtn {
+  flex-shrink: 0;
+}
 .workspace-file-location {
   position: relative;
   min-width: 0;
