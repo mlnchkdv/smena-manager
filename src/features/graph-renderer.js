@@ -12,6 +12,7 @@ import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-l
 import { graphOverviewLabels } from '../shared/graph-labels.js';
 import { t } from '../core/i18n.js';
 import { graphPhysicsOptions } from '../shared/graph-physics.js';
+import { createGraphDragPhysics } from '../shared/graph-drag-physics.js';
 import { disposeGraph } from '../shared/graph-disposal.js';
 
 registerGraphSurfaceRestorer(() => {
@@ -34,6 +35,7 @@ let resizeObserver;
 let topology = '';
 let mountGeneration = 0;
 let repackViewport;
+let stopDragPhysics = () => {};
 let runningLayout,
   physicsTimer,
   physicsEnabled = false;
@@ -85,6 +87,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           ? savedView
           : null;
     clearTimeout(physicsTimer);
+    stopDragPhysics();
     const retired = instance;
     instance = null;
     disposeGraph(retired, runningLayout);
@@ -139,6 +142,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     repackViewport = () => {
       if (!instance || instance.container() !== container) return;
       runningLayout?.stop();
+      stopDragPhysics();
       clearTimeout(physicsTimer);
       const packed = graphPositions(graph, center, { width: container.clientWidth, height: container.clientHeight });
       instance.nodes().positions(node => (node.locked() ? node.position() : packed.get(node.id())));
@@ -411,12 +415,61 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         }, 2500);
     };
     if (physics && (!previous || !previous.physics || previous.running || previous.signature !== signature)) simulate(true);
-    instance.on('grab', 'node', () => {
+    let drag,
+      dragFrame = 0;
+    const dragStatus = state => {
+      if (!current()) return;
+      container.dataset.physicsState = state;
+      const status = document.querySelector('[data-graph-physics-status]');
+      if (status) status.textContent = t(state === 'running' ? 'Settling layout…' : 'Layout settled');
+    };
+    stopDragPhysics = () => {
+      cancelAnimationFrame(dragFrame);
+      dragFrame = 0;
+      drag = null;
+      if (physics) dragStatus(runningLayout ? 'running' : 'settled');
+    };
+    const followDrag = () => {
+      dragFrame = 0;
+      if (!current() || !drag) return;
+      const frame = drag.motion.step(drag.node.position());
+      cy.batch(() =>
+        frame.positions.forEach((position, id) => {
+          const node = cy.getElementById(id);
+          if (id !== drag.node.id() && !node.locked()) node.position(position);
+        }),
+      );
+      if (!frame.settled && (!drag.released || performance.now() < drag.deadline)) dragFrame = requestAnimationFrame(followDrag);
+      else if (drag.released) {
+        stopDragPhysics();
+        window.dispatchEvent(new Event('smena:diagram-layout-changed'));
+      }
+    };
+    instance.on('grab', 'node', event => {
+      stopDragPhysics();
       clearTimeout(physicsTimer);
       runningLayout?.stop();
+      if (!physics) return;
+      const motion = createGraphDragPhysics(
+        cy.nodes().map(n => ({ id: n.id(), ...n.position(), locked: n.locked() })),
+        graph.edges,
+        event.target.id(),
+        { reducedMotion },
+      );
+      if (motion) drag = { node: event.target, motion, moved: false, released: false };
+    });
+    instance.on('drag', 'node', () => {
+      if (!drag) return;
+      drag.moved = true;
+      container.dataset.graphDragCluster = String(drag.motion.size);
+      dragStatus('running');
+      if (!dragFrame) dragFrame = requestAnimationFrame(followDrag);
     });
     instance.on('free', 'node', () => {
-      if (physics) simulate(false);
+      if (!drag?.moved) return stopDragPhysics();
+      drag.released = true;
+      drag.deadline = performance.now() + 1500;
+      if (!dragFrame) dragFrame = requestAnimationFrame(followDrag);
     });
     instance.on('mousedown touchstart scrollzoom', () => {
       manualCamera = true;
@@ -482,6 +535,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             selected: instance.nodes(':selected').first().id(),
           };
         clearTimeout(physicsTimer);
+        stopDragPhysics();
         const retiredLayout = runningLayout;
         runningLayout = null;
         instance = null;
