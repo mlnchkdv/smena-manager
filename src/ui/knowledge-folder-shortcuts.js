@@ -39,7 +39,8 @@ export function folderQuickLinks(folders, activeId) {
   const byId = new Map(folders.map(f => [f.id, f])),
     active = byId.get(activeId),
     pins = folderPins(S.prefs.knowledgeFolderPins, folders),
-    recent = (S.ui.knowledgeFolderRecent || []).filter(id => byId.has(id) && !pins.includes(id)).slice(0, 4);
+    recent = (S.ui.knowledgeFolderRecent || []).filter(id => byId.has(id) && id !== activeId && !pins.includes(id)).slice(0, 4);
+  if (!active && !pins.length && !recent.length) return '';
   const links = ids =>
     ids
       .map(id => {
@@ -50,7 +51,15 @@ export function folderQuickLinks(folders, activeId) {
         return `<button class="knowledge-folder-quick-link" data-a="setKnowledgeFolder" data-folder="${esc(id)}" title="${esc(path)}" ${activeId === id ? 'aria-current="page"' : ''}>${ic(pins.includes(id) ? 'pin' : 'history', 13)}<span translate="no">${esc(f.name)}</span></button>`;
       })
       .join('');
-  return `<div class="knowledge-folder-quick" translate="no">${active ? `<div class="knowledge-folder-context"><button class="btn btn-ghost btn-sm" data-a="setKnowledgeFolder" data-folder="${esc(active.parentId || 'all')}" aria-label="${kc('Parent folder', 'Родительская папка')}">${ic('arrow-up', 15)}${kc('Parent folder', 'Родительская папка')}</button><button class="ibtn" data-a="pinKnowledgeFolder" data-folder="${esc(active.id)}" aria-pressed="${pins.includes(active.id)}" aria-label="${kc('Pin folder', 'Закрепить папку')}" title="${kc('Pin folder', 'Закрепить папку')}">${ic('pin', 15)}</button></div>` : ''}${pins.length ? `<details open><summary>${kc('Pinned folders', 'Закреплённые папки')} · ${pins.length}</summary>${links(pins)}</details>` : ''}${recent.length ? `<details><summary>${kc('Recent folders', 'Недавние папки')}</summary>${links(recent)}</details>` : ''}</div>`;
+  return `<div class="knowledge-folder-quick" translate="no">${
+    active
+      ? `<p class="knowledge-folder-current" aria-label="${kc('Current folder', 'Текущая папка')}">${esc(
+          folderTrail(activeId, byId)
+            .map(f => f.name)
+            .join(' / '),
+        )}</p><div class="knowledge-folder-context"><button class="btn btn-ghost btn-sm" data-a="setKnowledgeFolder" data-folder="${esc(active.parentId || 'all')}" aria-label="${kc('Parent folder', 'Родительская папка')}">${ic('arrow-up', 15)}${kc('Parent folder', 'Родительская папка')}</button><button class="ibtn" data-a="pinKnowledgeFolder" data-folder="${esc(active.id)}" aria-pressed="${pins.includes(active.id)}" aria-label="${kc('Pin folder', 'Закрепить папку')}" title="${kc('Pin folder', 'Закрепить папку')}">${ic('pin', 15)}</button></div>`
+      : ''
+  }${pins.length ? `<details open><summary>${kc('Pinned folders', 'Закреплённые папки')} · ${pins.length}</summary>${links(pins)}</details>` : ''}${recent.length ? `<details><summary>${kc('Recent folders', 'Недавние папки')}</summary>${links(recent)}</details>` : ''}</div>`;
 }
 A.pinKnowledgeFolder = el => {
   const folders = D().knowledgeFolders;
