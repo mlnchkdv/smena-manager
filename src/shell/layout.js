@@ -104,6 +104,7 @@ export function renderPage() {
   const r = S.ui.route;
   try {
     const P = {
+      home: () => lazyPage('home'),
       inbox: () => lazyPage('inbox'),
       mytasks: () => lazyPage('mytasks'),
       favorites: () => lazyPage('favorites'),
