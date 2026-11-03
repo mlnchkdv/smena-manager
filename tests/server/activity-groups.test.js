@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { activityGroups } from '../../src/shared/activity-groups.js';
+test('numeric production timestamps group and invalid timestamps stay individual', () => {
+  const at = Date.UTC(2026, 10, 3, 10);
+  const first = { id: 'a', task: 't', by: 'u', verb: 'completed', at };
+  const second = { ...first, id: 'b', at: at - 60000 };
+  assert.equal(activityGroups([first, second], { enabled: true })[0].events.length, 2);
+  assert.equal(activityGroups([first, { ...second, at: 'invalid' }], { enabled: true }).length, 2);
+});
 test('activity grouping preserves every event and stops at actor, object, workspace, time and alert boundaries', () => {
   const base = { workspace: 'w', project: 'p', task: 't', by: 'a', verb: 'completed a subtask in', at: '2026-11-03T10:00:00Z' };
   const events = [
