@@ -78,7 +78,7 @@ export function captureActionMenuState() {
   const before = scope;
   disclosureOpen('');
   if (before !== scope) return;
-  document.querySelectorAll('.ui-menu[data-ui-disclosure]').forEach(menu => {
+  document.querySelectorAll('[data-ui-disclosure]').forEach(menu => {
     menu.open ? expanded.add(menu.dataset.uiDisclosure) : expanded.delete(menu.dataset.uiDisclosure);
   });
 }
