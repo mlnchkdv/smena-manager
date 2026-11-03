@@ -1,4 +1,4 @@
-import { activityMatcher } from '../shared/activity-view.js';
+import { activityMatcher, activityRangeValid } from '../shared/activity-view.js';
 import { calendarDate } from '../shared/calendar-time.js';
 import { isRussian } from '../core/i18n.js';
 const T = (en, ru) => (isRussian() ? ru : en);
@@ -71,6 +71,8 @@ export function pageActivity() {
   if (who !== 'all') as = as.filter(a => a.by === who);
   const from = S.ui.actFrom || '',
     to = S.ui.actTo || '';
+  const invalidRange = !activityRangeValid(from, to);
+  const dateError = invalidRange ? 'aria-invalid="true" aria-describedby="activity-date-error"' : '';
   as = as.filter(activityMatcher(D(), { query, project, from, to, zone: S.prefs.tz })).sort((a, b) => Number(new Date(b.at)) - Number(new Date(a.at)));
   const key = JSON.stringify(['activity', D().ws.id || D().ws.url, D().me, f, who, from, to, query, project]);
   const page = listWindow(as, collectionPage(viewState, key), 50);
@@ -99,20 +101,22 @@ export function pageActivity() {
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join(
         '',
-      )}</select></div><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button><p class="hint" role="status"><span>Results</span>: ${page.total}</p>
+      )}</select></div><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button>${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
     ${
-      as.length
-        ? Object.entries(b)
-            .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${list.map(a => actHtml(a, { proj: true })).join('')}</div>`)
-            .join('')
-        : available.length && (f !== 'all' || who !== 'all' || from || to || query || project !== 'all')
-          ? empty(
-              'search',
-              'No matching activity.',
-              'Change the filters or clear them to see more events.',
-              '<button class="btn btn-secondary" data-a="resetActivityFilters">Clear filters</button>',
-            )
-          : empty('activity', 'No activity yet', 'Changes to tasks and projects will appear here.')
+      invalidRange
+        ? `<p id="activity-date-error" class="alert warn" role="alert" translate="no">${T('The start date must be on or before the end date. Correct the dates or clear the period.', 'Начальная дата должна быть не позже конечной. Исправьте даты или очистите период.')}</p>`
+        : as.length
+          ? Object.entries(b)
+              .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${list.map(a => actHtml(a, { proj: true })).join('')}</div>`)
+              .join('')
+          : available.length && (f !== 'all' || who !== 'all' || from || to || query || project !== 'all')
+            ? empty(
+                'search',
+                'No matching activity.',
+                'Change the filters or clear them to see more events.',
+                '<button class="btn btn-secondary" data-a="resetActivityFilters">Clear filters</button>',
+              )
+            : empty('activity', 'No activity yet', 'Changes to tasks and projects will appear here.')
     }${paginationHtml(page, key)}
   </div>`;
 }

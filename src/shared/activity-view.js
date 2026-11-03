@@ -1,10 +1,12 @@
 import { searchTerms } from './search-query.js';
 import { calendarDate } from './calendar-time.js';
+export const activityRangeValid = (from, to) => !from || !to || from <= to;
 export function activityMatcher(data, { query = '', project = 'all', from = '', to = '', zone } = {}) {
   const terms = searchTerms(query),
     tasks = new Map((data.tasks || []).map(t => [t.id, t])),
     projects = new Map((data.projects || []).map(p => [p.id, p]));
   return event => {
+    if (!activityRangeValid(from, to)) return false;
     const task = tasks.get(event.task),
       id = event.project || task?.project;
     if (project !== 'all' && id !== project) return false;
