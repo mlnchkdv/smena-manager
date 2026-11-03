@@ -1,7 +1,7 @@
 /* =====================================================================
    EVENT WIRING
    ===================================================================== */
-import { $$ } from '../core/utils.js';
+import { selectPaletteIndex } from '../ui/palette-selection.js';
 import { S } from '../core/store.js';
 import { render, revealActiveSetting } from '../shell/render.js';
 import { placePop } from '../overlays/popovers.js';
@@ -83,9 +83,7 @@ document.addEventListener('mouseover', e => {
   if (!el || !S.ui.palette) return;
   const i = +el.dataset.hoverI;
   if (S.ui.palette.hl === i) return;
-  S.ui.palette.hl = i;
-  $$('.pi.hl').forEach(x => x.classList.remove('hl'));
-  el.classList.add('hl');
+  S.ui.palette.hl = selectPaletteIndex(i);
 });
 const repositionPop = () => {
   if (S.ui.pop) requestAnimationFrame(placePop);

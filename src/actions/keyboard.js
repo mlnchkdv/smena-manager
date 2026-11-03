@@ -6,6 +6,7 @@ import { go, render } from '../shell/render.js';
 import { closeModal } from '../overlays/modals.js';
 import { closePop } from '../overlays/popovers.js';
 import { A, KEY } from './actions.js';
+import { selectPaletteIndex } from '../ui/palette-selection.js';
 import { moveTabFocus } from '../ui/tabs.js';
 import { moveColorFocus } from '../ui/color-palette.js';
 import { flushLocalSave } from '../core/store.js';
@@ -111,16 +112,12 @@ document.addEventListener('keydown', e => {
     const n = pl._flat?.length || 0;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      pl.hl = (pl.hl + 1) % Math.max(n, 1);
-      render();
-      $('.pi.hl')?.scrollIntoView({ block: 'nearest' });
+      pl.hl = selectPaletteIndex((pl.hl + 1) % Math.max(n, 1), true);
       return;
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      pl.hl = (pl.hl - 1 + n) % Math.max(n, 1);
-      render();
-      $('.pi.hl')?.scrollIntoView({ block: 'nearest' });
+      pl.hl = selectPaletteIndex((pl.hl - 1 + n) % Math.max(n, 1), true);
       return;
     }
     if (e.key === 'Enter') {
