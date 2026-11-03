@@ -149,7 +149,7 @@ export function actHtml(a, opt = {}) {
   const self = a.by === D().me;
   const locale = isRussian() ? 'ru-RU' : 'en-US';
   const extra = activityDateExtra(a, locale, value => fmtDate(value, true)) ?? activityExtra(a.extra, a.verb, a.change);
-  return `<div class="fitem">${av(a.by, 'sm')}<div class="grow"><b translate="no">${esc(self ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(activityVerbForm(tr(a.verb), self, locale))}</span> ${obj} ${extra ? `<span class="muted" translate="no">${esc(extra)}</span>` : ''}${opt.proj && p && t ? ` <span class="faint" translate="no">${esc(inProject(p.name))}</span>` : ''}</div><time>${ago(a.at)}</time></div>`;
+  return `<div class="fitem" ${a.id ? `id="activity-${esc(a.id)}" data-activity-id="${esc(a.id)}"` : ''}>${av(a.by, 'sm')}<div class="grow"><b translate="no">${esc(self ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(activityVerbForm(tr(a.verb), self, locale))}</span> ${obj} ${extra ? `<span class="muted" translate="no">${esc(extra)}</span>` : ''}${opt.proj && p && t ? ` <span class="faint" translate="no">${esc(inProject(p.name))}</span>` : ''}</div><time title="${esc(new Date(a.at).toLocaleString(isRussian() ? 'ru-RU' : 'en-US', { timeZone: S.prefs.tz }))}">${ago(a.at)}</time></div>`;
 }
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);

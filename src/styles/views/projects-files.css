@@ -113,6 +113,40 @@
   display: flex;
   flex-direction: column;
 }
+.activity-grouping {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.activity-event-group {
+  border-bottom: 1px solid var(--divider);
+}
+.activity-event-group > summary {
+  cursor: pointer;
+  padding: 10px 8px;
+  min-height: 44px;
+  font-size: var(--fs-sm);
+}
+.activity-event-group > summary :is(span, time) {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.activity-event-group > summary time {
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+}
+.activity-event-group > .feed {
+  margin-left: 10px;
+  border-left: 2px solid var(--divider);
+}
+.home-activity-panel .panel-h .acts {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .fitem {
   display: flex;
   gap: 10px;

@@ -7,7 +7,7 @@ import { collectionView, collectionPage, saveCollectionView, resetCollectionView
 import { dayBucket, esc } from '../core/utils.js';
 import { D, S, canSee, proj } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
-import { actHtml } from '../components/task-list.js';
+import { activityFeed, activityGroupingControl } from '../ui/activity-feed.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { A, IN } from '../actions/actions.js';
 import { render } from '../shell/render.js';
@@ -102,12 +102,13 @@ export function pageActivity() {
       .join(
         '',
       )}</select></div><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset view</button>${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
+    ${activityGroupingControl('activity-grouping')}
     ${
       invalidRange
         ? `<p id="activity-date-error" class="alert warn" role="alert" translate="no">${T('The start date must be on or before the end date. Correct the dates or clear the period.', 'Начальная дата должна быть не позже конечной. Исправьте даты или очистите период.')}</p>`
         : as.length
           ? Object.entries(b)
-              .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${list.map(a => actHtml(a, { proj: true })).join('')}</div>`)
+              .map(([k, list]) => `<div class="day-h">${k}</div><div class="feed lined">${activityFeed(list, { proj: true })}</div>`)
               .join('')
           : available.length && (f !== 'all' || who !== 'all' || from || to || query || project !== 'all')
             ? empty(

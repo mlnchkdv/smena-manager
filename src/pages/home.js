@@ -5,7 +5,8 @@ import { ic } from '../core/icons.js';
 import { D, S, allTasks, canSee, isOver, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
 import { av, avStack, empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
-import { actHtml, miniRow } from '../components/task-list.js';
+import { activityFeed, activityGroupingControl } from '../ui/activity-feed.js';
+import { miniRow } from '../components/task-list.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
@@ -115,11 +116,8 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
           </div>
         </section>
         <section class="panel home-activity-panel">
-          <div class="panel-h"><h2>Recent activity</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="activity">View all</button></div></div>
-          <div class="panel-b feed lined">${D()
-            .activity.slice(0, 7)
-            .map(a => actHtml(a, { proj: true }))
-            .join('')}</div>
+          <div class="panel-h"><h2>Recent activity</h2><div class="acts">${activityGroupingControl('home-activity-grouping')}<button class="btn btn-sm btn-ghost" data-a="go" data-r="activity">View all</button></div></div>
+          <div class="panel-b feed lined">${activityFeed(D().activity.slice(0, 7), { proj: true })}</div>
         </section>
       </div>
     </div>
