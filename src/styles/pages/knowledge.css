@@ -1884,6 +1884,43 @@
   border: 1px solid var(--border);
   border-radius: var(--r);
 }
+.knowledge-note-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 3px 8px;
+  color: var(--text-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-size: var(--fs-xs);
+  text-align: left;
+}
+.knowledge-note-type span {
+  overflow-wrap: anywhere;
+}
+.knowledge-note-type svg {
+  flex: 0 0 auto;
+}
+.knowledge-note-type:hover {
+  color: var(--accent);
+  border-color: var(--border-strong);
+}
+.knowledge-type-picker .knowledge-type-fields {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.knowledge-type-picker .knowledge-type-fields > summary {
+  display: none;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .knowledge-note-type {
+    min-height: 44px;
+  }
+}
 .knowledge-type-fields summary {
   cursor: pointer;
   font-weight: 500;
