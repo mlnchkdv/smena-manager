@@ -53,6 +53,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       scopeKey,
       selected,
       simple,
+      S.prefs.graphAnchors !== false,
       physics,
       reducedMotion,
       S.prefs.diagramViews,
@@ -273,7 +274,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           },
         },
         {
-          selector: 'node.simple:selected, node.simple.simple-hover, node.simple.simple-neighbor',
+          selector: 'node.simple:selected, node.simple.simple-hover, node.simple.simple-neighbor, node.simple.simple-anchor',
           style: {
             width: 16,
             height: 16,
@@ -309,7 +310,10 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           width: cy.width(),
           height: cy.height(),
           selected,
+          anchorsOnly: !selected,
+          ...(!selected ? { limit: Math.max(2, Math.min(5, Math.floor(cy.width() / 160))) } : {}),
         });
+        container.dataset.graphAnchorLabels = String(!selected && S.prefs.graphAnchors !== false ? labels.size : 0);
         cy.batch(() =>
           cy.nodes().forEach(node => {
             const active = node.id() === selected;
@@ -320,6 +324,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
               'text-max-width': 130 / zoom,
               'text-margin-y': 8 / zoom,
             });
+            node.toggleClass('simple-anchor', !selected && S.prefs.graphAnchors !== false && labels.has(node.id()));
             node.toggleClass('simple-neighbor', !!selected && neighbors.has(node.id()) && labels.has(node.id()));
           }),
         );

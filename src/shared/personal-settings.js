@@ -16,6 +16,7 @@ const PREFERENCE_TYPES = Object.freeze({
   sidebar: 'string',
   graphSimple: 'boolean',
   graphPhysics: 'boolean',
+  graphAnchors: 'boolean',
   knowledgeQueries: 'string',
   theme: 'string',
   accent: 'string',

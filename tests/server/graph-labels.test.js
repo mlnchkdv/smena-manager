@@ -2,6 +2,27 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { graphOverviewLabels } from '../../src/shared/graph-labels.js';
 
+test('simplified orientation prefers sparse project anchors and leaves isolated leaves unlabeled', () => {
+  const graph = {
+    nodes: [
+      { key: 'p', kind: 'project' },
+      { key: 'hub', kind: 'note' },
+      { key: 'leaf', kind: 'note' },
+    ],
+    edges: [
+      { from: 'hub', to: 'p' },
+      { from: 'hub', to: 'leaf' },
+    ],
+  };
+  const points = new Map([
+    ['p', { x: 80, y: 70 }],
+    ['hub', { x: 82, y: 72 }],
+    ['leaf', { x: 240, y: 200 }],
+  ]);
+  assert.deepEqual([...graphOverviewLabels(graph, points, { width: 390, height: 500, anchorsOnly: true })], ['p']);
+  assert.equal(graph.nodes.length, 3);
+});
+
 test('overview labels prioritize selected material and leave room between labels', () => {
   const graph = {
     nodes: ['a', 'b', 'c', 'd'].map(key => ({ key })),

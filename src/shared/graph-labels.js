@@ -2,7 +2,7 @@
 export function graphOverviewLabels(
   graph,
   points,
-  { width, height, selected = '', limit = Math.max(4, Math.min(18, Math.floor((width * height) / 20000))) } = {},
+  { width, height, selected = '', anchorsOnly = false, limit = Math.max(4, Math.min(18, Math.floor((width * height) / 20000))) } = {},
 ) {
   const degree = new Map(graph.nodes.map(node => [node.key, 0]));
   const neighbors = new Set();
@@ -12,13 +12,16 @@ export function graphOverviewLabels(
     if (edge.from === selected) neighbors.add(edge.to);
     if (edge.to === selected) neighbors.add(edge.from);
   }
-  const candidates = [...graph.nodes].sort(
-    (a, b) =>
-      Number(b.key === selected) - Number(a.key === selected) ||
-      Number(neighbors.has(b.key)) - Number(neighbors.has(a.key)) ||
-      (degree.get(b.key) || 0) - (degree.get(a.key) || 0) ||
-      a.key.localeCompare(b.key),
-  );
+  const candidates = graph.nodes
+    .filter(node => !anchorsOnly || node.kind === 'project' || (degree.get(node.key) || 0) >= 2)
+    .sort(
+      (a, b) =>
+        Number(b.key === selected) - Number(a.key === selected) ||
+        (anchorsOnly ? Number(b.kind === 'project') - Number(a.kind === 'project') : 0) ||
+        Number(neighbors.has(b.key)) - Number(neighbors.has(a.key)) ||
+        (degree.get(b.key) || 0) - (degree.get(a.key) || 0) ||
+        a.key.localeCompare(b.key),
+    );
   const boxes = [],
     keys = new Set();
   for (const node of candidates) {
