@@ -1,3 +1,4 @@
+import { settingsSearch } from '../ui/settings-search.js';
 import { notificationOverview } from '../ui/notification-overview.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { helpGuides } from '../ui/help-guides.js';
@@ -207,8 +208,8 @@ export function pageSettings() {
   const sec = restricted || availableSections.has(requestedSection) ? requestedSection : 'appearance';
   const title = SET_NAV.flatMap(g => g[1]).find(x => x[0] === sec) || ['appearance', 'Appearance'];
   return `<div class="set">
-    <div class="settings-section-nav"><label class="sr" for="settings-section">Settings</label><select id="settings-section" class="settings-section-picker" data-in="settingsSection">${restricted ? `<option value="${esc(sec)}" selected disabled>${esc(tr(title[1]))}</option>` : ''}${navigation.map(([group, items]) => `<optgroup label="${esc(tr(group))}">${items.map(([key, name]) => `<option value="${key}" ${sec === key ? 'selected' : ''}>${esc(tr(name))}</option>`).join('')}</optgroup>`).join('')}</select></div>
-    <nav class="set-nav" aria-label="Settings">${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" ${sec === k ? 'aria-current="page"' : ''} data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
+    <div class="settings-section-nav">${settingsSearch(navigation, 'settings-find-mobile')}<label class="sr" for="settings-section">Settings</label><select id="settings-section" class="settings-section-picker" data-in="settingsSection">${restricted ? `<option value="${esc(sec)}" selected disabled>${esc(tr(title[1]))}</option>` : ''}${navigation.map(([group, items]) => `<optgroup label="${esc(tr(group))}">${items.map(([key, name]) => `<option value="${key}" ${sec === key ? 'selected' : ''}>${esc(tr(name))}</option>`).join('')}</optgroup>`).join('')}</select></div>
+    <nav class="set-nav" aria-label="Settings">${settingsSearch(navigation, 'settings-find-desktop')}${navigation.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([k, n, i]) => `<button class="sitem ${sec === k ? 'on' : ''}" ${sec === k ? 'aria-current="page"' : ''} data-a="go" data-r="settings" data-sec="${k}">${ic(i, 15)}<span>${n}</span></button>`).join('')}`).join('')}</nav>
     <div class="set-body" data-keep="set:${sec}"><div class="set-in">${restricted ? `<section class="settings-access"><h1>${esc(tr(title[1]))}</h1><p class="muted"><span translate="no">${esc(D().ws.name)}</span> · ${esc(workspaceRoleLabel(S.ui.currentUser?.role))}</p><div class="panel"><div class="panel-h">${ic('lock', 18)}<h2>Administrator access required</h2></div><div class="panel-b"><p>These settings belong to the current workspace. Ask its owner or an administrator to make changes.</p><p>Switch to a workspace you own to manage its settings.</p><div class="settings-member-actions row"><button class="btn btn-secondary" data-a="pop" data-pop="ws">Switch workspace</button>${canCreateWorkspace(S.ui.currentUser?.role) ? '<button class="btn btn-primary" data-a="newWorkspace">Create workspace</button>' : ''}<button class="btn btn-ghost" data-a="go" data-r="settings" data-sec="appearance">Personal settings</button></div></div></div></section>` : settingsBody(sec, title[1])}</div></div>
   </div>`;
 }
@@ -242,7 +243,7 @@ export function settingsBody(sec, title) {
           ? tr('Personal settings')
           : tr('Workspace settings');
   const H = lead =>
-    `<h1>${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
+    `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
   switch (sec) {
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;

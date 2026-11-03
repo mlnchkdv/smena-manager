@@ -17,6 +17,47 @@
   overflow-y: auto;
   background: var(--surface);
 }
+.settings-search {
+  min-width: 0;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.settings-search input {
+  width: 100%;
+}
+.settings-search-results {
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+}
+.settings-search-results > p {
+  padding: 8px;
+  margin: 0;
+}
+.settings-search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  padding: 8px;
+  width: 100%;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+.settings-search-result span {
+  font-size: var(--fs-2xs);
+  color: var(--text-3);
+}
+.settings-search-result:hover {
+  background: var(--surface-2);
+}
+.settings-section-nav:has(.settings-search) {
+  flex-wrap: wrap;
+}
 .set-nav .gh {
   font-size: var(--fs-2xs);
   font-weight: 600;
