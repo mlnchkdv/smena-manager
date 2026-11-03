@@ -130,7 +130,7 @@
     overflow-wrap: anywhere;
   }
   .workspace-file-card.textual .workspace-file-open {
-    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr);
   }
   .workspace-file-card.textual .workspace-file-card-foot {
     left: 56px;
