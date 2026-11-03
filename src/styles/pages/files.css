@@ -283,7 +283,7 @@
   margin-bottom: 14px;
 }
 .workspace-file-grid {
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
 }
 .workspace-file-card {
   display: flex;
