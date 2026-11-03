@@ -1,3 +1,4 @@
+import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
 import { diagramViewsControl } from '../ui/diagram-views.js';
 import { preparePersonalGraph } from '../core/diagram-view-state.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
@@ -46,6 +47,7 @@ function graphDetails(node) {
 }
 
 export function pageGraph() {
+  requestAnimationFrame(refreshGraphListKeyboard);
   const ui = S.ui,
     center = ui.params.center || '';
   preparePersonalGraph(center);
