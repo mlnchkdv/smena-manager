@@ -4,6 +4,7 @@ export function activityGroups(events, { enabled = false, day = event => String(
   const key = event =>
     event.task &&
     event.by &&
+    Number.isFinite(Date.parse(event.at)) &&
     !/comment|security|sign|login|access|member|invite/i.test(event.verb || '') &&
     !['security', 'system'].includes(event.type) &&
     event.read !== false

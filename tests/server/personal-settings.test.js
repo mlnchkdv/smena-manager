@@ -37,6 +37,9 @@ test('spellcheck and deletion confirmation are persisted as booleans, including 
   assert.throws(() => applyPersonalSettings(database, 'me', { preferences: { graphSimple: 'false' } }), /Invalid/u);
   applyPersonalSettings(database, 'me', { preferences: { graphPhysics: true } });
   assert.equal(database._userPrefs.me.graphPhysics, true);
+  applyPersonalSettings(database, 'me', { preferences: { graphAnchors: false } });
+  assert.equal(personalPreferenceData(database._userPrefs.me).graphAnchors, false);
+  assert.throws(() => applyPersonalSettings(database, 'me', { preferences: { graphAnchors: 'false' } }), /Invalid/u);
 });
 
 test('mark all read stays within the API limit, deduplicates IDs and stops after a failed batch', async () => {

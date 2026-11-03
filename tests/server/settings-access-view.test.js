@@ -15,6 +15,11 @@ function render(role, sec) {
     esc: value => value,
     ic: () => '',
     settingsBody: key => `body:${key}`,
+    settingsSearch: navigation =>
+      navigation
+        .flatMap(([, items]) => items)
+        .map(([key]) => `<span data-search-section="${key}"></span>`)
+        .join(''),
   };
   vm.runInNewContext(
     source.slice(source.indexOf('export const SET_NAV'), source.indexOf('export function srow')).replace(/^export /gm, '') +
@@ -33,6 +38,7 @@ test('member and guest deep links explain current-workspace restrictions without
       assert.match(html, /data-pop="ws"/);
       assert.match(html, new RegExp(`value="${sec}" selected disabled`));
       assert.doesNotMatch(html, /body:/);
+      assert.doesNotMatch(html, new RegExp(`data-search-section="${sec}"`));
       assert.equal(html.includes('data-a="newWorkspace"'), role === 'editor');
     }
 });
