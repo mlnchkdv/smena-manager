@@ -2,6 +2,8 @@
 
 **Dates / Даты:** 2–3 November 2026. **Site / Сайт:** <https://smena-manager.vercel.app/>. **Audit baseline:** application `0a3b76d`, repository HEAD `58bca0a`. **Final application after six requested corrections:** `d8b9676`.
 
+**Status update / Статус:** Y01–Y11 subsequently implemented and published as application `5559b3d`. [Delivery, production acceptance and limits / Внедрение, проверки и ограничения](UI_UX_DELIVERY_2026-11-03_ELEVEN.md). The findings and pending wording below describe the original audit baseline, not the final application. / Формулировки исходного плана ниже сохранены как историческая точка сравнения.
+
 ## Conclusion / Вывод
 
 **RU:** В просмотренных сценариях новых блокирующих проблем интерфейса не обнаружено. Следующий пакет содержит **11 задач: три воспроизведённых дефекта, одну проблему доступности по исходному коду и семь UX-предложений**. Это план; он ещё не внедрён. Исправления шести отдельных запросов пользователя уже опубликованы и описаны в [отчёте о выполнении](UI_UX_FOLLOWUP_2026-11-03.md).
@@ -179,4 +181,4 @@ Cross-cutting constraint: the entry JavaScript is **599.9 KiB with a 600 KiB bud
 | Y10 | P3, UX proposal             | Add sparse optional orientation labels for simplified graph clusters.                                                |
 | Y11 | P3, UX proposal             | Optionally group repetitive activity while retaining every original event and security boundary.                     |
 
-**Do not claim these eleven items are delivered.** Previous X01–X16 and the six user follow-ups remain delivered. No new production write/restore, physical-device, screen-reader, delivery or multi-user-concurrency acceptance was performed in this audit.
+**Historical status at audit time:** these eleven items were pending then; they are now delivered in the linked implementation report. Previous X01–X16 and the six user follow-ups remain delivered. No new production write/restore, physical-device, screen-reader, delivery or multi-user-concurrency acceptance was performed in this audit.
