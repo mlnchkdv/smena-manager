@@ -89,7 +89,7 @@
 .whiteboard-document-info h2 {
   font-size: 15px;
   margin: 0;
-  padding-right: 26px;
+  padding-right: 80px;
   overflow-wrap: anywhere;
 }
 .whiteboard-document-info p {
@@ -103,10 +103,15 @@
 .whiteboard-document-info .hint {
   overflow-wrap: anywhere;
 }
-.whiteboard-document-card > .whiteboard-document-menu {
+.whiteboard-document-actions {
   position: absolute;
   right: 8px;
   top: 118px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border-radius: var(--r);
 }
 .whiteboards-grid[data-view='list'] {
   grid-template-columns: minmax(0, 1fr);
@@ -122,8 +127,12 @@
   border: 0;
   border-radius: var(--r-lg) 0 0 var(--r-lg);
 }
-.whiteboards-grid[data-view='list'] .whiteboard-document-menu {
+.whiteboards-grid[data-view='list'] .whiteboard-document-actions {
   top: 8px;
+}
+.whiteboards-grid[data-view='list'] .whiteboard-document-info {
+  flex: 1;
+  min-width: 0;
 }
 .whiteboards-empty {
   padding: 48px 16px;
@@ -335,11 +344,4 @@
 }
 .whiteboard-access-badge svg {
   flex: 0 0 auto;
-}
-
-.whiteboard-document-personal {
-  position: absolute;
-  right: 52px;
-  top: 8px;
-  z-index: 2;
 }
