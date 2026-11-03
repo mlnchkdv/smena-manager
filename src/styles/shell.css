@@ -317,7 +317,7 @@ svg.logo {
   justify-content: center;
   padding: 0;
 }
-.collapsed .side .sitem > span:not(.pico),
+.collapsed .side .sitem > span:not(.pico, .account-avatar-status),
 .collapsed .side .sitem .ct,
 .collapsed .side .sgroup-h,
 .collapsed .side .ws-name,
