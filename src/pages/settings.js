@@ -1,3 +1,5 @@
+import { notificationOverview } from '../ui/notification-overview.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 import { helpGuides } from '../ui/help-guides.js';
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
@@ -240,7 +242,7 @@ export function settingsBody(sec, title) {
           ? tr('Personal settings')
           : tr('Workspace settings');
   const H = lead =>
-    `<h1>${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>`;
+    `<h1>${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
   switch (sec) {
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
@@ -509,9 +511,8 @@ export function settingsBody(sec, title) {
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
         srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np')) +
         (S.ui.currentUser?.role === 'admin'
-          ? `<p class="hint settings-scope" translate="no">${isRussian() ? 'Диагностика и операции доставки ниже относятся ко всему пространству, а не только к вашему устройству.' : 'Diagnostics and delivery operations below apply to the workspace, not only this device.'} <b>${esc(d.ws.name)}</b></p>`
-          : '') +
-        deliveryStatusPanel()
+          ? `<details class="notification-workspace-diagnostics" ${disclosureAttributes('notification-workspace-diagnostics')}><summary translate="no">${isRussian() ? 'Диагностика пространства' : 'Workspace diagnostics'}</summary><p class="hint settings-scope" translate="no">${isRussian() ? 'Диагностика и операции доставки ниже относятся ко всему пространству, а не только к вашему устройству.' : 'Diagnostics and delivery operations below apply to the workspace, not only this device.'} <b>${esc(d.ws.name)}</b></p>${deliveryStatusPanel()}</details>`
+          : '')
       );
     }
     case 'notif-mentions':
