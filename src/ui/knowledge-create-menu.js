@@ -30,6 +30,10 @@ export function knowledgeCreateMenu() {
       '',
     )}<hr><button data-a="noteTemplates">${ic('copy', 14)}<span>${kc('From template…', 'Из шаблона…')}</span></button>${S.ui.currentUser?.role === 'admin' ? `<button data-a="manageNoteTypes">${ic('shapes', 14)}<span>${kc('Manage types', 'Настроить типы')}</span></button>` : ''}</div></details></div>`;
 }
+A.newKnowledgeNoteFromTools = el => {
+  closeModal();
+  A.newKnowledgeNote(el);
+};
 const commands = () => [
   ...(S.ui.currentUser?.role === 'viewer' ? [] : [['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок']]),
   ['saveKnowledgeView', 'bookmark-plus', 'Save search', 'Сохранить поиск'],
@@ -47,7 +51,16 @@ A.knowledgeLibraryTools = () =>
   openModal({
     type: 'knowledgeTool',
     render: (_m, H) =>
-      `${H(kc('Library tools', 'Инструменты базы знаний'))}<div class="modal-b knowledge-library-tools" translate="no"><p class="hint">${kc('Saved searches stay on this device. Smart collections belong to the workspace.', 'Сохранённые поиски остаются на этом устройстве. Умные подборки принадлежат пространству.')}</p>${commands()
+      `${H(kc('Library tools', 'Инструменты базы знаний'))}<div class="modal-b knowledge-library-tools" translate="no">${
+        S.ui.currentUser?.role === 'viewer'
+          ? ''
+          : `<details><summary>${kc('Create by type', 'Создать по типу')}</summary>${noteTypes(D().ws)
+              .map(
+                type =>
+                  `<button class="btn btn-ghost" data-a="newKnowledgeNoteFromTools" data-type-id="${esc(type.id)}">${ic('file-plus', 14)}${esc(typeName(type))}</button>`,
+              )
+              .join('')}</details>`
+      }<p class="hint">${kc('Saved searches stay on this device. Smart collections belong to the workspace.', 'Сохранённые поиски остаются на этом устройстве. Умные подборки принадлежат пространству.')}</p>${commands()
         .map(([a, i, en, ru]) => `<button class="btn btn-secondary" data-a="openKnowledgeLibraryTool" data-command="${a}">${ic(i, 16)}${kc(en, ru)}</button>`)
         .join(
           '',

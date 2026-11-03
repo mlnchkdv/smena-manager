@@ -89,13 +89,12 @@
 @media (max-width: 640px) {
   .knowledge-content-head {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: 6px;
   }
   .knowledge-content-head > div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: block;
   }
   .knowledge-content-head h1 {
     min-width: 0;
@@ -134,19 +133,28 @@
     display: none;
   }
   .knowledge-content-actions .knowledge-create > .btn {
-    width: auto;
-    min-width: 0;
-    padding-inline: 10px;
-    flex: 1;
+    width: 44px;
+    min-width: 44px;
+    padding-inline: 0;
   }
   .knowledge-content-actions .knowledge-create-label {
-    display: inline;
+    display: none;
+  }
+  .knowledge-content-actions .knowledge-create-options {
+    display: none;
   }
   .knowledge-content-actions .knowledge-create {
     margin-right: auto;
   }
   .knowledge-content-actions {
-    width: 100%;
+    width: auto;
+    gap: 6px;
+  }
+  .knowledge-content-head {
+    margin-bottom: 8px;
+  }
+  .knowledge-content-toolbar {
+    margin-bottom: 10px;
     gap: 6px;
   }
 }
