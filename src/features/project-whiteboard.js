@@ -600,6 +600,18 @@ function zoomTo(next, cx, cy) {
 A.whiteboardZoomIn = () => zoomTo(whiteboardState().zoom * 1.25);
 A.whiteboardZoomOut = () => zoomTo(whiteboardState().zoom / 1.25);
 A.whiteboardResetZoom = () => zoomTo(1);
+A.whiteboardResizeFocus = () => {
+  const s = whiteboardState(),
+    node = whiteboardOf(current()).nodes.find(n => n.id === s.selected);
+  const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
+  if (!node || !box) return;
+  s.zoom = 1;
+  s.x = box.width / 2 - node.x - node.width;
+  s.y = box.height / 2 - node.y - node.height;
+  s.fit = s.autoFit = false;
+  paintView();
+  document.querySelector(`[data-board-id="${CSS.escape(node.id)}"] [data-board-resize="se"]`)?.focus({ preventScroll: true });
+};
 A.whiteboardFit = () => {
   const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   if (!box) return;
