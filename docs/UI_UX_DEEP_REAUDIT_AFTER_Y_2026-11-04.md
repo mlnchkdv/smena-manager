@@ -1,6 +1,6 @@
 # UI/UX re-audit after Y01–Y11 / Повторный аудит после Y01–Y11
 
-**Inspection / Проверка:** 3–4 November 2026, production `https://smena-manager.vercel.app/`. **Observed baseline:** `8216a9d9685f5d28c687224d634420fc49b8ad09`, documentation on application `5559b3d`. **Status / Статус:** Z01–Z08 are proposed, not implemented / предложены, ещё не внедрены.
+**Inspection / Проверка:** 3–4 November 2026, production `https://smena-manager.vercel.app/`. **Observed baseline:** `8216a9d9685f5d28c687224d634420fc49b8ad09`, documentation on application `5559b3d`. **Status / Статус:** All Z01–Z08 are implemented / все восемь пунктов внедрены. [Delivery, commits, production acceptance and limits / Результат и границы проверки](UI_UX_DELIVERY_2026-11-04_EIGHT.md). The observations below are the historical audit baseline, not a list of current defects.
 
 **RU:** Следующий пакет состоит из двух воспроизводимых ошибок и шести UX-улучшений. Основная проблема теперь — отдельные сценарии и короткие экраны, а не необходимость заново переделывать все разделы. Ранее внедрённые Y01–Y11 остаются выполненными. В проверенных сценариях не обнаружена новая блокирующая ошибка уровня P0/P1; это не заключение о безопасности, сохранении всех сущностей или полной функциональной исправности.
 
