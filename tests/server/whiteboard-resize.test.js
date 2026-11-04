@@ -1,9 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { resizedWhiteboardNode as resize } from '../../src/shared/whiteboard-resize.js';
+import { resizedWhiteboardNode as resize, snapWhiteboardResize } from '../../src/shared/whiteboard-resize.js';
 import { validWhiteboard } from '../../src/shared/project-whiteboard.js';
 
 const node = { id: 'a', type: 'text', x: -100, y: 40, width: 260, height: 180, title: 'Card', text: '', color: 'neutral' };
+test('locked corner resizing preserves proportions and anchors through every boundary', () => {
+  for (const direction of ['ne', 'nw', 'se', 'sw'])
+    for (const dx of [-99999, -40, 80, 99999]) {
+      const n = resize(node, direction, dx, dx / 2, 10, { lockAspect: true });
+      assert.ok(validWhiteboard({ version: 1, nodes: [n], edges: [] }));
+      assert.ok(Math.abs(n.width / node.width - n.height / node.height) < 0.007);
+      assert.equal(direction.includes('w') ? n.x + n.width : n.x, direction.includes('w') ? node.x + node.width : node.x);
+      assert.equal(direction.includes('n') ? n.y + n.height : n.y, direction.includes('n') ? node.y + node.height : node.y);
+    }
+});
+test('alignment snaps only within tolerance and does not include the resized node itself', () => {
+  const other = { ...node, id: 'b', x: 205, y: 275 };
+  const snapped = snapWhiteboardResize(node, 'se', 40, 50, [node, other], 6);
+  assert.deepEqual(snapped, {
+    dx: 45,
+    dy: 55,
+    guides: [
+      { axis: 'x', value: 205 },
+      { axis: 'y', value: 275 },
+    ],
+  });
+  assert.deepEqual(snapWhiteboardResize(node, 'se', 20, 20, [node, other], 6), { dx: 20, dy: 20, guides: [] });
+  assert.deepEqual(node, { id: 'a', type: 'text', x: -100, y: 40, width: 260, height: 180, title: 'Card', text: '', color: 'neutral' });
+});
 test('all eight directions resize only their axes and keep opposite edges fixed', () => {
   for (const direction of ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']) {
     const n = resize(node, direction, 40, 20);

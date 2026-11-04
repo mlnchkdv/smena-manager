@@ -32,6 +32,8 @@ export function whiteboardState(id = S.ui.params.id) {
       multiSelect: false,
       outline: false,
       minimap: readLayoutPreference('whiteboard-minimap', false),
+      resizeAspect: readLayoutPreference('whiteboard-resize-aspect', false),
+      resizeGuides: readLayoutPreference('whiteboard-resize-guides', true),
       collapsedGroups: Object.fromEntries(
         Object.entries(readLayoutPreference('whiteboard-outline:' + id, {}) || {})
           .filter(([key, value]) => typeof key === 'string' && value === true)

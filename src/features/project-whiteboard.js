@@ -1,5 +1,5 @@
 import { ic } from '../core/icons.js';
-import { resizedWhiteboardNode } from '../shared/whiteboard-resize.js';
+import { resizedWhiteboardNode, snapWhiteboardResize } from '../shared/whiteboard-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
@@ -600,6 +600,16 @@ function zoomTo(next, cx, cy) {
 A.whiteboardZoomIn = () => zoomTo(whiteboardState().zoom * 1.25);
 A.whiteboardZoomOut = () => zoomTo(whiteboardState().zoom / 1.25);
 A.whiteboardResetZoom = () => zoomTo(1);
+A.whiteboardToggleAspect = () => {
+  const s = whiteboardState();
+  writeLayoutPreference('whiteboard-resize-aspect', (s.resizeAspect = !s.resizeAspect));
+  render();
+};
+A.whiteboardToggleGuides = () => {
+  const s = whiteboardState();
+  writeLayoutPreference('whiteboard-resize-guides', (s.resizeGuides = !s.resizeGuides));
+  render();
+};
 A.whiteboardResizeFocus = () => {
   const s = whiteboardState(),
     node = whiteboardOf(current()).nodes.find(n => n.id === s.selected);
@@ -630,6 +640,7 @@ const pointers = new Map(),
   mounted = new WeakSet(),
   hydrations = new Set();
 function resetPreview() {
+  viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
   for (const n of whiteboardOf(current()).nodes) {
     const el = document.querySelector(`[data-board-id="${CSS.escape(n.id)}"]`);
     if (el) {
@@ -704,7 +715,28 @@ function move(e) {
   if (!g) return;
   if (g.kind === 'resize') {
     if (g.scope !== s.scope) return;
-    g.next = resizedWhiteboardNode(g.node, g.direction, (e.clientX - g.x) / g.zoom, (e.clientY - g.y) / g.zoom);
+    let dx = Math.round((e.clientX - g.x) / g.zoom / 10) * 10,
+      dy = Math.round((e.clientY - g.y) / g.zoom / 10) * 10;
+    const lockAspect = s.resizeAspect && g.direction.length === 2;
+    const snapped =
+      s.resizeGuides && !lockAspect ? snapWhiteboardResize(g.node, g.direction, dx, dy, whiteboardOf(current()).nodes, 6 / g.zoom) : { dx, dy, guides: [] };
+    g.next = resizedWhiteboardNode(g.node, g.direction, snapped.dx, snapped.dy, snapped.guides.length ? 1 : 10, { lockAspect });
+    const guideLayer = viewport.querySelector('.whiteboard-guides');
+    if (guideLayer)
+      guideLayer.innerHTML = snapped.guides
+        .filter(
+          guide =>
+            Math.abs(
+              guide.value -
+                (guide.axis === 'x' ? g.next.x + (g.direction.includes('e') ? g.next.width : 0) : g.next.y + (g.direction.includes('s') ? g.next.height : 0)),
+            ) < 1,
+        )
+        .map(guide =>
+          guide.axis === 'x'
+            ? `<i class="whiteboard-guide vertical" style="left:${guide.value}px;top:${-s.y / s.zoom}px;height:${viewport.clientHeight / s.zoom}px"></i>`
+            : `<i class="whiteboard-guide horizontal" style="top:${guide.value}px;left:${-s.x / s.zoom}px;width:${viewport.clientWidth / s.zoom}px"></i>`,
+        )
+        .join('');
     const el = viewport.querySelector(`[data-board-id="${CSS.escape(g.node.id)}"]`);
     if (el) {
       for (const key of ['x', 'y', 'width', 'height']) el.style[{ x: 'left', y: 'top' }[key] || key] = g.next[key] + 'px';
@@ -765,6 +797,7 @@ function move(e) {
   }
 }
 function up(e, cancel = false) {
+  viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
   pointers.delete(e.pointerId);
   const g = gesture;
   gesture = null;
@@ -985,7 +1018,7 @@ document.addEventListener(
           direction = resize.dataset.boardResize;
         command(b => {
           const node = b.nodes.find(n => n.id === id);
-          if (node) Object.assign(node, resizedWhiteboardNode(node, direction, dx * step, dy * step));
+          if (node) Object.assign(node, resizedWhiteboardNode(node, direction, dx * step, dy * step, 10, { lockAspect: s.resizeAspect }));
         });
         requestAnimationFrame(() =>
           document.querySelector(`[data-board-id="${CSS.escape(id)}"] [data-board-resize="${direction}"]`)?.focus({ preventScroll: true }),

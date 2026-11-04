@@ -190,14 +190,14 @@
 .whiteboard-resize[data-board-resize='s'] {
   left: 20px;
   right: 20px;
-  height: 10px;
+  height: calc(10px / var(--whiteboard-zoom, 1));
   cursor: ns-resize;
 }
 .whiteboard-resize[data-board-resize='e'],
 .whiteboard-resize[data-board-resize='w'] {
   top: 20px;
   bottom: 20px;
-  width: 10px;
+  width: calc(10px / var(--whiteboard-zoom, 1));
   cursor: ew-resize;
 }
 .whiteboard-resize[data-board-resize*='n'] {
@@ -252,6 +252,22 @@
   font-size: var(--fs-xs);
   white-space: nowrap;
   pointer-events: none;
+}
+.whiteboard-guides {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+.whiteboard-guide {
+  position: absolute;
+  pointer-events: none;
+}
+.whiteboard-guide.vertical {
+  border-left: calc(1px / var(--whiteboard-zoom, 1)) dashed var(--accent);
+}
+.whiteboard-guide.horizontal {
+  border-top: calc(1px / var(--whiteboard-zoom, 1)) dashed var(--accent);
 }
 [data-resizing='true'] .whiteboard-resize-size {
   display: block;
