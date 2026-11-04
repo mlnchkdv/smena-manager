@@ -635,7 +635,7 @@ A.whiteboardFit = () => {
   paintView();
 };
 let viewport, gesture, cameraObserver, cameraFrame;
-let cameraSize;
+let cameraSize, cameraOwner;
 const pointers = new Map(),
   mounted = new WeakSet(),
   hydrations = new Set();
@@ -863,13 +863,21 @@ function up(e, cancel = false) {
 export function mountProjectWhiteboard() {
   const next = document.querySelector('.whiteboard-viewport');
   if (next !== viewport) {
+    const owner = next && whiteboardState();
+    const size = next ? { width: next.clientWidth, height: next.clientHeight } : null;
+    const recenter = owner && owner === cameraOwner && cameraSize && !owner.autoFit && (size.width !== cameraSize.width || size.height !== cameraSize.height);
+    if (recenter) {
+      owner.x += (size.width - cameraSize.width) / 2;
+      owner.y += (size.height - cameraSize.height) / 2;
+    }
     gesture = null;
     pointers.clear();
     viewport = next;
     cameraObserver?.disconnect();
     cancelAnimationFrame(cameraFrame);
-    cameraSize = next ? { width: next.clientWidth, height: next.clientHeight } : null;
-    const owner = next && whiteboardState();
+    cameraSize = size;
+    cameraOwner = owner;
+    if (recenter) paintView();
     if (next) {
       cameraObserver = new ResizeObserver(() => {
         cancelAnimationFrame(cameraFrame);
