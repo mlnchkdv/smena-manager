@@ -29,8 +29,11 @@
 .files-details > .files-details-panel {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
-  width: min(520px, calc(100vw - 32px));
+  /* A wrapped trigger sits at the catalog start; viewport clamping alone
+     cannot prevent its panel from being clipped beneath the sidebar. */
+  left: 0;
+  right: auto;
+  width: min(520px, 100cqw, calc(100vw - 32px));
   max-height: 70dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
