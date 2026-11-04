@@ -1,4 +1,5 @@
 import { ic } from '../core/icons.js';
+import { resizedWhiteboardNode } from '../shared/whiteboard-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
@@ -622,6 +623,9 @@ function resetPreview() {
     if (el) {
       el.style.left = n.x + 'px';
       el.style.top = n.y + 'px';
+      el.style.width = n.width + 'px';
+      el.style.height = n.height + 'px';
+      el.removeAttribute('data-resizing');
     }
   }
   const svg = document.querySelector('.whiteboard-edges');
@@ -629,7 +633,8 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
-  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll') return;
+  const resize = e.target.closest('[data-board-resize]');
+  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll' && !resize) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
@@ -645,6 +650,14 @@ function down(e) {
     };
     e.preventDefault();
     viewport.setPointerCapture(e.pointerId);
+    return;
+  }
+  if (resize && editable(current())) {
+    const node = whiteboardOf(current()).nodes.find(n => n.id === resize.closest('[data-board-id]')?.dataset.boardId);
+    if (!node) return;
+    gesture = { kind: 'resize', node: structuredClone(node), direction: resize.dataset.boardResize, x: e.clientX, y: e.clientY, zoom: s.zoom, scope: s.scope };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
     return;
   }
   if (s.zoom < 0.65 && !e.target.closest('.whiteboard-navigation,.whiteboard-minimap')) {
@@ -664,7 +677,10 @@ function down(e) {
     s.selected = handle.dataset.boardDrag;
     gesture = { kind: 'move', nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
   } else if (!e.target.closest('button,a,.whiteboard-card')) gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
-  else return;
+  else {
+    pointers.delete(e.pointerId);
+    return;
+  }
   viewport.setPointerCapture(e.pointerId);
   e.preventDefault();
 }
@@ -674,6 +690,25 @@ function move(e) {
   const s = whiteboardState(),
     g = gesture;
   if (!g) return;
+  if (g.kind === 'resize') {
+    if (g.scope !== s.scope) return;
+    g.next = resizedWhiteboardNode(g.node, g.direction, (e.clientX - g.x) / g.zoom, (e.clientY - g.y) / g.zoom);
+    const el = viewport.querySelector(`[data-board-id="${CSS.escape(g.node.id)}"]`);
+    if (el) {
+      for (const key of ['x', 'y', 'width', 'height']) el.style[{ x: 'left', y: 'top' }[key] || key] = g.next[key] + 'px';
+      el.dataset.resizing = 'true';
+      el.querySelector('.whiteboard-resize-size').textContent = `${g.next.width} × ${g.next.height}`;
+    }
+    if (!g.frame)
+      g.frame = requestAnimationFrame(() => {
+        g.frame = null;
+        if (gesture !== g) return;
+        const board = whiteboardOf(current()),
+          svg = viewport?.querySelector('.whiteboard-edges');
+        if (svg) svg.outerHTML = whiteboardEdges({ ...board, nodes: board.nodes.map(n => (n.id === g.node.id ? g.next : n)) });
+      });
+    return;
+  }
   if (g.kind === 'pinch' && pointers.size === 2) {
     const [a, b] = [...pointers.values()],
       box = viewport.getBoundingClientRect();
@@ -725,6 +760,32 @@ function up(e, cancel = false) {
   if (g.kind === 'pan' && g.moved) whiteboardState().overviewPanUntil = Date.now() + 300;
   if (cancel) {
     resetPreview();
+    return;
+  }
+  if (g.kind === 'resize') {
+    if (g.scope !== whiteboardState().scope || !g.next || same(g.node, g.next)) {
+      resetPreview();
+      return;
+    }
+    if (
+      !same(
+        g.node,
+        whiteboardOf(current()).nodes.find(n => n.id === g.node.id),
+      )
+    ) {
+      resetPreview();
+      toast(T('The card changed during the gesture. Please resize it again.', 'Карточка изменилась во время жеста. Повторите изменение размера.'), {
+        kind: 'info',
+      });
+      return;
+    }
+    if (
+      !command(board => {
+        const node = board.nodes.find(n => n.id === g.node.id);
+        Object.assign(node, { x: g.next.x, y: g.next.y, width: g.next.width, height: g.next.height });
+      })
+    )
+      resetPreview();
     return;
   }
   if (g.kind === 'move' && (g.dx || g.dy) && g.scope === whiteboardState().scope) {
@@ -789,7 +850,7 @@ export function mountProjectWhiteboard() {
       'click',
       event => {
         const s = whiteboardState();
-        if (event.detail === 0 || s.zoom >= 0.65 || event.target.closest('.whiteboard-navigation,.whiteboard-minimap')) return;
+        if (event.detail === 0 || s.zoom >= 0.65 || event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize]')) return;
         if (Date.now() < (s.overviewPanUntil || 0)) {
           event.preventDefault();
           event.stopPropagation();
@@ -856,6 +917,13 @@ document.addEventListener(
   'keydown',
   e => {
     if (overlayAboveDiagram()) return;
+    if (e.key === 'Escape' && gesture) {
+      e.preventDefault();
+      e.stopPropagation();
+      up(e, true);
+      pointers.clear();
+      return;
+    }
     if (current() && whiteboardState().focus && !S.ui.modals.length) {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -899,6 +967,19 @@ document.addEventListener(
       e.stopPropagation();
       const [dx, dy] = offsets[e.key],
         step = e.shiftKey ? 50 : 10;
+      const resize = e.target.closest('[data-board-resize]');
+      if (resize) {
+        const id = resize.closest('[data-board-id]').dataset.boardId,
+          direction = resize.dataset.boardResize;
+        command(b => {
+          const node = b.nodes.find(n => n.id === id);
+          if (node) Object.assign(node, resizedWhiteboardNode(node, direction, dx * step, dy * step));
+        });
+        requestAnimationFrame(() =>
+          document.querySelector(`[data-board-id="${CSS.escape(id)}"] [data-board-resize="${direction}"]`)?.focus({ preventScroll: true }),
+        );
+        return;
+      }
       command(b => {
         const ids = new Set(whiteboardSelectionNodes(b, selectedIds()).map(n => n.id));
         for (const n of b.nodes)
