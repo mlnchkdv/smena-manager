@@ -55,6 +55,35 @@
 .settings-search-result:hover {
   background: var(--surface-2);
 }
+.settings-data-option {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.settings-data-option > summary {
+  padding: 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.settings-data-option > summary small {
+  display: block;
+  margin-top: 4px;
+  padding-left: 16px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+.settings-data-option-body {
+  padding: 0 12px 12px;
+}
+.settings-data-option-body > .lead {
+  font-size: var(--fs-xs);
+  margin-bottom: 12px;
+}
+.settings-data-option-body h3 {
+  margin: 20px 0 8px;
+  font-size: var(--fs-sm);
+}
 .settings-section-nav:has(.settings-search) {
   flex-wrap: wrap;
 }
