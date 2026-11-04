@@ -201,7 +201,8 @@ A.toggleFileFolders = () => {
     render();
     return;
   }
-  S.ui.fileFoldersCollapsed = !S.ui.fileFoldersCollapsed;
+  S.ui.fileFoldersCollapsed = !fileFolderView().collapsed;
+  S.ui.fileFoldersHasChoice = true;
   saveFilePreferences();
   render();
 };

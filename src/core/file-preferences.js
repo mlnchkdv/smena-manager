@@ -5,7 +5,7 @@ import { readLayoutPreference } from './view-layout-preferences.js';
 export function fileFolderView() {
   return innerWidth <= 640
     ? { compact: readLayoutPreference('fileFoldersMobileCompact', true), collapsed: readLayoutPreference('fileFoldersMobileCollapsed', true) }
-    : { compact: S.ui.fileFolderLayout === 'compact', collapsed: S.ui.fileFoldersCollapsed === true };
+    : { compact: S.ui.fileFolderLayout === 'compact', collapsed: S.ui.fileFoldersCollapsed === true || (innerHeight <= 480 && !S.ui.fileFoldersHasChoice) };
 }
 let loadedKey;
 let activeContext;
@@ -62,6 +62,11 @@ export function filePreferences() {
     /* Storage can be disabled. */
   }
   const value = readFileView(storage, next);
+  try {
+    S.ui.fileFoldersHasChoice = typeof JSON.parse(storage?.getItem(next) || '{}').foldersCollapsed === 'boolean';
+  } catch {
+    S.ui.fileFoldersHasChoice = false;
+  }
   S.ui.fileFilterPresets = readFilePresets(storage, next);
   S.ui.fileSelectedPreset = '';
   S.ui.fileRecursive = false;
