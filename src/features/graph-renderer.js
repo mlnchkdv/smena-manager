@@ -347,6 +347,10 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             node.toggleClass('orientation-label', labeled);
             if (labeled) node.style({ 'font-size': 12 / zoom, 'text-max-width': 110 / zoom, 'text-margin-y': 8 / zoom, width: 30 / zoom, height: 30 / zoom });
             else node.removeStyle('font-size text-max-width text-margin-y width height');
+            if (container.clientWidth <= 640) {
+              if (!labeled) node.style({ width: Math.max(38, 18 / zoom), height: Math.max(38, 18 / zoom) });
+              node.style({ 'background-width': Math.max(18, 10 / zoom), 'background-height': Math.max(18, 10 / zoom) });
+            } else node.removeStyle('background-width background-height');
           });
         });
       }
