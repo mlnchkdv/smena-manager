@@ -1,6 +1,6 @@
 # UI/UX audit after Z01–Z08 / Аудит после Z01–Z08
 
-**Date / Дата:** 4 November 2026. **Production:** https://smena-manager.vercel.app/. Baseline application `bc88c54`; application `6acf051` was then published and inspected. **Status:** AA01–AA14 below are a proposed next package, not implemented changes. The separately requested [whiteboard resizing is delivered](WHITEBOARD_RESIZE_2026-11-04.md).
+**Date / Дата:** 4 November 2026. **Production:** https://smena-manager.vercel.app/. Baseline application `bc88c54`; application `6acf051` was then published and inspected. **Updated / Обновлено:** 5 November 2026 — **AA01–AA14 are implemented and published / внедрены и опубликованы**, application `e7e60c8`. [Delivery, commits and acceptance limits / Результаты и ограничения](UI_UX_DELIVERY_2026-11-04_FOURTEEN.md). The findings below describe the historical baseline, not the current interface. The separately requested [whiteboard resizing is delivered](WHITEBOARD_RESIZE_2026-11-04.md).
 
 **RU:** Нового блокирующего сбоя P0/P1 в проверенных сценариях не обнаружено. Дальнейшая работа нужна прежде всего в отдельных сценариях: массовые действия и чтение файлов на коротком экране, читаемость общего графа на телефоне, контекст заметки и компактные пустые состояния. Оснований заново переделывать все разделы нет. Пункты ниже — измеренные неудобства и UX-предложения, а не заявление о четырнадцати функциональных поломках.
 
@@ -38,9 +38,9 @@ The saved matrix contains **187 observations**, including loading/transient stat
 7. At 1024 px the members table was **880 px** wide inside an approximately **713 px** scrolling container. Root layout was intact, but comparing identity and right-hand fields requires internal horizontal travel.
 8. Knowledge body search for a distinctive existing token returned one note. Its summary read **1 of 1**, while six notes existed in the library. This is a result/pagination wording issue, not evidence of deletion. The compact note-type control is already delivered.
 
-## Next package / Следующий пакет — AA01–AA14
+## Historical package / Исторический пакет — AA01–AA14, delivered
 
-P2 denotes material usability friction; P3 denotes refinement. All are proposed. / P2 — существенное неудобство; P3 — улучшение. Все пункты пока являются планом.
+P2 denotes material usability friction; P3 denotes refinement. All fourteen software changes are now delivered; original criteria remain for traceability. / P2 — существенное неудобство; P3 — улучшение. Все 14 программных изменений внедрены; исходные критерии сохранены для сопоставления с приёмкой.
 
 | ID   | Priority | Change / Правка                                                                                                                                                                                       | Evidence and acceptance / Основание и приёмка                                                                                                                                                                                                                                                          |
 | ---- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

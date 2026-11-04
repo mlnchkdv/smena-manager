@@ -18,7 +18,7 @@ Updated on 1 November 2026 after R01–R31. In-app guidance is available under *
 
 1. Open the arrow next to New note to choose a type or template. The main button creates a regular note.
 2. Import TXT/MD using Import notes or drop them into the catalog; review before applying. Library tools contains ZIP, templates, types and the offline library.
-3. Type and properties in the reader header edits metadata without opening the full editor and returns to the same reading position.
+3. Note properties edits metadata without the full editor and returns to the same reading position. On phones, find it in More alongside version history and source download; wider screens also have a header button.
 4. Display → Card details chooses type visibility and up to three fields for each type. Empty values are hidden. This setting is personal and synced within the workspace.
 5. On phones, tap the folder name above the catalog. Pin frequent folders, use recent folders and Parent folder. The move dialog retains query and list position when returning.
 6. Check the explicit search scope. Switching to the whole library keeps the query. Expand conditions to remove one; all conditions must match (AND). A saved collection indicates when its query has been modified.
@@ -67,6 +67,8 @@ Layouts saves personal board camera and outline mode. Graph layouts also retain 
 ### Resize with a pointer or keyboard
 
 Select a card or frame by its title, then drag an edge or corner. The gesture previews dimensions and commits one history operation on release. Escape cancels; Ctrl/Cmd + Z undoes the result. On the bottom-right handle, arrow keys resize by 10 canvas units, Shift + arrows by 50. Frame resizing preserves its contents. Numeric editor fields remain available in Outline. [Details and verification limits](WHITEBOARD_RESIZE_2026-11-04.md).
+
+More tools contains Keep proportions (corners) and Alignment guides. Aspect locking applies to corners; guides help align a moving edge with a neighbouring edge or center. Aspect lock takes precedence over alignment. These preferences are personal. At overview zoom, use Zoom to resize on the selected-card toolbar to reveal a usable handle. A manually positioned camera preserves its center when the window width changes.
 
 ## Real-device acceptance — pending
 

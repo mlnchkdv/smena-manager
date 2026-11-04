@@ -2,6 +2,8 @@
 
 **Delivered / Опубликовано:** 4 November 2026, application commit `6acf0517dbe88b047092101ff1f2cafb8723fd38`. Production `app-version.json` confirmed this version. No schema migration or new service is required.
 
+**Follow-up / Доработка, 5 November 2026:** AA08–AA09 add zoom-aware targets, Zoom to resize, personal corner aspect locking and alignment guides (`f9aa4dc`, `7dc1c86`); `894fda8` preserves the camera center when the responsive viewport is replaced. [Current delivery and acceptance](UI_UX_DELIVERY_2026-11-04_FOURTEEN.md), production `e7e60c8`, 647/647 tests. The initial verification below remains the historical baseline.
+
 ## Использование
 
 1. Выберите карточку или рамку за её заголовок. В режиме холста появляются восемь маркеров: четыре края и четыре угла. В списке маркеров нет.
@@ -11,11 +13,15 @@
 
 Размер рамки меняется без перемещения или масштабирования вложенных карточек. Минимум карточки — 160×100, максимум — 2000×2000. Противоположный край остаётся на месте; шаг мыши — 10 единиц, с учётом текущего масштаба камеры. Изменения доступны только при соответствующих правах и отсутствии конфликта синхронизации.
 
+В «Других инструментах» доступны личные «Сохранять пропорции (углы)» и «Направляющие». Направляющие могут уточнять шаг 10 до соседнего края или центра; сохранение пропорций имеет приоритет. На обзорном масштабе маркеры скрыты — используйте «Приблизить для изменения размера». Угловая сенсорная цель при рабочем масштабе — 44 экранных пикселя.
+
 ## Usage
 
 Select a card or frame by its title, then drag one of its four edges or four corners in Canvas mode. Dimensions appear during the gesture and connectors track the preview. Releasing commits one history operation. Escape/pointer cancellation restores the original geometry. Ctrl/Cmd + Z undoes; Ctrl/Cmd + Shift + Z redoes.
 
 The bottom-right handle is a keyboard tab stop: arrows resize by 10 canvas units, Shift + arrows by 50. Numeric Size and position fields remain available. Resizing a frame does not move or scale its contents. Width is limited to 160–2000 and height to 100–2000; the opposite edge stays anchored. Pointer deltas account for camera zoom and snap to 10 units.
+
+More tools offers personal Keep proportions (corners) and Alignment guides. Guides can refine the 10-unit grid to a neighbouring edge/center; aspect lock takes precedence. Overview hides handles and offers Zoom to resize. The active mobile/coarse-pointer corner target is 44 screen px.
 
 ## Integrity and implementation / Целостность и реализация
 
@@ -33,4 +39,4 @@ The bottom-right handle is a keyboard tab stop: arrows resize by 10 canvas units
 
 **Automated:** 645/645 server/shared tests pass; focused whiteboard suite 12/12; ESLint, UI token check and production build pass. Initial JavaScript remains 582.0 KiB / 600 KiB. Existing large-chunk and mixed static/dynamic import warnings remain.
 
-Physical touch, pointer cancellation on actual phones, virtual keyboards and screen-reader operation remain unverified. See the [new audit](UI_UX_DEEP_REAUDIT_AFTER_Z_2026-11-04.md), especially AA08, for a follow-up on resize hit areas at small zoom levels. A browser viewport is not a real-device acceptance test.
+Physical touch, pointer cancellation on actual phones, virtual keyboards and screen-reader operation remain unverified. The [AA08–AA09 software follow-up is delivered](UI_UX_DELIVERY_2026-11-04_FOURTEEN.md), including local mouse/keyboard, aspect undo/redo/reload, measured 44 px targets and responsive camera checks. Production geometry was not edited. A browser viewport is not a real-device acceptance test.
