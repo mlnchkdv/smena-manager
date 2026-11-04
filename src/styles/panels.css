@@ -10,6 +10,35 @@
   width: fit-content;
   margin-bottom: 12px;
 }
+.archive-overview h2 {
+  margin: 0 0 8px;
+  font-size: var(--fs-md);
+}
+.archive-overview h3 {
+  margin: 16px 0 8px;
+  font-size: var(--fs-sm);
+}
+.archive-recent {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.archive-recent li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--divider);
+  font-size: var(--fs-sm);
+}
+.archive-recent li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.archive-recent small {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
 .home-work-empty .home-task-panel .empty,
 .personal-work-empty .empty {
   min-height: 0;

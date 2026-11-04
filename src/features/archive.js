@@ -43,12 +43,16 @@ export function pageArchive() {
   const row = (lead, title, sub, when, restoreAct, delAct, id) =>
     `<article class="mini" style="min-height:52px;cursor:default;gap:12px" aria-label="${esc(title)}">${lead}<div class="grow" style="min-width:0"><div class="trunc" style="font-weight:500" translate="no">${esc(title)}</div><div class="faint trunc" style="font-size:12px">${sub}</div></div><span class="faint hide-m" style="font-size:12px;white-space:nowrap">${when}</span><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${esc(id)}" aria-label="${actionLabel('Restore', title, id)}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${esc(id)}" data-tip="Delete permanently" aria-label="${actionLabel('Delete permanently', title, id)}" style="color:var(--red)">${ic('trash-2', 15)}</button></article>`;
   const trashNames = { task: 'Task', project: 'Project', note: 'Note', bookmark: 'Bookmark', file: 'File' };
-  const categories = [
-    ['tasks', 'Tasks', ts.length],
-    ['projects', 'Projects', ps.length],
-    ['trash', 'Trash', trash.length],
-  ];
-  const overview = `<section class="panel" style="padding:16px"><h2>${isRussian() ? 'Всего материалов' : 'Total items'}: ${ts.length + ps.length + trash.length}</h2><p>${isRussian() ? 'Архив и корзина хранятся отдельно. Выберите раздел для просмотра и восстановления.' : 'Archived work and trash are separate. Choose a category to review and restore items.'}</p><div class="archive-category-grid">${categories.map(([key, label, count]) => `<button class="btn btn-secondary" data-a="archiveCategory" data-category="${key}"><span>${t(label)}</span><strong class="num">${count}</strong></button>`).join('')}</div></section>`;
+  const overview = `<section class="panel archive-overview" style="padding:16px"><h2>${isRussian() ? 'Восстановление материалов' : 'Recover materials'}</h2><p>${isRussian() ? 'Выберите раздел сверху. Архивные материалы и корзина хранятся отдельно; перед окончательным удалением приложение запросит подтверждение.' : 'Choose a category above. Archived work and trash are separate; permanent deletion requires confirmation.'}</p>${
+    trash.length
+      ? `<h3>${isRussian() ? 'Недавно в корзине' : 'Recently deleted'}</h3><ul class="archive-recent">${trash
+          .slice(0, 3)
+          .map(item => `<li><span translate="no">${esc(item.name)}</span><small>${item.deletedAt ? ago(item.deletedAt) : ''}</small></li>`)
+          .join(
+            '',
+          )}</ul><button class="btn btn-secondary btn-sm" data-a="archiveCategory" data-category="trash">${isRussian() ? 'Открыть корзину' : 'Browse trash'}</button>`
+      : `<p class="hint">${isRussian() ? 'Корзина пуста.' : 'Trash is empty.'}</p>`
+  }</section>`;
   const body =
     tab === 'overview'
       ? overview
