@@ -431,7 +431,11 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       if (!current()) return;
       container.dataset.physicsState = state;
       const status = document.querySelector('[data-graph-physics-status]');
-      if (status) status.textContent = t(state === 'running' ? 'Settling layout…' : 'Layout settled');
+      if (status)
+        status.textContent =
+          state === 'running' && drag?.moved
+            ? `${t('Moving connected nodes')}: ${drag.motion.size}`
+            : t(state === 'running' ? 'Settling layout…' : 'Layout settled');
     };
     stopDragPhysics = () => {
       cancelAnimationFrame(dragFrame);

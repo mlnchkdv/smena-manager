@@ -4,7 +4,7 @@ import { preparePersonalGraph } from '../core/diagram-view-state.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
 import { D, S, visibleProjects } from '../core/store.js';
 import { esc } from '../core/utils.js';
-import { isRussian, t as tr } from '../core/i18n.js';
+import { isRussian, t as tr, registerRussianLabels } from '../core/i18n.js';
 import { ic } from '../core/icons.js';
 import { empty } from '../ui/helpers.js';
 import { ENTITY_ICONS, ENTITY_LABELS, graphOptions, relationsPanel } from '../ui/relations.js';
@@ -16,6 +16,13 @@ import { mountGraph } from '../features/graph-renderer.js';
 import { render } from '../shell/render.js';
 import { graphReadModel } from '../core/graph-query-state.js';
 import '../features/graph-actions.js';
+registerRussianLabels({
+  'Physics enabled': 'Физика включена',
+  'Physics disabled': 'Физика выключена',
+  'Full graph': 'Полный граф',
+  'Moving connected nodes': 'Перемещаем связанных узлов',
+  'Pinned nodes stay in place. Unpin to move with the cluster.': 'Закреплённые узлы остаются на месте. Снимите закрепление для перемещения с кластером.',
+});
 
 function graphFilters(ui, center) {
   return `<div class="graph-filter-panel" id="graph-filters" ${ui.graphFiltersOpen ? '' : 'hidden'}>
@@ -40,7 +47,7 @@ function graphDetails(node) {
   return `<aside class="graph-detail ${S.ui.graphInspectorExpanded ? 'is-expanded' : ''}" aria-label="Material details"><div class="graph-detail-primary"><div class="graph-detail-head"><span class="badge">${ic(ENTITY_ICONS[node.kind], 12)}${ENTITY_LABELS[node.kind]}</span><button class="ibtn graph-detail-expand" data-a="toggleGraphInspector" aria-pressed="${!!S.ui.graphInspectorExpanded}" aria-label="Expand or reduce details">${ic(S.ui.graphInspectorExpanded ? 'chevron-down' : 'chevron-up', 15)}</button><button class="ibtn" data-a="clearGraphSelection" aria-label="Close material details">${ic('x', 15)}</button></div>
     <h2 translate="no" title="${esc(node.title)}">${esc(node.title)}</h2>
     <div class="graph-detail-actions"><button class="btn btn-primary btn-sm" data-a="openRelatedEntity" data-key="${esc(node.key)}">Open material</button><button class="ibtn" data-a="toggleGraphPin" data-key="${esc(node.key)}" aria-pressed="${pinned}" aria-label="${tr(pinned ? 'Unpin node' : 'Pin node')}">${ic('pin', 14)}</button><button class="btn btn-secondary btn-sm" data-a="showGraph" data-key="${esc(node.key)}">Local graph</button></div></div>
-    ${description ? `<details class="graph-description-disclosure"><summary>Description</summary><p class="graph-description" translate="no">${esc(description)}</p></details>` : ''}
+    ${pinned ? '<p class="hint">Pinned nodes stay in place. Unpin to move with the cluster.</p>' : ''}${description ? `<details class="graph-description-disclosure"><summary>Description</summary><p class="graph-description" translate="no">${esc(description)}</p></details>` : ''}
     ${S.ui.graphView === 'list' ? '' : '<button class="btn btn-ghost btn-sm" data-a="graphControl" data-command="selection">Focus connections</button>'}
     ${relationsPanel(node.key)}
   </aside>`;
@@ -65,6 +72,11 @@ export function pageGraph() {
       });
   const selected = view.nodes.find(node => node.key === ui.graphSelected) || (!ui.graphSelectionClosed && view.nodes.find(node => node.key === center)) || null;
   const list = ui.graphView === 'list';
+  const displayState = [
+    tr('Graph appearance'),
+    tr(S.prefs.graphSimple ? 'Simplified graph' : 'Full graph'),
+    tr(S.prefs.graphPhysics ? 'Physics enabled' : 'Physics disabled'),
+  ].join('. ');
   const activeFilters = [ui.graphKind, ui.graphProject, ui.graphConnected, ui.graphArchive].filter(Boolean).length;
   const activeContext = [
     center ? `${tr('Local graph')}: ${view.nodes.find(node => node.key === center)?.title || tr(pending ? 'Loading…' : 'Material unavailable')}` : '',
@@ -114,7 +126,7 @@ export function pageGraph() {
     `<span class="graph-key-line"><span aria-hidden="true">→</span><span>Directed connection</span></span><span class="graph-key-line"><span aria-hidden="true">┄</span><span>Automatic connection</span></span>${S.prefs.graphSimple ? '<span class="hint">Simple view hides arrows and line styles. Select a material to inspect its connections.</span>' : ''}`;
   return `<div class="graph-page${ui.graphFocus ? ' is-focused' : ''}${ui.graphInteract ? ' is-interactive' : ''}">
 <header class="graph-head"><div><h1>Graph</h1><p>Explore connections between your team's materials.</p></div><div class="row">${diagramViewsControl('graph')}<button class="btn btn-secondary btn-sm" data-a="toggleGraphFocus" aria-pressed="${!!ui.graphFocus}" aria-label="${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}">${ic(ui.graphFocus ? 'minimize' : 'maximize', 14)}<span>${ui.graphFocus ? 'Exit focus mode' : 'Focus mode'}</span></button>${center ? `<button class="btn btn-secondary btn-sm" data-a="showGraph">${ic('arrow-left', 14)}All materials</button>` : ''}<button class="btn btn-secondary btn-sm graph-export" data-a="exportGraph" aria-label="Export graph">${ic('download', 14)}<span>Export graph</span></button></div></header>
-    <div class="graph-toolbar"><div class="graph-search"><label class="sr" for="graph-search">Search graph</label><input id="graph-search" class="input" data-in="graphQuery" value="${esc(ui.graphQuery || '')}" placeholder="Search materials and tags" aria-label="Search graph">${ui.graphQuery ? `<button class="ibtn graph-search-clear" data-a="clearGraphQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}${!list ? navigator : ''}</div><button class="btn btn-secondary btn-sm graph-filter-toggle ${activeFilters ? 'is-active' : ''}" data-a="toggleGraphFilters" aria-label="${esc(tr('Filters'))}${activeFilters ? `: ${activeFilters}` : ''}" title="${esc(tr('Filters'))}" aria-expanded="${!!ui.graphFiltersOpen}" aria-controls="graph-filters">${ic('sliders-horizontal', 14)}<span>Filters</span>${activeFilters ? `<span class="cnt">${activeFilters}</span>` : ''}</button>${!list ? `<button class="btn btn-secondary btn-sm graph-display-trigger" data-a="graphDisplayOptions" aria-label="${esc(tr('Graph appearance'))}">${ic('settings-2', 14)}<span>${tr('Display')}</span>${S.prefs.graphSimple || S.prefs.graphPhysics ? '<span aria-hidden="true"> •</span>' : ''}</button>` : ''}<div class="seg" role="group" aria-label="Graph view"><button data-a="set" data-k="graphView" data-v="graph" class="${!list ? 'on' : ''}" aria-pressed="${!list}" aria-label="Graph">${ic('network', 14)}<span>Graph</span></button><button data-a="set" data-k="graphView" data-v="list" class="${list ? 'on' : ''}" aria-pressed="${list}" aria-label="List">${ic('list', 14)}<span>List</span></button></div></div>
+    <div class="graph-toolbar"><div class="graph-search"><label class="sr" for="graph-search">Search graph</label><input id="graph-search" class="input" data-in="graphQuery" value="${esc(ui.graphQuery || '')}" placeholder="Search materials and tags" aria-label="Search graph">${ui.graphQuery ? `<button class="ibtn graph-search-clear" data-a="clearGraphQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}${!list ? navigator : ''}</div><button class="btn btn-secondary btn-sm graph-filter-toggle ${activeFilters ? 'is-active' : ''}" data-a="toggleGraphFilters" aria-label="${esc(tr('Filters'))}${activeFilters ? `: ${activeFilters}` : ''}" title="${esc(tr('Filters'))}" aria-expanded="${!!ui.graphFiltersOpen}" aria-controls="graph-filters">${ic('sliders-horizontal', 14)}<span>Filters</span>${activeFilters ? `<span class="cnt">${activeFilters}</span>` : ''}</button>${!list ? `<button class="btn btn-secondary btn-sm graph-display-trigger" data-a="graphDisplayOptions" aria-label="${esc(displayState)}" title="${esc(displayState)}">${ic(S.prefs.graphPhysics ? 'orbit' : 'settings-2', 14)}<span>${tr('Display')}</span></button>` : ''}<div class="seg" role="group" aria-label="Graph view"><button data-a="set" data-k="graphView" data-v="graph" class="${!list ? 'on' : ''}" aria-pressed="${!list}" aria-label="Graph">${ic('network', 14)}<span>Graph</span></button><button data-a="set" data-k="graphView" data-v="list" class="${list ? 'on' : ''}" aria-pressed="${list}" aria-label="List">${ic('list', 14)}<span>List</span></button></div></div>
     ${graphFilters(ui, center)}
     ${activeFilters || center ? `<p class="graph-active-context hint" role="status">${activeContext}</p>` : ''}<div class="graph-meta"><details class="graph-legend-disclosure"><summary>Material types</summary><div class="graph-legend" aria-label="Material types">${legend}</div></details><div class="graph-summary" role="status"><span>Materials</span>: ${pending ? '—' : view.total}<span class="graph-meta-dot">·</span><span>Connections</span>: ${pending ? '—' : view.edges.length}</div></div>
     ${pending ? `<section class="graph-pending" aria-busy="${!remote.error}" aria-label="Graph navigation"><div class="catalog-context-status graph-query-status" role="status"><span>${esc(remote.error || 'Loading graph…')}</span>${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</div></section>` : ''}
