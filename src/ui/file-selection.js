@@ -53,18 +53,20 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const busy = S.ui.fileDownload && !['ready', 'expired'].includes(S.ui.fileDownload.phase);
   const resultIds = remote ? remote.resultIds : results.length <= 500 ? results.map(file => file.id) : null;
   const selectResults = `<button class="btn btn-ghost btn-sm" data-a="selectFileResults" data-ids="${resultIds ? esc(resultIds.join(',')) : ''}" ${!resultIds?.length ? 'disabled' : ''} title="Narrow the filters to select up to 500 files.">Select results</button>`;
+  const selectPage = `<button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>`;
   return collectionSelection(
     `
-    <button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>${files.length ? selectResults : `<details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
+    ${files.length ? '' : `${selectPage}<details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
     ${
       files.length
         ? `<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b>${hiddenCount ? ` · ${hiddenCount} <span>outside this page</span>` : ''}</span><span class="sp"></span>
-    <button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || busy ? 'disabled' : ''} title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span>Download ZIP</span></button>
+    <button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || busy ? 'disabled' : ''} aria-label="Download ZIP" title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span class="hide-m">Download ZIP</span></button>
+    <details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectPage}${selectResults}
     <button class="btn btn-secondary btn-sm" data-a="streamSelectedFiles" ${streamIssue || busy ? 'disabled' : ''} title="${esc(t(streamIssue || 'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.'))}">${ic('arrow-down-to-line', 15)}<span>Stream ZIP</span></button>
     <button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button>
     <button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button>
-    <button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection">${ic('x', 16)}</button>
-    <details class="selection-policy"><summary>Details</summary><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details>`
+    <details class="selection-policy"><summary>Details</summary><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details></div></details>
+    <button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection">${ic('x', 16)}</button>`
         : ''
     }
   `,

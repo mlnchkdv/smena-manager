@@ -141,6 +141,43 @@
   border: 1px solid var(--border);
   border-radius: var(--r);
   box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-height: 55dvh;
+  overflow-y: auto;
+}
+.files-selection-tools > div > .btn {
+  justify-content: flex-start;
+  text-align: left;
+}
+@media (max-width: 640px) {
+  .files-selection-bar.active {
+    flex-wrap: nowrap;
+    overflow: visible;
+    max-height: none;
+    gap: 4px;
+  }
+  .files-selection-bar.active .files-selected-count {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fs-2xs);
+  }
+  .files-selection-bar.active > .btn-secondary {
+    flex: 0 0 44px;
+    padding: 0;
+  }
+  .files-selection-bar.active .files-selection-tools {
+    margin-left: 0;
+  }
+  .files-selection-bar.active .files-selection-tools > div {
+    top: auto;
+    bottom: calc(100% + 8px);
+    right: -48px;
+  }
+  .files-page:has(.files-selection-bar.active) {
+    padding-bottom: 110px;
+  }
 }
 .files-folder-tools > summary {
   list-style: none;
