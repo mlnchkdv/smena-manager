@@ -10,6 +10,26 @@
   width: fit-content;
   margin-bottom: 12px;
 }
+.home-work-empty .home-task-panel .empty,
+.personal-work-empty .empty {
+  min-height: 0;
+  padding: 16px;
+}
+.home-work-empty .home-task-panel .empty > svg,
+.personal-work-empty .empty > svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 8px;
+}
+.home-work-empty .home-task-panel .empty p,
+.personal-work-empty .empty p {
+  margin-bottom: 12px;
+}
+.personal-work-empty {
+  margin: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
 @media (max-width: 900px) {
   .home-work-empty .home-work-grid > .stack {
     display: contents;
