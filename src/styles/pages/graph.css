@@ -291,6 +291,42 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
+.graph-find {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 8;
+}
+.graph-find > div {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: min(320px, calc(100vw - 32px));
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.graph-find .graph-locator {
+  padding: 0;
+  border: 0;
+  display: block;
+}
+.graph-find .graph-locator label {
+  display: block;
+  margin-bottom: 6px;
+}
+.graph-search:has(.graph-find) .input {
+  padding-right: 88px;
+}
+.graph-search:has(.graph-find) .graph-search-clear {
+  right: 44px;
+}
+.graph-controls .graph-touch-control {
+  position: static;
+}
 .graph-locator label {
   font-size: var(--fs-xs);
   color: var(--text-3);
