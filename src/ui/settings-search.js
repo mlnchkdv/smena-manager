@@ -9,9 +9,11 @@ IN.settingsQuery = el => {
   S.ui.settingsQuery = el.value.slice(0, 120);
   render();
 };
-A.clearSettingsQuery = () => {
+A.clearSettingsQuery = el => {
+  const inputId = el.closest('.settings-search')?.querySelector('input')?.id;
   S.ui.settingsQuery = '';
   render();
+  if (inputId) document.getElementById(inputId)?.focus({ preventScroll: true });
 };
 A.findSetting = el => {
   S.ui.settingsQuery = '';
