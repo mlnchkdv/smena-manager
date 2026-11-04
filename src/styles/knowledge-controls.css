@@ -215,6 +215,37 @@
 .knowledge-format-toggle {
   display: none;
 }
+.knowledge-editor-tools {
+  position: relative;
+  flex: 0 0 auto;
+}
+.knowledge-editor-tools > div {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(320px, calc(100vw - 24px));
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-pop);
+  z-index: 9;
+}
+.knowledge-editor-tools > div > button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 44px;
+}
+.knowledge-editor-mode > .knowledge-editor-save {
+  display: block;
+  flex: 1 0 100%;
+  font-size: var(--fs-2xs);
+  line-height: 1.4;
+  margin: 0;
+  order: 10;
+}
 .knowledge-editor .knowledge-body.is-short-editor {
   min-height: 96px;
   height: var(--knowledge-editor-height, 160px);
@@ -450,8 +481,11 @@
 }
 
 @media (max-width: 640px) {
+  .knowledge-editor-mode {
+    gap: 4px;
+  }
   .knowledge-editor-mode .seg {
-    flex: 1 0 100%;
+    flex: 1;
     min-width: 0;
     flex-wrap: nowrap;
   }
@@ -461,10 +495,6 @@
     padding-inline: 6px;
     font-size: var(--fs-xs);
     white-space: nowrap;
-  }
-  .knowledge-editor-mode > .knowledge-save-status {
-    flex-shrink: 0;
-    font-size: var(--fs-2xs);
   }
 }
 .knowledge-find {

@@ -9,7 +9,7 @@ import { captureKnowledgeEditorPosition } from './knowledge-editor-position.js';
 export function sourceOutline(note) {
   const headings = knowledgeSourceHeadings(note);
   if (!headings.length) return '';
-  return `<details class="ui-menu knowledge-outline knowledge-source-outline"><summary class="ibtn" aria-label="${kc('Source sections', 'Разделы исходника')}" title="${kc('Source sections', 'Разделы исходника')}">${ic('list-tree', 16)}</summary><div><nav aria-label="${kc('Source sections', 'Разделы исходника')}">${headings.map(h => `<button class="knowledge-outline-link" aria-label="${esc(kc('Go to source section', 'К разделу исходника') + ': ' + h.title)}" data-a="knowledgeSourceHeading" data-id="${esc(note.id)}" data-title="${esc(h.title)}" data-level="${h.level}" data-ordinal="${h.ordinal}" style="--outline-depth:${h.level - 1}" translate="no">${esc(h.title)}</button>`).join('')}</nav></div></details>`;
+  return `<nav class="knowledge-source-outline" aria-label="${kc('Source sections', 'Разделы исходника')}"><p class="knowledge-outline-label" translate="no">${ic('list-tree', 14)} ${kc('Source sections', 'Разделы исходника')}</p>${headings.map(h => `<button class="knowledge-outline-link" aria-label="${esc(kc('Go to source section', 'К разделу исходника') + ': ' + h.title)}" data-a="knowledgeSourceHeading" data-id="${esc(note.id)}" data-title="${esc(h.title)}" data-level="${h.level}" data-ordinal="${h.ordinal}" style="--outline-depth:${h.level - 1}" translate="no">${esc(h.title)}</button>`).join('')}</nav>`;
 }
 
 A.knowledgeSourceHeading = el => {
@@ -21,7 +21,7 @@ A.knowledgeSourceHeading = el => {
     h => h.title === el.dataset.title && h.level === Number(el.dataset.level) && h.ordinal === Number(el.dataset.ordinal),
   );
   if (!heading) return;
-  document.querySelector('.knowledge-source-outline')?.removeAttribute('open');
+  el.closest('.knowledge-editor-tools')?.removeAttribute('open');
   const mirror = document.createElement('div');
   const style = getComputedStyle(input);
   Object.assign(mirror.style, {
