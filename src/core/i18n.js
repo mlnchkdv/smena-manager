@@ -30,6 +30,7 @@ const RU = {
     'Выберите типы ниже и подключите это устройство, чтобы разрешить уведомления браузера.',
   'Selected types are saved separately from this device connection.': 'Выбранные типы сохраняются отдельно от подключения этого устройства.',
   'Reset view': 'Сбросить вид',
+  'Reset filters': 'Сбросить фильтры',
   'Large note: text can be saved, but new individual versions are not created. Download the source before major edits.':
     'Большая заметка: текст сохраняется, но новые индивидуальные версии не создаются. Перед крупной правкой скачайте исходник.',
   'Download source': 'Скачать исходник',
