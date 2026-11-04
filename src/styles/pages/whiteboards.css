@@ -294,6 +294,21 @@
 .whiteboard-page .is-focused .whiteboard-selection {
   flex: 0 0 auto;
 }
+.whiteboard-view-toggle {
+  flex-shrink: 0;
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .project-whiteboard .whiteboard-toolbar .whiteboard-view-toggle {
+    padding-inline: 4px;
+    font-size: var(--fs-2xs);
+  }
+  .project-whiteboard .whiteboard-toolbar .whiteboard-view-toggle > span {
+    display: inline;
+  }
+  .project-whiteboard .whiteboard-toolbar .whiteboard-view-toggle > svg {
+    display: none;
+  }
+}
 @media (max-width: 640px), (max-height: 500px) {
   .whiteboard-page .is-focused .whiteboard-count {
     display: none;
