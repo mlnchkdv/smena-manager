@@ -32,7 +32,8 @@ const memberRoleControl = (m, isAdmin) =>
     : `<span class="badge">${esc(m.role)}</span>`;
 
 function mobileMembers(members, isAdmin, activity) {
-  if (!members.length) return `<div class="only-m">${empty('search-x', 'No results found', 'No members match that search.', '', 'sm')}</div>`;
+  if (!members.length)
+    return `<div class="only-m member-mobile-list member-mobile-empty">${empty('search-x', 'No results found', 'No members match that search.', '', 'sm')}</div>`;
   return `<div class="only-m member-mobile-list">${members.map(m => `<article class="panel member-mobile-card" aria-labelledby="member-card-name-${esc(m.id)}"><div class="member-mobile-heading"><button class="member-mobile-open" aria-labelledby="member-card-name-${esc(m.id)}" data-a="go" data-r="member" data-id="${esc(m.id)}">${av(m.id, 'md', false, true)}<span><b id="member-card-name-${esc(m.id)}" translate="no">${esc(m.name)}</b>${m.id === D().me ? '<span class="faint">(you)</span>' : ''}${m.title ? `<small class="member-job-title" translate="no">${esc(m.title)}</small>` : ''}<small translate="no">${esc(m.email)}</small></span></button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${esc(m.id)}" aria-label="${actionLabel('Member options', m.name, m.email)}" title="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 15)}</button></div><div class="member-mobile-meta">${memberRoleControl(m, isAdmin)}${memberAccessBadge(m)}</div><div class="row muted">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div><details class="member-mobile-details"><summary>Details</summary><dl><div><dt>Active projects</dt><dd>${visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length}</dd></div><div><dt>Open tasks</dt><dd>${allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length}</dd></div><div><dt>Recorded activity</dt><dd>${recordedMemberLabel(m, activity)}</dd></div></dl></details></article>`).join('')}</div>`;
 }
 
@@ -64,7 +65,7 @@ export function pageMembers() {
           : `
     <div class="member-filter-toolbar"><div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="mem-q" data-in="memQ" placeholder="${isRussian() ? 'Имя, почта, должность или команда' : 'Name, email, job title or team'}" value="${esc(u.memQ || '')}" aria-label="Search members"></div>
       <label class="member-role-filter"><span class="sr">Filter by role</span><select class="select" data-in="memberRoleFilter" aria-label="Filter by role">${['all', ...ROLES].map(r => `<option value="${r}" ${role === r ? 'selected' : ''}>${r === 'all' ? 'All roles' : r}</option>`).join('')}</select></label><span class="hint num" role="status">${ms.length} / ${D().members.length}</span>${q || role !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="clearMemberFilters">Clear filters</button>' : ''}</div>
-    ${mobileMembers(ms, isAdmin, activity)}<div class="panel hide-m" style="overflow-x:auto">${
+    ${mobileMembers(ms, isAdmin, activity)}<div class="panel hide-m member-catalog-table" style="overflow-x:auto">${
       ms.length
         ? `<table class="perm-t" style="min-width:880px"><thead><tr><th style="padding-left:14px">Member</th><th style="text-align:left">Role</th><th style="text-align:left">Team</th><th>Active projects</th><th>Tasks</th><th style="text-align:left">Recorded activity</th><th style="text-align:left">Status</th><th></th></tr></thead><tbody>
     ${ms
