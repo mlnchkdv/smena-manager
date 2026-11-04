@@ -80,6 +80,11 @@
   color: var(--text-2);
   font-size: var(--fs-xs);
 }
+@media (max-width: 640px) {
+  .files-page .files-upload-target > span {
+    display: none;
+  }
+}
 .files-page .files-upload-actions .files-upload-target > .select {
   flex: 1 1 90px;
   min-width: 0;
