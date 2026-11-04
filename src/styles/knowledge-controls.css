@@ -215,6 +215,26 @@
 .knowledge-format-toggle {
   display: none;
 }
+@media (max-width: 480px) {
+  .knowledge-reader-head #knowledge-drawer-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .knowledge-reader-head .knowledge-reader-properties {
+    display: none;
+  }
+  .knowledge-reader-head .knowledge-reader-tools {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 2px;
+  }
+  .knowledge-reader-head .knowledge-preview-position {
+    min-width: 28px;
+  }
+}
 .knowledge-editor-tools {
   position: relative;
   flex: 0 0 auto;
