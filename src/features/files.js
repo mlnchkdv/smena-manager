@@ -167,6 +167,7 @@ A.openFileFolder = el => {
 };
 A.toggleFileFolderArchive = () => {
   S.ui.fileFoldersCollapsed = false;
+  S.ui.fileFoldersHasChoice = true;
   S.ui.fileFoldersArchived = !S.ui.fileFoldersArchived;
   S.ui.fileFolder = null;
   S.ui.fileFolderOffset = 0;

@@ -148,6 +148,9 @@
   font-size: var(--fs-xs);
 }
 .has-search-help .input {
+  padding-right: 44px;
+}
+.has-search-help:has(.workspace-file-search-clear) .input {
   padding-right: 88px;
 }
 .has-search-help .workspace-file-search-clear {
