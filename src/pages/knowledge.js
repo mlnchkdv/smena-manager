@@ -22,7 +22,7 @@ import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
-import { t, isRussian, uiCount, resultsCount } from '../core/i18n.js';
+import { t, isRussian, uiCount } from '../core/i18n.js';
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
@@ -149,6 +149,18 @@ export function pageKnowledge() {
   const byId = new Map(notes.map(note => [note.id, note]));
   const { total, hasMore, start } = indexed || view;
   const visible = indexed ? indexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
+  const scoped = folderFilter !== 'all' || String(S.ui.knowledgeQuery || '').trim() || S.ui.knowledgeTag;
+  const resultSummary = scoped
+    ? isRussian()
+      ? `Найдено ${total} · В базе ${notes.length}`
+      : `Found ${total} · ${notes.length} in library`
+    : uiCount(notes.length, 'note');
+  const pageSummary =
+    total > visible.length && visible.length
+      ? isRussian()
+        ? ` · На странице ${start + 1}–${start + visible.length}`
+        : ` · On page ${start + 1}–${start + visible.length}`
+      : '';
   const active = selected;
   S.ui.knowledgeActive = active?.id || null;
   const currentPath = folderFilter !== 'all' && folderFilter !== 'root' && folderFilter !== 'favorites' ? folderPath(folderFilter, folders) : [];
@@ -213,7 +225,7 @@ export function pageKnowledge() {
 
         <div class="knowledge-breadcrumbs" aria-label="Breadcrumbs">${crumbs}</div>${folderMove ? `<details class="knowledge-folder-options" ${knowledgeDisclosure(`folder:${folderFilter}`, 'settings')}><summary>Folder options</summary>${folderMove}</details>` : ''}
 
-<div class="knowledge-content-head"><div><h1 id="knowledge-view-title" tabindex="-1" aria-label="${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}" ${activeFolder ? 'translate="no"' : ''}><span class="knowledge-folder-title-label">${esc(folderLabel(folderFilter, folders))}</span><button class="knowledge-mobile-folder-button knowledge-folder-title-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}" aria-label="${esc(t('Folders'))}: ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}">${ic('folder', 16)}<span>${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span>${ic('chevron-down', 12)}</button></h1><p><span translate="no">${resultsCount(visible.length, total, 'note')}</span></p></div><div class="knowledge-content-actions">${readOnly ? '' : `<button class="btn btn-secondary btn-sm knowledge-import-trigger" data-a="chooseKnowledgeFiles" aria-label="Import notes" title="Import notes" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}<span class="hide-m">Import notes</span></button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown">${knowledgeCreateMenu()}`}<button class="btn btn-secondary btn-sm knowledge-library-tools-trigger" data-a="knowledgeLibraryTools" aria-label="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}" title="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}">${ic('ellipsis', 14)}</button>${knowledgeViewOptions({ readOnly, folderContext: folderFilter === 'all' || !!activeFolder })}</div></div>
+<div class="knowledge-content-head"><div><h1 id="knowledge-view-title" tabindex="-1" aria-label="${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}" ${activeFolder ? 'translate="no"' : ''}><span class="knowledge-folder-title-label">${esc(folderLabel(folderFilter, folders))}</span><button class="knowledge-mobile-folder-button knowledge-folder-title-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}" aria-label="${esc(t('Folders'))}: ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}">${ic('folder', 16)}<span>${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span>${ic('chevron-down', 12)}</button></h1><p><span translate="no">${resultSummary}${pageSummary}</span></p></div><div class="knowledge-content-actions">${readOnly ? '' : `<button class="btn btn-secondary btn-sm knowledge-import-trigger" data-a="chooseKnowledgeFiles" aria-label="Import notes" title="Import notes" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}<span class="hide-m">Import notes</span></button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown">${knowledgeCreateMenu()}`}<button class="btn btn-secondary btn-sm knowledge-library-tools-trigger" data-a="knowledgeLibraryTools" aria-label="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}" title="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}">${ic('ellipsis', 14)}</button>${knowledgeViewOptions({ readOnly, folderContext: folderFilter === 'all' || !!activeFolder })}</div></div>
         ${readOnly ? '' : `<p class="knowledge-import-hint" data-reading="${Boolean(S.ui.knowledgeImportReading)}" role="status"><span data-knowledge-import-progress>${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</span>${S.ui.knowledgeImportReading ? '<button class="btn btn-ghost btn-sm" data-a="cancelKnowledgeImport">Cancel</button>' : ''}</p>`}
         ${S.ui.knowledgeQuery && activeFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllKnowledge">Search all folders</button>' : ''}
         <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" id="knowledge-search" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="${folderFilter === 'all' ? 'Search knowledge base' : 'Search in this folder'}" aria-label="Search knowledge base">${S.ui.knowledgeQuery ? `<button class="ibtn knowledge-search-clear" data-a="clearKnowledgeQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div><details class="ui-menu knowledge-filter-options" ${knowledgeDisclosure('catalog', 'filters')}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('Filters', criteria)}">${ic('filter', 14)}<span>Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
