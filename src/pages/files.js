@@ -184,6 +184,15 @@ export function pageFiles(projectId = null) {
     S.ui.fileExportError ||
     S.ui.fileExports?.some(job => ['pending', 'processing', 'failed'].includes(job.phase));
 
+  const details = `<details class="files-details ui-menu" ${S.ui.fileDetailsOpen ? 'open' : ''}><summary class="ibtn" aria-label="Details" title="Details">${ic('ellipsis', 16)}</summary><div class="files-details-panel">${
+    projectId
+      ? ''
+      : `<section class="files-summary" aria-label="File summary">
+      <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allTotal}</b></span></div>
+      <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${totalSize}</b></span></div>
+      <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
+    </section>`
+  }<section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>${activeExports ? '' : exportPanel}</div></details>`;
   return `<div class="files-page layout-catalog ${projectId ? 'project-files-page' : ''}" data-preview-page-key="${esc(pageKey)}" data-preview-page="${window.page}" data-preview-pages="${window.pages}" ${uploadProject ? `data-dropzone="${esc(uploadProject)}" data-folder="${esc(currentFolder?.id || '')}"` : ''}>
     ${collectionHeader(
       `${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${totalSize}</span></div>` : `<div><h1>Files</h1><p><span>Total files</span>: ${allTotal} · ${totalSize}</p></div>`}
@@ -192,19 +201,12 @@ export function pageFiles(projectId = null) {
           ? ''
           : `<div class="files-upload-actions">${projectId ? '' : `<label class="files-upload-target" for="files-upload-project"><span>Upload to:</span><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select></label>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload" aria-label="Upload files" title="Upload files">${ic('upload', 14)}<span class="hide-m">Upload files</span></button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${esc(currentFolder?.id || '')}"></div>`
       }
+      ${details}
     `,
       'files-page-head',
     )}
 
-    <details class="files-details" ${S.ui.fileDetailsOpen ? 'open' : ''}><summary>Details</summary>${
-      projectId
-        ? ''
-        : `<section class="files-summary" aria-label="File summary">
-      <div><span class="files-summary-icon">${ic('files', 16)}</span><span><small>Total files</small><b>${allTotal}</b></span></div>
-      <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${totalSize}</b></span></div>
-      <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
-    </section>`
-    }<section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>${activeExports ? '' : exportPanel}</details>
+
 
 
     ${collectionToolbar(
