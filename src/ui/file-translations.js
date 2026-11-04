@@ -1,5 +1,11 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'File search tips': 'Подсказки поиска файлов',
+  'Use quotes for an exact phrase, for example "Report 2".': 'Для точной фразы используйте кавычки, например "Отчёт 2".',
+  'Words must all match. Search includes names, folders, projects and people.':
+    'Должны совпасть все слова. Поиск учитывает имена файлов, папки, проекты и участников.',
+  'Name match': 'Совпадение в имени',
+  'Metadata match': 'Совпадение в свойствах',
   'Updating files. The last loaded page remains visible.': 'Обновляем файлы. Пока показана последняя загруженная страница.',
   'No files match these filters': 'По этим условиям файлов нет',
   'This project has no files yet': 'В этом проекте пока нет файлов',

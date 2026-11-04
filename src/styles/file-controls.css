@@ -128,6 +128,37 @@
   margin-left: auto;
   z-index: 7;
 }
+.files-search-help {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9;
+}
+.files-search-help > div {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: min(300px, calc(100vw - 48px));
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-pop);
+  font-size: var(--fs-xs);
+}
+.has-search-help .input {
+  padding-right: 88px;
+}
+.has-search-help .workspace-file-search-clear {
+  right: 44px;
+}
+.file-match-hint {
+  display: block;
+  color: var(--text-3);
+  font-size: var(--fs-2xs);
+  margin-top: 2px;
+}
 .files-selection-tools > summary {
   list-style: none;
 }

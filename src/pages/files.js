@@ -12,7 +12,8 @@ import { paginationHtml } from '../ui/pagination.js';
 import { t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
-import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
+import { createFileIndex, filterIndexedFiles, normalizeFileSearch } from '../shared/file-index.js';
+import { searchTerms } from '../shared/search-query.js';
 import { fileFolderBrowser, visibleFileFolderKeys } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
 import { filePreferences, fileContext as selectFileContext } from '../core/file-preferences.js';
@@ -41,6 +42,11 @@ function formatBytes(value) {
 
 function fileMeta(file) {
   return FT[file.type] || FT.other;
+}
+function fileMatchHint(file) {
+  const terms = searchTerms(normalizeFileSearch(S.ui.fileQ || ''));
+  if (!terms.length) return '';
+  return `<small class="file-match-hint">${tr(terms.every(term => normalizeFileSearch(file.name).includes(term)) ? 'Name match' : 'Metadata match')}</small>`;
 }
 
 function projectChip(file) {
@@ -85,7 +91,7 @@ function fileCard(file) {
     ${fileSelectButton(file)}
     <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
       ${preview}
-      <span class="fi"><span id="file-card-title-${esc(file.id)}" class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span></span>
+      <span class="fi"><span id="file-card-title-${esc(file.id)}" class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span>${fileMatchHint(file)}</span>
     </button>
     ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textual ? textFileLocation(file, linkedTask) : projectChip(file) + (linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : '')}</div><span class="sp"></span>${materialFavorite('file', file)}<button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 13)}</button></div>
   </article>`;
@@ -96,7 +102,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}</div></div></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}${fileMatchHint(file)}</div></div></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }
@@ -211,7 +217,7 @@ export function pageFiles(projectId = null) {
 
     ${collectionToolbar(
       `
-      <div class="inwrap workspace-file-search">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div>
+      <div class="inwrap workspace-file-search has-search-help">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}<details class="ui-menu files-search-help"><summary class="ibtn" aria-label="File search tips" title="File search tips">${ic('info', 14)}</summary><div><p>Use quotes for an exact phrase, for example "Report 2".</p><p>Words must all match. Search includes names, folders, projects and people.</p></div></details></div>
       <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'ui-menu is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary id="files-filter-toggle" class="btn btn-secondary" aria-controls="files-filter-fields" aria-label="${filterSummaryLabel('File filters', criteria)}" title="${filterSummaryLabel('File filters', criteria)}">${ic('filter', 14)}<span class="hide-m">Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div id="files-filter-fields">
       ${projectId ? '' : `<label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
       <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
