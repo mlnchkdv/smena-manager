@@ -58,6 +58,59 @@
 .settings-section-nav:has(.settings-search) {
   flex-wrap: wrap;
 }
+/* A compact navigation column becomes a dedicated results view while searching.
+   Its result list owns the remaining height rather than pushing the section away. */
+.settings-is-searching .settings-section-nav {
+  min-height: 0;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.settings-is-searching .settings-section-nav .settings-search {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  gap: 6px;
+}
+.settings-is-searching .settings-section-nav .settings-search > :is(input, button) {
+  flex-shrink: 0;
+}
+.settings-is-searching .settings-section-nav .settings-search > button {
+  align-self: flex-start;
+}
+.settings-is-searching .settings-section-nav .settings-search-results {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+}
+.settings-is-searching .settings-section-picker {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .set.settings-is-searching {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .settings-is-searching > .settings-section-nav {
+    display: flex;
+  }
+  .settings-is-searching > .set-body {
+    display: none;
+  }
+}
+@container workspace (max-width: 850px) {
+  .set.settings-is-searching {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .settings-is-searching > .settings-section-nav {
+    display: flex;
+  }
+  .settings-is-searching > .set-body {
+    display: none;
+  }
+}
 .set-nav .gh {
   font-size: var(--fs-2xs);
   font-weight: 600;
