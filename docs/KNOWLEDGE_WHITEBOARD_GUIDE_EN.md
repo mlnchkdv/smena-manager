@@ -64,6 +64,10 @@ Layouts saves personal board camera and outline mode. Graph layouts also retain 
 - File limit: 1 MiB. Board limits: 200 cards, 400 connections, 350,000 JSON characters. Integer coordinates ±50,000, width 160–2,000, height 100–2,000. Invalid values are rejected rather than silently truncating text.
 - Import adds cards with fresh identities by default. Replacement asks for confirmation, checkpoints the previous board and checks its current server hash. A concurrent change rejects replacement.
 
+### Resize with a pointer or keyboard
+
+Select a card or frame by its title, then drag an edge or corner. The gesture previews dimensions and commits one history operation on release. Escape cancels; Ctrl/Cmd + Z undoes the result. On the bottom-right handle, arrow keys resize by 10 canvas units, Shift + arrows by 50. Frame resizing preserves its contents. Numeric editor fields remain available in Outline. [Details and verification limits](WHITEBOARD_RESIZE_2026-11-04.md).
+
 ## Real-device acceptance — pending
 
 The user currently has no available iPhone/iPad or Android device. Browser emulation cannot verify system keyboard behavior, background suspension, screen locking or actual touch gestures.
