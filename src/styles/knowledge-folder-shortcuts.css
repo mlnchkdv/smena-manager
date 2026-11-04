@@ -32,6 +32,14 @@
 .knowledge-folder-help p {
   margin: 0;
 }
+.knowledge-folder-tools > div > button {
+  width: 100%;
+  min-height: 44px;
+  justify-content: flex-start;
+}
+.knowledge-folder-tools > div > p {
+  padding: 8px;
+}
 .knowledge-shell[data-folder-overlay='true'] .knowledge-folders {
   border: 0;
   border-radius: 0;
