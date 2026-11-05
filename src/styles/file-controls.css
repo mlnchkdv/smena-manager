@@ -21,6 +21,27 @@
 .file-upload-queue > .prog {
   margin-block: 8px;
 }
+.file-upload-tools {
+  position: relative;
+}
+.file-upload-tools > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 12;
+  width: min(280px, calc(100vw - 32px));
+  max-height: 60dvh;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.file-upload-tools > div > button {
+  white-space: normal;
+  text-align: left;
+}
 .file-upload-list > summary {
   cursor: pointer;
   padding-block: 6px;

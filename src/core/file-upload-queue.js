@@ -8,7 +8,7 @@ import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { createUploadQueue, unfinishedUpload, uploadFileKey, uploadFingerprint } from '../shared/upload-queue.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile } from './api.js';
-import { retryWorkspaceSync } from './workspace-sync.js';
+import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
 import { applyExternalCoreSnapshot } from './bootstrap.js';
 
 const prefix = 'smena.uploads.v1:';
@@ -17,7 +17,8 @@ let engine,
   scope = '',
   generation,
   storageWarning = false,
-  persistTimer;
+  persistTimer,
+  allowReload = false;
 const key = () => JSON.stringify([S.ui.currentUser?.id, S.ui.activeWorkspace || 'default']);
 const valid = () => scope === key() && generation === getSessionGeneration() && Boolean(getSessionToken());
 function schedulePersist() {
@@ -271,18 +272,35 @@ A.resumeUploads = () => {
 A.clearFinishedUploads = () => {
   if (valid()) engine.clear();
 };
+A.reloadUploadQueue = async () => {
+  if (!valid() || !S.ui.filePolicy?.directUploadEnabled) return;
+  const before = generation;
+  engine.batch(() => engine.jobs.forEach(job => engine.pause(job)));
+  try {
+    await retryWorkspaceSync();
+    if (!valid() || generation !== before || !workspaceSyncIsClean(S.data)) throw new Error('Save changes before reloading.');
+    persist();
+    if (storageWarning) return;
+    allowReload = true;
+    location.reload();
+  } catch {
+    toast(text('Save changes before reloading. Uploads remain paused.', 'Сохраните изменения перед обновлением. Загрузки остаются на паузе.'), { kind: 'err' });
+  }
+};
 A.uploadQueuePage = el => {
   S.ui.uploadQueuePage = Math.max(0, Number(el.dataset.page) || 0);
   render();
 };
 A.reselectUploadFiles = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.multiple = true;
-  input.onchange = async () => {
+  const input = document.getElementById('file-upload-reselect');
+  if (!input) return;
+  input.onchange = async event => {
+    event.stopPropagation();
+    const picked = [...input.files];
+    input.value = '';
     if (!valid()) return;
     let matched = 0;
-    for (const file of [...input.files]) {
+    for (const file of picked) {
       const candidates = engine.jobs.filter(
         job => job.phase === 'needs-file' && uploadFileKey(file) === uploadFileKey({ name: job.name, size: job.bytes, lastModified: job.lastModified }),
       );
@@ -309,7 +327,7 @@ document.addEventListener(
   true,
 );
 window.addEventListener('beforeunload', event => {
-  if (valid() && engine.jobs.some(unfinishedUpload)) {
+  if (!allowReload && valid() && engine.jobs.some(unfinishedUpload)) {
     persist();
     event.preventDefault();
     event.returnValue = '';
