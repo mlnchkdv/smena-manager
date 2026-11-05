@@ -502,6 +502,11 @@ export function uploadWorkspaceFile(file, metadata, onProgress) {
   return metadata.direct && file.size > 0 ? uploadWorkspaceFileDirect(file, metadata, onProgress) : uploadWorkspaceFileThroughApi(file, metadata, onProgress);
 }
 
+export function mediaContentUrl(id, account) {
+  return getSessionToken() === 'cookie'
+    ? `/api/files/${encodeURIComponent(id)}/content?media=1&account=${encodeURIComponent(account)}&workspace=${encodeURIComponent(getActiveWorkspace())}`
+    : null;
+}
 export async function downloadWorkspaceFile(id, download = false, options = {}) {
   const generation = sessionGeneration;
   const token = getSessionToken();

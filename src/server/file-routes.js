@@ -31,6 +31,7 @@ import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive
 import { streamFileArchive } from './file-archive-stream.js';
 import { assertArchiveFileAccess } from './file-archive-access.js';
 import { uploadCapacity } from '../shared/upload-capacity.js';
+import { safeMedia } from '../shared/media-policy.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -496,6 +497,8 @@ fileRouter.get('/:id/content', async (request, response, next) => {
       response.status(403).json({ error: 'You do not have access to this file.', code: 'FILE_FORBIDDEN' });
       return;
     }
+    if (request.query.media === '1' && (request.query.account !== request.user.id || !safeMedia(file)))
+      throw Object.assign(new Error('Media preview is unavailable.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
     const range = parseRange(request.get('range'), Number(file.bytes || 0));
     if (request.get('range') && !range) {
       response
@@ -513,6 +516,10 @@ fileRouter.get('/:id/content', async (request, response, next) => {
     response.status(partial ? 206 : 200);
     response.setHeader('Accept-Ranges', 'bytes');
     const responsePolicy = getFileResponsePolicy(file.name, file.mimeType || result.mimeType, request.query.download === '1');
+    if (request.query.media === '1' && request.query.download !== '1') {
+      responsePolicy.attachment = false;
+      responsePolicy.contentType = safeMedia(file).mime;
+    }
     response.setHeader('Content-Type', responsePolicy.contentType);
     response.setHeader('Content-Disposition', contentDisposition(file.name, responsePolicy.attachment));
     response.setHeader('Content-Security-Policy', "sandbox; default-src 'none'");

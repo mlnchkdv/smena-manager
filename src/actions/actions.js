@@ -1940,6 +1940,17 @@ A.openUploadQueue = async () => {
   const module = await import('../core/file-upload-queue.js');
   module.openUploadQueue();
 };
+A.toggleMediaGallery = () => {
+  const m = S.ui.modals.at(-1),
+    c = m?.previewContext;
+  if (m?.type !== 'filePreview' || !c) return;
+  c.allIds ||= [...c.ids];
+  c.mediaOnly = !c.mediaOnly;
+  c.ids = c.mediaOnly
+    ? c.allIds.filter(id => id === m.file.id || D().files.some(file => file.id === id && ['img', 'video', 'audio'].includes(file.type)))
+    : [...c.allIds];
+  render();
+};
 A.previewFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;

@@ -19,7 +19,7 @@ import { captureKnowledgeDisclosures } from '../ui/knowledge-disclosure.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
-import { disposeClosedPreviews } from '../core/file-preview.js';
+import { disposeClosedPreviews, preserveFilePlayers } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { captureGraphQueryPosition, restoreGraphQueryPosition } from '../ui/graph-query-position.js';
@@ -176,6 +176,7 @@ export function render() {
     S.ui.uploads = [];
   }
   disposeClosedPreviews();
+  const restorePlayers = preserveFilePlayers();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';
   const prevOv = render._ov || {};
@@ -218,6 +219,7 @@ export function render() {
   $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
   restoreGraphSurface?.();
   $('#layer').innerHTML = renderLayer();
+  restorePlayers();
   translateApp();
   normalizeTablists();
   makeFocusable();

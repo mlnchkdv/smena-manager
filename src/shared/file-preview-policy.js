@@ -1,7 +1,10 @@
 const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/avif']);
 const TEXT_TYPES = new Set(['text/plain', 'text/csv', 'text/markdown', 'application/json']);
 
+import { safeMedia } from './media-policy.js';
 export function filePreviewPolicy(file) {
+  const media = safeMedia(file);
+  if (media && file.storageName && Number.isSafeInteger(file.bytes) && file.bytes > 0) return { kind: media.kind, maxBytes: 20 * 1024 ** 2 };
   const mime = String(file?.mimeType || '')
     .toLowerCase()
     .split(';')[0];
