@@ -69,5 +69,58 @@ test('large independent copies restore as new identities and recheck membership 
   assert.deepEqual(await service.list({ ...user, id: 'other', email: 'other@example.test' }), []);
   data.members[0].status = 'deactivated';
   await assert.rejects(service.restore(user, job.id, 'target', 0));
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
+});
+
+test('restore review is read-only, checks quota and folder access, and resumes registered steps after refresh', async () => {
+  let data = {
+    revision: 0,
+    me: 'm',
+    members: [{ id: 'm', email: 'm@example.test', role: 'Member' }],
+    projects: [{ id: 'p', members: ['m'], fileFolders: [{ id: 'folder', name: 'Destination' }] }],
+    files: [{ id: 'f', project: 'p', name: 'photo.png', bytes: 2, storageName: 'source', storageFileId: 'source', mimeType: 'image/png' }],
+  };
+  let copies = 0,
+    available = 100;
+  const user = { id: 'm', email: 'm@example.test', role: 'editor' };
+  const service = mediaBackupService({
+    load: async () => structuredClone(data),
+    mutate: async (fn, revision) => {
+      assert.equal(revision, data.revision);
+      data = fn(structuredClone(data));
+      data.revision++;
+    },
+    storage: {
+      getStatus: async () => ({ quotaBytes: 100, usageBytes: 100 - available }),
+      copyMediaObject: async (file, name) => {
+        copies++;
+        return { storageFileId: name, storageName: name, bytes: file.bytes, checksum: 'verified' };
+      },
+      saveMediaManifest: async () => {},
+    },
+  });
+  const job = await service.create(user, ['f']);
+  await service.advance(user, job.id);
+  const revision = data.revision;
+  const plan = await service.restorePlan(user, job.id, 'p', 'folder');
+  assert.equal(data.revision, revision);
+  assert.equal(copies, 1);
+  assert.equal(plan.capacity.bytes, 2);
+  assert.equal(plan.entries[0].registered, false);
+  await assert.rejects(service.restorePlan(user, job.id, 'p', 'missing'), { code: 'FILE_FOLDER_INVALID' });
+  available = 0;
+  assert.equal((await service.restorePlan(user, job.id, 'p', 'folder')).capacity.sufficient, false);
+  await assert.rejects(service.restore(user, job.id, 'p', 0, { folderId: 'folder', reviewKey: plan.reviewKey }), { code: 'MEDIA_RESTORE_QUOTA' });
+  assert.equal(copies, 1);
+  available = 100;
+  await assert.rejects(service.restore(user, job.id, 'p', 0, { folderId: 'folder', reviewKey: 'changed' }), { code: 'MEDIA_RESTORE_REVIEW_CHANGED' });
+  const file = await service.restore(user, job.id, 'p', 0, { folderId: 'folder', reviewKey: plan.reviewKey });
+  assert.equal(file.folderId, 'folder');
+  const resumed = await service.restorePlan(user, job.id, 'p', 'folder');
+  assert.equal(resumed.entries[0].registered, true);
+  assert.equal(resumed.capacity.bytes, 0);
+  assert.equal((await service.restore(user, job.id, 'p', 0, { folderId: 'folder', reviewKey: resumed.reviewKey })).id, file.id);
+  assert.equal(copies, 2);
+  data.projects[0].fileFolders[0].archived = true;
+  await assert.rejects(service.restore(user, job.id, 'p', 0, { folderId: 'folder', reviewKey: resumed.reviewKey }), { code: 'FILE_FOLDER_INVALID' });
 });

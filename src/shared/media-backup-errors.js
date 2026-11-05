@@ -1,6 +1,10 @@
 // Provider messages may contain private object identifiers. UI copy uses codes only.
 export function mediaBackupError(error, russian = false) {
   const messages = {
+    MEDIA_RESTORE_REVIEW_CHANGED: [
+      'The restore plan changed. Review it again before continuing.',
+      'План восстановления изменился. Проверьте его заново перед продолжением.',
+    ],
     MEDIA_BACKUP_LIMIT: ['Copy limit reached. Existing copies remain available in the list.', 'Достигнут лимит копий. Существующие копии доступны в списке.'],
     MEDIA_BACKUP_BUSY: ['Another operation is copying this set. Retry shortly.', 'Этот набор уже копируется. Повторите немного позже.'],
     MEDIA_SOURCE_CHANGED: [

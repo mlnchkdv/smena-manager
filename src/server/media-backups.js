@@ -4,6 +4,9 @@ import { canReadProject, canEditProject } from '../shared/project-access.js';
 import { registerFileMetadata } from './file-registry.js';
 import { formatFileSize } from './file-policy.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { assertFileFolder } from '../shared/file-organization.js';
+import { uploadCapacity } from '../shared/upload-capacity.js';
+import { mediaRestoreRef, mediaRestoreName, mediaRestoreReviewKey, registeredMediaRestore } from './media-restore-plan.js';
 const fail = () => Object.assign(Error('Media backup is unavailable. Check access and retry.'), { statusCode: 403, code: 'MEDIA_BACKUP_UNAVAILABLE' });
 export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
   const access = (data, user, project, edit = false) => {
@@ -53,7 +56,46 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       }
     }
   };
+  const target = (data, user, project, folderId) => {
+    access(data, user, project, true);
+    return assertFileFolder(
+      data.projects.find(item => item.id === project),
+      folderId,
+    );
+  };
+  const capacity = async bytes => {
+    let status;
+    try {
+      status = await storage.getStatus?.();
+    } catch {
+      /* Unknown provider quota is shown explicitly. */
+    }
+    return uploadCapacity(bytes, status);
+  };
   return {
+    async restorePlan(user, id, project, folderId = null) {
+      const data = await load(),
+        job = owned(data, user, id);
+      if (!job.ready) throw fail();
+      folderId = target(data, user, project, folderId);
+      const entries = job.entries.map((entry, index) => ({
+        index,
+        name: entry.file.name,
+        bytes: entry.copy.bytes,
+        checksum: entry.copy.checksum,
+        registered: !!registeredMediaRestore(data, job, index, project, folderId, user),
+      }));
+      const bytes = entries.filter(entry => !entry.registered).reduce((sum, entry) => sum + entry.bytes, 0);
+      return {
+        jobId: job.id,
+        createdAt: job.createdAt,
+        project,
+        folderId,
+        entries,
+        capacity: await capacity(bytes),
+        reviewKey: mediaRestoreReviewKey(job, project, folderId),
+      };
+    },
     async list(user) {
       const data = await load();
       return (data._mediaBackups || [])
@@ -149,47 +191,68 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       if (!job.ready) throw fail();
       return { format: 'smena-media-v1', ...job };
     },
-    async restore(user, id, project, index) {
+    async restore(user, id, project, index, { folderId = null, reviewKey } = {}) {
       const before = await load(),
         job = owned(before, user, id);
-      access(before, user, project, true);
+      folderId = target(before, user, project, folderId);
       if (!job.ready || !Number.isInteger(index) || !job.entries[index]?.copy) throw fail();
+      if (reviewKey && reviewKey !== mediaRestoreReviewKey(job, project, folderId))
+        throw Object.assign(Error('Review the changed restore plan.'), { code: 'MEDIA_RESTORE_REVIEW_CHANGED', statusCode: 409 });
+      const registered = registeredMediaRestore(before, job, index, project, folderId, user);
+      if (registered) return registered;
       const entry = job.entries[index],
-        ref = `${id}:${index}:${project}`;
-      const copy = await storage.copyMediaObject(entry.copy, `media-restore-${id}-${index}-${Buffer.from(project).toString('hex')}`, {
+        ref = mediaRestoreRef(id, index, project, folderId);
+      if ((await capacity(entry.copy.bytes)).sufficient === false)
+        throw Object.assign(Error('Not enough Drive space.'), { code: 'MEDIA_RESTORE_QUOTA', statusCode: 507 });
+      const latest = await load();
+      owned(latest, user, id);
+      target(latest, user, project, folderId);
+      const copy = await storage.copyMediaObject(entry.copy, mediaRestoreName(id, index, project, folderId), {
         fromBackup: true,
         toBackup: false,
       });
       return write(data => {
-        owned(data, user, id);
+        const activeJob = owned(data, user, id);
         const by = access(data, user, project, true);
+        target(data, user, project, folderId);
         // The public file payload may contain a client-supplied reference. Reuse
         // only a record that also points at the verified restore object.
         const existing = data.files.find(
           file =>
             file.mediaBackupRef === ref &&
             file.project === project &&
+            (file.folderId || null) === folderId &&
             file.ownerId === user.id &&
             file.storageFileId === copy.storageFileId &&
             file.storageName === copy.storageName &&
             file.bytes === copy.bytes,
         );
-        if (existing) return existing;
-        const file = {
+        const file = existing || {
           ...entry.file,
           ...copy,
           id: `file-${randomUUID()}`,
           project,
           task: null,
-          folderId: null,
+          folderId,
           at: now(),
           by,
           ownerId: user.id,
           mediaBackupRef: ref,
           size: formatFileSize(copy.bytes),
         };
-        data.files.unshift(file);
-        registerFileMetadata(data, file, true);
+        if (!existing) {
+          data.files.unshift(file);
+          registerFileMetadata(data, file, true);
+        }
+        activeJob.restores ||= {};
+        activeJob.restores[ref] = {
+          fileId: file.id,
+          storageFileId: copy.storageFileId,
+          storageName: copy.storageName,
+          bytes: copy.bytes,
+          checksum: copy.checksum,
+          at: now(),
+        };
         return file;
       });
     },

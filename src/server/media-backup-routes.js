@@ -31,7 +31,16 @@ mediaBackupRouter.get(
   route(req => service().manifest(req.user, req.params.id)),
 );
 mediaBackupRouter.post(
+  '/:id/restore-plan',
+  requireRole('admin', 'editor'),
+  route(req => service().restorePlan(req.user, req.params.id, req.body.project, req.body.folderId)),
+);
+mediaBackupRouter.post(
   '/:id/restore',
   requireRole('admin', 'editor'),
-  route(async req => ({ file: await service().restore(req.user, req.params.id, req.body.project, req.body.index) })),
+  route(async req => {
+    if (typeof req.body.reviewKey !== 'string' || !/^[a-f0-9]{64}$/.test(req.body.reviewKey))
+      throw Object.assign(Error('Review the restore plan first.'), { statusCode: 400, code: 'MEDIA_RESTORE_REVIEW_CHANGED' });
+    return { file: await service().restore(req.user, req.params.id, req.body.project, req.body.index, req.body) };
+  }),
 );
