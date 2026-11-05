@@ -123,7 +123,7 @@ function paintProgress(job) {
   document.querySelectorAll('[data-upload-estimate]').forEach(el => {
     el.textContent =
       estimate.rate > 0
-        ? `${fsize(estimate.rate)}/s${estimate.seconds !== null ? ` · ~${Math.ceil(estimate.seconds / 60)} ${text('min', 'мин')}` : ''}`
+        ? `${fsize(estimate.rate)}/${text('s', 'с')}${estimate.seconds !== null ? ` · ~${Math.max(1, Math.ceil(estimate.seconds / 60))} ${text('min', 'мин')}` : ''}`
         : text('Estimating…', 'Оцениваем…');
   });
   document.querySelectorAll(`[data-upload-bar="${job.id}"]`).forEach(bar => {
