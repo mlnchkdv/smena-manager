@@ -39,7 +39,6 @@ import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import {
-  applyExternalCoreSnapshot,
   acceptServerConflictVersion,
   authenticateAndLoadWorkspace,
   authenticateWithGoogleAndLoadWorkspace,
@@ -62,7 +61,6 @@ import {
   revokeCurrentAuthSession,
   revokeOtherAuthSessions,
   restoreWorkspaceBackup,
-  uploadWorkspaceFile,
 } from '../core/api.js';
 import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { workspaceHref } from '../shared/product.js';
@@ -1998,73 +1996,12 @@ A.stepFilePreview = el => {
   openModal({ type: 'filePreview', file, tid: file.task, previewContext: context });
 };
 export async function handleFiles(files, ctx) {
-  const uploaded = [];
-  if (!files || !files.length) return;
+  const picked = [...(files || [])];
+  if (!picked.length) return [];
   const generation = getSessionGeneration();
-  if (S.ui.offline) {
-    toast("Upload failed — you're offline.", { kind: 'err', action: 'Try again', onAction: () => {} });
-    return;
-  }
-  if (!canEditProject(proj(ctx.project), D().me, S.ui.currentUser?.role)) {
-    window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['files'], role: 'viewer' } }));
-    return;
-  }
-  S.ui.uploads = S.ui.uploads || [];
-  for (const file of [...files]) {
-    if (generation !== getSessionGeneration()) return;
-    if (S.ui.filePolicy?.maxFileSizeBytes && file.size > S.ui.filePolicy.maxFileSizeBytes) {
-      toast(`File is too large. Maximum size: ${fsize(S.ui.filePolicy.maxFileSizeBytes)}.`, { kind: 'err' });
-      continue;
-    }
-    const up = {
-      id: uid('u'),
-      name: file.name,
-      size: fsize(file.size),
-      type: fileType(file.name),
-      project: ctx.project,
-      task: ctx.task,
-      pct: 0,
-      controller: new AbortController(),
-    };
-    S.ui.uploads.push(up);
-    render();
-    try {
-      await retryWorkspaceSync();
-      if (generation !== getSessionGeneration()) return;
-      const uploadBase = structuredClone(S.data);
-      const result = await uploadWorkspaceFile(
-        file,
-        {
-          revision: S.ui.workspaceRevision,
-          project: ctx.project,
-          task: ctx.task,
-          folderId: ctx.folderId || null,
-          direct: S.ui.filePolicy?.directUploadEnabled === true,
-          signal: up.controller.signal,
-        },
-        progress => {
-          up.pct = progress;
-          const bar = document.getElementById('upbar-' + up.id),
-            pc = document.getElementById('upct-' + up.id);
-          if (bar) bar.style.setProperty('--p', up.pct / 100);
-          if (pc) pc.textContent = up.pct + '%';
-        },
-      );
-      if (generation !== getSessionGeneration()) return;
-      applyExternalCoreSnapshot(result.data, uploadBase);
-      if (result.file) uploaded.push(result.file);
-      save();
-      S.ui.uploads = S.ui.uploads.filter(item => item !== up);
-      render();
-      toast(`Uploaded ${up.name}`);
-    } catch (error) {
-      S.ui.uploads = S.ui.uploads.filter(item => item !== up);
-      if (generation !== getSessionGeneration()) return;
-      render();
-      toast(error.message || `Upload failed: ${up.name}`, { kind: 'err', ms: 6000 });
-    }
-  }
-  return uploaded;
+  const module = await import('../core/file-upload-queue.js');
+  if (generation !== getSessionGeneration()) return [];
+  return module.enqueueFiles(picked, ctx);
 }
 A.chooseStoredFiles = el => {
   const input = document.getElementById(el.dataset.picker);
@@ -2087,10 +2024,6 @@ IN.uploadFiles = el => {
   void handleFiles(el.files, { project: el.dataset.project, task: el.dataset.task, folderId: el.dataset.folder });
   el.value = '';
 };
-A.cancelUpload = el => {
-  S.ui.uploads?.find(item => item.id === el.dataset.id)?.controller?.abort();
-};
-
 A.downloadStoredFile = async el => {
   const file = D().files.find(item => item.id === el.dataset.id) || S.ui.modals.find(modal => modal.file?.id === el.dataset.id)?.file;
   if (!file?.storageName) return toast('This legacy file has no stored content.', { kind: 'err' });

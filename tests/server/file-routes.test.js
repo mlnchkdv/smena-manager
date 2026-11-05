@@ -7,6 +7,7 @@ import { app } from '../../src/server/app.js';
 import { createTrackedSession, getAccessProfiles } from '../../src/server/auth.js';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { getWorkspaceDatabase, replaceWorkspaceDatabase, resetWorkspaceStore } from '../../src/server/workspace-store.js';
+import { createUploadTicket } from '../../src/server/upload-ticket.js';
 
 test('authenticated editors can upload and range-download a workspace file', async t => {
   const directory = path.join(process.cwd(), '.data', 'tests', `file-routes-${process.pid}`);
@@ -222,4 +223,13 @@ test('authenticated editors can upload and range-download a workspace file', asy
   });
   assert.equal(forbiddenChange.status, 403);
   assert.equal((await getWorkspaceDatabase()).files[0].name, 'Private metadata');
+  const check = async payload =>
+    fetch(`${origin}/api/files/upload-check`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ticket: createUploadTicket({ profileId: getAccessProfiles()[0].id, ...payload }) }),
+    });
+  assert.equal((await check({ projectId: 'p1', folderId: 'folder-a' })).status, 200);
+  assert.equal((await check({ projectId: 'private-project' })).status, 403);
+  assert.equal((await check({ profileId: 'another-account', projectId: 'p1' })).status, 403);
 });

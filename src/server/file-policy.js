@@ -54,7 +54,9 @@ export function validateFileUpload(file, env = process.env, options = {}) {
 
 export function filePresentationType(filename) {
   const extension = extensionOf(filename);
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) return 'img';
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'heic', 'heif'].includes(extension)) return 'img';
+  if (['mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', 'mts', 'm2ts'].includes(extension)) return 'video';
+  if (['mp3', 'm4a', 'wav', 'ogg', 'flac', 'aac'].includes(extension)) return 'audio';
   if (extension === 'pdf') return 'pdf';
   if (['doc', 'docx', 'odt', 'rtf', 'txt', 'md'].includes(extension)) return 'doc';
   if (['xls', 'xlsx', 'csv', 'ods'].includes(extension)) return 'sheet';

@@ -13,6 +13,8 @@ test('only failed read-only overlays can be reopened after a deployment', () => 
 });
 test('deployment reload requires a clean session with no forms, recovery errors or transfers', () => {
   assert.equal(deploymentReloadSafe({ clean: true }), true);
+  assert.equal(deploymentReloadSafe({ clean: true, uploads: [{ phase: 'done' }, { phase: 'cancelled' }] }), true);
+  assert.equal(deploymentReloadSafe({ clean: true, uploads: [{ phase: 'paused' }] }), false);
   for (const block of [
     { clean: false },
     { forms: 1 },

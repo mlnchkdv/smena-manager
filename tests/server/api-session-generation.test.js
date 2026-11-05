@@ -95,7 +95,9 @@ test('direct uploads cannot continue chunks or finalize through a newly signed-i
   globalThis.fetch = async path => {
     requests++;
     assert.equal(path, '/api/files/upload-session', 'No completion request may use the new account');
-    return new Response(JSON.stringify({ uploadUrl: 'https://example.test/upload', ticket: 'test-ticket', chunkSizeBytes: 2 }));
+    return new Response(
+      JSON.stringify({ uploadUrl: 'https://www.googleapis.com/upload/drive/v3/files?upload_id=test', ticket: 'test-ticket', chunkSizeBytes: 2 }),
+    );
   };
   try {
     for (const status of [200, 308]) {

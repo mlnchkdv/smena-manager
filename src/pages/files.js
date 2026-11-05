@@ -26,6 +26,7 @@ import { demandFilePage } from '../features/file-catalog-demand.js';
 import { filePagePending } from '../ui/file-page-state.js';
 import { collectionHeader, collectionToolbar } from '../ui/collection-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
+import { uploadsHtml } from '../ui/file-uploads.js';
 
 function formatBytes(value) {
   const bytes = Math.max(0, Number(value) || 0);
@@ -107,18 +108,8 @@ function fileTable(files) {
     .join('')}</tbody></table></div>`;
 }
 
-function uploadsHtml() {
-  const uploads = S.ui.uploads || [];
-  if (!uploads.length) return '';
-  return `<div class="workspace-file-uploads" aria-live="polite">${uploads
-    .map(item => {
-      const meta = fileMeta({ type: item.type });
-      return `<div class="upl"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><div class="grow min0"><div class="row"><span class="trunc" style="font-weight:500" translate="no">${esc(item.name)}</span><span class="sp"></span><span class="faint num" id="upct-${item.id}">${item.pct}%</span><button class="ibtn ibtn-xs" data-a="cancelUpload" data-id="${item.id}" aria-label="Cancel upload">${ic('x', 13)}</button></div><div class="prog" style="margin-top:6px"><i id="upbar-${item.id}" style="--p:${item.pct / 100}"></i></div></div></div>`;
-    })
-    .join('')}</div>`;
-}
-
 export function pageFiles(projectId = null) {
+  void import('../core/file-upload-queue.js').then(module => module.restoreUploadQueue()).catch(() => {});
   filePreferences();
   selectFileContext(projectId);
   const projects = visibleProjects().filter(project => canSee(project) && (!projectId || project.id === projectId));
@@ -198,14 +189,14 @@ export function pageFiles(projectId = null) {
       <div><span class="files-summary-icon">${ic('hard-drive', 16)}</span><span><small>Storage used</small><b>${totalSize}</b></span></div>
       <div><span class="files-summary-icon">${ic('folder-kanban', 16)}</span><span><small>Projects with files</small><b>${projectCount}</b></span></div>
     </section>`
-  }<section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>${activeExports ? '' : exportPanel}</div></details>`;
+  }<p class="hint" id="file-upload-limits"><span>Upload limits</span>: ${maxSize} <span>per file</span>. <span>Up to 500 files in the queue.</span>${S.ui.filePolicy?.directUploadEnabled ? ' <span>Large files upload directly to Google Drive in chunks.</span>' : ''}</p><section class="files-presets" aria-label="Saved file filters">${filePresetsHtml()}<span class="sp"></span>${currentFolder ? `<button class="btn btn-ghost btn-sm" data-a="toggleFileRecursive" aria-pressed="${Boolean(S.ui.fileRecursive)}">${ic('folders', 15)}Include subfolders</button><span class="hint">${S.ui.fileRecursive ? 'Showing this folder tree.' : 'Showing direct files only.'}</span>` : ''}</section>${activeExports ? '' : exportPanel}</div></details>`;
   return `<div class="files-page layout-catalog ${projectId ? 'project-files-page' : ''}" data-preview-page-key="${esc(pageKey)}" data-preview-page="${window.page}" data-preview-pages="${window.pages}" ${uploadProject ? `data-dropzone="${esc(uploadProject)}" data-folder="${esc(currentFolder?.id || '')}"` : ''}>
     ${collectionHeader(
       `${projectId ? `<div class="files-context-summary"><h2 class="sr">Files</h2><span><span>Total files</span>: <b>${allTotal}</b></span><span class="muted">${totalSize}</span></div>` : `<div><h1>Files</h1><p><span>Total files</span>: ${allTotal} · ${totalSize}</p></div>`}
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions">${projectId ? '' : `<label class="files-upload-target" for="files-upload-project"><span>Upload to:</span><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select></label>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload" aria-label="Upload files" title="Upload files">${ic('upload', 14)}<span class="hide-m">Upload files</span></button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${esc(currentFolder?.id || '')}"></div>`
+          : `<div class="files-upload-actions">${projectId ? '' : `<label class="files-upload-target" for="files-upload-project"><span>Upload to:</span><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select></label>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload" aria-label="Upload files" aria-describedby="file-upload-limits" title="${maxSize} ${tr('per file')} · ${tr('Up to 500 files in the queue.')}">${ic('upload', 14)}<span class="hide-m">Upload files</span></button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${esc(currentFolder?.id || '')}"></div>`
       }
       ${details}
     `,
@@ -215,6 +206,7 @@ export function pageFiles(projectId = null) {
 
 
 
+    ${uploadsHtml()}
     ${collectionToolbar(
       `
       <div class="inwrap workspace-file-search has-search-help">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files, projects, and people" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}<details class="ui-menu files-search-help"><summary class="ibtn" aria-label="File search tips" title="File search tips">${ic('info', 14)}</summary><div><p>Use quotes for an exact phrase, for example "Report 2".</p><p>Words must all match. Search includes names, folders, projects and people.</p></div></details></div>
@@ -257,7 +249,7 @@ export function pageFiles(projectId = null) {
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
     ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!remote?.loading && !remote.error)}
-    <section class="files-operations" aria-label="File operations">${uploadsHtml()}
+    <section class="files-operations" aria-label="File operations">
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
     ${activeExports ? exportPanel : ''}</section>

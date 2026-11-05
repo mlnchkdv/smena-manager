@@ -20,7 +20,7 @@ export function deploymentReloadSafe({ clean, sync = {}, personal = {}, uploads 
     !Object.keys(sync.errors || {}).length &&
     !personal.pending &&
     !['syncing', 'offline', 'unavailable', 'invalid'].includes(personal.status) &&
-    !uploads.length &&
+    uploads.every(item => ['done', 'cancelled'].includes(item.phase)) &&
     !transfer &&
     !forms &&
     !drafts &&

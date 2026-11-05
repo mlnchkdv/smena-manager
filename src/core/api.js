@@ -16,6 +16,7 @@ export function setActiveWorkspace(value) {
   activeWorkspace = value;
   sessionGeneration += 1;
   revisionCache = null;
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:upload-scope-change'));
 }
 export const workspaceDirectoryRequest = (options = {}) => request(options.path || '/api/workspaces', options, true);
 
@@ -53,6 +54,7 @@ export function setSessionToken(token) {
   sessionBlocked = false;
   revisionCache = null;
   memorySessionToken = token || '';
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:upload-scope-change', { detail: { signedOut: !token } }));
   try {
     if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);
     else localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -434,6 +436,7 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   });
 }
 
+let fileRegistrationTail = Promise.resolve();
 async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
   const generation = sessionGeneration;
   const resumed = Boolean(metadata.checkpoint?.uploadUrl);
@@ -457,6 +460,7 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
     ));
   assertSessionGeneration(generation);
   metadata.onCheckpoint?.(session);
+  if (resumed) await request('/api/files/upload-check', { method: 'POST', signal: metadata.signal, body: JSON.stringify({ ticket: session.ticket }) }, true);
   const { uploadDriveChunks: transfer } = await import('./drive-upload.js');
   const uploaded =
     session.uploaded ||
@@ -471,15 +475,26 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
   session.uploaded = uploaded;
   metadata.onCheckpoint?.(session);
   metadata.onVerifying?.();
-  return request(
-    '/api/files/upload-complete',
-    {
-      method: 'POST',
-      signal: metadata.signal,
-      body: JSON.stringify({ ticket: session.ticket, fileId: uploaded.id || '' }),
-    },
-    true,
-  );
+  // Bytes can transfer concurrently; registration and application of revisioned
+  // snapshots must stay ordered, including a retry after a lost final response.
+  const register = async () => {
+    assertSessionGeneration(generation);
+    const result = await request(
+      '/api/files/upload-complete',
+      {
+        method: 'POST',
+        signal: metadata.signal,
+        body: JSON.stringify({ ticket: session.ticket, fileId: uploaded.id || '' }),
+      },
+      true,
+    );
+    assertSessionGeneration(generation);
+    metadata.onRegistered?.(result);
+    return result;
+  };
+  const pending = fileRegistrationTail.then(register, register);
+  fileRegistrationTail = pending.catch(() => {});
+  return pending;
 }
 
 export function uploadWorkspaceFile(file, metadata, onProgress) {

@@ -1,5 +1,11 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  Video: 'Видео',
+  Audio: 'Аудио',
+  'Upload limits': 'Ограничения загрузки',
+  'per file': 'на файл',
+  'Up to 500 files in the queue.': 'До 500 файлов в очереди.',
+  'Large files upload directly to Google Drive in chunks.': 'Большие файлы загружаются частями прямо в Google Диск.',
   'File search tips': 'Подсказки поиска файлов',
   'Use quotes for an exact phrase, for example "Report 2".': 'Для точной фразы используйте кавычки, например "Отчёт 2".',
   'Words must all match. Search includes names, folders, projects and people.':

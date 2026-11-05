@@ -25,6 +25,9 @@ test('file presentation type matches the existing Files interface', () => {
   assert.equal(filePresentationType('plan.pdf'), 'pdf');
   assert.equal(filePresentationType('budget.xlsx'), 'sheet');
   assert.equal(filePresentationType('photo.webp'), 'img');
+  assert.equal(filePresentationType('camera.HEIC'), 'img');
+  assert.equal(filePresentationType('long-video.mov'), 'video');
+  assert.equal(filePresentationType('voice.m4a'), 'audio');
   assert.equal(filePresentationType('vector.svg'), 'other');
   assert.equal(filePresentationType('unknown.bin'), 'other');
 });

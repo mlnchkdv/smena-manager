@@ -101,6 +101,8 @@ export const FT = {
   pdf: { c: '#C4473A', i: 'file-text', n: 'PDF' },
   zip: { c: '#6B7280', i: 'folder-archive', n: 'Archive' },
   img: { c: '#23918A', i: 'image', n: 'Image' },
+  video: { c: '#8662C9', i: 'film', n: 'Video' },
+  audio: { c: '#C48A1E', i: 'music', n: 'Audio' },
   sheet: { c: '#3D8E5F', i: 'file-spreadsheet', n: 'Spreadsheet' },
   doc: { c: '#3B82C4', i: 'file-text', n: 'Document' },
   code: { c: '#C48A1E', i: 'file-code', n: 'Code' },
@@ -108,6 +110,9 @@ export const FT = {
 };
 export function fileType(name) {
   const e = (name.split('.').pop() || '').toLowerCase();
+  if (['mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', 'mts', 'm2ts'].includes(e)) return 'video';
+  if (['mp3', 'm4a', 'wav', 'ogg', 'flac', 'aac'].includes(e)) return 'audio';
+  if (['avif', 'heif'].includes(e)) return 'img';
   if (e === 'fig') return 'fig';
   if (e === 'pdf') return 'pdf';
   if (['zip', 'rar', '7z'].includes(e)) return 'zip';
@@ -120,6 +125,7 @@ export function fileType(name) {
 export function fsize(b) {
   if (b < 1024) return b + ' B';
   if (b < 1048576) return Math.round(b / 1024) + ' KB';
+  if (b >= 1024 ** 3) return (b / 1024 ** 3).toFixed(1) + ' GB';
   return (b / 1048576).toFixed(1) + ' MB';
 }
 export function filePrev(f) {

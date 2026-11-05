@@ -385,6 +385,19 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
   }
 });
 
+fileRouter.post('/upload-check', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    const ticket = verifyUploadTicket(request.body?.ticket);
+    if (ticket.profileId !== request.user.id)
+      throw Object.assign(new Error('This upload belongs to another account.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
+    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, ticket.projectId, ticket.taskId, ticket.folderId);
+    response.setHeader('Cache-Control', 'no-store');
+    response.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (request, response, next) => {
   let stored = null;
   try {
