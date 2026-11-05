@@ -15,6 +15,8 @@ import { A, IN } from '../actions/actions.js';
 IN.inboxCategory = el => A.set({ dataset: { k: 'inboxCat', v: el.value } });
 import { render } from '../shell/render.js';
 import { notificationReadButton } from '../ui/notification-controls.js';
+import { notificationWorkflow } from '../ui/notification-workflow.js';
+import { inboxCategoryMatches } from '../shared/notification-workflow.js';
 
 IN.inboxQuery = el => {
   S.ui.inboxQuery = el.value.slice(0, 500);
@@ -39,6 +41,7 @@ A.inboxHistory = el => {
 export function pageInbox() {
   const cats = [
     ['all', 'All'],
+    ['actionable', isRussian() ? 'Обращения' : 'Requests'],
     ['mention', 'Mentions'],
     ['assign', 'Assignments'],
     ['comment', 'Comments'],
@@ -51,8 +54,8 @@ export function pageInbox() {
   let ns = myNotifications()
     .slice()
     .sort((a, b) => b.at - a.at);
-  const count = k => ns.filter(n => (k === 'all' || n.type === k) && !n.read).length;
-  ns = ns.filter(n => cat === 'all' || n.type === cat);
+  const count = k => ns.filter(n => inboxCategoryMatches(n, k) && !n.read).length;
+  ns = ns.filter(n => inboxCategoryMatches(n, cat));
   if (S.ui.inboxUnread) ns = ns.filter(n => !n.read);
   const query = (S.ui.inboxQuery || '').trim();
   const terms = searchTerms(query).slice(0, 16);
@@ -81,7 +84,7 @@ export function pageInbox() {
   return `<div class="page flush">
     <div class="inbox-grid ${narrow ? 'inbox-narrow' : ''} ${sel ? 'has-selection' : ''} ${preview ? '' : 'preview-hidden'}">
       <div class="inbox-feed" ${narrow && sel ? 'inert' : ''} style="border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0">
-        <div class="inbox-heading"><h1>Inbox</h1><div class="inbox-heading-actions">
+        <div class="inbox-heading"><h1>Inbox</h1>${notificationWorkflow('inbox')}<div class="inbox-heading-actions">
           <label class="row"><input type="checkbox" class="toggle" data-a="toggleUnreadOnly" ${S.ui.inboxUnread ? 'checked' : ''}>Unread</label>
           <button class="ibtn ibtn-sm" data-a="toggleInboxPreview" aria-label="Preview pane" title="Preview pane" aria-pressed="${preview}">${ic(preview ? 'panel-right-close' : 'panel-right-open', 15)}</button><button class="ibtn ibtn-sm" data-a="markAllRead" data-tip="Mark all as read" aria-label="Mark all as read">${ic('check-check', 15)}</button></div></div>
         <div class="inbox-search inwrap">${ic('search', 14)}<input class="input" data-in="inboxQuery" aria-label="${isRussian() ? 'Поиск во входящих' : 'Search inbox'}" placeholder="${isRussian() ? 'Автор, задача, проект или текст' : 'Author, task, project or text'}" value="${esc(S.ui.inboxQuery || '')}">${query ? `<button class="ibtn" data-a="clearInboxQuery" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div><div class="inbox-category-picker"><select class="select" data-in="inboxCategory" aria-label="Inbox category">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''}>${tr(n)}${count(k) ? ` · ${count(k)}` : ''}</option>`).join('')}</select></div><div class="tabs inbox-tabs" role="tablist" aria-label="Inbox categories">${cats.map(([k, n]) => `<button role="tab" class="tab ${cat === k ? 'on' : ''}" data-a="set" data-k="inboxCat" data-v="${k}">${n}${count(k) ? `<span class="cnt">${count(k)}</span>` : ''}</button>`).join('')}</div>

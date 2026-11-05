@@ -8,7 +8,8 @@ import { notificationReadButton } from '../ui/notification-controls.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
-import { pageIntroduction } from '../ui/page-introduction.js';
+import { notificationWorkflow } from '../ui/notification-workflow.js';
+import { isRussian } from '../core/i18n.js';
 
 function notificationRow(n) {
   const t = n.task ? task(n.task) : null;
@@ -31,7 +32,7 @@ export function pageNotifications() {
   const buckets = {};
   inboxEventGroups(ns).forEach(group => (buckets[dayBucket(group.notification.at)] ||= []).push(group));
   return `<div class="page notifications-page layout-reading">
-    <div class="ph compact-page-head"><div><div class="notification-heading"><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent" aria-label="${unread} unread" title="${unread} unread">${unread}</span>` : ''}</h1>${pageIntroduction('Updates on tasks and projects you follow.')}</div><p class="page-description">Updates on tasks and projects you follow.</p></div>
+    <div class="ph compact-page-head"><div><div class="notification-heading"><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent" aria-label="${unread} unread" title="${unread} unread">${unread}</span>` : ''}</h1>${notificationWorkflow('notifications')}</div><p class="page-description" translate="no">${isRussian() ? 'Обзор событий. Для ответов на комментарии откройте «Входящие».' : 'Event overview. Open Inbox to reply to comments.'}</p></div>
       <div class="acts">${segmentedControl({
         label: 'Notification filter',
         key: 'notifFilter',
