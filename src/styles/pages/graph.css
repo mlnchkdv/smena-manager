@@ -64,7 +64,7 @@
 }
 .graph-page:not(.is-focused) .graph-stage:not(:has(.graph-list)) {
   display: grid;
-  grid-template-rows: auto minmax(220px, 1fr) auto;
+  grid-template-rows: minmax(220px, 1fr) auto;
   min-height: 300px;
 }
 .graph-page:not(.is-focused) #knowledge-graph-canvas {
@@ -155,7 +155,7 @@
 }
 .graph-page.is-focused .graph-stage {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
 }
 .graph-page.is-focused .graph-stage:has(.graph-list) {
@@ -811,7 +811,7 @@
   }
   .graph-page:not(.is-focused) .graph-layout.has-detail .graph-stage {
     min-height: 240px;
-    grid-template-rows: auto minmax(160px, 1fr);
+    grid-template-rows: minmax(160px, 1fr);
   }
   .graph-page:not(.is-focused) .has-detail .graph-help {
     display: none;
