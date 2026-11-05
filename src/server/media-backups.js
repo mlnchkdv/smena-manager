@@ -5,6 +5,7 @@ import { registerFileMetadata } from './file-registry.js';
 import { formatFileSize } from './file-policy.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { assertFileFolder } from '../shared/file-organization.js';
+import { createMediaManifestRecovery } from './media-manifest-recovery.js';
 import { uploadCapacity } from '../shared/upload-capacity.js';
 import { mediaRestoreRef, mediaRestoreName, mediaRestoreReviewKey, registeredMediaRestore } from './media-restore-plan.js';
 import {
@@ -15,7 +16,7 @@ import {
   MEDIA_COPY_RETAINED_LIMIT,
 } from '../shared/media-copy-lifecycle.js';
 const fail = () => Object.assign(Error('Media backup is unavailable. Check access and retry.'), { statusCode: 403, code: 'MEDIA_BACKUP_UNAVAILABLE' });
-export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
+export function mediaBackupService({ load, mutate, storage, now = Date.now, scope = 'default', resolveSource }) {
   const access = (data, user, project, edit = false) => {
     const member = memberForProfile(data, user);
     if (
@@ -93,7 +94,30 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
     }
     return uploadCapacity(bytes, status);
   };
+  const assertCopyCapacity = (data, owner) => {
+    const jobs = data._mediaBackups || [],
+      active = jobs.filter(job => !mediaCopyArchived(job, now()));
+    if (jobs.length >= MEDIA_COPY_RETAINED_LIMIT) throw Object.assign(Error('Remove an archived set.'), { statusCode: 429, code: 'MEDIA_COPY_RETAINED_LIMIT' });
+    if (active.length >= MEDIA_COPY_ACTIVE_WORKSPACE_LIMIT || active.filter(job => job.owner === owner).length >= MEDIA_COPY_ACTIVE_USER_LIMIT)
+      throw Object.assign(Error('Media backup limit reached.'), { statusCode: 429, code: 'MEDIA_BACKUP_LIMIT' });
+  };
+  const recovery = createMediaManifestRecovery({
+    load,
+    write,
+    storage,
+    scope,
+    resolveSource,
+    access,
+    target,
+    capacity,
+    owned,
+    summary,
+    assertCopyCapacity,
+    now,
+  });
   return {
+    reviewManifest: recovery.review,
+    importManifest: recovery.import,
     async inventory(user, id) {
       const job = owned(await load(), user, id);
       return {
@@ -205,11 +229,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       return summary(
         await write(data => {
           data._mediaBackups ||= [];
-          if (data._mediaBackups.length >= MEDIA_COPY_RETAINED_LIMIT)
-            throw Object.assign(Error('Remove an archived copy set before creating another.'), { statusCode: 429, code: 'MEDIA_COPY_RETAINED_LIMIT' });
-          const active = data._mediaBackups.filter(job => !mediaCopyArchived(job, now()));
-          if (active.length >= MEDIA_COPY_ACTIVE_WORKSPACE_LIMIT || active.filter(job => job.owner === user.id).length >= MEDIA_COPY_ACTIVE_USER_LIMIT)
-            throw Object.assign(Error('Media backup limit reached (four per account).'), { statusCode: 429, code: 'MEDIA_BACKUP_LIMIT' });
+          assertCopyCapacity(data, user.id);
           const entries = ids.map(id => {
             const file = data.files.find(item => item.id === id);
             if (!file?.storageName || !Number.isSafeInteger(file.bytes) || file.bytes <= 0) throw fail();
@@ -220,6 +240,8 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
             id: randomUUID(),
             owner: user.id,
             createdAt: now(),
+            scope,
+            creatorRole: workspaceMemberRole(memberForProfile(data, user)),
             entries,
             ready: false,
             ...mediaCopySettings(
@@ -236,6 +258,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       const lease = randomUUID();
       const job = await write(data => {
         const job = owned(data, user, id);
+        if (job.importProject) target(data, user, job.importProject, job.preferredFolder);
         if (job.ready) return job;
         if (mediaCopyArchived(job, now()))
           throw Object.assign(Error('Restore the archived set before continuing.'), { code: 'MEDIA_COPY_ARCHIVED', statusCode: 409 });
@@ -251,19 +274,32 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
           const fresh = await load();
           owned(fresh, user, id);
           const current = fresh.files.find(file => file.id === entry.file.id);
+          const source = job.importSource && (await recovery.source(user, job.importSource.scope, job.importSource.id, job.importSource.digest));
           if (
-            !current ||
-            current.storageFileId !== entry.file.storageFileId ||
-            current.storageName !== entry.file.storageName ||
-            current.bytes !== entry.file.bytes
+            !source &&
+            (!current ||
+              current.storageFileId !== entry.file.storageFileId ||
+              current.storageName !== entry.file.storageName ||
+              current.bytes !== entry.file.bytes)
           )
             throw fail();
-          const copy = await storage.copyMediaObject(entry.file, `media-${id}-${index}`);
+          if (source && (await capacity(source.manifest.entries[index].copy.bytes)).sufficient === false && job.importSource.scope !== scope)
+            throw Object.assign(Error('Not enough storage.'), { code: 'MEDIA_RESTORE_QUOTA', statusCode: 507 });
+          const copy = await storage.copyMediaObject(
+            source ? source.manifest.entries[index].copy : entry.file,
+            `media-${id}-${index}`,
+            source ? { fromBackup: true, sourceStorage: source.storage } : undefined,
+          );
+          if (source) await recovery.source(user, job.importSource.scope, job.importSource.id, job.importSource.digest);
           await write(data => {
             const active = owned(data, user, id);
+            if (active.importProject) target(data, user, active.importProject, active.preferredFolder);
             if (active.lease?.id !== lease || active.lease.until <= now()) throw fail();
             const file = data.files.find(file => file.id === entry.file.id);
-            if (!file || file.storageFileId !== entry.file.storageFileId || file.storageName !== entry.file.storageName || file.bytes !== entry.file.bytes)
+            if (
+              !source &&
+              (!file || file.storageFileId !== entry.file.storageFileId || file.storageName !== entry.file.storageName || file.bytes !== entry.file.bytes)
+            )
               throw fail();
             active.entries[index].copy = copy;
             active.lease = null;
@@ -276,6 +312,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
           return summary(
             await write(data => {
               const active = owned(data, user, id);
+              if (active.importProject) target(data, user, active.importProject, active.preferredFolder);
               active.ready = true;
               active.lease = null;
               return active;

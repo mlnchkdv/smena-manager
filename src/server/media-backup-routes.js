@@ -3,8 +3,26 @@ import { requireRole } from './auth.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
 import { mediaBackupService } from './media-backups.js';
+import { workspaceScope, validWorkspaceScope } from './workspace-context.js';
+import { workspaceDirectoryEntries } from './workspace-directory.js';
 export const mediaBackupRouter = Router();
-const service = () => mediaBackupService({ load: getWorkspaceDatabase, mutate: mutateWorkspaceDatabase, storage: getStorageProvider() });
+const service = () =>
+  mediaBackupService({
+    load: getWorkspaceDatabase,
+    mutate: mutateWorkspaceDatabase,
+    storage: getStorageProvider(),
+    scope: workspaceScope(),
+    resolveSource: async id => {
+      if (
+        !validWorkspaceScope(id) ||
+        (id !== workspaceScope() && id !== 'default' && !(await workspaceDirectoryEntries({ includeArchived: true })).some(entry => entry.id === id))
+      )
+        throw Object.assign(Error('Source workspace is unavailable.'), { code: 'MEDIA_MANIFEST_UNAVAILABLE', statusCode: 403 });
+      const storage = getStorageProvider(id);
+      const data = storage.loadDatabaseCore ? await storage.loadDatabaseCore({ identities: false }) : await storage.loadDatabase();
+      return { storage, data };
+    },
+  });
 const route = fn => async (req, res, next) => {
   try {
     res.json(await fn(req));
@@ -20,6 +38,18 @@ mediaBackupRouter.post(
   '/',
   requireRole('admin', 'editor'),
   route(async req => ({ job: await service().create(req.user, req.body.ids, req.body) })),
+);
+mediaBackupRouter.post(
+  '/manifest/review',
+  requireRole('admin', 'editor'),
+  route(req => service().reviewManifest(req.user, req.body.manifest, req.body.sourceScope, req.body.project, req.body.folderId)),
+);
+mediaBackupRouter.post(
+  '/manifest/import',
+  requireRole('admin', 'editor'),
+  route(async req => ({
+    job: await service().importManifest(req.user, req.body.manifest, req.body.sourceScope, req.body.project, req.body.folderId, req.body.reviewKey),
+  })),
 );
 mediaBackupRouter.post(
   '/:id/settings',

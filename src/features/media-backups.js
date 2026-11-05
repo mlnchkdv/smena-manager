@@ -1,6 +1,6 @@
 import { A, IN, confirmDlg } from '../actions/actions.js';
 import { S, D, visibleProjects } from '../core/store.js';
-import { mediaBackupRequest, getSessionGeneration } from '../core/api.js';
+import { mediaBackupRequest, getSessionGeneration, getActiveWorkspace, workspaceDirectoryRequest } from '../core/api.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { render } from '../shell/render.js';
 import { openModal } from '../overlays/modals.js';
@@ -10,6 +10,7 @@ import { fsize } from '../ui/helpers.js';
 import { canEditProject } from '../shared/project-access.js';
 import { mediaBackupError } from '../shared/media-backup-errors.js';
 import { fileFolders, fileFolderPath } from '../shared/file-organization.js';
+import { mediaManifestIdentity, MEDIA_MANIFEST_MAX_BYTES } from '../shared/media-manifest.js';
 const q = (en, ru) => (isRussian() ? ru : en);
 export async function openMediaBackups() {
   const modal = { type: 'knowledgeTool', ids: [...(S.ui.fileSelection || [])], generation: getSessionGeneration(), jobs: [], busy: false, render: view };
@@ -49,6 +50,7 @@ function view(m, H) {
     `<div class="modal-b" translate="no"><p class="hint">${q('Separate verified binaries in the same Drive account. Archiving retains the copies and their storage usage. Only explicit removal deletes copies; restored files remain intact.', 'Отдельные проверенные копии в том же Google-аккаунте. Архивирование сохраняет копии и занятое место. Только явное удаление удаляет копии; восстановленные файлы сохраняются.')}</p>
     <p class="hint">${q('Active sets for you', 'Ваших активных наборов')}: ${active}/4 · ${q('Workspace active limit: 16 · retained limit: 64', 'Лимит активных в пространстве: 16 · всего сохранённых: 64')}</p>
     ${m.ids.length && canWrite ? `<label class="field"><span class="label">${q('Copy name', 'Название копии')}</span><input class="input" maxlength="120" value="${esc(m.copyLabel || '')}" data-in="mediaCopyField" data-field="copyLabel" ${m.busy ? 'disabled' : ''}></label><label class="field"><span class="label">${q('Automatic archive', 'Автоматическое архивирование')}</span><select class="select" data-in="mediaCopyField" data-field="retentionDays" ${m.busy ? 'disabled' : ''}>${retentionOptions(m.retentionDays)}</select></label><button class="btn btn-secondary btn-sm" data-a="createMediaBackup" ${m.busy || active >= 4 ? 'disabled' : ''}>${q('Copy selected files', 'Скопировать выбранные файлы')} (${m.ids.length})</button>` : `<p class="hint">${q('Select files in the file catalog to create a copy.', 'Для создания копии выберите файлы в каталоге.')}</p>`}
+    ${canWrite ? `<label class="field"><span class="label">${q('Recover from a manifest', 'Восстановить по манифесту')}</span><input type="file" accept=".json,application/json" data-in="readMediaManifest" ${m.busy ? 'disabled' : ''}></label><p class="hint">${q('Choose a downloaded Smena media manifest. The server verifies source access and copies before any import.', 'Выберите скачанный манифест копий Smena. Сервер проверит исходный доступ и копии до импорта.')}</p>` : ''}
     ${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.busy ? `<p role="status">${esc(m.progress || q('Processing…', 'Выполняем…'))}</p>` : ''}
     <div class="row wrap"><button class="btn btn-ghost btn-sm" data-a="mediaCopyTab" data-archive="false" aria-pressed="${!m.showArchive}">${q('Active', 'Активные')}</button><button class="btn btn-ghost btn-sm" data-a="mediaCopyTab" data-archive="true" aria-pressed="${!!m.showArchive}">${q('Archive', 'Архив')}</button></div>
     ${
@@ -90,8 +92,9 @@ function restoreView(m, H) {
   const project = targets.find(project => project.id === r.project);
   const pending = plan?.entries.filter(entry => !entry.registered) || [];
   return (
-    H(q('Review file restoration', 'Проверка восстановления файлов')) +
+    H(r.manifest ? q('Recover from a manifest', 'Восстановление по манифесту') : q('Review file restoration', 'Проверка восстановления файлов')) +
     `<div class="modal-b" translate="no"><p>${q('Copies will be registered as new files in the chosen destination. Existing files will not be overwritten.', 'Копии станут новыми файлами в выбранном месте. Существующие файлы не будут перезаписаны.')}</p>
+    ${r.manifest ? `<label class="field"><span class="label">${q('Source workspace', 'Исходное пространство')}</span><select class="select" data-in="mediaRestoreDestination" data-field="sourceScope" ${m.busy ? 'disabled' : ''}>${r.sources.map(ws => `<option value="${esc(ws.id)}" ${ws.id === r.sourceScope ? 'selected' : ''}>${esc(ws.name)}</option>`).join('')}</select></label><p class="hint">${q('The original verified manifest must remain in the source Drive. Uploaded claims do not grant access. Cross-workspace imports use additional Drive space.', 'Исходный проверенный манифест должен оставаться на Диске. Сведения из JSON не предоставляют доступ. Импорт между пространствами занимает дополнительное место.')}</p>` : ''}
     <label class="field"><span class="label">${q('Destination project', 'Проект назначения')}</span><select class="select" data-in="mediaRestoreDestination" data-field="project" ${m.busy ? 'disabled' : ''}><option value="">${q('Choose a project…', 'Выберите проект…')}</option>${targets.map(p => `<option value="${esc(p.id)}" ${p.id === r.project ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
     <label class="field"><span class="label">${q('Destination folder', 'Папка назначения')}</span><select class="select" data-in="mediaRestoreDestination" data-field="folderId" ${m.busy || !project ? 'disabled' : ''}><option value="">${q('Project root', 'Корень проекта')}</option>${fileFolders(
       project,
@@ -107,8 +110,8 @@ function restoreView(m, H) {
       )
       .join('')}</select></label>
     ${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.busy ? `<p role="status">${esc(m.progress || q('Checking…', 'Проверяем…'))}</p>` : ''}
-    ${plan ? `<p>${q('Source copy', 'Исходная копия')}: ${esc(new Date(plan.createdAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US'))}</p><p role="status">${q('Files to process', 'Файлов к обработке')}: ${pending.length} · ${fsize(plan.capacity.bytes)} · ${q('Verified registrations', 'Подтверждённых восстановлений')}: ${plan.entries.length - pending.length}</p><p class="hint">${plan.capacity.availableBytes === null ? q('Drive quota is unavailable. Space will be checked again while restoring.', 'Квота Google Диска недоступна. Место будет проверяться при восстановлении.') : `${q('Available Drive space', 'Доступно на Google Диске')}: ${fsize(plan.capacity.availableBytes)}`}</p>${plan.capacity.sufficient === false ? `<p class="err" role="alert">${q('Not enough space for the remaining files.', 'Недостаточно места для оставшихся файлов.')}</p>` : ''}<ul>${plan.entries.map(entry => `<li><span>${esc(entry.name)}</span> · ${fsize(entry.bytes)} · ${entry.registered ? q('Registered', 'Восстановлен') : q('Pending', 'Ожидает')}<details><summary>${q('Checksum', 'Контрольная сумма')}</summary><code>${esc(entry.checksum || '—')}</code></details></li>`).join('')}</ul>` : ''}</div>
-    <div class="modal-f"><button class="btn btn-secondary" data-a="backMediaCopies" ${m.busy ? 'disabled' : ''}>${q('Back', 'Назад')}</button><button class="btn btn-secondary" data-a="reviewMediaRestore" ${m.busy || !project ? 'disabled' : ''}>${q('Review destination and space', 'Проверить назначение и место')}</button>${plan ? `<button class="btn btn-primary" data-a="confirmMediaRestore" ${m.busy || !pending.length || plan.capacity.sufficient === false ? 'disabled' : ''}>${q('Restore reviewed files', 'Восстановить проверенные файлы')}</button>` : ''}</div>`
+    ${plan?.available === false ? `<p class="err" role="alert">${q('Some copies are unavailable or changed. Import is blocked; check the source Drive.', 'Некоторые копии недоступны или изменились. Импорт заблокирован; проверьте исходный Диск.')}</p>` : ''}${plan ? `<p>${r.manifest ? q('Verified source manifest', 'Исходный манифест проверен') : `${q('Source copy', 'Исходная копия')}: ${esc(new Date(plan.createdAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US'))}`}</p>${r.manifest ? `<p class="hint">${plan.mode === 'copy' ? q('Create independent copies in this workspace, then review file restoration.', 'Создать независимые копии в этом пространстве, затем проверить восстановление файлов.') : q('Reconnect the verified set in this workspace, then review file restoration.', 'Подключить проверенный набор в этом пространстве, затем проверить восстановление файлов.')}</p>` : ''}<p role="status">${q('Files to process', 'Файлов к обработке')}: ${pending.length} · ${fsize(plan.capacity.bytes)}${r.manifest ? '' : ` · ${q('Verified registrations', 'Подтверждённых восстановлений')}: ${plan.entries.length - pending.length}`}</p><p class="hint">${plan.capacity.availableBytes === null ? q('Drive quota is unavailable. Space will be checked again while restoring.', 'Квота Google Диска недоступна. Место будет проверяться при восстановлении.') : `${q('Available Drive space', 'Доступно на Google Диске')}: ${fsize(plan.capacity.availableBytes)}`}</p>${plan.capacity.sufficient === false ? `<p class="err" role="alert">${q('Not enough space for the remaining files.', 'Недостаточно места для оставшихся файлов.')}</p>` : ''}<ul>${plan.entries.map(entry => `<li><span>${esc(entry.name)}</span> · ${fsize(entry.bytes)}${entry.available === false ? ` · ${q('Unavailable', 'Недоступен')}` : ''}${r.manifest ? '' : ` · ${entry.registered ? q('Registered', 'Восстановлен') : q('Pending', 'Ожидает')}`}<details><summary>${q('Checksum', 'Контрольная сумма')}</summary><code>${esc(entry.checksum || '—')}</code></details></li>`).join('')}</ul>` : ''}</div>
+    <div class="modal-f"><button class="btn btn-secondary" data-a="backMediaCopies" ${m.busy ? 'disabled' : ''}>${q('Back', 'Назад')}</button><button class="btn btn-secondary" data-a="reviewMediaRestore" ${m.busy || !project ? 'disabled' : ''}>${q('Review destination and space', 'Проверить назначение и место')}</button>${plan ? `<button class="btn btn-primary" data-a="confirmMediaRestore" ${m.busy || !pending.length || plan.capacity.sufficient === false || plan.available === false ? 'disabled' : ''}>${r.manifest ? q('Import verified set', 'Импортировать проверенный набор') : q('Restore reviewed files', 'Восстановить проверенные файлы')}</button>` : ''}</div>`
   );
 }
 async function operation(fn) {
@@ -171,7 +174,7 @@ A.restoreMediaBackup = el => {
 };
 IN.mediaRestoreDestination = el => {
   const m = S.ui.modals.at(-1);
-  if (!current(m) || m.busy || !m.restore || !['project', 'folderId'].includes(el.dataset.field)) return;
+  if (!current(m) || m.busy || !m.restore || !['project', 'folderId', 'sourceScope'].includes(el.dataset.field)) return;
   m.restore[el.dataset.field] = el.value || null;
   if (el.dataset.field === 'project') m.restore.folderId = null;
   m.restore.plan = null;
@@ -190,14 +193,34 @@ A.reviewMediaRestore = () =>
   operation(async m => {
     if (!m.restore?.project) return;
     const { id, project, folderId } = m.restore;
-    const plan = await mediaBackupRequest(`/${encodeURIComponent(id)}/restore-plan`, { project, folderId });
+    const plan = m.restore.manifest
+      ? await mediaBackupRequest('/manifest/review', { manifest: m.restore.manifest, sourceScope: m.restore.sourceScope, project, folderId })
+      : await mediaBackupRequest(`/${encodeURIComponent(id)}/restore-plan`, { project, folderId });
     if (current(m)) m.restore.plan = plan;
   });
 A.confirmMediaRestore = () =>
   operation(async m => {
     const r = m.restore,
       plan = r?.plan;
-    if (!plan || plan.capacity.sufficient === false) return;
+    if (!plan || plan.capacity.sufficient === false || plan.available === false) return;
+    if (r.manifest) {
+      const { job } = await mediaBackupRequest('/manifest/import', {
+        manifest: r.manifest,
+        sourceScope: r.sourceScope,
+        project: r.project,
+        folderId: r.folderId,
+        reviewKey: plan.reviewKey,
+      });
+      await advance(m, job.id);
+      if (!current(m)) return;
+      r.manifest = null;
+      r.id = job.id;
+      r.plan = null;
+      const result = await mediaBackupRequest();
+      if (current(m) && result.jobs.some(item => item.id === job.id && item.ready))
+        r.plan = await mediaBackupRequest(`/${encodeURIComponent(job.id)}/restore-plan`, { project: r.project, folderId: r.folderId });
+      return;
+    }
     const pending = plan.entries.filter(entry => !entry.registered);
     for (const [step, entry] of pending.entries()) {
       if (!current(m)) break;
@@ -215,6 +238,26 @@ A.confirmMediaRestore = () =>
       await refreshWorkspaceFromServer();
       r.plan = await mediaBackupRequest(`/${encodeURIComponent(r.id)}/restore-plan`, { project: r.project, folderId: r.folderId });
     }
+  });
+
+IN.readMediaManifest = el =>
+  operation(async m => {
+    const file = el.files?.[0];
+    if (!file) return;
+    let manifest;
+    try {
+      if (file.size > MEDIA_MANIFEST_MAX_BYTES) throw Error();
+      manifest = JSON.parse(await file.text());
+      mediaManifestIdentity(manifest);
+    } catch {
+      throw Object.assign(Error('Invalid manifest.'), { code: 'MEDIA_MANIFEST_INVALID' });
+    }
+    const { workspaces } = await workspaceDirectoryRequest();
+    if (!current(m)) return;
+    const sourceScope = manifest.scope || getActiveWorkspace();
+    const sources = workspaces.map(ws => ({ id: ws.id, name: ws.name || ws.id }));
+    if (!sources.some(ws => ws.id === sourceScope)) sources.push({ id: sourceScope, name: q('Workspace from manifest', 'Пространство из манифеста') });
+    m.restore = { manifest, sourceScope, sources, project: '', folderId: null, plan: null };
   });
 
 IN.mediaCopyField = el => {

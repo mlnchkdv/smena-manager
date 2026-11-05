@@ -214,7 +214,7 @@ export class LocalStorageProvider {
     }
   }
 
-  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true } = {}) {
+  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true, sourceStorage = this } = {}) {
     await this.init();
     const directory = path.join(this.backupsPath, 'media');
     await fs.promises.mkdir(directory, { recursive: true });
@@ -222,7 +222,8 @@ export class LocalStorageProvider {
       if (path.basename(name) !== name) throw Error('Invalid media name.');
       return path.join(directory, name);
     };
-    const source = fromBackup ? safe(file.storageName) : this.filePath(file.storageName);
+    if (path.basename(file.storageName) !== file.storageName) throw Error('Invalid media name.');
+    const source = fromBackup ? path.join(sourceStorage.backupsPath, 'media', file.storageName) : sourceStorage.filePath(file.storageName);
     const target = toBackup ? safe(filename) : this.filePath(filename);
     const hash = async name => {
       const digest = crypto.createHash('md5');
@@ -247,6 +248,22 @@ export class LocalStorageProvider {
     await fs.promises.mkdir(directory, { recursive: true });
     if (!/^[a-f0-9-]{36}$/i.test(job.id)) throw Error('Invalid media backup.');
     await fs.promises.writeFile(path.join(directory, `media-manifest-${job.id}.json`), JSON.stringify({ format: 'smena-media-v1', ...job }), 'utf8');
+  }
+
+  async readMediaManifest(id) {
+    if (!/^[a-f0-9-]{36}$/i.test(id || '')) throw new TypeError('Invalid media manifest.');
+    const file = path.join(this.backupsPath, 'media', `media-manifest-${id}.json`);
+    if ((await fs.promises.stat(file)).size > 2 * 1024 * 1024) throw new TypeError('Media manifest is too large.');
+    return JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  }
+
+  async verifyMediaBackupObject(file) {
+    if (typeof file.storageName !== 'string' || path.basename(file.storageName) !== file.storageName) throw Error('Invalid media name.');
+    const source = path.join(this.backupsPath, 'media', file.storageName);
+    if ((await fs.promises.stat(source)).size !== file.bytes) throw Error('Media size changed.');
+    const hash = crypto.createHash('md5');
+    for await (const chunk of fs.createReadStream(source)) hash.update(chunk);
+    if (hash.digest('hex') !== file.checksum) throw Error('Media checksum changed.');
   }
 
   async removeMediaBackupPart(job, index) {

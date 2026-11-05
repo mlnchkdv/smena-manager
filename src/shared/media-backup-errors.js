@@ -1,6 +1,11 @@
 // Provider messages may contain private object identifiers. UI copy uses codes only.
 export function mediaBackupError(error, russian = false) {
   const messages = {
+    MEDIA_MANIFEST_INVALID: ['Choose a valid Smena media manifest (JSON, up to 2 MiB).', 'Выберите корректный манифест копий Smena (JSON до 2 МиБ).'],
+    MEDIA_MANIFEST_UNAVAILABLE: [
+      'The original verified manifest or source access is unavailable. Check the source workspace and account.',
+      'Исходный проверенный манифест или доступ недоступен. Проверьте исходное пространство и аккаунт.',
+    ],
     MEDIA_COPY_SETTINGS: [
       'Enter a name up to 120 characters and a supported archive period.',
       'Введите название до 120 символов и допустимый срок архивирования.',

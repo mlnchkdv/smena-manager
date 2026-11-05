@@ -939,9 +939,10 @@ export class GoogleDriveStorageProvider {
     };
   }
 
-  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true } = {}) {
+  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true, sourceStorage = this } = {}) {
     await this.init();
-    const sourceFolder = fromBackup ? await this.ensureBackupsFolder() : await this.ensureUploadsFolder();
+    await sourceStorage.init();
+    const sourceFolder = fromBackup ? await sourceStorage.ensureBackupsFolder() : await sourceStorage.ensureUploadsFolder();
     const targetFolder = toBackup ? await this.ensureBackupsFolder() : await this.ensureUploadsFolder();
     const read = async () =>
       (await this.client.files.get({ fileId: file.storageFileId, fields: 'id,name,size,md5Checksum,parents,trashed', supportsAllDrives: true })).data;
@@ -1001,6 +1002,38 @@ export class GoogleDriveStorageProvider {
       fields: 'id',
       supportsAllDrives: true,
     });
+  }
+
+  async readMediaManifest(id) {
+    if (!/^[a-f0-9-]{36}$/i.test(id || '')) throw new TypeError('Invalid media manifest.');
+    await this.init();
+    const folder = await this.ensureBackupsFolder();
+    const found = await this.client.files.list({
+      q: `name = 'media-manifest-${id}.json' and '${escapeDriveQuery(folder)}' in parents and trashed = false`,
+      fields: 'files(id,size,appProperties)',
+      pageSize: 2,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+    });
+    const items = found.data.files || [];
+    if (items.length !== 1 || items[0].appProperties?.smenaMediaManifest !== 'true' || Number(items[0].size) > 2 * 1024 * 1024)
+      throw Object.assign(Error('Verified media manifest is unavailable.'), { statusCode: 403, code: 'MEDIA_MANIFEST_UNAVAILABLE' });
+    const response = await this.client.files.get({ fileId: items[0].id, alt: 'media', supportsAllDrives: true }, { responseType: 'json' });
+    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+  }
+
+  async verifyMediaBackupObject(file) {
+    await this.init();
+    const folder = await this.ensureBackupsFolder();
+    const { data } = await this.client.files.get({ fileId: file.storageFileId, fields: 'name,size,md5Checksum,parents,trashed', supportsAllDrives: true });
+    if (
+      data.trashed ||
+      data.name !== file.storageName ||
+      !data.parents?.includes(folder) ||
+      Number(data.size) !== file.bytes ||
+      data.md5Checksum !== file.checksum
+    )
+      throw Object.assign(Error('Media source changed.'), { code: 'MEDIA_SOURCE_CHANGED', statusCode: 409 });
   }
 
   async removeMediaBackupPart(job, index) {
