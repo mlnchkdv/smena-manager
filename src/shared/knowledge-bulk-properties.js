@@ -13,6 +13,8 @@ export function bulkNoteProperties(notes, ids, patch, ws) {
     throw Error('The selection changed.');
   const add = tags(patch.addTags),
     remove = new Set(tags(patch.removeTags).map(tag => tag.toLocaleLowerCase()));
+  if (add.some(tag => remove.has(tag.toLocaleLowerCase())))
+    throw Object.assign(Error('A tag cannot be added and removed in the same change.'), { code: 'BULK_TAG_CONFLICT' });
   if ([...add, ...remove].some(tag => tag.length > 80)) throw Error('Tags must be at most 80 characters.');
   if (patch.typeId && !noteTypes(ws).some(type => type.id === patch.typeId)) throw Error('The note type changed.');
   return notes.map(note => {
@@ -43,6 +45,10 @@ export function bulkNoteProperties(notes, ids, patch, ws) {
       next.properties = { ...note.properties, [patch.property]: value };
     }
     if (!validNoteProperties(next)) throw Error('Invalid note properties.');
-    return next;
+    return (note.typeId || 'note') === (next.typeId || 'note') &&
+      JSON.stringify(note.tags || []) === JSON.stringify(next.tags || []) &&
+      JSON.stringify(note.properties || {}) === JSON.stringify(next.properties || {})
+      ? note
+      : next;
   });
 }

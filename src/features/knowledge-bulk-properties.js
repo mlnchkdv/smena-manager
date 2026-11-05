@@ -63,9 +63,10 @@ function view(m, H) {
     H(kc('Edit selected notes', 'Изменить выбранные заметки')) +
     `<div class="modal-b" translate="no"><p>${kc('Selected', 'Выбрано')}: ${m.ids.length}</p>${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${
       m.next
-        ? `<p>${kc('Only the listed properties will change. Content and other properties stay intact.', 'Изменятся только указанные свойства. Текст и остальные поля сохранятся.')}</p><p>${patchSummary(m, fields)}</p><ul>${selected(
+        ? `<p role="status">${m.changedIds.length ? kc(`Will change: ${m.changedIds.length} of ${m.ids.length} notes.`, `Изменится ${m.changedIds.length} из ${m.ids.length} заметок.`) : kc('No changes. The selected notes already have these values.', 'Нет изменений. У выбранных заметок уже указаны эти значения.')}</p><p>${kc('Only the listed properties will change. Content and other properties stay intact.', 'Изменятся только указанные свойства. Текст и остальные поля сохранятся.')}</p>${patchSummary(m, fields)}<ul>${selected(
             m,
           )
+            .filter(note => m.changedIds.includes(note.id))
             .slice(0, 20)
             .map(note => `<li>${esc(note.title)}</li>`)
             .join('')}</ul>`
@@ -83,7 +84,7 @@ function view(m, H) {
                 )}</label>`
               : ''
           }`
-    }</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Cancel', 'Отмена')}</button>${m.next ? `<button class="btn btn-secondary" data-a="backBulkNotePreview">${kc('Back', 'Назад')}</button><button class="btn btn-primary" data-a="applyBulkNoteProperties">${kc('Apply', 'Применить')}</button>` : `<button class="btn btn-primary" data-a="previewBulkNoteProperties">${kc('Review changes', 'Проверить изменения')}</button>`}</div>`
+    }</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${kc('Cancel', 'Отмена')}</button>${m.next ? `<button class="btn btn-secondary" data-a="backBulkNotePreview">${kc('Back', 'Назад')}</button><button class="btn btn-primary" data-a="applyBulkNoteProperties" ${m.changedIds.length ? '' : 'disabled'}>${kc('Apply', 'Применить')}</button>` : `<button class="btn btn-primary" data-a="previewBulkNoteProperties">${kc('Review changes', 'Проверить изменения')}</button>`}</div>`
   );
 }
 IN.bulkNoteValue = el => {
@@ -105,9 +106,13 @@ A.previewBulkNoteProperties = () => {
   try {
     m.patch = Object.fromEntries(['typeId', 'property', 'value', 'addTags', 'removeTags'].map(key => [key, m[key]]));
     m.next = bulkNoteProperties(D().knowledgeNotes, m.ids, m.patch, D().ws);
+    m.changedIds = m.next.filter((note, index) => m.ids.includes(note.id) && note !== D().knowledgeNotes[index]).map(note => note.id);
     m.error = '';
-  } catch {
-    m.error = kc('Check the tags, property type and value.', 'Проверьте теги, тип свойства и значение.');
+  } catch (error) {
+    m.error =
+      error.code === 'BULK_TAG_CONFLICT'
+        ? kc('A tag cannot be added and removed in the same change.', 'Один тег нельзя одновременно добавить и убрать.')
+        : kc('Check the tags, property type and value.', 'Проверьте теги, тип свойства и значение.');
   }
   render();
 };
@@ -120,7 +125,7 @@ A.backBulkNotePreview = () => {
 };
 A.applyBulkNoteProperties = () => {
   const m = S.ui.modals.at(-1);
-  if (!current(m) || !m.next) return;
+  if (!current(m) || !m.next || !m.changedIds?.length) return;
   if (signature(m) !== m.base) {
     m.error = kc('The selected notes changed. Reopen this dialog.', 'Выбранные заметки изменились. Откройте окно заново.');
     render();
@@ -128,7 +133,7 @@ A.applyBulkNoteProperties = () => {
   }
   const undo = snapshot();
   mutate(() => {
-    const updates = new Map(m.next.filter(note => m.ids.includes(note.id)).map(note => [note.id, note]));
+    const updates = new Map(m.next.filter(note => m.changedIds.includes(note.id)).map(note => [note.id, note]));
     D().knowledgeNotes = D().knowledgeNotes.map(note =>
       updates.has(note.id) ? { ...updates.get(note.id), updatedAt: new Date().toISOString(), updatedBy: D().me } : note,
     );
