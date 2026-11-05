@@ -1,11 +1,25 @@
 import { createKnowledgeMatcher } from './knowledge-search.js';
 import { folderDescendants } from './knowledge-tools.js';
 import { favoriteFlag } from './personal-favorites.js';
-import { compareKnowledgeColumn } from './knowledge-columns.js';
+import { createKnowledgeColumnComparator } from './knowledge-columns.js';
 export function knowledgeView(
   notes,
-  { query = '', folder = 'all', tag = '', activeId, sort = 'updated', propertySort, limit = 200, offset = 0, recent = [], folders = [], favorites } = {},
+  {
+    query = '',
+    folder = 'all',
+    tag = '',
+    activeId,
+    sort = 'updated',
+    propertySort,
+    columnContext,
+    limit = 200,
+    offset = 0,
+    recent = [],
+    folders = [],
+    favorites,
+  } = {},
 ) {
+  const compareColumn = propertySort?.key ? createKnowledgeColumnComparator(propertySort, columnContext) : null;
   const folderIds = folderDescendants(folder, folders);
   const selectedTag = String(tag).trim().toLocaleLowerCase();
   const matches = createKnowledgeMatcher(query);
@@ -28,7 +42,7 @@ export function knowledgeView(
     .filter(note => !selectedTag || (note.tags || []).some(value => String(value).trim().toLocaleLowerCase() === selectedTag))
     .filter(matches)
     .sort((a, b) => {
-      if (propertySort?.key) return compareKnowledgeColumn(a, b, propertySort);
+      if (compareColumn) return compareColumn(a, b);
       if (folder === 'recent') return recent.indexOf(a.id) - recent.indexOf(b.id);
       const starred = Number(favoriteFlag(favorites, 'note', b)) - Number(favoriteFlag(favorites, 'note', a));
       if (starred) return starred;

@@ -1,5 +1,5 @@
 import { A, IN } from '../actions/actions.js';
-import { S, D } from '../core/store.js';
+import { S, D, visibleProjects } from '../core/store.js';
 import { esc, ago } from '../core/utils.js';
 import { kc, typeName } from './knowledge-types.js';
 import { noteTypes, noteType } from '../shared/knowledge-types.js';
@@ -24,7 +24,7 @@ function displayValue(note, column) {
     : column.kind === 'member'
       ? D().members.find(member => member.id === value)?.name || '—'
       : column.kind === 'project'
-        ? D().projects.find(project => project.id === value)?.name || '—'
+        ? visibleProjects().find(project => project.id === value)?.name || '—'
         : typeof value === 'boolean'
           ? value
             ? kc('Yes', 'Да')

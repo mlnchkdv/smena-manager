@@ -13,7 +13,7 @@ import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, S } from '../core/store.js';
+import { D, S, visibleProjects } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
@@ -23,7 +23,8 @@ import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
 import { knowledgeServerPage } from '../core/knowledge-server-search.js';
-import { t, isRussian, uiCount } from '../core/i18n.js';
+import { t, isRussian, uiCount, locale } from '../core/i18n.js';
+import { noteTypes } from '../shared/knowledge-types.js';
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
@@ -135,6 +136,7 @@ export function pageKnowledge() {
     tag: S.ui.knowledgeTag,
     sort: S.ui.knowledgeSort || 'updated',
     propertySort: S.ui.knowledgeNoteLayout === 'table' ? currentKnowledgeTableSort() : null,
+    columnContext: { locale: locale(), types: noteTypes(D().ws), members: D().members, projects: visibleProjects() },
     limit: 60,
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],
