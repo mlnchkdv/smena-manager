@@ -765,3 +765,32 @@
 .whiteboard-group-resize-box > .whiteboard-resize {
   pointer-events: auto;
 }
+.whiteboard-visual-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.whiteboard-visual-pair figure {
+  margin: 0;
+  min-width: 0;
+}
+.whiteboard-visual-pair figcaption {
+  font-size: 12px;
+  margin-block: 8px;
+  font-weight: 600;
+}
+.whiteboard-diff-diagram {
+  width: 100%;
+  height: 240px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg);
+}
+@media (max-width: 640px) {
+  .whiteboard-visual-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .whiteboard-diff-diagram {
+    height: 200px;
+  }
+}
