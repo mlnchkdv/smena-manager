@@ -73,7 +73,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
         await write(data => {
           data._mediaBackups ||= [];
           if (data._mediaBackups.length >= 16 || data._mediaBackups.filter(job => job.owner === user.id && !job.archived).length >= 4)
-            throw Object.assign(Error('Media backup limit reached (four per account).'), { statusCode: 429 });
+            throw Object.assign(Error('Media backup limit reached (four per account).'), { statusCode: 429, code: 'MEDIA_BACKUP_LIMIT' });
           const entries = ids.map(id => {
             const file = data.files.find(item => item.id === id);
             if (!file?.storageName || !Number.isSafeInteger(file.bytes) || file.bytes <= 0) throw fail();
@@ -91,7 +91,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       const job = await write(data => {
         const job = owned(data, user, id);
         if (job.ready) return job;
-        if (job.lease?.until > now()) throw Object.assign(Error('Backup is busy. Retry later.'), { statusCode: 409 });
+        if (job.lease?.until > now()) throw Object.assign(Error('Backup is busy. Retry later.'), { statusCode: 409, code: 'MEDIA_BACKUP_BUSY' });
         job.lease = { id: lease, until: now() + 120000 };
         return job;
       });

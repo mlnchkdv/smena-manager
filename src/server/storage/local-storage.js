@@ -229,7 +229,8 @@ export class LocalStorageProvider {
       return digest.digest('hex');
     };
     const before = await hash(source);
-    if ((await fs.promises.stat(source)).size !== file.bytes || (file.checksum && file.checksum !== before)) throw Error('Media source changed.');
+    if ((await fs.promises.stat(source)).size !== file.bytes || (file.checksum && file.checksum !== before))
+      throw Object.assign(Error('Media source changed.'), { code: 'MEDIA_SOURCE_CHANGED', statusCode: 409 });
     try {
       await fs.promises.copyFile(source, target, fs.constants.COPYFILE_EXCL);
     } catch (error) {

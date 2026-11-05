@@ -8,6 +8,7 @@ import { esc, fmtTimestamp } from '../core/utils.js';
 import { isRussian } from '../core/i18n.js';
 import { fsize } from '../ui/helpers.js';
 import { canEditProject } from '../shared/project-access.js';
+import { mediaBackupError } from '../shared/media-backup-errors.js';
 const q = (en, ru) => (isRussian() ? ru : en);
 export async function openMediaBackups() {
   const modal = { type: 'knowledgeTool', ids: [...(S.ui.fileSelection || [])], generation: getSessionGeneration(), jobs: [], busy: false, render: view };
@@ -23,7 +24,7 @@ async function update(m) {
       m.error = '';
     }
   } catch (error) {
-    m.error = error.message;
+    m.error = mediaBackupError(error, isRussian());
   }
   if (current(m)) render();
 }
@@ -31,7 +32,7 @@ function view(m, H) {
   const targets = visibleProjects().filter(project => canEditProject(project, D().me, S.ui.currentUser?.role));
   return (
     H(q('Independent file copies', 'Независимые копии файлов')) +
-    `<div class="modal-b" translate="no"><p class="hint">${q('Separate binary copies in Drive with verified size/checksum and a manifest. They use additional space and remain in the same Google account. They are not a full workspace backup. Up to four copies per account; preparation continues only while this tab runs.', 'Отдельные бинарные копии в Drive с проверкой размера/checksum и манифестом. Они занимают дополнительное место и остаются в том же Google-аккаунте. Это не полная копия пространства. До четырёх копий на аккаунт; подготовка продолжается, пока работает вкладка.')}</p><button class="btn btn-secondary btn-sm" data-a="createMediaBackup" ${!m.ids.length || m.busy ? 'disabled' : ''}>${q('Copy selected files', 'Скопировать выбранные файлы')} (${m.ids.length})</button>${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.busy ? `<p role="status">${esc(m.progress || q('Preparing…', 'Подготовка…'))}</p>` : ''}<label class="field"><span class="label">${q('Restore into project (new files)', 'Восстановить в проект (новые файлы)')}</span><select class="select" id="media-backup-project">${targets.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>${m.jobs.map(job => `<article class="panel" style="padding:12px;margin-block:8px"><p>${fmtTimestamp(job.createdAt, true)} · ${job.done}/${job.files} · ${fsize(job.bytes)}</p><div class="row wrap">${job.ready ? `<button class="btn btn-secondary btn-sm" data-a="downloadMediaManifest" data-id="${esc(job.id)}" ${m.busy ? 'disabled' : ''}>${q('Download manifest', 'Скачать манифест')}</button><button class="btn btn-secondary btn-sm" data-a="restoreMediaBackup" data-id="${esc(job.id)}" ${m.busy || !targets.length ? 'disabled' : ''}>${q('Restore copies', 'Восстановить копии')}</button>` : `<button class="btn btn-secondary btn-sm" data-a="resumeMediaBackup" data-id="${esc(job.id)}" ${m.busy ? 'disabled' : ''}>${q('Continue copying', 'Продолжить копирование')}</button>`}</div></article>`).join('')}</div>`
+    `<div class="modal-b" translate="no"><p class="hint">${q('Separate binary copies in Drive with verified size/checksum and a manifest. They use additional space and remain in the same Google account. They are not a full workspace backup. Up to four copies per account; preparation continues only while this tab runs.', 'Отдельные бинарные копии в Drive с проверкой размера и контрольной суммы, а также манифестом. Они занимают дополнительное место и остаются в том же Google-аккаунте. Это не полная копия пространства. До четырёх копий на аккаунт; подготовка продолжается, пока работает вкладка.')}</p><button class="btn btn-secondary btn-sm" data-a="createMediaBackup" ${!m.ids.length || m.busy ? 'disabled' : ''}>${q('Copy selected files', 'Скопировать выбранные файлы')} (${m.ids.length})</button>${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.busy ? `<p role="status">${esc(m.progress || q('Preparing…', 'Подготовка…'))}</p>` : ''}<label class="field"><span class="label">${q('Restore into project (new files)', 'Восстановить в проект (новые файлы)')}</span><select class="select" id="media-backup-project">${targets.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</select></label>${m.jobs.map(job => `<article class="panel" style="padding:12px;margin-block:8px"><p>${fmtTimestamp(job.createdAt, true)} · ${job.done}/${job.files} · ${fsize(job.bytes)}</p><div class="row wrap">${job.ready ? `<button class="btn btn-secondary btn-sm" data-a="downloadMediaManifest" data-id="${esc(job.id)}" ${m.busy ? 'disabled' : ''}>${q('Download manifest', 'Скачать манифест')}</button><button class="btn btn-secondary btn-sm" data-a="restoreMediaBackup" data-id="${esc(job.id)}" ${m.busy || !targets.length ? 'disabled' : ''}>${q('Restore copies', 'Восстановить копии')}</button>` : `<button class="btn btn-secondary btn-sm" data-a="resumeMediaBackup" data-id="${esc(job.id)}" ${m.busy ? 'disabled' : ''}>${q('Continue copying', 'Продолжить копирование')}</button>`}</div></article>`).join('')}</div>`
   );
 }
 async function operation(fn) {
@@ -43,7 +44,7 @@ async function operation(fn) {
   try {
     await fn(m);
   } catch (error) {
-    if (current(m)) m.error = error.message;
+    if (current(m)) m.error = mediaBackupError(error, isRussian());
   } finally {
     if (current(m)) {
       m.busy = false;

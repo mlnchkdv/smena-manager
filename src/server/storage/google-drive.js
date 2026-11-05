@@ -953,7 +953,7 @@ export class GoogleDriveStorageProvider {
       !before.md5Checksum ||
       (file.checksum && file.checksum !== before.md5Checksum)
     )
-      throw Error('Media source changed or is unavailable.');
+      throw Object.assign(Error('Media source changed or is unavailable.'), { code: 'MEDIA_SOURCE_CHANGED', statusCode: 409 });
     const found = await this.client.files.list({
       q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(targetFolder)}' in parents and trashed = false`,
       fields: 'files(id,name,size,md5Checksum)',
