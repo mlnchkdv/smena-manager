@@ -1,5 +1,9 @@
 # Smena Manager
 
+**05.11.2026 — большие медиа / large media:** опубликована очередь до 500 файлов, прямая загрузка в Google Drive до 20 GiB на файл по умолчанию, пауза/продолжение и восстановление очереди после обновления с повторным выбором исходников. [Использование, проверки и ограничения / Usage, verification and limits](docs/MEDIA_UPLOADS_2026-11-05.md). Production: три тестовых PNG и MP4 сохранены, скачанное видео совпало по SHA-256; тестовые медиа затем убраны в корзину. 661/661 tests, lint/tokens/build passed.
+
+**05.11.2026 — новый аудит / new audit:** [UI/UX всех разделов, RU/EN, семь размеров и следующий план / Findings and next backlog](docs/UI_UX_DEEP_AUDIT_MEDIA_2026-11-05.md). Исправлена нулевая высота графа (`1ed360c`); 251 готовое наблюдение. Реальные телефоны, многогигабайтная передача и независимые копии больших видео остаются отдельными проверками / physical-device, multi-gigabyte transfer and large-original recovery acceptance remain separate.
+
 **05.11.2026 — Files Details fixed / исправлено окно «Детали»:** `4cf757b` prevents a wrapped popover from being clipped beneath the sidebar. Production RU/EN checked at eight CSS sizes, including the reproduced 944 px width. [Причина и проверка / Cause and acceptance](docs/UI_UX_DELIVERY_2026-11-04_FOURTEEN.md#additional-reported-defect-files-details--дополнительная-ошибка-окна-детали).
 
 **05.11.2026 — AA01–AA14 внедрены / delivered:** [Все 14 улучшений, commits и приёмка / Delivery and verification](docs/UI_UX_DELIVERY_2026-11-04_FOURTEEN.md). Production `e7e60c8`; 18 application commits, 647/647 tests, final lint/tokens/build pass, initial JS 582.7 KiB / 600 KiB. Compact file actions/preview, clearer graph navigation/physics, whiteboard resize assistance, lean reader and tablet catalogs. RU/EN, seven target CSS sizes with selective workflow coverage; physical-device and production resize-write acceptance remain separate.

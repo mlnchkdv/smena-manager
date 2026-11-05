@@ -1,5 +1,7 @@
 # Smena Manager — project context / Контекст проекта
 
+**05.11.2026 — large-media uploads / большие медиа:** [Current usage, implementation and verification](MEDIA_UPLOADS_2026-11-05.md), [new UI/UX audit and proposed backlog](UI_UX_DEEP_AUDIT_MEDIA_2026-11-05.md). Published through `1ed360c`: bounded direct Drive uploads default to 20 GiB/file, queue 500 unfinished files, two direct workers, 8 MiB chunks, pause/resume, trusted URL/range/retry handling, current-ACL resume validation, serialized catalog registration and 24-hour per-tab/account/workspace checkpoints. Reload requires original-file reselection; sampled fingerprint is not a full checksum. Sign-out clears checkpoints; no background upload guarantee. Proxy remains 4 MiB Vercel / 100 MiB local. Binary recovery bundle remains 100 MiB total: metadata backup is not an independent copy of large videos. Graph grid height was also corrected. 661/661 tests, lint/tokens/build pass; 581.1 KiB initial JS. Approved production PNG/MP4 test passed, then its four files were trashed; original TXT/folders/export untouched. Do not treat virtual 20 GiB tests as real production throughput or physical-phone acceptance.
+
 **05.11.2026 — AA01–AA14 delivered / внедрены:** [Current changes, commits and verification / Изменения и приёмка](UI_UX_DELIVERY_2026-11-04_FOURTEEN.md). Production `e7e60c8`, 647/647 tests, 582.7 KiB initial JS. Read before changing compact file selection/preview, height-aware folder preferences, graph locate/physics feedback, whiteboard resize targets/aspect/guides/camera, reader context/counts or tablet catalogs. All fourteen software items are delivered; the audit is historical. Local synthetic writes and read-only production content checks are distinct; physical-device and production resize-write acceptance remain open. [RU guide](KNOWLEDGE_WHITEBOARD_GUIDE_RU.md) / [EN guide](KNOWLEDGE_WHITEBOARD_GUIDE_EN.md).
 
 **01.11.2026 — Q01–Q18 published / опубликованы:** [Delivery, commits and verification / Внедрение и приёмка](UI_UX_DELIVERY_2026-11-01_EIGHTEEN.md). Production `b90ebe6` includes all 18 items and all follow-ups, including explicit source action names and cold Search-to-Files context ordering. The earlier manual Vercel-cap error was overcome by subsequent Git auto-publication; no release task remains from this package. After renewed sign-in, final cold-query and unchanged-source scenarios passed live in RU/EN. 611/611 shared/server tests and final build/lint/tokens passed. RU/EN light/dark acceptance produced 168 geometry observations, with no root overflow or compressed measured editor-mode labels. Team content/access was unchanged; mutations used isolated `.data/q18` fixtures. RU/light/table restored. Physical-device, cross-account and production write/recovery acceptance remain separate.
@@ -109,7 +111,7 @@ output/playwright/         локальные доказательства бр�
 
 - транспорт каждого логического документа — до 4 MiB;
 - это ограничение JSON, а не бинарных файлов;
-- вложения по умолчанию — до 100 MiB (`SHARED_FILE_MAX_BYTES` может менять лимит);
+- прямая загрузка вложений в Drive по умолчанию — до 20 GiB на файл (`SHARED_FILE_MAX_BYTES` может менять лимит); proxy-путь — 4 MiB на Vercel / 100 MiB локально;
 - Vercel не используется как постоянная файловая система;
 - `localStorage`/IndexedDB — только offline cache и owner-scoped recovery drafts, не общий источник правды.
 
@@ -348,7 +350,7 @@ In schema v3, core, knowledge and bookmarks remain in the main Google Drive JSON
 Limits and invariants:
 
 - each logical JSON document has a 4 MiB transport budget;
-- binary uploads default to 100 MiB;
+- direct Drive uploads default to 20 GiB per file; proxy uploads retain 4 MiB on Vercel / 100 MiB locally;
 - Vercel ephemeral storage is never the database;
 - localStorage/IndexedDB is an offline cache and draft journal, not shared truth;
 - upload bodies are sent to Drive through validated resumable sessions.
