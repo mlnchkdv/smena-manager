@@ -1,5 +1,7 @@
 # UI/UX audit after media uploads / Аудит после загрузки медиа — 5 November 2026
 
+> **Historical specification / Исторический план:** M01–M12 software is now implemented. Read [delivery, verification and remaining acceptance boundaries / внедрение и ограничения](UI_UX_DELIVERY_MEDIA_2026-11-05.md) before interpreting the original future-tense backlog below. Physical-device and real multi-gigabyte acceptance remain open.
+
 Baseline / Версия: production application **`1ed360c`**, [smena-manager.vercel.app](https://smena-manager.vercel.app/). [Media delivery and verification](MEDIA_UPLOADS_2026-11-05.md) describes the implemented changes. Earlier [AA01–AA14](UI_UX_DELIVERY_2026-11-04_FOURTEEN.md) remain delivered; this document does not reopen that historical package.
 
 ## RU — Вывод и охват

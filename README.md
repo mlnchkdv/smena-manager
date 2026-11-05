@@ -1,5 +1,7 @@
 # Smena Manager
 
+**05.11.2026 — M01–M12 внедрены / delivered:** [12 улучшений медиа, заметок, холстов, графа и исправление «Активности» / Delivery and precise acceptance](docs/UI_UX_DELIVERY_MEDIA_2026-11-05.md). Production: независимая копия 4/4 файлов восстановлена в тестовый проект, SHA-256 видео совпал; тестовые материалы возвращены в корзину/архив. RU/EN Activity и Graph проверены на семи фактических размерах. 673/673 tests, lint/tokens/build passed; initial JS 584.9/600 KiB. Physical-device and real multi-gigabyte acceptance remain open.
+
 **05.11.2026 — большие медиа / large media:** опубликована очередь до 500 файлов, прямая загрузка в Google Drive до 20 GiB на файл по умолчанию, пауза/продолжение и восстановление очереди после обновления с повторным выбором исходников. [Использование, проверки и ограничения / Usage, verification and limits](docs/MEDIA_UPLOADS_2026-11-05.md). Production: три тестовых PNG и MP4 сохранены, скачанное видео совпало по SHA-256; тестовые медиа затем убраны в корзину. 661/661 tests, lint/tokens/build passed.
 
 **05.11.2026 — новый аудит / new audit:** [UI/UX всех разделов, RU/EN, семь размеров и следующий план / Findings and next backlog](docs/UI_UX_DEEP_AUDIT_MEDIA_2026-11-05.md). Исправлена нулевая высота графа (`1ed360c`); 251 готовое наблюдение. Реальные телефоны, многогигабайтная передача и независимые копии больших видео остаются отдельными проверками / physical-device, multi-gigabyte transfer and large-original recovery acceptance remain separate.
