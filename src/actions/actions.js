@@ -1940,6 +1940,7 @@ A.openUploadQueue = async () => {
   const module = await import('../core/file-upload-queue.js');
   module.openUploadQueue();
 };
+A.openMediaBackups = async () => (await import('../features/media-backups.js')).openMediaBackups();
 A.toggleMediaGallery = () => {
   const m = S.ui.modals.at(-1),
     c = m?.previewContext;

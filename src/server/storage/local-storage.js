@@ -213,6 +213,40 @@ export class LocalStorageProvider {
     }
   }
 
+  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true } = {}) {
+    await this.init();
+    const directory = path.join(this.backupsPath, 'media');
+    await fs.promises.mkdir(directory, { recursive: true });
+    const safe = name => {
+      if (path.basename(name) !== name) throw Error('Invalid media name.');
+      return path.join(directory, name);
+    };
+    const source = fromBackup ? safe(file.storageName) : this.filePath(file.storageName);
+    const target = toBackup ? safe(filename) : this.filePath(filename);
+    const hash = async name => {
+      const digest = crypto.createHash('md5');
+      for await (const chunk of fs.createReadStream(name)) digest.update(chunk);
+      return digest.digest('hex');
+    };
+    const before = await hash(source);
+    if ((await fs.promises.stat(source)).size !== file.bytes || (file.checksum && file.checksum !== before)) throw Error('Media source changed.');
+    try {
+      await fs.promises.copyFile(source, target, fs.constants.COPYFILE_EXCL);
+    } catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+    }
+    if ((await hash(source)) !== before || (await hash(target)) !== before || (await fs.promises.stat(target)).size !== file.bytes)
+      throw Error('Media copy integrity check failed.');
+    return { storageFileId: filename, storageName: filename, bytes: file.bytes, checksum: before };
+  }
+
+  async saveMediaManifest(job) {
+    const directory = path.join(this.backupsPath, 'media');
+    await fs.promises.mkdir(directory, { recursive: true });
+    if (!/^[a-f0-9-]{36}$/i.test(job.id)) throw Error('Invalid media backup.');
+    await fs.promises.writeFile(path.join(directory, `media-manifest-${job.id}.json`), JSON.stringify({ format: 'smena-media-v1', ...job }), 'utf8');
+  }
+
   async openDownloadStream(filename, _fileId, range) {
     const targetPath = this.filePath(filename);
     let stat;

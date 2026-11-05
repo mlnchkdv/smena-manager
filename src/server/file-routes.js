@@ -32,6 +32,7 @@ import { streamFileArchive } from './file-archive-stream.js';
 import { assertArchiveFileAccess } from './file-archive-access.js';
 import { uploadCapacity } from '../shared/upload-capacity.js';
 import { safeMedia } from '../shared/media-policy.js';
+import { mediaBackupRouter } from './media-backup-routes.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -249,6 +250,7 @@ fileRouter.get('/catalog', async (request, response, next) => {
   }
 });
 
+fileRouter.use('/media-backups', mediaBackupRouter);
 fileRouter.post('/upload-preflight', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     const input = request.body;

@@ -146,6 +146,8 @@ export const searchWhiteboards = (query, limit, offset) =>
 export const getWhiteboardVersions = id => request(`/api/whiteboards/${encodeURIComponent(id)}/versions`, {}, true);
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const listFileExports = () => request('/api/files/exports', {}, true);
+export const mediaBackupRequest = (path = '', body) =>
+  request('/api/files/media-backups' + path, body ? { method: 'POST', body: JSON.stringify(body) } : {}, true);
 export const preflightUpload = input => request('/api/files/upload-preflight', { method: 'POST', body: JSON.stringify(input) }, true);
 export const createFileExport = ids => request('/api/files/exports', { method: 'POST', body: JSON.stringify({ ids }) }, true);
 export const advanceFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}/advance`, { method: 'POST' }, true);

@@ -938,6 +938,70 @@ export class GoogleDriveStorageProvider {
     };
   }
 
+  async copyMediaObject(file, filename, { fromBackup = false, toBackup = true } = {}) {
+    await this.init();
+    const sourceFolder = fromBackup ? await this.ensureBackupsFolder() : await this.ensureUploadsFolder();
+    const targetFolder = toBackup ? await this.ensureBackupsFolder() : await this.ensureUploadsFolder();
+    const read = async () =>
+      (await this.client.files.get({ fileId: file.storageFileId, fields: 'id,name,size,md5Checksum,parents,trashed', supportsAllDrives: true })).data;
+    const before = await read();
+    if (
+      before.trashed ||
+      before.name !== file.storageName ||
+      !before.parents?.includes(sourceFolder) ||
+      Number(before.size) !== file.bytes ||
+      !before.md5Checksum ||
+      (file.checksum && file.checksum !== before.md5Checksum)
+    )
+      throw Error('Media source changed or is unavailable.');
+    const found = await this.client.files.list({
+      q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(targetFolder)}' in parents and trashed = false`,
+      fields: 'files(id,name,size,md5Checksum)',
+      pageSize: 2,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+    });
+    if ((found.data.files || []).length > 1) throw Error('Ambiguous media copy.');
+    const copied =
+      found.data.files?.[0] ||
+      (
+        await this.client.files.copy({
+          fileId: before.id,
+          requestBody: { name: filename, parents: [targetFolder] },
+          fields: 'id,name,size,md5Checksum',
+          supportsAllDrives: true,
+        })
+      ).data;
+    const after = await read();
+    if (
+      after.md5Checksum !== before.md5Checksum ||
+      Number(after.size) !== file.bytes ||
+      copied.md5Checksum !== before.md5Checksum ||
+      Number(copied.size) !== file.bytes
+    )
+      throw Error('Media copy integrity check failed.');
+    return { storageFileId: copied.id, storageName: copied.name, bytes: Number(copied.size), checksum: copied.md5Checksum };
+  }
+
+  async saveMediaManifest(job) {
+    const folder = await this.ensureBackupsFolder();
+    const filename = `media-manifest-${job.id}.json`;
+    const existing = await this.client.files.list({
+      q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(folder)}' in parents and trashed = false`,
+      fields: 'files(id)',
+      pageSize: 1,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+    });
+    if (existing.data.files?.length) return;
+    await this.client.files.create({
+      requestBody: { name: filename, parents: [folder], appProperties: { smenaMediaManifest: 'true' } },
+      media: { mimeType: 'application/json', body: Readable.from([JSON.stringify({ format: 'smena-media-v1', ...job })]) },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+  }
+
   async createResumableUpload(filename, size, mimeType = 'application/octet-stream', marker, origin = '') {
     if (origin) {
       const parsed = new URL(origin);
