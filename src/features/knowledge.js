@@ -1,5 +1,6 @@
 import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.js';
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
+A.editKnowledgeSelection = async () => (await import('./knowledge-bulk-properties.js')).editKnowledgeSelection();
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder, moveKnowledgeFolders, folderDescendants } from '../shared/knowledge-tools.js';
