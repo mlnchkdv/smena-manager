@@ -1936,6 +1936,10 @@ A.filePreview = el => {
   const f = t.attachments.find(a => a.id === el.dataset.aid);
   openModal({ type: 'filePreview', file: f, tid: t.id });
 };
+A.openUploadQueue = async () => {
+  const module = await import('../core/file-upload-queue.js');
+  module.openUploadQueue();
+};
 A.previewFile = el => {
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;

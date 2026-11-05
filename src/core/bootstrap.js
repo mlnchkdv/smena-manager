@@ -129,6 +129,12 @@ async function loadWorkspaceFor(user) {
     }
   }
   S.ui.filePolicy = filePolicy;
+  try {
+    if (Object.keys(sessionStorage).some(key => key.startsWith('smena.uploads.v1:')))
+      void import('./file-upload-queue.js').then(module => module.restoreUploadQueue());
+  } catch {
+    /* Checkpoints are optional when browser storage is unavailable. */
+  }
   if (user.name) S.prefs.name = user.name;
   S.prefs.title = user.title || '';
   return user;

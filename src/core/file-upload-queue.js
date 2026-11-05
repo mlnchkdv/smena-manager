@@ -10,6 +10,17 @@ import { createUploadQueue, unfinishedUpload, uploadFileKey, uploadFingerprint }
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
 import { applyExternalCoreSnapshot } from './bootstrap.js';
+import { openModal, fileModalRenderers } from '../overlays/modals.js';
+import { uploadsHtml } from '../ui/file-uploads.js';
+import { sampleUploadRate, uploadEstimate } from '../shared/upload-rate.js';
+import { fsize } from '../ui/helpers.js';
+
+fileModalRenderers.uploadQueue = (_modal, H) =>
+  H(text('Uploads', 'Загрузки')) + `<div class="modal-b">${uploadsHtml() || text('No pending uploads.', 'Нет ожидающих загрузок.')}</div>`;
+export function openUploadQueue() {
+  restoreUploadQueue();
+  if (!S.ui.modals.some(modal => modal.type === 'uploadQueue')) openModal({ type: 'uploadQueue' });
+}
 
 const prefix = 'smena.uploads.v1:';
 const text = (en, ru) => (isRussian() ? ru : en);
@@ -82,13 +93,21 @@ const changed = () => {
 };
 function paintProgress(job) {
   if (!valid()) return;
-  const bar = document.getElementById('upbar-' + job.id),
-    label = document.getElementById('upct-' + job.id);
-  if (bar) {
+  job.rateSample = sampleUploadRate(job.rateSample, job.accepted || 0, Date.now());
+  const estimate = uploadEstimate(engine.jobs);
+  document.querySelectorAll('[data-upload-estimate]').forEach(el => {
+    el.textContent =
+      estimate.rate > 0
+        ? `${fsize(estimate.rate)}/s${estimate.seconds !== null ? ` · ~${Math.ceil(estimate.seconds / 60)} ${text('min', 'мин')}` : ''}`
+        : text('Estimating…', 'Оцениваем…');
+  });
+  document.querySelectorAll(`[data-upload-bar="${job.id}"]`).forEach(bar => {
     bar.style.setProperty('--p', job.pct / 100);
     bar.setAttribute('aria-valuenow', job.pct);
-  }
-  if (label) label.textContent = job.pct + '%';
+  });
+  document.querySelectorAll(`[data-upload-percent="${job.id}"]`).forEach(label => {
+    label.textContent = job.pct + '%';
+  });
   const total = engine.jobs.reduce((sum, item) => sum + item.bytes, 0);
   const sent = engine.jobs.reduce((sum, item) => sum + (item.phase === 'done' ? item.bytes : Math.min(item.bytes, item.accepted || 0)), 0);
   document.querySelectorAll('[data-upload-total-progress]').forEach(el => {
@@ -97,6 +116,7 @@ function paintProgress(job) {
   });
 }
 async function run(job, signal) {
+  job.rateSample = null;
   const startedScope = scope,
     startedGeneration = generation;
   const current = () => valid() && startedScope === scope && startedGeneration === generation;

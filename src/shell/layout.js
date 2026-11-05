@@ -278,6 +278,7 @@ export function crumbs() {
   return out.join('<span class="sep">/</span>');
 }
 export function renderTopbar() {
+  const uploads = (S.ui.uploads || []).filter(job => !['done', 'cancelled'].includes(job.phase));
   const state = systemConnectionState();
   const sync = SYNC_PRESENTATION[state];
   const syncLabel = state === 'saved' && S.ui.workspaceSettingsDirty ? workspaceDraftLabel() : tr(sync[1]);
@@ -288,6 +289,7 @@ export function renderTopbar() {
     <button class="workspace-context pillbtn" data-a="pop" data-pop="ws" title="${esc(D().ws.name)}" aria-label="${esc(tr('Switch workspace'))}: ${esc(D().ws.name)}"><span class="trunc" translate="no">${esc(D().ws.name)}</span>${ic('chevron-down', 12)}</button>
     <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
+    ${uploads.length ? `<button class="ibtn global-upload-entry" data-a="openUploadQueue" aria-label="${esc(tr('Uploads'))}: ${uploads.length}" title="${esc(tr('Uploads'))}" translate="no">${ic(uploads.some(job => job.phase === 'failed') ? 'triangle-alert' : 'upload', 16)}<small>${uploads.length}</small></button>` : ''}
     <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label" translate="no">${esc(syncLabel)}</span></span>
     <button class="topsearch" data-a="openPalette" aria-label="${esc(tr('Search or jump to…'))} ${MOD} + K" aria-keyshortcuts="${MOD === '⌘' ? 'Meta' : 'Control'}+k">${ic('search', 14)}<span class="lbltxt">Search or jump to…</span><span class="kbd topsearch-shortcut" aria-hidden="true">${shortcut([MOD, 'K'])}</span></button>
     <button class="ibtn" data-a="go" data-r="notifications" data-tip="Notifications" aria-label="Notifications">${ic('bell', 16)}${myNotifications().some(n => !n.read) ? '<span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)"></span>' : ''}</button>

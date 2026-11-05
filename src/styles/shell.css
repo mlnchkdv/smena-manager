@@ -663,3 +663,18 @@ h3.sub {
   background: transparent;
   font: inherit;
 }
+/* Only pending transfers occupy header space. */
+.global-upload-entry {
+  position: relative;
+  flex-shrink: 0;
+}
+.global-upload-entry small {
+  position: absolute;
+  inset: auto -2px -2px auto;
+  font-size: 9px;
+  line-height: 14px;
+  min-width: 14px;
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+}
