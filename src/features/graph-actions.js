@@ -9,6 +9,7 @@ import { D, S, save } from '../core/store.js';
 import { go, render } from '../shell/render.js';
 import { A, IN } from '../actions/actions.js';
 import { resolveGraphEntity } from '../shared/relations.js';
+import { toggleGraphClusters } from '../core/graph-clusters.js';
 
 export function showGraph(el) {
   S.ui.graphSelectionClosed = false;
@@ -92,6 +93,20 @@ A.toggleGraphPhysics = () => {
   save();
   render();
 };
+A.toggleGraphClusters = () => {
+  toggleGraphClusters();
+  render();
+};
+A.expandGraphCluster = el => {
+  S.ui.graphClustersExpanded = [...new Set([...(S.ui.graphClustersExpanded || []), el.dataset.cluster])];
+  render();
+};
+A.collapseGraphClusters = () => {
+  S.ui.graphClustersExpanded = [];
+  S.ui.graphSelected = '';
+  S.ui.graphSelectionClosed = true;
+  render();
+};
 
 A.graphDisplayOptions = () => {
   const T = (en, ru) => (isRussian() ? ru : en);
@@ -100,7 +115,7 @@ A.graphDisplayOptions = () => {
   openModal({
     type: 'knowledgeTool',
     render: (_m, H) =>
-      `${H(T('Graph display and navigation', 'Вид и навигация графа'))}<div class="modal-b knowledge-library-tools" translate="no">${option('toggleGraphSimple', 'circle-dot', 'Simplified graph', 'Упрощённый граф', S.prefs.graphSimple)}${S.prefs.graphSimple ? option('toggleGraphAnchors', 'type', 'Cluster labels', 'Подписи кластеров', S.prefs.graphAnchors !== false) : ''}${option('toggleGraphPhysics', 'orbit', 'Physics', 'Физика', S.prefs.graphPhysics)}${option('graphDisplayFocus', 'maximize', 'Focus mode', 'Режим фокуса', S.ui.graphFocus)}<p class="hint">${T('Simplified nodes can show a few cluster labels; other labels appear on selection. With physics on, connected unpinned nodes follow a dragged node. Turn it off to move nodes individually.', 'В упрощённом виде можно показать несколько подписей кластеров; остальные видны при выборе узла. С физикой связанные незакреплённые узлы следуют за перетаскиваемым. Отключите её для перемещения отдельных узлов.')}</p><p class="hint">${T('On touch screens, enable graph interaction to pan and zoom. Switch back to scroll the page.', 'На сенсорном экране включите управление графом для панорамы и масштаба. Вернитесь к прокрутке, чтобы двигать страницу.')}</p></div><div class="modal-f"><button class="btn btn-primary" data-a="closeModal">${T('Done', 'Готово')}</button></div>`,
+      `${H(T('Graph display and navigation', 'Вид и навигация графа'))}<div class="modal-b knowledge-library-tools" translate="no">${option('toggleGraphSimple', 'circle-dot', 'Simplified graph', 'Упрощённый граф', S.prefs.graphSimple)}${S.prefs.graphSimple ? option('toggleGraphAnchors', 'type', 'Cluster labels', 'Подписи кластеров', S.prefs.graphAnchors !== false) : ''}${option('toggleGraphPhysics', 'orbit', 'Physics', 'Физика', S.prefs.graphPhysics)}${option('toggleGraphClusters', 'group', 'Collapse semantic groups · this device', 'Сворачивать группы · это устройство', S.ui.graphClustersEnabled)}${option('graphDisplayFocus', 'maximize', 'Focus mode', 'Режим фокуса', S.ui.graphFocus)}<p class="hint">${T('Simplified nodes can show a few cluster labels; other labels appear on selection. With physics on, connected unpinned nodes follow a dragged node. Turn it off to move nodes individually.', 'В упрощённом виде можно показать несколько подписей кластеров; остальные видны при выборе узла. С физикой связанные незакреплённые узлы следуют за перетаскиваемым. Отключите её для перемещения отдельных узлов.')}</p><p class="hint">${T('On touch screens, enable graph interaction to pan and zoom. Switch back to scroll the page.', 'На сенсорном экране включите управление графом для панорамы и масштаба. Вернитесь к прокрутке, чтобы двигать страницу.')}</p></div><div class="modal-f"><button class="btn btn-primary" data-a="closeModal">${T('Done', 'Готово')}</button></div>`,
   });
 };
 A.graphDisplayFocus = () => {
