@@ -3,7 +3,7 @@ import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder
 import { knowledgeQueryContext } from '../ui/knowledge-query-context.js';
 import { knowledgeCreateMenu, knowledgeSavedSearchShortcuts } from '../ui/knowledge-create-menu.js';
 import { knowledgeViewOptions } from '../ui/knowledge-view-options.js';
-import { knowledgeCollectionTable } from '../ui/knowledge-collection-table.js';
+import { knowledgeCollectionTable, currentKnowledgeTableSort } from '../ui/knowledge-collection-table.js';
 import { noteCardMeta } from '../ui/knowledge-card-meta.js';
 import '../features/knowledge.js';
 import '../ui/knowledge-tags.js';
@@ -134,7 +134,7 @@ export function pageKnowledge() {
     folder: folderFilter,
     tag: S.ui.knowledgeTag,
     sort: S.ui.knowledgeSort || 'updated',
-    propertySort: S.ui.knowledgeNoteLayout === 'table' ? S.ui.knowledgeTableSort || { key: 'title' } : null,
+    propertySort: S.ui.knowledgeNoteLayout === 'table' ? currentKnowledgeTableSort() : null,
     limit: 60,
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],

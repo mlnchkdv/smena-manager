@@ -1,3 +1,7 @@
+export function normalizeKnowledgeColumnSort(sort, visibleKeys) {
+  return sort?.key === 'title' || visibleKeys.includes(sort?.key) ? { key: sort.key, desc: !!sort.desc } : { key: 'title', desc: false };
+}
+
 export function knowledgeColumnValue(note, key) {
   if (key === 'title') return note.title || '';
   if (key === 'type') return note.typeId || 'note';
