@@ -1,5 +1,7 @@
 # Smena Manager
 
+**05.11.2026 — Files Details fixed / исправлено окно «Детали»:** `4cf757b` prevents a wrapped popover from being clipped beneath the sidebar. Production RU/EN checked at eight CSS sizes, including the reproduced 944 px width. [Причина и проверка / Cause and acceptance](docs/UI_UX_DELIVERY_2026-11-04_FOURTEEN.md#additional-reported-defect-files-details--дополнительная-ошибка-окна-детали).
+
 **05.11.2026 — AA01–AA14 внедрены / delivered:** [Все 14 улучшений, commits и приёмка / Delivery and verification](docs/UI_UX_DELIVERY_2026-11-04_FOURTEEN.md). Production `e7e60c8`; 18 application commits, 647/647 tests, final lint/tokens/build pass, initial JS 582.7 KiB / 600 KiB. Compact file actions/preview, clearer graph navigation/physics, whiteboard resize assistance, lean reader and tablet catalogs. RU/EN, seven target CSS sizes with selective workflow coverage; physical-device and production resize-write acceptance remain separate.
 
 **04.11.2026 — размер холста / whiteboard resizing:** [Изменение карточек и рамок за края, клавиатура, история и проверка / Edge resizing, keyboard, history and verification](docs/WHITEBOARD_RESIZE_2026-11-04.md) опубликованы в `6acf051`. [Аудит AA01–AA14 / AA01–AA14 audit](docs/UI_UX_DEEP_REAUDIT_AFTER_Z_2026-11-04.md) сохранён как исторический план и теперь внедрён / is a historical plan, now delivered.

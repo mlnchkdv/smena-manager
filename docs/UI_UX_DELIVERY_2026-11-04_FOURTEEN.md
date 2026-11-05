@@ -75,3 +75,17 @@ Local evidence is intentionally uncommitted: `output/aa-delivery-2026-11-04/prod
 **EN:** Physical phones, touch cancellation, virtual keyboards, screen readers and the full theme/text-zoom matrix remain unverified. Production resize writes/reloads, cross-account sessions and large live-data mutation tests were not performed. Local persistence and existing server ACL tests do not replace those checks.
 
 Russian, empty note/file queries, cleared file/graph selection, project Grid and whiteboard Canvas were restored. Final production synchronization state was `saved`; a fresh audit tab restored the session without a new sign-in. Temporary tabs/viewport overrides and local test services were cleaned up. The user's original tab remains open. Team files, notes, cards, access rights, delivery jobs, backups and Trash were unchanged.
+
+## Additional reported defect: Files Details / Дополнительная ошибка окна «Детали»
+
+**5 November 2026, published / опубликовано:** `4cf757b88e13486d910215ec208d6f0609ab32a9`, verified through the production version manifest and live UI.
+
+**RU:** Ошибка со скриншота воспроизведена при 944×762 CSS px: кнопка «Детали» переносится к началу новой строки, но окно выравнивалось по её правому краю. Общая проверка границ экрана сдвигала окно к x=8, тогда как видимая основная область начиналась около x=252; боковое меню обрезало содержимое. Панель теперь выравнивается по левому краю кнопки, а её ширина ограничена контейнером каталога и экраном. Проверка границ экрана, прокрутка и Escape сохранены.
+
+**EN:** At 944×762, a wrapped Details trigger sat at the catalog start while its panel was right-aligned. Viewport clamping placed the panel at x=8, outside the main region beginning near x=252. Left-aligning it to the trigger and limiting width to the catalog container prevents sidebar clipping; existing viewport adjustment, scrolling and Escape behaviour remain.
+
+- Production RU/EN: **320×567, 390×844, 767×900, 844×390, 944×762, 1024×767, 1366×767, 1920×1080**. All nineteen observations, including a collapsed-sidebar case and the final screenshot state, keep the panel within both the main region and viewport with zero root overflow.
+- At the reproduced RU width the corrected panel spans approximately **x276–796**, fully inside the main region **x252–944**. Summary values and saved-filter/export entries remain visible. Escape closes and returns focus to the trigger.
+- Final lint, token references, build and diff checks passed. Initial JavaScript remains **582.7 KiB / 600 KiB**. This is a CSS-only change; the full server suite was not repeated for it.
+- Local evidence: `output/aa-delivery-2026-11-04/details-checks.json`, `details-before.png`, `details-after-ru.png`. The final successful screenshot was inspected; a later optional clipped capture failed and is not acceptance evidence.
+- Russian, expanded sidebar and closed Details were restored; final sync state was `saved`. No file mutation was performed; temporary viewport/tab were cleaned up. Physical-device limits above still apply.
