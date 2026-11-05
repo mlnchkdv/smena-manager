@@ -163,7 +163,17 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       return write(data => {
         owned(data, user, id);
         const by = access(data, user, project, true);
-        const existing = data.files.find(file => file.mediaBackupRef === ref);
+        // The public file payload may contain a client-supplied reference. Reuse
+        // only a record that also points at the verified restore object.
+        const existing = data.files.find(
+          file =>
+            file.mediaBackupRef === ref &&
+            file.project === project &&
+            file.ownerId === user.id &&
+            file.storageFileId === copy.storageFileId &&
+            file.storageName === copy.storageName &&
+            file.bytes === copy.bytes,
+        );
         if (existing) return existing;
         const file = {
           ...entry.file,

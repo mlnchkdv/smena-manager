@@ -60,8 +60,10 @@ test('large independent copies restore as new identities and recheck membership 
   assert.equal(manifest.ready, true);
   assert.equal(manifest.entries[0].copy.bytes, 20 * 1024 ** 3);
   data.files = []; // The original no longer exists; the separate copy still restores.
+  data.files.push({ id: 'forged', mediaBackupRef: `${job.id}:0:target`, project: 'p', storageName: 'unrelated' });
   const restored = await service.restore(user, job.id, 'target', 0);
   assert.notEqual(restored.id, 'f');
+  assert.notEqual(restored.id, 'forged');
   assert.equal(restored.project, 'target');
   assert.equal((await service.restore(user, job.id, 'target', 0)).id, restored.id);
   assert.deepEqual(await service.list({ ...user, id: 'other', email: 'other@example.test' }), []);
