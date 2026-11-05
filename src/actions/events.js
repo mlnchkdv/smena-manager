@@ -90,7 +90,7 @@ const repositionPop = () => {
 };
 let mobileNavigation = innerWidth <= 900;
 let compactControls = innerWidth <= 640;
-addEventListener('resize', () => {
+function reconcileViewport() {
   const mobile = innerWidth <= 900;
   if (mobile !== mobileNavigation) {
     mobileNavigation = mobile;
@@ -104,7 +104,23 @@ addEventListener('resize', () => {
   }
   repositionPop();
   revealActiveSetting();
-});
+}
+let viewportFrame;
+const scheduleViewport = () => {
+  if (viewportFrame) return;
+  viewportFrame = requestAnimationFrame(() => {
+    viewportFrame = null;
+    reconcileViewport();
+  });
+};
+addEventListener('resize', scheduleViewport);
+// Host viewport overrides and mobile browser chrome do not always deliver the
+// same window event sequence. Observe the layout and media boundary as well.
+const navigationMedia = matchMedia('(max-width: 900px)');
+navigationMedia.addEventListener('change', scheduleViewport);
+const viewportObserver = new ResizeObserver(scheduleViewport);
+viewportObserver.observe(document.documentElement);
+window.visualViewport?.addEventListener('resize', scheduleViewport);
 window.visualViewport?.addEventListener('resize', repositionPop);
 window.visualViewport?.addEventListener('scroll', repositionPop);
 try {
