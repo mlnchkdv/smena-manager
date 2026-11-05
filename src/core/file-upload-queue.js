@@ -16,6 +16,7 @@ import { esc } from './utils.js';
 import { uploadsHtml } from '../ui/file-uploads.js';
 import { sampleUploadRate, uploadEstimate } from '../shared/upload-rate.js';
 import { fsize } from '../ui/helpers.js';
+import { planFileImport } from '../shared/file-import-plan.js';
 
 fileModalRenderers.uploadQueue = (_modal, H) =>
   H(text('Uploads', 'Загрузки')) + `<div class="modal-b">${uploadsHtml() || text('No pending uploads.', 'Нет ожидающих загрузок.')}</div>`;
@@ -25,17 +26,24 @@ export function openUploadQueue() {
 }
 fileModalRenderers.uploadReview = (m, H) =>
   H(text('Review upload', 'Проверка загрузки')) +
-  `<div class="modal-b" translate="no"><p>${esc(proj(m.ctx.project)?.name || '')} · ${m.entries.length} ${text('files', 'файлов')} · ${fsize(m.capacity.bytes)}</p><p class="${m.capacity.sufficient === false ? 'err' : 'hint'}">${m.capacity.availableBytes === null ? text('Drive free space is unavailable. The upload may fail if storage is full.', 'Свободное место Drive недоступно. При заполнении хранилища загрузка завершится ошибкой.') : `${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}`}</p><p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p>${m.capacity.sufficient === false ? `<p role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : ''}<details><summary>${text('Files', 'Файлы')}</summary><ul>${m.entries
+  `<div class="modal-b" translate="no"><p>${esc(proj(m.ctx.project)?.name || '')} · ${m.entries.length} ${text('files', 'файлов')} · ${fsize(m.capacity.bytes)}</p><p class="${m.capacity.sufficient === false ? 'err' : 'hint'}">${m.capacity.availableBytes === null ? text('Drive free space is unavailable. The upload may fail if storage is full.', 'Свободное место Drive недоступно. При заполнении хранилища загрузка завершится ошибкой.') : `${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}`}</p><p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p>${m.capacity.sufficient === false ? `<p role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : ''}<p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p>${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}<p class="hint">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${m.entries.length - new Set(m.entries.map(job => (m.preserve ? job.relativePath : job.name).toLocaleLowerCase())).size}</p><details><summary>${text('Files and paths', 'Файлы и пути')}</summary><ul>${m.entries
     .slice(0, 50)
-    .map(job => `<li>${esc(job.name)} · ${fsize(job.bytes)}</li>`)
+    .map(job => `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)}</li>`)
     .join(
       '',
     )}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`;
 A.confirmUploadReview = () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'uploadReview' || m.capacity.sufficient === false) return;
-  m.resolve(true);
+  m.resolve({ preserve: m.preserve });
   closeModal();
+};
+A.toggleUploadStructure = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'uploadReview') {
+    m.preserve = !m.preserve;
+    render();
+  }
 };
 
 const prefix = 'smena.uploads.v1:';
@@ -64,6 +72,7 @@ function persist() {
       name: job.name,
       bytes: job.bytes,
       lastModified: job.lastModified,
+      relativePath: job.relativePath,
       mimeType: job.mimeType,
       type: job.type,
       project: job.project,
@@ -243,13 +252,14 @@ export async function enqueueFiles(files, ctx) {
             job.task || null,
             job.folderId || null,
             uploadFileKey({ name: job.name, size: job.bytes, lastModified: job.lastModified }),
+            job.relativePath || job.name,
           ]),
         ),
     );
   let rejected = 0,
     duplicates = 0;
   for (const file of files) {
-    const identity = JSON.stringify([ctx.project, ctx.task || null, ctx.folderId || null, uploadFileKey(file)]);
+    const identity = JSON.stringify([ctx.project, ctx.task || null, ctx.folderId || null, uploadFileKey(file), file.webkitRelativePath || file.name]);
     if (existing.has(identity)) {
       duplicates++;
       continue;
@@ -263,6 +273,7 @@ export async function enqueueFiles(files, ctx) {
       id: uid('u'),
       file,
       name: file.name,
+      relativePath: file.webkitRelativePath || file.name,
       bytes: file.size,
       mimeType: file.type,
       lastModified: file.lastModified,
@@ -291,8 +302,30 @@ export async function enqueueFiles(files, ctx) {
       reservedBytes: engine.jobs.filter(unfinishedUpload).reduce((sum, job) => sum + Math.max(0, job.bytes - (job.accepted || 0)), 0),
     });
     if (!valid() || generation !== before) return [];
-    const accepted = await new Promise(resolve => openModal({ type: 'uploadReview', ctx, entries, capacity, resolve, onClose: () => resolve(false) }));
+    const accepted = await new Promise(resolve =>
+      openModal({
+        type: 'uploadReview',
+        ctx,
+        entries,
+        capacity,
+        preserve: entries.some(job => job.relativePath.includes('/')),
+        resolve,
+        onClose: () => resolve(false),
+      }),
+    );
     if (!accepted || !valid() || generation !== before) return [];
+    const project = proj(ctx.project),
+      plan = planFileImport(project, entries, ctx.folderId, accepted.preserve, () => uid('folder'));
+    if (plan.added) {
+      project.fileFolders = plan.folders;
+      save();
+      await retryWorkspaceSync();
+      if (!valid() || generation !== before || !workspaceSyncIsClean(S.data))
+        throw new Error(text('Save folder changes before uploading.', 'Сохраните изменения папок перед загрузкой.'));
+    }
+    entries.forEach((job, index) => {
+      job.folderId = plan.paths[index];
+    });
   } catch (error) {
     toast(error.message, { kind: 'err' });
     return [];
