@@ -1,6 +1,19 @@
 import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.js';
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
-A.editKnowledgeSelection = async () => (await import('./knowledge-bulk-properties.js')).editKnowledgeSelection();
+import { createAsyncContextAction } from '../shared/async-context-action.js';
+import { getSessionGeneration } from '../core/api.js';
+import { isRussian } from '../core/i18n.js';
+A.editKnowledgeSelection = createAsyncContextAction({
+  context: () => JSON.stringify([getSessionGeneration(), D().ws.id || D().ws.url, S.ui.route, S.ui.params, [...(S.ui.knowledgeSelection || [])].sort()]),
+  load: () => import('./knowledge-bulk-properties.js'),
+  apply: tool => tool.editKnowledgeSelection(),
+  pending: (busy, key) => {
+    if (busy) S.ui.knowledgeToolLoading = key;
+    else if (S.ui.knowledgeToolLoading === key) S.ui.knowledgeToolLoading = null;
+    render();
+  },
+  failed: () => toast(isRussian() ? 'Не удалось загрузить инструмент. Повторите попытку.' : 'Unable to load the tool. Please retry.', { kind: 'err' }),
+});
 import { D, S, flushLocalSave } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { moveKnowledgeFolder, moveKnowledgeFolders, folderDescendants } from '../shared/knowledge-tools.js';
