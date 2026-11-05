@@ -26,6 +26,8 @@ export function modalHtml(m) {
   switch (m.type) {
     case 'uploadQueue':
       return wrap('md', fileModalRenderers.uploadQueue(m, H));
+    case 'uploadReview':
+      return wrap('md', fileModalRenderers.uploadReview(m, H));
     case 'sidebarCustomize':
       return wrap('md sidebar-customize-dialog', m.render(m, H));
     case 'whiteboardTool':

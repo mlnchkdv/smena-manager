@@ -30,6 +30,7 @@ import { assertFileFolder } from '../shared/file-organization.js';
 import { createFileArchivePlan, STREAM_ZIP_POLICY } from '../shared/file-archive-policy.js';
 import { streamFileArchive } from './file-archive-stream.js';
 import { assertArchiveFileAccess } from './file-archive-access.js';
+import { uploadCapacity } from '../shared/upload-capacity.js';
 
 const temporaryDirectory = path.join(os.tmpdir(), 'smena-manager-uploads');
 const DIRECT_UPLOAD_CHUNK_BYTES = 8 * 1024 * 1024;
@@ -247,6 +248,30 @@ fileRouter.get('/catalog', async (request, response, next) => {
   }
 });
 
+fileRouter.post('/upload-preflight', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    const input = request.body;
+    if (!Array.isArray(input?.files) || !input.files.length || input.files.length > 500) throw new TypeError('Choose 1–500 files.');
+    const storage = getStorageProvider();
+    const direct = typeof storage.createResumableUpload === 'function';
+    const bytes = input.files.reduce(
+      (sum, file) => sum + validateFileUpload({ originalname: file.name, size: file.size, mimetype: file.type }, process.env, { proxy: !direct }).size,
+      0,
+    );
+    if (!Number.isSafeInteger(bytes)) throw new TypeError('Upload batch is too large.');
+    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, input.project, input.task, input.folderId);
+    let status;
+    try {
+      status = await storage.getStatus();
+    } catch {
+      /* Unknown quota is explicit; normal upload ACLs still apply. */
+    }
+    const reserved = Number.isSafeInteger(input.reservedBytes) && input.reservedBytes >= 0 ? input.reservedBytes : 0;
+    response.json(uploadCapacity(bytes, status, reserved));
+  } catch (error) {
+    next(error);
+  }
+});
 fileRouter.get('/policy', (_request, response) => {
   const policy = getFileUploadPolicy();
   const storage = getStorageProvider();

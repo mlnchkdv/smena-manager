@@ -50,6 +50,19 @@ test('authenticated editors can upload and range-download a workspace file', asy
   await new Promise(resolve => server.once('listening', resolve));
   t.after(() => new Promise(resolve => server.close(resolve)));
   const origin = `http://127.0.0.1:${server.address().port}`;
+  const uploadPreflight = await fetch(`${origin}/api/files/upload-preflight`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project: 'p1', files: [{ name: 'image.png', size: 2048, type: 'image/png' }] }),
+  });
+  assert.equal(uploadPreflight.status, 200);
+  assert.equal((await uploadPreflight.json()).bytes, 2048);
+  const invalidPreflight = await fetch(`${origin}/api/files/upload-preflight`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project: 'missing', files: [{ name: 'image.png', size: 2048 }] }),
+  });
+  assert.notEqual(invalidPreflight.status, 200);
 
   const form = new FormData();
   form.append('file', new Blob(['0123456789'], { type: 'text/plain' }), 'notes.txt');

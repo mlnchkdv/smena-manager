@@ -10,7 +10,9 @@ import { createUploadQueue, unfinishedUpload, uploadFileKey, uploadFingerprint }
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
 import { applyExternalCoreSnapshot } from './bootstrap.js';
-import { openModal, fileModalRenderers } from '../overlays/modals.js';
+import { openModal, closeModal, fileModalRenderers } from '../overlays/modals.js';
+import { preflightUpload } from './api.js';
+import { esc } from './utils.js';
 import { uploadsHtml } from '../ui/file-uploads.js';
 import { sampleUploadRate, uploadEstimate } from '../shared/upload-rate.js';
 import { fsize } from '../ui/helpers.js';
@@ -21,6 +23,20 @@ export function openUploadQueue() {
   restoreUploadQueue();
   if (!S.ui.modals.some(modal => modal.type === 'uploadQueue')) openModal({ type: 'uploadQueue' });
 }
+fileModalRenderers.uploadReview = (m, H) =>
+  H(text('Review upload', 'Проверка загрузки')) +
+  `<div class="modal-b" translate="no"><p>${esc(proj(m.ctx.project)?.name || '')} · ${m.entries.length} ${text('files', 'файлов')} · ${fsize(m.capacity.bytes)}</p><p class="${m.capacity.sufficient === false ? 'err' : 'hint'}">${m.capacity.availableBytes === null ? text('Drive free space is unavailable. The upload may fail if storage is full.', 'Свободное место Drive недоступно. При заполнении хранилища загрузка завершится ошибкой.') : `${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}`}</p><p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p>${m.capacity.sufficient === false ? `<p role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : ''}<details><summary>${text('Files', 'Файлы')}</summary><ul>${m.entries
+    .slice(0, 50)
+    .map(job => `<li>${esc(job.name)} · ${fsize(job.bytes)}</li>`)
+    .join(
+      '',
+    )}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`;
+A.confirmUploadReview = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'uploadReview' || m.capacity.sufficient === false) return;
+  m.resolve(true);
+  closeModal();
+};
 
 const prefix = 'smena.uploads.v1:';
 const text = (en, ru) => (isRussian() ? ru : en);
@@ -267,6 +283,20 @@ export async function enqueueFiles(files, ctx) {
     );
   if (duplicates) toast(text(`Already queued: ${duplicates}.`, `Уже в очереди: ${duplicates}.`), { kind: 'info' });
   if (!entries.length) return [];
+  try {
+    const before = generation;
+    const capacity = await preflightUpload({
+      ...ctx,
+      files: entries.map(job => ({ name: job.name, size: job.bytes, type: job.mimeType })),
+      reservedBytes: engine.jobs.filter(unfinishedUpload).reduce((sum, job) => sum + Math.max(0, job.bytes - (job.accepted || 0)), 0),
+    });
+    if (!valid() || generation !== before) return [];
+    const accepted = await new Promise(resolve => openModal({ type: 'uploadReview', ctx, entries, capacity, resolve, onClose: () => resolve(false) }));
+    if (!accepted || !valid() || generation !== before) return [];
+  } catch (error) {
+    toast(error.message, { kind: 'err' });
+    return [];
+  }
   engine.clear();
   S.ui.uploadQueueExpanded = true;
   S.ui.uploadQueuePage = 0;
