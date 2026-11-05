@@ -491,7 +491,7 @@ IN.knowledgeNoteLayout = el => {
     main && [...main.querySelectorAll('.knowledge-preview-card')].find(card => card.getBoundingClientRect().bottom > main.getBoundingClientRect().top);
   const id = anchor?.dataset.id;
   const top = anchor?.getBoundingClientRect().top;
-  S.ui.knowledgeNoteLayout = el.value === 'list' ? 'list' : 'grid';
+  S.ui.knowledgeNoteLayout = ['list', 'table'].includes(el.value) ? el.value : 'grid';
   saveKnowledgePreferences();
   render();
   const nextMain = document.querySelector('.knowledge-main');

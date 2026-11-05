@@ -18,12 +18,14 @@ export function knowledgePreferences() {
     S.ui.knowledgeRecent = Array.isArray(value.recent) ? value.recent.filter(id => typeof id === 'string').slice(0, 50) : [];
     S.ui.knowledgeFolderRecent = Array.isArray(value.folderRecent) ? value.folderRecent.filter(id => typeof id === 'string').slice(0, 12) : [];
     S.ui.knowledgeSelection = [];
+    S.ui.knowledgeColumns = Array.isArray(value.columns) ? value.columns.filter(key => typeof key === 'string').slice(0, 6) : null;
+    S.ui.knowledgeTableSort = value.tableSort && typeof value.tableSort.key === 'string' ? { key: value.tableSort.key, desc: !!value.tableSort.desc } : null;
     S.ui.knowledgePaneHidden = value.paneHidden === true;
     S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(value.paneWidth) || 300));
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
     S.ui.knowledgeCardDensity = ['comfortable', 'compact'].includes(value.cardDensity) ? value.cardDensity : '';
-    S.ui.knowledgeNoteLayout = ['list', 'grid'].includes(value.noteLayout)
+    S.ui.knowledgeNoteLayout = ['list', 'grid', 'table'].includes(value.noteLayout)
       ? value.noteLayout
       : window.matchMedia('(max-width: 640px)').matches
         ? 'list'
@@ -48,7 +50,9 @@ export function saveKnowledgePreferences() {
         showFolders: S.ui.knowledgeShowFolders !== false,
         folderLayout: S.ui.knowledgeFolderLayout === 'inline' ? 'inline' : 'block',
         cardDensity: S.ui.knowledgeCardDensity || '',
-        noteLayout: S.ui.knowledgeNoteLayout === 'list' ? 'list' : 'grid',
+        noteLayout: ['list', 'table'].includes(S.ui.knowledgeNoteLayout) ? S.ui.knowledgeNoteLayout : 'grid',
+        columns: S.ui.knowledgeColumns,
+        tableSort: S.ui.knowledgeTableSort,
       }),
     );
   } catch {

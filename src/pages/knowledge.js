@@ -3,6 +3,7 @@ import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder
 import { knowledgeQueryContext } from '../ui/knowledge-query-context.js';
 import { knowledgeCreateMenu, knowledgeSavedSearchShortcuts } from '../ui/knowledge-create-menu.js';
 import { knowledgeViewOptions } from '../ui/knowledge-view-options.js';
+import { knowledgeCollectionTable } from '../ui/knowledge-collection-table.js';
 import { noteCardMeta } from '../ui/knowledge-card-meta.js';
 import '../features/knowledge.js';
 import '../ui/knowledge-tags.js';
@@ -133,22 +134,27 @@ export function pageKnowledge() {
     folder: folderFilter,
     tag: S.ui.knowledgeTag,
     sort: S.ui.knowledgeSort || 'updated',
+    propertySort: S.ui.knowledgeNoteLayout === 'table' ? S.ui.knowledgeTableSort || { key: 'title' } : null,
     limit: 60,
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],
     folders,
   });
-  const indexed = knowledgeServerPage({
-    query: S.ui.knowledgeQuery || '',
-    folder: folderFilter,
-    tag: S.ui.knowledgeTag || '',
-    sort: S.ui.knowledgeSort || 'updated',
-    offset: view.start,
-  });
+  const indexed =
+    S.ui.knowledgeNoteLayout === 'table'
+      ? null
+      : knowledgeServerPage({
+          query: S.ui.knowledgeQuery || '',
+          folder: folderFilter,
+          tag: S.ui.knowledgeTag || '',
+          sort: S.ui.knowledgeSort || 'updated',
+          offset: view.start,
+        });
   const { active: selected } = view;
   const byId = new Map(notes.map(note => [note.id, note]));
-  const { total, hasMore, start } = indexed || view;
-  const visible = indexed ? indexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
+  const effectiveIndexed = S.ui.knowledgeNoteLayout === 'table' ? null : indexed;
+  const { total, hasMore, start } = effectiveIndexed || view;
+  const visible = effectiveIndexed ? effectiveIndexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
   const scoped = folderFilter !== 'all' || String(S.ui.knowledgeQuery || '').trim() || S.ui.knowledgeTag;
   const resultSummary = scoped
     ? isRussian()
@@ -180,7 +186,7 @@ export function pageKnowledge() {
   const activeFolder = folders.find(folder => folder.id === folderFilter);
   const foldersAvailable = S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || !!activeFolder);
   const searching = Boolean(String(S.ui.knowledgeQuery || '').trim());
-  const inlineFolders = foldersAvailable && S.ui.knowledgeFolderLayout === 'inline' && !searching;
+  const inlineFolders = S.ui.knowledgeNoteLayout !== 'table' && foldersAvailable && S.ui.knowledgeFolderLayout === 'inline' && !searching;
   const folderCards = knowledgeFolderCards(folderIndex, folderFilter, readOnly, { inline: inlineFolders, hasNotes: visible.length > 0, searching });
   const excludedDestinations = activeFolder ? folderDescendants(activeFolder.id, folders) : new Set();
   const folderMove =
@@ -236,22 +242,24 @@ export function pageKnowledge() {
           .join(
             '',
           )}</select></div><label class="knowledge-sort-filter"><span class="sr">Sort notes</span><select class="select" data-in="knowledgeSort"><option value="updated" ${S.ui.knowledgeSort !== 'title' ? 'selected' : ''}>Recently updated</option><option value="title" ${S.ui.knowledgeSort === 'title' ? 'selected' : ''}>Note title</option></select></label></div></details>${knowledgeSelectionStart(visible)}</div>${filterCriteria(criteria, 'clearKnowledgeCriterion')}${knowledgeQueryContext(folderFilter, activeFolder?.name || t(folderLabel(folderFilter, folders)))}
-        ${inlineFolders ? '' : folderCards}
+        ${inlineFolders && S.ui.knowledgeNoteLayout !== 'table' ? '' : folderCards}
         ${foldersAvailable && !inlineFolders ? `<div class="knowledge-notes-section-head"><h2>Notes</h2>${folderIndex.children.get(folderFilter)?.length ? '<span>Includes notes from subfolders</span>' : ''}</div>` : ''}
         ${knowledgeBulkToolbar(visible)}
         ${
-          visible.length || inlineFolders
-            ? `<div class="knowledge-preview-grid${S.ui.knowledgeNoteLayout === 'list' ? ' knowledge-note-list' : ''}${inlineFolders ? ' knowledge-mixed-grid' : ''}">${inlineFolders ? folderCards : ''}${visible
-                .map(note =>
-                  notePreviewCard(
-                    note,
-                    folders.find(folder => folder.id === note.folderId),
-                    readOnly,
-                    folderIndex,
-                  ),
-                )
-                .join('')}</div>`
-            : ''
+          S.ui.knowledgeNoteLayout === 'table' && visible.length
+            ? knowledgeCollectionTable(visible, readOnly)
+            : visible.length || inlineFolders
+              ? `<div class="knowledge-preview-grid${S.ui.knowledgeNoteLayout === 'list' ? ' knowledge-note-list' : ''}${inlineFolders ? ' knowledge-mixed-grid' : ''}">${inlineFolders ? folderCards : ''}${visible
+                  .map(note =>
+                    notePreviewCard(
+                      note,
+                      folders.find(folder => folder.id === note.folderId),
+                      readOnly,
+                      folderIndex,
+                    ),
+                  )
+                  .join('')}</div>`
+              : ''
         }
         ${
           visible.length
