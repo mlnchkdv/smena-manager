@@ -1,5 +1,6 @@
 import { ic } from '../core/icons.js';
 import { resizedWhiteboardNode, snapWhiteboardResize } from '../shared/whiteboard-resize.js';
+import { resizeWhiteboardGroup, groupResizeNodes } from '../shared/whiteboard-group-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
@@ -622,6 +623,16 @@ A.whiteboardResizeFocus = () => {
   paintView();
   document.querySelector(`[data-board-id="${CSS.escape(node.id)}"] [data-board-resize="se"]`)?.focus({ preventScroll: true });
 };
+A.whiteboardGroupResize = () => {
+  const s = whiteboardState();
+  s.resizeSelection = !s.resizeSelection;
+  render();
+};
+A.whiteboardGroupContents = () => {
+  const s = whiteboardState();
+  s.resizeContents = !s.resizeContents;
+  render();
+};
 A.whiteboardFit = () => {
   const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   if (!box) return;
@@ -676,6 +687,25 @@ function down(e) {
     return;
   }
   if (resize && editable(current())) {
+    if (resize.dataset.boardGroupResize) {
+      const ids = selectedIds(),
+        board = structuredClone(whiteboardOf(current()));
+      gesture = {
+        kind: 'groupResize',
+        board,
+        ids,
+        nodes: groupResizeNodes(board, ids, !!s.resizeContents),
+        contents: !!s.resizeContents,
+        direction: resize.dataset.boardResize,
+        x: e.clientX,
+        y: e.clientY,
+        zoom: s.zoom,
+        scope: s.scope,
+      };
+      viewport.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      return;
+    }
     const node = whiteboardOf(current()).nodes.find(n => n.id === resize.closest('[data-board-id]')?.dataset.boardId);
     if (!node) return;
     gesture = { kind: 'resize', node: structuredClone(node), direction: resize.dataset.boardResize, x: e.clientX, y: e.clientY, zoom: s.zoom, scope: s.scope };
@@ -713,6 +743,27 @@ function move(e) {
   const s = whiteboardState(),
     g = gesture;
   if (!g) return;
+  if (g.kind === 'groupResize') {
+    if (g.scope !== s.scope) return;
+    g.next = resizeWhiteboardGroup(
+      g.board,
+      g.ids,
+      g.direction,
+      Math.round((e.clientX - g.x) / g.zoom / 10) * 10,
+      Math.round((e.clientY - g.y) / g.zoom / 10) * 10,
+      { contents: g.contents, lockAspect: s.resizeAspect },
+    );
+    for (const node of groupResizeNodes(g.next, g.ids, g.contents)) {
+      const el = viewport.querySelector(`[data-board-id="${CSS.escape(node.id)}"]`);
+      if (el) for (const key of ['x', 'y', 'width', 'height']) el.style[{ x: 'left', y: 'top' }[key] || key] = node[key] + 'px';
+    }
+    const box = viewport.querySelector('[data-group-resize-box]'),
+      bounds = whiteboardBounds({ nodes: groupResizeNodes(g.next, g.ids, g.contents) });
+    if (box) for (const key of ['x', 'y', 'width', 'height']) box.style[{ x: 'left', y: 'top' }[key] || key] = bounds[key] + 'px';
+    const svg = viewport.querySelector('.whiteboard-edges');
+    if (svg) svg.outerHTML = whiteboardEdges(g.next);
+    return;
+  }
   if (g.kind === 'resize') {
     if (g.scope !== s.scope) return;
     let dx = Math.round((e.clientX - g.x) / g.zoom / 10) * 10,
@@ -805,6 +856,30 @@ function up(e, cancel = false) {
   if (g.kind === 'pan' && g.moved) whiteboardState().overviewPanUntil = Date.now() + 300;
   if (cancel) {
     resetPreview();
+    if (g.kind === 'groupResize') render();
+    return;
+  }
+  if (g.kind === 'groupResize') {
+    if (
+      g.scope !== whiteboardState().scope ||
+      !g.next ||
+      g.nodes.some(
+        node =>
+          !same(
+            node,
+            whiteboardOf(current()).nodes.find(n => n.id === node.id),
+          ),
+      )
+    ) {
+      resetPreview();
+      render();
+      return;
+    }
+    command(board => {
+      const changes = new Map(groupResizeNodes(g.next, g.ids, g.contents).map(n => [n.id, n]));
+      board.nodes = board.nodes.map(n => changes.get(n.id) || n);
+    });
+    render();
     return;
   }
   if (g.kind === 'resize') {
@@ -1022,6 +1097,18 @@ document.addEventListener(
         step = e.shiftKey ? 50 : 10;
       const resize = e.target.closest('[data-board-resize]');
       if (resize) {
+        if (resize.dataset.boardGroupResize) {
+          const direction = resize.dataset.boardResize;
+          command(board =>
+            Object.assign(
+              board,
+              resizeWhiteboardGroup(board, selectedIds(), direction, dx * step, dy * step, { contents: !!s.resizeContents, lockAspect: s.resizeAspect }),
+            ),
+          );
+          render();
+          requestAnimationFrame(() => document.querySelector(`[data-board-group-resize="${direction}"]`)?.focus({ preventScroll: true }));
+          return;
+        }
         const id = resize.closest('[data-board-id]').dataset.boardId,
           direction = resize.dataset.boardResize;
         command(b => {

@@ -756,3 +756,12 @@
   display: block;
   max-width: 36em;
 }
+.whiteboard-group-resize-box {
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+  border: 1px dashed var(--accent);
+}
+.whiteboard-group-resize-box > .whiteboard-resize {
+  pointer-events: auto;
+}
