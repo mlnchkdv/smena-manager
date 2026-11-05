@@ -81,7 +81,7 @@ export function pageActivity() {
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
     <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div></div>
-    <div class="row" style="gap:8px;margin-bottom:6px;flex-wrap:wrap">${segmentedControl({
+    <div class="activity-filters">${segmentedControl({
       label: 'Activity filters',
       key: 'actFilter',
       value: f,
@@ -92,16 +92,16 @@ export function pageActivity() {
         ['projects', 'Projects'],
       ],
     })}
-    <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Object or project', 'Объект или проект')}" value="${esc(query)}"><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All projects', 'Все проекты')}</option>${D()
+    <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Object or project', 'Объект или проект')}" value="${esc(query)}"><label class="activity-project"><span class="sr">${T('Project', 'Проект')}</span><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All projects', 'Все проекты')}</option>${D()
       .projects.filter(canSee)
       .map(p => `<option value="${esc(p.id)}" ${project === p.id ? 'selected' : ''} translate="no">${esc(p.name)}</option>`)
       .join(
         '',
-      )}</select><select class="select" style="height:26px;width:auto;font-size:12px" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
+      )}</select></label><label class="activity-person"><span class="sr">${T('Person', 'Участник')}</span><select class="select" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join(
         '',
-      )}</select></div><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
+      )}</select></label></div><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="activity-date-fields"><div class="activity-date-presets"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button></div><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details><button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
     ${activityGroupingControl('activity-grouping')}
     ${
       invalidRange

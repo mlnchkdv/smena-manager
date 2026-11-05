@@ -906,16 +906,68 @@
   background: var(--accent-soft);
   border-radius: var(--r-sm);
 }
-.activity-page > .row > .input {
-  flex: 1 1 220px;
+.activity-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(140px, 1fr) minmax(130px, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.activity-filters > .seg {
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.activity-filters > :is(input, label) {
   min-width: 0;
+  width: 100%;
+}
+.activity-filters label > :is(select, button) {
+  width: 100%;
+}
+.activity-date-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px 12px;
+  padding-bottom: 8px;
+}
+.activity-date-fields > .field {
+  margin: 0;
+  flex: 0 1 180px;
+  min-width: 0;
+}
+.activity-date-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 1px;
 }
 .activity-date-options > summary {
   cursor: pointer;
-  min-height: 44px;
-  padding-block: 10px;
+  min-height: var(--control-target);
+  padding-block: 6px;
   font-size: var(--fs-sm);
 }
 .activity-date-options[open] {
   margin-bottom: 10px;
+}
+@media (max-width: 640px) {
+  .activity-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .activity-filters > input {
+    grid-column: 1 / -1;
+  }
+  .activity-date-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .activity-date-presets {
+    grid-column: 1 / -1;
+  }
+  .activity-date-fields > .field {
+    width: 100%;
+  }
 }
