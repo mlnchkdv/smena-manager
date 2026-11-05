@@ -434,105 +434,43 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   });
 }
 
-function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, onProgress, signal, generation) {
-  return new Promise((resolve, reject) => {
-    let start = 0;
-    let failures = 0;
-    const attachAbort = xhr => {
-      const abort = () => xhr.abort();
-      signal?.addEventListener('abort', abort, { once: true });
-      xhr.onloadend = () => signal?.removeEventListener('abort', abort);
-      xhr.onabort = () => reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
-      xhr.timeout = 120000;
-    };
-    const cancelled = () => {
-      if (generation !== sessionGeneration) {
-        reject(new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true }));
-        return true;
-      }
-      if (!signal?.aborted) return false;
-      reject(new ApiError('Upload cancelled.', 0, 'UPLOAD_CANCELLED'));
-      return true;
-    };
-    const probe = () => {
-      if (cancelled()) return;
-      if (++failures > 3) return reject(new ApiError('Google Drive is unavailable. Try the upload again.', 0, 'DIRECT_UPLOAD_NETWORK_ERROR'));
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl);
-      xhr.setRequestHeader('Content-Range', `bytes */${file.size}`);
-      xhr.responseType = 'json';
-      attachAbort(xhr);
-      xhr.onerror = xhr.ontimeout = () => setTimeout(probe, 1000);
-      xhr.onload = () => {
-        if (cancelled()) return;
-        if (xhr.status >= 200 && xhr.status < 300) return resolve(xhr.response || {});
-        if (xhr.status !== 308) return reject(new ApiError(`Google Drive rejected the upload (${xhr.status}).`, xhr.status, 'DIRECT_UPLOAD_FAILED'));
-        const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
-        start = accepted ? Number(accepted[1]) + 1 : 0;
-        if (start < 0 || start >= file.size) return reject(new ApiError('Invalid upload progress.', 0, 'DIRECT_UPLOAD_FAILED'));
-        sendNext();
-      };
-      xhr.send();
-    };
-    const sendNext = () => {
-      if (cancelled()) return;
-      const end = Math.min(start + chunkSizeBytes, file.size);
-      const chunk = file.slice(start, end);
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl);
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.setRequestHeader('Content-Range', `bytes ${start}-${end - 1}/${file.size}`);
-      xhr.responseType = 'json';
-      attachAbort(xhr);
-      xhr.upload.onprogress = event => {
-        if (event.lengthComputable) onProgress?.(Math.round(((start + event.loaded) / file.size) * 100));
-      };
-      xhr.onerror = xhr.ontimeout = probe;
-      xhr.onload = () => {
-        if (cancelled()) return;
-        if (xhr.status === 308) {
-          const accepted = /bytes=0-(\d+)/.exec(xhr.getResponseHeader('Range') || '');
-          const next = accepted ? Number(accepted[1]) + 1 : 0;
-          if (next <= start || next >= file.size) return probe();
-          start = next;
-          failures = 0;
-          sendNext();
-          return;
-        }
-        if (xhr.status >= 200 && xhr.status < 300) {
-          onProgress?.(100);
-          resolve(xhr.response || {});
-          return;
-        }
-        reject(new ApiError(`Google Drive rejected the upload (${xhr.status}).`, xhr.status, 'DIRECT_UPLOAD_FAILED'));
-      };
-      xhr.send(chunk);
-    };
-    sendNext();
-  });
-}
-
 async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
   const generation = sessionGeneration;
-  const session = await request(
-    '/api/files/upload-session',
-    {
-      method: 'POST',
+  const resumed = Boolean(metadata.checkpoint?.uploadUrl);
+  const session =
+    metadata.checkpoint ||
+    (await request(
+      '/api/files/upload-session',
+      {
+        method: 'POST',
+        signal: metadata.signal,
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          mimeType: file.type || 'application/octet-stream',
+          project: metadata.project || '',
+          folderId: metadata.folderId || null,
+          task: metadata.task || '',
+        }),
+      },
+      true,
+    ));
+  assertSessionGeneration(generation);
+  metadata.onCheckpoint?.(session);
+  const { uploadDriveChunks: transfer } = await import('./drive-upload.js');
+  const uploaded =
+    session.uploaded ||
+    (await transfer(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, {
+      onProgress,
       signal: metadata.signal,
-      body: JSON.stringify({
-        name: file.name,
-        size: file.size,
-        mimeType: file.type || 'application/octet-stream',
-        project: metadata.project || '',
-        folderId: metadata.folderId || null,
-        task: metadata.task || '',
-      }),
-    },
-    true,
-  );
+      resume: resumed,
+      assertScope: () => assertSessionGeneration(generation),
+      onAccepted: bytes => metadata.onAccepted?.(bytes),
+    }));
   assertSessionGeneration(generation);
-  const uploaded = await uploadDriveChunks(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, onProgress, metadata.signal, generation);
-  assertSessionGeneration(generation);
+  session.uploaded = uploaded;
+  metadata.onCheckpoint?.(session);
+  metadata.onVerifying?.();
   return request(
     '/api/files/upload-complete',
     {

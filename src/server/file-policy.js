@@ -27,12 +27,12 @@ function extensionOf(filename) {
 
 export function getFileUploadPolicy(env = process.env) {
   const configured = Number(env.SHARED_FILE_MAX_BYTES);
-  const fallback = 100 * MB;
+  const fallback = 20 * 1024 * MB;
   const requested = Number.isSafeInteger(configured) && configured > 0 ? configured : fallback;
   return {
     maxFileSizeBytes: requested,
-    proxyMaxFileSizeBytes: env.VERCEL ? Math.min(requested, 4 * MB) : requested,
-    maxBatchFiles: 10,
+    proxyMaxFileSizeBytes: Math.min(requested, (env.VERCEL ? 4 : 100) * MB),
+    maxBatchFiles: 500,
     blockedExtensions: [...BLOCKED_EXTENSIONS],
   };
 }
@@ -81,5 +81,6 @@ export function getFileResponsePolicy(filename, mimeType, downloadRequested = fa
 export function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} MB`;
+  if (bytes < 1024 ** 3) return `${(bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 }

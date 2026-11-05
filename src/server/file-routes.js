@@ -250,7 +250,8 @@ fileRouter.get('/catalog', async (request, response, next) => {
 fileRouter.get('/policy', (_request, response) => {
   const policy = getFileUploadPolicy();
   const storage = getStorageProvider();
-  response.json({ ...policy, directUploadEnabled: typeof storage.createResumableUpload === 'function' });
+  const directUploadEnabled = typeof storage.createResumableUpload === 'function';
+  response.json({ ...policy, maxFileSizeBytes: directUploadEnabled ? policy.maxFileSizeBytes : policy.proxyMaxFileSizeBytes, directUploadEnabled });
 });
 
 const receiveSingleFile = (request, response, next) => {
