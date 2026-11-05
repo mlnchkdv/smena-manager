@@ -1,6 +1,16 @@
 // Provider messages may contain private object identifiers. UI copy uses codes only.
 export function mediaBackupError(error, russian = false) {
   const messages = {
+    MEDIA_COPY_SETTINGS: [
+      'Enter a name up to 120 characters and a supported archive period.',
+      'Введите название до 120 символов и допустимый срок архивирования.',
+    ],
+    MEDIA_COPY_ARCHIVED: ['Restore this set from the archive before continuing.', 'Верните набор из архива перед продолжением.'],
+    MEDIA_COPY_DELETING: ['Deletion is in progress. Continue it from the archive.', 'Удаление уже началось. Продолжите его из архива.'],
+    MEDIA_COPY_RETAINED_LIMIT: [
+      'Retained copy limit reached. Review and remove an archived set.',
+      'Достигнут лимит сохранённых наборов. Проверьте и удалите ненужный набор из архива.',
+    ],
     MEDIA_RESTORE_REVIEW_CHANGED: [
       'The restore plan changed. Review it again before continuing.',
       'План восстановления изменился. Проверьте его заново перед продолжением.',

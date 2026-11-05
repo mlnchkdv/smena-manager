@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { mediaBackupPart } from '../../shared/media-backup-part.js';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -246,6 +247,27 @@ export class LocalStorageProvider {
     await fs.promises.mkdir(directory, { recursive: true });
     if (!/^[a-f0-9-]{36}$/i.test(job.id)) throw Error('Invalid media backup.');
     await fs.promises.writeFile(path.join(directory, `media-manifest-${job.id}.json`), JSON.stringify({ format: 'smena-media-v1', ...job }), 'utf8');
+  }
+
+  async removeMediaBackupPart(job, index) {
+    const part = mediaBackupPart(job, index);
+    if (!part) return;
+    const directory = path.resolve(this.backupsPath, 'media');
+    const filename = path.resolve(directory, part.name);
+    if (path.dirname(filename) !== directory) throw new TypeError('Invalid backup path.');
+    try {
+      const stat = await fs.promises.stat(filename);
+      if (!stat.isFile()) throw Error('Invalid backup object.');
+      if (!part.manifest) {
+        const digest = crypto.createHash('md5');
+        for await (const chunk of fs.createReadStream(filename)) digest.update(chunk);
+        if (stat.size !== part.bytes || digest.digest('hex') !== part.checksum)
+          throw Object.assign(Error('Backup identity changed.'), { code: 'MEDIA_SOURCE_CHANGED', statusCode: 409 });
+      }
+      await fs.promises.unlink(filename);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
   }
 
   async openDownloadStream(filename, _fileId, range) {

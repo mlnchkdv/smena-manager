@@ -14,6 +14,7 @@ import { writeFileMetadataParts } from './catalog-file-write.js';
 import { withCatalogBackupSpool } from './catalog-backup-spool.js';
 import { readCatalogReferences } from './catalog-references.js';
 import { writeCatalogDelta } from './catalog-delta-write.js';
+import { mediaBackupPart } from '../../shared/media-backup-part.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -1000,6 +1001,41 @@ export class GoogleDriveStorageProvider {
       fields: 'id',
       supportsAllDrives: true,
     });
+  }
+
+  async removeMediaBackupPart(job, index) {
+    await this.init();
+    const part = mediaBackupPart(job, index);
+    if (!part) return;
+    const folder = await this.ensureBackupsFolder();
+    let fileId = part.storageFileId;
+    if (part.manifest) {
+      const found = await this.client.files.list({
+        q: `name = '${escapeDriveQuery(part.name)}' and '${escapeDriveQuery(folder)}' in parents and trashed = false`,
+        fields: 'files(id)',
+        pageSize: 2,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+      });
+      if (!found.data.files?.length) return;
+      if (found.data.files.length !== 1) throw Error('Ambiguous backup manifest.');
+      fileId = found.data.files[0].id;
+    }
+    let file;
+    try {
+      file = (await this.client.files.get({ fileId, fields: 'id,name,size,md5Checksum,parents,trashed,appProperties', supportsAllDrives: true })).data;
+    } catch (error) {
+      if (Number(error.code) === 404 || error.response?.status === 404) return;
+      throw error;
+    }
+    if (file.trashed) return;
+    if (
+      file.name !== part.name ||
+      !file.parents?.includes(folder) ||
+      (part.manifest ? file.appProperties?.smenaMediaManifest !== 'true' : Number(file.size) !== part.bytes || file.md5Checksum !== part.checksum)
+    )
+      throw Object.assign(Error('Backup identity changed.'), { code: 'MEDIA_SOURCE_CHANGED', statusCode: 409 });
+    await this.client.files.update({ fileId, requestBody: { trashed: true }, supportsAllDrives: true });
   }
 
   async createResumableUpload(filename, size, mimeType = 'application/octet-stream', marker, origin = '') {

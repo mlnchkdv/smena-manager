@@ -7,6 +7,13 @@ import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { assertFileFolder } from '../shared/file-organization.js';
 import { uploadCapacity } from '../shared/upload-capacity.js';
 import { mediaRestoreRef, mediaRestoreName, mediaRestoreReviewKey, registeredMediaRestore } from './media-restore-plan.js';
+import {
+  mediaCopyArchived,
+  mediaCopySettings,
+  MEDIA_COPY_ACTIVE_USER_LIMIT,
+  MEDIA_COPY_ACTIVE_WORKSPACE_LIMIT,
+  MEDIA_COPY_RETAINED_LIMIT,
+} from '../shared/media-copy-lifecycle.js';
 const fail = () => Object.assign(Error('Media backup is unavailable. Check access and retry.'), { statusCode: 403, code: 'MEDIA_BACKUP_UNAVAILABLE' });
 export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
   const access = (data, user, project, edit = false) => {
@@ -23,9 +30,17 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       throw fail();
     return member.id;
   };
+  const metadataJob = (data, user, id, writable = false) => {
+    const member = memberForProfile(data, user);
+    const job = data._mediaBackups?.find(item => item.id === id && (item.owner === user.id || workspaceMemberRole(member) === 'admin'));
+    if (!member || ['removed', 'deactivated'].includes(member.status) || !job || (writable && !['admin', 'editor'].includes(workspaceMemberRole(member))))
+      throw fail();
+    return job;
+  };
   const owned = (data, user, id) => {
-    const job = data._mediaBackups?.find(item => item.id === id && item.owner === user.id);
+    const job = metadataJob(data, user, id);
     if (!job) throw fail();
+    if (job.deleting) throw Object.assign(Error('Copy deletion is in progress.'), { code: 'MEDIA_COPY_DELETING', statusCode: 409 });
     job.entries.forEach(entry => access(data, user, entry.file.project));
     return job;
   };
@@ -36,6 +51,12 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
     done: job.entries.filter(entry => entry.copy).length,
     bytes: job.entries.reduce((sum, entry) => sum + entry.file.bytes, 0),
     ready: job.ready,
+    label: job.label || '',
+    archived: mediaCopyArchived(job, now()),
+    retentionDays: job.retentionDays || 0,
+    expiresAt: job.expiresAt || null,
+    deleting: !!job.deleting,
+    removed: job.removed || 0,
   });
   const write = async change => {
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -73,6 +94,15 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
     return uploadCapacity(bytes, status);
   };
   return {
+    async inventory(user, id) {
+      const job = owned(await load(), user, id);
+      return {
+        id,
+        label: job.label || '',
+        createdAt: job.createdAt,
+        entries: job.entries.map(entry => ({ name: entry.file.name, bytes: entry.file.bytes, copied: !!entry.copy, checksum: entry.copy?.checksum || null })),
+      };
+    },
     async restorePlan(user, id, project, folderId = null) {
       const data = await load(),
         job = owned(data, user, id);
@@ -101,20 +131,84 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       return (data._mediaBackups || [])
         .filter(job => {
           try {
-            owned(data, user, job.id);
+            metadataJob(data, user, job.id);
             return true;
           } catch {
             return false;
           }
         })
-        .map(summary);
+        .map(job => {
+          let available = true;
+          try {
+            owned(data, user, job.id);
+          } catch {
+            available = false;
+          }
+          return { ...summary(job), available, mine: job.owner === user.id };
+        });
     },
-    async create(user, ids) {
+    async settings(user, id, input) {
+      return summary(
+        await write(data => {
+          const job = metadataJob(data, user, id, true);
+          if (job.deleting || job.lease?.until > now()) throw Object.assign(Error('Backup is busy.'), { code: 'MEDIA_BACKUP_BUSY', statusCode: 409 });
+          const wasArchived = mediaCopyArchived(job, now());
+          if (input.archived === false && mediaCopyArchived(job, now())) {
+            const active = data._mediaBackups.filter(other => !mediaCopyArchived(other, now()));
+            if (active.length >= MEDIA_COPY_ACTIVE_WORKSPACE_LIMIT || active.filter(other => other.owner === job.owner).length >= MEDIA_COPY_ACTIVE_USER_LIMIT)
+              throw Object.assign(Error('Active copy limit reached.'), { code: 'MEDIA_BACKUP_LIMIT', statusCode: 429 });
+            job.archived = false;
+            job.expiresAt = null;
+            job.retentionDays = 0;
+          }
+          if (input.archived === true) job.archived = true;
+          if (input.label !== undefined || input.retentionDays !== undefined)
+            Object.assign(job, mediaCopySettings({ label: input.label ?? job.label, retentionDays: input.retentionDays ?? job.retentionDays }, now()));
+          if (wasArchived && input.archived !== false) job.archived = true;
+          return job;
+        }),
+      );
+    },
+    async purge(user, id, index, confirmation) {
+      if (confirmation !== id || !Number.isInteger(index) || index < 0) throw fail();
+      const lease = randomUUID();
+      const job = await write(data => {
+        const job = metadataJob(data, user, id, true);
+        if (!mediaCopyArchived(job, now()) || index > job.entries.length || index > (job.removed || 0)) throw fail();
+        if (job.lease?.until > now()) throw Object.assign(Error('Backup is busy.'), { code: 'MEDIA_BACKUP_BUSY', statusCode: 409 });
+        job.deleting = true;
+        job.lease = { id: lease, until: now() + 120000 };
+        return job;
+      });
+      try {
+        // Storage verifies backup-directory membership and deterministic names.
+        await storage.removeMediaBackupPart(job, index);
+        return await write(data => {
+          const current = metadataJob(data, user, id);
+          if (current.lease?.id !== lease) throw fail();
+          current.lease = null;
+          current.removed = Math.max(current.removed || 0, index + 1);
+          if (index === current.entries.length) data._mediaBackups = data._mediaBackups.filter(item => item.id !== id);
+          return { deleted: index === current.entries.length, removed: current.removed };
+        });
+      } catch (error) {
+        await write(data => {
+          const current = metadataJob(data, user, id);
+          if (current.lease?.id === lease) current.lease = null;
+          return current;
+        }).catch(() => {});
+        throw error;
+      }
+    },
+    async create(user, ids, input = {}) {
       if (!Array.isArray(ids) || !ids.length || ids.length > 500 || new Set(ids).size !== ids.length) throw fail();
       return summary(
         await write(data => {
           data._mediaBackups ||= [];
-          if (data._mediaBackups.length >= 16 || data._mediaBackups.filter(job => job.owner === user.id && !job.archived).length >= 4)
+          if (data._mediaBackups.length >= MEDIA_COPY_RETAINED_LIMIT)
+            throw Object.assign(Error('Remove an archived copy set before creating another.'), { statusCode: 429, code: 'MEDIA_COPY_RETAINED_LIMIT' });
+          const active = data._mediaBackups.filter(job => !mediaCopyArchived(job, now()));
+          if (active.length >= MEDIA_COPY_ACTIVE_WORKSPACE_LIMIT || active.filter(job => job.owner === user.id).length >= MEDIA_COPY_ACTIVE_USER_LIMIT)
             throw Object.assign(Error('Media backup limit reached (four per account).'), { statusCode: 429, code: 'MEDIA_BACKUP_LIMIT' });
           const entries = ids.map(id => {
             const file = data.files.find(item => item.id === id);
@@ -122,7 +216,17 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
             access(data, user, file.project);
             return { file: structuredClone(file) };
           });
-          const job = { id: randomUUID(), owner: user.id, createdAt: now(), entries, ready: false };
+          const job = {
+            id: randomUUID(),
+            owner: user.id,
+            createdAt: now(),
+            entries,
+            ready: false,
+            ...mediaCopySettings(
+              { label: input.label || `File copy ${new Date(now()).toISOString().slice(0, 10)}`, retentionDays: input.retentionDays },
+              now(),
+            ),
+          };
           data._mediaBackups.push(job);
           return job;
         }),
@@ -133,6 +237,8 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
       const job = await write(data => {
         const job = owned(data, user, id);
         if (job.ready) return job;
+        if (mediaCopyArchived(job, now()))
+          throw Object.assign(Error('Restore the archived set before continuing.'), { code: 'MEDIA_COPY_ARCHIVED', statusCode: 409 });
         if (job.lease?.until > now()) throw Object.assign(Error('Backup is busy. Retry later.'), { statusCode: 409, code: 'MEDIA_BACKUP_BUSY' });
         job.lease = { id: lease, until: now() + 120000 };
         return job;
@@ -252,6 +358,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now }) {
           bytes: copy.bytes,
           checksum: copy.checksum,
           at: now(),
+          ownerId: file.ownerId,
         };
         return file;
       });

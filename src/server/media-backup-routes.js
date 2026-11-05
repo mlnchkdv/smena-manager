@@ -19,12 +19,26 @@ mediaBackupRouter.get(
 mediaBackupRouter.post(
   '/',
   requireRole('admin', 'editor'),
-  route(async req => ({ job: await service().create(req.user, req.body.ids) })),
+  route(async req => ({ job: await service().create(req.user, req.body.ids, req.body) })),
+);
+mediaBackupRouter.post(
+  '/:id/settings',
+  requireRole('admin', 'editor'),
+  route(async req => ({ job: await service().settings(req.user, req.params.id, req.body) })),
+);
+mediaBackupRouter.post(
+  '/:id/purge',
+  requireRole('admin', 'editor'),
+  route(req => service().purge(req.user, req.params.id, req.body.index, req.body.confirmation)),
 );
 mediaBackupRouter.post(
   '/:id/advance',
   requireRole('admin', 'editor'),
   route(async req => ({ job: await service().advance(req.user, req.params.id) })),
+);
+mediaBackupRouter.get(
+  '/:id/inventory',
+  route(req => service().inventory(req.user, req.params.id)),
 );
 mediaBackupRouter.get(
   '/:id/manifest',

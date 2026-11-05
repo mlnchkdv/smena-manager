@@ -14,7 +14,7 @@ export function registeredMediaRestore(data, job, index, project, folderId, user
     data.files.find(
       file =>
         file.id === receipt.fileId &&
-        file.ownerId === user.id &&
+        file.ownerId === (receipt.ownerId || user.id) &&
         file.project === project &&
         (file.folderId || null) === (folderId || null) &&
         file.storageFileId === receipt.storageFileId &&
