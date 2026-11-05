@@ -7,18 +7,16 @@ export function whiteboardCatalogProjection(data) {
     cards: b.whiteboard.nodes.length,
     connections: b.whiteboard.edges.length,
     thumbnail: {
-      nodes: b.whiteboard.nodes
-        .slice(0, 40)
-        .map(({ id, type, x, y, width, height, color, title }) => ({
-          id,
-          type,
-          x,
-          y,
-          width,
-          height,
-          color,
-          ...(type !== 'material' && title ? { title: String(title).slice(0, 64) } : {}),
-        })),
+      nodes: b.whiteboard.nodes.slice(0, 40).map(({ id, type, x, y, width, height, color, title }) => ({
+        id,
+        type,
+        x,
+        y,
+        width,
+        height,
+        color,
+        ...(type !== 'material' && title ? { title: String(title).slice(0, 64) } : {}),
+      })),
       edges: b.whiteboard.edges.slice(0, 60).map(({ from, to }) => ({ from, to })),
     },
   }));
