@@ -18,7 +18,8 @@ let engine,
   generation,
   storageWarning = false,
   persistTimer,
-  allowReload = false;
+  allowReload = false,
+  completed = false;
 const key = () => JSON.stringify([S.ui.currentUser?.id, S.ui.activeWorkspace || 'default']);
 const valid = () => scope === key() && generation === getSessionGeneration() && Boolean(getSessionToken());
 function schedulePersist() {
@@ -67,6 +68,14 @@ function persist() {
 const changed = () => {
   if (valid()) {
     S.ui.uploads = engine.jobs;
+    if (engine.jobs.length && !engine.jobs.some(unfinishedUpload)) {
+      if (!completed) {
+        S.ui.uploadQueueExpanded = false;
+        const count = engine.jobs.filter(job => job.phase === 'done').length;
+        if (count) toast(text(`Uploaded files: ${count}.`, `Загружено файлов: ${count}.`));
+        completed = true;
+      }
+    } else completed = false;
     schedulePersist();
     render();
   }
