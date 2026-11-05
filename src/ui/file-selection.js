@@ -1,3 +1,4 @@
+import { disclosureAttributes } from './disclosure.js';
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -56,12 +57,12 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const selectPage = `<button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>`;
   return collectionSelection(
     `
-    ${files.length ? '' : `${selectPage}<details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
+    ${files.length ? '' : `${selectPage}<details class="ui-menu files-selection-tools" ${disclosureAttributes('files:selection')}><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
     ${
       files.length
         ? `<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b>${hiddenCount ? ` · ${hiddenCount} <span>outside this page</span>` : ''}</span><span class="sp"></span>
     <button class="btn btn-secondary btn-sm" data-a="downloadSelectedFiles" ${downloadIssue || busy ? 'disabled' : ''} aria-label="Download ZIP" title="${esc(t(downloadIssue || 'Download ZIP'))}">${ic('download', 15)}<span class="hide-m">Download ZIP</span></button>
-    <details class="ui-menu files-selection-tools"><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectPage}${selectResults}
+    <details class="ui-menu files-selection-tools" ${disclosureAttributes('files:selection')}><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectPage}${selectResults}
     <button class="btn btn-secondary btn-sm" data-a="streamSelectedFiles" ${streamIssue || busy ? 'disabled' : ''} title="${esc(t(streamIssue || 'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.'))}">${ic('arrow-down-to-line', 15)}<span>Stream ZIP</span></button>
     <button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button>
     <button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button>
