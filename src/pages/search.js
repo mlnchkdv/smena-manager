@@ -6,6 +6,7 @@ import { searchAll, clearWhiteboardSearch } from '../core/search.js';
 import { FT, av, empty, pIcon, pStatus, stIcon } from '../ui/helpers.js';
 import { knowledgeExcerpt } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
+import { searchCoverage } from '../shared/search-coverage.js';
 import { fileCatalogInfo } from '../core/file-catalog-state.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { t, uiCount, isRussian } from '../core/i18n.js';
@@ -40,8 +41,6 @@ export function pageSearch() {
     totals = {};
   const r = searchAll(q, { totals, offsets });
   const demandFiles = fileCatalogInfo()?.mode === 'demand';
-  const fileScopePending = isRussian() ? 'Каталог файлов ещё не проверен.' : 'The file catalog has not been searched yet.';
-  const categoryCount = key => (demandFiles && key === 'files' ? (isRussian() ? 'Не проверено' : 'Not searched') : key === 'all' ? total : totals[key] || 0);
   const folderMap = new Map(D().knowledgeFolders.map(folder => [folder.id, folder]));
   const cat = S.ui.searchCat;
   const cats = [
@@ -55,19 +54,21 @@ export function pageSearch() {
     ['bookmarks', 'Bookmarks'],
     ['whiteboards', 'Whiteboards'],
   ];
-  const total = Object.values(totals).reduce((a, b) => a + b, 0);
-  const visibleTotal = cat === 'all' ? total : totals[cat] || 0;
+  const coverage = searchCoverage({ category: cat, totals, demandFiles, whiteboardStatus: r.whiteboardStatus, locale: isRussian() ? 'ru' : 'en' });
+  const categoryCount = coverage.categoryLabel;
+  const visibleTotal = coverage.count;
+  const fileScopePending = isRussian() ? 'Полный каталог файлов ещё не проверен.' : 'The complete file catalog has not been searched yet.';
   const pager = k =>
-    totals[k] > 30 && !(k === 'files' && demandFiles)
+    totals[k] > 30
       ? `<nav class="row" aria-label="Pagination"><button class="btn btn-secondary btn-sm" data-a="searchPage" data-key="${k}" data-offset="${offsets[k] - 30}" ${!offsets[k] ? 'disabled' : ''}>Previous</button><span class="hint num">${offsets[k] + 1}–${offsets[k] + r[k].length} / ${totals[k]}</span><button class="btn btn-secondary btn-sm" data-a="searchPage" data-key="${k}" data-offset="${offsets[k] + 30}" ${offsets[k] + 30 >= totals[k] ? 'disabled' : ''}>Next</button></nav>`
       : '';
   const sec = (k, title, html) =>
     (cat === 'all' || cat === k) && r[k].length
-      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? r[k].length : totals[k]}</div><div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
+      ? `<section style="margin-bottom:22px" data-search-category="${k}"><div class="eyebrow" style="margin-bottom:6px"><span>${title}</span> · ${k === 'files' && demandFiles ? esc(categoryCount(k)) : totals[k]}</div><div class="panel" style="overflow:hidden">${html}</div>${pager(k)}</section>`
       : '';
   return `<div class="page search-page" style="max-width:860px">
     <h1 class="search-page-title">Search</h1>
-    ${q ? `<p class="hint search-result-status" role="status">${esc(uiCount(visibleTotal, 'result'))}${demandFiles && ['all', 'files'].includes(cat) ? ' · ' + fileScopePending : ''}</p>` : ''}
+    ${q ? `<p class="hint search-result-status" role="status" translate="no">${esc(coverage.partial ? coverage.countLabel : uiCount(visibleTotal, 'result'))}${coverage.filesIncomplete ? ' · ' + fileScopePending : ''}</p>` : ''}
     <div class="inwrap search-input-wrap" style="margin-bottom:14px">${ic('search', 16)}<input class="input input-lg" id="search-page-q" data-in="searchQ" data-key-enter="rememberSearch" placeholder="Search tasks, projects, knowledge, bookmarks, and files" value="${esc(inputQuery)}" style="padding-left:34px;padding-right:44px;font-size:16px" aria-label="Search">${inputQuery ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="search-page-q" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
     <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${categoryCount(k)}</span></button>`).join('')}</div>
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${categoryCount(k)}</option>`).join('')}</select></div>
