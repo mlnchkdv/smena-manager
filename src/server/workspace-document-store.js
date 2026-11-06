@@ -6,7 +6,9 @@ import { historyContent } from '../shared/knowledge-history.js';
 import { storedNoteHistory, readKnowledgeVersion } from './knowledge-version-blobs.js';
 import { knowledgeSnapshotHash } from './knowledge-versions.js';
 import { getStorageProvider } from './storage/index.js';
-import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
+import { knowledgeActor } from './knowledge-access.js';
+import { expandKnowledgeBodies } from './knowledge-body-store.js';
+import { externalKnowledgeBody } from '../shared/knowledge-body.js';
 
 function assertName(name) {
   if (!DOCUMENT_NAMES.includes(name)) throw Object.assign(new Error('Workspace document not found.'), { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
@@ -37,7 +39,9 @@ export async function getWorkspaceDocument(name, aggregate) {
   assertName(name);
   // Reusing the core snapshot makes backup/revision projections coherent.
   const current = aggregate?._aggregateVersion === 1 ? aggregate : await getWorkspaceDatabase();
-  return structuredClone(projectDocument(name, current));
+  return structuredClone(
+    projectDocument(name, name === 'knowledge' ? await expandKnowledgeBodies(current, getStorageProvider(), { includeTrash: false }) : current),
+  );
 }
 
 export async function replaceWorkspaceDocument(name, nextData, expectedRevision, options = {}) {
@@ -56,8 +60,15 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
           if (document.revision !== expectedRevision) throw new WorkspaceDocumentConflictError(document.revision);
           const incoming = structuredClone(workspaceDocumentData(name, nextData));
           if (name === 'knowledge') {
-            const actor = options.profile && memberForProfile(bindAccessProfiles(database, options.profiles || []), options.profile);
-            if (options.profile && !actor) throw Object.assign(new Error('Workspace membership required.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
+            const actor = options.profile && knowledgeActor(database, options.profile, options.profiles, { write: true });
+            // Until the demand-aware client is enabled, legacy collection PUTs
+            // must not turn an unloaded body into an empty snapshot. Per-note
+            // writes use the explicit conflict-checked endpoint instead.
+            if (database.knowledgeNotes.some(externalKnowledgeBody) || incoming.knowledgeNotes.some(note => Object.hasOwn(note, 'bodyRef')))
+              throw Object.assign(new Error('Refresh the application before changing migrated notes.'), {
+                statusCode: 409,
+                code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED',
+              });
             bindWikiReferences(database.knowledgeNotes);
             const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
             for (const note of incoming.knowledgeNotes) {

@@ -2,6 +2,8 @@
 
 Status: **A06 foundation, not an enabled migration**. The production workspace format and browser loading path have not changed. No migration endpoint is exposed. Do not call A06 complete until the acceptance gates below pass.
 
+Available server protocol: authenticated `GET /api/knowledge/notes/:id` returns `{note, noteHash, revision}`; `PATCH` on the same path accepts `{patch, noteHash}` for an existing note. It rechecks canonical membership inside the write boundary, accepts only editable fields, and rejects stale note hashes. The browser does not use this protocol yet. This is not a completed metadata-catalog API or import job API.
+
 ## Русский
 
 Текущая история A05 уже хранит неизменяемые версии отдельно. Следующий шаг A06 отделяет **актуальный текст** от каталога заметок. Хранилище остаётся Google Drive; локальный провайдер нужен для разработки и тестов. PostgreSQL не требуется.
@@ -24,6 +26,8 @@ Status: **A06 foundation, not an enabled migration**. The production workspace f
 6. Сделать импорт партиями с прогнозом бюджета, подтверждением, журналом завершённых заметок и отменой оставшихся. Обработать конфликт, удаление, перенос, Undo, смену аккаунта и пространства.
 7. Пройти нагрузочную и интерфейсную приёмку RU/EN, мобильные размеры и текущие роли. Только после этого включать миграцию для рабочих пространств.
 
+Совместимость уже проверяется серверными тестами: полный legacy GET раскрывает тела, а целевая запись меняет одну заметку и сохраняет указатели остальных. Пустой или совпадающий patch не меняет ревизии и даты. Старый PUT всей коллекции для уже разделённого документа пока возвращает `KNOWLEDGE_NOTE_WRITE_REQUIRED`, чтобы не сохранить незагруженный текст как пустой. Поэтому миграцию нельзя включать, пока браузерная запись, папки, импорт и восстановление версий не переведены на совместимый протокол. Индекс вики-связей сохраняется при отсутствии загруженного тела.
+
 Откат: проверенный самостоятельный backup содержит исходные тексты и историю, поэтому не зависит от существования объектов A05/A06. До отдельного согласованного обслуживания старые объекты не удаляются. Изменение тарифа Vercel и восстановление production-доступности не входят в эту миграцию.
 
 ## English
@@ -39,5 +43,7 @@ A reference is not authorization. A future public handler must resolve the canon
 `expandKnowledgeBodies` can produce a standalone snapshot including notes in Trash, or load only selected note IDs. It does not read or clone the file catalog. Local/Drive backup providers now expand these refs before serialization while preserving the streamed file-catalog path.
 
 Implementation order: finish export/restore/capacity compatibility after the completed backup expansion; migrate legacy inline history through A05; prepare a reviewed backup-backed migration with canonical CAS receipts; add demand-aware metadata/body APIs and legacy-client compatibility; add per-note conflict-checked writes; split the full-text index; add journaled/cancellable import batches; then complete RU/EN, role, concurrency and mobile acceptance. Newly inserted inline IDs preceding a cursor must be picked up by a fresh pass.
+
+The selected-note API is implemented and tested, including no-op stability, different-note concurrent writes, same-note stale-write rejection, viewer denial and immutable-pointer isolation. Legacy GET expands bodies; a legacy collection PUT against already separated storage currently fails safely with `KNOWLEDGE_NOTE_WRITE_REQUIRED`. Migration must remain disabled until the browser, folder operations, import and version restore use the new protocol. Wiki bindings survive unloaded bodies.
 
 Recovery uses a verified standalone backup containing current text and history, without depending on external objects. No old objects are deleted automatically. Production acceptance remains unavailable while Vercel returns `402 DEPLOYMENT_DISABLED`.

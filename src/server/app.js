@@ -67,6 +67,8 @@ import { sendOwnTestNotification } from './test-notification.js';
 import { workspaceRevisionEtag } from '../shared/revision-etag.js';
 import { indexedKnowledgePage } from './knowledge-index.js';
 import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.js';
+import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
+import { knowledgeActor } from './knowledge-access.js';
 
 export const app = express();
 
@@ -631,7 +633,8 @@ app.get('/api/knowledge/:id/versions', async (request, response, next) => {
   try {
     const offset = request.query.offset || '0';
     if (typeof offset !== 'string' || !/^\d{1,7}$/.test(offset)) throw new TypeError('Invalid version offset.');
-    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes'] });
+    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes', 'members'] });
+    knowledgeActor(database, request.user, getAccessProfiles());
     response.json(knowledgeVersionPage(database, request.params.id, Number(offset)));
   } catch (error) {
     next(error);
@@ -639,8 +642,23 @@ app.get('/api/knowledge/:id/versions', async (request, response, next) => {
 });
 app.get('/api/knowledge/:id/versions/:version', async (request, response, next) => {
   try {
-    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes'] });
+    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes', 'members'] });
+    knowledgeActor(database, request.user, getAccessProfiles());
     response.json(await getKnowledgeVersion(database, getStorageProvider(), request.params.id, request.params.version));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/notes/:id', async (request, response, next) => {
+  try {
+    response.json(await readKnowledgeNote(request.params.id, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.patch('/api/knowledge/notes/:id', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json(await patchKnowledgeNote(request.params.id, request.body?.patch, request.body?.noteHash, request.user, getAccessProfiles()));
   } catch (error) {
     next(error);
   }

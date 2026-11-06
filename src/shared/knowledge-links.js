@@ -1,4 +1,5 @@
 import { materialLink } from './material-links.js';
+import { externalKnowledgeBody } from './knowledge-body.js';
 const text = value => (typeof value === 'string' ? value.trim() : '');
 const normalizedTitle = value => cleanWikiTitle(value).toLocaleLowerCase('ru-RU');
 
@@ -20,7 +21,11 @@ export function extractWikiLinks(markdown) {
 }
 
 function linksForNote(note) {
-  const links = [...(Array.isArray(note?.wikilinks) ? note.wikilinks : []), ...extractWikiLinks(note?.formatted_markdown)];
+  const unloaded = externalKnowledgeBody(note) && typeof note.formatted_markdown !== 'string';
+  const links = [
+    ...(Array.isArray(note?.wikilinks) ? note.wikilinks : []),
+    ...(unloaded && Array.isArray(note.wikiRefs) ? note.wikiRefs.map(ref => ref.label) : extractWikiLinks(note?.formatted_markdown)),
+  ];
   const seen = new Set();
   return links.map(cleanWikiTitle).filter(title => {
     const key = normalizedTitle(title);
