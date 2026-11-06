@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
+import { readKnowledgeCatalog } from './knowledge-catalog.js';
 import { inWorkspace } from './workspace-context.js';
 import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
@@ -655,6 +656,13 @@ app.get('/api/knowledge/:id/versions/:version', async (request, response, next) 
 app.get('/api/knowledge/notes/:id', async (request, response, next) => {
   try {
     response.json(await readKnowledgeNote(request.params.id, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/catalog', async (request, response, next) => {
+  try {
+    response.json({ data: await readKnowledgeCatalog(request.user, getAccessProfiles()) });
   } catch (error) {
     next(error);
   }

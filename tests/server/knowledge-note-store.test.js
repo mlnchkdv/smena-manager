@@ -11,6 +11,7 @@ import { readKnowledgeNote, patchKnowledgeNote } from '../../src/server/knowledg
 import { getKnowledgeVersion } from '../../src/server/knowledge-versions.js';
 import { bindWikiReferences } from '../../src/shared/knowledge-links.js';
 import { app } from '../../src/server/app.js';
+import { readKnowledgeCatalog } from '../../src/server/knowledge-catalog.js';
 
 let directory, source, storage;
 const oldPath = process.env.DATABASE_PATH;
@@ -78,6 +79,24 @@ test('selected note reads/writes retain every other body pointer and wiki bindin
   assert.equal(legacy.knowledgeNotes[1].formatted_markdown, source.knowledgeNotes[1].formatted_markdown);
   assert.equal(legacy.knowledgeNotes[1].bodyRef, undefined);
   await assert.rejects(replaceWorkspaceDocument('knowledge', legacy, legacy.revision), { code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED' });
+});
+
+test('cold knowledge catalog exposes metadata without reading any current or historical body', async () => {
+  storage.readKnowledgeBody = async () => {
+    throw new Error('Catalog must not load bodies');
+  };
+  storage.readKnowledgeVersion = async () => {
+    throw new Error('Catalog must not load versions');
+  };
+  const catalog = await readKnowledgeCatalog(profile('editor'));
+  assert.equal(catalog.knowledgeNotes.length, 2);
+  for (const note of catalog.knowledgeNotes) {
+    assert.equal(note.formatted_markdown, undefined);
+    assert.equal(note.bodyRef, undefined);
+    assert.equal(note.bodyPending, true);
+    assert.match(note.bodyToken, /^[a-f0-9]{64}$/);
+  }
+  await assert.rejects(readKnowledgeCatalog(profile('removed')), { statusCode: 403 });
 });
 
 test('empty/matching note patches preserve dates, history and all revisions', async () => {
