@@ -66,6 +66,7 @@ import { writeRecoveryBundle } from './recovery-bundle.js';
 import { sendOwnTestNotification } from './test-notification.js';
 import { workspaceRevisionEtag } from '../shared/revision-etag.js';
 import { indexedKnowledgePage } from './knowledge-index.js';
+import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.js';
 
 export const app = express();
 
@@ -626,6 +627,24 @@ app.put('/api/workspace', requireRole('admin', 'editor'), async (request, respon
   }
 });
 
+app.get('/api/knowledge/:id/versions', async (request, response, next) => {
+  try {
+    const offset = request.query.offset || '0';
+    if (typeof offset !== 'string' || !/^\d{1,7}$/.test(offset)) throw new TypeError('Invalid version offset.');
+    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes'] });
+    response.json(knowledgeVersionPage(database, request.params.id, Number(offset)));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/:id/versions/:version', async (request, response, next) => {
+  try {
+    const database = await getWorkspaceDatabase({ fields: ['knowledgeNotes'] });
+    response.json(await getKnowledgeVersion(database, getStorageProvider(), request.params.id, request.params.version));
+  } catch (error) {
+    next(error);
+  }
+});
 app.get('/api/knowledge/search', async (request, response, next) => {
   try {
     const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0' } = request.query;
@@ -672,7 +691,10 @@ app.get('/api/workspace-documents/:name', async (request, response, next) => {
 app.put('/api/workspace-documents/:name', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
-    const data = await replaceWorkspaceDocument(request.params.name, validateDocumentInput(request.params.name, request.body?.data), request.body?.revision);
+    const data = await replaceWorkspaceDocument(request.params.name, validateDocumentInput(request.params.name, request.body?.data), request.body?.revision, {
+      profile: request.user,
+      profiles: getAccessProfiles(),
+    });
     response.json({ data });
   } catch (error) {
     next(error);

@@ -864,7 +864,7 @@ export class GoogleDriveStorageProvider {
       for (const file of result.data.files || []) total += Number(file.size) || 0;
       pageToken = result.data.nextPageToken;
     } while (pageToken);
-    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_VERSION_LIMIT', 413);
+    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_HISTORY_STORAGE_LIMIT', 413);
     await this.client.files.create({
       requestBody: {
         name: `smena-knowledge-version-${hash}.json`,

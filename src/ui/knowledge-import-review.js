@@ -17,7 +17,7 @@ export function knowledgeImportReview(preview, folders) {
     <ul>${preview.entries
       .map(entry => {
         const note = notes.get(entry.id);
-        return `<li><strong translate="no">${esc(entry.name)}</strong>${entry.error ? `<span class="bad">${esc(t(entry.error))}</span>` : `<span>${note ? t('Ready to import') : t('Duplicate skipped')}</span>${note ? `<span translate="no">${esc(note.title)}</span>${!knowledgeVersionFits(note) ? '<small class="warn">' + t('No new individual versions for this large note. Keep its source for recovery.') + '</small>' : ''}` : ''}`}</li>`;
+        return `<li><strong translate="no">${esc(entry.name)}</strong>${entry.error ? `<span class="bad">${esc(t(entry.error))}</span>` : `<span>${note ? t('Ready to import') : t('Duplicate skipped')}</span>${note ? `<span translate="no">${esc(note.title)}</span>${!knowledgeVersionFits(note) ? '<small class="warn">' + t('This snapshot exceeds the 8 MiB history budget. Keep its source and shorten the note.') + '</small>' : ''}` : ''}`}</li>`;
       })
       .join('')}</ul><p class="hint">Each file becomes a note. Review duplicates before importing.</p></div>`;
 }

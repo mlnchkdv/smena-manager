@@ -75,7 +75,7 @@ export class LocalStorageProvider {
     let total = 0;
     for (const entry of await fs.promises.readdir(directory))
       if (/^[a-f0-9]{64}\.json$/.test(entry)) total += (await fs.promises.stat(path.join(directory, entry))).size;
-    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_VERSION_LIMIT', 413);
+    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_HISTORY_STORAGE_LIMIT', 413);
     try {
       await fs.promises.writeFile(target, text, { encoding: 'utf8', flag: 'wx' });
     } catch (error) {

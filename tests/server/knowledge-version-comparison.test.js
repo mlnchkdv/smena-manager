@@ -26,4 +26,8 @@ test('large text comparison is bounded and preserves insertion deletion and unch
   assert.equal(large.truncated, true);
   assert.equal(large.before.split('\n').length, 20);
   assert.equal(large.after.split('\n').length, 20);
+  const singleLine = knowledgeTextComparison('a'.repeat(1024 * 1024), 'b'.repeat(1024 * 1024));
+  assert.equal(singleLine.before.length, 12000);
+  assert.equal(singleLine.after.length, 12000);
+  assert.equal(singleLine.truncated, true);
 });

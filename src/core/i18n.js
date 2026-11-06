@@ -35,11 +35,11 @@ const RU = {
   'Selected types are saved separately from this device connection.': 'Выбранные типы сохраняются отдельно от подключения этого устройства.',
   'Reset view': 'Сбросить вид',
   'Reset filters': 'Сбросить фильтры',
-  'Large note: text can be saved, but new individual versions are not created. Download the source before major edits.':
-    'Большая заметка: текст сохраняется, но новые индивидуальные версии не создаются. Перед крупной правкой скачайте исходник.',
+  'The snapshot exceeds the 8 MiB version budget. Download the source and shorten the note before editing.':
+    'Снимок превышает бюджет версии 8 МиБ. Скачайте исходник и сократите заметку перед редактированием.',
   'Download source': 'Скачать исходник',
-  'No new individual versions for this large note. Keep its source for recovery.':
-    'Для этой большой заметки новые индивидуальные версии не создаются. Сохраните исходник для восстановления.',
+  'This snapshot exceeds the 8 MiB history budget. Keep its source and shorten the note.':
+    'Снимок превышает бюджет истории 8 МиБ. Сохраните исходник и сократите заметку.',
   'Version retention depends on the size of the complete text-and-properties snapshot. Up to 5 versions are retained.':
     'История зависит от размера снимка текста и свойств. Хранятся до 5 версий.',
   'Preview alongside': 'Предпросмотр рядом',
@@ -180,6 +180,13 @@ const RU = {
   'The original folder no longer exists. This version will be restored without a folder.':
     'Исходная папка больше не существует. Версия будет восстановлена без папки.',
   'The note changed. Reopen version history before restoring.': 'Заметка изменилась. Откройте историю заново перед восстановлением.',
+  'The note changed. Review its version again.': 'Заметка изменилась. Заново проверьте выбранную версию.',
+  'Workspace version storage budget reached. Existing notes and versions are retained; export them before history maintenance.':
+    'Достигнут бюджет хранилища версий пространства. Заметки и версии сохранены; экспортируйте их перед обслуживанием истории.',
+  'The note version exceeds the history budget. Download the source before continuing.':
+    'Версия заметки превышает бюджет истории. Скачайте исходник перед продолжением.',
+  'The note version is unavailable or failed its integrity check.': 'Версия недоступна или не прошла проверку целостности.',
+  'Note version not found.': 'Версия заметки не найдена.',
   'Only administrators can manage teams.': 'Управлять командами могут только администраторы.',
   'Note view': 'Режим заметки',
   Editor: 'Редактор',

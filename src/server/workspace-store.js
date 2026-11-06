@@ -1,6 +1,7 @@
 import { workspaceState, workspaceScope } from './workspace-context.js';
 const state = workspaceState(() => ({ database: null, initializationPromise: null, reloadPromise: null, localWriteQueue: Promise.resolve(), lastLoadedAt: 0 }));
 import { getStorageProvider } from './storage/index.js';
+import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -501,6 +502,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  if (options.replaceDocuments) nextData = await externalizeKnowledgeVersions(nextData, getStorageProvider());
   if (!options.replaceDocuments) captureWhiteboardHistory(current, nextData, options.actorMemberId || '');
   applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);

@@ -47,14 +47,15 @@ export const KNOWLEDGE_HISTORY_LIMIT = 20;
 export const KNOWLEDGE_VERSION_MAX_BYTES = 8 * 1024 * 1024;
 export const KNOWLEDGE_VERSION_STORE_MAX_BYTES = 256 * 1024 * 1024;
 export const externalKnowledgeVersion = version => version?.contentRef?.kind === 'knowledge-version-v1';
-export const knowledgeVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;
+export const knowledgeInlineVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;
+export const knowledgeVersionFits = note => new TextEncoder().encode(JSON.stringify(snapshot(note))).length <= KNOWLEDGE_VERSION_MAX_BYTES - 1024;
 export function noteHistory(previous, next) {
   const history = Array.isArray(previous?.history) ? previous.history.slice(0, 5) : [];
   if (!previous || JSON.stringify(snapshot(previous)) === JSON.stringify(snapshot(next))) return history;
   // Preserve the start of an editing session across a burst of autosaves.
   if (!next.restoreFromVersion && history[0]?.editedBy === next.updatedBy && Date.now() - Number(history[0]?.savedAt || 0) < 120000) return history;
   const content = snapshot(previous);
-  if (!knowledgeVersionFits(previous)) return history;
+  if (!knowledgeInlineVersionFits(previous)) return history;
   const version = {
     id: `v-${Date.now()}-${String(previous.updatedAt || '').replace(/[^0-9]/g, '')}`,
     at: previous.updatedAt || new Date().toISOString(),
@@ -102,12 +103,14 @@ export function knowledgeTextComparison(before, after, limit = 80) {
   }
   const removed = leftEnd - start,
     added = rightEnd - start;
+  const beforeText = left.slice(start, Math.min(leftEnd, start + limit)).join('\n');
+  const afterText = right.slice(start, Math.min(rightEnd, start + limit)).join('\n');
   return {
     line: start + 1,
     removed,
     added,
-    before: left.slice(start, Math.min(leftEnd, start + limit)).join('\n'),
-    after: right.slice(start, Math.min(rightEnd, start + limit)).join('\n'),
-    truncated: removed > limit || added > limit,
+    before: beforeText.slice(0, 12000),
+    after: afterText.slice(0, 12000),
+    truncated: removed > limit || added > limit || beforeText.length > 12000 || afterText.length > 12000,
   };
 }

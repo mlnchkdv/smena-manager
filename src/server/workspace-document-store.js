@@ -2,7 +2,11 @@ import { DOCUMENT_NAMES, workspaceDocumentData } from '../shared/workspace-docum
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { bindWikiReferences } from '../shared/relations.js';
 import { getWorkspaceDatabase, mutateWorkspaceMetadata } from './workspace-store.js';
-import { noteHistory } from '../shared/knowledge-history.js';
+import { historyContent } from '../shared/knowledge-history.js';
+import { storedNoteHistory, readKnowledgeVersion } from './knowledge-version-blobs.js';
+import { knowledgeSnapshotHash } from './knowledge-versions.js';
+import { getStorageProvider } from './storage/index.js';
+import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
 
 function assertName(name) {
   if (!DOCUMENT_NAMES.includes(name)) throw Object.assign(new Error('Workspace document not found.'), { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
@@ -36,7 +40,7 @@ export async function getWorkspaceDocument(name, aggregate) {
   return structuredClone(projectDocument(name, current));
 }
 
-export async function replaceWorkspaceDocument(name, nextData, expectedRevision) {
+export async function replaceWorkspaceDocument(name, nextData, expectedRevision, options = {}) {
   assertName(name);
   validateDocumentInput(name, nextData);
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new TypeError('A non-negative expected revision is required.');
@@ -47,27 +51,35 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision)
     const current = await getWorkspaceDatabase({ fields: ['revision'] });
     try {
       const saved = await mutateWorkspaceMetadata(
-        database => {
+        async database => {
           const document = projectDocument(name, database);
           if (document.revision !== expectedRevision) throw new WorkspaceDocumentConflictError(document.revision);
           const incoming = structuredClone(workspaceDocumentData(name, nextData));
           if (name === 'knowledge') {
+            const actor = options.profile && memberForProfile(bindAccessProfiles(database, options.profiles || []), options.profile);
+            if (options.profile && !actor) throw Object.assign(new Error('Workspace membership required.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
             bindWikiReferences(database.knowledgeNotes);
             const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
             for (const note of incoming.knowledgeNotes) {
-              note.history = noteHistory(previous.get(note.id), note);
+              const before = previous.get(note.id);
+              if (note.restoreFromVersion) {
+                if (!before || knowledgeSnapshotHash(before) !== note.restoreExpectedHash)
+                  throw Object.assign(new Error('The note changed. Review its version again.'), { code: 'KNOWLEDGE_VERSION_STALE', statusCode: 409 });
+                const selected = before.history?.find(version => version.id === note.restoreFromVersion);
+                if (!selected) throw Object.assign(new Error('Note version not found.'), { code: 'KNOWLEDGE_VERSION_NOT_FOUND', statusCode: 404 });
+                Object.assign(note, historyContent(await readKnowledgeVersion(getStorageProvider(), note.id, selected), incoming.knowledgeFolders));
+              }
+              if (actor && (!before || knowledgeSnapshotHash(before) !== knowledgeSnapshotHash(note))) {
+                note.updatedBy = actor.id;
+                note.updatedAt = new Date().toISOString();
+              }
+              note.history = await storedNoteHistory(getStorageProvider(), before, note);
               delete note.restoreFromVersion;
+              delete note.restoreExpectedHash;
               const references = previous.get(note.id)?.wikiRefs;
               if (!Object.hasOwn(note, 'wikiRefs') && references) note.wikiRefs = structuredClone(references);
             }
             bindWikiReferences(incoming.knowledgeNotes);
-            // Keep histories within the aggregate transport budget.
-            let historyChars = 0;
-            for (const note of incoming.knowledgeNotes) {
-              const size = JSON.stringify(note.history || []).length;
-              if (historyChars + size > 500000) note.history = [];
-              else historyChars += size;
-            }
           }
           Object.assign(database, incoming);
           database._documentRevisions = {

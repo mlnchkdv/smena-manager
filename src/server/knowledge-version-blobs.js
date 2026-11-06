@@ -4,9 +4,11 @@ import { externalKnowledgeVersion, knowledgeSnapshot, KNOWLEDGE_HISTORY_LIMIT, K
 export function knowledgeVersionError(code, statusCode = 503) {
   return Object.assign(
     new Error(
-      code === 'KNOWLEDGE_VERSION_LIMIT'
-        ? 'The note version exceeds the history budget. Download the source before continuing.'
-        : 'The note version is unavailable or failed its integrity check.',
+      code === 'KNOWLEDGE_HISTORY_STORAGE_LIMIT'
+        ? 'Workspace version storage budget reached. Existing notes and versions are retained; export them before history maintenance.'
+        : code === 'KNOWLEDGE_VERSION_LIMIT'
+          ? 'The note version exceeds the history budget. Download the source before continuing.'
+          : 'The note version is unavailable or failed its integrity check.',
     ),
     { code, statusCode },
   );

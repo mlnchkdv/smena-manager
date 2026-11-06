@@ -280,6 +280,7 @@ export async function getWorkspaceDocument(name) {
 export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0 } = {}) {
   return request(`/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, offset: String(offset) })}`, {}, true);
 }
+export const getKnowledgeNoteVersion = (id, version) => request(`/api/knowledge/${encodeURIComponent(id)}/versions/${encodeURIComponent(version)}`, {}, true);
 
 export async function putWorkspaceDocument(name, data, revision) {
   const actualBytes = workspaceTransportBytes(data, revision);

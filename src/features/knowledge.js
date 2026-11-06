@@ -2,6 +2,7 @@ import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
 import { createAsyncContextAction } from '../shared/async-context-action.js';
 import { getSessionGeneration } from '../core/api.js';
+import { knowledgeVersionState, loadKnowledgeVersion } from '../core/knowledge-version-state.js';
 import { isRussian } from '../core/i18n.js';
 A.editKnowledgeSelection = createAsyncContextAction({
   context: () => JSON.stringify([getSessionGeneration(), D().ws.id || D().ws.url, S.ui.route, S.ui.params, [...(S.ui.knowledgeSelection || [])].sort()]),
@@ -23,7 +24,7 @@ import { moveKnowledgeNotes } from '../shared/knowledge-note-move.js';
 import { toggleKnowledgePageSelection } from '../shared/knowledge-selection.js';
 import { uid, esc } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
-import { historyContent, knowledgeVersionChanges, KNOWLEDGE_VERSION_FIELDS } from '../shared/knowledge-history.js';
+import { knowledgeSnapshot, historyContent, knowledgeVersionChanges, KNOWLEDGE_VERSION_FIELDS } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
@@ -49,11 +50,17 @@ const canRestoreKnowledge = () => {
   toast('Wait until all changes are saved before restoring a version.', { kind: 'info' });
   return false;
 };
-A.restoreKnowledgeVersion = el => {
+A.restoreKnowledgeVersion = async el => {
   if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked() || !canRestoreKnowledge()) return;
   const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
-  const version = note?.history?.find(version => version.id === el.dataset.version);
+  const reference = note?.history?.find(version => version.id === el.dataset.version);
+  const version = reference && knowledgeVersionState(note.id, reference).value;
   if (!version) return;
+  const session = getSessionGeneration();
+  const initial = JSON.stringify(knowledgeSnapshot(note));
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(initial));
+  const expectedHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  if (session !== getSessionGeneration() || JSON.stringify(knowledgeSnapshot(note)) !== initial) return;
   const changes = knowledgeVersionChanges(note, version, D().knowledgeFolders);
   if (!changes.fields.length) return toast('No changes to restore.', { kind: 'info' });
   const base = JSON.stringify(historyContent(note, D().knowledgeFolders));
@@ -63,10 +70,12 @@ A.restoreKnowledgeVersion = el => {
     body: `<span translate="no">${esc(version.title)}</span><br><span>The current content will become a previous version after synchronization.</span><br><b>Fields to restore</b>: ${changes.fields.map(field => esc(t(KNOWLEDGE_VERSION_FIELDS[field]))).join(', ')}${changes.missingFolder ? '<br><strong>The original folder no longer exists. This version will be restored without a folder.</strong>' : ''}`,
     ok: 'Restore version',
     run: () => {
+      if (session !== getSessionGeneration()) return;
       if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked() || !canRestoreKnowledge()) return;
       // A refresh may have replaced the document while confirmation was open.
       const current = D().knowledgeNotes.find(item => item.id === note.id);
-      const saved = current?.history?.find(item => item.id === version.id);
+      const currentReference = current?.history?.find(item => item.id === version.id);
+      const saved = currentReference && knowledgeVersionState(current.id, currentReference).value;
       if (!saved) return toast('This version is no longer available. Reopen version history.', { kind: 'info' });
       if (JSON.stringify(historyContent(current, D().knowledgeFolders)) !== base || JSON.stringify(historyContent(saved, D().knowledgeFolders)) !== target)
         return toast('The note changed. Reopen version history before restoring.', { kind: 'info' });
@@ -75,10 +84,46 @@ A.restoreKnowledgeVersion = el => {
           updatedAt: new Date().toISOString(),
           updatedBy: D().me,
           restoreFromVersion: saved.id,
+          restoreExpectedHash: expectedHash,
         });
       });
     },
   });
+};
+A.loadKnowledgeVersion = async el => {
+  const note = D().knowledgeNotes.find(item => item.id === el.dataset.id);
+  const reference = note?.history?.find(item => item.id === el.dataset.version);
+  if (!reference || knowledgeVersionState(note.id, reference).loading) return;
+  const session = getSessionGeneration();
+  const pending = loadKnowledgeVersion(note.id, reference);
+  render();
+  try {
+    await pending;
+    if (session === getSessionGeneration())
+      S.ui.knowledgeOpenSections = [...new Set([...(S.ui.knowledgeOpenSections || []), `${note.id}:version:${reference.id}`])].slice(-100);
+  } catch (error) {
+    if (!error.staleSession && session === getSessionGeneration())
+      toast(isRussian() ? 'Не удалось прочитать версию. Повторите попытку.' : 'Unable to read the version. Please retry.', { kind: 'err' });
+  }
+  if (session === getSessionGeneration()) render();
+};
+A.moreKnowledgeVersions = el => {
+  (S.ui.knowledgeHistoryVisible ||= {})[el.dataset.id] = (S.ui.knowledgeHistoryVisible?.[el.dataset.id] || 5) + 5;
+  render();
+};
+A.downloadKnowledgeVersion = el => {
+  const note = D().knowledgeNotes.find(item => item.id === el.dataset.id);
+  const ref = note?.history?.find(item => item.id === el.dataset.version);
+  const version = ref && knowledgeVersionState(note.id, ref).value;
+  if (!version) return;
+  const url = URL.createObjectURL(new Blob([version.formatted_markdown || ''], { type: 'text/plain;charset=utf-8' }));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = (version.title || 'note-version').replace(/[\\/:*?"<>|\p{Cc}]/gu, '-').slice(0, 120) + (note.sourceFormat === 'text' ? '.txt' : '.md');
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 };
 for (const name of ['openKnowledgeNote', 'previewKnowledgeNote', 'goKnowledgeNote']) {
   const original = A[name];
