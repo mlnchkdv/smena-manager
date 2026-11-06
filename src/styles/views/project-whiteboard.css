@@ -109,6 +109,10 @@
   touch-action: pan-y;
   cursor: default;
 }
+.whiteboard-viewport[data-space-pan='true'],
+.whiteboard-viewport[data-space-pan='true'] .whiteboard-card-head button {
+  cursor: grab;
+}
 .whiteboard-edges {
   position: absolute;
   z-index: 1;

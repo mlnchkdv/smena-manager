@@ -25,6 +25,7 @@ import { overlayAboveDiagram } from '../ui/diagram-focus.js';
 import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 import { whiteboardConnection } from '../shared/whiteboard-connect.js';
+import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -147,9 +148,9 @@ function revealNode(node) {
   s.fit = false;
   s.autoFit = false;
 }
-function newCard(type) {
+function newCard(type, point) {
   if (!editable(current())) return;
-  const position = insertion();
+  const position = point || insertion();
   openTool({
     kind: 'node',
     nodeType: type,
@@ -279,6 +280,7 @@ const selectedIds = () => {
 A.whiteboardSelect = (el, event) => {
   const s = whiteboardState(),
     id = el.dataset.id;
+  if (Date.now() < (s.tapOpenUntil || 0)) return;
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
   if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
     const ids = new Set(selectedIds());
@@ -664,6 +666,21 @@ A.whiteboardFit = () => {
   paintView();
 };
 let viewport, gesture, cameraObserver, cameraFrame;
+let spacePan = false;
+function stopSpacePan() {
+  spacePan = false;
+  viewport?.removeAttribute('data-space-pan');
+}
+function openWhiteboardCard(id) {
+  const node = whiteboardOf(current()).nodes.find(node => node.id === id);
+  if (!node) return;
+  if (node.type === 'material') A.openRelatedEntity({ dataset: { key: node.target } });
+  else if (editable(current())) A.whiteboardEdit({ dataset: { id } });
+}
+document.addEventListener('keyup', event => {
+  if (event.code === 'Space') stopSpacePan();
+});
+window.addEventListener('blur', stopSpacePan);
 let cameraSize, cameraOwner;
 const pointers = new Map(),
   mounted = new WeakSet(),
@@ -686,13 +703,19 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
-  if (e.target.closest('[data-board-edge]')) return;
+  if (e.target.closest('[data-board-edge]') && !spacePan) return;
   const resize = e.target.closest('[data-board-resize]');
   const connector = e.target.closest('[data-board-connect]');
   if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll' && !resize && !connector) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
+  if (spacePan) {
+    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   if (editable(current()) && (connector || (s.connectFrom && !e.target.closest('button:not([data-board-drag]),a')))) {
     gesture = { kind: 'connect', from: connector?.dataset.boardConnect || s.connectFrom, scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
     viewport.setPointerCapture(e.pointerId);
@@ -755,7 +778,7 @@ function down(e) {
     if (!selectedIds().includes(handle.dataset.boardDrag)) s.selection = [handle.dataset.boardDrag];
     const nodes = whiteboardSelectionNodes(whiteboardOf(current()), s.selection?.length ? s.selection : [handle.dataset.boardDrag]);
     s.selected = handle.dataset.boardDrag;
-    gesture = { kind: 'move', nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
+    gesture = { kind: 'move', nodeId: handle.dataset.boardDrag, nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
   } else if (!e.target.closest('button,a,.whiteboard-card')) gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
   else {
     pointers.delete(e.pointerId);
@@ -1008,12 +1031,22 @@ function up(e, cancel = false) {
     });
   } else if (g.kind === 'move' && g.scope === whiteboardState().scope) {
     // Selection is view state, including a captured pointer with zero movement.
+    const s = whiteboardState(),
+      last = s.lastTap;
+    s.lastTap = { id: g.nodeId, at: Date.now(), x: e.clientX, y: e.clientY };
+    if (last?.id === g.nodeId && Date.now() - last.at < 400 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 8) {
+      s.lastTap = null;
+      s.tapOpenUntil = Date.now() + 350;
+      openWhiteboardCard(g.nodeId);
+      return;
+    }
     render();
   }
 }
 export function mountProjectWhiteboard() {
   const next = document.querySelector('.whiteboard-viewport');
   if (next !== viewport) {
+    stopSpacePan();
     const owner = next && whiteboardState();
     const size = next ? { width: next.clientWidth, height: next.clientHeight } : null;
     const recenter = owner && owner === cameraOwner && cameraSize && !owner.autoFit && (size.width !== cameraSize.width || size.height !== cameraSize.height);
@@ -1071,6 +1104,27 @@ export function mountProjectWhiteboard() {
       true,
     );
     next.addEventListener('pointerdown', down);
+    next.addEventListener('dblclick', event => {
+      if (
+        overlayAboveDiagram() ||
+        spacePan ||
+        event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-connect],[data-board-edge]')
+      )
+        return;
+      if (event.target.closest('button,a,input,textarea,select') && !event.target.closest('[data-board-drag]')) return;
+      const id = event.target.closest('[data-board-id]')?.dataset.boardId;
+      const node = whiteboardOf(current()).nodes.find(node => node.id === id);
+      if (node && (node.type !== 'group' || event.target.closest('[data-board-drag]'))) {
+        event.preventDefault();
+        openWhiteboardCard(id);
+        return;
+      }
+      const point = whiteboardInsertionPoint({ x: event.clientX, y: event.clientY }, next.getBoundingClientRect(), whiteboardState());
+      if (point && editable(current())) {
+        event.preventDefault();
+        newCard('text', point);
+      }
+    });
     next.addEventListener('pointermove', move);
     next.addEventListener('pointerup', e => up(e));
     next.addEventListener('pointercancel', e => up(e, true));
@@ -1144,6 +1198,30 @@ document.addEventListener(
     }
     if (e.target.closest('.whiteboard-minimap')) return;
     if (!e.target.closest('.project-whiteboard') || e.target.closest('input,textarea,select') || S.ui.modals.length) return;
+    if (e.target.closest('[contenteditable="true"],.ui-menu[open]')) return;
+    if (
+      e.code === 'Space' &&
+      e.target.closest('.whiteboard-viewport') &&
+      !e.target.closest('.whiteboard-navigation,.whiteboard-minimap') &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      spacePan = true;
+      viewport?.setAttribute('data-space-pan', 'true');
+      return;
+    }
+    if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat && e.target.closest('.whiteboard-viewport') && editable(current())) {
+      const action = { KeyT: A.whiteboardNewText, KeyF: A.whiteboardNewFrame }[e.code] || (e.key === '@' ? A.whiteboardAddMaterial : null);
+      if (action) {
+        e.preventDefault();
+        e.stopPropagation();
+        action();
+        return;
+      }
+    }
     const s = whiteboardState();
     if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'a'].includes(e.key.toLowerCase())) {
       e.preventDefault();
