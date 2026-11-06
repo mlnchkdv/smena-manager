@@ -31,7 +31,7 @@ export async function prepareKnowledgeImportManifest(files, { onProgress, signal
       if (!handles.has(key)) {
         entries.push({ key, name: file.name, size: file.size, sourceHash });
         handles.set(key, file);
-      }
+      } else errors.push({ name: file.name, error: 'Duplicate selected file.' });
     } catch (error) {
       if (signal?.aborted) throw error;
       errors.push({ name: file.name, error: error.message });

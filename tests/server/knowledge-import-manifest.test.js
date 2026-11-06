@@ -6,7 +6,8 @@ test('review accepts more than 4 MiB across files and retains only metadata/hand
   const files = Array.from({ length: 6 }, (_, i) => new File(['text '.repeat(200000)], 'Заметка ' + i + (i % 2 ? '.md' : '.txt')));
   const result = await prepareKnowledgeImportManifest([...files, new File(['binary\0text'], 'bad.txt'), new File([], 'empty.md'), files[0]]);
   assert.equal(result.entries.length, 6);
-  assert.equal(result.errors.length, 2);
+  assert.equal(result.errors.length, 3);
+  assert.equal(result.errors.at(-1).error, 'Duplicate selected file.');
   assert.equal(result.handles.size, 6);
   assert.ok(result.entries.reduce((sum, e) => sum + e.size, 0) > 4 * 1024 * 1024);
   assert.ok(JSON.stringify(result.entries).length < 5000);

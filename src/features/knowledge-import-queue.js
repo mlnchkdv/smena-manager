@@ -8,6 +8,7 @@ import { render } from '../shell/render.js';
 import { isRussian } from '../core/i18n.js';
 import { esc } from '../core/utils.js';
 import { prepareKnowledgeImportManifest, readImportSource } from '../shared/knowledge-import-manifest.js';
+import { knowledgeImportReport } from '../shared/knowledge-import-report.js';
 import '../styles/knowledge-import-queue.css';
 const T = (en, ru) => (isRussian() ? ru : en);
 let activeImport = null;
@@ -29,6 +30,23 @@ const current = () => {
 const request = async (suffix, payload) => (await knowledgeImportRequest(suffix, payload)).job;
 const messages = error =>
   ({
+    KNOWLEDGE_IMPORT_SOURCE_CHANGED: T(
+      'This source file changed. Choose the original file used to start this import.',
+      'Исходный файл изменился. Выберите исходную версию, с которой начат импорт.',
+    ),
+    KNOWLEDGE_IMPORT_FOLDER_CHANGED: T(
+      'The destination folder was removed. Saved notes are retained. Choose a new destination for a new queue.',
+      'Папка назначения удалена. Сохранённые заметки остаются; для новой очереди выберите другую папку.',
+    ),
+    KNOWLEDGE_IMPORT_LIMIT: T(
+      'Three unfinished queues are already active. Resume or stop one before starting another.',
+      'Уже есть три незавершённые очереди. Продолжите или остановите одну перед созданием новой.',
+    ),
+    KNOWLEDGE_IMPORT_PAUSED: T('The queue is paused. Continue when you are ready.', 'Очередь приостановлена. Продолжите, когда будете готовы.'),
+    KNOWLEDGE_IMPORT_BACKUP_FAILED: T(
+      'The recovery copy could not be created. No new import was started; check storage and retry.',
+      'Не удалось создать копию восстановления. Новый импорт не начат; проверьте хранилище и повторите.',
+    ),
     originals: T(
       'Reselect every pending original file. Saved files do not need to be selected again.',
       'Выберите все ожидающие исходные файлы. Уже сохранённые файлы выбирать повторно не нужно.',
@@ -41,7 +59,19 @@ const messages = error =>
     'The note file is empty.': T('The note file is empty.', 'Файл заметки пуст.'),
     'This file is not a text note.': T('This file is not a text note.', 'Файл не является текстовой заметкой.'),
     'Select up to 1,000 note files.': T('Select up to 1,000 note files.', 'Выберите от 1 до 1 000 файлов заметок.'),
-  })[error.message] ||
+    'Duplicate selected file.': T('This identical file was selected more than once.', 'Один и тот же файл выбран несколько раз.'),
+  })[error.code || error.message] ||
+  (error.status === 429
+    ? T(
+        'The service is rate limited. Saved progress is retained; wait before continuing.',
+        'Сервис ограничил частоту запросов. Прогресс сохранён; подождите перед продолжением.',
+      )
+    : error.status === 503
+      ? T(
+          'Storage is temporarily unavailable. Saved progress is retained; continue later.',
+          'Хранилище временно недоступно. Прогресс сохранён; продолжите позже.',
+        )
+      : '') ||
   T(
     'Unable to continue. Saved notes are retained; reopen the queue to retry.',
     'Не удалось продолжить. Сохранённые заметки остаются в базе; откройте очередь для повтора.',
@@ -74,7 +104,8 @@ function form(m, H) {
          .join('')}</ul></details>`
      : ''
  }
- ${!m.busy && !m.reading ? `<button class="btn btn-secondary" data-a="chooseKnowledgeQueueFiles">${T('Choose original files', 'Выбрать исходные файлы')}</button><input type="file" id="knowledge-queue-files" accept=".txt,.md,.markdown" multiple hidden data-in="knowledgeQueueFiles">` : ''}
+ ${entries.length || errors.length ? `<button class="btn btn-ghost btn-sm" data-a="downloadKnowledgeImportReport">${T('Download full report', 'Скачать полный отчёт')}</button>` : ''}
+ ${!m.busy && !m.reading ? `<button class="btn btn-secondary" data-a="chooseKnowledgeQueueFiles" ${m.jobsLoading ? 'disabled' : ''}>${m.jobsLoading ? T('Loading queues…', 'Загрузка очередей…') : T('Choose original files', 'Выбрать исходные файлы')}</button><input type="file" id="knowledge-queue-files" accept=".txt,.md,.markdown" multiple hidden data-in="knowledgeQueueFiles" ${m.jobsLoading ? 'disabled' : ''}>` : ''}
  ${
    !job && (m.jobs || []).some(j => ['running', 'paused'].includes(j.state))
      ? `<section><h3>${T('Unfinished imports', 'Незавершённые импорты')}</h3>${m.jobs
@@ -129,6 +160,7 @@ export async function openKnowledgeImportQueue(files, folderId = S.ui.knowledgeF
     folderId: folder?.id || null,
     folderName: folder?.name || T('No folder', 'Без папки'),
     policy: 'copy',
+    jobsLoading: !files?.length,
     onClose: () => m.abort?.abort(),
     requestClose: () => {
       m.stopping = true;
@@ -141,15 +173,24 @@ export async function openKnowledgeImportQueue(files, folderId = S.ui.knowledgeF
   if (files?.length) return review(m, files);
   try {
     m.jobs = (await knowledgeImportRequest()).jobs;
-    if (current() === m) render();
   } catch (error) {
-    if (current() === m) {
-      m.error = messages(error);
-      render();
-    }
+    if (current() === m) m.error = messages(error);
+  } finally {
+    m.jobsLoading = false;
+    if (current() === m) render();
   }
 }
 A.chooseKnowledgeQueueFiles = () => document.getElementById('knowledge-queue-files')?.click();
+A.downloadKnowledgeImportReport = () => {
+  const m = current();
+  if (!m) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(knowledgeImportReport(m.job, m.review, m.failedEntry), null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'smena-note-import-report.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
 IN.knowledgeQueueFiles = el => {
   const m = current(),
     files = [...el.files];
@@ -213,11 +254,14 @@ A.runKnowledgeQueue = async () => {
       if (!file) throw Error('originals');
       const source = await readImportSource(file);
       if (current() !== m || m.stopping) break;
+      m.failedEntry = { key: entry.key };
       m.job = await request('/' + m.job.id + '/entries', { key: entry.key, source });
+      m.failedEntry = null;
       if (current() === m) render();
     }
     if (current() === m && m.stopping && m.job.state !== 'complete') m.job = await request('/' + m.job.id, { state: 'paused' });
   } catch (error) {
+    if (m.failedEntry) m.failedEntry.code = error.code || 'REQUEST_FAILED';
     if (current() === m) m.error = messages(error);
   } finally {
     if (m.owner === getSessionGeneration()) {
