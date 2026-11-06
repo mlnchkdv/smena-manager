@@ -1,0 +1,12 @@
+# Managed by Smena Manager VPS kit
+[Unit]
+Description=Smena Manager daily run at 08:00 Europe/Saratov
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Europe/Saratov
+Persistent=true
+AccuracySec=1min
+Unit=smena-manager-cron.service
+
+[Install]
+WantedBy=timers.target

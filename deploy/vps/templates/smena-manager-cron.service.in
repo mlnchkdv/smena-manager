@@ -1,0 +1,23 @@
+# Managed by Smena Manager VPS kit
+[Unit]
+Description=Smena Manager daily reminders and backups (has side effects)
+Requires=smena-manager.service
+After=smena-manager.service network-online.target
+
+[Service]
+Type=oneshot
+User=smena
+Group=smena
+WorkingDirectory=/srv/smena-manager/current
+EnvironmentFile=/etc/smena-manager/smena.env
+ExecStart={{NODE}} deploy/vps/cron.mjs
+TimeoutStartSec=900
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/smena-manager
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smena-manager-cron

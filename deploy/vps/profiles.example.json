@@ -1,0 +1,10 @@
+[
+  {
+    "id": "PRESERVE_EXISTING_ADMIN_ID",
+    "name": "Administrator",
+    "email": "admin@example.com",
+    "role": "admin",
+    "accessId": "GENERATE_UNIQUE_RANDOM_VALUE_EVEN_WITH_ACCESS_ID_LOGIN_DISABLED",
+    "active": true
+  }
+]

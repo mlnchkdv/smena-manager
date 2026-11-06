@@ -1,0 +1,13 @@
+# Managed by Smena Manager VPS kit
+# Challenge-only bootstrap. No public application before TLS and activation.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{DOMAIN}};
+    server_tokens off;
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/smena-manager-acme;
+        try_files $uri =404;
+    }
+    location / { return 503; }
+}

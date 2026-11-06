@@ -1,0 +1,39 @@
+# Managed by Smena Manager VPS kit
+[Unit]
+Description=Smena Manager API (single writer, Google Drive)
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=smena
+Group=smena
+WorkingDirectory=/srv/smena-manager/current
+EnvironmentFile=/etc/smena-manager/smena.env
+Environment=PATH={{NODE_DIR}}:/usr/bin:/bin
+ExecStartPre={{NODE}} deploy/vps/preflight.mjs
+ExecStart={{NODE}} deploy/vps/start.mjs
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=180
+TimeoutStopSec=60
+KillMode=mixed
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/smena-manager
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryHigh=3G
+MemoryMax=4G
+TasksMax=512
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smena-manager
+
+[Install]
+WantedBy=multi-user.target
