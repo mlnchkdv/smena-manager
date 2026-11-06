@@ -54,9 +54,10 @@ export function knowledgeDrawerHtml(note) {
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const folders = Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [];
   const preview = S.ui.knowledgeDrawerView !== 'edit';
-  const previewSource = knowledgeReadingSource(note);
-  const found = preview ? knowledgeFind(knowledgeReadingHtml(note, previewSource), note.id) : null;
-  const previewMarkup = found?.markup || knowledgeReadingHtml(note, previewSource);
+  const previewSource = preview ? knowledgeReadingSource(note) : '';
+  const readingMarkup = preview ? knowledgeReadingHtml(note, previewSource) : '';
+  const found = preview ? knowledgeFind(readingMarkup, note.id) : null;
+  const previewMarkup = found?.markup ?? readingMarkup;
   const updated = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
   const navigation = preview
     ? knowledgePreviewNavigation(S.ui.knowledgePreviewContext, {

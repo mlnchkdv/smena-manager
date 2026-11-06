@@ -2,7 +2,7 @@ import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
 import { knowledgeSearchParts, loadSearchPart, knowledgeSearchError } from './knowledge-search-store.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
-import { createKnowledgeMatcher, searchableNote } from '../shared/knowledge-search.js';
+import { createKnowledgeMatcher, searchableNote, knowledgeSearchContext } from '../shared/knowledge-search.js';
 import { parseKnowledgeQuery, matchesKnowledgeRules } from '../shared/knowledge-query.js';
 import { textMatcher, searchTerms } from '../shared/search-query.js';
 import { readKnowledgeDirectory, directoryMayMatch } from './knowledge-search-directory.js';
@@ -55,6 +55,14 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
   await Promise.all(Array.from({ length: Math.min(3, work.length) }, worker));
   const found = eligible.filter(note => matches.has(note.id));
   const result = knowledgeView(found, { ...options, query: '', folders: database.knowledgeFolders || [], favorites, limit: 60 });
+  const snippets = {};
+  if (terms.length)
+    for (const note of result.visible) {
+      const indexed = membership.get(note.id);
+      const body = indexed ? (await loadSearchPart(storage, indexed.part)).get(note.id)?.[2] : note.formatted_markdown;
+      const context = knowledgeSearchContext({ ...note, formatted_markdown: body }, options.query);
+      if (context) snippets[note.id] = { ...context, text: String(context.text || '').slice(0, 240) };
+    }
   return {
     ids: result.visible.map(note => note.id),
     matches: found.map(note => note.id),
@@ -64,5 +72,6 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
     revision: Number(database._documentRevisions?.knowledge?.revision || 0),
     favorites,
     complete: true,
+    snippets,
   };
 }

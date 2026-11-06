@@ -122,6 +122,7 @@ const markdown = new Marked({
   ],
 });
 
+export const tokenizeKnowledgeMarkdown = source => markdown.lexer(String(source || ''));
 export function renderKnowledgeMarkdown(source, options = {}) {
   options = { ...options, embedBudget: options.embedBudget || { count: 0 } };
   if (options.plainText) return `<pre class="knowledge-plain-text">${escape(source)}</pre>`;
@@ -252,7 +253,7 @@ export function renderKnowledgeMarkdown(source, options = {}) {
       })
       .join('');
   try {
-    return blocks(markdown.lexer(String(source || '')));
+    return blocks(options.tokenized?.source === source ? options.tokenized.tokens : tokenizeKnowledgeMarkdown(source));
   } catch {
     return `<pre>${escape(source)}</pre>`;
   }

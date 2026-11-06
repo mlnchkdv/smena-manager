@@ -48,7 +48,8 @@ export function knowledgeHistory(note, readOnly = false, expanded = false) {
       .map(reference => {
         const state = knowledgeVersionState(note.id, reference);
         const version = state.value;
-        const heading = `<span translate="no">${esc(reference.title)} · ${esc(fmtTimestamp(reference.at, true))}</span><span class="hint"> · ${reference.by && mem(reference.by) ? `<span translate="no">${esc(mem(reference.by).name)}</span>` : '<span>Unknown member</span>'}</span>`;
+        const title = version?.title || reference.title || text('Saved version', 'Сохранённая версия');
+        const heading = `<span translate="no">${esc(title)} · ${esc(fmtTimestamp(reference.at, true))}</span><span class="hint"> · ${reference.by && mem(reference.by) ? `<span translate="no">${esc(mem(reference.by).name)}</span>` : '<span>Unknown member</span>'}</span>`;
         if (!version)
           return `<div class="knowledge-history-row"><div>${heading}<button class="btn btn-secondary btn-sm" data-a="loadKnowledgeVersion" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" ${state.loading ? 'disabled' : ''} translate="no">${state.loading ? text('Loading…', 'Загрузка…') : state.error ? text('Retry version', 'Повторить чтение') : text('View version', 'Посмотреть версию')}</button></div></div>`;
         const historical = { ...version, id: note.id, sourceFormat: note.sourceFormat, history: [note, ...versions] };

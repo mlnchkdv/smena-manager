@@ -1,0 +1,6 @@
+@supports (content-visibility: auto) {
+  .knowledge-large-document > :is(p, pre, blockquote, ul, ol, table) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 120px;
+  }
+}

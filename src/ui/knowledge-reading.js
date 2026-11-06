@@ -9,6 +9,14 @@ import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeRelations } from '../shared/knowledge-links.js';
 import { knowledgeBodyState, ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 import { render } from '../shell/render.js';
+import { preparedMarkdown, clearMarkdownPreparation } from '../core/knowledge-markdown-demand.js';
+import { A } from '../actions/actions.js';
+import '../styles/knowledge-large-document.css';
+const readText = (en, ru) => (document.documentElement.lang === 'ru' ? ru : en);
+A.retryKnowledgeMarkdown = () => {
+  clearMarkdownPreparation();
+  render();
+};
 export const knowledgeMarkdownOptions = (note = {}) => ({
   plainText: note.sourceFormat === 'text',
   sourceId: note.id,
@@ -46,10 +54,20 @@ export const knowledgeMarkdownOptions = (note = {}) => ({
 });
 
 export function knowledgeReadingHtml(note, source) {
+  let tokenized;
+  if (note.sourceFormat !== 'text' && source.length > 32000) {
+    const prepared = preparedMarkdown(source);
+    if (prepared.pending)
+      return `<p role="status" translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p>`;
+    if (prepared.error)
+      return `<p role="alert" translate="no">${readText('Preview could not be prepared. Edit or download the complete source.', 'Не удалось подготовить предпросмотр. Откройте редактор или скачайте полный исходник.')}</p><button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry preview', 'Повторить предпросмотр')}</button>`;
+    tokenized = { source, tokens: prepared.tokens };
+  }
   const wikiTargets = new Map(
     knowledgeRelations(D().knowledgeNotes, note)
       .outgoing.filter(ref => ref.note)
       .map(ref => [ref.title.toLocaleLowerCase('ru-RU'), ref.note.id]),
   );
-  return renderKnowledgeMarkdown(source, { ...knowledgeMarkdownOptions(note), wikiTargets, sourceId: note.id });
+  const markup = renderKnowledgeMarkdown(source, { ...knowledgeMarkdownOptions(note), wikiTargets, sourceId: note.id, tokenized });
+  return source.length > 32000 ? `<div class="knowledge-large-document">${markup}</div>` : markup;
 }

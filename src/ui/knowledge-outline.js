@@ -4,8 +4,14 @@ import { kc } from './knowledge-types.js';
 
 export function knowledgeOutline(markup, actions = '') {
   const template = document.createElement('template');
-  template.innerHTML = markup;
-  const headings = [...template.content.querySelectorAll('[data-knowledge-heading]')];
+  // Markup is emitted by our allowlisted renderer. Parse only its headings,
+  // rather than building a second, document-sized DOM just for the outline.
+  const headings = [];
+  for (const match of markup.matchAll(/<h([1-6])\b[^>]*data-knowledge-heading="[^"]*"[^>]*>[\s\S]*?<\/h\1>/g)) {
+    template.innerHTML = match[0];
+    const heading = template.content.firstElementChild;
+    if (heading) headings.push(heading);
+  }
   if (headings.length < 4 && !actions) return '';
   const hasOutline = headings.length >= 4;
   const base = headings.reduce((level, heading) => Math.min(level, Number(heading.tagName.slice(1))), 6);

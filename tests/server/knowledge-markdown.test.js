@@ -1,9 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderKnowledgeMarkdown, knowledgeReadingSource } from '../../src/shared/knowledge-markdown.js';
+import { renderKnowledgeMarkdown, knowledgeReadingSource, tokenizeKnowledgeMarkdown } from '../../src/shared/knowledge-markdown.js';
 import { knowledgeDisplayParts } from '../../src/shared/knowledge-frontmatter.js';
 import { parseMarkdownNote, parseTextNote } from '../../src/shared/markdown-import.js';
 import { buildPortableWorkspace, mergePortableWorkspace } from '../../src/shared/portable-workspace.js';
+
+test('worker-prepared tokens preserve safe rendering and never replace nested embed tokens', () => {
+  const source = '# Heading\n\n| A | B |\n|---|---|\n|x|y|\n\n[[Target]] **bold** <script>alert(1)</script>\n\n![[note:child#^block]]';
+  const options = { wikiTargets: new Map([['target', 'n']]), resolveBlock: () => ({ title: 'Child', source: 'Child **content**' }) };
+  const expected = renderKnowledgeMarkdown(source, options);
+  assert.equal(renderKnowledgeMarkdown(source, { ...options, tokenized: { source, tokens: structuredClone(tokenizeKnowledgeMarkdown(source)) } }), expected);
+  assert.ok(expected.includes('Child <strong>content</strong>'));
+  assert.ok(!expected.includes('<script>'));
+  assert.equal(renderKnowledgeMarkdown('Other', { tokenized: { source, tokens: tokenizeKnowledgeMarkdown(source) } }), renderKnowledgeMarkdown('Other'));
+});
 
 test('resolved wiki links are keyboard buttons and unresolved references never guess targets', () => {
   const html = renderKnowledgeMarkdown('[[Цель]] [[Нет]]', { sourceId: 'a', wikiTargets: new Map([['цель', 'b"x']]) });

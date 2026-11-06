@@ -52,6 +52,8 @@ test('a revision-bound directory prunes cold text parts and never drops metadata
     for (const query of ['редкиймаркер', 'MetadataAlpha BODYBETA', '"редкиймаркер🧩"', 'BODYBETA']) {
       const result = await queryKnowledgeIndex(next, profile, [], { query, mode: query.startsWith('"') ? 'workspace' : 'knowledge' });
       assert.deepEqual(result.matches, ['node-199'], query);
+      assert.ok(result.snippets['node-199'].text.length <= 240);
+      assert.ok(result.snippets['node-199'].text.includes('редкиймаркер') || result.snippets['node-199'].text.includes('bodybeta'));
     }
     assert.ok(new Set(calls).size < next._knowledgeSearch.parts.length, 'rare queries avoid full derived-text scan');
     for (const query of [
