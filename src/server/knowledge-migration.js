@@ -3,10 +3,10 @@ import { getWorkspaceDatabase, mutateWorkspaceMetadata, createWorkspaceBackup } 
 import { getStorageProvider } from './storage/index.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
-import { externalKnowledgeBody, KNOWLEDGE_BODY_MAX_BYTES } from '../shared/knowledge-body.js';
+import { externalKnowledgeBody, validKnowledgeBodyRef, KNOWLEDGE_BODY_MAX_BYTES } from '../shared/knowledge-body.js';
 import { externalKnowledgeVersion } from '../shared/knowledge-history.js';
 import { knowledgeBodyToken, knowledgeCatalogDocument } from './knowledge-catalog.js';
-import { storeKnowledgeBody } from './knowledge-body-store.js';
+import { storeKnowledgeBody, loadKnowledgeBody } from './knowledge-body-store.js';
 import { persistKnowledgeVersion } from './knowledge-version-blobs.js';
 const fail = (code, statusCode = 409) => Object.assign(new Error('Review the current storage plan before continuing.'), { code, statusCode });
 const admin = (data, profile, profiles) => {
@@ -14,21 +14,24 @@ const admin = (data, profile, profiles) => {
   if (workspaceMemberRole(actor) !== 'admin') throw fail('ADMIN_REQUIRED', 403);
   return actor;
 };
+const needsMigration = note => !externalKnowledgeBody(note) || typeof note.bodyPreview !== 'string';
 const candidates = data =>
   [
-    ...(data.knowledgeNotes || []).filter(note => !externalKnowledgeBody(note)).map(note => ({ key: 'note:' + note.id, note })),
+    ...(data.knowledgeNotes || []).filter(needsMigration).map(note => ({ key: 'note:' + note.id, note })),
     ...(data.trash || [])
-      .filter(item => item.kind === 'note' && item.data?.note && !externalKnowledgeBody(item.data.note))
+      .filter(item => item.kind === 'note' && item.data?.note && needsMigration(item.data.note))
       .map(item => ({ key: 'trash:' + item.id, note: item.data.note, trashId: item.id })),
   ].sort((a, b) => a.key.localeCompare(b.key));
 function plan(data, actor) {
   const pending = candidates(data),
     tooLarge = pending
-      .filter(
-        ({ note }) =>
-          typeof note.formatted_markdown !== 'string' ||
-          Buffer.byteLength(JSON.stringify({ format: 'smena-knowledge-body-v1', noteId: note.id, formatted_markdown: note.formatted_markdown })) >
-            KNOWLEDGE_BODY_MAX_BYTES,
+      .filter(({ note }) =>
+        externalKnowledgeBody(note)
+          ? !validKnowledgeBodyRef(note.bodyRef)
+          : note.bodyPending ||
+            typeof (note.formatted_markdown ?? '') !== 'string' ||
+            Buffer.byteLength(JSON.stringify({ format: 'smena-knowledge-body-v1', noteId: note.id, formatted_markdown: note.formatted_markdown ?? '' })) >
+              KNOWLEDGE_BODY_MAX_BYTES,
       )
       .map(item => item.note.id);
   const reviewKey = createHash('sha256')
@@ -40,7 +43,10 @@ function plan(data, actor) {
     remaining: pending.length,
     active: pending.filter(item => !item.trashId).length,
     trash: pending.filter(item => item.trashId).length,
-    sourceBytes: pending.reduce((sum, item) => sum + Buffer.byteLength(item.note.formatted_markdown || ''), 0),
+    sourceBytes: pending.reduce(
+      (sum, item) => sum + (externalKnowledgeBody(item.note) ? item.note.bodyRef.bytes || 0 : Buffer.byteLength(item.note.formatted_markdown || '')),
+      0,
+    ),
     catalogBytes: Buffer.byteLength(JSON.stringify(knowledgeCatalogDocument(data))),
     tooLarge,
     enabled: process.env.KNOWLEDGE_CATALOG_ENABLED === 'true',
@@ -92,7 +98,8 @@ export async function stepKnowledgeMigration(jobId, profile, profiles = [], { pa
           const storage = getStorageProvider(),
             window = candidates(data).slice(0, 3);
           for (const item of window) {
-            const note = { ...item.note };
+            const note = await loadKnowledgeBody(storage, item.note);
+            note.formatted_markdown ??= '';
             if (Array.isArray(note.history)) {
               const history = [];
               for (const version of note.history)

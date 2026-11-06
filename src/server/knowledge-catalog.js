@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { noteCardExcerpt } from '../shared/knowledge-search.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { externalKnowledgeBody } from '../shared/knowledge-body.js';
@@ -12,7 +13,12 @@ export function knowledgeBodyToken(note) {
 }
 
 export function knowledgeCatalogNote(note) {
-  const value = { ...note, bodyToken: knowledgeBodyToken(note), bodyPending: true };
+  const value = {
+    ...note,
+    bodyPreview: externalKnowledgeBody(note) ? note.bodyPreview || '' : noteCardExcerpt(note, ''),
+    bodyToken: knowledgeBodyToken(note),
+    bodyPending: true,
+  };
   delete value.formatted_markdown;
   delete value.bodyRef;
   value.history = (note.history || []).map(version => {

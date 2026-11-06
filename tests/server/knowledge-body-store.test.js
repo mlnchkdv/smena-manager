@@ -9,6 +9,23 @@ import { GoogleDriveStorageProvider } from '../../src/server/storage/google-driv
 import { KNOWLEDGE_BODY_MAX_BYTES, knowledgeBodyMigrationWindow, validKnowledgeBodyRef } from '../../src/shared/knowledge-body.js';
 import { storeKnowledgeBody, loadKnowledgeBody, stageKnowledgeBodyWindow, expandKnowledgeBodies } from '../../src/server/knowledge-body-store.js';
 import { persistKnowledgeVersion } from '../../src/server/knowledge-version-blobs.js';
+import { knowledgeCatalogNote } from '../../src/server/knowledge-catalog.js';
+import { noteCardExcerpt } from '../../src/shared/knowledge-search.js';
+
+test('cold catalog previews stay bounded, omit MD service fields and preserve literal TXT without body reads', async () => {
+  const storage = memoryStorage();
+  for (const sourceFormat of ['markdown', 'text']) {
+    const note = { id: 'p', title: 'Preview', sourceFormat, formatted_markdown: '---\nsecret_marker: service\n---\nReadable content ' + 'word '.repeat(90) };
+    const stored = await storeKnowledgeBody(storage, note);
+    const catalog = knowledgeCatalogNote(stored);
+    const excerpt = noteCardExcerpt(catalog, '');
+    assert.ok(excerpt.length > 0 && excerpt.length <= 180);
+    assert.equal(excerpt.includes('secret_marker'), sourceFormat === 'text');
+    assert.equal(storage.reads.length, sourceFormat === 'text' ? 1 : 0);
+    assert.equal(Object.hasOwn(catalog, 'formatted_markdown'), false);
+    assert.deepEqual(await loadKnowledgeBody(storage, stored), note);
+  }
+});
 
 function memoryStorage() {
   const objects = new Map(),

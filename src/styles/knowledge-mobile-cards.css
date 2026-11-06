@@ -1,0 +1,27 @@
+@media (max-width: 640px) {
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-card {
+    min-height: 0;
+  }
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-open {
+    padding: 10px 48px 0 12px;
+    gap: 0;
+  }
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-excerpt {
+    min-height: 0;
+    margin-block: 6px 4px;
+    -webkit-line-clamp: 2;
+  }
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-location {
+    min-height: 44px;
+    padding-block: 2px;
+    display: flex;
+    align-items: center;
+  }
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-card-meta {
+    margin-top: 4px;
+    gap: 2px 8px;
+  }
+  .knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-meta {
+    margin-top: 4px;
+  }
+}

@@ -245,6 +245,24 @@ test('a failed migration window never publishes partial references and resumes w
   assert.equal(plan.job.processed, 3);
 });
 
+test('reviewed migration accepts legacy empty bodies and backfills previews of old external objects', async () => {
+  const root = await getWorkspaceDatabase();
+  delete root.knowledgeNotes[0].bodyPreview;
+  root.knowledgeNotes.push({ id: 'empty', title: 'Legacy empty' });
+  await storage.saveDatabase(root);
+  resetWorkspaceStore();
+  const review = await readKnowledgeMigration(profile('owner'));
+  assert.equal(review.remaining, 2);
+  assert.deepEqual(review.tooLarge, []);
+  const started = await startKnowledgeMigration(review.reviewKey, profile('owner'));
+  const completed = await stepKnowledgeMigration(started.job.id, profile('owner'));
+  assert.equal(completed.remaining, 0);
+  assert.equal((await readKnowledgeNote('empty', profile('owner'))).note.formatted_markdown, '');
+  const saved = await getWorkspaceDatabase();
+  assert.equal(saved.knowledgeNotes[0].bodyRef.sha256, root.knowledgeNotes[0].bodyRef.sha256);
+  assert.ok(saved.knowledgeNotes.every(note => typeof note.bodyPreview === 'string'));
+});
+
 test('empty/matching note patches preserve dates, history and all revisions', async () => {
   const loaded = await readKnowledgeNote('a', profile('editor'));
   const root = await getWorkspaceDatabase();
