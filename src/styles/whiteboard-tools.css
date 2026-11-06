@@ -17,6 +17,7 @@
 .whiteboard-tools-dialog .diagram-tools-section > button {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   min-height: var(--control-target);
   gap: 8px;
   padding: 8px;
