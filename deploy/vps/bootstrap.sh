@@ -35,12 +35,18 @@ read -r checksum filename < <(awk -v ending="-linux-${arch}.tar.xz" 'index($2,en
 curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
   "https://nodejs.org/dist/latest-v22.x/$filename" -o "$stage/$filename"
 (cd "$stage" && printf '%s  %s\n' "$checksum" "$filename" | sha256sum --check --status)
-tar -xJf "$stage/$filename" -C "$stage"
+tar -xJf "$stage/$filename" --no-same-owner -C "$stage"
 version_dir=${filename%.tar.xz}
+chown -hR root:root "$stage/$version_dir"
+chmod -R go-w "$stage/$version_dir"
 if [[ ! -e $node_root/versions/$version_dir ]]; then
   mv -- "$stage/$version_dir" "$node_root/versions/$version_dir"
 fi
 [[ -d $node_root/versions/$version_dir && ! -L $node_root/versions/$version_dir ]] || exit 1
+[[ $(stat -c %u "$node_root/versions/$version_dir") == 0 ]] || { echo 'Existing Node version must be root owned.' >&2; exit 1; }
+[[ -z $(find "$node_root/versions/$version_dir" -xdev \( ! -user root -o -perm /022 \) -print -quit) ]] || {
+  echo 'Existing Node version has unsafe ownership or permissions.' >&2; exit 1
+}
 [[ ! -e $node_root/bin || -L $node_root/bin ]] || { echo 'Refusing to replace an unmanaged Node bin directory.' >&2; exit 1; }
 ln -sfn -- "versions/$version_dir/bin" "$node_root/bin"
 "$node_root/bin/node" --version
