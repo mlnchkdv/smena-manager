@@ -121,7 +121,7 @@ export async function materializeKnowledgeMetadata(root, storage, { knowledge = 
   for (const [field, parts] of Object.entries(catalog.fields)) {
     if (requestedFields && !requestedFields.includes(field)) continue;
     const rows = new Map(),
-      selected = field === 'knowledgeNotes' && ids ? new Set(ids) : null;
+      selected = ids && (Array.isArray(ids) ? (field === 'knowledgeNotes' ? new Set(ids) : null) : ids[field] ? new Set(ids[field]) : null);
     const pending = parts.filter(part => !selected || [...selected].some(id => bucket(id).startsWith(part.prefix)));
     await Promise.all(
       Array.from({ length: Math.min(8, pending.length) }, async () => {

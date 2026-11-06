@@ -162,7 +162,7 @@ export async function getWorkspaceDatabase(options = {}) {
   if ((options.fields || ['metadata', 'none'].includes(options.catalog)) && typeof storage.loadDatabaseCore === 'function') {
     const stored = await storage.loadDatabaseCore({
       identities: options.catalog !== 'none' && (!options.fields || options.fields.includes('files')),
-      knowledge: !options.fields || options.fields.some(field => knowledgeMetadataFields.includes(field)),
+      knowledge: options.knowledge ?? (!options.fields || options.fields.some(field => knowledgeMetadataFields.includes(field))),
       knowledgeIds: options.knowledgeIds,
       knowledgeFields: options.fields,
       knowledgeAuthorize: options.knowledgeAuthorize,

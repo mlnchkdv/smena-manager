@@ -46,7 +46,13 @@ test('detailed status stays fresh without full reads and cannot poison the writa
   };
   assert.equal((await getWorkspaceDatabase({ fields: ['members', 'revision'] })).revision, 10);
   assert.equal((await getWorkspaceDatabase({ fields: ['files'] })).files.length, 2);
-  assert.deepEqual(projections, [{ identities: false }, { identities: true }]);
+  assert.deepEqual(
+    projections.map(({ identities, knowledge, knowledgeFields }) => ({ identities, knowledge, knowledgeFields })),
+    [
+      { identities: false, knowledge: false, knowledgeFields: ['members', 'revision'] },
+      { identities: true, knowledge: false, knowledgeFields: ['files'] },
+    ],
+  );
   let reads = 0;
   storage.loadDatabase = () => assert.fail('Status must not materialize the canonical catalog');
   storage.loadDatabaseStatus = async () => {

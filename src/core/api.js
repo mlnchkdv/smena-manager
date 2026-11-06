@@ -293,6 +293,12 @@ export async function getWorkspaceRevision() {
 }
 
 export async function getWorkspaceDocument(name) {
+  if (name === 'knowledge' && knowledgeDemandEnabled) {
+    const session = sessionGeneration;
+    const { readKnowledgePages } = await import('./knowledge-catalog-transport.js');
+    assertSessionGeneration(session);
+    return readKnowledgePages(request, session, assertSessionGeneration);
+  }
   const result = await request(
     name === 'knowledge' && knowledgeDemandEnabled ? '/api/knowledge/catalog' : `/api/workspace-documents/${encodeURIComponent(name)}`,
     {},
@@ -311,6 +317,18 @@ export async function searchKnowledgePage({ query = '', folder = 'all', tag = ''
 export const getKnowledgeNoteVersion = (id, version) => request(`/api/knowledge/${encodeURIComponent(id)}/versions/${encodeURIComponent(version)}`, {}, true);
 
 export async function putWorkspaceDocument(name, data, revision) {
+  if (name === 'knowledge' && knowledgeDemandEnabled) {
+    const session = sessionGeneration;
+    const { writeKnowledgeDelta } = await import('./knowledge-catalog-transport.js');
+    assertSessionGeneration(session);
+    const saved = await writeKnowledgeDelta(data, revision, request, session, assertSessionGeneration);
+    const sent = new Map(data.knowledgeNotes.map(note => [note.id, note]));
+    for (const note of saved.knowledgeNotes) {
+      const source = sent.get(note.id);
+      if (typeof source?.formatted_markdown === 'string' && !source.restoreFromVersion) cacheKnowledgeBody(note.bodyToken, source.formatted_markdown);
+    }
+    return saved;
+  }
   const actualBytes = workspaceTransportBytes(data, revision);
   if (actualBytes > WORKSPACE_TRANSPORT_MAX_BYTES) {
     throw new ApiError(`The ${name} document exceeds the 4 MB synchronization limit.`, 413, 'WORKSPACE_TOO_LARGE', {

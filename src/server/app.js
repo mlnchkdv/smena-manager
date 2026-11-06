@@ -8,6 +8,8 @@ import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRo
 import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
 import { readKnowledgeCatalog, knowledgeCoreCatalog } from './knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from './knowledge-catalog-write.js';
+import { readKnowledgeCatalogPage } from './knowledge-catalog-pages.js';
+import { applyKnowledgeCatalogDelta } from './knowledge-catalog-delta.js';
 import { updateKnowledgeTrash } from './knowledge-trash.js';
 import { readKnowledgeMigration, startKnowledgeMigration, stepKnowledgeMigration } from './knowledge-migration.js';
 import { inWorkspace } from './workspace-context.js';
@@ -667,7 +669,18 @@ app.get('/api/knowledge/notes/:id', async (request, response, next) => {
 });
 app.get('/api/knowledge/catalog', async (request, response, next) => {
   try {
-    response.json({ data: await readKnowledgeCatalog(request.user, getAccessProfiles()) });
+    response.json({
+      data: await (request.query.page === '1'
+        ? readKnowledgeCatalogPage(request.query, request.user, getAccessProfiles())
+        : readKnowledgeCatalog(request.user, getAccessProfiles())),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+app.patch('/api/knowledge/catalog', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ data: await applyKnowledgeCatalogDelta(request.body?.delta, request.body?.revision, request.user, getAccessProfiles()) });
   } catch (error) {
     next(error);
   }

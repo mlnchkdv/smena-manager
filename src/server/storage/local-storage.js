@@ -49,10 +49,14 @@ export class LocalStorageProvider {
   }
 
   async loadDatabase() {
-    return this.loadDatabaseCore();
+    return this.readDatabaseRoot();
   }
 
-  async loadDatabaseCore({ knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
+  async loadDatabaseCore(options = {}) {
+    return this.readDatabaseRoot(options);
+  }
+
+  async readDatabaseRoot({ knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
     try {
       const value = await fs.promises.readFile(this.databasePath, 'utf8');
       this.knowledgeRoot = JSON.parse(value);
