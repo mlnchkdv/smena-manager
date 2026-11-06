@@ -26,6 +26,7 @@ import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 import { whiteboardConnection } from '../shared/whiteboard-connect.js';
 import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
+import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -435,9 +436,9 @@ A.whiteboardLocate = el => {
   requestAnimationFrame(() => {
     const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
     if (!box || s !== whiteboardState()) return;
-    s.zoom = Math.min(1, (box.width - 48) / node.width, (box.height - 48) / node.height);
-    s.x = box.width / 2 - (node.x + node.width / 2) * s.zoom;
-    s.y = box.height / 2 - (node.y + node.height / 2) * s.zoom;
+    const camera = whiteboardNodeCamera(node, box);
+    if (!camera) return;
+    Object.assign(s, camera);
     paintView();
     document.querySelector(`[data-board-drag="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
   });
