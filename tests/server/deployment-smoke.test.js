@@ -89,3 +89,18 @@ test('protected redirects are never followed and unexpectedly large responses ar
   assert.equal(requests, 1);
   await assert.rejects(smokeDeployment('example.vercel.app', { fetch: async () => new Response('x'.repeat(1024 * 1024 + 10)) }), /large smoke-check response/u);
 });
+
+test('explicit VPS smoke accepts custom HTTPS origins but never credentials, HTTP or paths', async () => {
+  assert.equal(smokeOrigin('https://tasks.example.org', { allowCustomOrigin: true }), 'https://tasks.example.org');
+  for (const origin of [
+    'http://tasks.example.org',
+    'https://user:secret@tasks.example.org',
+    'https://tasks.example.org/path',
+    'https://tasks.example.org/?secret=x',
+  ])
+    assert.throws(() => smokeOrigin(origin, { allowCustomOrigin: true }));
+  assert.equal(
+    (await smokeDeployment('https://tasks.example.org', { allowCustomOrigin: true, fetch: async url => response(new URL(url).pathname) })).length,
+    6,
+  );
+});

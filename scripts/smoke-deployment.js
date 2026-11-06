@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 
-export function smokeOrigin(input) {
+export function smokeOrigin(input, { allowCustomOrigin = false } = {}) {
   const url = new URL(input.includes('://') ? input : `https://${input}`);
   const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
   if (
@@ -9,9 +9,9 @@ export function smokeOrigin(input) {
     url.search ||
     url.hash ||
     url.pathname !== '/' ||
-    (local ? !['http:', 'https:'].includes(url.protocol) : url.protocol !== 'https:' || !url.hostname.endsWith('.vercel.app'))
+    (local ? !['http:', 'https:'].includes(url.protocol) : url.protocol !== 'https:' || (!allowCustomOrigin && !url.hostname.endsWith('.vercel.app')))
   )
-    throw new Error('Use an HTTPS Vercel origin or a local test origin, without credentials, path, query or fragment.');
+    throw new Error('Use an HTTPS origin (custom domains require --allow-custom-origin) or localhost, without credentials, path, query or fragment.');
   return url.origin;
 }
 
@@ -35,7 +35,7 @@ async function boundedText(response) {
 }
 
 export async function smokeDeployment(input, options = {}) {
-  const origin = smokeOrigin(input);
+  const origin = smokeOrigin(input, options);
   const request = options.fetch || fetch;
   const results = [];
   for (const path of ['/', '/api/health', '/api/auth/config', '/api/workspace', '/api/workspace/revision', '/api/files/policy']) {
@@ -78,7 +78,9 @@ export async function smokeDeployment(input, options = {}) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const results = await smokeDeployment(process.argv[2] || process.env.DEPLOYMENT_URL || 'https://smena-manager.vercel.app');
+    const results = await smokeDeployment(process.argv[2] || process.env.DEPLOYMENT_URL || 'https://smena-manager.vercel.app', {
+      allowCustomOrigin: process.argv.includes('--allow-custom-origin'),
+    });
     for (const item of results) console.log(`PASS ${item.path} HTTP ${item.status}`);
   } catch (error) {
     console.error(`Deployment smoke failed: ${error.message}`);

@@ -9,12 +9,12 @@ import { getWorkspaceDatabase } from './workspace-store.js';
 import { mergeAccessProfiles } from '../shared/workspace-access.js';
 import { reserveSharedLoginAttempt } from './auth-session-store.js';
 import { directoryLoginProfiles } from './workspace-directory.js';
+import { loginClientAddress } from './reverse-proxy.js';
 
 const loginRateLimiter = createLoginRateLimiter();
 
 function rateLimitKey(request) {
-  const forwarded = process.env.VERCEL ? request.get('x-forwarded-for')?.split(',', 1)[0].trim() : '';
-  return forwarded || request.socket.remoteAddress || request.ip || 'unknown';
+  return loginClientAddress(request);
 }
 
 async function rateLimit(request, response, next) {

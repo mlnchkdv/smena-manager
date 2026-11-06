@@ -69,9 +69,11 @@ import { indexedKnowledgePage } from './knowledge-index.js';
 import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.js';
 import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
 import { knowledgeActor } from './knowledge-access.js';
+import { configureReverseProxy } from './reverse-proxy.js';
 
 export const app = express();
 
+configureReverseProxy(app);
 app.disable('x-powered-by');
 app.use((request, response, next) => {
   request.requestId = crypto.randomUUID();
@@ -87,6 +89,7 @@ app.get('/api/health', (_request, response) => {
   response.json({
     status: 'ok',
     service: 'smena-manager',
+    release: process.env.SMENA_RELEASE || null,
     runtime: process.env.VERCEL ? 'vercel' : 'node',
     timestamp: new Date().toISOString(),
   });
