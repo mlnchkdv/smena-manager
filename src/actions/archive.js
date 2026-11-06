@@ -8,6 +8,7 @@ import { D, S, logAct, task } from '../core/store.js';
 import { mutate, toast } from '../ui/toast.js';
 import { A, IN, confirmDlg, deleteTasks } from './actions.js';
 import { purgeWorkspaceTrash } from '../core/api.js';
+import { knowledgeCatalogMode } from '../core/api.js';
 import { applyWorkspaceSnapshot } from '../core/bootstrap.js';
 import { queueWorkspaceSync } from '../core/workspace-sync.js';
 import { render } from '../shell/render.js';
@@ -84,9 +85,10 @@ A.restoreTrash = el => {
     title: 'Restore item?',
     body: `<b translate="no">${esc(item.name)}</b><p>${t('Destination')}: <span translate="no">${esc(plan.target || t('No folder'))}</span></p>${plan.missingFolder ? `<p class="alert warn">${t('The original folder is missing. The item will be restored without a folder.')}</p>` : ''}${plan.sameName ? `<p>${t('An item with the same name exists. Both will be kept with their own IDs.')}</p>` : ''}`,
     ok: 'Restore',
-    run: () => {
+    run: async () => {
       const current = D().trash.find(entry => entry.id === item.id);
       if (!current) return;
+      if (current.kind === 'note' && knowledgeCatalogMode()) return (await import('../features/knowledge-trash.js')).knowledgeTrashOperation(current.id, true);
       const check = trashRestorePlan(current, D(), D().me, S.ui.currentUser?.role);
       if (check.error) return toast(t(check.error), { kind: 'err' });
       let restored = false;

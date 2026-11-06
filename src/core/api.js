@@ -4,6 +4,10 @@ import { workspaceCoreData } from '../shared/workspace-documents.js';
 import { parseAppLocation } from '../shared/app-location.js';
 import { clearKnowledgeBodies, cacheKnowledgeBody } from '../shared/knowledge-demand.js';
 let knowledgeDemandEnabled = false;
+export const knowledgeCatalogMode = () => knowledgeDemandEnabled;
+export const trashKnowledgeNotes = (ids, revision) => request('/api/knowledge/trash', { method: 'POST', body: JSON.stringify({ ids, revision }) }, true);
+export const restoreKnowledgeTrash = (id, revision) =>
+  request(`/api/knowledge/trash/${encodeURIComponent(id)}/restore`, { method: 'POST', body: JSON.stringify({ revision }) }, true);
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
@@ -82,6 +86,7 @@ function accountChanged() {
 }
 
 function addAccountHeader(headers) {
+  if (knowledgeDemandEnabled) headers.set('X-Smena-Knowledge', 'demand');
   if (sessionBlocked) throw accountChanged();
   if (sessionAccount) headers.set('X-Smena-Account', encodeURIComponent(sessionAccount));
   if (activeWorkspace) headers.set('X-Smena-Workspace', activeWorkspace);

@@ -11,8 +11,9 @@ import { readKnowledgeNote, patchKnowledgeNote } from '../../src/server/knowledg
 import { getKnowledgeVersion } from '../../src/server/knowledge-versions.js';
 import { bindWikiReferences } from '../../src/shared/knowledge-links.js';
 import { app } from '../../src/server/app.js';
-import { readKnowledgeCatalog } from '../../src/server/knowledge-catalog.js';
+import { readKnowledgeCatalog, knowledgeCoreCatalog, restoreKnowledgeTrashReferences } from '../../src/server/knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from '../../src/server/knowledge-catalog-write.js';
+import { updateKnowledgeTrash } from '../../src/server/knowledge-trash.js';
 
 let directory, source, storage;
 const oldPath = process.env.DATABASE_PATH;
@@ -134,6 +135,33 @@ test('metadata protocol rejects stale/forged/missing bodies and viewer writes wi
   await assert.rejects(replaceKnowledgeCatalog(input, input.revision, profile('editor')), { code: 'KNOWLEDGE_BODY_REQUIRED' });
   await assert.rejects(replaceKnowledgeCatalog(catalog, catalog.revision, profile('viewer')), { statusCode: 403 });
   assert.deepEqual(await getWorkspaceDatabase(), root);
+});
+
+test('note trash and restore publish membership and immutable body references atomically', async () => {
+  const root = await getWorkspaceDatabase(),
+    other = structuredClone(root.knowledgeNotes[1]);
+  await updateKnowledgeTrash('trash', ['a'], 0, profile('editor'));
+  let current = await getWorkspaceDatabase();
+  assert.equal(
+    current.knowledgeNotes.some(note => note.id === 'a'),
+    false,
+  );
+  const item = current.trash.find(item => item.kind === 'note');
+  assert.ok(item.data.note.bodyRef);
+  assert.equal(item.data.note.formatted_markdown, undefined);
+  const projected = knowledgeCoreCatalog(current);
+  assert.equal(projected.trash[0].data.note.bodyRef, undefined);
+  const echoed = restoreKnowledgeTrashReferences(current, projected);
+  assert.deepEqual(echoed.trash[0].data.note, item.data.note);
+  projected.trash[0].data.note.bodyToken = '0'.repeat(64);
+  assert.throws(() => restoreKnowledgeTrashReferences(current, projected), { code: 'KNOWLEDGE_BODY_STALE' });
+  assert.deepEqual(current.knowledgeNotes[0], other);
+  await assert.rejects(updateKnowledgeTrash('restore', item.id, 1, profile('viewer')), { statusCode: 403 });
+  await assert.rejects(updateKnowledgeTrash('restore', item.id, 1, profile('owner')), { statusCode: 404 });
+  await updateKnowledgeTrash('restore', item.id, 1, profile('editor'));
+  current = await getWorkspaceDatabase();
+  assert.equal(current.trash.length, 0);
+  assert.equal((await readKnowledgeNote('a', profile('editor'))).note.formatted_markdown, source.knowledgeNotes[0].formatted_markdown);
 });
 
 test('empty/matching note patches preserve dates, history and all revisions', async () => {

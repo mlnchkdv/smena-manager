@@ -10,6 +10,13 @@ import { mutate, toast } from '../ui/toast.js';
 import { esc } from '../core/utils.js';
 import { kc } from '../ui/knowledge-types.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from '../core/workspace-sync.js';
+import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
+async function offlineSnapshot(entries) {
+  const ids = new Set(entries.filter(item => item.pending && item.workspace === getActiveWorkspace()).map(item => item.id)),
+    notes = [];
+  for (const note of D().knowledgeNotes) notes.push(ids.has(note.id) ? structuredClone(await ensureKnowledgeBody(note)) : note);
+  return { ...D(), knowledgeNotes: notes };
+}
 async function shell(owner, generation) {
   const registration = await navigator.serviceWorker.register('/sw.js');
   const worker = registration.installing || registration.waiting;
@@ -43,6 +50,7 @@ export async function pinKnowledgeNote(el) {
     owner = S.ui.currentUser?.id;
   if (!note) return;
   try {
+    const loaded = await ensureKnowledgeBody(note);
     await shell(owner, generation);
     await putOffline({
       owner: S.ui.currentUser.id,
@@ -51,8 +59,8 @@ export async function pinKnowledgeNote(el) {
       kind: 'note',
       id: note.id,
       title: note.title,
-      base: structuredClone(note),
-      body: note.formatted_markdown,
+      base: structuredClone(loaded),
+      body: loaded.formatted_markdown,
       pending: false,
       projects: visibleProjects()
         .filter(p => canEditProject(p, D().me, S.ui.currentUser?.role))
@@ -88,7 +96,7 @@ export async function pinKnowledgeFile(el) {
 }
 export async function reviewOfflineChanges() {
   const entries = await offlineItems(S.ui.currentUser.id),
-    plan = offlineEditPlan(entries, D(), S.ui.currentUser.id, getActiveWorkspace());
+    plan = offlineEditPlan(entries, await offlineSnapshot(entries), S.ui.currentUser.id, getActiveWorkspace());
   const uploads = entries.filter(e => e.kind === 'upload' && e.workspace === getActiveWorkspace());
   openModal({
     type: 'knowledgeTool',
@@ -105,7 +113,7 @@ A.applyOfflineKnowledge = async () => {
     workspace = getActiveWorkspace(),
     generation = getSessionGeneration(),
     entries = await offlineItems(owner),
-    plan = offlineEditPlan(entries, D(), owner, workspace);
+    plan = offlineEditPlan(entries, await offlineSnapshot(entries), owner, workspace);
   if (!plan.ready.length) return;
   if (
     !mutate(() => {

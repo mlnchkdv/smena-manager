@@ -1,3 +1,4 @@
+import { knowledgeNotePayload } from './knowledge-demand.js';
 export const ADMIN_ONLY_FIELDS = ['ws', 'workspaces', 'members', 'me', 'sessions', 'invoices', 'tfa', 'plan'];
 
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -22,7 +23,8 @@ function withoutOwnPreferences(preferences, memberId) {
 export function restoreUnauthorizedChanges(baseline, candidate, role, memberId = null) {
   if (!baseline || !candidate || role === 'admin') return { data: candidate, denied: false, fields: [] };
   if (!canWriteWorkspace(role)) {
-    const denied = !same(baseline, candidate);
+    const comparable = value => ({ ...value, knowledgeNotes: value.knowledgeNotes?.map(knowledgeNotePayload) });
+    const denied = !same(comparable(baseline), comparable(candidate));
     return { data: denied ? clone(baseline) : candidate, denied, fields: denied ? ['*'] : [] };
   }
 

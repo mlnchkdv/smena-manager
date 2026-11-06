@@ -19,6 +19,7 @@ import { noteTypeBadge } from './knowledge-type-badge.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { openModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
+import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 export function noteUtilities(note) {
   return `<button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
 }
@@ -34,8 +35,15 @@ A.viewKnowledgeHistory = el => {
   });
 };
 
-A.downloadKnowledgeNoteSource = el => {
-  const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+A.downloadKnowledgeNoteSource = async el => {
+  let note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+  if (note) {
+    try {
+      note = await ensureKnowledgeBody(note);
+    } catch {
+      return;
+    }
+  }
   if (!note || typeof note.formatted_markdown !== 'string') return;
   const url = URL.createObjectURL(new Blob([note.formatted_markdown], { type: 'text/plain;charset=utf-8' }));
   const anchor = document.createElement('a');

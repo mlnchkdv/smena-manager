@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cacheKnowledgeBody, hydrateKnowledgeBody, knowledgeNotePayload, clearKnowledgeBodies } from '../../src/shared/knowledge-demand.js';
 import { mergeWorkspaceData } from '../../src/shared/workspace-merge.js';
+import { restoreUnauthorizedChanges } from '../../src/shared/workspace-permissions.js';
 test('hydration is not an edit, but empty and changed bodies remain explicit writes', () => {
   clearKnowledgeBodies();
   const note = { id: 'a', bodyToken: 'a'.repeat(64), bodyPending: true, title: 'A' };
@@ -9,8 +10,10 @@ test('hydration is not an edit, but empty and changed bodies remain explicit wri
   cacheKnowledgeBody(note.bodyToken, '# Original');
   hydrateKnowledgeBody(note);
   assert.deepEqual(knowledgeNotePayload(note), baseline);
+  assert.equal(restoreUnauthorizedChanges({ knowledgeNotes: [baseline] }, { knowledgeNotes: [note] }, 'viewer').denied, false);
   note.formatted_markdown = '';
   assert.equal(knowledgeNotePayload(note).formatted_markdown, '');
+  assert.equal(restoreUnauthorizedChanges({ knowledgeNotes: [baseline] }, { knowledgeNotes: [note] }, 'viewer').denied, true);
   note.formatted_markdown = 'New';
   assert.equal(knowledgeNotePayload(note).formatted_markdown, 'New');
   clearKnowledgeBodies();

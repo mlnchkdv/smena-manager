@@ -38,14 +38,16 @@ export async function ensureKnowledgeBody(note, retry = false) {
 }
 export async function completeKnowledgeSnapshot(data) {
   const owner = scope(),
-    notes = [];
-  for (const note of data.knowledgeNotes || []) {
+    notes = [],
+    metadata = (data.knowledgeNotes || []).map(note => structuredClone(note)),
+    folders = structuredClone(data.knowledgeFolders || []);
+  for (const note of metadata) {
     const loaded = await ensureKnowledgeBody(note);
     if (owner !== scope()) throw Object.assign(new Error('Context changed'), { staleSession: true });
-    const value = structuredClone(loaded);
+    const value = { ...note, formatted_markdown: loaded.formatted_markdown };
     delete value.bodyToken;
     delete value.bodyPending;
     notes.push(value);
   }
-  return { ...data, knowledgeNotes: notes };
+  return { ...data, knowledgeNotes: notes, knowledgeFolders: folders };
 }

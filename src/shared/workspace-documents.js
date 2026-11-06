@@ -18,7 +18,12 @@ export function serializeWorkspaceWrite(task) {
 }
 
 export function workspaceCoreData(data = {}) {
-  return Object.fromEntries(Object.entries(data).filter(([key]) => !DOCUMENT_FIELDS.includes(key) && !key.startsWith('_')));
+  const core = Object.fromEntries(Object.entries(data).filter(([key]) => !DOCUMENT_FIELDS.includes(key) && !key.startsWith('_')));
+  if (Array.isArray(core.trash))
+    core.trash = core.trash.map(item =>
+      item.kind === 'note' && item.data?.note?.bodyPending ? { ...item, data: { ...item.data, note: knowledgeNotePayload(item.data.note) } } : item,
+    );
+  return core;
 }
 
 export function workspaceDocumentData(name, data = {}) {

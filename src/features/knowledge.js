@@ -344,14 +344,17 @@ A.trashKnowledgeSelection = () => {
     body: 'Selected notes can be restored from trash.',
     ok: 'Move to trash',
     danger: true,
-    run: () =>
-      mutate(() => {
+    run: async () => {
+      if (D().knowledgeNotes.some(note => ids.has(note.id) && note.bodyPending))
+        return (await import('./knowledge-trash.js')).knowledgeTrashOperation([...ids]);
+      return mutate(() => {
         D()
           .knowledgeNotes.filter(note => ids.has(note.id))
           .forEach(note => moveToTrash('note', note.title, { note: structuredClone(note) }));
         D().knowledgeNotes = D().knowledgeNotes.filter(note => !ids.has(note.id));
         S.ui.knowledgeSelection = [];
-      }),
+      });
+    },
   });
 };
 A.toggleKnowledgeMobileFolders = () => {

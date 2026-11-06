@@ -149,10 +149,12 @@ export function renderKnowledgeMarkdown(source, options = {}) {
               budget = options.embedBudget || { count: 0 },
               stack = options.embedStack || [];
             const key = ref?.block ? `${ref.key}#^${ref.block}` : '';
-            const block = key && ref.key.startsWith('note:') && options.resolveBlock?.(ref.key.slice(5), ref.block);
-            if (!block || stack.includes(key) || stack.length >= 4 || budget.count >= 12)
+            if (!key || !ref.key.startsWith('note:') || stack.includes(key) || stack.length >= 4 || budget.count >= 12)
               return `<span class="hint">${escape(options.embedUnavailableLabel || 'Block unavailable or recursive')}</span>`;
             budget.count++;
+            const block = options.resolveBlock?.(ref.key.slice(5), ref.block);
+            if (block?.pending) return `<span class="hint" role="status">${escape(options.embedLoadingLabel || 'Loading excerpt…')}</span>`;
+            if (!block) return `<span class="hint">${escape(options.embedUnavailableLabel || 'Block unavailable or recursive')}</span>`;
             return `<span class="knowledge-transclusion"><strong><button class="knowledge-wiki-link" data-a="openRelatedEntity" data-key="${escape(ref.key)}">${escape(block.title)}</button></strong>${renderKnowledgeMarkdown(block.source.slice(0, 32000), { ...options, embedBudget: budget, embedStack: [...stack, key] })}${block.source.length > 32000 ? `<span class="hint">${escape(options.embedShortenedLabel || 'Excerpt shortened. Open the source to read the complete block.')}</span>` : ''}</span>`;
           }
           case 'knowledgeWiki': {

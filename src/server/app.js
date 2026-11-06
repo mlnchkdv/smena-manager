@@ -5,8 +5,9 @@ import crypto from 'node:crypto';
 import { reportProviderError, safeProviderError } from './provider-safety.js';
 import { getWorkspaceAccessProfiles as getAccessProfiles, requireAuth, requireRole } from './auth.js';
 import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorkspace, workspaceDirectoryEntries } from './workspace-directory.js';
-import { readKnowledgeCatalog } from './knowledge-catalog.js';
+import { readKnowledgeCatalog, knowledgeCoreCatalog } from './knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from './knowledge-catalog-write.js';
+import { updateKnowledgeTrash } from './knowledge-trash.js';
 import { inWorkspace } from './workspace-context.js';
 import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
@@ -197,6 +198,7 @@ app.use('/api', (request, response, next) => {
   response.json = body => {
     if (body?.data && Array.isArray(body.data.projects) && Array.isArray(body.data.tasks)) {
       body = { ...body, data: projectWorkspace(workspaceCoreData(bindAccessProfiles(body.data, getAccessProfiles())), request.user) };
+      if (request.get('x-smena-knowledge') === 'demand') body = { ...body, data: knowledgeCoreCatalog(body.data) };
       if (request.get('x-smena-whiteboards') === 'demand') body = { ...body, ...whiteboardCatalogProjection(body.data) };
       const catalogMode = request.get('x-smena-file-catalog');
       if (request.query.fileCatalog === 'pages' || ['pages', 'demand'].includes(catalogMode)) {
@@ -671,6 +673,20 @@ app.get('/api/knowledge/catalog', async (request, response, next) => {
 app.put('/api/knowledge/catalog', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.json({ data: await replaceKnowledgeCatalog(request.body?.data, request.body?.revision, request.user, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/trash', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json(await updateKnowledgeTrash('trash', request.body?.ids, request.body?.revision, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/trash/:id/restore', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json(await updateKnowledgeTrash('restore', request.params.id, request.body?.revision, request.user, getAccessProfiles()));
   } catch (error) {
     next(error);
   }

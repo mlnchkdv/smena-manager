@@ -7,6 +7,8 @@ import { D } from '../core/store.js';
 import { t } from '../core/i18n.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeRelations } from '../shared/knowledge-links.js';
+import { knowledgeBodyState, ensureKnowledgeBody } from '../core/knowledge-bodies.js';
+import { render } from '../shell/render.js';
 export const knowledgeMarkdownOptions = (note = {}) => ({
   plainText: note.sourceFormat === 'text',
   sourceId: note.id,
@@ -19,7 +21,19 @@ export const knowledgeMarkdownOptions = (note = {}) => ({
   },
   loadImageLabel: document.documentElement.lang === 'ru' ? 'Загрузить изображение' : 'Load image',
   bindImageLabel: document.documentElement.lang === 'ru' ? 'Связать с файлом' : 'Bind to a file',
-  resolveBlock: (id, block) => resolveKnowledgeBlock(D().knowledgeNotes, id, block),
+  resolveBlock: (id, block) => {
+    const target = D().knowledgeNotes.find(note => note.id === id);
+    if (target && !knowledgeBodyState(target).loaded) {
+      const state = knowledgeBodyState(target);
+      if (!state.loading && !state.error)
+        void ensureKnowledgeBody(target).then(render, error => {
+          if (!error.staleSession) render();
+        });
+      return state.error ? null : { pending: true, title: target.title };
+    }
+    return resolveKnowledgeBlock(D().knowledgeNotes, id, block);
+  },
+  embedLoadingLabel: document.documentElement.lang === 'ru' ? 'Загрузка фрагмента…' : 'Loading excerpt…',
   embedShortenedLabel:
     document.documentElement.lang === 'ru'
       ? 'Фрагмент сокращён. Полный блок доступен в источнике.'

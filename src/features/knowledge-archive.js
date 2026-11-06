@@ -15,6 +15,7 @@ import { openModal, closeModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 import { toast } from '../ui/toast.js';
 import { kc, typeName } from '../ui/knowledge-types.js';
+import { completeKnowledgeSnapshot } from '../core/knowledge-bodies.js';
 function workerJob(input, transfer = []) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./knowledge-archive-worker.js', import.meta.url), { type: 'module' }),
@@ -145,10 +146,11 @@ A.exportKnowledgeArchive = async () => {
   m.error = '';
   render();
   try {
+    const snapshot = await completeKnowledgeSnapshot(D());
     const data = {
-        ws: structuredClone(D().ws),
-        knowledgeNotes: structuredClone(D().knowledgeNotes),
-        knowledgeFolders: structuredClone(D().knowledgeFolders),
+        ws: structuredClone(snapshot.ws),
+        knowledgeNotes: snapshot.knowledgeNotes,
+        knowledgeFolders: structuredClone(snapshot.knowledgeFolders),
         links: structuredClone(D().links),
         linkFolders: structuredClone(D().linkFolders),
         relations: structuredClone(D().relations || []),

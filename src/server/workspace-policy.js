@@ -6,6 +6,7 @@ import { canReadWhiteboard } from '../shared/whiteboards.js';
 import { notificationRecipient } from '../shared/notification-model.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { entityAllowed } from '../shared/relations.js';
+import { restoreKnowledgeTrashReferences } from './knowledge-catalog.js';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const FILE_FIELDS = ['storageFileId', 'storageName', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
@@ -81,6 +82,7 @@ export function validateClientFiles(current, candidate, role, memberId) {
 }
 
 export function mergeClientWorkspace(current, incoming, role, memberId) {
+  incoming = restoreKnowledgeTrashReferences(current, incoming);
   if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new TypeError('Workspace data must be an object.');
   const candidate = { ...current, ...structuredClone(incoming) };
   candidate.recentSearches = structuredClone(current.recentSearches || []);

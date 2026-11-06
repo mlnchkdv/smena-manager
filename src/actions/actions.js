@@ -343,7 +343,14 @@ A.exportPortableWorkspace = async () => {
     return toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
   }
   if (generation !== getSessionGeneration() || S.ui.currentUser?.role !== 'admin') return;
-  const payload = buildPortableWorkspace(D());
+  let payload;
+  try {
+    const { completeKnowledgeSnapshot } = await import('../core/knowledge-bodies.js');
+    payload = buildPortableWorkspace(await completeKnowledgeSnapshot(D()));
+  } catch {
+    return toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
+  }
+  if (generation !== getSessionGeneration()) return;
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const href = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -713,7 +720,11 @@ A.retryKnowledgeBody = async el => {
   const { ensureKnowledgeBody } = await import('../core/knowledge-bodies.js');
   const pending = ensureKnowledgeBody(note, true);
   render();
-  try { await pending; } catch { /* The reader offers another retry. */ }
+  try {
+    await pending;
+  } catch {
+    /* The reader offers another retry. */
+  }
   render();
 };
 A.toggleKnowledgeFavorite = el => {
@@ -851,13 +862,15 @@ A.deleteKnowledgeNote = el => {
     body: `<b>${esc(note.title)}</b> will be moved to trash.`,
     ok: 'Move to trash',
     danger: true,
-    run: () =>
-      mutate(() => {
+    run: async () => {
+      if (note.bodyPending) return (await import('../features/knowledge-trash.js')).knowledgeTrashOperation([note.id]);
+      return mutate(() => {
         moveToTrash('note', note.title, { note: structuredClone(note) });
         D().knowledgeNotes = knowledgeCollections().notes.filter(item => item.id !== note.id);
         S.ui.knowledgeActive = D().knowledgeNotes[0]?.id || null;
         if (S.ui.knowledgeDrawer === note.id) S.ui.knowledgeDrawer = null;
-      }),
+      });
+    },
   });
 };
 IN.knowledgeQuery = el => {
@@ -966,7 +979,7 @@ A.deleteKnowledgeFolder = el => {
   });
 };
 IN.knowledgeField = el => {
-  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  if (S.ui.atomicOperation || S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
   const note = knowledgeCollections().notes.find(item => item.id === el.dataset.id);
   if (!note) return;
   bindWikiReferences(D().knowledgeNotes);

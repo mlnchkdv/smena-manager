@@ -34,6 +34,30 @@ export function knowledgeCatalogDocument(database) {
   };
 }
 
+export function knowledgeCoreCatalog(data) {
+  return {
+    ...data,
+    trash: (data.trash || []).map(item =>
+      item.kind === 'note' && item.data?.note ? { ...item, data: { ...item.data, note: knowledgeCatalogNote(item.data.note) } } : item,
+    ),
+  };
+}
+
+export function restoreKnowledgeTrashReferences(current, incoming) {
+  if (!Array.isArray(incoming.trash)) return incoming;
+  const canonical = new Map((current.trash || []).map(item => [item.id, item]));
+  return {
+    ...incoming,
+    trash: incoming.trash.map(item => {
+      if (item.kind !== 'note' || !item.data?.note?.bodyPending) return item;
+      const stored = canonical.get(item.id);
+      if (stored?.kind !== 'note' || stored.data?.note?.id !== item.data.note.id || knowledgeBodyToken(stored.data.note) !== item.data.note.bodyToken)
+        throw Object.assign(new Error('The note in trash changed. Refresh and retry.'), { statusCode: 409, code: 'KNOWLEDGE_BODY_STALE' });
+      return { ...item, data: { ...item.data, note: stored.data.note } };
+    }),
+  };
+}
+
 export async function readKnowledgeCatalog(profile, profiles = []) {
   const database = await getWorkspaceDatabase({ fields: ['members', 'knowledgeNotes', 'knowledgeFolders', '_documentRevisions', 'createdAt', 'updatedAt'] });
   knowledgeActor(database, profile, profiles);

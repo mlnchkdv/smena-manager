@@ -2,6 +2,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { identifyBlock, resolveKnowledgeBlock } from '../../src/shared/knowledge-block-references.js';
 import { renderKnowledgeMarkdown } from '../../src/shared/knowledge-markdown.js';
+test('pending transclusions share the same twelve-request budget as loaded embeds', () => {
+  let requests = 0;
+  const html = renderKnowledgeMarkdown(Array(40).fill('![[note:n#^stable]]').join('\n\n'), {
+    resolveBlock: () => {
+      requests++;
+      return { pending: true, title: 'Pending' };
+    },
+    embedLoadingLabel: 'Loading safely',
+  });
+  assert.equal(requests, 12);
+  assert.equal((html.match(/Loading safely/g) || []).length, 12);
+  assert.doesNotMatch(html, /undefined/);
+});
 test('stable block identities survive moves and recursive embeds are bounded', () => {
   const saved = identifyBlock('First\n\nSecond', 0, 'stable');
   assert.equal(identifyBlock(saved.text, 0, 'another').id, 'stable');
