@@ -37,3 +37,22 @@ export const uploadJournal = createUploadJournal({
     clear: () => transaction(true, store => store.clear()),
   },
 });
+
+const channel = typeof window !== 'undefined' && typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena-upload-signout') : null;
+export function clearUploadJournal() {
+  const cleared = uploadJournal.clear();
+  channel?.postMessage('signed-out');
+  return cleared;
+}
+if (channel)
+  channel.onmessage = () => {
+    void uploadJournal.clear().catch(() => {});
+    window.dispatchEvent(new CustomEvent('smena:upload-journal-cleared'));
+  };
+if (typeof window !== 'undefined')
+  window.addEventListener('storage', event => {
+    if (event.key === 'smena.session.v1' && event.newValue === null) {
+      void uploadJournal.clear().catch(() => {});
+      window.dispatchEvent(new CustomEvent('smena:upload-journal-cleared'));
+    }
+  });

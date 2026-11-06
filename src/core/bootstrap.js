@@ -129,12 +129,26 @@ async function loadWorkspaceFor(user) {
     }
   }
   S.ui.filePolicy = filePolicy;
-  try {
-    if (Object.keys(sessionStorage).some(key => key.startsWith('smena.uploads.v1:')))
-      void import('./file-upload-queue.js').then(module => module.restoreUploadQueue());
-  } catch {
-    /* Checkpoints are optional when browser storage is unavailable. */
-  }
+  const uploadScope = JSON.stringify([user.id, S.ui.activeWorkspace || 'default']);
+  void (async () => {
+    const { uploadJournal } = await import('./upload-journal.js');
+    let pending = [];
+    try {
+      pending = await uploadJournal.read(uploadScope);
+    } catch {
+      /* Session fallback below. */
+    }
+    let legacy = false;
+    try {
+      legacy = !!sessionStorage.getItem(`smena.uploads.v1:${uploadScope}`);
+    } catch {
+      /* Private storage may be disabled. */
+    }
+    if (generation !== getSessionGeneration() || S.ui.currentUser?.id !== user.id) return;
+    if (pending.length || legacy) (await import('./file-upload-queue.js')).restoreUploadQueue();
+  })().catch(() => {
+    /* Queue recovery must not block signing in. */
+  });
   if (user.name) S.prefs.name = user.name;
   S.prefs.title = user.title || '';
   return user;

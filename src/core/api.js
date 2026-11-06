@@ -54,6 +54,7 @@ export function setSessionToken(token) {
   sessionBlocked = false;
   revisionCache = null;
   memorySessionToken = token || '';
+  if (!token) void import('./upload-journal.js').then(module => module.clearUploadJournal()).catch(() => {});
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:upload-scope-change', { detail: { signedOut: !token } }));
   try {
     if (token) localStorage.setItem(SESSION_STORAGE_KEY, token === 'cookie' ? 'cookie' : token);

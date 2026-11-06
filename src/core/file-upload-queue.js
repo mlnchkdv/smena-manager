@@ -522,7 +522,6 @@ function resetUploadScope(signedOut) {
   generation = -1;
   owner?.close();
   if (signedOut) {
-    void uploadJournal.clear().catch(() => {});
     try {
       Object.keys(sessionStorage)
         .filter(value => value.startsWith(prefix))
@@ -535,12 +534,10 @@ function resetUploadScope(signedOut) {
   S.ui.uploads = [];
   scope = '';
 }
-const signoutChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena-upload-signout') : null;
-if (signoutChannel) signoutChannel.onmessage = () => resetUploadScope(true);
 window.addEventListener('smena:upload-scope-change', event => {
   resetUploadScope(event.detail?.signedOut);
-  if (event.detail?.signedOut) signoutChannel?.postMessage('signed-out');
 });
+window.addEventListener('smena:upload-journal-cleared', () => resetUploadScope(true));
 window.addEventListener('storage', event => {
   if (event.key === SESSION_STORAGE_KEY && event.newValue === null) resetUploadScope(true);
 });
