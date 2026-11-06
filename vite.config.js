@@ -56,6 +56,7 @@ const buildId = process.env.VERCEL_GIT_COMMIT_SHA || randomUUID();
 export default defineConfig({
   define: { __SMENA_BUILD_ID__: JSON.stringify(buildId) },
   build: {
+    manifest: true,
     rollupOptions: {
       input: { index: path.resolve('index.html'), offline: path.resolve('offline.html') },
       output: { manualChunks: { sanitizer: ['dompurify'] } },

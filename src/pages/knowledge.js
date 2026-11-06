@@ -1,3 +1,4 @@
+import '../actions/material-actions.js';
 import { isFavorite } from '../core/favorites.js';
 import { folderQuickLinks, installFolderShortcuts } from '../ui/knowledge-folder-shortcuts.js';
 import { knowledgeQueryContext } from '../ui/knowledge-query-context.js';

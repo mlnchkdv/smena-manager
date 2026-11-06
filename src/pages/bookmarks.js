@@ -1,3 +1,4 @@
+import '../actions/material-actions.js';
 import '../features/bookmark-batch.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
