@@ -8,14 +8,16 @@
   },
   "quality": {
     "node": "22.23.3",
-    "serverTestsPassed": 769,
+    "serverTestsPassed": 770,
     "serverTestsFailed": 0,
     "lint": "pass",
     "tokens": "pass",
-    "initialJavaScriptKiB": 595.1,
+    "initialJavaScriptKiB": 595.3,
     "initialJavaScriptLimitKiB": 600,
     "format": "pass",
-    "filenameBasenameRegressionTestsPassed": 15
+    "filenameBasenameRegressionTestsPassed": 15,
+    "buildCommit": "1fd92af997921245a357824ca90f40fb1deb8e24",
+    "rolloutGuardTargetedTestsPassed": 13
   },
   "status": {
     "localAccepted": ["U04", "U05", "U06", "U07", "U08", "U09", "U10"],
@@ -565,5 +567,11 @@
     "page": "0",
     "normalized": true
   },
-  "notAccepted": ["production", "real iOS and Android", "WebKit regression after these changes", "screen reader", "complete 26-item backlog"]
+  "notAccepted": ["production", "real iOS and Android", "WebKit regression after these changes", "screen reader", "complete 26-item backlog"],
+  "fileContextChangedView": {
+    "reloadSameViewPage": 3,
+    "changedViewPage": 1,
+    "queryPreserved": true,
+    "sharedViewRestored": true
+  }
 }

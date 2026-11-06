@@ -2,7 +2,7 @@
 
 **Развёртывание на VPS Aeza / VPS deployment:** [Ubuntu 24.04: Nginx, systemd, установка, обновление и откат / installation, updates and rollback](deploy/vps/README.md). Google Drive и Google Sign-In сохраняются; конфигурация рассчитана на 4 CPU / 8 ГБ RAM. Реальное развёртывание и приёмка нового домена выполняются отдельно / actual server deployment and domain acceptance are separate.
 
-**06.11.2026 — внедрение пакета / delivery in progress:** [Журнал U01–U14 и F01–F12 / Delivery ledger](docs/PRODUCT_DELIVERY_2026-11-06.md). U04–U10 локально приняты на RU/EN, 320–1366 px; U01 остаётся за rollout-флагом до завершения холодного поиска и крупного импорта. 769 tests on Node 22; production 402. F01–F12 remain pending; assistant provider selection is deferred.
+**06.11.2026 — внедрение пакета / delivery in progress:** [Журнал U01–U14 и F01–F12 / Delivery ledger](docs/PRODUCT_DELIVERY_2026-11-06.md). U04–U10 локально приняты на RU/EN, 320–1366 px; U01 остаётся за rollout-флагом до завершения холодного поиска и крупного импорта. 770 tests on Node 22; production 402. F01–F12 remain pending; assistant provider selection is deferred.
 
 **06.11.2026 — актуальный аудит и развитие холстов / current audit and whiteboard improvements:** [Проверки, пять внедрённых изменений, 14 необходимых улучшений и 12 направлений развития / Evidence, five delivered changes, 14-item backlog and 12 product directions](docs/PRODUCT_AUDIT_AND_WHITEBOARDS_2026-11-06.md). RU/EN, семь размеров ключевых экранов; 749 tests passed. Production возвращает 402: приёмка проведена локально на изолированных данных / production returns 402; isolated local acceptance only, no live deployment claim.
 
