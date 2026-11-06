@@ -46,7 +46,7 @@ const snapshot = knowledgeSnapshot;
 export const KNOWLEDGE_HISTORY_LIMIT = 20;
 export const KNOWLEDGE_VERSION_MAX_BYTES = 8 * 1024 * 1024;
 export const KNOWLEDGE_VERSION_STORE_MAX_BYTES = 256 * 1024 * 1024;
-export const externalKnowledgeVersion = version => version?.contentRef?.kind === 'knowledge-version-v1';
+export const externalKnowledgeVersion = version => version?.contentRef?.kind === 'knowledge-version-v1' || version?.remote === true;
 export const knowledgeInlineVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;
 export const knowledgeVersionFits = note => new TextEncoder().encode(JSON.stringify(snapshot(note))).length <= KNOWLEDGE_VERSION_MAX_BYTES - 1024;
 export function noteHistory(previous, next) {

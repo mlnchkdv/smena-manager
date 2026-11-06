@@ -85,6 +85,7 @@ authRouter.get('/config', async (request, response) => {
     googleCredentialMode: deployment?.credentialMode || (hasGoogleDriveCredentials() ? 'configured' : null),
     workspaceWritesEnabled: workspaceWritesEnabled(),
     workspaceStorageAvailable,
+    knowledgeCatalogEnabled: process.env.KNOWLEDGE_CATALOG_ENABLED === 'true',
   });
 });
 

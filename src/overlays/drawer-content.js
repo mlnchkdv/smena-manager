@@ -18,6 +18,7 @@ import { activityExtra, isRussian, t as tr } from '../core/i18n.js';
 import { safeRichText } from '../ui/rich-text.js';
 import { relationsPanel } from '../ui/relations.js';
 import { noteEditor, noteUtilities } from '../ui/knowledge-editor.js';
+import { knowledgeBodyLoading } from '../ui/knowledge-body-loading.js';
 import { knowledgeLocation } from '../ui/knowledge-location.js';
 import { knowledgeReadingSource } from '../shared/knowledge-markdown.js';
 import { knowledgeReadingHtml } from '../ui/knowledge-reading.js';
@@ -47,6 +48,9 @@ export function renderLayer() {
 }
 
 export function knowledgeDrawerHtml(note) {
+  const loading = knowledgeBodyLoading(note);
+  if (loading)
+    return `<div class="drawer-scrim full knowledge-drawer-scrim" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1"><div class="drawer-h"><strong class="trunc" id="knowledge-drawer-title" translate="no">${esc(note.title)}</strong><span class="sp"></span><button class="ibtn" data-a="closeKnowledgeDrawer" aria-label="${isRussian() ? 'Закрыть' : 'Close'}">${ic('x', 16)}</button></div><div class="drawer-b knowledge-drawer-body">${loading}</div></aside>`;
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const folders = Array.isArray(D().knowledgeFolders) ? D().knowledgeFolders : [];
   const preview = S.ui.knowledgeDrawerView !== 'edit';

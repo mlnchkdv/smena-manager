@@ -1,3 +1,4 @@
+import { cachedKnowledgeBody, knowledgeNotePayload } from './knowledge-demand.js';
 const MISSING = Symbol('missing');
 
 function clone(value) {
@@ -74,6 +75,27 @@ function mergeValue(base, local, remote, path, conflicts) {
     return mergeEntityArray(base, local, remote, path, conflicts);
   }
   if (isPlainObject(base) && isPlainObject(local) && isPlainObject(remote)) {
+    if (base.bodyPending && base.bodyToken && local.bodyPending && remote.bodyPending) {
+      const expand = note => {
+        const body = typeof note.formatted_markdown === 'string' ? note.formatted_markdown : cachedKnowledgeBody(note.bodyToken);
+        return body === undefined ? note : { ...note, formatted_markdown: body };
+      };
+      const old = expand(base),
+        next = expand(local),
+        incoming = expand(remote);
+      // A cold recovery cannot merge an edited body against an unread new body.
+      // Acknowledgements of our own writes have a cached body and merge normally.
+      if (
+        remote.bodyToken !== base.bodyToken &&
+        incoming.formatted_markdown === undefined &&
+        typeof local.formatted_markdown === 'string' &&
+        local.formatted_markdown !== old.formatted_markdown
+      ) {
+        conflicts.push(`${path}.formatted_markdown`);
+        return clone(remote);
+      }
+      return knowledgeNotePayload(mergeObject(old, next, incoming, path, conflicts));
+    }
     return mergeObject(base, local, remote, path, conflicts);
   }
 

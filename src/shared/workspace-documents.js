@@ -1,3 +1,4 @@
+import { knowledgeNotePayload } from './knowledge-demand.js';
 export const WORKSPACE_DOCUMENTS = Object.freeze({
   knowledge: Object.freeze(['knowledgeNotes', 'knowledgeFolders']),
   bookmarks: Object.freeze(['links', 'linkFolders']),
@@ -23,7 +24,9 @@ export function workspaceCoreData(data = {}) {
 export function workspaceDocumentData(name, data = {}) {
   const fields = WORKSPACE_DOCUMENTS[name];
   if (!fields) throw new Error(`Unknown workspace document: ${name}`);
-  return Object.fromEntries(fields.map(field => [field, Array.isArray(data[field]) ? data[field] : []]));
+  return Object.fromEntries(
+    fields.map(field => [field, Array.isArray(data[field]) ? (field === 'knowledgeNotes' ? data[field].map(knowledgeNotePayload) : data[field]) : []]),
+  );
 }
 
 export function mergeWorkspaceDocuments(core = {}, documents = {}) {

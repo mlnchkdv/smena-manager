@@ -2,6 +2,8 @@ import { hydrateWhiteboards, whiteboardCatalogWrite, wantWhiteboard } from './wh
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';
 import { parseAppLocation } from '../shared/app-location.js';
+import { clearKnowledgeBodies, cacheKnowledgeBody } from '../shared/knowledge-demand.js';
+let knowledgeDemandEnabled = false;
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';
@@ -16,6 +18,7 @@ export function setActiveWorkspace(value) {
   activeWorkspace = value;
   sessionGeneration += 1;
   revisionCache = null;
+  clearKnowledgeBodies();
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:upload-scope-change'));
 }
 export const workspaceDirectoryRequest = (options = {}) => request(options.path || '/api/workspaces', options, true);
@@ -48,6 +51,7 @@ export function getSessionToken() {
 }
 
 export function setSessionToken(token) {
+  clearKnowledgeBodies();
   sessionGeneration += 1;
   activeWorkspace = '';
   sessionAccount = '';
@@ -141,7 +145,11 @@ async function request(path, options = {}, authenticated = false) {
   return returnMeta ? { body, headers: response.headers, notModified } : body;
 }
 
-export const getAuthConfig = () => request('/api/auth/config');
+export const getAuthConfig = async () => {
+  const result = await request('/api/auth/config');
+  knowledgeDemandEnabled = result.knowledgeCatalogEnabled === true;
+  return result;
+};
 export const searchWhiteboards = (query, limit, offset) =>
   request(`/api/whiteboards/search?${new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })}`, {}, true);
 export const getWhiteboardVersions = id => request(`/api/whiteboards/${encodeURIComponent(id)}/versions`, {}, true);
@@ -274,9 +282,14 @@ export async function getWorkspaceRevision() {
 }
 
 export async function getWorkspaceDocument(name) {
-  const result = await request(`/api/workspace-documents/${encodeURIComponent(name)}`, {}, true);
+  const result = await request(
+    name === 'knowledge' && knowledgeDemandEnabled ? '/api/knowledge/catalog' : `/api/workspace-documents/${encodeURIComponent(name)}`,
+    {},
+    true,
+  );
   return result.data;
 }
+export const getKnowledgeNote = id => request(`/api/knowledge/notes/${encodeURIComponent(id)}`, {}, true);
 export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0 } = {}) {
   return request(`/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, offset: String(offset) })}`, {}, true);
 }
@@ -290,7 +303,18 @@ export async function putWorkspaceDocument(name, data, revision) {
       actualBytes,
     });
   }
-  const result = await request(`/api/workspace-documents/${encodeURIComponent(name)}`, { method: 'PUT', body: JSON.stringify({ data, revision }) }, true);
+  const result = await request(
+    name === 'knowledge' && knowledgeDemandEnabled ? '/api/knowledge/catalog' : `/api/workspace-documents/${encodeURIComponent(name)}`,
+    { method: 'PUT', body: JSON.stringify({ data, revision }) },
+    true,
+  );
+  if (name === 'knowledge' && knowledgeDemandEnabled) {
+    const sent = new Map(data.knowledgeNotes.map(note => [note.id, note]));
+    for (const note of result.data.knowledgeNotes) {
+      const source = sent.get(note.id);
+      if (typeof source?.formatted_markdown === 'string' && !source.restoreFromVersion) cacheKnowledgeBody(note.bodyToken, source.formatted_markdown);
+    }
+  }
   return result.data;
 }
 

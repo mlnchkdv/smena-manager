@@ -707,6 +707,15 @@ A.editKnowledgeNote = () => {
   render();
   document.getElementById('knowledge-title')?.focus();
 };
+A.retryKnowledgeBody = async el => {
+  const note = D().knowledgeNotes.find(item => item.id === el.dataset.id);
+  if (!note) return;
+  const { ensureKnowledgeBody } = await import('../core/knowledge-bodies.js');
+  const pending = ensureKnowledgeBody(note, true);
+  render();
+  try { await pending; } catch { /* The reader offers another retry. */ }
+  render();
+};
 A.toggleKnowledgeFavorite = el => {
   setPersonalFavorite(
     'note',

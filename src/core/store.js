@@ -4,6 +4,7 @@ import { PCOLORS, TEAMS_SEED } from './constants.js';
 import { normalizeProjectColor } from '../shared/project-appearance.js';
 import { seed } from '../data/seed.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
+import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { migrateLegacyWorkspaceBrand } from '../shared/workspace-brand.js';
 import { canReadProject } from '../shared/project-access.js';
@@ -200,7 +201,10 @@ export function save() {
 export function flushLocalSave() {
   clearTimeout(_saveT);
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ data: S.data, prefs: S.prefs, views: S.views, collapsed: S.ui.collapsed }));
+    localStorage.setItem(
+      STORE_KEY,
+      JSON.stringify({ data: { ...S.data, ...workspaceDocumentData('knowledge', S.data) }, prefs: S.prefs, views: S.views, collapsed: S.ui.collapsed }),
+    );
   } catch {
     /* storage full or blocked: keep working in memory */
   }

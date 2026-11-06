@@ -8,6 +8,7 @@ import { storedNoteHistory } from './knowledge-version-blobs.js';
 import { knowledgeSnapshotHash } from './knowledge-versions.js';
 import { validateDocumentInput } from '../shared/workspace-schema.js';
 import { bindWikiReferences, extractWikiLinks } from '../shared/knowledge-links.js';
+import { knowledgeBodyToken, knowledgeCatalogNote } from './knowledge-catalog.js';
 
 const EDITABLE = new Set([
   'title',
@@ -33,7 +34,13 @@ export async function readKnowledgeNote(noteId, profile, profiles = []) {
   const record = data.knowledgeNotes?.find(note => note.id === noteId);
   if (!record) throw missing();
   const note = await loadKnowledgeBody(getStorageProvider(), record);
-  return { note, noteHash: knowledgeSnapshotHash(note), revision: Number(data._documentRevisions?.knowledge?.revision || 0) };
+  if (Array.isArray(record.history)) note.history = knowledgeCatalogNote(record).history;
+  return {
+    note,
+    bodyToken: knowledgeBodyToken(record),
+    noteHash: knowledgeSnapshotHash(note),
+    revision: Number(data._documentRevisions?.knowledge?.revision || 0),
+  };
 }
 
 export async function patchKnowledgeNote(noteId, patch, expectedHash, profile, profiles = []) {
