@@ -1,0 +1,37 @@
+.whiteboard-tools-dialog {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.whiteboard-tools-dialog .diagram-tools-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.whiteboard-tools-dialog h3 {
+  margin: 0 0 4px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.whiteboard-tools-dialog .diagram-tools-section > button {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-target);
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--r);
+  text-align: left;
+  white-space: normal;
+  font-size: var(--fs-sm);
+}
+.whiteboard-tools-dialog button[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 640px) {
+  .whiteboard-tools-dialog {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+}
