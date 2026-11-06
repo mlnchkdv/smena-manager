@@ -13,11 +13,11 @@ export function graphOverviewLabels(
     if (edge.to === selected) neighbors.add(edge.from);
   }
   const candidates = graph.nodes
-    .filter(node => !anchorsOnly || node.kind === 'project' || (degree.get(node.key) || 0) >= 2)
+    .filter(node => !anchorsOnly || ['project', 'group'].includes(node.kind) || (degree.get(node.key) || 0) >= 2)
     .sort(
       (a, b) =>
         Number(b.key === selected) - Number(a.key === selected) ||
-        (anchorsOnly ? Number(b.kind === 'project') - Number(a.kind === 'project') : 0) ||
+        (anchorsOnly ? Number(['project', 'group'].includes(b.kind)) - Number(['project', 'group'].includes(a.kind)) : 0) ||
         Number(neighbors.has(b.key)) - Number(neighbors.has(a.key)) ||
         (degree.get(b.key) || 0) - (degree.get(a.key) || 0) ||
         a.key.localeCompare(b.key),

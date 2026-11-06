@@ -156,7 +156,9 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
       ...graph.nodes.map(node => ({
         data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
         position: positions.get(node.key),
-        classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : '', simple ? 'simple' : ''].filter(Boolean).join(' '),
+        classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : '', simple ? 'simple' : '', node.cluster ? 'aggregate' : '']
+          .filter(Boolean)
+          .join(' '),
         selected: node.key === selected,
         locked: pins.has(node.key),
       })),
@@ -289,6 +291,8 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         },
         { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', 'line-style': 'solid', width: 1, opacity: 0.3 } },
         { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
+        { selector: 'node.aggregate', style: { width: 46, height: 46, 'border-style': 'dashed', 'border-width': 2, 'background-opacity': 0.06 } },
+        { selector: 'node.aggregate.simple', style: { width: 18, height: 18, shape: 'round-rectangle', 'background-opacity': 0.15 } },
       ],
     });
     const cy = instance;

@@ -19,4 +19,32 @@ test('semantic clusters preserve internal and external edge counts and reveal se
   assert.equal(clusterGraph(graph, { expanded: ['project:p0'] }).nodes.length, 199);
   assert.equal(clusterGraph(graph, { reveal: true }).nodes.length, 10000);
   assert.equal(graph.nodes.length, 10000);
+  assert.ok(clustered.clusters.every(node => node.kind === 'group' && node.memberCount === 100 && node.dominantKind === 'task'));
+});
+
+test('folder aggregates remain groups with typed composition and exact internal/external totals', () => {
+  const nodes = [0, 1, 2].map(index => ({ key: `note:${index}`, kind: 'note', title: `Note ${index}`, item: { folderId: 'folder' } }));
+  nodes.push({ key: 'project:p', kind: 'project', title: 'Real project', item: { id: 'p' } });
+  const graph = {
+    nodes,
+    edges: [
+      { from: 'note:0', to: 'note:1', type: 'related' },
+      { from: 'note:1', to: 'project:p', type: 'related' },
+      { from: 'project:p', to: 'note:2', type: 'related' },
+    ],
+  };
+  const result = clusterGraph(graph),
+    group = result.clusters[0];
+  assert.equal(group.kind, 'group');
+  assert.equal(group.groupType, 'note-folder');
+  assert.deepEqual(group.kindCounts, { note: 3 });
+  assert.equal(group.memberCount, 3);
+  assert.equal(group.internalEdges, 1);
+  assert.equal(group.externalEdges, 2);
+  assert.equal(result.nodes.find(node => node.key === 'project:p').kind, 'project');
+  const expanded = clusterGraph(graph, { expanded: [group.clusterId] });
+  assert.deepEqual(
+    expanded.nodes.map(node => node.key),
+    nodes.map(node => node.key),
+  );
 });

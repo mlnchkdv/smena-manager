@@ -100,6 +100,14 @@ A.toggleGraphClusters = () => {
 A.expandGraphCluster = el => {
   S.ui.graphClustersExpanded = [...new Set([...(S.ui.graphClustersExpanded || []), el.dataset.cluster])];
   render();
+  if (el.dataset.firstKey && S.ui.graphView === 'list')
+    requestAnimationFrame(() => {
+      const row = document.querySelector(`.graph-list-item[data-key="${CSS.escape(el.dataset.firstKey)}"]`);
+      if (row) {
+        document.querySelectorAll('.graph-list-item').forEach(item => (item.tabIndex = item === row ? 0 : -1));
+        row.focus();
+      }
+    });
 };
 A.collapseGraphClusters = () => {
   S.ui.graphClustersExpanded = [];
@@ -147,7 +155,7 @@ export function chooseGraphHit(nodes, onSelect) {
     graphHitScope: scope,
     graphHitSelect: onSelect,
     render: (m, H) =>
-      `${H(isRussian() ? 'Выбрать материал' : 'Choose material')}<div class="modal-b graph-hit-choices">${scope === hitScope() ? m.graphHits.map(node => `<button class="btn btn-secondary" data-a="chooseNearbyGraphNode" data-key="${esc(node.key)}"><span translate="no">${esc(node.title)}</span><small translate="no">${esc(graphListContext(node, t(ENTITY_LABELS[node.kind]), t('No folder')) || t(ENTITY_LABELS[node.kind]))}</small></button>`).join('') : `<p>${t('Material unavailable')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${t('Cancel')}</button></div>`,
+      `${H(isRussian() ? 'Выбрать материал' : 'Choose material')}<div class="modal-b graph-hit-choices">${scope === hitScope() ? m.graphHits.map(node => `<button class="btn btn-secondary" data-a="chooseNearbyGraphNode" data-key="${esc(node.key)}"><span translate="no">${esc(node.title)}</span><small translate="no">${esc(node.cluster ? `${isRussian() ? 'Группа' : 'Group'} · ${node.memberCount} · ${t(ENTITY_LABELS[node.dominantKind])}` : graphListContext(node, t(ENTITY_LABELS[node.kind]), t('No folder')) || t(ENTITY_LABELS[node.kind]))}</small></button>`).join('') : `<p>${t('Material unavailable')}</p>`}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${t('Cancel')}</button></div>`,
   });
 }
 A.chooseNearbyGraphNode = el => {

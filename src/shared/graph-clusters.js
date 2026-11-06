@@ -17,15 +17,24 @@ export function clusterGraph(graph, { expanded = [], selected = '', reveal = fal
       nodes.push(...members);
       continue;
     }
+    const kindCounts = Object.fromEntries(
+      [...new Set(members.map(node => node.kind))].sort().map(kind => [kind, members.filter(node => node.kind === kind).length]),
+    );
+    const dominantKind = Object.keys(kindCounts).sort((a, b) => kindCounts[b] - kindCounts[a] || a.localeCompare(b))[0];
     const cluster = {
       key: `cluster:${group}`,
-      kind: 'project',
+      kind: 'group',
+      groupType: group.slice(0, group.indexOf(':')),
+      dominantKind,
+      kindCounts,
+      memberCount: members.length,
       title: `${label(group, members)} · ${members.length}`,
       project: members[0].project,
       cluster: true,
       clusterId: group,
       members: members.map(node => node.key),
       internalEdges: 0,
+      externalEdges: 0,
       item: {},
     };
     clusters.push(cluster);
@@ -41,6 +50,8 @@ export function clusterGraph(graph, { expanded = [], selected = '', reveal = fal
       if (clusterByKey.has(from)) clusterByKey.get(from).internalEdges++;
       continue;
     }
+    if (clusterByKey.has(from)) clusterByKey.get(from).externalEdges++;
+    if (clusterByKey.has(to)) clusterByKey.get(to).externalEdges++;
     const key = JSON.stringify([from, to, edge.type, edge.origin]);
     if (edges.has(key)) edges.get(key).count++;
     else edges.set(key, { ...edge, from, to, count: 1 });

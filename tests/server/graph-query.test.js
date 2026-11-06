@@ -58,6 +58,16 @@ test('graph query searches all 10k rows but returns at most 250 safe nodes with 
   );
 });
 
+test('bounded graph DTO retains authorized folder identity for semantic groups without note contents', () => {
+  const data = fixture();
+  data.knowledgeNotes[0].folderId = 'folder';
+  const result = queryGraph(data, user, { ...options, kind: 'note' });
+  const node = result.nodes.find(node => node.id === 'n');
+  assert.equal(node.item.folderId, 'folder');
+  assert.equal(node.item.formatted_markdown, undefined);
+  assert.equal(node.item.history, undefined);
+});
+
 test('connection candidates are bounded, writable, searchable, source-excluding and wiki-aware', () => {
   const data = fixture();
   const candidates = queryGraph(data, user, { ...options, mode: 'candidates', source: 'note:n' });
