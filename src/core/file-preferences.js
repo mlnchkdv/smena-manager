@@ -66,18 +66,20 @@ export function fileContext(projectId = null) {
     }
   Object.assign(
     S.ui,
-    restored || {
-      fileQ: '',
-      fileProject: projectId || 'all',
-      fileFolder: null,
-      fileRecursive: false,
-      fileType: 'all',
-      fileUploadProject: projectId || '',
-      fileSelection: [],
-      fileFolderOffset: 0,
-      fileFolderQuery: '',
-      fileSelectedPreset: '',
-    },
+    restored
+      ? Object.fromEntries(contextFields.filter(field => Object.hasOwn(restored, field)).map(field => [field, restored[field]]))
+      : {
+          fileQ: '',
+          fileProject: projectId || 'all',
+          fileFolder: null,
+          fileRecursive: false,
+          fileType: 'all',
+          fileUploadProject: projectId || '',
+          fileSelection: [],
+          fileFolderOffset: 0,
+          fileFolderQuery: '',
+          fileSelectedPreset: '',
+        },
   );
   S.ui.fileSelection = [];
   contextPage = restored?.page || 0;
