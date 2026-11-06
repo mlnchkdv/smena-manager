@@ -786,6 +786,14 @@
   border-radius: var(--r);
   background: var(--bg);
 }
+.whiteboard-diff-connections {
+  font-size: 12px;
+  margin-block-start: 8px;
+}
+.whiteboard-diff-connections li {
+  overflow-wrap: anywhere;
+  margin-block: 6px;
+}
 @media (max-width: 640px) {
   .whiteboard-visual-pair {
     grid-template-columns: minmax(0, 1fr);

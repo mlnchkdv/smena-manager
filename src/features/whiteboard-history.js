@@ -1,5 +1,5 @@
 import { compareWhiteboards } from '../shared/whiteboard-comparison.js';
-import { whiteboardVersionDiff } from '../ui/whiteboard-version-diff.js';
+import { whiteboardVersionDiff, whiteboardConnectionText } from '../ui/whiteboard-version-diff.js';
 import { A, confirmDlg } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { getWhiteboardVersions } from '../core/api.js';
@@ -36,7 +36,7 @@ function form(m, H) {
           .slice(0, 50)
           .map(
             r =>
-              `<details><summary>${r.kind === 'card' ? T('Card', 'Карточка') : T('Connection', 'Связь')}: ${esc((r.after || r.before).title || (r.after || r.before).label || r.id)}</summary><div class="whiteboard-diff-pair"><section><strong>${T('Current', 'Сейчас')}</strong><p>${esc(text(r.before))}</p></section><section><strong>${T('Selected version', 'Выбранная версия')}</strong><p>${esc(text(r.after))}</p></section></div></details>`,
+              `<details><summary>${r.kind === 'card' ? T('Card', 'Карточка') : T('Connection', 'Связь')}: ${esc((r.after || r.before).title || (r.after || r.before).label || r.id)}</summary><div class="whiteboard-diff-pair"><section><strong>${T('Current', 'Сейчас')}</strong><p>${esc(r.kind === 'connection' ? whiteboardConnectionText(m.base, r.before) : text(r.before))}</p></section><section><strong>${T('Selected version', 'Выбранная версия')}</strong><p>${esc(r.kind === 'connection' ? whiteboardConnectionText(version.board, r.after) : text(r.after))}</p></section></div></details>`,
           )
           .join(
             '',

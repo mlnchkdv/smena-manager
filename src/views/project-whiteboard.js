@@ -100,7 +100,7 @@ export function projectWhiteboard(project) {
   const edgeList = board.edges
     .map(
       edge =>
-        `<button class="whiteboard-edge-row" data-a="whiteboardEditEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.from)))} → ${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.to)))}</span><small>${esc(edge.label)}</small></button>`,
+        `<button class="whiteboard-edge-row" data-a="whiteboardEditEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.from)))} ${edge.arrow ? '→' : '—'} ${esc(whiteboardLabel(board.nodes.find(n => n.id === edge.to)))}</span><small>${esc(edge.label)}</small></button>`,
     )
     .join('');
   return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
