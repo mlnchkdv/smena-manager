@@ -8,6 +8,7 @@ import { openModal, closeModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { render } from '../shell/render.js';
+import { knowledgeCatalogMode } from '../core/api.js';
 
 export function knowledgeSavedSearchShortcuts() {
   const views = (S.ui.knowledgeSavedViews || []).filter(view => view.pinned);
@@ -36,6 +37,7 @@ A.newKnowledgeNoteFromTools = el => {
 };
 const commands = () => [
   ...(S.ui.currentUser?.role === 'viewer' ? [] : [['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок']]),
+  ...(S.ui.currentUser?.role !== 'viewer' && knowledgeCatalogMode() ? [['knowledgeImportQueue', 'list', 'Import queue', 'Очередь импорта']] : []),
   ['saveKnowledgeView', 'bookmark-plus', 'Save search', 'Сохранить поиск'],
   ['knowledgeArchive', 'archive', 'ZIP import / export', 'Импорт / экспорт ZIP'],
   ['offlineKnowledge', 'hard-drive', 'Offline library', 'Офлайн-библиотека'],
@@ -71,6 +73,7 @@ A.knowledgeLibraryTools = () =>
           '',
         )}${(S.ui.knowledgeSavedViews || []).length ? `<section><h3>${kc('Saved searches · this device', 'Сохранённые поиски · это устройство')}</h3>${S.ui.knowledgeSavedViews.map(view => `<div class="knowledge-saved-view"><button data-a="openSavedKnowledgeSearch" data-id="${esc(view.id)}" translate="no">${esc(view.name)}</button><button data-a="pinKnowledgeSearch" data-id="${esc(view.id)}" aria-pressed="${!!view.pinned}" aria-label="${esc((view.pinned ? kc('Unpin search', 'Открепить поиск') : kc('Pin search', 'Закрепить поиск')) + ': ' + view.name)}">${ic(view.pinned ? 'pin-off' : 'pin', 14)}</button><button data-a="removeKnowledgeView" data-id="${esc(view.id)}" aria-label="${kc('Remove saved search', 'Удалить сохранённый поиск')}">${ic('x', 14)}</button></div>`).join('')}</section>` : ''}</div>`,
   });
+A.knowledgeImportQueue = async () => (await import('../features/knowledge-import-queue.js')).openKnowledgeImportQueue();
 A.openKnowledgeLibraryTool = el => {
   if (commands().some(([a]) => a === el.dataset.command)) {
     closeModal();

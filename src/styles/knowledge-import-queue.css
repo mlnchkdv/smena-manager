@@ -1,0 +1,44 @@
+.knowledge-import-queue {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.knowledge-import-queue p {
+  margin: 0;
+}
+.knowledge-import-queue progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+.knowledge-import-entries {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: min(28dvh, 240px);
+  overflow: auto;
+}
+.knowledge-import-entries li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+}
+.knowledge-import-entries li span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.knowledge-import-entries li span:last-child {
+  flex-shrink: 0;
+  color: var(--text-2);
+}
+.knowledge-import-queue section {
+  display: grid;
+  gap: 8px;
+}
+.knowledge-import-queue label {
+  display: grid;
+  gap: 6px;
+}

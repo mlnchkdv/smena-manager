@@ -554,6 +554,8 @@ A.newKnowledgeNote = el => {
 };
 export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolder, previous = null) {
   if (!files?.length || !['admin', 'editor'].includes(S.ui.currentUser?.role) || S.ui.knowledgeImportReading || knowledgeEditBlocked()) return;
+  const { knowledgeCatalogMode } = await import('../core/api.js');
+  if (knowledgeCatalogMode() && !previous) return (await import('../features/knowledge-import-queue.js')).openKnowledgeImportQueue(files, folderId);
   const owner = S.ui.currentUser.id;
   const workspace = D().ws.id || D().ws.url;
   const destination = knowledgeCollections().folders.some(folder => folder.id === folderId) ? folderId : null;

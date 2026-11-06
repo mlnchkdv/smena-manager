@@ -1,8 +1,10 @@
 # Внедрение U01–U14 и F01–F12
 
+U02, интерфейс: лениво загружаемая очередь с предварительной проверкой, отдельными ошибками файлов, выбором «копия/пропуск», прогрессом, паузой и возобновлением. Тексты не сохраняются в localStorage; после reload исходники выбираются повторно и проверяются по hash. Локальный Chromium: 7 020 246 байт / шесть TXT/MD, два ошибочных файла исключены, пауза → reload → выбор исходников → завершение, холодный поиск всех шести текстов. RU desktop и EN 390 px; содержимое проверено выбранными чтениями. Дополнительно 779/779 server/shared тестов Node 22, lint, UI-токены и production build прошли; начальный JS 597,7 / 600 KiB. Production повторно вернул 402 DEPLOYMENT_DISABLED.
+
 Источник: [аудит 06.11](PRODUCT_AUDIT_AND_WHITEBOARDS_2026-11-06.md). Пользователь поручил последовательное внедрение всего пакета. В работе различаются реализация, локальная приёмка и production-приёмка; незавершённый этап не считается выполненным.
 
-Текущий срез: U04–U10 локально приняты; U01 реализован частями и остаётся за выключенным rollout-флагом, U02/U03 и U11–U14 не завершены. F01–F12 ещё не внедрены. Выбор провайдера F12 пользователь отложил. Тесты не заменяют production-приёмку.
+Текущий срез: U01–U10 реализованы и проверены локально; протокол раздельного хранения U01–U03 остаётся за выключенным по умолчанию rollout-флагом до production-переноса с резервной копией. U11–U14 и F01–F12 ещё не завершены. Выбор провайдера F12 пользователь отложил. Тесты не заменяют production-приёмку. Действующий следующий приоритетный план — в новом повторном аудите; исторические промежуточные ограничения ниже сохраняются как журнал внедрения.
 
 Основной сайт повторно возвращает HTTP 402. Работа продолжается локально с изолированными данными. Реальные устройства, внешние учётные записи и работающее production-окружение остаются отдельными условиями приёмки.
 
@@ -66,6 +68,7 @@ U10: текущий контекст файлов теперь сохраняе�
 Финальный контроль: сервер отклоняет записи нового протокола знаний при выключенном флаге; проверена неизменность канонических данных. При изменении общего размера страницы/сортировки старое смещение файлов сбрасывается, запрос сохраняется; прежний режим возвращён после теста. Файл прокрутки не добавляет свои служебные поля в состояние других экранов. На финальном коде Node 22: 770/770, lint/tokens/format/build pass, 595.3/600 KiB.
 
 U01/U03, серверный индекс: добавлены сжатые неизменяемые части поиска в Local/Drive, ограниченный кэш, проверка SHA/размера/пространства и публикация вместе с CAS корня. Запись меняет затронутые части; миграция заполняет индекс по окнам. ACL проверяется перед чтением и подсчётами. Холодный поиск использует производные поисковые части, не текущие тела/историю; полные фразы и Unicode проверены. Повреждение/отсутствие индекса даёт 503 вместо ложного «0». 26 целевых регрессий прошли, lint проходит. Это серверный этап: UI, большой импорт и включение rollout пока не завершены. Индекс хранит сжатый нормализованный текст; холодный запрос сканирует подходящие части, а не является позиционным инвертированным индексом.
+
 # U03 — full-text UI coverage (local acceptance)
 
 The catalog list (including table/custom sort), global search and palette use revision-bound server matches; pending, failed and offline-only coverage stay explicit. A 390/1366 px RU/EN browser check found a marker beyond the cold preview with zero original-body requests and zero page overflow. Twenty-two focused search/store tests passed. The persistent compressed index still scans applicable derived parts: it does not yet provide positional posting lists or a production Drive latency guarantee.
@@ -73,4 +76,3 @@ The catalog list (including table/custom sort), global search and palette use re
 # U02 — resumable append protocol (server)
 
 Reviewed manifests and per-file receipts are saved with the canonical root. Membership is checked under the write lock; journals belong to the actor and workspace; source hashes fence reselection. A fresh standalone backup precedes each new job. Accepted files survive cancellation and lost-response retries without duplication. Six 1 MiB notes were imported across provider/store restarts without placing bodies in the root or journal; ownership, revocation, pause, skip and unsafe-name tests passed. Per-file requests retain the 4 MiB transport cap; the UI source cap is 2 MiB/file, 256 MiB/1,000 files per selection.
-
