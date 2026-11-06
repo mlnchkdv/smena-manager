@@ -16,6 +16,21 @@ test('knowledge ZIP round trips raw text, properties, definitions and attachment
   assert.deepEqual([...result.files[0].data], [1, 2, 3]);
   assert.equal(mapArchiveFiles(result.payload, { f: 'new' }).notes[0].assets['image.png'], 'new');
 });
+
+test('ZIP import/export retains long original filenames and never interprets TXT as frontmatter', () => {
+  const filename = 'source_name-' + 'long'.repeat(24) + '.txt';
+  const source = '---\naliases: misleading\n---\nLiteral text';
+  const imported = readKnowledgeArchive(zipSync({ ['Folder/' + filename]: strToU8(source) }));
+  const note = imported.payload.notes[0];
+  assert.equal(note.sourceName, filename);
+  assert.equal(note.formatted_markdown, source);
+  assert.deepEqual(note.sourceProperties, {});
+  assert.ok(!note.aliases.includes('misleading'));
+  const bytes = buildKnowledgeArchive({ ws: {}, knowledgeNotes: [note], knowledgeFolders: imported.payload.vault_folders });
+  const result = readKnowledgeArchive(bytes).payload.notes[0];
+  assert.equal(result.sourceName, filename);
+  assert.equal(result.formatted_markdown, source);
+});
 test('standalone archive links preserve opaque IDs containing colons', () => {
   const bytes = buildKnowledgeArchive(
     {

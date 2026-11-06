@@ -1,6 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseMarkdownFrontmatter, parseMarkdownNote } from '../../src/shared/markdown-import.js';
+import { parseMarkdownFrontmatter, parseMarkdownNote, parseTextNote } from '../../src/shared/markdown-import.js';
+import { matchesKnowledgeSearch, knowledgeSearchContext } from '../../src/shared/knowledge-search.js';
+import { validateDocumentInput } from '../../src/shared/workspace-schema.js';
+
+test('import keeps the original filename searchable independently of title and literal TXT body', () => {
+  for (const extension of ['txt', 'md']) {
+    const filename = 'Договор_client-' + 'long_'.repeat(20) + '01.' + extension;
+    const source = '---\ntitle: Looks like metadata\naliases: not-an-alias\n---\n  Literal content';
+    const note = (extension === 'txt' ? parseTextNote : parseMarkdownNote)('C:\\private\\' + filename, source);
+    assert.equal(note.sourceName, filename);
+    assert.equal(note.formatted_markdown, source);
+    assert.equal(matchesKnowledgeSearch(note, filename), true);
+    assert.equal(matchesKnowledgeSearch(note, filename.slice(0, -4)), true);
+    assert.deepEqual(knowledgeSearchContext(note, filename), { label: 'Imported filename', text: filename });
+    validateDocumentInput('knowledge', { knowledgeNotes: [note], knowledgeFolders: [] });
+    assert.throws(() => validateDocumentInput('knowledge', { knowledgeNotes: [{ ...note, sourceName: '../private.md' }], knowledgeFolders: [] }));
+  }
+});
 
 test('Markdown frontmatter supports scalar and list values', () => {
   const parsed = parseMarkdownFrontmatter('---\ntitle: "Онбординг"\ntags:\n  - команда\n  - процесс\n---\n# Текст');

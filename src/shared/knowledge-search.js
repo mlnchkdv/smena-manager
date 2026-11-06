@@ -7,6 +7,7 @@ export const searchableNote = note =>
   [
     note.title,
     note.summary,
+    note.sourceName,
     note.typeId,
     ...(note.aliases || []),
     ...(note.tagAliases || []),
@@ -47,6 +48,7 @@ export function knowledgeSearchContext(note, query) {
   const tags = (note.tags || []).filter(includes);
   if (tags.length) return { label: 'Tags', text: tags.join(', ') };
   if (includes(note.title)) return { label: 'Note title', text: note.title };
+  if (includes(note.sourceName)) return { label: 'Imported filename', text: note.sourceName };
   if (includes(parts.metadata)) return { label: 'Import metadata', text: '', message: 'Match in import metadata' };
   return null;
 }

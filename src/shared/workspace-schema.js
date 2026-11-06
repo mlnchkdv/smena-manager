@@ -246,6 +246,12 @@ export function validateDocumentInput(name, value) {
     if (name === 'knowledge' && (!validAliases(item.aliases) || !validAliases(item.tagAliases))) invalid.push('knowledgeNotes.aliases');
     if (
       name === 'knowledge' &&
+      item.sourceName != null &&
+      (typeof item.sourceName !== 'string' || item.sourceName.length > 512 || /[\\/]/.test(item.sourceName))
+    )
+      invalid.push('knowledgeNotes.sourceName');
+    if (
+      name === 'knowledge' &&
       item.assets != null &&
       (!isObject(item.assets) ||
         Object.keys(item.assets).length > 100 ||

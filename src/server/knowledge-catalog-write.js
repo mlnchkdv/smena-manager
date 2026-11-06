@@ -26,6 +26,7 @@ const fields = [
   'materialTargets',
   'favorite',
   'sourceFormat',
+  'sourceName',
 ];
 const fail = (code, statusCode = 400) => Object.assign(new Error('The note body changed or was not loaded. Refresh the note and retry.'), { code, statusCode });
 
@@ -42,7 +43,7 @@ export async function replaceKnowledgeCatalog(input, expectedRevision, profile, 
           const actor = knowledgeActor(data, profile, profiles, { write: true });
           const meta = data._documentRevisions?.knowledge || {};
           if (Number(meta.revision || 0) !== expectedRevision)
-          throw Object.assign(fail('REVISION_CONFLICT', 409), { currentRevision: Number(meta.revision || 0), documentConflict: true });
+            throw Object.assign(fail('REVISION_CONFLICT', 409), { currentRevision: Number(meta.revision || 0), documentConflict: true });
           const previous = new Map((data.knowledgeNotes || []).map(note => [note.id, note]));
           const storage = getStorageProvider(),
             notes = [];

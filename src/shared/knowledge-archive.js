@@ -135,7 +135,7 @@ export function readKnowledgeArchive(input, options = {}) {
         folderId: folder(path.split('/').slice(0, -1).join('/')),
       });
       note.sourcePath = path;
-      note.sourceProperties = parseMarkdownFrontmatter(source).frontmatter;
+      note.sourceProperties = note.sourceFormat === 'text' ? {} : parseMarkdownFrontmatter(source).frontmatter;
       const aliases = note.sourceProperties.aliases;
       note.aliases = [
         ...new Set([
@@ -232,7 +232,11 @@ export function buildKnowledgeArchive(data, files = []) {
     }
     entries[notePaths.get(note.id)] = strToU8(source);
     entries[notePaths.get(note.id) + '.json'] = strToU8(
-      JSON.stringify({ title: note.title, typeId: note.typeId, properties: note.properties, tags: note.tags, aliases: note.aliases }, null, 2),
+      JSON.stringify(
+        { title: note.title, sourceName: note.sourceName, typeId: note.typeId, properties: note.properties, tags: note.tags, aliases: note.aliases },
+        null,
+        2,
+      ),
     );
   }
   descriptors.forEach((file, index) => {

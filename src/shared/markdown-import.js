@@ -86,6 +86,10 @@ export function parseMarkdownNote(filename, source, options = {}) {
     wikilinks: extractWikiLinks(markdown),
     formatted_markdown: markdown,
     sourceFormat: 'markdown',
+    sourceName: String(filename || '')
+      .split(/[\\/]/)
+      .at(-1)
+      .slice(0, 512),
     folderId: options.folderId || null,
     favorite: false,
     createdBy: options.memberId || null,

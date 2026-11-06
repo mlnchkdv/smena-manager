@@ -361,6 +361,7 @@ const RU = {
   'Invalid file folder hierarchy.': 'Некорректная структура папок файлов.',
   'The selected files changed. Select them again.': 'Выбранные файлы изменились. Выберите их заново.',
   'Source metadata': 'Метаданные исходника',
+  'Imported filename': 'Исходное имя файла',
   'Hidden from reading. Preserved in the source and exports.': 'Скрыты при чтении. Сохранены в исходнике и при экспорте.',
   'Move note': 'Переместить заметку',
   'Clear folder search': 'Очистить поиск папок',
