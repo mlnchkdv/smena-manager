@@ -13,6 +13,7 @@ export function normalizeFileContext(value = {}) {
     fileFolderQuery: text(value.fileFolderQuery, 500),
     fileSelectedPreset: text(value.fileSelectedPreset, 180),
     page: integer(value.page, 1000000),
+    pageKey: text(value.pageKey, 1500),
     scroll: integer(value.scroll, 10000000),
     anchor:
       value.anchor && typeof value.anchor.id === 'string'

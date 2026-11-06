@@ -21,6 +21,7 @@ test('per-tab file context isolates users, workspaces and project views without 
   assert.equal(restored.fileQ, 'Фото_события');
   assert.equal(restored.fileFolder, 'nested');
   assert.equal(restored.page, 4);
+  assert.equal(restored.pageKey, '');
   assert.deepEqual(restored.anchor, { id: 'file-82', offset: 25 });
   for (const other of [fileContextKey('b', 'w', 'p'), fileContextKey('a', 'other', 'p'), fileContextKey('a', 'w', '')])
     assert.equal(readFileContext(storage, other), null);

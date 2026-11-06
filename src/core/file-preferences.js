@@ -22,6 +22,7 @@ const contextKey = () => fileContextKey(S.ui.currentUser?.id, D().ws?.id || D().
 const snapshot = () => ({
   ...Object.fromEntries(contextFields.map(field => [field, S.ui[field]])),
   page: contextPage,
+  pageKey: contextPageKey,
   scroll: contextScroll,
   anchor: contextAnchor,
 });
@@ -83,10 +84,11 @@ export function fileContext(projectId = null) {
   contextScroll = restored?.scroll || 0;
   contextAnchor = restored?.anchor || null;
   pendingPage = pendingScroll = !!restored;
-  contextPageKey = '';
+  contextPageKey = restored?.pageKey || '';
 }
 export function restoreFileContextPage(pageKey, valid = true) {
   if (!pendingPage) return;
+  valid = valid && (!contextPageKey || contextPageKey === pageKey);
   S.ui.listPages ||= {};
   S.ui.listPages[pageKey] = valid ? contextPage : 0;
   contextPageKey = pageKey;
