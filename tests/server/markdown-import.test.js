@@ -37,3 +37,11 @@ test('Markdown notes fall back to heading, filename, and plain summary', () => {
   assert.equal(filename.summary, 'Текст без заголовка.');
   assert.throws(() => parseMarkdownNote('empty.md', '  '), /empty/u);
 });
+
+test('Markdown import retains significant outer indentation, blank lines and hard-break spaces', () => {
+  const source = '    first code line  \r\n    second code line\r\n\r\n';
+  const note = parseMarkdownNote('Indented.md', '\uFEFF' + source);
+  assert.equal(note.formatted_markdown, '    first code line  \n    second code line\n\n');
+  assert.equal(parseMarkdownNote('End.md', '# End\n\nParagraph  \n').formatted_markdown, '# End\n\nParagraph  \n');
+  assert.equal(parseMarkdownNote('Start.md', '\n\n---\ntitle: ordinary text\n---\n').formatted_markdown, '\n\n---\ntitle: ordinary text\n---\n');
+});

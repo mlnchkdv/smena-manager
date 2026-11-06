@@ -70,9 +70,8 @@ function markdownSummary(body) {
 export function parseMarkdownNote(filename, source, options = {}) {
   const markdown = String(source || '')
     .replace(/^\uFEFF/, '')
-    .replace(/\r\n/g, '\n')
-    .trim();
-  if (!markdown) throw new TypeError('Markdown file is empty.');
+    .replace(/\r\n?/g, '\n');
+  if (!markdown.trim()) throw new TypeError('Markdown file is empty.');
   const { frontmatter, body } = parseMarkdownFrontmatter(markdown);
   const now = options.now || new Date().toISOString();
   const idFactory = options.idFactory || (prefix => prefix + Math.random().toString(36).slice(2, 10));
