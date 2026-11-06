@@ -1,5 +1,7 @@
 # Smena Manager
 
+**Развёртывание на VPS Aeza / VPS deployment:** [Ubuntu 24.04: Nginx, systemd, установка, обновление и откат / installation, updates and rollback](deploy/vps/README.md). Google Drive и Google Sign-In сохраняются; конфигурация рассчитана на 4 CPU / 8 ГБ RAM. Реальное развёртывание и приёмка нового домена выполняются отдельно / actual server deployment and domain acceptance are separate.
+
 **05.11.2026 — актуальный аудит после M01–M12 / current post-delivery audit:** [Функциональность и UI/UX всех разделов: 18 приоритетных пунктов и 12 направлений развития / Functional findings, 18-item backlog and 12 product directions](docs/PRODUCT_FUNCTIONAL_UX_AUDIT_AFTER_M12_2026-11-05.md). Production RU/EN, семь размеров ключевых инструментов; отдельно отмечены воспроизведённые дефекты, ограничения хранения и непроверенная приёмка. Это следующий план, не отчёт о внедрении / proposed next work, not delivered changes.
 
 **05.11.2026 — M01–M12 внедрены / delivered:** [12 улучшений медиа, заметок, холстов, графа и исправление «Активности» / Delivery and precise acceptance](docs/UI_UX_DELIVERY_MEDIA_2026-11-05.md). Production: независимая копия 4/4 файлов восстановлена в тестовый проект, SHA-256 видео совпал; тестовые материалы возвращены в корзину/архив. RU/EN Activity и Graph проверены на семи фактических размерах. 673/673 tests, lint/tokens/build passed; initial JS 584.9/600 KiB. Physical-device and real multi-gigabyte acceptance remain open.
