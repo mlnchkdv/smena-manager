@@ -44,7 +44,7 @@ if [[ ! -e $node_root/versions/$version_dir ]]; then
 fi
 [[ -d $node_root/versions/$version_dir && ! -L $node_root/versions/$version_dir ]] || exit 1
 [[ $(stat -c %u "$node_root/versions/$version_dir") == 0 ]] || { echo 'Existing Node version must be root owned.' >&2; exit 1; }
-[[ -z $(find "$node_root/versions/$version_dir" -xdev \( ! -user root -o -perm /022 \) -print -quit) ]] || {
+[[ -z $(find "$node_root/versions/$version_dir" -xdev \( ! -user root -o \( ! -type l -perm /022 \) \) -print -quit) ]] || {
   echo 'Existing Node version has unsafe ownership or permissions.' >&2; exit 1
 }
 [[ ! -e $node_root/bin || -L $node_root/bin ]] || { echo 'Refusing to replace an unmanaged Node bin directory.' >&2; exit 1; }
