@@ -180,6 +180,35 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+.whiteboard-material-kind {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+.whiteboard-card-content .whiteboard-material-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 6px 0;
+}
+.whiteboard-material-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+.whiteboard-material-tags span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--r-sm);
+  padding: 2px 4px;
+  font-size: var(--fs-xs);
+}
 .whiteboard-connect {
   position: absolute;
   z-index: 6;
