@@ -16,7 +16,7 @@ import { createFileIndex, filterIndexedFiles, normalizeFileSearch } from '../sha
 import { searchTerms } from '../shared/search-query.js';
 import { fileFolderBrowser, visibleFileFolderKeys } from '../ui/file-folders.js';
 import { fileSelectButton, fileSelectionBar, syncFileSelection, fileDownloadProgress } from '../ui/file-selection.js';
-import { filePreferences, fileContext as selectFileContext } from '../core/file-preferences.js';
+import { filePreferences, fileContext as selectFileContext, restoreFileContextPage, rememberFileContextPage } from '../core/file-preferences.js';
 import { filePresetsHtml } from '../ui/file-presets.js';
 import { fileTransferPanel } from '../ui/file-transfer.js';
 import { fileExportsPanel } from '../ui/file-exports.js';
@@ -122,7 +122,10 @@ export function pageFiles(projectId = null) {
   const query = String(S.ui.fileQ || '')
     .trim()
     .toLowerCase();
-  const typeFilter = S.ui.fileType || 'all';
+  const typeFilter = Object.hasOwn(FT, S.ui.fileType) ? S.ui.fileType : 'all';
+  S.ui.fileType = typeFilter;
+  const requestedFolder = S.ui.fileFolder,
+    requestedProject = S.ui.fileProject;
   const projectFilter = projectId || (projectIds.has(S.ui.fileProject) ? S.ui.fileProject : 'all');
   S.ui.fileProject = projectFilter;
   const currentFolder = activeFileFolder(proj(projectFilter), S.ui.fileFolder);
@@ -143,6 +146,7 @@ export function pageFiles(projectId = null) {
 
   const pageSize = S.ui.filePageSize || 100;
   const pageKey = `files:${projectId || 'workspace'}:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
+  restoreFileContextPage(pageKey, (projectId || requestedProject === projectFilter) && (!requestedFolder || !!currentFolder));
   const remote = demandFilePage({
     context: projectId || 'all',
     project: projectFilter,
@@ -159,6 +163,7 @@ export function pageFiles(projectId = null) {
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
     : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
+  rememberFileContextPage(pageKey, window.page, !remote || (!remote.loading && !remote.error));
   const allTotal = remote?.allTotal ?? (remote?.loading ? '—' : allFiles.length);
   const totalBytes = remote?.totalBytes ?? (remote?.loading ? null : index.totalBytes);
   const totalSize = totalBytes === null ? '—' : formatBytes(totalBytes);
