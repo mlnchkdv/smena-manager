@@ -1,37 +1,21 @@
-import crypto from 'node:crypto';
-import { addWorkspaceNotification } from '../shared/notification-model.js';
+import { issueObservations, reconcileSystemIncidents } from '../shared/system-incidents.js';
 import { activeWorkspaceAdministrators } from '../shared/workspace-membership.js';
 import { deliverWorkspaceNotifications } from './notification-delivery.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 
 export async function notifyAdministratorsAboutSystemIssue(issues, options = {}) {
-  const messages = [...new Set((issues || []).filter(Boolean).map(String))];
-  if (!messages.length) return { created: 0 };
-  const day = new Date(options.at || Date.now()).toISOString().slice(0, 10);
-  const fingerprint = crypto.createHash('sha256').update(messages.sort().join('|')).digest('hex').slice(0, 12);
-  const prefix = `system-${day}-${fingerprint}`;
+  const observations = options.observations || issueObservations(issues);
+  if (!observations.length) return { created: 0 };
+  const at = new Date(options.at || Date.now()).getTime();
   let created = [];
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const current = await getWorkspaceDatabase();
+    if (!observations.some(o => o.state === 'active' || current.notifs?.some(n => n.incident?.component === o.component && n.incident.state === 'active')))
+      return { created: 0 };
     try {
       const next = await mutateWorkspaceDatabase(
         database => {
-          created = [];
-          for (const administrator of activeWorkspaceAdministrators(database)) {
-            const id = `${prefix}-${administrator.id}`;
-            if ((database.notifs || []).some(notification => notification.id === id)) continue;
-            created.push(
-              addWorkspaceNotification(database, {
-                id,
-                recipient: administrator.id,
-                by: null,
-                type: 'system',
-                text: 'System check needs attention',
-                snippet: messages.join(' · '),
-                at: Date.now(),
-              }),
-            );
-          }
+          created = reconcileSystemIncidents(database, observations, activeWorkspaceAdministrators(database), at);
           return database;
         },
         current.revision,

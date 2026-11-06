@@ -12,7 +12,7 @@ export function nextScheduledCronAt(now = Date.now()) {
 
 export function evaluateAutomationRun({ digest, backup, fileCleanup, abandonedUploads, outbox }) {
   const issues = [
-    digest?.error && 'Email digest delivery failed',
+    digest?.error && 'Email digest preparation failed',
     backup?.error && 'Automatic backup failed',
     (fileCleanup?.error || fileCleanup?.failed) && 'File cleanup failed',
     (abandonedUploads?.error || abandonedUploads?.failed) && 'Abandoned upload cleanup failed',

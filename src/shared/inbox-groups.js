@@ -8,7 +8,14 @@ export function inboxEventGroups(notifications) {
         ? notification.type === 'security'
           ? JSON.stringify(['security', notification.workspaceId || notification.workspace || ''])
           : notification.type === 'system'
-            ? JSON.stringify(['system', notification.workspaceId || notification.workspace || '', notification.text, notification.snippet])
+            ? JSON.stringify([
+                'system',
+                notification.workspaceId || notification.workspace || '',
+                notification.incident?.id || '',
+                notification.incident?.state || '',
+                notification.text,
+                notification.snippet,
+              ])
             : null
         : null;
     if (key && system.has(key)) system.get(key).earlier.push(notification);

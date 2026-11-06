@@ -139,3 +139,27 @@
 .notification-system-history[open] {
   border-top: 1px solid var(--border);
 }
+.system-incident-state {
+  margin: 2px 0 2px 6px;
+  white-space: normal;
+  text-align: left;
+}
+.system-incident-details {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.system-incident-details dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px 12px;
+  font-size: var(--fs-sm);
+}
+.system-incident-details dt {
+  color: var(--text-3);
+}
+.system-incident-details dd {
+  margin: 0;
+}
+.system-incident-details small {
+  color: var(--text-3);
+}

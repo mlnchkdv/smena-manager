@@ -47,6 +47,7 @@ import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-docu
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
 import { evaluateAutomationRun, evaluateOperationalHealth } from './operational-health.js';
+import { systemIncidentObservations } from '../shared/system-incidents.js';
 import { notifyAdministratorsAboutSystemIssue } from './system-alerts.js';
 import { mergeClientWorkspace, permissionError, projectWorkspace } from './workspace-policy.js';
 import { applyFileCatalogChanges } from '../shared/file-catalog.js';
@@ -89,6 +90,7 @@ app.get('/api/health', (_request, response) => {
 });
 
 async function runWorkspaceAutomation() {
+  const startedAt = Date.now();
   try {
     const reminders = await runDueReminderSweep({ enqueueOnly: true });
     const digest = await runDailyEmailDigest({ enqueueOnly: true }).catch(error => {
@@ -114,9 +116,13 @@ async function runWorkspaceAutomation() {
         reportProviderError('[Notifications] Cron diagnostics', error);
       },
     );
-    if (cronStatus !== 'ok') {
-      await notifyAdministratorsAboutSystemIssue(issues).catch(error => reportProviderError('[System alert]', error));
-    }
+    await getWorkspaceDatabase({ fields: ['notifs', '_notificationOutbox'] })
+      .then(incidentData =>
+        notifyAdministratorsAboutSystemIssue(issues, {
+          observations: systemIncidentObservations({ status: cronStatus, digest, backup, fileCleanup, abandonedUploads, outbox }, incidentData, startedAt),
+        }),
+      )
+      .catch(error => reportProviderError('[System alert]', error));
     return { status: cronStatus, reminders, outbox, digest, cleanup, pushCleanup, abandonedUploads, fileCleanup, backup };
   } catch (error) {
     await recordNotificationCronRun({ status: 'failed' }).catch(() => undefined);
