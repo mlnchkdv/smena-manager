@@ -15,6 +15,8 @@ import { withCatalogBackupSpool } from './catalog-backup-spool.js';
 import { readCatalogReferences } from './catalog-references.js';
 import { writeCatalogDelta } from './catalog-delta-write.js';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
+import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-history.js';
+import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -821,6 +823,61 @@ export class GoogleDriveStorageProvider {
     return this.uploadDatabaseBackup(data, label);
   }
 
+  async findKnowledgeVersion(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
+    await this.init();
+    const result = await this.client.files.list({
+      q: `name = 'smena-knowledge-version-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeVersion' and value='1' }`,
+      fields: 'files(id,size)',
+      spaces: 'drive',
+      pageSize: 2,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    return uniqueDriveMatch(result);
+  }
+  async readKnowledgeVersion(hash) {
+    const file = await this.findKnowledgeVersion(hash);
+    if (!file) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
+    const response = await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    return response.data;
+  }
+  async writeKnowledgeVersion(text, hash) {
+    const existing = await this.findKnowledgeVersion(hash);
+    if (existing) {
+      const response = await this.client.files.get({ fileId: existing.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+      if (response.data !== text) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
+      return;
+    }
+    let total = 0,
+      pageToken;
+    do {
+      const result = await this.client.files.list({
+        q: `'${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeVersion' and value='1' }`,
+        fields: 'nextPageToken,files(size)',
+        spaces: 'drive',
+        pageSize: 1000,
+        pageToken,
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+      });
+      for (const file of result.data.files || []) total += Number(file.size) || 0;
+      pageToken = result.data.nextPageToken;
+    } while (pageToken);
+    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_VERSION_LIMIT', 413);
+    await this.client.files.create({
+      requestBody: {
+        name: `smena-knowledge-version-${hash}.json`,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaKnowledgeVersion: '1' },
+      },
+      media: { mimeType: 'application/json', body: Readable.from([text]) },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+  }
+
   async createColdDatabaseBackup(label, validateCore) {
     const root = await this.readDatabaseRoot();
     const core = metadataWriteBase(root);
@@ -838,6 +895,7 @@ export class GoogleDriveStorageProvider {
   }
 
   async uploadDatabaseBackup(data, label = '', records) {
+    data = await expandKnowledgeVersions(data, this);
     const folderId = await this.ensureBackupsFolder();
     const createdAt = new Date().toISOString();
     let size = 0;

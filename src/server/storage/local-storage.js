@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
+import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-history.js';
+import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -49,6 +51,35 @@ export class LocalStorageProvider {
     } catch (error) {
       if (error?.code === 'ENOENT') return null;
       throw error;
+    }
+  }
+
+  knowledgeVersionPath(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
+    return path.join(path.dirname(this.databasePath), 'knowledge-versions', `${hash}.json`);
+  }
+  async readKnowledgeVersion(hash) {
+    return fs.promises.readFile(this.knowledgeVersionPath(hash), 'utf8');
+  }
+  async writeKnowledgeVersion(text, hash) {
+    const target = this.knowledgeVersionPath(hash);
+    const directory = path.dirname(target);
+    await fs.promises.mkdir(directory, { recursive: true });
+    try {
+      const existing = await fs.promises.readFile(target, 'utf8');
+      if (existing !== text) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
+      return;
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+    let total = 0;
+    for (const entry of await fs.promises.readdir(directory))
+      if (/^[a-f0-9]{64}\.json$/.test(entry)) total += (await fs.promises.stat(path.join(directory, entry))).size;
+    if (total + Buffer.byteLength(text) > KNOWLEDGE_VERSION_STORE_MAX_BYTES) throw knowledgeVersionError('KNOWLEDGE_VERSION_LIMIT', 413);
+    try {
+      await fs.promises.writeFile(target, text, { encoding: 'utf8', flag: 'wx' });
+    } catch (error) {
+      if (error.code !== 'EEXIST' || (await fs.promises.readFile(target, 'utf8')) !== text) throw error;
     }
   }
 
@@ -155,6 +186,7 @@ export class LocalStorageProvider {
 
   async createDatabaseBackup(data, label = '') {
     await this.init();
+    data = await expandKnowledgeVersions(data, this);
     const createdAt = new Date().toISOString();
     const id = `${createdAt.replace(/[:.]/g, '-')}-${crypto.randomUUID()}.json`;
     await fs.promises.writeFile(this.backupPath(id), JSON.stringify({ createdAt, label: String(label || ''), data }, null, 2), 'utf8');

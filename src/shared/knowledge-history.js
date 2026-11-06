@@ -28,7 +28,7 @@ export const KNOWLEDGE_VERSION_FIELDS = {
   category: 'Category',
   folderId: 'Folder',
 };
-const snapshot = note =>
+export const knowledgeSnapshot = note =>
   Object.fromEntries(
     fields.map(field => [
       field,
@@ -42,6 +42,11 @@ const snapshot = note =>
               : ''),
     ]),
   );
+const snapshot = knowledgeSnapshot;
+export const KNOWLEDGE_HISTORY_LIMIT = 20;
+export const KNOWLEDGE_VERSION_MAX_BYTES = 8 * 1024 * 1024;
+export const KNOWLEDGE_VERSION_STORE_MAX_BYTES = 256 * 1024 * 1024;
+export const externalKnowledgeVersion = version => version?.contentRef?.kind === 'knowledge-version-v1';
 export const knowledgeVersionFits = note => JSON.stringify(snapshot(note)).length <= 32000;
 export function noteHistory(previous, next) {
   const history = Array.isArray(previous?.history) ? previous.history.slice(0, 5) : [];
