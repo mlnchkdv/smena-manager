@@ -394,8 +394,9 @@ async function switchRelease(config, target, previous) {
     reloadNginx: async () => systemctl(active('nginx.service') ? 'reload' : 'start', 'nginx.service'),
     vhostHealthy: () => verifyVhost(config.domain, targetMeta.commit),
     commit: async () => {
-      await setReleaseLink('previous', previous);
+      if (target !== previous) await setReleaseLink('previous', previous);
       systemctl('enable', APP);
+      systemctl('enable', 'nginx.service');
     },
     restorePrevious: async () => {
       await setReleaseLink('current', previous);
@@ -441,10 +442,12 @@ async function rollback(options) {
   const previous = await releaseLink('current');
   const target = options.to ? releasePath(options.to) : await releaseLink('previous');
   if (!target) throw new Error('No previous release. Use --to with a validated retained release ID.');
-  if (target === previous) {
+  if (target === previous && !options.to) {
     console.log('Requested release is already selected.');
     return;
   }
+  // An explicit --to also repairs a cutover interrupted after selecting this
+  // link but before installing units or starting the process.
   await switchRelease(config, target, previous);
 }
 async function enableCron(options) {
