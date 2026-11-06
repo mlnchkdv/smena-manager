@@ -1,0 +1,427 @@
+{
+  "auditDate": "2026-11-06",
+  "environment": "Isolated local production build, Chromium, synthetic data. Not production acceptance.",
+  "production": {
+    "origin": "https://smena-manager.vercel.app/",
+    "httpStatus": 402,
+    "state": "deployment paused / disabled; authenticated checks unavailable"
+  },
+  "languages": ["ru", "en"],
+  "viewports": [
+    [320, 567],
+    [390, 844],
+    [767, 900],
+    [844, 390],
+    [1024, 768],
+    [1366, 768],
+    [1920, 1080]
+  ],
+  "matrix": {
+    "observations": 160,
+    "routes": [
+      "home",
+      "inbox",
+      "mytasks",
+      "favorites",
+      "notifications",
+      "overview",
+      "projects",
+      "files",
+      "tasks",
+      "calendar",
+      "timeline",
+      "knowledge",
+      "bookmarks",
+      "whiteboards",
+      "graph",
+      "members",
+      "teams",
+      "activity",
+      "archive",
+      "settings/workspace",
+      "whiteboard/audit-board"
+    ],
+    "rootOverflows": 0,
+    "errors": 0,
+    "coverage": "20 sections x 2 languages x 3 sizes, plus 5 key screens x 2 languages x 4 additional sizes. Not every section at every size."
+  },
+  "settings": {
+    "sections": 18,
+    "observations": 72,
+    "rootOverflows": 0
+  },
+  "accessibility": {
+    "engine": "axe-core; main content only; wcag2a, wcag2aa, wcag21aa",
+    "observations": 20,
+    "violationOccurrences": 0,
+    "manualReview": ["color-contrast", "aria-prohibited-attr"],
+    "limitation": "No screen-reader or physical-device acceptance. Incomplete checks are not passes."
+  },
+  "workflows": {
+    "importMoveVersionAndTextPreview": [
+      {
+        "lang": "ru",
+        "workflow": "mixed-import-review"
+      },
+      {
+        "lang": "ru",
+        "workflow": "bulk-move",
+        "count": 2,
+        "reload": true
+      },
+      {
+        "lang": "ru",
+        "workflow": "MD-reader-editor-history",
+        "saved": true,
+        "restored": true,
+        "metadataHidden": true
+      },
+      {
+        "lang": "ru",
+        "workflow": "TXT-file-preview",
+        "passed": true
+      },
+      {
+        "lang": "en",
+        "workflow": "mixed-import-review"
+      },
+      {
+        "lang": "en",
+        "workflow": "bulk-move",
+        "count": 2,
+        "reload": true
+      },
+      {
+        "lang": "en",
+        "workflow": "MD-reader-editor-history",
+        "saved": true,
+        "restored": true,
+        "metadataHidden": true
+      },
+      {
+        "lang": "en",
+        "workflow": "TXT-file-preview",
+        "passed": true
+      }
+    ],
+    "fileCatalog": [
+      {
+        "lang": "ru",
+        "files": 122,
+        "folders": 120,
+        "page5": "5",
+        "remoteNameSearch": true,
+        "savedPageSize": true,
+        "bulkMoveReload": true,
+        "deepFolderSearch": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "files": 122,
+        "folders": 120,
+        "page5": "5",
+        "remoteNameSearch": true,
+        "savedPageSize": true,
+        "bulkMoveReload": true,
+        "deepFolderSearch": true,
+        "overflow": 0
+      }
+    ],
+    "authorization": [
+      {
+        "role": "viewer",
+        "privateProjectHidden": true,
+        "privateBinaryDenied": 403,
+        "publicKnowledgeRead": true,
+        "noteWriteDenied": 403,
+        "workspaceCreateDenied": 403
+      },
+      {
+        "role": "editor",
+        "ownWorkspaceCreate": true,
+        "settingsReload": true,
+        "emptyNewCatalog": true,
+        "nonmemberDenied": true
+      },
+      {
+        "role": "editor",
+        "privateProjectHidden": true,
+        "privateBinaryDenied": 403,
+        "publicKnowledgeRead": true
+      },
+      {
+        "anonymousBinaryDenied": 401
+      }
+    ],
+    "tasksInbox": [
+      {
+        "lang": "ru",
+        "width": 390,
+        "completionReload": true,
+        "selfMentionInbox": true,
+        "openNotification": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "completionReload": true,
+        "selfMentionInbox": true,
+        "openNotification": true,
+        "overflow": 0
+      }
+    ],
+    "graph": [
+      {
+        "lang": "ru",
+        "physicsSettled": true,
+        "preferencesReload": true,
+        "grouping": true,
+        "keyboardListDetails": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "physicsSettled": true,
+        "preferencesReload": true,
+        "grouping": true,
+        "keyboardListDetails": true,
+        "overflow": 0
+      }
+    ],
+    "boardConnections": [
+      {
+        "lang": "ru",
+        "drag": true,
+        "undo": true,
+        "redo": true,
+        "reload": true,
+        "edgeEdit": true,
+        "mobileKeyboard": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "drag": true,
+        "undo": true,
+        "redo": true,
+        "reload": true,
+        "edgeEdit": true,
+        "mobileKeyboard": true,
+        "overflow": 0
+      }
+    ],
+    "boardCreation": [
+      {
+        "lang": "ru",
+        "spacePan": true,
+        "quickCreate": true,
+        "doubleClickEdit": true,
+        "reload": true,
+        "frameShortcut": true,
+        "typingGuard": true
+      },
+      {
+        "lang": "en",
+        "spacePan": true,
+        "quickCreate": true,
+        "doubleClickEdit": true,
+        "reload": true,
+        "frameShortcut": true,
+        "typingGuard": true
+      }
+    ],
+    "boardMaterial": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "ru",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "materialText": true
+      },
+      {
+        "lang": "en",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "materialText": true
+      }
+    ],
+    "boardFrames": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "section": "frame-jump",
+        "frameFilter": true,
+        "compactHeight": 55,
+        "overflow": 0
+      },
+      {
+        "lang": "ru",
+        "width": 1366,
+        "section": "frame-jump",
+        "frameFilter": true,
+        "compactHeight": 43,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "section": "frame-jump",
+        "frameFilter": true,
+        "compactHeight": 55,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "section": "frame-jump",
+        "frameFilter": true,
+        "compactHeight": 43,
+        "overflow": 0
+      }
+    ],
+    "largeFrameCamera": [
+      {
+        "lang": "ru",
+        "size": "844x390",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom:0.2;transform:translate(207px,-80px) scale(0.2)",
+        "saveError": []
+      },
+      {
+        "lang": "ru",
+        "size": "320x567",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom:0.2;transform:translate(-43px,-50px) scale(0.2)",
+        "saveError": []
+      },
+      {
+        "lang": "ru",
+        "size": "1366x768",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom: 0.25; transform: translate(293.5px, 36.5px) scale(0.25);",
+        "saveError": []
+      },
+      {
+        "lang": "en",
+        "size": "844x390",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom:0.2;transform:translate(207px,-80px) scale(0.2)",
+        "saveError": []
+      },
+      {
+        "lang": "en",
+        "size": "320x567",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom:0.2;transform:translate(-43px,-50px) scale(0.2)",
+        "saveError": []
+      },
+      {
+        "lang": "en",
+        "size": "1366x768",
+        "frame": "2000x2000",
+        "transform": "--whiteboard-zoom: 0.25; transform: translate(293.5px, 36.5px) scale(0.25);",
+        "saveError": []
+      }
+    ]
+  },
+  "validation": {
+    "serverSharedTests": {
+      "total": 749,
+      "passed": 749,
+      "failed": 0,
+      "concurrency": 2
+    },
+    "initialJavaScriptKiB": 587.9,
+    "initialJavaScriptBudgetKiB": 600,
+    "ergonomicsScript": "Not accepted: its dedicated Layout QA fixture on port 5194 was not running; separate current-build CLI checks reported here.",
+    "limitation": "The initial unbounded server run timed out in API bootstrap under parallel load; the full bounded final run passed. Node 23.6 host; project target is Node 22."
+  },
+  "evidence": "Raw CLI scripts, logs and screenshots are local and ignored by Git under output/playwright/audit-2026-11-06/. This sanitized summary is committed."
+}
