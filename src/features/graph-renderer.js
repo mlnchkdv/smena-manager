@@ -10,6 +10,7 @@ import cytoscape from 'cytoscape';
 import { ic } from '../core/icons.js';
 import { GRAPH_KINDS, graphPositions, graphTopologyKey } from '../shared/graph-layout.js';
 import { graphOverviewLabels } from '../shared/graph-labels.js';
+import { graphSemanticView } from '../shared/graph-semantic-view.js';
 import { t } from '../core/i18n.js';
 import { graphPhysicsOptions } from '../shared/graph-physics.js';
 import { createGraphDragPhysics } from '../shared/graph-drag-physics.js';
@@ -293,6 +294,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
         { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
         { selector: 'node.aggregate', style: { width: 46, height: 46, 'border-style': 'dashed', 'border-width': 2, 'background-opacity': 0.06 } },
         { selector: 'node.aggregate.simple', style: { width: 18, height: 18, shape: 'round-rectangle', 'background-opacity': 0.15 } },
+        { selector: 'node.semantic-point', style: { 'background-image': 'none', shape: 'ellipse', 'background-opacity': 0.85 } },
       ],
     });
     const cy = instance;
@@ -300,12 +302,14 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const updateDensity = () => {
       if (!current() || !cy.renderer()) return;
       const zoom = instance.zoom();
+      const semantic = graphSemanticView({ width: cy.width(), height: cy.height(), nodes: graph.nodes.length, zoom });
+      container.dataset.graphSemanticView = !simple && semantic.overview ? 'overview' : 'detail';
       cy.batch(() =>
         cy.edges().forEach(edge => {
           const highlighted = edge.hasClass('highlight');
           edge.style({
             width: (highlighted ? 1.8 : denseGraph ? 0.8 : 1) / Math.max(zoom, 0.01),
-            opacity: highlighted ? 0.95 : denseGraph ? 0.5 : !simple && edge.data('automatic') ? 0.7 : 0.78,
+            opacity: highlighted ? 0.95 : !simple && semantic.overview ? 0.22 : denseGraph ? 0.5 : !simple && edge.data('automatic') ? 0.7 : 0.78,
           });
         }),
       );
@@ -342,17 +346,31 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
               width: instance.width(),
               height: instance.height(),
               selected,
+              ...(semantic.overview ? { limit: semantic.labelLimit } : {}),
             })
           : new Set();
         instance.batch(() => {
           instance.nodes().forEach(node => {
             const labeled = overview && labels.has(node.id());
+            const point = semantic.overview && node.id() !== selected;
+            node.toggleClass('semantic-point', point);
             node.toggleClass('overview-hidden', overview && !labeled);
             node.toggleClass('orientation-label', labeled);
-            if (labeled) node.style({ 'font-size': 12 / zoom, 'text-max-width': 110 / zoom, 'text-margin-y': 8 / zoom, width: 30 / zoom, height: 30 / zoom });
+            if (labeled)
+              node.style({
+                'font-size': 12 / zoom,
+                'text-max-width': 110 / zoom,
+                'text-margin-y': 8 / zoom,
+                width: (point ? 12 : 30) / zoom,
+                height: (point ? 12 : 30) / zoom,
+              });
             else node.removeStyle('font-size text-max-width text-margin-y width height');
             if (container.clientWidth <= 640) {
-              if (!labeled) node.style({ width: Math.max(38, 18 / zoom), height: Math.max(38, 18 / zoom) });
+              if (!labeled)
+                node.style({
+                  width: point ? semantic.pointPixels / zoom : Math.max(38, 18 / zoom),
+                  height: point ? semantic.pointPixels / zoom : Math.max(38, 18 / zoom),
+                });
               node.style({ 'background-width': Math.max(18, 10 / zoom), 'background-height': Math.max(18, 10 / zoom) });
             } else node.removeStyle('background-width background-height');
           });
