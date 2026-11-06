@@ -12,6 +12,7 @@ import { getKnowledgeVersion } from '../../src/server/knowledge-versions.js';
 import { bindWikiReferences } from '../../src/shared/knowledge-links.js';
 import { app } from '../../src/server/app.js';
 import { readKnowledgeCatalog } from '../../src/server/knowledge-catalog.js';
+import { replaceKnowledgeCatalog } from '../../src/server/knowledge-catalog-write.js';
 
 let directory, source, storage;
 const oldPath = process.env.DATABASE_PATH;
@@ -97,6 +98,42 @@ test('cold knowledge catalog exposes metadata without reading any current or his
     assert.match(note.bodyToken, /^[a-f0-9]{64}$/);
   }
   await assert.rejects(readKnowledgeCatalog(profile('removed')), { statusCode: 403 });
+});
+
+test('catalog folder writes load no bodies and a rename loads only the changed note', async () => {
+  const reads = [],
+    read = storage.readKnowledgeBody.bind(storage);
+  storage.readKnowledgeBody = async hash => {
+    reads.push(hash);
+    return read(hash);
+  };
+  let catalog = await readKnowledgeCatalog(profile('editor'));
+  catalog.knowledgeFolders.push({ id: 'folder', name: 'Folder' });
+  catalog = await replaceKnowledgeCatalog(catalog, catalog.revision, profile('editor'));
+  assert.deepEqual(reads, []);
+  const second = (await getWorkspaceDatabase()).knowledgeNotes[1];
+  catalog.knowledgeNotes[0].title = 'Renamed';
+  catalog = await replaceKnowledgeCatalog(catalog, catalog.revision, profile('editor'));
+  assert.equal(catalog.knowledgeNotes[0].title, 'Renamed');
+  assert.equal(reads.includes(second.bodyRef.sha256), false);
+  assert.equal((await readKnowledgeNote('a', profile('editor'))).note.formatted_markdown, source.knowledgeNotes[0].formatted_markdown);
+  const revision = catalog.revision;
+  assert.equal((await replaceKnowledgeCatalog(catalog, revision, profile('editor'))).revision, revision);
+});
+
+test('metadata protocol rejects stale/forged/missing bodies and viewer writes without changing canonical content', async () => {
+  const catalog = await readKnowledgeCatalog(profile('editor'));
+  const root = structuredClone(await getWorkspaceDatabase());
+  for (const mutate of [n => (n.bodyToken = '0'.repeat(64)), n => delete n.bodyToken, n => (n.bodyRef = root.knowledgeNotes[1].bodyRef)]) {
+    const input = structuredClone(catalog);
+    mutate(input.knowledgeNotes[0]);
+    await assert.rejects(replaceKnowledgeCatalog(input, input.revision, profile('editor')));
+  }
+  const input = structuredClone(catalog);
+  input.knowledgeNotes.push({ id: 'empty', title: 'Missing body' });
+  await assert.rejects(replaceKnowledgeCatalog(input, input.revision, profile('editor')), { code: 'KNOWLEDGE_BODY_REQUIRED' });
+  await assert.rejects(replaceKnowledgeCatalog(catalog, catalog.revision, profile('viewer')), { statusCode: 403 });
+  assert.deepEqual(await getWorkspaceDatabase(), root);
 });
 
 test('empty/matching note patches preserve dates, history and all revisions', async () => {

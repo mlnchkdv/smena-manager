@@ -5,8 +5,9 @@ import { externalKnowledgeBody } from '../shared/knowledge-body.js';
 
 // A token describes the canonical body version; it never grants read access.
 export function knowledgeBodyToken(note) {
+  if (externalKnowledgeBody(note)) return note.bodyRef.sha256;
   return createHash('sha256')
-    .update(JSON.stringify([note.id, externalKnowledgeBody(note) ? note.bodyRef : String(note.formatted_markdown || '')]))
+    .update(JSON.stringify({ format: 'smena-knowledge-body-v1', noteId: note.id, formatted_markdown: String(note.formatted_markdown || '') }))
     .digest('hex');
 }
 
