@@ -70,3 +70,7 @@ U01/U03, серверный индекс: добавлены сжатые неи
 
 The catalog list (including table/custom sort), global search and palette use revision-bound server matches; pending, failed and offline-only coverage stay explicit. A 390/1366 px RU/EN browser check found a marker beyond the cold preview with zero original-body requests and zero page overflow. Twenty-two focused search/store tests passed. The persistent compressed index still scans applicable derived parts: it does not yet provide positional posting lists or a production Drive latency guarantee.
 
+# U02 — resumable append protocol (server)
+
+Reviewed manifests and per-file receipts are saved with the canonical root. Membership is checked under the write lock; journals belong to the actor and workspace; source hashes fence reselection. A fresh standalone backup precedes each new job. Accepted files survive cancellation and lost-response retries without duplication. Six 1 MiB notes were imported across provider/store restarts without placing bodies in the root or journal; ownership, revocation, pause, skip and unsafe-name tests passed. Per-file requests retain the 4 MiB transport cap; the UI source cap is 2 MiB/file, 256 MiB/1,000 files per selection.
+

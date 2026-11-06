@@ -614,7 +614,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
   if (
-    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'knowledgeTrash', 'knowledgeMigration'].includes(options.scope) ||
+    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(options.scope) ||
     options.backupLabel ||
     options.replaceDocuments ||
     options.actorMemberId ||

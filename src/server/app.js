@@ -74,6 +74,7 @@ import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.
 import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { configureReverseProxy } from './reverse-proxy.js';
+import { readKnowledgeImports, startKnowledgeImport, controlKnowledgeImport, appendKnowledgeImport } from './knowledge-import-store.js';
 
 export const app = express();
 
@@ -722,15 +723,24 @@ app.patch('/api/knowledge/notes/:id', requireRole('admin', 'editor'), async (req
 });
 app.get('/api/knowledge/search', async (request, response, next) => {
   try {
-    const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0', mode = 'knowledge' } = request.query;
+    const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0', mode = 'knowledge', recent = '[]' } = request.query;
     if (
-      [q, folder, tag, sort, offset, mode].some(value => typeof value !== 'string') ||
+      [q, folder, tag, sort, offset, mode, recent].some(value => typeof value !== 'string') ||
       !['knowledge', 'workspace'].includes(mode) ||
-      q.length > 500 ||
+      q.length > 1000 ||
+      recent.length > 20000 ||
       tag.length > 180 ||
       folder.length > 180 ||
       !/^\d{1,7}$/.test(offset)
     )
+      return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
+    let recentIds;
+    try {
+      recentIds = JSON.parse(recent);
+    } catch {
+      recentIds = null;
+    }
+    if (!Array.isArray(recentIds) || recentIds.length > 100 || recentIds.some(id => typeof id !== 'string' || id.length > 180))
       return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
     const database = await getWorkspaceDatabase({
       fields: ['members', '_userPrefs', 'knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions', '_knowledgeSearch'],
@@ -739,12 +749,42 @@ app.get('/api/knowledge/search', async (request, response, next) => {
       await queryKnowledgeIndex(database, request.user, getAccessProfiles(), {
         query: q,
         mode,
+        recent: recentIds,
         folder,
         tag,
         sort: sort === 'title' ? 'title' : 'updated',
         offset: Number(offset),
       }),
     );
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get('/api/knowledge/imports', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ jobs: await readKnowledgeImports(request.user, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/imports', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ job: await startKnowledgeImport(request.body, request.user, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/imports/:id', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ job: await controlKnowledgeImport(request.params.id, request.body?.state, request.user, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/imports/:id/entries', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ job: await appendKnowledgeImport(request.params.id, request.body?.key, request.body?.source, request.user, getAccessProfiles()) });
   } catch (error) {
     next(error);
   }

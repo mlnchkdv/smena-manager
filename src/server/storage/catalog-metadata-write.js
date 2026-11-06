@@ -8,6 +8,7 @@ const SCOPES = {
   knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch'],
   knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeSearch'],
   knowledgeMigration: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeMigration', '_knowledgeStorageVersion', '_knowledgeSearch'],
+  knowledgeImport: ['knowledgeNotes', '_documentRevisions', '_knowledgeImports', '_knowledgeSearch'],
   bookmarks: ['links', 'linkFolders', '_documentRevisions'],
   preferences: ['members', '_userPrefs', 'notifPrefs', 'notifs'],
   directory: ['_workspaceDirectory'],
@@ -59,7 +60,7 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
   if (!Number.isSafeInteger(next.revision) || next.revision !== current.revision + 1 || !Number.isFinite(Date.parse(next.updatedAt))) throw forbidden();
   if (scope === 'preferences') assertPersonalPatch(current, next, memberId);
   else if (!['directory', 'mediaCopies'].includes(scope)) {
-    const document = ['knowledgeTrash', 'knowledgeMigration'].includes(scope) ? 'knowledge' : scope;
+    const document = ['knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(scope) ? 'knowledge' : scope;
     if (
       document !== scope &&
       !same(
@@ -71,7 +72,8 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
     if (!same(omit(current._documentRevisions, [document]), omit(next._documentRevisions, [document]))) throw forbidden();
     const before = current._documentRevisions?.[document] || {};
     const after = next._documentRevisions?.[document];
-    const controlOnly = scope === 'knowledgeMigration' && same(current.knowledgeNotes, next.knowledgeNotes) && same(current.trash, next.trash);
+    const controlOnly =
+      ['knowledgeMigration', 'knowledgeImport'].includes(scope) && same(current.knowledgeNotes, next.knowledgeNotes) && same(current.trash, next.trash);
     if (controlOnly) {
       if (!same(before, after)) throw forbidden();
     } else if (after?.revision !== Number(before.revision || 0) + 1 || after.createdAt !== (before.createdAt || current.createdAt)) throw forbidden();
