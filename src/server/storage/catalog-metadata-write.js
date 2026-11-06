@@ -5,9 +5,9 @@ import { FILE_CATALOG_MAX_BYTES } from '../../shared/file-catalog.js';
 import { notificationRecipient } from '../../shared/notification-model.js';
 
 const SCOPES = {
-  knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions'],
-  knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions'],
-  knowledgeMigration: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeMigration', '_knowledgeStorageVersion'],
+  knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch'],
+  knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeSearch'],
+  knowledgeMigration: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeMigration', '_knowledgeStorageVersion', '_knowledgeSearch'],
   bookmarks: ['links', 'linkFolders', '_documentRevisions'],
   preferences: ['members', '_userPrefs', 'notifPrefs', 'notifs'],
   directory: ['_workspaceDirectory'],

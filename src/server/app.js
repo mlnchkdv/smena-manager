@@ -1,4 +1,5 @@
 import { searchWorkspace } from '../shared/workspace-search.js';
+import { queryKnowledgeIndex } from './knowledge-search-query.js';
 import { whiteboardCatalogProjection, restoreWhiteboardBodies } from './whiteboard-catalog.js';
 import express from 'express';
 import crypto from 'node:crypto';
@@ -69,7 +70,6 @@ import { applyPersonalSettings } from '../shared/personal-settings.js';
 import { writeRecoveryBundle } from './recovery-bundle.js';
 import { sendOwnTestNotification } from './test-notification.js';
 import { workspaceRevisionEtag } from '../shared/revision-etag.js';
-import { indexedKnowledgePage } from './knowledge-index.js';
 import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.js';
 import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
 import { knowledgeActor } from './knowledge-access.js';
@@ -722,9 +722,10 @@ app.patch('/api/knowledge/notes/:id', requireRole('admin', 'editor'), async (req
 });
 app.get('/api/knowledge/search', async (request, response, next) => {
   try {
-    const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0' } = request.query;
+    const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0', mode = 'knowledge' } = request.query;
     if (
-      [q, folder, tag, sort, offset].some(value => typeof value !== 'string') ||
+      [q, folder, tag, sort, offset, mode].some(value => typeof value !== 'string') ||
+      !['knowledge', 'workspace'].includes(mode) ||
       q.length > 500 ||
       tag.length > 180 ||
       folder.length > 180 ||
@@ -732,22 +733,18 @@ app.get('/api/knowledge/search', async (request, response, next) => {
     )
       return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
     const database = await getWorkspaceDatabase({
-      fields: ['members', '_userPrefs', 'knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions'],
+      fields: ['members', '_userPrefs', 'knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions', '_knowledgeSearch'],
     });
-    const member = memberForProfile(bindAccessProfiles(database, getAccessProfiles()), request.user);
-    if (!member) throw permissionError('profile');
-    const favorites = database._userPrefs?.[member.id]?.favorites || '[]';
-    response.json({
-      ...indexedKnowledgePage(database, {
+    response.json(
+      await queryKnowledgeIndex(database, request.user, getAccessProfiles(), {
         query: q,
+        mode,
         folder,
         tag,
         sort: sort === 'title' ? 'title' : 'updated',
         offset: Number(offset),
-        favorites,
       }),
-      favorites,
-    });
+    );
   } catch (error) {
     next(error);
   }

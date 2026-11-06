@@ -6,6 +6,7 @@ import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-histor
 import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
 import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
 import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
+import { knowledgeSearchError, SEARCH_OBJECT_MAX_BYTES } from '../knowledge-search-store.js';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -63,6 +64,33 @@ export class LocalStorageProvider {
   knowledgeBodyPath(hash) {
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeBodyError();
     return path.join(path.dirname(this.databasePath), 'knowledge-bodies', `${hash}.json`);
+  }
+  knowledgeSearchPath(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeSearchError();
+    return path.join(path.dirname(this.databasePath), 'knowledge-search', `${hash}.json`);
+  }
+  async readKnowledgeSearch(hash) {
+    const target = this.knowledgeSearchPath(hash);
+    if ((await fs.promises.stat(target)).size > SEARCH_OBJECT_MAX_BYTES) throw knowledgeSearchError();
+    return fs.promises.readFile(target, 'utf8');
+  }
+  async writeKnowledgeSearch(text, hash) {
+    if (typeof text !== 'string' || Buffer.byteLength(text) > SEARCH_OBJECT_MAX_BYTES || crypto.createHash('sha256').update(text).digest('hex') !== hash)
+      throw knowledgeSearchError();
+    const target = this.knowledgeSearchPath(hash),
+      temporary = `${target}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    try {
+      await fs.promises.writeFile(temporary, text, { encoding: 'utf8', flag: 'wx' });
+      try {
+        await fs.promises.link(temporary, target);
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+        if ((await fs.promises.readFile(target, 'utf8')) !== text) throw knowledgeSearchError();
+      }
+    } finally {
+      await fs.promises.unlink(temporary).catch(() => undefined);
+    }
   }
   async readKnowledgeBody(hash) {
     return fs.promises.readFile(this.knowledgeBodyPath(hash), 'utf8');

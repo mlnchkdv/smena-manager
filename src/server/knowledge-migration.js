@@ -8,20 +8,24 @@ import { externalKnowledgeVersion } from '../shared/knowledge-history.js';
 import { knowledgeBodyToken, knowledgeCatalogDocument } from './knowledge-catalog.js';
 import { storeKnowledgeBody, loadKnowledgeBody } from './knowledge-body-store.js';
 import { persistKnowledgeVersion } from './knowledge-version-blobs.js';
+import { knowledgeSearchParts, knowledgeSearchCovered, stageKnowledgeSearch } from './knowledge-search-store.js';
 const fail = (code, statusCode = 409) => Object.assign(new Error('Review the current storage plan before continuing.'), { code, statusCode });
 const admin = (data, profile, profiles) => {
   const actor = knowledgeActor(data, profile, profiles, { write: true });
   if (workspaceMemberRole(actor) !== 'admin') throw fail('ADMIN_REQUIRED', 403);
   return actor;
 };
-const needsMigration = note => !externalKnowledgeBody(note) || typeof note.bodyPreview !== 'string';
-const candidates = data =>
-  [
-    ...(data.knowledgeNotes || []).filter(needsMigration).map(note => ({ key: 'note:' + note.id, note })),
+const candidates = data => {
+  const parts = knowledgeSearchParts(data);
+  const needsMigration = (note, active) =>
+    !externalKnowledgeBody(note) || typeof note.bodyPreview !== 'string' || (active && !knowledgeSearchCovered(note, parts));
+  return [
+    ...(data.knowledgeNotes || []).filter(note => needsMigration(note, true)).map(note => ({ key: 'note:' + note.id, note })),
     ...(data.trash || [])
-      .filter(item => item.kind === 'note' && item.data?.note && needsMigration(item.data.note))
+      .filter(item => item.kind === 'note' && item.data?.note && needsMigration(item.data.note, false))
       .map(item => ({ key: 'trash:' + item.id, note: item.data.note, trashId: item.id })),
   ].sort((a, b) => a.key.localeCompare(b.key));
+};
 function plan(data, actor) {
   const pending = candidates(data),
     tooLarge = pending
@@ -55,7 +59,17 @@ function plan(data, actor) {
 }
 export async function readKnowledgeMigration(profile, profiles = []) {
   const data = await getWorkspaceDatabase({
-    fields: ['members', 'knowledgeNotes', 'knowledgeFolders', 'trash', 'revision', 'createdAt', '_documentRevisions', '_knowledgeMigration'],
+    fields: [
+      'members',
+      'knowledgeNotes',
+      'knowledgeFolders',
+      'trash',
+      'revision',
+      'createdAt',
+      '_documentRevisions',
+      '_knowledgeMigration',
+      '_knowledgeSearch',
+    ],
   });
   return plan(data, admin(data, profile, profiles));
 }
@@ -110,6 +124,7 @@ export async function stepKnowledgeMigration(jobId, profile, profiles = [], { pa
             if (item.trashId) data.trash.find(entry => entry.id === item.trashId).data.note = stored;
             else data.knowledgeNotes[data.knowledgeNotes.findIndex(entry => entry.id === note.id)] = stored;
           }
+          await stageKnowledgeSearch(data, data, storage, { forceIds: window.filter(item => !item.trashId).map(item => item.note.id) });
           job.processed += window.length;
           job.state = candidates(data).length ? 'running' : 'complete';
           job.updatedAt = new Date().toISOString();

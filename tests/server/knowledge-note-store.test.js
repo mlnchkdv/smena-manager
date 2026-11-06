@@ -22,6 +22,9 @@ import { readKnowledgeCatalog, knowledgeCoreCatalog, restoreKnowledgeTrashRefere
 import { replaceKnowledgeCatalog } from '../../src/server/knowledge-catalog-write.js';
 import { updateKnowledgeTrash } from '../../src/server/knowledge-trash.js';
 import { readKnowledgeMigration, startKnowledgeMigration, stepKnowledgeMigration } from '../../src/server/knowledge-migration.js';
+import { stageKnowledgeSearch } from '../../src/server/knowledge-search-store.js';
+import { queryKnowledgeIndex } from '../../src/server/knowledge-search-query.js';
+import { resetKnowledgeSearchCache } from '../../src/server/knowledge-search-cache.js';
 
 let directory, source, storage;
 const oldPath = process.env.DATABASE_PATH;
@@ -52,7 +55,9 @@ test.beforeEach(async () => {
     ],
   };
   bindWikiReferences(source.knowledgeNotes);
-  await storage.saveDatabase(await stageKnowledgeBodyWindow(source, storage, ['a', 'b']));
+  const staged = await stageKnowledgeBodyWindow(source, storage, ['a', 'b']);
+  await stageKnowledgeSearch(staged, {}, storage, { reset: true });
+  await storage.saveDatabase(staged);
 });
 test.afterEach(async () => {
   resetWorkspaceStore();
@@ -120,6 +125,60 @@ test('cold knowledge catalog exposes metadata without reading any current or his
     assert.match(note.bodyToken, /^[a-f0-9]{64}$/);
   }
   await assert.rejects(readKnowledgeCatalog(profile('removed')), { statusCode: 403 });
+});
+
+test('cold full-text search verifies complete phrases through derived parts without opening original bodies or history', async () => {
+  resetKnowledgeSearchCache();
+  const data = await getWorkspaceDatabase();
+  storage.readKnowledgeBody = async () => {
+    throw Error('Full body read during cold search');
+  };
+  storage.readKnowledgeVersion = async () => {
+    throw Error('History read during cold search');
+  };
+  const reads = [],
+    read = storage.readKnowledgeSearch.bind(storage);
+  storage.readKnowledgeSearch = async hash => {
+    reads.push(hash);
+    return read(hash);
+  };
+  const result = await queryKnowledgeIndex(data, profile('viewer'), [], { query: '"' + 'a'.repeat(50) + '"' });
+  assert.deepEqual(result.matches, ['a']);
+  assert.equal(result.total, 1);
+  assert.equal(result.complete, true);
+  assert.ok(reads.length > 0 && reads.length <= 2);
+  const requests = reads.length;
+  assert.equal((await queryKnowledgeIndex(data, profile('viewer'), [], { query: 'missing-phrase' })).total, 0);
+  assert.equal(reads.length, requests, 'warm queries reuse the immutable derived index');
+  await assert.rejects(queryKnowledgeIndex(data, profile('removed'), [], { query: 'a' }), { statusCode: 403 });
+  assert.equal(reads.length, requests, 'denied membership cannot read index parts');
+  data.knowledgeFolders = [{ id: 'private-filter', name: 'Filter' }];
+  data.knowledgeNotes[0].folderId = 'private-filter';
+  resetKnowledgeSearchCache();
+  reads.length = 0;
+  assert.deepEqual((await queryKnowledgeIndex(data, profile('viewer'), [], { query: 'aaaa', folder: 'private-filter' })).matches, ['a']);
+  assert.equal(reads.length, 1, 'metadata scope excludes unrelated parts');
+});
+
+test('body edits update only the affected index part; corrupt and missing indexes fail explicitly', async () => {
+  const before = await getWorkspaceDatabase(),
+    bPart = before._knowledgeSearch.parts.find(p => p.members.some(([id]) => id === 'b'));
+  const loaded = await readKnowledgeNote('a', profile('editor'));
+  await patchKnowledgeNote('a', { formatted_markdown: 'Исходный текст с уникальным маркером needle-new-index' }, loaded.noteHash, profile('editor'));
+  const after = await getWorkspaceDatabase();
+  if (!bPart.members.some(([id]) => id === 'a'))
+    assert.deepEqual(
+      after._knowledgeSearch.parts.find(p => p.prefix === bPart.prefix),
+      bPart,
+    );
+  resetKnowledgeSearchCache();
+  assert.deepEqual((await queryKnowledgeIndex(after, profile('viewer'), [], { query: '"уникальным маркером" needle-new-index' })).matches, ['a']);
+  delete after._knowledgeSearch;
+  await assert.rejects(queryKnowledgeIndex(after, profile('viewer'), [], { query: 'needle' }), { code: 'KNOWLEDGE_SEARCH_UNAVAILABLE' });
+  const canonical = await getWorkspaceDatabase();
+  resetKnowledgeSearchCache();
+  storage.readKnowledgeSearch = async () => '{"broken":true}';
+  await assert.rejects(queryKnowledgeIndex(canonical, profile('viewer'), [], { query: 'needle' }), { code: 'KNOWLEDGE_SEARCH_UNAVAILABLE' });
 });
 
 test('catalog folder writes load no bodies and a rename loads only the changed note', async () => {

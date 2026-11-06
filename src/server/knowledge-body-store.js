@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { KNOWLEDGE_BODY_KIND, KNOWLEDGE_BODY_MAX_BYTES, externalKnowledgeBody, validKnowledgeBodyRef } from '../shared/knowledge-body.js';
 import { noteCardExcerpt } from '../shared/knowledge-search.js';
+import { cacheSearchValue } from './knowledge-search-cache.js';
 
 export const knowledgeBodyError = (code = 'KNOWLEDGE_BODY_INTEGRITY', statusCode = 503) =>
   Object.assign(
@@ -18,7 +19,8 @@ export async function storeKnowledgeBody(storage, note) {
   if (bytes > KNOWLEDGE_BODY_MAX_BYTES) throw knowledgeBodyError('KNOWLEDGE_BODY_LIMIT', 413);
   const sha256 = digest(text);
   await storage.writeKnowledgeBody(text, sha256);
-  const metadata = { ...note, bodyPreview: noteCardExcerpt(note, '').slice(0, 180) };
+  cacheSearchValue(storage, 'body:' + sha256, note.formatted_markdown.toLocaleLowerCase(), Buffer.byteLength(note.formatted_markdown) * 2);
+  const metadata = { ...note, searchVersion: 1, bodyPreview: noteCardExcerpt(note, '').slice(0, 180) };
   delete metadata.formatted_markdown;
   return { ...metadata, bodyRef: { kind: KNOWLEDGE_BODY_KIND, sha256, bytes } };
 }
@@ -38,6 +40,7 @@ export async function loadKnowledgeBody(storage, note) {
   const metadata = { ...note };
   delete metadata.bodyRef;
   delete metadata.bodyPreview;
+  delete metadata.searchVersion;
   return { ...metadata, formatted_markdown: object.formatted_markdown };
 }
 

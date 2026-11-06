@@ -3,6 +3,7 @@ const state = workspaceState(() => ({ database: null, initializationPromise: nul
 import { getStorageProvider } from './storage/index.js';
 import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
 import { externalizeKnowledgeBodies } from './knowledge-body-store.js';
+import { stageKnowledgeSearch } from './knowledge-search-store.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -544,8 +545,9 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     createdAt: current.createdAt,
     updatedAt: now,
   });
-  validateTransportSize(next);
   const storage = getStorageProvider();
+  if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true') await stageKnowledgeSearch(next, current, storage, { reset: !!options.replaceDocuments });
+  validateTransportSize(next);
   await options.coordination?.assertOwnership?.();
   if (options.backupLabel) {
     // Snapshot the exact canonical revision being replaced. Failure stops the
@@ -635,6 +637,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
     const changed = await mutator(clone(current));
     if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('Workspace mutation must return a JSON object.');
     const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
+    if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true' && options.scope.startsWith('knowledge')) await stageKnowledgeSearch(next, current, storage);
     validateMembershipTransition(current, next);
     // Catalog bytes are checked exactly by the provider's immutable-root patch;
     // computing them from the intentionally absent file rows would be wrong.

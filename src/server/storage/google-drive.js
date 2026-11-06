@@ -19,6 +19,7 @@ import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-histor
 import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
 import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
 import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
+import { knowledgeSearchError, SEARCH_OBJECT_MAX_BYTES } from '../knowledge-search-store.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -850,6 +851,45 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     return uniqueDriveMatch(result);
+  }
+  async findKnowledgeSearch(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeSearchError();
+    await this.init();
+    const result = await this.client.files.list({
+      q: `name = 'smena-knowledge-search-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeSearch' and value='1' }`,
+      fields: 'files(id,size)',
+      spaces: 'drive',
+      pageSize: 2,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    return uniqueDriveMatch(result);
+  }
+  async readKnowledgeSearch(hash) {
+    const file = await this.findKnowledgeSearch(hash);
+    if (!file || Number(file.size) > SEARCH_OBJECT_MAX_BYTES) throw knowledgeSearchError();
+    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' })).data;
+  }
+  async writeKnowledgeSearch(text, hash) {
+    if (typeof text !== 'string' || Buffer.byteLength(text) > SEARCH_OBJECT_MAX_BYTES || createHash('sha256').update(text).digest('hex') !== hash)
+      throw knowledgeSearchError();
+    const existing = await this.findKnowledgeSearch(hash);
+    if (existing) {
+      const response = await this.client.files.get({ fileId: existing.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+      if (response.data !== text) throw knowledgeSearchError();
+      return;
+    }
+    await this.client.files.create({
+      requestBody: {
+        name: `smena-knowledge-search-${hash}.json`,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaKnowledgeSearch: '1' },
+      },
+      media: { mimeType: 'application/json', body: Readable.from([text]) },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
   }
   async readKnowledgeBody(hash) {
     const file = await this.findKnowledgeBody(hash);
