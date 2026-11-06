@@ -4,6 +4,8 @@ import crypto from 'node:crypto';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
 import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-history.js';
 import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
+import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
+import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -57,6 +59,33 @@ export class LocalStorageProvider {
   knowledgeVersionPath(hash) {
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
     return path.join(path.dirname(this.databasePath), 'knowledge-versions', `${hash}.json`);
+  }
+  knowledgeBodyPath(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeBodyError();
+    return path.join(path.dirname(this.databasePath), 'knowledge-bodies', `${hash}.json`);
+  }
+  async readKnowledgeBody(hash) {
+    return fs.promises.readFile(this.knowledgeBodyPath(hash), 'utf8');
+  }
+  async writeKnowledgeBody(text, hash) {
+    const target = this.knowledgeBodyPath(hash);
+    if (typeof text !== 'string' || crypto.createHash('sha256').update(text).digest('hex') !== hash) throw knowledgeBodyError();
+    if (Buffer.byteLength(text) > KNOWLEDGE_BODY_MAX_BYTES) throw knowledgeBodyError('KNOWLEDGE_BODY_LIMIT', 413);
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    const temporary = `${target}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporary, text, { encoding: 'utf8', flag: 'wx' });
+      try {
+        // Atomic exclusive publication: a crash cannot expose half-written
+        // content under a canonical identity or replace a previous object.
+        await fs.promises.link(temporary, target);
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+        if ((await fs.promises.readFile(target, 'utf8')) !== text) throw knowledgeBodyError();
+      }
+    } finally {
+      await fs.promises.unlink(temporary).catch(() => undefined);
+    }
   }
   async readKnowledgeVersion(hash) {
     return fs.promises.readFile(this.knowledgeVersionPath(hash), 'utf8');
@@ -186,6 +215,7 @@ export class LocalStorageProvider {
 
   async createDatabaseBackup(data, label = '') {
     await this.init();
+    data = await expandKnowledgeBodies(data, this);
     data = await expandKnowledgeVersions(data, this);
     const createdAt = new Date().toISOString();
     const id = `${createdAt.replace(/[:.]/g, '-')}-${crypto.randomUUID()}.json`;

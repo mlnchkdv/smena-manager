@@ -17,6 +17,8 @@ import { writeCatalogDelta } from './catalog-delta-write.js';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
 import { KNOWLEDGE_VERSION_STORE_MAX_BYTES } from '../../shared/knowledge-history.js';
 import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-version-blobs.js';
+import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
+import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -836,6 +838,47 @@ export class GoogleDriveStorageProvider {
     });
     return uniqueDriveMatch(result);
   }
+  async findKnowledgeBody(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeBodyError();
+    await this.init();
+    const result = await this.client.files.list({
+      q: `name = 'smena-knowledge-body-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeBody' and value='1' }`,
+      fields: 'files(id,size)',
+      spaces: 'drive',
+      pageSize: 2,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    return uniqueDriveMatch(result);
+  }
+  async readKnowledgeBody(hash) {
+    const file = await this.findKnowledgeBody(hash);
+    if (!file) throw knowledgeBodyError();
+    if (Number(file.size) > KNOWLEDGE_BODY_MAX_BYTES) throw knowledgeBodyError();
+    const response = await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    return response.data;
+  }
+  async writeKnowledgeBody(text, hash) {
+    if (typeof text !== 'string' || createHash('sha256').update(text).digest('hex') !== hash) throw knowledgeBodyError();
+    if (Buffer.byteLength(text) > KNOWLEDGE_BODY_MAX_BYTES) throw knowledgeBodyError('KNOWLEDGE_BODY_LIMIT', 413);
+    const existing = await this.findKnowledgeBody(hash);
+    if (existing) {
+      const response = await this.client.files.get({ fileId: existing.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+      if (response.data !== text) throw knowledgeBodyError();
+      return;
+    }
+    await this.client.files.create({
+      requestBody: {
+        name: `smena-knowledge-body-${hash}.json`,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaKnowledgeBody: '1' },
+      },
+      media: { mimeType: 'application/json', body: Readable.from([text]) },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
+  }
   async readKnowledgeVersion(hash) {
     const file = await this.findKnowledgeVersion(hash);
     if (!file) throw knowledgeVersionError('KNOWLEDGE_VERSION_INTEGRITY');
@@ -895,6 +938,7 @@ export class GoogleDriveStorageProvider {
   }
 
   async uploadDatabaseBackup(data, label = '', records) {
+    data = await expandKnowledgeBodies(data, this);
     data = await expandKnowledgeVersions(data, this);
     const folderId = await this.ensureBackupsFolder();
     const createdAt = new Date().toISOString();
