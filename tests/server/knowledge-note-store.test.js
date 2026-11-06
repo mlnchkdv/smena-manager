@@ -95,6 +95,15 @@ test('selected note reads/writes retain every other body pointer and wiki bindin
   await assert.rejects(replaceWorkspaceDocument('knowledge', legacy, legacy.revision), { code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED' });
 });
 
+test('disabled rollout rejects demand writes and trash without changing canonical data', async () => {
+  const before = await getWorkspaceDatabase();
+  const catalog = await readKnowledgeCatalog(profile('owner'));
+  delete process.env.KNOWLEDGE_CATALOG_ENABLED;
+  await assert.rejects(replaceKnowledgeCatalog(catalog, catalog.revision, profile('owner')), { code: 'KNOWLEDGE_CATALOG_DISABLED' });
+  await assert.rejects(updateKnowledgeTrash('trash', ['a'], catalog.revision, profile('owner')), { code: 'KNOWLEDGE_CATALOG_DISABLED' });
+  assert.deepEqual(await getWorkspaceDatabase(), before);
+});
+
 test('cold knowledge catalog exposes metadata without reading any current or historical body', async () => {
   storage.readKnowledgeBody = async () => {
     throw new Error('Catalog must not load bodies');

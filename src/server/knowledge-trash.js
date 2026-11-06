@@ -7,6 +7,7 @@ import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
 const error = (code, statusCode = 400) => Object.assign(new Error('The selected notes changed or are unavailable. Refresh and retry.'), { code, statusCode });
 
 export async function updateKnowledgeTrash(operation, input, expectedRevision, profile, profiles = []) {
+  if (process.env.KNOWLEDGE_CATALOG_ENABLED !== 'true') throw error('KNOWLEDGE_CATALOG_DISABLED', 409);
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || !['trash', 'restore'].includes(operation)) throw error('INVALID_NOTE_PATCH');
   if (
     operation === 'trash' &&

@@ -33,6 +33,7 @@ const fail = (code, statusCode = 400) => Object.assign(new Error('The note body 
 // A metadata-only record is an explicit protocol message, never an empty body.
 // The canonical revision and body token are both checked inside the write lock.
 export async function replaceKnowledgeCatalog(input, expectedRevision, profile, profiles = []) {
+  if (process.env.KNOWLEDGE_CATALOG_ENABLED !== 'true') throw fail('KNOWLEDGE_CATALOG_DISABLED', 409);
   validateDocumentInput('knowledge', input);
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw fail('INVALID_NOTE_PATCH');
   for (let attempt = 0; attempt < 3; attempt++) {
