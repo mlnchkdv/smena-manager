@@ -22,6 +22,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { whiteboardEdges } from '../views/project-whiteboard.js';
 import { overlayAboveDiagram } from '../ui/diagram-focus.js';
+import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
@@ -391,17 +392,9 @@ A.whiteboardArrange = el => {
   if (!['left', 'right', 'top', 'bottom', 'center-x', 'center-y', 'distribute-x', 'distribute-y'].includes(el.dataset.mode)) return;
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
 };
-const syncWhiteboardWindow = () => {
-  const v = window.visualViewport;
-  document.documentElement.style.setProperty('--whiteboard-window-height', `${v?.height || window.innerHeight}px`);
-  document.documentElement.style.setProperty('--whiteboard-window-top', `${v?.offsetTop || 0}px`);
-};
-window.visualViewport?.addEventListener('resize', syncWhiteboardWindow);
-window.visualViewport?.addEventListener('scroll', syncWhiteboardWindow);
-window.addEventListener('resize', syncWhiteboardWindow);
 A.whiteboardToggleFocus = () => {
   whiteboardState().focus = !whiteboardState().focus;
-  syncWhiteboardWindow();
+  syncDiagramWindow();
   render();
   document.querySelector('[data-a="whiteboardToggleFocus"]')?.focus();
 };

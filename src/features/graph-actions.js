@@ -10,6 +10,7 @@ import { go, render } from '../shell/render.js';
 import { A, IN } from '../actions/actions.js';
 import { resolveGraphEntity } from '../shared/relations.js';
 import { toggleGraphClusters } from '../core/graph-clusters.js';
+import { syncDiagramWindow } from '../ui/diagram-window.js';
 
 export function showGraph(el) {
   S.ui.graphSelectionClosed = false;
@@ -66,6 +67,7 @@ A.toggleGraphFilters = () => {
 };
 A.toggleGraphFocus = () => {
   S.ui.graphFocus = !S.ui.graphFocus;
+  syncDiagramWindow();
   render();
   document.querySelector('[data-a="toggleGraphFocus"]')?.focus({ preventScroll: true });
 };

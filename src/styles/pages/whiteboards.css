@@ -262,11 +262,12 @@
 
 .whiteboard-page .project-whiteboard.is-focused {
   position: fixed;
-  inset: var(--whiteboard-window-top, 0px) 0 auto;
+  inset: var(--diagram-window-top, 0px) 0 auto;
   z-index: 49;
-  height: var(--whiteboard-window-height, 100dvh);
+  height: var(--diagram-window-height, 100dvh);
   margin: 0;
-  padding: 6px;
+  padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px))
+    max(6px, env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -327,6 +328,11 @@
 }
 .whiteboard-version-list small {
   color: var(--text-3);
+}
+@media (max-height: 500px) {
+  .whiteboard-page .project-whiteboard:not(.is-focused) .whiteboard-viewport {
+    height: max(180px, calc(100dvh - 170px));
+  }
 }
 .whiteboard-version-comparison details {
   padding: 8px 0;

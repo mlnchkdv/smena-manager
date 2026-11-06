@@ -122,8 +122,13 @@
   display: none;
 }
 .graph-page.is-focused {
-  padding: 8px;
-  height: 100dvh;
+  position: fixed;
+  inset: var(--diagram-window-top, 0px) 0 auto;
+  z-index: 49;
+  background: var(--surface);
+  padding: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px))
+    max(8px, env(safe-area-inset-left, 0px));
+  height: var(--diagram-window-height, 100dvh);
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -944,5 +949,23 @@
   }
   .graph-page:not(.is-focused) .graph-locator {
     padding-block: 4px;
+  }
+}
+@media (max-height: 500px) {
+  .graph-page .graph-head h1 {
+    font-size: var(--fs-lg);
+  }
+  .graph-page .graph-head {
+    margin-bottom: 6px;
+  }
+  .graph-page [data-a='toggleGraphFocus'] {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: var(--accent-line);
+    min-height: 44px;
+  }
+  .graph-page.is-focused .graph-options,
+  .graph-page.is-focused .graph-meta {
+    display: none;
   }
 }
