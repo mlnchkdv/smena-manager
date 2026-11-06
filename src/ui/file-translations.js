@@ -1,5 +1,6 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'Browse folders': 'Выбрать папку',
   Video: 'Видео',
   Audio: 'Аудио',
   'Upload limits': 'Ограничения загрузки',

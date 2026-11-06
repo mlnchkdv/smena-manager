@@ -17,6 +17,13 @@ import { activeFileFolder, archiveFileFolder, moveFilesToFolder, moveFileFolder,
 Object.assign(fileModalRenderers, { fileFolderForm, fileMove: fileMoveForm });
 
 const owner = () => ({ owner: S.ui.currentUser?.id, workspace: D().ws?.id || D().ws?.url });
+A.browseFileFolders = async () => {
+  const scope = S.ui.route === 'project' ? S.ui.params.id : null;
+  const session = getSessionGeneration(),
+    route = JSON.stringify([S.ui.route, S.ui.params]);
+  const module = await import('./file-folder-browser.js');
+  if (session === getSessionGeneration() && route === JSON.stringify([S.ui.route, S.ui.params])) module.openFileFolderBrowser(scope);
+};
 const modalFor = type => {
   const modal = S.ui.modals.at(-1);
   const current = owner();
