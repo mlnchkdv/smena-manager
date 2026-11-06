@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Managed by Smena Manager VPS kit
+set -euo pipefail
+/usr/sbin/nginx -t
+/usr/bin/systemctl reload nginx.service

@@ -21,6 +21,15 @@ export function safeRef(ref) {
   if (typeof ref !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9/_.-]{0,199}$/.test(ref) || ref.includes('..')) throw new Error('Invalid Git ref.');
   return ref;
 }
+export function domainInNginxDump(dump, domain) {
+  const text = dump.replace(/#.*$/gm, '');
+  return [...text.matchAll(/\bserver_name\s+([^;]+);/g)].some(match =>
+    match[1]
+      .trim()
+      .split(/\s+/)
+      .some(name => name === domain || ((name.startsWith('*.') || name.startsWith('.')) && domain.endsWith('.' + name.replace(/^\*?\./, '')))),
+  );
+}
 export function releasePath(id, root = ROOT) {
   if (!releasePattern.test(id || '')) throw new Error('Invalid release identity.');
   return path.join(root, 'releases', id);
@@ -52,7 +61,7 @@ export function validateVpsEnvironment(env, profiles, domain) {
   require(env.ACCESS_IDS_PATH === PROFILE_FILE, 'ACCESS_IDS_PATH');
   require(!Object.hasOwn(env, 'VERCEL'), 'REMOVE_VERCEL');
   require(!env.REDIS_URL, 'REMOVE_REDIS_URL_SINGLE_PROCESS_MODE');
-  for (const key of ['PATH', 'HOME', 'NODE_PATH', 'LD_PRELOAD', 'LD_LIBRARY_PATH']) require(!Object.hasOwn(env, key), `REMOVE_${key}`);
+  for (const key of ['PATH', 'HOME', 'NODE_PATH', 'LD_PRELOAD', 'LD_LIBRARY_PATH', 'ACCESS_IDS_JSON']) require(!Object.hasOwn(env, key), `REMOVE_${key}`);
   require(!env.NODE_OPTIONS || /^--max-old-space-size=(512|1024|1536|2048|3072|4096)$/.test(env.NODE_OPTIONS), 'NODE_OPTIONS');
   for (const key of ['SESSION_SECRET', 'CRON_SECRET']) require(!placeholder(env[key]) && env[key].length >= 32, key);
   require(!placeholder(env.GOOGLE_CLIENT_ID) && env.GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com'), 'GOOGLE_CLIENT_ID');
@@ -132,6 +141,7 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     '/etc/systemd/system/smena-manager.service': 'smena-manager.service.in',
     '/etc/systemd/system/smena-manager-cron.service': 'smena-manager-cron.service.in',
     '/etc/systemd/system/smena-manager-cron.timer': 'smena-manager-cron.timer.in',
+    '/etc/letsencrypt/renewal-hooks/deploy/smena-manager-nginx.sh': 'certbot-reload.sh.in',
   };
   const rendered = new Map();
   for (const [file, template] of Object.entries(files)) {

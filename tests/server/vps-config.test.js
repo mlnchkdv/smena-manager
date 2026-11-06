@@ -38,6 +38,7 @@ test('VPS preflight fails closed instead of local fallback, ephemeral sessions o
     { REDIS_URL: 'redis://wrong' },
     { APP_ORIGIN: 'http://tasks.team.invalid' },
     { NODE_OPTIONS: '--inspect=0.0.0.0' },
+    { ACCESS_IDS_JSON: '[{}]' },
     { GOOGLE_DRIVE_DATABASE_FILE_ID: 'CHANGE' },
   ])
     assert.throws(() => validateVpsEnvironment({ ...fixture(), ...patch }, profiles, 'tasks.team.invalid'));
@@ -73,6 +74,7 @@ test('rendered VPS configs retain API paths, trusted proxy boundaries, Google se
   assert.doesNotMatch(unit, /--watch|preview|VERCEL=/);
   assert.match(files.get('/etc/systemd/system/smena-manager-cron.timer'), /08:00:00 Europe\/Saratov/);
   assert.match(files.get('/etc/systemd/system/smena-manager-cron.timer'), /Persistent=true/);
+  assert.match(files.get('/etc/letsencrypt/renewal-hooks/deploy/smena-manager-nginx.sh'), /nginx -t\n\/usr\/bin\/systemctl reload nginx.service/);
   const bootstrap = await renderTemplates('tasks.team.invalid', '/opt/smena-node/bin/node', { tls: false });
   assert.match(bootstrap.get('/etc/nginx/sites-available/smena-manager.conf'), /return 503/);
   assert.doesNotMatch(bootstrap.get('/etc/nginx/sites-available/smena-manager.conf'), /proxy_pass|ssl_certificate/);
