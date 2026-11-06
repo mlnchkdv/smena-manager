@@ -5,6 +5,10 @@ import { parseAppLocation } from '../shared/app-location.js';
 import { clearKnowledgeBodies, cacheKnowledgeBody } from '../shared/knowledge-demand.js';
 let knowledgeDemandEnabled = false;
 export const knowledgeCatalogMode = () => knowledgeDemandEnabled;
+export const getKnowledgeMigration = () => request('/api/knowledge/migration', {}, true);
+export const startKnowledgeMigration = reviewKey => request('/api/knowledge/migration', { method: 'POST', body: JSON.stringify({ reviewKey }) }, true);
+export const stepKnowledgeMigration = (id, pause = false) =>
+  request(`/api/knowledge/migration/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify({ pause }) }, true);
 export const trashKnowledgeNotes = (ids, revision) => request('/api/knowledge/trash', { method: 'POST', body: JSON.stringify({ ids, revision }) }, true);
 export const restoreKnowledgeTrash = (id, revision) =>
   request(`/api/knowledge/trash/${encodeURIComponent(id)}/restore`, { method: 'POST', body: JSON.stringify({ revision }) }, true);

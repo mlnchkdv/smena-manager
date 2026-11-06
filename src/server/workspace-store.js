@@ -2,6 +2,7 @@ import { workspaceState, workspaceScope } from './workspace-context.js';
 const state = workspaceState(() => ({ database: null, initializationPromise: null, reloadPromise: null, localWriteQueue: Promise.resolve(), lastLoadedAt: 0 }));
 import { getStorageProvider } from './storage/index.js';
 import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
+import { externalizeKnowledgeBodies } from './knowledge-body-store.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -502,7 +503,10 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
-  if (options.replaceDocuments) nextData = await externalizeKnowledgeVersions(nextData, getStorageProvider());
+  if (options.replaceDocuments) {
+    nextData = await externalizeKnowledgeVersions(nextData, getStorageProvider());
+    if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true') nextData = await externalizeKnowledgeBodies(nextData, getStorageProvider());
+  }
   if (!options.replaceDocuments) captureWhiteboardHistory(current, nextData, options.actorMemberId || '');
   applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);
@@ -608,7 +612,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
   if (
-    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies'].includes(options.scope) ||
+    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'knowledgeTrash', 'knowledgeMigration'].includes(options.scope) ||
     options.backupLabel ||
     options.replaceDocuments ||
     options.actorMemberId ||

@@ -4,7 +4,14 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
-import { getWorkspaceDatabase, resetWorkspaceStore, createEmptyDatabase } from '../../src/server/workspace-store.js';
+import {
+  getWorkspaceDatabase,
+  resetWorkspaceStore,
+  createEmptyDatabase,
+  listWorkspaceBackups,
+  createWorkspaceBackup,
+  restoreWorkspaceBackup,
+} from '../../src/server/workspace-store.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from '../../src/server/workspace-document-store.js';
 import { stageKnowledgeBodyWindow, loadKnowledgeBody } from '../../src/server/knowledge-body-store.js';
 import { readKnowledgeNote, patchKnowledgeNote } from '../../src/server/knowledge-note-store.js';
@@ -14,13 +21,16 @@ import { app } from '../../src/server/app.js';
 import { readKnowledgeCatalog, knowledgeCoreCatalog, restoreKnowledgeTrashReferences } from '../../src/server/knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from '../../src/server/knowledge-catalog-write.js';
 import { updateKnowledgeTrash } from '../../src/server/knowledge-trash.js';
+import { readKnowledgeMigration, startKnowledgeMigration, stepKnowledgeMigration } from '../../src/server/knowledge-migration.js';
 
 let directory, source, storage;
 const oldPath = process.env.DATABASE_PATH;
+const oldGate = process.env.KNOWLEDGE_CATALOG_ENABLED;
 const profile = id => ({ id, email: `${id}@example.test`, role: 'editor' });
 test.beforeEach(async () => {
   directory = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-note-patch-'));
   process.env.DATABASE_PATH = path.join(directory, 'workspace.json');
+  process.env.KNOWLEDGE_CATALOG_ENABLED = 'true';
   resetWorkspaceStore();
   resetStorageProvider();
   storage = getStorageProvider();
@@ -49,6 +59,8 @@ test.afterEach(async () => {
   resetStorageProvider();
   if (oldPath === undefined) delete process.env.DATABASE_PATH;
   else process.env.DATABASE_PATH = oldPath;
+  if (oldGate === undefined) delete process.env.KNOWLEDGE_CATALOG_ENABLED;
+  else process.env.KNOWLEDGE_CATALOG_ENABLED = oldGate;
   const resolved = path.resolve(directory);
   assert.ok(resolved.startsWith(path.resolve(os.tmpdir()) + path.sep) && path.basename(resolved).startsWith('smena-note-patch-'));
   await fs.rm(resolved, { recursive: true, force: true });
@@ -162,6 +174,75 @@ test('note trash and restore publish membership and immutable body references at
   current = await getWorkspaceDatabase();
   assert.equal(current.trash.length, 0);
   assert.equal((await readKnowledgeNote('a', profile('editor'))).note.formatted_markdown, source.knowledgeNotes[0].formatted_markdown);
+});
+
+test('reviewed migration backs up once, pauses, resumes bounded windows and restores a standalone copy', async () => {
+  const root = await getWorkspaceDatabase();
+  for (let i = 0; i < 7; i++)
+    root.knowledgeNotes.push({ id: 'legacy-' + i, title: 'Legacy ' + i, formatted_markdown: 'Source ' + i + ' ' + '.'.repeat(50000) });
+  root.trash.push({
+    id: 'legacy-trash',
+    kind: 'note',
+    deletedBy: 'owner',
+    deletedAt: Date.now(),
+    data: { note: { id: 'trashed-note', title: 'Trash', formatted_markdown: 'Trashed source' } },
+  });
+  await storage.saveDatabase(root);
+  resetWorkspaceStore();
+  await assert.rejects(readKnowledgeMigration(profile('editor')), { statusCode: 403 });
+  let plan = await readKnowledgeMigration(profile('owner'));
+  assert.equal(plan.remaining, 8);
+  await assert.rejects(startKnowledgeMigration('bad-review', profile('owner')), { code: 'KNOWLEDGE_MIGRATION_REVIEW_STALE' });
+  plan = await startKnowledgeMigration(plan.reviewKey, profile('owner'));
+  assert.ok(plan.job.backupId);
+  assert.equal((await listWorkspaceBackups()).length, 1);
+  plan = await stepKnowledgeMigration(plan.job.id, profile('owner'));
+  assert.equal(plan.job.processed, 3);
+  assert.equal(plan.remaining, 5);
+  plan = await stepKnowledgeMigration(plan.job.id, profile('owner'), [], { pause: true });
+  assert.equal(plan.job.state, 'paused');
+  while (plan.remaining) plan = await stepKnowledgeMigration(plan.job.id, profile('owner'));
+  assert.equal(plan.job.state, 'complete');
+  assert.equal(plan.job.processed, 8);
+  const current = await getWorkspaceDatabase();
+  assert.equal(current.trash[0].data.note.formatted_markdown, undefined);
+  const after = await stepKnowledgeMigration(plan.job.id, profile('owner'));
+  assert.equal(after.revision, current.revision);
+  const backup = await createWorkspaceBackup('After split');
+  const standalone = await storage.loadDatabaseBackup(backup.id);
+  assert.equal(
+    standalone.knowledgeNotes.find(n => n.id === 'legacy-6').formatted_markdown,
+    root.knowledgeNotes.find(n => n.id === 'legacy-6').formatted_markdown,
+  );
+  await restoreWorkspaceBackup(backup.id, current.revision);
+  const restored = await getWorkspaceDatabase();
+  assert.ok(restored.knowledgeNotes.every(n => n.bodyRef));
+  assert.equal(
+    (await readKnowledgeNote('legacy-6', profile('owner'))).note.formatted_markdown,
+    root.knowledgeNotes.find(n => n.id === 'legacy-6').formatted_markdown,
+  );
+});
+
+test('a failed migration window never publishes partial references and resumes without lost notes', async () => {
+  const root = await getWorkspaceDatabase();
+  root.knowledgeNotes.push(...['x', 'y', 'z'].map(id => ({ id, title: id, formatted_markdown: id.repeat(1000) })));
+  await storage.saveDatabase(root);
+  resetWorkspaceStore();
+  let plan = await readKnowledgeMigration(profile('owner'));
+  plan = await startKnowledgeMigration(plan.reviewKey, profile('owner'));
+  const before = await getWorkspaceDatabase(),
+    write = storage.writeKnowledgeBody.bind(storage);
+  let calls = 0;
+  storage.writeKnowledgeBody = async (...args) => {
+    if (++calls === 2) throw new Error('Provider interrupted');
+    return write(...args);
+  };
+  await assert.rejects(stepKnowledgeMigration(plan.job.id, profile('owner')), /Provider interrupted/);
+  assert.deepEqual(await getWorkspaceDatabase(), before);
+  storage.writeKnowledgeBody = write;
+  plan = await stepKnowledgeMigration(plan.job.id, profile('owner'));
+  assert.equal(plan.remaining, 0);
+  assert.equal(plan.job.processed, 3);
 });
 
 test('empty/matching note patches preserve dates, history and all revisions', async () => {

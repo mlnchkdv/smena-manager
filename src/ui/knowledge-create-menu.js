@@ -45,7 +45,12 @@ const commands = () => [
         ['noteTemplates', 'copy', 'Templates', 'Шаблоны'],
         ['manageKnowledgeTags', 'tags', 'Manage tags', 'Управление тегами'],
       ]),
-  ...(S.ui.currentUser?.role === 'admin' ? [['manageNoteTypes', 'shapes', 'Manage types', 'Настроить типы']] : []),
+  ...(S.ui.currentUser?.role === 'admin'
+    ? [
+        ['manageNoteTypes', 'shapes', 'Manage types', 'Настроить типы'],
+        ['knowledgeStorageMigration', 'database', 'Knowledge storage', 'Хранение базы знаний'],
+      ]
+    : []),
 ];
 A.knowledgeLibraryTools = () =>
   openModal({

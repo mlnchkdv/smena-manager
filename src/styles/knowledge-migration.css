@@ -1,0 +1,14 @@
+.knowledge-storage-review dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px 16px;
+  font-size: var(--fs-sm);
+}
+.knowledge-storage-review dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}

@@ -3939,6 +3939,7 @@ A.offlineKnowledge = async () => (await import('../features/offline-knowledge.js
 A.keepBookmarkOffline = async el => (await import('../features/offline-knowledge.js')).pinBookmark(el);
 
 A.knowledgeArchive = async () => (await import('../features/knowledge-archive.js')).openKnowledgeArchive();
+A.knowledgeStorageMigration = async () => (await import('../features/knowledge-migration.js')).openKnowledgeMigration();
 
 A.newWhiteboard = async el => (await import('../features/whiteboards.js')).newWhiteboard(el);
 

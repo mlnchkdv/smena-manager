@@ -82,3 +82,22 @@ export async function expandKnowledgeBodies(data, storage, { ids, includeTrash =
   }
   return next;
 }
+
+export async function externalizeKnowledgeBodies(data, storage) {
+  const store = note => {
+    if (externalKnowledgeBody(note)) return note;
+    if (note.bodyPending || note.bodyToken || (note.formatted_markdown != null && typeof note.formatted_markdown !== 'string')) throw knowledgeBodyError();
+    return storeKnowledgeBody(storage, { ...note, formatted_markdown: note.formatted_markdown ?? '' });
+  };
+  const next = { ...data };
+  if (Array.isArray(data.knowledgeNotes)) {
+    next.knowledgeNotes = [];
+    for (const note of data.knowledgeNotes) next.knowledgeNotes.push(await store(note));
+  }
+  if (Array.isArray(data.trash)) {
+    next.trash = [];
+    for (const item of data.trash)
+      next.trash.push(item.kind === 'note' && item.data?.note ? { ...item, data: { ...item.data, note: await store(item.data.note) } } : item);
+  }
+  return next;
+}

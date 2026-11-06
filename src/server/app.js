@@ -8,6 +8,7 @@ import { createWorkspace, listUserWorkspaces, setWorkspaceArchived, requireWorks
 import { readKnowledgeCatalog, knowledgeCoreCatalog } from './knowledge-catalog.js';
 import { replaceKnowledgeCatalog } from './knowledge-catalog-write.js';
 import { updateKnowledgeTrash } from './knowledge-trash.js';
+import { readKnowledgeMigration, startKnowledgeMigration, stepKnowledgeMigration } from './knowledge-migration.js';
 import { inWorkspace } from './workspace-context.js';
 import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
@@ -687,6 +688,27 @@ app.post('/api/knowledge/trash', requireRole('admin', 'editor'), async (request,
 app.post('/api/knowledge/trash/:id/restore', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.json(await updateKnowledgeTrash('restore', request.params.id, request.body?.revision, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/migration', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.json(await readKnowledgeMigration(request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/migration', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.json(await startKnowledgeMigration(request.body?.reviewKey, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/migration/:id', requireRole('admin'), async (request, response, next) => {
+  try {
+    response.json(await stepKnowledgeMigration(request.params.id, request.user, getAccessProfiles(), { pause: request.body?.pause === true }));
   } catch (error) {
     next(error);
   }

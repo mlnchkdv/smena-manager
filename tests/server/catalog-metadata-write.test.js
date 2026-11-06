@@ -61,6 +61,28 @@ test('document patches preserve sibling revisions and reject all file/ACL/retent
   assert.throws(() => patchCatalogMetadata(f.root, f.base, sibling, 'knowledge'), { code: 'METADATA_WRITE_FORBIDDEN' });
 });
 
+test('knowledge trash and migration retain all media pointers and forbid unrelated trash changes', async () => {
+  const f = await fixture();
+  const next = nextRevision(f.base);
+  next.trash = [{ id: 'note-trash', kind: 'note', data: { note: { id: 'a', bodyRef: { kind: 'knowledge-body-v1', sha256: 'a'.repeat(64), bytes: 50 } } } }];
+  next._documentRevisions.knowledge = { revision: 3, createdAt: f.base.createdAt, updatedAt: next.updatedAt };
+  const trashed = patchCatalogMetadata(f.root, f.base, next, 'knowledgeTrash');
+  assert.deepEqual(trashed._fileCatalog.shards, f.root._fileCatalog.shards);
+  assert.equal(trashed.trash[0].kind, 'note');
+  const forged = structuredClone(next);
+  forged.trash.push({ id: 'file-trash', kind: 'file', data: { file: { id: 'f' } } });
+  assert.throws(() => patchCatalogMetadata(f.root, f.base, forged, 'knowledgeTrash'), { code: 'METADATA_WRITE_FORBIDDEN' });
+  const control = nextRevision(f.base);
+  control._knowledgeMigration = { id: 'job', state: 'running', processed: 0 };
+  const migration = patchCatalogMetadata(f.root, f.base, control, 'knowledgeMigration');
+  assert.deepEqual(migration._documentRevisions, f.root._documentRevisions);
+  assert.deepEqual(migration._fileCatalog.shards, f.root._fileCatalog.shards);
+  for (const field of ['files', 'projects', 'members', 'relations', '_fileRegistry'])
+    assert.throws(() => patchCatalogMetadata(f.root, f.base, { ...control, [field]: [{ id: 'forged' }] }, 'knowledgeMigration'), {
+      code: 'METADATA_WRITE_FORBIDDEN',
+    });
+});
+
 test('media job metadata preserves catalog pointers and rejects registry, ACL and document changes', async () => {
   const f = await fixture(),
     next = nextRevision(f.base);

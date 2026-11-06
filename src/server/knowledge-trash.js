@@ -59,7 +59,7 @@ export async function updateKnowledgeTrash(operation, input, expectedRevision, p
           return data;
         },
         base.revision,
-        { role: 'admin', scope: 'knowledge' },
+        { role: 'admin', scope: 'knowledgeTrash' },
       );
       return { revision: saved.revision, documentRevision: saved._documentRevisions.knowledge.revision };
     } catch (failure) {
