@@ -48,6 +48,8 @@ function stringList(value) {
 
 function filenameTitle(filename) {
   const stem = text(filename)
+    .split(/[\\/]/)
+    .at(-1)
     .replace(/\.(?:md|markdown|txt)$/i, '')
     .replace(/[-_]+/g, ' ')
     .trim();

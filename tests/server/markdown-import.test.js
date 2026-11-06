@@ -10,6 +10,7 @@ test('import keeps the original filename searchable independently of title and l
     const source = '---\ntitle: Looks like metadata\naliases: not-an-alias\n---\n  Literal content';
     const note = (extension === 'txt' ? parseTextNote : parseMarkdownNote)('C:\\private\\' + filename, source);
     assert.equal(note.sourceName, filename);
+    assert.ok(!note.title.includes('private'), 'fallback titles must not retain operating-system paths');
     assert.equal(note.formatted_markdown, source);
     assert.equal(matchesKnowledgeSearch(note, filename), true);
     assert.equal(matchesKnowledgeSearch(note, filename.slice(0, -4)), true);
