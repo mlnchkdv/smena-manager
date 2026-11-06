@@ -78,6 +78,53 @@ test('multipart uploads resolve only the uploaded identity instead of hydrating 
   }
 });
 
+test('direct transfer waits for its checkpoint to persist before transmitting any bytes', async () => {
+  const originalFetch = globalThis.fetch,
+    originalXHR = globalThis.XMLHttpRequest;
+  let entered, release;
+  const waiting = new Promise(resolve => {
+      entered = resolve;
+    }),
+    checkpoint = new Promise(resolve => {
+      release = resolve;
+    });
+  const controller = new AbortController();
+  let requests = 0;
+  globalThis.XMLHttpRequest = class {
+    open() {
+      assert.fail('No byte request before checkpoint persistence/cancellation');
+    }
+  };
+  globalThis.fetch = async path => {
+    assert.equal(path, '/api/files/upload-session');
+    requests++;
+    return new Response(
+      JSON.stringify({ uploadUrl: 'https://www.googleapis.com/upload/drive/v3/files?upload_id=test', ticket: 'test-ticket', chunkSizeBytes: 2 }),
+    );
+  };
+  try {
+    setSessionToken('owner');
+    const pending = uploadWorkspaceFile(new File(['abc'], 'test.txt'), {
+      direct: true,
+      project: 'p',
+      signal: controller.signal,
+      onCheckpoint: () => {
+        entered();
+        return checkpoint;
+      },
+    });
+    await waiting;
+    assert.equal(requests, 1);
+    controller.abort();
+    release();
+    await assert.rejects(pending, { code: 'UPLOAD_CANCELLED' });
+  } finally {
+    setSessionToken('');
+    globalThis.fetch = originalFetch;
+    globalThis.XMLHttpRequest = originalXHR;
+  }
+});
+
 test('direct uploads cannot continue chunks or finalize through a newly signed-in account', async () => {
   const originalFetch = globalThis.fetch,
     originalXHR = globalThis.XMLHttpRequest;

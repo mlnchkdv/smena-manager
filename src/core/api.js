@@ -462,7 +462,7 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
       true,
     ));
   assertSessionGeneration(generation);
-  metadata.onCheckpoint?.(session);
+  await metadata.onCheckpoint?.(session);
   if (resumed) await request('/api/files/upload-check', { method: 'POST', signal: metadata.signal, body: JSON.stringify({ ticket: session.ticket }) }, true);
   const { uploadDriveChunks: transfer } = await import('./drive-upload.js');
   const uploaded =
@@ -476,7 +476,7 @@ async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
     }));
   assertSessionGeneration(generation);
   session.uploaded = uploaded;
-  metadata.onCheckpoint?.(session);
+  await metadata.onCheckpoint?.(session);
   metadata.onVerifying?.();
   // Bytes can transfer concurrently; registration and application of revisioned
   // snapshots must stay ordered, including a retry after a lost final response.

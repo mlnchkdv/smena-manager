@@ -8,8 +8,10 @@ import { fileFolderPath } from '../shared/file-organization.js';
 import { render } from '../shell/render.js';
 import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
-import { createUploadQueue, unfinishedUpload, uploadFileKey, uploadFingerprint } from '../shared/upload-queue.js';
-import { getSessionGeneration, getSessionToken, uploadWorkspaceFile } from './api.js';
+import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/upload-queue.js';
+import { createUploadOwner, fullUploadFingerprint } from '../shared/upload-journal.js';
+import { uploadJournal } from './upload-journal.js';
+import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
 import { applyExternalCoreSnapshot } from './bootstrap.js';
 import { openModal, closeModal, fileModalRenderers } from '../overlays/modals.js';
@@ -56,7 +58,9 @@ let engine,
   storageWarning = false,
   persistTimer,
   allowReload = false,
-  completed = false;
+  completed = false,
+  owner,
+  restoring = Promise.resolve();
 const key = () => JSON.stringify([S.ui.currentUser?.id, S.ui.activeWorkspace || 'default']);
 const valid = () => scope === key() && generation === getSessionGeneration() && Boolean(getSessionToken());
 function schedulePersist() {
@@ -67,9 +71,12 @@ function schedulePersist() {
     }, 1000);
 }
 function persist() {
-  if (!valid()) return;
+  if (!valid() || !owner?.held) return Promise.resolve();
+  const capturedScope = scope,
+    capturedOwner = owner;
+  let pending;
   try {
-    const pending = engine.jobs.filter(unfinishedUpload).map(job => ({
+    pending = engine.jobs.filter(unfinishedUpload).map(job => ({
       id: job.id,
       name: job.name,
       bytes: job.bytes,
@@ -93,15 +100,26 @@ function persist() {
           }
         : null,
     }));
-    if (pending.length) sessionStorage.setItem(prefix + scope, JSON.stringify(pending));
-    else sessionStorage.removeItem(prefix + scope);
   } catch {
-    if (!storageWarning)
-      toast(text('This browser cannot save upload checkpoints. Keep this tab open.', 'Браузер не может сохранять очередь. Не закрывайте эту вкладку.'), {
-        kind: 'info',
-      });
-    storageWarning = true;
+    return Promise.resolve();
   }
+  // Synchronous fallback survives a reload even if the last IndexedDB write
+  // was interrupted. New browser sessions use the encrypted durable journal.
+  try {
+    if (pending.length) sessionStorage.setItem(prefix + capturedScope, JSON.stringify(pending));
+    else sessionStorage.removeItem(prefix + capturedScope);
+  } catch {
+    /* The durable journal can still succeed. */
+  }
+  return uploadJournal
+    .save(capturedScope, pending, () => valid() && scope === capturedScope && owner === capturedOwner && capturedOwner.held)
+    .catch(() => {
+      if (!storageWarning)
+        toast(text('This browser cannot save upload checkpoints. Keep this tab open.', 'Браузер не может сохранять очередь. Не закрывайте эту вкладку.'), {
+          kind: 'info',
+        });
+      storageWarning = true;
+    });
 }
 const changed = () => {
   if (valid()) {
@@ -116,6 +134,15 @@ const changed = () => {
     } else completed = false;
     schedulePersist();
     render();
+    if (!engine.jobs.some(unfinishedUpload) && owner?.held) {
+      const capturedOwner = owner;
+      void persist().then(() => {
+        if (valid() && owner === capturedOwner && !engine.jobs.some(unfinishedUpload)) {
+          capturedOwner.close();
+          owner = createUploadOwner({ locks: navigator.locks, scope });
+        }
+      });
+    }
   }
 };
 function paintProgress(job) {
@@ -148,10 +175,33 @@ async function run(job, signal) {
     startedGeneration = generation;
   const current = () => valid() && startedScope === scope && startedGeneration === generation;
   if (!valid()) throw new Error('The signed-in account changed. Sign in again.');
+  if (!(await owner.acquire()))
+    throw Object.assign(
+      new Error(
+        text(
+          'This upload queue is open in another tab, or this browser cannot coordinate uploads. Close the other queue or use an updated browser.',
+          'Очередь открыта в другой вкладке либо браузер не поддерживает координацию. Закройте другую очередь или обновите браузер.',
+        ),
+      ),
+      { code: 'UPLOAD_OWNER_BUSY' },
+    );
+  if (!current() || signal.aborted) throw new Error('Upload cancelled.');
   if (!canEditProject(proj(job.project), D().me, S.ui.currentUser?.role)) throw new Error('You do not have access to this project.');
-  if (!job.fingerprint) {
-    job.fingerprint = await uploadFingerprint(job.file);
-    persist();
+  if (!job.fingerprint?.startsWith('sha256-v2:')) {
+    // Legacy samples did not cover the middle of a file. Do not resume their
+    // provider session using unverified bytes after migrating the checkpoint.
+    job.session = null;
+    job.accepted = 0;
+    job.pct = 0;
+    job.sourceChecking = true;
+    changed();
+    try {
+      job.fingerprint = await fullUploadFingerprint(job.file, signal);
+    } finally {
+      job.sourceChecking = false;
+      changed();
+    }
+    await persist();
   }
   if (!current() || signal.aborted) throw new Error('Upload cancelled.');
   await retryWorkspaceSync();
@@ -175,7 +225,7 @@ async function run(job, signal) {
       checkpoint: job.session,
       onCheckpoint: session => {
         job.session = session;
-        persist();
+        return persist();
       },
       onAccepted: bytes => {
         job.accepted = bytes;
@@ -200,36 +250,51 @@ async function run(job, signal) {
 export function restoreUploadQueue() {
   if (!S.ui.currentUser || !getSessionToken() || (scope === key() && generation === getSessionGeneration())) return;
   if (engine) engine.batch(() => engine.jobs.forEach(job => engine.cancel(job)));
+  owner?.close();
   scope = key();
   generation = getSessionGeneration();
   engine = createUploadQueue({ run, changed, concurrency: S.ui.filePolicy?.directUploadEnabled ? 2 : 1 });
+  owner = createUploadOwner({ locks: navigator.locks, scope });
   S.ui.uploads = engine.jobs;
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(prefix + scope) || '[]');
-    const entries = Array.isArray(saved)
-      ? saved
-          .filter(
-            job =>
-              job &&
-              typeof job.id === 'string' &&
-              typeof job.name === 'string' &&
-              typeof job.project === 'string' &&
-              Number.isSafeInteger(job.bytes) &&
-              job.bytes > 0 &&
-              job.createdAt > Date.now() - 24 * 60 * 60 * 1000,
-          )
-          .slice(0, 500)
-      : [];
-    if (entries.length) {
-      S.ui.uploadQueueExpanded = true;
-      void engine.add(entries, { restored: true });
+  const restoredEngine = engine,
+    restoredScope = scope,
+    restoredGeneration = generation;
+  restoring = (async () => {
+    try {
+      let saved;
+      try {
+        saved = await uploadJournal.read(restoredScope);
+      } catch {
+        /* Session-only fallback. */
+      }
+      if (!Array.isArray(saved) || !saved.length) saved = JSON.parse(sessionStorage.getItem(prefix + restoredScope) || '[]');
+      const entries = Array.isArray(saved)
+        ? saved
+            .filter(
+              job =>
+                job &&
+                typeof job.id === 'string' &&
+                typeof job.name === 'string' &&
+                typeof job.project === 'string' &&
+                Number.isSafeInteger(job.bytes) &&
+                job.bytes > 0 &&
+                job.createdAt > Date.now() - 7 * 24 * 60 * 60 * 1000,
+            )
+            .slice(0, 500)
+        : [];
+      if (!valid() || scope !== restoredScope || generation !== restoredGeneration || engine !== restoredEngine) return;
+      if (entries.length) {
+        S.ui.uploadQueueExpanded = true;
+        void engine.add(entries, { restored: true });
+      }
+    } catch {
+      /* An invalid checkpoint never prevents loading the workspace. */
     }
-  } catch {
-    /* An invalid checkpoint never prevents loading the workspace. */
-  }
+  })();
 }
 export async function enqueueFiles(files, ctx) {
   restoreUploadQueue();
+  await restoring;
   if (!files?.length || !valid()) return [];
   if (!canEditProject(proj(ctx.project), D().me, S.ui.currentUser?.role)) {
     toast(text('You do not have access to this project.', 'Нет доступа к этому проекту.'), { kind: 'err' });
@@ -332,6 +397,15 @@ export async function enqueueFiles(files, ctx) {
     toast(error.message, { kind: 'err' });
     return [];
   }
+  const targetEngine = engine,
+    targetOwner = owner;
+  if (!(await targetOwner.acquire())) {
+    toast(text('Close the upload queue in the other tab, or use an updated browser.', 'Закройте очередь загрузок в другой вкладке или обновите браузер.'), {
+      kind: 'err',
+    });
+    return [];
+  }
+  if (!valid() || targetEngine !== engine || targetOwner !== owner) return [];
   engine.clear();
   S.ui.uploadQueueExpanded = true;
   S.ui.uploadQueuePage = 0;
@@ -352,9 +426,16 @@ A.retryUpload = el => {
   }
   engine.resume(job);
 };
-A.cancelUpload = el => {
+A.cancelUpload = async el => {
   const job = itemFor(el);
-  if (job) engine.cancel(job);
+  if (!job) return;
+  const targetEngine = engine,
+    targetOwner = owner;
+  if (!(await targetOwner.acquire())) {
+    toast(text('Close the upload queue in the other tab before cancelling.', 'Перед отменой закройте очередь загрузок в другой вкладке.'), { kind: 'err' });
+    return;
+  }
+  if (valid() && targetEngine === engine && targetOwner === owner) engine.cancel(job);
 };
 A.pauseUploads = () => {
   if (valid() && S.ui.filePolicy?.directUploadEnabled) engine.batch(() => engine.jobs.forEach(job => engine.pause(job)));
@@ -373,7 +454,7 @@ A.reloadUploadQueue = async () => {
   try {
     await retryWorkspaceSync();
     if (!valid() || generation !== before || !workspaceSyncIsClean(S.data)) throw new Error('Save changes before reloading.');
-    persist();
+    await persist();
     if (storageWarning) return;
     allowReload = true;
     location.reload();
@@ -393,16 +474,23 @@ A.reselectUploadFiles = () => {
     const picked = [...input.files];
     input.value = '';
     if (!valid()) return;
+    const targetEngine = engine,
+      targetGeneration = generation;
     let matched = 0;
     for (const file of picked) {
       const candidates = engine.jobs.filter(
         job => job.phase === 'needs-file' && uploadFileKey(file) === uploadFileKey({ name: job.name, size: job.bytes, lastModified: job.lastModified }),
       );
       if (!candidates.length) continue;
-      const fingerprint = await uploadFingerprint(file);
-      if (!valid()) return;
+      const fingerprint = await fullUploadFingerprint(file);
+      if (!valid() || targetEngine !== engine || targetGeneration !== generation) return;
       for (const job of candidates) {
-        if (job.fingerprint && fingerprint !== job.fingerprint) continue;
+        if (job.fingerprint?.startsWith('sha256-v2:') && fingerprint !== job.fingerprint) continue;
+        if (job.fingerprint && !job.fingerprint.startsWith('sha256-v2:')) {
+          job.session = null;
+          job.accepted = 0;
+          job.pct = 0;
+        }
         job.file = file;
         job.fingerprint = fingerprint;
         matched++;
@@ -430,8 +518,11 @@ window.addEventListener('beforeunload', event => {
 window.addEventListener('offline', () => {
   if (valid()) engine.batch(() => engine.jobs.forEach(job => engine.pause(job)));
 });
-window.addEventListener('smena:upload-scope-change', event => {
-  if (event.detail?.signedOut) {
+function resetUploadScope(signedOut) {
+  generation = -1;
+  owner?.close();
+  if (signedOut) {
+    void uploadJournal.clear().catch(() => {});
     try {
       Object.keys(sessionStorage)
         .filter(value => value.startsWith(prefix))
@@ -443,5 +534,16 @@ window.addEventListener('smena:upload-scope-change', event => {
   if (engine) engine.batch(() => engine.jobs.forEach(job => engine.cancel(job)));
   S.ui.uploads = [];
   scope = '';
-  generation = -1;
+}
+const signoutChannel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena-upload-signout') : null;
+if (signoutChannel) signoutChannel.onmessage = () => resetUploadScope(true);
+window.addEventListener('smena:upload-scope-change', event => {
+  resetUploadScope(event.detail?.signedOut);
+  if (event.detail?.signedOut) signoutChannel?.postMessage('signed-out');
+});
+window.addEventListener('storage', event => {
+  if (event.key === SESSION_STORAGE_KEY && event.newValue === null) resetUploadScope(true);
+});
+window.addEventListener('pagehide', () => {
+  void persist();
 });
