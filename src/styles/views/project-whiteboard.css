@@ -111,6 +111,7 @@
 }
 .whiteboard-edges {
   position: absolute;
+  z-index: 1;
   top: 0;
   left: 0;
   width: 1px;
@@ -174,6 +175,63 @@
 .whiteboard-card.selected {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+.whiteboard-connect {
+  position: absolute;
+  z-index: 6;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: calc(32px / var(--whiteboard-zoom, 1));
+  height: calc(32px / var(--whiteboard-zoom, 1));
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  cursor: crosshair;
+  touch-action: none;
+}
+.whiteboard-connect svg {
+  width: calc(14px / var(--whiteboard-zoom, 1));
+  height: calc(14px / var(--whiteboard-zoom, 1));
+}
+.whiteboard-card[data-connect-target] {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.whiteboard-edges .whiteboard-edge-hit {
+  stroke: transparent;
+  stroke-width: calc(18px / var(--whiteboard-zoom, 1));
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.whiteboard-edges .whiteboard-edge-hit:hover,
+.whiteboard-edges .whiteboard-edge-hit:focus-visible {
+  stroke: var(--accent);
+  stroke-opacity: 0.15;
+}
+.whiteboard-edges .whiteboard-connect-preview {
+  stroke: var(--accent);
+  stroke-dasharray: 5 4;
+}
+.whiteboard-connect-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 12px;
+  font-size: var(--fs-sm);
+  border-bottom: 1px solid var(--divider);
+}
+@media (pointer: coarse) {
+  .whiteboard-connect {
+    width: calc(44px / var(--whiteboard-zoom, 1));
+    height: calc(44px / var(--whiteboard-zoom, 1));
+  }
 }
 .whiteboard-resize {
   position: absolute;

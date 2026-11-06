@@ -24,6 +24,7 @@ import { whiteboardEdges } from '../views/project-whiteboard.js';
 import { overlayAboveDiagram } from '../ui/diagram-focus.js';
 import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
+import { whiteboardConnection } from '../shared/whiteboard-connect.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -278,6 +279,7 @@ const selectedIds = () => {
 A.whiteboardSelect = (el, event) => {
   const s = whiteboardState(),
     id = el.dataset.id;
+  if (s.connectFrom) return finishConnection(s.connectFrom, id);
   if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
     const ids = new Set(selectedIds());
     ids.has(id) ? ids.delete(id) : ids.add(id);
@@ -462,6 +464,29 @@ A.whiteboardNewEdge = () => {
     color: 'neutral',
   });
 };
+function finishConnection(from, to) {
+  const s = whiteboardState();
+  s.connectFrom = '';
+  if (editable(current()) && to && to !== from) {
+    let result;
+    command(board => {
+      result = whiteboardConnection(board, from, to, uid('we'));
+      if (result?.created) board.edges.push(result.edge);
+    });
+    if (!result) toast(T('The cards changed or the connection limit was reached.', 'Карточки изменились или достигнут лимит связей.'), { kind: 'info' });
+  }
+  render();
+}
+A.whiteboardConnectStart = el => {
+  if (!editable(current()) || Date.now() < (whiteboardState().connectSuppressUntil || 0)) return;
+  const s = whiteboardState();
+  s.connectFrom = s.connectFrom === el.dataset.id ? '' : el.dataset.id;
+  render();
+};
+A.whiteboardCancelConnect = () => {
+  whiteboardState().connectFrom = '';
+  render();
+};
 A.whiteboardEditEdge = el => {
   const edge = whiteboardOf(current()).edges.find(e => e.id === el.dataset.id);
   if (edge) openTool({ kind: 'edge', ...edge, base: structuredClone(edge) });
@@ -645,6 +670,7 @@ const pointers = new Map(),
   hydrations = new Set();
 function resetPreview() {
   viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
+  viewport?.querySelectorAll('[data-connect-target]').forEach(el => el.removeAttribute('data-connect-target'));
   for (const n of whiteboardOf(current()).nodes) {
     const el = document.querySelector(`[data-board-id="${CSS.escape(n.id)}"]`);
     if (el) {
@@ -660,11 +686,19 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
+  if (e.target.closest('[data-board-edge]')) return;
   const resize = e.target.closest('[data-board-resize]');
-  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll' && !resize) return;
+  const connector = e.target.closest('[data-board-connect]');
+  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll' && !resize && !connector) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
+  if (editable(current()) && (connector || (s.connectFrom && !e.target.closest('button:not([data-board-drag]),a')))) {
+    gesture = { kind: 'connect', from: connector?.dataset.boardConnect || s.connectFrom, scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   if (pointers.size === 2) {
     resetPreview();
     const [a, b] = [...pointers.values()];
@@ -736,6 +770,34 @@ function move(e) {
   const s = whiteboardState(),
     g = gesture;
   if (!g) return;
+  if (g.kind === 'connect') {
+    if (g.scope !== s.scope) return;
+    g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
+    const box = viewport.getBoundingClientRect(),
+      board = whiteboardOf(current());
+    const ids = whiteboardPickCandidates(
+      board.nodes.filter(n => n.id !== g.from),
+      { x: e.clientX - box.left, y: e.clientY - box.top },
+      s,
+    );
+    g.to = ids[0] || '';
+    viewport.querySelectorAll('[data-connect-target]').forEach(el => el.removeAttribute('data-connect-target'));
+    if (g.to) viewport.querySelector(`[data-board-id="${CSS.escape(g.to)}"]`)?.setAttribute('data-connect-target', 'true');
+    const source = board.nodes.find(n => n.id === g.from),
+      svg = viewport.querySelector('.whiteboard-edges');
+    if (source && svg) {
+      let path = svg.querySelector('.whiteboard-connect-preview');
+      if (!path) {
+        path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('class', 'whiteboard-connect-preview');
+        svg.append(path);
+      }
+      const x = source.x + source.width,
+        y = source.y + source.height / 2;
+      path.setAttribute('d', `M${x},${y} L${(e.clientX - box.left - s.x) / s.zoom},${(e.clientY - box.top - s.y) / s.zoom}`);
+    }
+    return;
+  }
   if (g.kind === 'groupResize') {
     if (g.scope !== s.scope) return;
     g.next = resizeWhiteboardGroup(
@@ -846,6 +908,27 @@ function up(e, cancel = false) {
   const g = gesture;
   gesture = null;
   if (!g) return;
+  if (g.kind === 'connect') {
+    resetPreview();
+    if (cancel || g.scope !== whiteboardState().scope) {
+      whiteboardState().connectFrom = '';
+      return;
+    }
+    whiteboardState().connectSuppressUntil = Date.now() + 350;
+    if (g.moved || whiteboardState().connectFrom) {
+      const box = viewport.getBoundingClientRect();
+      const ids = whiteboardPickCandidates(
+        whiteboardOf(current()).nodes.filter(n => n.id !== g.from),
+        { x: e.clientX - box.left, y: e.clientY - box.top },
+        whiteboardState(),
+      );
+      finishConnection(g.from, ids[0]);
+    } else {
+      whiteboardState().connectFrom = g.from;
+      render();
+    }
+    return;
+  }
   if (g.kind === 'pan' && g.moved) whiteboardState().overviewPanUntil = Date.now() + 300;
   if (cancel) {
     resetPreview();
@@ -1038,6 +1121,12 @@ document.addEventListener(
   'keydown',
   e => {
     if (overlayAboveDiagram()) return;
+    if (e.key === 'Escape' && current() && whiteboardState().connectFrom && !gesture) {
+      e.preventDefault();
+      e.stopPropagation();
+      A.whiteboardCancelConnect();
+      return;
+    }
     if (e.key === 'Escape' && gesture) {
       e.preventDefault();
       e.stopPropagation();
