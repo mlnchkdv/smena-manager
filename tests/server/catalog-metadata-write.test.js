@@ -61,6 +61,17 @@ test('document patches preserve sibling revisions and reject all file/ACL/retent
   assert.throws(() => patchCatalogMetadata(f.root, f.base, sibling, 'knowledge'), { code: 'METADATA_WRITE_FORBIDDEN' });
 });
 
+test('media job metadata preserves catalog pointers and rejects registry, ACL and document changes', async () => {
+  const f = await fixture(),
+    next = nextRevision(f.base);
+  next._mediaBackups = [{ id: 'copy', entries: [] }];
+  const root = patchCatalogMetadata(f.root, f.base, next, 'mediaCopies');
+  assert.deepEqual(root._fileCatalog.shards, f.root._fileCatalog.shards);
+  for (const field of ['files', 'projects', 'members', 'knowledgeNotes', '_fileRegistry', '_pendingUploads']) {
+    assert.throws(() => patchCatalogMetadata(f.root, f.base, { ...next, [field]: [{ id: 'forged' }] }, 'mediaCopies'), { code: 'METADATA_WRITE_FORBIDDEN' });
+  }
+});
+
 test('personal patches cannot elevate roles, change other profiles or edit another recipient', async () => {
   const f = await fixture();
   for (const change of [

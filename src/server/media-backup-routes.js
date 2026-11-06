@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireRole } from './auth.js';
-import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
+import { mediaBackupStore } from './media-backup-store.js';
 import { getStorageProvider } from './storage/index.js';
 import { mediaBackupService } from './media-backups.js';
 import { workspaceScope, validWorkspaceScope } from './workspace-context.js';
@@ -8,8 +8,7 @@ import { workspaceDirectoryEntries } from './workspace-directory.js';
 export const mediaBackupRouter = Router();
 const service = () =>
   mediaBackupService({
-    load: getWorkspaceDatabase,
-    mutate: mutateWorkspaceDatabase,
+    ...mediaBackupStore(),
     storage: getStorageProvider(),
     scope: workspaceScope(),
     resolveSource: async id => {

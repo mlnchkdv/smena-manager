@@ -4,8 +4,9 @@ import { readCatalogReferences, referenceAccounting } from './catalog-references
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
 import { physicalFileKey } from '../file-registry.js';
 import { FILE_CATALOG_MAX_BYTES } from '../../shared/file-catalog.js';
+import { assertCatalogMediaReceipts } from './catalog-media-receipts.js';
 
-const allowed = new Set(['files', 'tasks', 'trash', '_fileRegistry', '_pendingUploads', '_fileGc', 'revision', 'updatedAt']);
+const allowed = new Set(['files', 'tasks', 'trash', '_fileRegistry', '_pendingUploads', '_fileGc', '_mediaBackups', 'revision', 'updatedAt']);
 const fixed = data => Object.fromEntries(Object.entries(data).filter(([key]) => !allowed.has(key)));
 const invalid = () => Object.assign(new Error('Invalid scoped catalog delta.'), { code: 'FILE_PATCH_FORBIDDEN', statusCode: 403 });
 
@@ -23,6 +24,7 @@ export async function writeCatalogDelta(root, before, next, write) {
   if (selected.flatMap(part => part.keys).length !== previous.size || before.some(file => !keys.has(file.id))) throw invalid();
   const removed = before.filter(file => !remaining.has(file.id)),
     added = next.files.filter(file => !previous.has(file.id));
+  assertCatalogMediaReceipts(core._mediaBackups, next._mediaBackups, added);
   if (
     added.some(file => keys.has(file.id)) ||
     added.length + removed.length > 500 ||

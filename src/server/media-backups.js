@@ -59,7 +59,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
     deleting: !!job.deleting,
     removed: job.removed || 0,
   });
-  const write = async change => {
+  const write = async (change, options = {}) => {
     for (let attempt = 0; attempt < 4; attempt++) {
       const data = await load();
       let result;
@@ -70,7 +70,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
             return current;
           },
           data.revision,
-          { outboxWorker: true },
+          { outboxWorker: true, ...options },
         );
         return structuredClone(result);
       } catch (error) {
@@ -128,10 +128,16 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
       };
     },
     async restorePlan(user, id, project, folderId = null) {
-      const data = await load(),
-        job = owned(data, user, id);
+      let data = await load();
+      let job = owned(data, user, id);
       if (!job.ready) throw fail();
       folderId = target(data, user, project, folderId);
+      const ids = job.entries.map((entry, index) => job.restores?.[mediaRestoreRef(id, index, project, folderId)]?.fileId).filter(Boolean);
+      if (ids.length) {
+        data = await load({ ids, user });
+        job = owned(data, user, id);
+        target(data, user, project, folderId);
+      }
       const entries = job.entries.map((entry, index) => ({
         index,
         name: entry.file.name,
@@ -227,31 +233,34 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
     async create(user, ids, input = {}) {
       if (!Array.isArray(ids) || !ids.length || ids.length > 500 || new Set(ids).size !== ids.length) throw fail();
       return summary(
-        await write(data => {
-          data._mediaBackups ||= [];
-          assertCopyCapacity(data, user.id);
-          const entries = ids.map(id => {
-            const file = data.files.find(item => item.id === id);
-            if (!file?.storageName || !Number.isSafeInteger(file.bytes) || file.bytes <= 0) throw fail();
-            access(data, user, file.project);
-            return { file: structuredClone(file) };
-          });
-          const job = {
-            id: randomUUID(),
-            owner: user.id,
-            createdAt: now(),
-            scope,
-            creatorRole: workspaceMemberRole(memberForProfile(data, user)),
-            entries,
-            ready: false,
-            ...mediaCopySettings(
-              { label: input.label || `File copy ${new Date(now()).toISOString().slice(0, 10)}`, retentionDays: input.retentionDays },
-              now(),
-            ),
-          };
-          data._mediaBackups.push(job);
-          return job;
-        }),
+        await write(
+          data => {
+            data._mediaBackups ||= [];
+            assertCopyCapacity(data, user.id);
+            const entries = ids.map(id => {
+              const file = data.files.find(item => item.id === id);
+              if (!file?.storageName || !Number.isSafeInteger(file.bytes) || file.bytes <= 0) throw fail();
+              access(data, user, file.project);
+              return { file: structuredClone(file) };
+            });
+            const job = {
+              id: randomUUID(),
+              owner: user.id,
+              createdAt: now(),
+              scope,
+              creatorRole: workspaceMemberRole(memberForProfile(data, user)),
+              entries,
+              ready: false,
+              ...mediaCopySettings(
+                { label: input.label || `File copy ${new Date(now()).toISOString().slice(0, 10)}`, retentionDays: input.retentionDays },
+                now(),
+              ),
+            };
+            data._mediaBackups.push(job);
+            return job;
+          },
+          { user, readIds: ids },
+        ),
       );
     },
     async advance(user, id) {
@@ -271,7 +280,7 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
         const index = job.entries.findIndex(entry => !entry.copy);
         if (index >= 0) {
           const entry = job.entries[index];
-          const fresh = await load();
+          const fresh = await load({ ids: job.importSource ? [] : [entry.file.id], user });
           owned(fresh, user, id);
           const current = fresh.files.find(file => file.id === entry.file.id);
           const source = job.importSource && (await recovery.source(user, job.importSource.scope, job.importSource.id, job.importSource.digest));
@@ -291,20 +300,23 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
             source ? { fromBackup: true, sourceStorage: source.storage } : undefined,
           );
           if (source) await recovery.source(user, job.importSource.scope, job.importSource.id, job.importSource.digest);
-          await write(data => {
-            const active = owned(data, user, id);
-            if (active.importProject) target(data, user, active.importProject, active.preferredFolder);
-            if (active.lease?.id !== lease || active.lease.until <= now()) throw fail();
-            const file = data.files.find(file => file.id === entry.file.id);
-            if (
-              !source &&
-              (!file || file.storageFileId !== entry.file.storageFileId || file.storageName !== entry.file.storageName || file.bytes !== entry.file.bytes)
-            )
-              throw fail();
-            active.entries[index].copy = copy;
-            active.lease = null;
-            return active;
-          });
+          await write(
+            data => {
+              const active = owned(data, user, id);
+              if (active.importProject) target(data, user, active.importProject, active.preferredFolder);
+              if (active.lease?.id !== lease || active.lease.until <= now()) throw fail();
+              const file = data.files.find(file => file.id === entry.file.id);
+              if (
+                !source &&
+                (!file || file.storageFileId !== entry.file.storageFileId || file.storageName !== entry.file.storageName || file.bytes !== entry.file.bytes)
+              )
+                throw fail();
+              active.entries[index].copy = copy;
+              active.lease = null;
+              return active;
+            },
+            { user, readIds: source ? [] : [entry.file.id] },
+          );
         }
         const latest = owned(await load(), user, id);
         if (latest.entries.every(entry => entry.copy)) {
@@ -335,9 +347,15 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
       return { format: 'smena-media-v1', ...job };
     },
     async restore(user, id, project, index, { folderId = null, reviewKey } = {}) {
-      const before = await load(),
-        job = owned(before, user, id);
+      let before = await load();
+      let job = owned(before, user, id);
       folderId = target(before, user, project, folderId);
+      const previousId = job.restores?.[mediaRestoreRef(id, index, project, folderId)]?.fileId;
+      if (previousId) {
+        before = await load({ ids: [previousId], user });
+        job = owned(before, user, id);
+        target(before, user, project, folderId);
+      }
       if (!job.ready || !Number.isInteger(index) || !job.entries[index]?.copy) throw fail();
       if (reviewKey && reviewKey !== mediaRestoreReviewKey(job, project, folderId))
         throw Object.assign(Error('Review the changed restore plan.'), { code: 'MEDIA_RESTORE_REVIEW_CHANGED', statusCode: 409 });
@@ -354,51 +372,54 @@ export function mediaBackupService({ load, mutate, storage, now = Date.now, scop
         fromBackup: true,
         toBackup: false,
       });
-      return write(data => {
-        const activeJob = owned(data, user, id);
-        const by = access(data, user, project, true);
-        target(data, user, project, folderId);
-        // The public file payload may contain a client-supplied reference. Reuse
-        // only a record that also points at the verified restore object.
-        const existing = data.files.find(
-          file =>
-            file.mediaBackupRef === ref &&
-            file.project === project &&
-            (file.folderId || null) === folderId &&
-            file.ownerId === user.id &&
-            file.storageFileId === copy.storageFileId &&
-            file.storageName === copy.storageName &&
-            file.bytes === copy.bytes,
-        );
-        const file = existing || {
-          ...entry.file,
-          ...copy,
-          id: `file-${randomUUID()}`,
-          project,
-          task: null,
-          folderId,
-          at: now(),
-          by,
-          ownerId: user.id,
-          mediaBackupRef: ref,
-          size: formatFileSize(copy.bytes),
-        };
-        if (!existing) {
-          data.files.unshift(file);
-          registerFileMetadata(data, file, true);
-        }
-        activeJob.restores ||= {};
-        activeJob.restores[ref] = {
-          fileId: file.id,
-          storageFileId: copy.storageFileId,
-          storageName: copy.storageName,
-          bytes: copy.bytes,
-          checksum: copy.checksum,
-          at: now(),
-          ownerId: file.ownerId,
-        };
-        return file;
-      });
+      return write(
+        data => {
+          const activeJob = owned(data, user, id);
+          const by = access(data, user, project, true);
+          target(data, user, project, folderId);
+          // The public file payload may contain a client-supplied reference. Reuse
+          // only a record that also points at the verified restore object.
+          const existing = data.files.find(
+            file =>
+              file.mediaBackupRef === ref &&
+              file.project === project &&
+              (file.folderId || null) === folderId &&
+              file.ownerId === user.id &&
+              file.storageFileId === copy.storageFileId &&
+              file.storageName === copy.storageName &&
+              file.bytes === copy.bytes,
+          );
+          const file = existing || {
+            ...entry.file,
+            ...copy,
+            id: `file-${randomUUID()}`,
+            project,
+            task: null,
+            folderId,
+            at: now(),
+            by,
+            ownerId: user.id,
+            mediaBackupRef: ref,
+            size: formatFileSize(copy.bytes),
+          };
+          if (!existing) {
+            data.files.unshift(file);
+            registerFileMetadata(data, file, true);
+          }
+          activeJob.restores ||= {};
+          activeJob.restores[ref] = {
+            fileId: file.id,
+            storageFileId: copy.storageFileId,
+            storageName: copy.storageName,
+            bytes: copy.bytes,
+            checksum: copy.checksum,
+            at: now(),
+            ownerId: file.ownerId,
+          };
+          return file;
+        },
+        { mediaRestore: true, user, project, physicalKey: `id:${copy.storageFileId}` },
+      );
     },
   };
 }

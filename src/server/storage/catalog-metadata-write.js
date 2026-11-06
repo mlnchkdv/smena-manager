@@ -9,6 +9,7 @@ const SCOPES = {
   bookmarks: ['links', 'linkFolders', '_documentRevisions'],
   preferences: ['members', '_userPrefs', 'notifPrefs', 'notifs'],
   directory: ['_workspaceDirectory'],
+  mediaCopies: ['_mediaBackups'],
 };
 const forbidden = () => Object.assign(new Error('This change requires a canonical catalog write.'), { statusCode: 403, code: 'METADATA_WRITE_FORBIDDEN' });
 const omit = (value, keys) => Object.fromEntries(Object.entries(value || {}).filter(([key]) => !keys.includes(key)));
@@ -55,7 +56,7 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
   if (!same(omit(current, allowed), omit(next, allowed))) throw forbidden();
   if (!Number.isSafeInteger(next.revision) || next.revision !== current.revision + 1 || !Number.isFinite(Date.parse(next.updatedAt))) throw forbidden();
   if (scope === 'preferences') assertPersonalPatch(current, next, memberId);
-  else if (scope !== 'directory') {
+  else if (!['directory', 'mediaCopies'].includes(scope)) {
     if (!same(omit(current._documentRevisions, [scope]), omit(next._documentRevisions, [scope]))) throw forbidden();
     const before = current._documentRevisions?.[scope] || {};
     const after = next._documentRevisions?.[scope];

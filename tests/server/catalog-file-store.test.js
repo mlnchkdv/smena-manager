@@ -18,8 +18,10 @@ import { rememberStorageVersion } from '../../src/server/storage/version-token.j
 import { workspaceCoreData } from '../../src/shared/workspace-documents.js';
 import { projectWorkspace } from '../../src/server/workspace-policy.js';
 import { createCatalogAccounting } from '../../src/server/file-catalog-accounting.js';
+import { mediaBackupService } from '../../src/server/media-backups.js';
+import { mediaBackupStore } from '../../src/server/media-backup-store.js';
 
-async function fixture(t) {
+async function fixture(t, extraFiles = 0) {
   const keys = ['VERCEL', 'WORKSPACE_WRITE_MODE', 'REDIS_URL'];
   const env = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   delete process.env.VERCEL;
@@ -42,6 +44,12 @@ async function fixture(t) {
     files: [
       { id: 'f', name: 'Guide.txt', project: 'p', storageName: 'guide', storageFileId: 'physical', bytes: 12, history: ['canonical'] },
       { id: 'hidden', project: 'private', name: 'Private.txt', history: ['private'] },
+      ...Array.from({ length: extraFiles }, (_, index) => ({
+        id: `private-${index}`,
+        project: 'private',
+        name: `Private ${index}.md`,
+        history: ['Private body '.repeat(30)],
+      })),
     ],
     tasks: [
       {
@@ -467,4 +475,52 @@ test('HTTP demand file edits preserve ACL-filtered relations/totals and refresh 
   const lost = await fetch(`${origin}/api/files/upload`, { method: 'POST', headers: uploadHeaders, body: uncertain });
   assert.equal(lost.status, 503);
   assert.equal((await f.full()).files[0].name, 'HTTP-uncertain.txt', 'The published reference and content are retained despite response loss');
+});
+
+test('media copy steps use root-only job writes and selected shards; restore publishes its receipt atomically without full catalog reads', async t => {
+  const f = await fixture(t, 4000);
+  f.storage.loadDatabaseCore = f.drive.loadDatabaseCore.bind(f.drive);
+  f.storage.loadDatabaseMetadata = f.drive.loadDatabaseMetadata.bind(f.drive);
+  f.storage.saveDatabaseMetadata = f.drive.saveDatabaseMetadata.bind(f.drive);
+  f.storage.loadDatabaseCatalog = f.drive.loadDatabaseCatalog.bind(f.drive);
+  const readParts = [];
+  const read = f.drive.readCatalogPart;
+  f.drive.readCatalogPart = async (id, ...args) => {
+    readParts.push(id);
+    return read(id, ...args);
+  };
+  let copies = 0;
+  const service = mediaBackupService({
+    ...mediaBackupStore(),
+    storage: {
+      copyMediaObject: async (file, name) => {
+        copies++;
+        return { storageFileId: name, storageName: name, bytes: file.bytes, checksum: 'verified' };
+      },
+      saveMediaManifest: async () => {},
+    },
+  });
+  const job = await service.create(f.user, ['f']);
+  const afterCreate = f.counts.part;
+  await service.list(f.user);
+  await service.settings(f.user, job.id, { label: 'Root-only / Только core' });
+  assert.equal(f.counts.part, afterCreate);
+  await service.advance(f.user, job.id);
+  const plan = await service.restorePlan(f.user, job.id, 'p', 'folder');
+  const restored = await service.restore(f.user, job.id, 'p', 0, { folderId: 'folder', reviewKey: plan.reviewKey });
+  const resumed = await service.restorePlan(f.user, job.id, 'p', 'folder');
+  assert.equal(resumed.entries[0].registered, true);
+  assert.equal((await service.restore(f.user, job.id, 'p', 0, { folderId: 'folder', reviewKey: resumed.reviewKey })).id, restored.id);
+  assert.equal(copies, 2);
+  assert.equal(f.counts.full, 0);
+  const hiddenParts = f
+    .root()
+    ._fileCatalog.shards.filter(part => part.project === 'private')
+    .map(part => part.id);
+  assert.ok(readParts.every(id => !hiddenParts.includes(id)));
+  const full = await f.full();
+  assert.equal(full.files.find(file => file.id === 'hidden').name, 'Private.txt');
+  assert.equal(Object.values(full._mediaBackups[0].restores)[0].fileId, restored.id);
+  assert.deepEqual(f.root()._fileCatalog.accounting, createCatalogAccounting(full));
+  t.diagnostic(`Catalog: ${full.files.length} rows; full reads: ${f.counts.full}; selected part reads: ${f.counts.part}; private part reads: 0.`);
 });

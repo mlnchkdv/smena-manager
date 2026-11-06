@@ -155,8 +155,8 @@ export async function reloadWorkspaceStore(options = {}) {
 
 export async function getWorkspaceDatabase(options = {}) {
   const storage = getStorageProvider();
-  if ((options.fields || options.catalog === 'metadata') && typeof storage.loadDatabaseCore === 'function') {
-    const stored = await storage.loadDatabaseCore({ identities: !options.fields || options.fields.includes('files') });
+  if ((options.fields || ['metadata', 'none'].includes(options.catalog)) && typeof storage.loadDatabaseCore === 'function') {
+    const stored = await storage.loadDatabaseCore({ identities: options.catalog !== 'none' && (!options.fields || options.fields.includes('files')) });
     const core = await loadAggregate(storage, stored);
     return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, core[field]])) : core);
   }
@@ -606,7 +606,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
   if (
-    ![...DOCUMENT_NAMES, 'preferences', 'directory'].includes(options.scope) ||
+    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies'].includes(options.scope) ||
     options.backupLabel ||
     options.replaceDocuments ||
     options.actorMemberId ||
