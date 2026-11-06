@@ -304,13 +304,22 @@ function openCardChooser(ids) {
     ids,
     query: '',
     render: (m, H) => {
-      const available = whiteboardOf(current() || {}).nodes.filter(n => !m.ids || m.ids.includes(n.id));
+      const available = whiteboardOf(current() || {}).nodes.filter(n => (!m.ids || m.ids.includes(n.id)) && (!m.onlyFrames || n.type === 'group'));
       const matches = available.filter(n => `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(m.query.trim().toLocaleLowerCase()));
-      return `${H(T('Choose card', 'Выбрать карточку'))}<div class="modal-b"><label class="field">${T('Search cards', 'Поиск карточек')}<input class="input" id="whiteboard-pick-query" data-in="whiteboardPickQuery" value="${esc(m.query)}" autofocus></label><p class="hint" role="status" aria-live="polite">${T(`Found: ${matches.length} / ${available.length}`, `Найдено: ${matches.length} / ${available.length}`)}</p><div class="whiteboard-card-choices">${matches.map(n => `<button class="whiteboard-card-choice" data-a="whiteboardPickCard" data-id="${esc(n.id)}" aria-pressed="${selectedIds().includes(n.id)}"><strong>${selectedIds().includes(n.id) ? ic('check', 14) : ''}${esc(whiteboardLabel(n))}</strong><small>${T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Linked material' : 'Text card', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Связанный материал' : 'Текстовая карточка')}</small>${n.text ? `<span>${esc(n.text.slice(0, 160))}${n.text.length > 160 ? '…' : ''}</span>` : ''}</button>`).join('') || `<p>${T('No matching cards.', 'Карточки не найдены.')}</p>`}</div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button></div>`;
+      const kindPicker = m.ids
+        ? ''
+        : `<div class="whiteboard-pick-kinds" role="group" aria-label="${T('Card types', 'Типы карточек')}"><button class="btn btn-secondary btn-sm" data-a="whiteboardPickKind" data-kind="all" aria-pressed="${!m.onlyFrames}">${T('All cards', 'Все карточки')}</button><button class="btn btn-secondary btn-sm" data-a="whiteboardPickKind" data-kind="frames" aria-pressed="${!!m.onlyFrames}">${ic('square-dashed', 14)}${T('Frames', 'Рамки')}</button></div>`;
+      return `${H(T('Choose card', 'Выбрать карточку'))}<div class="modal-b">${kindPicker}<label class="field">${T('Search cards', 'Поиск карточек')}<input class="input" id="whiteboard-pick-query" data-in="whiteboardPickQuery" value="${esc(m.query)}" autofocus></label><p class="hint" role="status" aria-live="polite">${T(`Found: ${matches.length} / ${available.length}`, `Найдено: ${matches.length} / ${available.length}`)}</p><div class="whiteboard-card-choices">${matches.map(n => `<button class="whiteboard-card-choice" data-a="whiteboardPickCard" data-id="${esc(n.id)}" aria-pressed="${selectedIds().includes(n.id)}"><strong>${selectedIds().includes(n.id) ? ic('check', 14) : ''}${esc(whiteboardLabel(n))}</strong><small>${T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Linked material' : 'Text card', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Связанный материал' : 'Текстовая карточка')}</small>${n.text ? `<span>${esc(n.text.slice(0, 160))}${n.text.length > 160 ? '…' : ''}</span>` : ''}</button>`).join('') || `<p>${T('No matching cards.', 'Карточки не найдены.')}</p>`}</div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button></div>`;
     },
   });
 }
 A.whiteboardPickFromList = () => openCardChooser();
+A.whiteboardPickKind = el => {
+  const m = activeModal();
+  if (m?.kind !== 'pick' || !['all', 'frames'].includes(el.dataset.kind)) return;
+  m.onlyFrames = el.dataset.kind === 'frames';
+  render();
+};
 IN.whiteboardPickQuery = el => {
   const m = activeModal();
   if (m?.kind !== 'pick') return;
@@ -321,8 +330,10 @@ A.whiteboardPickCard = el => {
   const m = activeModal();
   if (m?.kind !== 'pick' || !whiteboardOf(current()).nodes.some(n => n.id === el.dataset.id && (!m.ids || m.ids.includes(n.id)))) return;
   const id = el.dataset.id;
+  const locate = m.onlyFrames;
   closeModal();
   A.whiteboardSelect({ dataset: { id } });
+  if (locate) A.whiteboardLocate({ dataset: { id } });
 };
 IN.whiteboardSelection = el => {
   const s = whiteboardState(),

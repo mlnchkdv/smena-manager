@@ -482,6 +482,20 @@
   height: auto;
   min-height: 140px;
 }
+.whiteboard-card.in-outline[data-kind='group'] {
+  min-height: 0;
+}
+.whiteboard-pick-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.whiteboard-pick-kinds [aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
 .whiteboard-card.in-outline .whiteboard-card-content {
   max-height: 200px;
   overflow: auto;
