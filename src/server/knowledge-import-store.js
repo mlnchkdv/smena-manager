@@ -68,7 +68,8 @@ export async function startKnowledgeImport(input, profile, profiles = []) {
         !/^[a-f0-9]{64}$/.test(entry.sourceHash || '') ||
         typeof entry.name !== 'string' ||
         entry.name.length > 512 ||
-        (/[\\/]/.test(entry.name) || [...entry.name].some(char => char.charCodeAt(0) < 32)) ||
+        /[\\/]/.test(entry.name) ||
+        [...entry.name].some(char => char.charCodeAt(0) < 32) ||
         !/\.(txt|md|markdown)$/i.test(entry.name) ||
         !Number.isSafeInteger(entry.size) ||
         entry.size < 1 ||
