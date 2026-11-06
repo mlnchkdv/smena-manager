@@ -2,22 +2,27 @@ const SOURCES = ['tasks', 'projects', 'people', 'files', 'comments', 'knowledge'
 
 // Counts describe one scope: all matching loaded records, not just the current
 // page. Pending/error remote sources never turn that count into a final answer.
-export function searchCoverage({ category = 'all', totals = {}, demandFiles = false, whiteboardStatus = '', locale = 'en' } = {}) {
+export function searchCoverage({ category = 'all', totals = {}, demandFiles = false, whiteboardStatus = '', knowledgeStatus = '', locale = 'en' } = {}) {
   const ru = locale === 'ru';
   const counts = Object.fromEntries(SOURCES.map(key => [key, Math.max(0, Number(totals[key]) || 0)]));
   const count = category === 'all' ? Object.values(counts).reduce((a, b) => a + b, 0) : counts[category] || 0;
   const filesIncomplete = demandFiles && ['all', 'files'].includes(category);
   const boardsIncomplete = !!whiteboardStatus && ['all', 'whiteboards'].includes(category);
-  const partial = filesIncomplete || boardsIncomplete;
+  const knowledgeIncomplete = !!knowledgeStatus && ['all', 'knowledge'].includes(category);
+  const partial = filesIncomplete || boardsIncomplete || knowledgeIncomplete;
   return {
     count,
     partial,
     filesIncomplete,
     boardsIncomplete,
+    knowledgeIncomplete,
     countLabel: partial ? (ru ? `Совпадения в загруженных материалах: ${count}` : `Matches in loaded materials: ${count}`) : '',
     categoryLabel(key) {
       const value = key === 'all' ? Object.values(counts).reduce((a, b) => a + b, 0) : counts[key] || 0;
-      return (key === 'files' && demandFiles) || (key === 'whiteboards' && whiteboardStatus) || (key === 'all' && (demandFiles || whiteboardStatus))
+      return (key === 'files' && demandFiles) ||
+        (key === 'whiteboards' && whiteboardStatus) ||
+        (key === 'knowledge' && knowledgeStatus) ||
+        (key === 'all' && (demandFiles || whiteboardStatus || knowledgeStatus))
         ? ru
           ? `Загружено: ${value}`
           : `Loaded: ${value}`

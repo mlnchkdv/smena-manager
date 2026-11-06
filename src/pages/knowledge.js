@@ -14,6 +14,8 @@ import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, visibleProjects } from '../core/store.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
 import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
@@ -22,9 +24,14 @@ import { noteCardExcerpt, knowledgeSearchContext } from '../shared/knowledge-sea
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
-import { knowledgeServerPage } from '../core/knowledge-server-search.js';
+import { knowledgeServerPage, clearKnowledgeSearch } from '../core/knowledge-server-search.js';
 import { t, isRussian, uiCount, locale } from '../core/i18n.js';
 import { noteTypes } from '../shared/knowledge-types.js';
+A.retryKnowledgeSearch = () => {
+  clearKnowledgeSearch();
+  clearKnowledgeSearch('workspace');
+  render();
+};
 import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
@@ -129,7 +136,7 @@ export function pageKnowledge() {
   const folderIndex = createKnowledgeFolderIndex(folders, notes);
   const folderFilter = S.ui.knowledgeFolder || 'all';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const view = knowledgeView(notes, {
+  const viewOptions = {
     favorites: S.prefs.favorites,
     query: S.ui.knowledgeQuery,
     folder: folderFilter,
@@ -141,28 +148,44 @@ export function pageKnowledge() {
     offset: S.ui.knowledgeOffset || 0,
     recent: S.ui.knowledgeRecent || [],
     folders,
+  };
+  let view = knowledgeView(notes, viewOptions);
+  const indexed = knowledgeServerPage({
+    query: S.ui.knowledgeQuery || '',
+    folder: folderFilter,
+    tag: S.ui.knowledgeTag || '',
+    sort: S.ui.knowledgeSort || 'updated',
+    offset: S.ui.knowledgeOffset || 0,
+    recent: S.ui.knowledgeRecent || [],
   });
-  const indexed =
-    S.ui.knowledgeNoteLayout === 'table'
-      ? null
-      : knowledgeServerPage({
-          query: S.ui.knowledgeQuery || '',
-          folder: folderFilter,
-          tag: S.ui.knowledgeTag || '',
-          sort: S.ui.knowledgeSort || 'updated',
-          offset: view.start,
-        });
+  if (Array.isArray(indexed?.matches)) {
+    const ids = new Set(indexed.matches);
+    view = knowledgeView(
+      notes.filter(note => ids.has(note.id)),
+      { ...viewOptions, query: '' },
+    );
+  }
   const { active: selected } = view;
   const byId = new Map(notes.map(note => [note.id, note]));
-  const effectiveIndexed = S.ui.knowledgeNoteLayout === 'table' ? null : indexed;
+  const effectiveIndexed = indexed?.localOnly || Array.isArray(indexed?.matches) ? null : indexed;
   const { total, hasMore, start } = effectiveIndexed || view;
   const visible = effectiveIndexed ? effectiveIndexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
+  const searchStatus = indexed?.pending
+    ? 'Searching knowledge…'
+    : indexed?.error
+      ? 'Knowledge search is unavailable.'
+      : indexed?.localOnly
+        ? 'Search covers downloaded notes only.'
+        : '';
   const scoped = folderFilter !== 'all' || String(S.ui.knowledgeQuery || '').trim() || S.ui.knowledgeTag;
-  const resultSummary = scoped
-    ? isRussian()
-      ? `Найдено ${total} · В базе ${notes.length}`
-      : `Found ${total} · ${notes.length} in library`
-    : uiCount(notes.length, 'note');
+  const resultSummary =
+    indexed?.pending || indexed?.error
+      ? t(searchStatus)
+      : scoped
+        ? isRussian()
+          ? `Найдено ${total} · В базе ${notes.length}`
+          : `Found ${total} · ${notes.length} in library`
+        : uiCount(notes.length, 'note');
   const pageSummary =
     total > visible.length && visible.length
       ? isRussian()
@@ -236,7 +259,7 @@ export function pageKnowledge() {
 <div class="knowledge-content-head"><div><h1 id="knowledge-view-title" tabindex="-1" aria-label="${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}" ${activeFolder ? 'translate="no"' : ''}><span class="knowledge-folder-title-label">${esc(folderLabel(folderFilter, folders))}</span><button class="knowledge-mobile-folder-button knowledge-folder-title-button" data-a="toggleKnowledgeMobileFolders" aria-expanded="${!!S.ui.knowledgeMobileFolders}" aria-label="${esc(t('Folders'))}: ${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}">${ic('folder', 16)}<span>${esc(activeFolder ? activeFolder.name : t(folderLabel(folderFilter, folders)))}</span>${ic('chevron-down', 12)}</button></h1><p><span translate="no">${resultSummary}${pageSummary}</span></p></div><div class="knowledge-content-actions">${readOnly ? '' : `<button class="btn btn-secondary btn-sm knowledge-import-trigger" data-a="chooseKnowledgeFiles" aria-label="Import notes" title="Import notes" ${S.ui.knowledgeImportReading ? 'disabled' : ''}>${ic('file-up', 14)}<span class="hide-m">Import notes</span></button><input id="knowledge-import-files" type="file" accept="${KNOWLEDGE_FILE_ACCEPT}" multiple hidden data-in="importKnowledgeMarkdown">${knowledgeCreateMenu()}`}<button class="btn btn-secondary btn-sm knowledge-library-tools-trigger" data-a="knowledgeLibraryTools" aria-label="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}" title="${isRussian() ? 'Инструменты базы знаний' : 'Library tools'}">${ic('ellipsis', 14)}</button>${knowledgeViewOptions({ readOnly, folderContext: folderFilter === 'all' || !!activeFolder })}</div></div>
         ${readOnly ? '' : `<p class="knowledge-import-hint" data-reading="${Boolean(S.ui.knowledgeImportReading)}" role="status"><span data-knowledge-import-progress>${S.ui.knowledgeImportReading ? 'Reading note files…' : 'Drop TXT or Markdown files here, or choose Import notes.'}</span>${S.ui.knowledgeImportReading ? '<button class="btn btn-ghost btn-sm" data-a="cancelKnowledgeImport">Cancel</button>' : ''}</p>`}
         ${S.ui.knowledgeQuery && activeFolder ? '<button class="btn btn-ghost btn-sm" data-a="searchAllKnowledge">Search all folders</button>' : ''}
-        <div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" id="knowledge-search" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="${folderFilter === 'all' ? 'Search knowledge base' : 'Search in this folder'}" aria-label="Search knowledge base">${S.ui.knowledgeQuery ? `<button class="ibtn knowledge-search-clear" data-a="clearKnowledgeQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div><details class="ui-menu knowledge-filter-options" ${knowledgeDisclosure('catalog', 'filters')}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('Filters', criteria)}">${ic('filter', 14)}<span>Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
+        ${indexed?.localOnly ? `<p class="hint" role="status">${t(searchStatus)}</p>` : ''}<div class="knowledge-content-toolbar"><div class="inwrap knowledge-main-search">${ic('search', 14)}<input class="input" id="knowledge-search" data-in="knowledgeQuery" value="${esc(S.ui.knowledgeQuery || '')}" placeholder="${folderFilter === 'all' ? 'Search knowledge base' : 'Search in this folder'}" aria-label="Search knowledge base">${S.ui.knowledgeQuery ? `<button class="ibtn knowledge-search-clear" data-a="clearKnowledgeQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}</div><details class="ui-menu knowledge-filter-options" ${knowledgeDisclosure('catalog', 'filters')}><summary class="btn btn-secondary" aria-label="${filterSummaryLabel('Filters', criteria)}">${ic('filter', 14)}<span>Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div><div class="knowledge-tag-filter"><label class="sr" for="knowledge-tag-filter">Tags</label><select class="select" id="knowledge-tag-filter" data-in="knowledgeTag"><option value="">All tags</option>${[
           ...new Set(notes.flatMap(note => note.tags || [])),
         ]
           .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
@@ -264,15 +287,17 @@ export function pageKnowledge() {
               : ''
         }
         ${
-          visible.length
-            ? ''
-            : S.ui.knowledgeQuery || S.ui.knowledgeTag
-              ? empty('search-x', 'No results found', 'No notes match your filters.')
-              : folderFilter === 'recent'
-                ? empty('history', 'No recently opened notes', 'Open a note to find it here later.')
-                : folderFilter === 'favorites'
-                  ? empty('star', 'No favorites yet', 'Star useful notes to keep them close at hand.')
-                  : empty('file-text', 'No notes yet', 'Create a note or import TXT and Markdown files.')
+          indexed?.pending || indexed?.error
+            ? `<p class="hint" role="status">${t(searchStatus)}${indexed?.error ? '<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeSearch">Try again</button>' : ''}</p>`
+            : visible.length
+              ? ''
+              : S.ui.knowledgeQuery || S.ui.knowledgeTag
+                ? empty('search-x', 'No results found', 'No notes match your filters.')
+                : folderFilter === 'recent'
+                  ? empty('history', 'No recently opened notes', 'Open a note to find it here later.')
+                  : folderFilter === 'favorites'
+                    ? empty('star', 'No favorites yet', 'Star useful notes to keep them close at hand.')
+                    : empty('file-text', 'No notes yet', 'Create a note or import TXT and Markdown files.')
         }
         ${total > 60 ? `<nav class="knowledge-pagination" aria-label="Note pages"><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${Math.max(0, start - 60)}" ${!start ? 'disabled' : ''}>Previous</button><span class="num">${start + 1}–${start + visible.length} / ${total}</span><button class="btn btn-secondary" data-a="knowledgePage" data-offset="${start + 60}" ${!hasMore ? 'disabled' : ''}>Next</button></nav>` : ''}
       </section>

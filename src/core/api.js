@@ -299,8 +299,12 @@ export async function getWorkspaceDocument(name) {
   return result.data;
 }
 export const getKnowledgeNote = id => request(`/api/knowledge/notes/${encodeURIComponent(id)}`, {}, true);
-export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0 } = {}) {
-  return request(`/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, offset: String(offset) })}`, {}, true);
+export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0, mode = 'knowledge', recent = [] } = {}) {
+  return request(
+    `/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, mode, recent: JSON.stringify(recent), offset: String(offset) })}`,
+    {},
+    true,
+  );
 }
 export const getKnowledgeNoteVersion = (id, version) => request(`/api/knowledge/${encodeURIComponent(id)}/versions/${encodeURIComponent(version)}`, {}, true);
 

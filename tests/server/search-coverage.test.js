@@ -25,3 +25,18 @@ test('pending and failed content search remain partial even with zero matches; c
   assert.equal(done.partial, false);
   assert.equal(done.categoryLabel('all'), '7');
 });
+
+test('cold knowledge search never presents pending, failed or offline coverage as final zero in either language', () => {
+  for (const locale of ['en', 'ru']) {
+    for (const knowledgeStatus of ['loading', 'error', 'local']) {
+      const result = searchCoverage({ category: 'knowledge', knowledgeStatus, locale });
+      assert.equal(result.partial, true);
+      assert.equal(result.knowledgeIncomplete, true);
+      assert.equal(result.categoryLabel('knowledge'), locale === 'ru' ? 'Загружено: 0' : 'Loaded: 0');
+      assert.equal(searchCoverage({ category: 'tasks', knowledgeStatus }).partial, false);
+    }
+    const done = searchCoverage({ category: 'knowledge', totals: { knowledge: 75 }, locale });
+    assert.equal(done.partial, false);
+    assert.equal(done.count, 75);
+  }
+});

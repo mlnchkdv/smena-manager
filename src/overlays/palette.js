@@ -70,6 +70,7 @@ export function commands() {
 }
 export function paletteItems() {
   const pl = S.ui.palette;
+  pl.knowledgeStatus = '';
   const q = pl.q.trim();
   const ql = q.toLowerCase();
   const groups = [];
@@ -115,6 +116,7 @@ export function paletteItems() {
     if (cmds.length) groups.push({ name: 'Commands', items: cmds.slice(0, 5) });
   }
   const r = searchAll(q);
+  pl.knowledgeStatus = r.knowledgeStatus;
   const sc = pl.mode === 'search' ? pl.scope : 'all';
   const lim = sc === 'all' ? 4 : 12;
   if (pl.mode === 'search' && !q) {
@@ -309,6 +311,7 @@ export function paletteHtml() {
             .join('')}</div>`
         : ''
     }
+    ${pl.knowledgeStatus && ['all', 'knowledge'].includes(pl.scope || 'all') ? `<p class="hint" role="status">${tr(pl.knowledgeStatus === 'error' ? 'Knowledge search is unavailable.' : pl.knowledgeStatus === 'local' ? 'Search covers downloaded notes only.' : 'Searching knowledge…')}</p>` : ''}
     <div class="pal-list" id="pal-list" role="listbox">${
       flat.length
         ? groups

@@ -54,7 +54,14 @@ export function pageSearch() {
     ['bookmarks', 'Bookmarks'],
     ['whiteboards', 'Whiteboards'],
   ];
-  const coverage = searchCoverage({ category: cat, totals, demandFiles, whiteboardStatus: r.whiteboardStatus, locale: isRussian() ? 'ru' : 'en' });
+  const coverage = searchCoverage({
+    category: cat,
+    totals,
+    demandFiles,
+    whiteboardStatus: r.whiteboardStatus,
+    knowledgeStatus: r.knowledgeStatus,
+    locale: isRussian() ? 'ru' : 'en',
+  });
   const categoryCount = coverage.categoryLabel;
   const visibleTotal = coverage.count;
   const fileScopePending = isRussian() ? 'Полный каталог файлов ещё не проверен.' : 'The complete file catalog has not been searched yet.';
@@ -74,6 +81,7 @@ export function pageSearch() {
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${categoryCount(k)}</option>`).join('')}</select></div>
     ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content"><button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
     ${q && demandFiles && ['all', 'files'].includes(cat) ? `<section class="search-file-continuation panel" aria-label="Files"><p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Search file catalog</button></section>` : ''}
+    ${q && ['all', 'knowledge'].includes(cat) && r.knowledgeStatus ? `<p class="hint" role="status">${t(r.knowledgeStatus === 'error' ? 'Knowledge search is unavailable.' : r.knowledgeStatus === 'local' ? 'Search covers downloaded notes only.' : 'Searching knowledge…')}${r.knowledgeStatus === 'error' ? '<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">Try again</button>' : ''}</p>` : ''}
     ${q && ['all', 'whiteboards'].includes(cat) && r.whiteboardStatus ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? (r.whiteboardStatus === 'error' ? 'Поиск в содержимом холстов недоступен.' : 'Поиск в содержимом холстов…') : r.whiteboardStatus === 'error' ? 'Whiteboard content search is unavailable.' : 'Searching whiteboard content…'}${r.whiteboardStatus === 'error' ? `<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">${t('Try again')}</button>` : ''}</p>` : ''}
     ${
       !q
@@ -180,7 +188,9 @@ export function pageSearch() {
             )
           : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
             ? ''
-            : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+            : r.knowledgeStatus && ['all', 'knowledge'].includes(cat)
+              ? ''
+              : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }

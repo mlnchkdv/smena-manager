@@ -1,6 +1,6 @@
 import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
-import { knowledgeSearchParts, knowledgeSearchCovered, loadSearchPart, knowledgeSearchError } from './knowledge-search-store.js';
+import { knowledgeSearchParts, loadSearchPart, knowledgeSearchError } from './knowledge-search-store.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { createKnowledgeMatcher, searchableNote } from '../shared/knowledge-search.js';
 import { parseKnowledgeQuery, matchesKnowledgeRules } from '../shared/knowledge-query.js';
@@ -20,17 +20,20 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
     favorites,
     limit: Infinity,
   }).filtered.filter(note => matchesKnowledgeRules(note, rules));
-  const match = options.mode === 'workspace' ? note => textMatcher(options.query)(searchableNote(note)) : createKnowledgeMatcher(options.query);
+  const textMatch = textMatcher(options.query);
+  const match = options.mode === 'workspace' ? note => textMatch(searchableNote(note)) : createKnowledgeMatcher(options.query);
   const matches = new Set();
   const parts = terms.length && eligible.some(note => note.bodyRef) ? knowledgeSearchParts(database) : [];
+  const membership = new Map(parts.flatMap(part => part.members.map(([id, sha]) => [id, { part, sha }])));
   const groups = new Map();
   for (const note of eligible) {
     if (!terms.length || !note.bodyRef) {
       if (match(note)) matches.add(note.id);
       continue;
     }
-    if (!knowledgeSearchCovered(note, parts)) throw knowledgeSearchError();
-    const part = parts.find(part => part.members.some(([id]) => id === note.id));
+    const indexed = membership.get(note.id);
+    if (!indexed || indexed.sha !== note.bodyRef.sha256) throw knowledgeSearchError();
+    const { part } = indexed;
     if (!groups.has(part)) groups.set(part, []);
     groups.get(part).push(note);
   }

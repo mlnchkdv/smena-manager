@@ -1,13 +1,20 @@
 import { D, S } from './store.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 
-import { getSessionGeneration, searchWhiteboards } from './api.js';
+import { getSessionGeneration, searchWhiteboards, knowledgeCatalogMode } from './api.js';
+import { knowledgeServerPage, clearKnowledgeSearch } from './knowledge-server-search.js';
 import { whiteboardDemandEnabled } from './whiteboard-catalog-transport.js';
 import { render } from '../shell/render.js';
 const boards = new Map();
-export const clearWhiteboardSearch = () => boards.clear();
+export const clearWhiteboardSearch = () => {
+  boards.clear();
+  clearKnowledgeSearch('workspace');
+};
 export function searchAll(query, options = {}) {
-  const result = searchWorkspace(D(), query, { ...options, role: S.ui.currentUser?.role });
+  const knowledge = query.trim() && knowledgeCatalogMode() ? knowledgeServerPage({ query, mode: 'workspace' }) : null;
+  const knowledgeIds = knowledge && !knowledge.localOnly ? knowledge.matches || [] : null;
+  const result = searchWorkspace(D(), query, { ...options, role: S.ui.currentUser?.role, knowledgeIds });
+  result.knowledgeStatus = knowledge?.pending ? 'loading' : knowledge?.error ? 'error' : knowledge?.localOnly ? 'local' : '';
   if (!query.trim() || !whiteboardDemandEnabled()) return result;
   const session = getSessionGeneration(),
     revision = S.ui.workspaceRevision;

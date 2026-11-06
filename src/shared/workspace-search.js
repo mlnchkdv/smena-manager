@@ -40,7 +40,10 @@ export function searchWorkspace(data, query, options = {}) {
   collect('people', data.members, member => !['removed', 'deactivated'].includes(member.status) && has([member.name, member.email, member.title].join(' ')));
   collect('files', data.files, file => !file.archived && (!file.project || projects.has(file.project)) && has(file.name));
   collect('comments', data.comments, comment => tasks.has(comment.task) && has(comment.text));
-  collect('knowledge', data.knowledgeNotes, note => has([note.title, note.summary, note.formatted_markdown, ...(note.tags || [])].join(' ')));
+  const knowledgeIds = options.knowledgeIds && new Set(options.knowledgeIds);
+  collect('knowledge', data.knowledgeNotes, note =>
+    knowledgeIds ? knowledgeIds.has(note.id) : has([note.title, note.summary, note.sourceName, note.formatted_markdown, ...(note.tags || [])].join(' ')),
+  );
   collect('bookmarks', data.links, link => has([link.title, link.description, link.url, link.site_name, ...(link.tags || [])].join(' ')));
   collect(
     'whiteboards',
