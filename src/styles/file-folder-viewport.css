@@ -1,0 +1,33 @@
+.files-folders-head .files-folder-jump {
+  width: auto;
+  flex: 0 0 auto;
+  padding-inline: 8px;
+  display: inline-flex;
+  gap: 4px;
+}
+.files-folders-head .files-folder-jump span {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  overflow: visible;
+}
+@media (max-width: 640px) {
+  .files-folders-head {
+    flex-wrap: wrap;
+  }
+  .files-folders-head .files-folder-jump {
+    order: 2;
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 360px) {
+  .files-folders-head .files-folder-jump {
+    min-width: 44px;
+    padding-inline: 6px;
+  }
+  .files-folder-jump svg {
+    display: none;
+  }
+}

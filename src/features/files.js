@@ -224,11 +224,14 @@ A.focusFileResults = () => {
   file?.focus({ preventScroll: true });
   file?.scrollIntoView({ block: 'start' });
 };
-// Folder pagination is computed in JavaScript, so CSS resizing alone is not
-// enough. Recompute only at the relevant breakpoint without touching auth,
-// selection, filters or persisted data.
-window.matchMedia('(max-width:640px)').addEventListener('change', () => {
-  if (!S.ui.auth && (S.ui.route === 'files' || (S.ui.route === 'project' && S.ui.params.tab === 'files'))) render();
+// Size changes affect the bounded folder page too. Debounce orientation and
+// browser resizing; never reset auth, selection, filters or stored preferences.
+let folderResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(folderResizeTimer);
+  folderResizeTimer = setTimeout(() => {
+    if (!S.ui.auth && (S.ui.route === 'files' || (S.ui.route === 'project' && S.ui.params.tab === 'files'))) render();
+  }, 150);
 });
 A.newFileFolder = () => {
   const project =

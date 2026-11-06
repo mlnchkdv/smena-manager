@@ -8,6 +8,7 @@ import { normalizeFileSearch } from '../shared/file-index.js';
 import { fileFolderMenu } from './file-folder-menu.js';
 import { disclosureAttributes } from './disclosure.js';
 import { fileFolderView } from '../core/file-preferences.js';
+import { fileFolderPageSize, fileFolderPageStart } from '../shared/file-folder-pages.js';
 
 export function visibleFileFolderKeys(projectId, currentFolder, index) {
   const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
@@ -20,8 +21,8 @@ export function visibleFileFolderKeys(projectId, currentFolder, index) {
         (terms.length ? terms.every(term => entry.search.includes(term)) : archived || (entry.folder.parentId || null) === (currentFolder?.id || null)),
     )
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
-  const limit = fileFolderView().compact ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
-  const start = Math.min(Math.max(0, Number(S.ui.fileFolderOffset) || 0), Math.max(0, Math.ceil(entries.length / limit) - 1) * limit);
+  const limit = fileFolderPageSize({ width: innerWidth, height: innerHeight }, fileFolderView().compact);
+  const start = fileFolderPageStart(S.ui.fileFolderOffset, entries.length, limit);
   return entries.slice(start, start + limit).map(entry => [entry.project.id, entry.folder.id]);
 }
 
@@ -39,8 +40,8 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
     })
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
   const { compact, collapsed } = fileFolderView();
-  const limit = compact ? (window.innerWidth <= 640 ? 8 : 16) : window.innerWidth <= 640 ? 4 : 8;
-  const start = Math.min(Math.max(0, Number(S.ui.fileFolderOffset) || 0), Math.max(0, Math.ceil(entries.length / limit) - 1) * limit);
+  const limit = fileFolderPageSize({ width: innerWidth, height: innerHeight }, compact);
+  const start = fileFolderPageStart(S.ui.fileFolderOffset, entries.length, limit);
   S.ui.fileFolderOffset = start;
   const page = entries.slice(start, start + limit);
   const writable = scope.some(project => canEditProject(project, D().me, S.ui.currentUser?.role));
@@ -48,7 +49,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
   const crumbs = currentFolder ? index.folderPath(currentProject.id, currentFolder.id) : [];
   return `<section class="files-folders" aria-label="File folders">
     ${currentProject ? `<nav class="files-folder-crumbs" aria-label="File location"><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="all" data-folder="">All files</button>${currentProject ? `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="${esc(projectId)}" data-folder="" translate="no">${esc(currentProject.name)}</button>` : ''}${crumbs.map(folder => `<span aria-hidden="true">/</span><button class="btn btn-ghost btn-sm" data-a="openFileFolder" data-project="${esc(projectId)}" data-folder="${esc(folder.id)}" translate="no">${esc(folder.name)}</button>`).join('')}</nav>` : ''}
-    <div class="files-folders-head"><h2>${archived ? 'Archived folders' : 'Folders'}</h2><span class="num faint">${entries.length ? `${start + 1}–${start + page.length} / ${entries.length}` : '0'}</span><span class="sp"></span><button class="ibtn" data-a="toggleFileFolders" aria-expanded="${!collapsed}" aria-label="${collapsed ? 'Show file folders' : 'Hide file folders'}" title="${collapsed ? 'Show file folders' : 'Hide file folders'}">${ic(collapsed ? 'chevron-down' : 'chevron-up', 16)}</button>${hasFiles ? `<button class="ibtn" data-a="focusFileResults" aria-label="Jump to files" title="Jump to files">${ic('arrow-down', 16)}</button>` : ''}<details class="ui-menu files-folder-tools" ${disclosureAttributes('files:folder-tools')}><summary class="ibtn" aria-label="Folder options" title="Folder options">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost" data-a="toggleFileFolderLayout" aria-pressed="${compact}">${ic(compact ? 'layout-grid' : 'list', 16)}${compact ? 'Folder tiles' : 'Compact folders'}</button><button class="btn btn-ghost" data-a="toggleFileFolderArchive" aria-pressed="${archived}">${ic('archive', 16)}Archived folders</button>${writable && !archived ? `<button class="btn btn-ghost" data-a="newFileFolder">${ic('folder-plus', 15)}New folder</button>` : ''}</div></details></div>${loadingCounts && !collapsed && page.length ? '<p class="files-folder-count-status hint" role="status">Updating file counts…</p>' : ''}
+    <div class="files-folders-head"><h2>${archived ? 'Archived folders' : 'Folders'}</h2><span class="num faint">${entries.length ? `${start + 1}–${start + page.length} / ${entries.length}` : '0'}</span><span class="sp"></span><button class="ibtn" data-a="toggleFileFolders" aria-expanded="${!collapsed}" aria-label="${collapsed ? 'Show file folders' : 'Hide file folders'}" title="${collapsed ? 'Show file folders' : 'Hide file folders'}">${ic(collapsed ? 'chevron-down' : 'chevron-up', 16)}</button>${hasFiles ? `<button class="btn btn-ghost btn-sm files-folder-jump" data-a="focusFileResults" aria-label="Jump to files" title="Jump to files">${ic('arrow-down', 16)}<span>Jump to files</span></button>` : ''}<details class="ui-menu files-folder-tools" ${disclosureAttributes('files:folder-tools')}><summary class="ibtn" aria-label="Folder options" title="Folder options">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost" data-a="toggleFileFolderLayout" aria-pressed="${compact}">${ic(compact ? 'layout-grid' : 'list', 16)}${compact ? 'Folder tiles' : 'Compact folders'}</button><button class="btn btn-ghost" data-a="toggleFileFolderArchive" aria-pressed="${archived}">${ic('archive', 16)}Archived folders</button>${writable && !archived ? `<button class="btn btn-ghost" data-a="newFileFolder">${ic('folder-plus', 15)}New folder</button>` : ''}</div></details></div>${loadingCounts && !collapsed && page.length ? '<p class="files-folder-count-status hint" role="status">Updating file counts…</p>' : ''}
     ${!collapsed && (all.length > limit || query) ? `<div class="inwrap files-folder-search">${ic('search', 14)}<input class="input" id="files-folder-query" data-in="fileFolderQuery" value="${esc(S.ui.fileFolderQuery || '')}" placeholder="Find file folders" aria-label="Find file folders"></div>` : ''}
     ${
       collapsed
