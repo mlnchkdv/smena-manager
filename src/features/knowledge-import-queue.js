@@ -3,13 +3,25 @@ import { S, D, save } from '../core/store.js';
 import { getSessionGeneration, knowledgeImportRequest } from '../core/api.js';
 import { workspaceSyncIsClean, queueWorkspaceSync } from '../core/workspace-sync.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
-import { openModal } from '../overlays/modals.js';
+import { openModal, closeModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 import { isRussian } from '../core/i18n.js';
 import { esc } from '../core/utils.js';
 import { prepareKnowledgeImportManifest, readImportSource } from '../shared/knowledge-import-manifest.js';
 import '../styles/knowledge-import-queue.css';
 const T = (en, ru) => (isRussian() ? ru : en);
+let activeImport = null;
+const abandonPreviousScope = () => {
+  for (const modal of S.ui.modals) if (modal.knowledgeImportQueue && modal.owner !== getSessionGeneration()) modal.abort?.abort();
+  S.ui.modals = S.ui.modals.filter(modal => !modal.knowledgeImportQueue || modal.owner === getSessionGeneration());
+  if (activeImport && activeImport.owner !== getSessionGeneration()) {
+    activeImport.stopping = true;
+    activeImport = null;
+    S.ui.atomicOperation = false;
+  }
+};
+window.addEventListener('smena:upload-scope-change', abandonPreviousScope);
+window.addEventListener('smena:session-account-changed', abandonPreviousScope);
 const current = () => {
   const m = S.ui.modals.at(-1);
   return m?.knowledgeImportQueue && m.owner === getSessionGeneration() ? m : null;
@@ -117,6 +129,12 @@ export async function openKnowledgeImportQueue(files, folderId = S.ui.knowledgeF
     folderId: folder?.id || null,
     folderName: folder?.name || T('No folder', 'Без папки'),
     policy: 'copy',
+    onClose: () => m.abort?.abort(),
+    requestClose: () => {
+      m.stopping = true;
+      m.closeRequested = true;
+      render();
+    },
     render: form,
   });
   const m = current();
@@ -176,6 +194,7 @@ A.runKnowledgeQueue = async () => {
   m.busy = true;
   m.stopping = false;
   m.error = '';
+  activeImport = m;
   S.ui.atomicOperation = true;
   render();
   try {
@@ -206,9 +225,13 @@ A.runKnowledgeQueue = async () => {
         await refreshWorkspaceFromServer({ force: true }).catch(() => {
           m.error = T('Saved progress is retained. Reload to refresh the catalog.', 'Прогресс сохранён. Обновите страницу, чтобы загрузить каталог.');
         });
-      S.ui.atomicOperation = false;
+      if (activeImport === m) {
+        activeImport = null;
+        S.ui.atomicOperation = false;
+      }
       m.busy = false;
       if (m.job?.state === 'complete') m.review?.handles.clear();
+      if (current() === m && m.closeRequested) closeModal();
       render();
     }
   }

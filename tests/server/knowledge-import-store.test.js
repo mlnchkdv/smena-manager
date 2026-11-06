@@ -9,6 +9,7 @@ import { createEmptyDatabase, getWorkspaceDatabase, resetWorkspaceStore } from '
 import { startKnowledgeImport, appendKnowledgeImport, readKnowledgeImports, controlKnowledgeImport } from '../../src/server/knowledge-import-store.js';
 import { readKnowledgeNote } from '../../src/server/knowledge-note-store.js';
 import { queryKnowledgeIndex } from '../../src/server/knowledge-search-query.js';
+import { inWorkspace } from '../../src/server/workspace-context.js';
 const hash = text => createHash('sha256').update(text).digest('hex');
 const profile = id => ({ id, email: id + '@example.test', role: id === 'viewer' ? 'viewer' : 'editor' });
 const entry = (name, source) => ({ name, size: Buffer.byteLength(source), key: hash(name + source), sourceHash: hash(source) });
@@ -107,4 +108,39 @@ test('duplicate skip and cancellation keep prior notes, unsafe manifests rejecte
   const c = await startKnowledgeImport({ clientId: randomUUID(), entries: [entry('last.md', 'last')] }, profile('editor'));
   await controlKnowledgeImport(c.id, 'canceled', profile('editor'));
   await assert.rejects(appendKnowledgeImport(c.id, c.entries[0].key, 'last', profile('editor')), { code: 'KNOWLEDGE_IMPORT_PAUSED' });
+});
+
+test('a search blob failure publishes neither the note nor its receipt; retry is safe', async () => {
+  const source = 'Atomic source',
+    e = entry('atomic.txt', source);
+  const job = await startKnowledgeImport({ clientId: randomUUID(), entries: [e] }, profile('editor'));
+  const storage = getStorageProvider(),
+    write = storage.writeKnowledgeSearch.bind(storage);
+  storage.writeKnowledgeSearch = async () => {
+    throw Object.assign(new Error('Unavailable'), { statusCode: 503 });
+  };
+  await assert.rejects(appendKnowledgeImport(job.id, e.key, source, profile('editor')), { statusCode: 503 });
+  assert.equal((await getWorkspaceDatabase()).knowledgeNotes.length, 0);
+  assert.equal((await readKnowledgeImports(profile('editor')))[0].entries[0].status, undefined);
+  storage.writeKnowledgeSearch = write;
+  const saved = await appendKnowledgeImport(job.id, e.key, source, profile('editor'));
+  assert.equal(saved.state, 'complete');
+  assert.equal((await getWorkspaceDatabase()).knowledgeNotes.length, 1);
+});
+
+test('the same actor in another workspace cannot read or append a foreign import job', async () => {
+  const source = 'Workspace bound',
+    e = entry('scope.txt', source);
+  const job = await startKnowledgeImport({ clientId: randomUUID(), entries: [e] }, profile('editor'));
+  await inWorkspace(randomUUID(), async () => {
+    await getStorageProvider().saveDatabase({
+      ...createEmptyDatabase(),
+      _aggregateVersion: 1,
+      members: [{ ...profile('editor'), name: 'Editor', role: 'Owner', status: 'active' }],
+      me: 'editor',
+    });
+    assert.deepEqual(await readKnowledgeImports(profile('editor')), []);
+    await assert.rejects(appendKnowledgeImport(job.id, e.key, source, profile('editor')), { code: 'KNOWLEDGE_IMPORT_NOT_FOUND' });
+    assert.equal((await getWorkspaceDatabase()).knowledgeNotes.length, 0);
+  });
 });

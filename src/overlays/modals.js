@@ -24,7 +24,10 @@ export function openModal(m) {
   }, 30);
 }
 export function closeModal() {
-  if (S.ui.atomicOperation) return;
+  if (S.ui.atomicOperation) {
+    S.ui.modals.at(-1)?.requestClose?.();
+    return;
+  }
   const closed = S.ui.modals.pop();
   S.ui.pop = null;
   render();
