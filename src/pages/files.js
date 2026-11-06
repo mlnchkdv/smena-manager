@@ -94,7 +94,7 @@ function fileCard(file) {
       ${preview}
       <span class="fi"><span id="file-card-title-${esc(file.id)}" class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span>${fileMatchHint(file)}</span>
     </button>
-    ${textual ? '' : folderChip(file)}<div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textual ? textFileLocation(file, linkedTask) : projectChip(file) + (linkedTask ? `<button class="badge" data-a="openTask" data-id="${linkedTask.id}">${ic('link', 10)}${esc(linkedTask.key)}</button>` : '')}</div><span class="sp"></span>${materialFavorite('file', file)}<button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 13)}</button></div>
+    <div class="workspace-file-card-foot"><div class="workspace-file-card-context">${textFileLocation(file, linkedTask)}</div><span class="sp"></span>${materialFavorite('file', file)}<button class="ibtn ibtn-xs" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 13)}</button></div>
   </article>`;
 }
 

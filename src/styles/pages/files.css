@@ -605,7 +605,8 @@
   position: absolute;
   z-index: 2;
   top: 6px;
-  left: 6px;
+  right: 6px;
+  left: auto;
 }
 .file-select.on {
   color: var(--accent);

@@ -13,6 +13,17 @@
   overflow: visible;
 }
 @media (max-width: 640px) {
+  .files-folder-pages {
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+  .files-folder-pages .btn {
+    min-width: 44px;
+    padding-inline: 6px;
+  }
+  .files-folder-pages .btn span {
+    display: none;
+  }
   .files-folders-head {
     flex-wrap: wrap;
   }
