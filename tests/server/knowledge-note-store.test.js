@@ -157,7 +157,7 @@ test('cold full-text search verifies complete phrases through derived parts with
   resetKnowledgeSearchCache();
   reads.length = 0;
   assert.deepEqual((await queryKnowledgeIndex(data, profile('viewer'), [], { query: 'aaaa', folder: 'private-filter' })).matches, ['a']);
-  assert.equal(reads.length, 1, 'metadata scope excludes unrelated parts');
+  assert.equal(reads.length, 2, 'the directory and scoped part exclude unrelated text parts');
 });
 
 test('body edits update only the affected index part; corrupt and missing indexes fail explicitly', async () => {

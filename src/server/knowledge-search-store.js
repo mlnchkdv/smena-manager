@@ -2,17 +2,15 @@ import { createHash } from 'node:crypto';
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import { loadKnowledgeBody } from './knowledge-body-store.js';
 import { cachedSearchValue, cacheSearchValue } from './knowledge-search-cache.js';
+import { writeKnowledgeDirectory } from './knowledge-search-directory.js';
+import { knowledgeSearchError } from './knowledge-search-errors.js';
+export { knowledgeSearchError } from './knowledge-search-errors.js';
 
 export const SEARCH_OBJECT_MAX_BYTES = 16 * 1024 * 1024;
 const targetBytes = 4 * 1024 * 1024;
 const digest = value => createHash('sha256').update(value).digest('hex');
 const bucket = id => digest(id);
 const partCacheKey = part => 'part:' + digest(JSON.stringify([part.prefix, part.sha256, part.bytes, part.rawBytes, part.members]));
-export const knowledgeSearchError = () =>
-  Object.assign(new Error('The knowledge search index is unavailable. Review storage migration and retry.'), {
-    code: 'KNOWLEDGE_SEARCH_UNAVAILABLE',
-    statusCode: 503,
-  });
 export function validSearchPart(part) {
   return (
     part &&
@@ -126,10 +124,15 @@ export async function stageKnowledgeSearch(next, previous, storage, { forceIds =
   ]);
   if (!requested.size) return next;
   let parts = reset ? [] : knowledgeSearchParts(next);
+  const priorIndex = reset ? null : { ...next._knowledgeSearch, parts: parts.slice() };
   const changed = [...requested].filter(id =>
     !after.has(id) ? parts.some(p => p.members.some(row => row[0] === id)) : after.get(id).bodyRef && !knowledgeSearchCovered(after.get(id), parts),
   );
-  if (!changed.length) return next;
+  if (!changed.length) {
+    if (parts.length && !next._knowledgeSearch.directory)
+      next._knowledgeSearch.directory = await writeKnowledgeDirectory(storage, parts, priorIndex, part => loadSearchPart(storage, part));
+    return next;
+  }
   const groups = new Map();
   for (const id of changed) {
     const prefix = parts.find(part => bucket(id).startsWith(part.prefix))?.prefix || bucket(id)[0];
@@ -153,6 +156,8 @@ export async function stageKnowledgeSearch(next, previous, storage, { forceIds =
     parts = parts.filter(part => part.prefix !== prefix);
     if (rows.size) parts.push(...(await storePart(storage, prefix, [...rows.values()])));
   }
-  next._knowledgeSearch = { version: 1, parts: parts.sort((a, b) => a.prefix.localeCompare(b.prefix)) };
+  parts.sort((a, b) => a.prefix.localeCompare(b.prefix));
+  const directory = await writeKnowledgeDirectory(storage, parts, priorIndex, part => loadSearchPart(storage, part));
+  next._knowledgeSearch = { version: 1, parts, ...(directory ? { directory } : {}) };
   return next;
 }
