@@ -47,3 +47,5 @@ N02a: добавлен неизменяемый, проверяемый по has
 ## English handoff
 
 This ledger tracks the entire 15+12 implementation request. Production and physical-device acceptance remain distinct from local delivery. N02 starts with safe search-part candidate filtering and a shared process cache budget, then metadata/journal sharding, bounded transport and a 10k+ corpus. A substep is not whole-item completion. The AI provider is deferred, integration scopes are unspecified, and no team documents or external messages are sent implicitly.
+
+N02b: отдельный default-off gate метаданных. 10 001 записи >4 MiB: точный round-trip, корень <512 KiB, чтение выбранной заметки — одна часть; файл-проекция — 0 частей знаний. 35 целевых тестов: права до чтения, повреждение/пропажа части, локальный рестарт/сбой, Drive CAS 412 и сохранение указателей файлов. Сырой schema v4 закрывает небезопасный откат старого backend. HTTP-пакетирование и дельты ещё не приняты — N02 остаётся частичным.

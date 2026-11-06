@@ -7,6 +7,7 @@ import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-ver
 import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
 import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
 import { knowledgeSearchError, SEARCH_OBJECT_MAX_BYTES } from '../knowledge-search-store.js';
+import { materializeKnowledgeMetadata, stageKnowledgeMetadata, knowledgeMetadataError, KNOWLEDGE_METADATA_MAX_BYTES } from './knowledge-metadata-shards.js';
 
 const WINDOWS_RENAME_RETRIES = 4;
 const WINDOWS_RENAME_DELAY_MS = 25;
@@ -48,9 +49,19 @@ export class LocalStorageProvider {
   }
 
   async loadDatabase() {
+    return this.loadDatabaseCore();
+  }
+
+  async loadDatabaseCore({ knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
     try {
       const value = await fs.promises.readFile(this.databasePath, 'utf8');
-      return JSON.parse(value);
+      this.knowledgeRoot = JSON.parse(value);
+      return await materializeKnowledgeMetadata(this.knowledgeRoot, this, {
+        knowledge,
+        ids: knowledgeIds,
+        fields: knowledgeFields,
+        authorize: knowledgeAuthorize,
+      });
     } catch (error) {
       if (error?.code === 'ENOENT') return null;
       throw error;
@@ -68,6 +79,33 @@ export class LocalStorageProvider {
   knowledgeSearchPath(hash) {
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeSearchError();
     return path.join(path.dirname(this.databasePath), 'knowledge-search', `${hash}.json`);
+  }
+  knowledgeMetadataPath(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeMetadataError();
+    return path.join(path.dirname(this.databasePath), 'knowledge-metadata', `${hash}.json`);
+  }
+  async readKnowledgeMetadata(hash) {
+    const target = this.knowledgeMetadataPath(hash);
+    if ((await fs.promises.stat(target)).size > KNOWLEDGE_METADATA_MAX_BYTES) throw knowledgeMetadataError();
+    return fs.promises.readFile(target, 'utf8');
+  }
+  async writeKnowledgeMetadata(text, hash) {
+    const target = this.knowledgeMetadataPath(hash);
+    if (typeof text !== 'string' || Buffer.byteLength(text) > KNOWLEDGE_METADATA_MAX_BYTES || crypto.createHash('sha256').update(text).digest('hex') !== hash)
+      throw knowledgeMetadataError();
+    await fs.promises.mkdir(path.dirname(target), { recursive: true });
+    const temporary = `${target}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    try {
+      await fs.promises.writeFile(temporary, text, { encoding: 'utf8', flag: 'wx' });
+      try {
+        await fs.promises.link(temporary, target);
+      } catch (error) {
+        if (error.code !== 'EEXIST') throw error;
+        if ((await fs.promises.readFile(target, 'utf8')) !== text) throw knowledgeMetadataError();
+      }
+    } finally {
+      await fs.promises.unlink(temporary).catch(() => undefined);
+    }
   }
   async readKnowledgeSearch(hash) {
     const target = this.knowledgeSearchPath(hash);
@@ -142,10 +180,13 @@ export class LocalStorageProvider {
 
   async saveDatabase(data) {
     await this.init();
+    const stored = await stageKnowledgeMetadata(data, this, this.knowledgeRoot);
     const temporaryPath = `${this.databasePath}.${process.pid}.${Date.now()}.tmp`;
     try {
-      await fs.promises.writeFile(temporaryPath, JSON.stringify(data, null, 2), 'utf8');
+      await fs.promises.writeFile(temporaryPath, JSON.stringify(stored, null, 2), 'utf8');
       await renameWithRetry(temporaryPath, this.databasePath);
+      this.knowledgeRoot = stored;
+      if (stored._knowledgeCatalog) data._knowledgeCatalog = structuredClone(stored._knowledgeCatalog);
     } finally {
       await fs.promises.unlink(temporaryPath).catch(() => undefined);
     }

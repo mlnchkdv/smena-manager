@@ -41,3 +41,13 @@ The gate defaults to `false`; enable it only with a compatible frontend/backend 
 Resumable TXT/MD import accepts up to 1,000 files / 256 MiB per selection, 2 MiB per source and a bounded single-file JSON request. Review retains metadata and File handles, not a combined payload. A server-owned per-user/workspace journal atomically records accepted notes and receipts. Reselect pending originals after reload; source hashes prevent accidental substitution. Accepted files survive pause/cancel and retry without duplication.
 
 Outstanding boundaries: cold search scans compressed derived parts rather than positional postings; metadata root size remains finite; initial import backup is synchronous; reference-aware garbage collection is not implemented; real Drive latency, production restore and physical mobile/WebKit acceptance are pending. Do not delete immutable objects or treat disabling the gate as data rollback.
+
+## Метаданные (N02, локальная приёмка)
+
+`KNOWLEDGE_METADATA_SHARDS_ENABLED=false` — отдельный выключенный по умолчанию gate. Первое включение требует `KNOWLEDGE_CATALOG_ENABLED=true`, свежей независимой копии и согласованного обновления backend. Изменения каталога публикуют неизменяемые части по SHA-256 перед атомарной заменой корня. Заметки, папки, импортные журналы и описание индекса вынесены из корня; идентификаторы и порядок остаются в корне. Частичное чтение для файлов не является полным документом и не допускается к замене знаний. Права проверяются до чтения выбранных частей.
+
+Сырой корень имеет schemaVersion 4, логическая модель — 3. Откат на старый backend без поддержки v4 запрещён: он должен отклонить формат, а не принять идентификаторы за пустые заметки. Выключение gate после миграции не уплощает данные; нужен релиз с поддержкой чтения v4. Отсутствующая/повреждённая часть даёт явную 503 и не инициализирует пустую базу. Незавершённая публикация оставляет старый корень действующим; оставшиеся объекты нельзя удалять без расчёта достижимости.
+
+Локальный лимит логического документа знаний 64 MiB не расширяет HTTP-лимит 4 MiB. Пакетный транспорт и дельты — отдельный шаг N02; не включать gate в production до его приёмки. 10 001 метаданных (>4 MiB) прошли round-trip с корнем <512 KiB; это synthetic-проверка, не замер Google Drive.
+
+Metadata sharding is a separate default-off gate. It publishes immutable verified parts before the CAS root; old servers must fail closed on raw schema v4. Missing parts are errors, never empty initialization. Keep a compatible server for rollback; turning the gate off does not flatten migrated storage. Local 10,001-row checks do not constitute live migration acceptance.

@@ -66,7 +66,10 @@ export function restoreKnowledgeTrashReferences(current, incoming) {
 }
 
 export async function readKnowledgeCatalog(profile, profiles = []) {
-  const database = await getWorkspaceDatabase({ fields: ['members', 'knowledgeNotes', 'knowledgeFolders', '_documentRevisions', 'createdAt', 'updatedAt'] });
+  const database = await getWorkspaceDatabase({
+    fields: ['members', 'knowledgeNotes', 'knowledgeFolders', '_documentRevisions', 'createdAt', 'updatedAt'],
+    knowledgeAuthorize: root => knowledgeActor(root, profile, profiles),
+  });
   knowledgeActor(database, profile, profiles);
   return knowledgeCatalogDocument(database);
 }

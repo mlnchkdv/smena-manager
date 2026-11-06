@@ -20,6 +20,7 @@ import { expandKnowledgeVersions, knowledgeVersionError } from '../knowledge-ver
 import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-store.js';
 import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
 import { knowledgeSearchError, SEARCH_OBJECT_MAX_BYTES } from '../knowledge-search-store.js';
+import { materializeKnowledgeMetadata, stageKnowledgeMetadata, knowledgeMetadataError, KNOWLEDGE_METADATA_MAX_BYTES } from './knowledge-metadata-shards.js';
 
 function responseHeader(response, name) {
   const headers = response.headers;
@@ -257,7 +258,7 @@ export class GoogleDriveStorageProvider {
     return this.databaseFileId;
   }
 
-  async readDatabaseRoot() {
+  async readDatabaseRoot(options = {}) {
     await this.init();
     const fileId = await this.findDatabaseFile();
     if (!fileId) return null;
@@ -265,7 +266,8 @@ export class GoogleDriveStorageProvider {
     const etag = responseHeader(response, 'etag');
     this.databaseEtag = etag;
     this.lastSyncAt = new Date().toISOString();
-    const root = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    const raw = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    const root = await materializeKnowledgeMetadata(raw, this, options);
     this.catalogRoot = root;
     return rememberStorageVersion(root, etag);
   }
@@ -310,8 +312,8 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)), storageVersion(root));
   }
 
-  async loadDatabaseCore({ identities = true } = {}) {
-    const root = await this.readDatabaseRoot();
+  async loadDatabaseCore({ identities = true, knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
+    const root = await this.readDatabaseRoot({ knowledge, ids: knowledgeIds, fields: knowledgeFields, authorize: knowledgeAuthorize });
     if (!root) return null;
     const core = [2, 3].includes(root._fileCatalog?.version)
       ? catalogCore(root, { identities })
@@ -341,7 +343,7 @@ export class GoogleDriveStorageProvider {
   }
 
   async loadDatabaseUploadState(physicalKey) {
-    const root = await this.readDatabaseRoot();
+    const root = await this.readDatabaseRoot({ knowledge: false });
     if (!root) return null;
     const refs = metadataWriteBase(root) && readCatalogReferences(root);
     const data =
@@ -350,7 +352,7 @@ export class GoogleDriveStorageProvider {
   }
 
   async loadDatabaseFilePatch(ids, authorize, options = {}) {
-    const root = await this.readDatabaseRoot();
+    const root = await this.readDatabaseRoot({ knowledge: false });
     if (!metadataWriteBase(root)) return null;
     const data = rememberStorageVersion(catalogCore(root), storageVersion(root));
     // Authorization/classification happens against this exact latest root,
@@ -377,7 +379,7 @@ export class GoogleDriveStorageProvider {
     if (!source?.fileId || source.version !== storageVersion(snapshot.data))
       throw Object.assign(new Error('Reload the catalog snapshot before saving.'), { code: 'STORAGE_VERSION_MISSING', statusCode: 503 });
     const options = conditionalWriteOptions({ expectedEtag: source.version });
-    const stored = await writeCatalogDelta(source.root, source.files, next, async (text, hash) => {
+    const logical = await writeCatalogDelta(source.root, source.files, next, async (text, hash) => {
       await assertOwnership?.();
       const result = await this.client.files.create({
         requestBody: { name: `smena-catalog-${hash}.json`, parents: [this.rootFolderId], mimeType: 'application/json' },
@@ -387,6 +389,7 @@ export class GoogleDriveStorageProvider {
       });
       return result.data.id;
     });
+    const stored = await stageKnowledgeMetadata(logical, this, source.root);
     await assertOwnership?.();
     const updated = await this.updateVersionedJson(
       {
@@ -401,7 +404,7 @@ export class GoogleDriveStorageProvider {
     this.catalogRoot = stored;
     this.lastSyncAt = new Date().toISOString();
     this.fileWriteRoots.delete(snapshot);
-    return rememberStorageVersion(catalogCore(stored), this.databaseEtag);
+    return rememberStorageVersion(catalogCore(logical), this.databaseEtag);
   }
 
   async saveDatabaseFilePatch(snapshot, files, tasks, revision, updatedAt, assertOwnership) {
@@ -409,7 +412,7 @@ export class GoogleDriveStorageProvider {
     if (!source?.fileId || source.version !== storageVersion(snapshot.data))
       throw Object.assign(new Error('Reload the file snapshot before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
     const options = conditionalWriteOptions({ expectedEtag: source.version });
-    const stored = await writeFileMetadataParts(source.root, source.files, files, tasks, revision, updatedAt, async (text, hash) => {
+    const logical = await writeFileMetadataParts(source.root, source.files, files, tasks, revision, updatedAt, async (text, hash) => {
       await assertOwnership?.();
       const result = await this.client.files.create({
         requestBody: { name: `smena-catalog-${hash}.json`, parents: [this.rootFolderId], mimeType: 'application/json' },
@@ -419,6 +422,7 @@ export class GoogleDriveStorageProvider {
       });
       return result.data.id;
     });
+    const stored = await stageKnowledgeMetadata(logical, this, source.root);
     // Staging may outlive a coordination lease; check again at publication.
     await assertOwnership?.();
     const result = await this.updateVersionedJson(
@@ -434,7 +438,7 @@ export class GoogleDriveStorageProvider {
     this.catalogRoot = stored;
     this.lastSyncAt = new Date().toISOString();
     this.fileWriteRoots.delete(snapshot);
-    return rememberStorageVersion(catalogCore(stored), this.databaseEtag);
+    return rememberStorageVersion(catalogCore(logical), this.databaseEtag);
   }
 
   async saveDatabaseMetadata(next, baseline, { scope, memberId } = {}) {
@@ -444,7 +448,8 @@ export class GoogleDriveStorageProvider {
     if (!snapshot || !snapshot.fileId || snapshot.version !== storageVersion(baseline))
       throw Object.assign(new Error('Reload the metadata snapshot before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
     const options = conditionalWriteOptions({ expectedEtag: snapshot.version });
-    const stored = patchCatalogMetadata(snapshot.root, baseline, next, scope, memberId);
+    const logical = patchCatalogMetadata(snapshot.root, baseline, next, scope, memberId);
+    const stored = await stageKnowledgeMetadata(logical, this, snapshot.root, { unchangedKnowledge: !scope.startsWith('knowledge') });
     const updated = await this.updateVersionedJson(
       {
         fileId: snapshot.fileId,
@@ -462,11 +467,12 @@ export class GoogleDriveStorageProvider {
     // Preference responses pass through project ACL projection and demand
     // catalog hydration. Identity rows preserve file relations/counts there;
     // document responses need no identity allocation at all.
-    return rememberStorageVersion(catalogCore(stored, { identities: scope === 'preferences' }), this.databaseEtag);
+    if (stored._knowledgeCatalog) logical._knowledgeCatalog = structuredClone(stored._knowledgeCatalog);
+    return rememberStorageVersion(catalogCore(logical, { identities: scope === 'preferences' }), this.databaseEtag);
   }
 
   async loadDatabaseStatus() {
-    const root = await this.readDatabaseRoot();
+    const root = await this.readDatabaseRoot({ knowledge: false });
     if (!root) return null;
     const accounting = [2, 3].includes(root._fileCatalog?.version) ? readCatalogAccounting(root) : null;
     // Capacity needs neither full records nor an O(files) array of identity
@@ -484,7 +490,7 @@ export class GoogleDriveStorageProvider {
   }
 
   async loadDatabaseCatalog(select, projectFile, search = false) {
-    const root = await this.readDatabaseRoot();
+    const root = await this.readDatabaseRoot({ knowledge: false });
     if (!root) return null;
     if (![2, 3].includes(root._fileCatalog?.version)) {
       const data = await materializeCatalog(root, id => this.readCatalogPart(id));
@@ -554,6 +560,7 @@ export class GoogleDriveStorageProvider {
         return created.data.id;
       });
     }
+    stored = await stageKnowledgeMetadata(stored, this, this.catalogRoot);
     const media = {
       mimeType: 'application/json',
       body: Readable.from([JSON.stringify(stored, null, 2)]),
@@ -590,6 +597,7 @@ export class GoogleDriveStorageProvider {
     this.lastSyncAt = new Date().toISOString();
     this.catalogRoot = stored;
     rememberStorageVersion(data, this.databaseEtag);
+    if (stored._knowledgeCatalog) data._knowledgeCatalog = structuredClone(stored._knowledgeCatalog);
   }
 
   async setFileCatalogLayout(layout, expectedRevision) {
@@ -864,6 +872,44 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
     return uniqueDriveMatch(result);
+  }
+  async findKnowledgeMetadata(hash) {
+    if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeMetadataError();
+    await this.init();
+    const result = await this.client.files.list({
+      q: `name = 'smena-knowledge-metadata-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeMetadata' and value='1' }`,
+      fields: 'files(id,size)',
+      spaces: 'drive',
+      pageSize: 2,
+      includeItemsFromAllDrives: true,
+      supportsAllDrives: true,
+    });
+    return uniqueDriveMatch(result);
+  }
+  async readKnowledgeMetadata(hash) {
+    const file = await this.findKnowledgeMetadata(hash);
+    if (!file || Number(file.size) > KNOWLEDGE_METADATA_MAX_BYTES) throw knowledgeMetadataError();
+    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' })).data;
+  }
+  async writeKnowledgeMetadata(text, hash) {
+    if (typeof text !== 'string' || Buffer.byteLength(text) > KNOWLEDGE_METADATA_MAX_BYTES || createHash('sha256').update(text).digest('hex') !== hash)
+      throw knowledgeMetadataError();
+    const existing = await this.findKnowledgeMetadata(hash);
+    if (existing) {
+      if ((await this.readKnowledgeMetadata(hash)) !== text) throw knowledgeMetadataError();
+      return;
+    }
+    await this.client.files.create({
+      requestBody: {
+        name: `smena-knowledge-metadata-${hash}.json`,
+        parents: [this.rootFolderId],
+        mimeType: 'application/json',
+        appProperties: { smenaKnowledgeMetadata: '1' },
+      },
+      media: { mimeType: 'application/json', body: Readable.from([text]) },
+      fields: 'id',
+      supportsAllDrives: true,
+    });
   }
   async readKnowledgeSearch(hash) {
     const file = await this.findKnowledgeSearch(hash);

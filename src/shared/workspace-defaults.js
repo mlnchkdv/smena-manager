@@ -15,6 +15,6 @@ export function applyEntityDefaults(data) {
   for (const comment of Array.isArray(data.comments) ? data.comments : []) fill(comment, { text: '', re: {} });
   if (data.relations == null) data.relations = [];
   migrateProjectWhiteboards(data);
-  if (Array.isArray(data.knowledgeNotes)) bindWikiReferences(data.knowledgeNotes);
+  if (Array.isArray(data.knowledgeNotes) && !data._knowledgeMetadataPending) bindWikiReferences(data.knowledgeNotes);
   return data;
 }

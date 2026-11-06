@@ -29,7 +29,11 @@ const EDITABLE = new Set([
 const missing = () => Object.assign(new Error('Note not found.'), { code: 'KNOWLEDGE_NOT_FOUND', statusCode: 404 });
 
 export async function readKnowledgeNote(noteId, profile, profiles = []) {
-  const data = await getWorkspaceDatabase({ fields: ['members', 'knowledgeNotes', '_documentRevisions'] });
+  const data = await getWorkspaceDatabase({
+    fields: ['members', 'knowledgeNotes', '_documentRevisions'],
+    knowledgeIds: [noteId],
+    knowledgeAuthorize: root => knowledgeActor(root, profile, profiles),
+  });
   knowledgeActor(data, profile, profiles);
   const record = data.knowledgeNotes?.find(note => note.id === noteId);
   if (!record) throw missing();

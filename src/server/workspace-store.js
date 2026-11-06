@@ -4,6 +4,7 @@ import { getStorageProvider } from './storage/index.js';
 import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
 import { externalizeKnowledgeBodies } from './knowledge-body-store.js';
 import { stageKnowledgeSearch } from './knowledge-search-store.js';
+import { knowledgeMetadataFields, KNOWLEDGE_METADATA_WORKSPACE_BYTES } from './storage/knowledge-metadata-shards.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -159,7 +160,13 @@ export async function reloadWorkspaceStore(options = {}) {
 export async function getWorkspaceDatabase(options = {}) {
   const storage = getStorageProvider();
   if ((options.fields || ['metadata', 'none'].includes(options.catalog)) && typeof storage.loadDatabaseCore === 'function') {
-    const stored = await storage.loadDatabaseCore({ identities: options.catalog !== 'none' && (!options.fields || options.fields.includes('files')) });
+    const stored = await storage.loadDatabaseCore({
+      identities: options.catalog !== 'none' && (!options.fields || options.fields.includes('files')),
+      knowledge: !options.fields || options.fields.some(field => knowledgeMetadataFields.includes(field)),
+      knowledgeIds: options.knowledgeIds,
+      knowledgeFields: options.fields,
+      knowledgeAuthorize: options.knowledgeAuthorize,
+    });
     const core = await loadAggregate(storage, stored);
     return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, core[field]])) : core);
   }
@@ -474,12 +481,12 @@ export class WorkspacePermissionError extends Error {
 }
 
 export class WorkspaceSizeError extends Error {
-  constructor(actualBytes) {
-    super('Workspace data exceeds the 4 MB synchronization limit.');
+  constructor(actualBytes, maxBytes = WORKSPACE_TRANSPORT_MAX_BYTES) {
+    super('Workspace data exceeds the supported size limit.');
     this.name = 'WorkspaceSizeError';
     this.statusCode = 413;
     this.code = 'WORKSPACE_TOO_LARGE';
-    this.maxBytes = WORKSPACE_TRANSPORT_MAX_BYTES;
+    this.maxBytes = maxBytes;
     this.actualBytes = actualBytes;
   }
 }
@@ -580,7 +587,11 @@ function validateTransportSize(next, canonicalCatalog = true) {
     throw new WorkspaceSizeError(workspaceTransportBytes({ files }, next.revision));
   for (const name of DOCUMENT_NAMES) {
     const bytes = workspaceTransportBytes(workspaceDocumentData(name, next), Number(next._documentRevisions?.[name]?.revision || 0));
-    if (bytes > WORKSPACE_TRANSPORT_MAX_BYTES) throw new WorkspaceSizeError(bytes);
+    const splitKnowledge =
+      name === 'knowledge' &&
+      (next._knowledgeCatalog || (process.env.KNOWLEDGE_METADATA_SHARDS_ENABLED === 'true' && process.env.KNOWLEDGE_CATALOG_ENABLED === 'true'));
+    const limit = splitKnowledge ? KNOWLEDGE_METADATA_WORKSPACE_BYTES : WORKSPACE_TRANSPORT_MAX_BYTES;
+    if (bytes > limit) throw new WorkspaceSizeError(bytes, limit);
   }
 }
 
