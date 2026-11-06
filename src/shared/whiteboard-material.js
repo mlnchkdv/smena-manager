@@ -10,7 +10,7 @@ export function whiteboardMaterialPreview(entity) {
   let text = '',
     icon = icons[kind] || 'file-text';
   if (kind === 'note') {
-    const source = item.summary || knowledgeDisplayParts(item).body;
+    const source = item.summary || knowledgeDisplayParts(item).body || (item.bodyPending ? item.bodyPreview : '') || '';
     text = item.sourceFormat === 'text' ? String(source).slice(0, 1600).replace(/\s+/g, ' ').trim() : markdownText(String(source).slice(0, 1600));
   } else if (kind === 'bookmark') {
     text = String(item.desc || item.description || '');

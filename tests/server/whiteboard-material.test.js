@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { whiteboardMaterialPreview } from '../../src/shared/whiteboard-material.js';
+
+test('cold catalog material keeps its authorized excerpt without downloading or materializing the body', () => {
+  for (const text of ['Readable excerpt', 'Читаемый фрагмент']) {
+    const item = { id: 'cold', title: 'Title', sourceFormat: 'markdown', summary: '', bodyPending: true, bodyPreview: text };
+    const before = structuredClone(item);
+    assert.equal(whiteboardMaterialPreview({ kind: 'note', item }).text, text);
+    assert.deepEqual(item, before);
+    assert.equal(whiteboardMaterialPreview({ kind: 'note', item: { ...item, formatted_markdown: 'Updated body' } }).text, 'Updated body');
+  }
+});
 test('linked previews stay live, bounded and outside the board body while hiding Markdown service metadata', () => {
   const item = {
     title: 'Original',
