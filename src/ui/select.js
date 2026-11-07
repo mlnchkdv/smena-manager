@@ -56,7 +56,7 @@ export function enhanceSelects(root = document) {
       btn.disabled = sel.disabled;
       const selectedText = sel.options[sel.selectedIndex]?.text || '';
       const authored = sel.options[sel.selectedIndex]?.closest('[translate="no"]');
-      btn.innerHTML = `<span class="trunc" ${authored ? 'translate="no"' : ''}>${esc(selectedText)}</span>`;
+      btn.innerHTML = `<span class="trunc" ${authored ? 'translate="no"' : ''}>${esc(selectedText)}</span><span class="select-chevron" aria-hidden="true">${ic('chevron-down', 12)}</span>`;
       btn.setAttribute('aria-label', `${t(accessibleLabel)}: ${authored ? selectedText : t(selectedText)}`);
     };
     sync();

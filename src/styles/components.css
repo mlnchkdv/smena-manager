@@ -749,11 +749,22 @@
   clip: rect(0 0 0 0);
 }
 .select-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   text-align: left;
   min-width: 0;
   color: var(--text);
+  background-image: none;
+}
+.select-chevron {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--text-3);
+  pointer-events: none;
 }
 .select-btn[aria-expanded='true'] {
   border-color: var(--accent);
