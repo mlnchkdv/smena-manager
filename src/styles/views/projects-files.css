@@ -516,8 +516,7 @@
   text-overflow: ellipsis;
 }
 .project-card-members {
-  position: relative;
-  z-index: 2;
+  pointer-events: none;
   display: inline-flex;
   flex-shrink: 0;
   color: inherit;

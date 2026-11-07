@@ -74,7 +74,7 @@ function fileContext(file) {
 function textFileLocation(file, linkedTask) {
   const project = proj(file.project);
   const path = [project?.name, ...fileFolderPath(project, file.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
-  return `<details class="ui-menu workspace-file-location" ${disclosureAttributes(`file-location:${file.id}`)}><summary aria-label="${esc(tr('Show full path'))}: ${esc(path)}" title="${esc(path)}">${ic('folder', 13)}<span class="trunc" translate="no">${esc(materialLocationLabel(path) || tr('No folder'))}</span>${ic('chevron-down', 12)}</summary><div><p translate="no">${esc(path)}</p>${projectChip(file)}${folderChip(file)}${linkedTask ? `<button class="btn btn-ghost" data-a="openTask" data-id="${esc(linkedTask.id)}">${ic('link', 13)}${esc(linkedTask.key)}</button>` : ''}</div></details>`;
+  return `<details class="ui-menu workspace-file-location" ${disclosureAttributes(`file-location:${file.id}`)}><summary title="${esc(path)}">${ic('folder', 13)}<span class="trunc" translate="no">${esc(materialLocationLabel(path) || tr('No folder'))}</span><span class="sr"> · ${esc(tr('Show full path'))}</span>${ic('chevron-down', 12)}</summary><div><p translate="no">${esc(path)}</p>${projectChip(file)}${folderChip(file)}${linkedTask ? `<button class="btn btn-ghost" data-a="openTask" data-id="${esc(linkedTask.id)}">${ic('link', 13)}${esc(linkedTask.key)}</button>` : ''}</div></details>`;
 }
 
 function fileCard(file) {
@@ -90,7 +90,7 @@ function fileCard(file) {
     : filePrev(file);
   return `<article aria-labelledby="file-card-title-${esc(file.id)}" class="fcard workspace-file-card${textual ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
     ${fileSelectButton(file)}
-    <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}" aria-label="Open ${esc(file.name)}">
+    <button class="workspace-file-open" data-a="previewFile" data-id="${file.id}"><span class="sr">${tr('Open')} </span>
       ${preview}
       <span class="fi"><span id="file-card-title-${esc(file.id)}" class="fn trunc" translate="no" title="${esc(file.name)}">${esc(file.name)}</span><span class="fm trunc"><span ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span> · ${esc(file.size || formatBytes(file.bytes))} · ${ago(file.at)}</span>${fileMatchHint(file)}</span>
     </button>

@@ -15,11 +15,11 @@ export function av(id, cls = '', tip = true, decorative = false) {
     .map(x => x[0])
     .join('')
     .slice(0, 2);
-  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} ${decorative ? 'aria-hidden="true"' : `aria-label="${esc(m.name)}"`} translate="no">${ini}</span>`;
+  return `<span class="av ${cls}" style="--c:${m.c}" ${tip ? `data-tip="${esc(m.name)}"` : ''} ${decorative ? 'aria-hidden="true"' : `role="img" aria-label="${esc(m.name)}"`} translate="no">${ini}</span>`;
 }
-export function avStack(ids, max = 4, cls = 'sm') {
+export function avStack(ids, max = 4, cls = 'sm', decorative = false) {
   const v = ids.slice(0, max);
-  return `<span class="avs">${v.map(i => av(i, cls)).join('')}${ids.length > max ? `<span class="av ${cls} more" style="--c:var(--gray)">+${ids.length - max}</span>` : ''}</span>`;
+  return `<span class="avs" ${decorative ? 'aria-hidden="true"' : ''}>${v.map(i => av(i, cls, true, decorative)).join('')}${ids.length > max ? `<span class="av ${cls} more" style="--c:var(--gray)">+${ids.length - max}</span>` : ''}</span>`;
 }
 export function stIcon(st, s = 14) {
   const c = `var(--st-${st})`;
