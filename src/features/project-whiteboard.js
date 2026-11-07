@@ -9,6 +9,7 @@ import './whiteboard-portable.js';
 import './whiteboard-tools.js';
 import './whiteboard-extract.js';
 import './whiteboard-presentation.js';
+import './whiteboard-templates.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';

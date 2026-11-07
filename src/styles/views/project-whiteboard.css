@@ -1139,3 +1139,45 @@
 .project-whiteboard.is-presenting > .whiteboard-help {
   display: none;
 }
+.whiteboard-template-options {
+  display: grid;
+  gap: 8px;
+}
+.whiteboard-template-option {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 64px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  text-align: start;
+}
+.whiteboard-template-option > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.whiteboard-template-option > svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.whiteboard-template-option > span > span {
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+.whiteboard-template-option[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (min-width: 760px) {
+  .whiteboard-template-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .whiteboard-template-option {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 140px;
+  }
+}
