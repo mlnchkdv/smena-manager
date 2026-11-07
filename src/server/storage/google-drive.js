@@ -2,6 +2,8 @@ import { drive } from '@googleapis/drive';
 import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
+import { drivePreparedBackups, restorePreparedBackup } from './prepared-backup-objects.js';
+import { driveKnowledgeImportJournals } from './knowledge-import-journal.js';
 import { createHash } from 'node:crypto';
 import { rememberStorageVersion, storageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
@@ -100,6 +102,8 @@ export class GoogleDriveStorageProvider {
   lastSyncAt = null;
 
   constructor({ scope } = {}) {
+    Object.assign(this, drivePreparedBackups(this));
+    Object.assign(this, driveKnowledgeImportJournals(this));
     this.scope = scope;
     this.allowBootstrap = false;
     if (scope) {
@@ -1094,12 +1098,21 @@ export class GoogleDriveStorageProvider {
       files.push(...(result.data.files || []));
       pageToken = result.data.nextPageToken;
     } while (pageToken);
-    return files.map(file => ({
-      id: file.id,
-      createdAt: file.createdTime,
-      label: file.appProperties?.label || '',
-      size: Number(file.size) || 0,
-    }));
+    const seen = new Set();
+    return files
+      .filter(file => {
+        const key = file.appProperties?.smenaPreparedKey;
+        if (!/^[a-f0-9]{64}$/.test(key || '')) return true;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map(file => ({
+        id: file.id,
+        createdAt: file.createdTime,
+        label: file.appProperties?.label || '',
+        size: Number(file.appProperties?.snapshotBytes || file.size) || 0,
+      }));
   }
 
   async loadDatabaseBackup(id) {
@@ -1110,6 +1123,7 @@ export class GoogleDriveStorageProvider {
     }
     const response = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
     const stored = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+    if (stored?.format === 'smena-prepared-backup-v1') return restorePreparedBackup(this, stored);
     if (!stored?.data || typeof stored.data !== 'object') throw new Error('Backup data is invalid.');
     return stored.data;
   }
@@ -1120,6 +1134,7 @@ export class GoogleDriveStorageProvider {
     if (metadata.data.trashed || !metadata.data.parents?.includes(folderId) || metadata.data.appProperties?.smenaBackup !== 'true') {
       throw new Error('Backup is unavailable.');
     }
+    if (metadata.data.appProperties?.smenaPreparedKey) return this.deletePreparedBackupCopies(metadata.data.appProperties.smenaPreparedKey);
     await this.client.files.delete({ fileId: id, supportsAllDrives: true });
   }
 

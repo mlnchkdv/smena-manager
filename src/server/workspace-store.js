@@ -676,6 +676,37 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   });
 }
 
+// Import cursors are server-owned private metadata, not a material edit. Keep
+// the public revision stable so file pages/graphs do not churn on every step.
+// Exact storage versions still fence concurrent publications.
+export async function mutateKnowledgeImportJournal(mutator, expectedRevision, { authorize } = {}) {
+  if (typeof mutator !== 'function' || typeof authorize !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
+    throw new TypeError('A journal mutation, canonical authorization and expected revision are required.');
+  const storage = getStorageProvider();
+  if (!storage.loadKnowledgeImportJournal || !storage.saveKnowledgeImportJournal)
+    return mutateWorkspaceMetadata(mutator, expectedRevision, { role: 'admin', scope: 'knowledgeImport' });
+  return withWorkspaceWrite(async coordination => {
+    const baseline = await storage.loadKnowledgeImportJournal({ authorize });
+    if (!baseline) return mutateInsideLock(mutator, expectedRevision, { role: 'admin', scope: 'knowledgeImport', coordination });
+    if (baseline.revision !== expectedRevision) throw new RevisionConflictError(baseline.revision);
+    const changed = await mutator(clone(baseline));
+    if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('A journal mutation must return a database object.');
+    await coordination?.assertOwnership?.();
+    try {
+      const saved = await storage.saveKnowledgeImportJournal(changed, baseline);
+      state().database = null;
+      state().lastLoadedAt = 0;
+      return clone(saved);
+    } catch (error) {
+      state().database = null;
+      state().lastLoadedAt = 0;
+      if (Number(error?.response?.status || error?.code) !== 412) throw error;
+      const latest = await storage.loadDatabaseCore({ identities: false, knowledge: false }).catch(() => null);
+      throw new RevisionConflictError(Number(latest?.revision || baseline.revision));
+    }
+  });
+}
+
 // Returns null only when the operation requires the existing canonical path.
 // A partial catalog is never installed in the worker's complete database cache.
 export async function tryMutateWorkspaceFiles(incoming, changes, expectedRevision, user, profiles = []) {

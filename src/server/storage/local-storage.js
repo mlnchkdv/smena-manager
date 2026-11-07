@@ -1,4 +1,7 @@
 import fs from 'node:fs';
+import { localPreparedBackups, restorePreparedBackup } from './prepared-backup-objects.js';
+import { renameWithRetry } from './windows-file-retry.js';
+import { localKnowledgeImportJournals } from './knowledge-import-journal.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
@@ -8,22 +11,6 @@ import { expandKnowledgeBodies, knowledgeBodyError } from '../knowledge-body-sto
 import { KNOWLEDGE_BODY_MAX_BYTES } from '../../shared/knowledge-body.js';
 import { knowledgeSearchError, SEARCH_OBJECT_MAX_BYTES } from '../knowledge-search-store.js';
 import { materializeKnowledgeMetadata, stageKnowledgeMetadata, knowledgeMetadataError, KNOWLEDGE_METADATA_MAX_BYTES } from './knowledge-metadata-shards.js';
-
-const WINDOWS_RENAME_RETRIES = 4;
-const WINDOWS_RENAME_DELAY_MS = 25;
-
-async function renameWithRetry(source, destination) {
-  for (let attempt = 0; ; attempt++) {
-    try {
-      await fs.promises.rename(source, destination);
-      return;
-    } catch (error) {
-      const retryable = process.platform === 'win32' && ['EACCES', 'EBUSY', 'EPERM'].includes(error?.code);
-      if (!retryable || attempt >= WINDOWS_RENAME_RETRIES) throw error;
-      await new Promise(resolve => setTimeout(resolve, WINDOWS_RENAME_DELAY_MS * 2 ** attempt));
-    }
-  }
-}
 
 export class LocalStorageProvider {
   name = 'local';
@@ -35,6 +22,8 @@ export class LocalStorageProvider {
     this.authSessionsPath = path.resolve(path.join(path.dirname(this.databasePath), 'auth-sessions.json'));
     this.uploadsPath = path.resolve(options.uploadsPath || process.env.UPLOADS_PATH || path.join(path.dirname(this.databasePath), 'uploads'));
     this.backupsPath = path.resolve(options.backupsPath || process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
+    Object.assign(this, localPreparedBackups(this));
+    Object.assign(this, localKnowledgeImportJournals(this));
   }
 
   documentPath(name) {
@@ -308,7 +297,12 @@ export class LocalStorageProvider {
       try {
         const raw = await fs.promises.readFile(this.backupPath(entry.name), 'utf8');
         const stored = JSON.parse(raw);
-        backups.push({ id: entry.name, createdAt: stored.createdAt, label: stored.label || '', size: Buffer.byteLength(raw) });
+        backups.push({
+          id: entry.name,
+          createdAt: stored.createdAt,
+          label: stored.label || '',
+          size: stored.format === 'smena-prepared-backup-v1' ? stored.bytes : Buffer.byteLength(raw),
+        });
       } catch {
         /* Ignore incomplete or manually edited backup files. */
       }
@@ -318,6 +312,7 @@ export class LocalStorageProvider {
 
   async loadDatabaseBackup(id) {
     const stored = JSON.parse(await fs.promises.readFile(this.backupPath(id), 'utf8'));
+    if (stored.format === 'smena-prepared-backup-v1') return restorePreparedBackup(this, stored);
     if (!stored?.data || typeof stored.data !== 'object') throw new Error('Backup data is invalid.');
     return stored.data;
   }

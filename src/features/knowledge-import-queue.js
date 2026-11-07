@@ -30,6 +30,14 @@ const current = () => {
 const request = async (suffix, payload) => (await knowledgeImportRequest(suffix, payload)).job;
 const messages = error =>
   ({
+    BACKUP_PREPARATION_INTEGRITY: T(
+      'Recovery preparation stopped because an object could not be verified. Progress is retained; check storage before retrying.',
+      'Подготовка копии остановлена: объект не прошёл проверку. Прогресс сохранён; проверьте хранилище перед повтором.',
+    ),
+    KNOWLEDGE_IMPORT_BACKUP_PENDING: T(
+      'Continue preparing the recovery copy before importing files.',
+      'Продолжите подготовку резервной копии перед импортом файлов.',
+    ),
     KNOWLEDGE_IMPORT_SOURCE_CHANGED: T(
       'This source file changed. Choose the original file used to start this import.',
       'Исходный файл изменился. Выберите исходную версию, с которой начат импорт.',
@@ -93,9 +101,10 @@ function form(m, H) {
     return `${H(label)}<div class="modal-b knowledge-import-queue" translate="no"><p role="status">${T('Saved', 'Сохранено')}: ${entries.filter(e => e.status === 'imported').length} · ${T('Skipped', 'Пропущено')}: ${entries.filter(e => e.status === 'skipped').length} / ${entries.length}</p><p class="hint">${m.busy ? T('Refreshing the catalog…', 'Обновление каталога…') : T('Notes are saved in the selected folder.', 'Заметки сохранены в выбранной папке.')}</p>${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f" translate="no"><button class="btn btn-primary" data-a="closeModal">${T('Close', 'Закрыть')}</button></div>`;
   return `${H(label)}<div class="modal-b knowledge-import-queue" translate="no"><p class="hint">${T('TXT/MD · up to 1,000 files · 256 MiB total · 2 MiB per file.', 'TXT/MD · до 1 000 файлов · всего 256 MiB · 2 MiB на файл.')}</p><p>${T('Destination', 'Папка')}: <strong>${esc(m.folderName)}</strong></p><p class="hint">${T('A recovery backup is created before import. Closing or pausing stops after the current request. Reselect the original files to resume after reload.', 'Перед импортом создаётся резервная копия. Закрытие или пауза останавливают очередь после текущего запроса. После обновления страницы выберите исходные файлы повторно.')}</p>
  ${m.reading ? `<p role="status">${T('Checking files', 'Проверка файлов')}: ${m.progress || 0}</p>` : ''}
+ ${m.notice ? `<p class="hint" role="status">${esc(m.notice)}</p>` : ''}
  ${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}
  ${!job && entries.length ? `<label>${T('Matching title in this folder', 'Совпадение названия в этой папке')}<select class="select" data-in="knowledgeQueuePolicy"><option value="copy" ${m.policy === 'copy' ? 'selected' : ''}>${T('Import a separate copy', 'Импортировать отдельную копию')}</option><option value="skip" ${m.policy === 'skip' ? 'selected' : ''}>${T('Skip', 'Пропустить')}</option></select></label>` : ''}
- ${entries.length ? `<p role="status">${T('Saved or skipped', 'Сохранено или пропущено')}: ${done} / ${entries.length}</p><progress max="${entries.length}" value="${done}" aria-label="${T('Import progress', 'Ход импорта')}"></progress><ul class="knowledge-import-entries">${rows.map(e => `<li><span translate="no">${esc(e.name)}</span><span>${e.status === 'imported' ? T('Saved', 'Сохранено') : e.status === 'skipped' ? T('Skipped', 'Пропущено') : T('Pending', 'Ожидает')}</span></li>`).join('')}</ul>${entries.length > 30 ? `<p class="hint">${T('Showing the first 30 filenames; progress includes every file.', 'Показаны первые 30 имён; прогресс учитывает все файлы.')}</p>` : ''}` : ''}
+ ${entries.length ? `${job?.backupProgress ? `<p class="hint" role="status">${T('Preparing recovery copy · verified objects', 'Подготовка резервной копии · проверено объектов')}: ${job.backupProgress.copied}</p>` : ''}<p role="status">${T('Saved or skipped', 'Сохранено или пропущено')}: ${done} / ${entries.length}</p><progress max="${entries.length}" value="${done}" aria-label="${T('Import progress', 'Ход импорта')}"></progress><ul class="knowledge-import-entries">${rows.map(e => `<li><span translate="no">${esc(e.name)}</span><span>${e.status === 'imported' ? T('Saved', 'Сохранено') : e.status === 'skipped' ? T('Skipped', 'Пропущено') : T('Pending', 'Ожидает')}</span></li>`).join('')}</ul>${entries.length > 30 ? `<p class="hint">${T('Showing the first 30 filenames; progress includes every file.', 'Показаны первые 30 имён; прогресс учитывает все файлы.')}</p>` : ''}` : ''}
  ${
    errors.length
      ? `<details><summary>${T('Files excluded', 'Исключённые файлы')}: ${errors.length}</summary><ul>${errors
@@ -107,9 +116,9 @@ function form(m, H) {
  ${entries.length || errors.length ? `<button class="btn btn-ghost btn-sm" data-a="downloadKnowledgeImportReport">${T('Download full report', 'Скачать полный отчёт')}</button>` : ''}
  ${!m.busy && !m.reading ? `<button class="btn btn-secondary" data-a="chooseKnowledgeQueueFiles" ${m.jobsLoading ? 'disabled' : ''}>${m.jobsLoading ? T('Loading queues…', 'Загрузка очередей…') : T('Choose original files', 'Выбрать исходные файлы')}</button><input type="file" id="knowledge-queue-files" accept=".txt,.md,.markdown" multiple hidden data-in="knowledgeQueueFiles" ${m.jobsLoading ? 'disabled' : ''}>` : ''}
  ${
-   !job && (m.jobs || []).some(j => ['running', 'paused'].includes(j.state))
+   !job && (m.jobs || []).some(j => ['preparing', 'running', 'paused'].includes(j.state))
      ? `<section><h3>${T('Unfinished imports', 'Незавершённые импорты')}</h3>${m.jobs
-         .filter(j => ['running', 'paused'].includes(j.state))
+         .filter(j => ['preparing', 'running', 'paused'].includes(j.state))
          .map(
            j =>
              `<button class="btn btn-secondary" data-a="resumeKnowledgeQueue" data-id="${esc(j.id)}">${T('Continue', 'Продолжить')} · ${j.entries.filter(e => e.status).length} / ${j.entries.length}</button>`,
@@ -117,11 +126,12 @@ function form(m, H) {
          .join('')}</section>`
      : ''
  }
- </div><div class="modal-f" translate="no">${m.busy ? `<button class="btn btn-secondary" data-a="pauseKnowledgeQueue" ${m.stopping ? 'disabled' : ''}>${T('Pause after this file', 'Пауза после этого файла')}</button>` : `${job && !['complete', 'canceled'].includes(job.state) ? `<button class="btn btn-ghost" data-a="cancelKnowledgeQueue">${T('Stop import', 'Остановить импорт')}</button>` : ''}<button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button>`}<button class="btn btn-primary" data-a="runKnowledgeQueue" ${m.busy || m.reading || !entries.length || !m.review?.handles?.size || ['complete', 'canceled'].includes(job?.state) ? 'disabled' : ''}>${job ? T('Continue import', 'Продолжить импорт') : T('Start import', 'Начать импорт')}</button></div>`;
+ </div><div class="modal-f" translate="no">${m.busy ? `<button class="btn btn-secondary" data-a="pauseKnowledgeQueue" ${m.stopping ? 'disabled' : ''}>${job?.backupProgress ? T('Pause after this step', 'Пауза после этого шага') : T('Pause after this file', 'Пауза после этого файла')}</button>` : `${job && !['complete', 'canceled'].includes(job.state) ? `<button class="btn btn-ghost" data-a="cancelKnowledgeQueue">${T('Stop import', 'Остановить импорт')}</button>` : ''}<button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button>`}<button class="btn btn-primary" data-a="runKnowledgeQueue" ${m.busy || m.reading || !entries.length || (!m.review?.handles?.size && !job?.backupProgress) || ['complete', 'canceled'].includes(job?.state) ? 'disabled' : ''}>${job ? T('Continue import', 'Продолжить импорт') : T('Start import', 'Начать импорт')}</button></div>`;
 }
 async function review(m, files) {
   m.reading = true;
   m.error = '';
+  m.notice = '';
   m.abort = new AbortController();
   render();
   try {
@@ -184,7 +194,9 @@ A.chooseKnowledgeQueueFiles = () => document.getElementById('knowledge-queue-fil
 A.downloadKnowledgeImportReport = () => {
   const m = current();
   if (!m) return;
-  const url = URL.createObjectURL(new Blob([JSON.stringify(knowledgeImportReport(m.job, m.review, m.failedEntry), null, 2)], { type: 'application/json' }));
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(knowledgeImportReport(m.job, m.review, m.failedEntry || m.preparationFailure), null, 2)], { type: 'application/json' }),
+  );
   const link = document.createElement('a');
   link.href = url;
   link.download = 'smena-note-import-report.json';
@@ -231,10 +243,12 @@ A.cancelKnowledgeQueue = async () => {
 };
 A.runKnowledgeQueue = async () => {
   const m = current();
-  if (!m || m.busy || m.reading || !m.review?.handles?.size || S.ui.atomicOperation) return;
+  if (!m || m.busy || m.reading || (!m.review?.handles?.size && !m.job?.backupProgress) || S.ui.atomicOperation) return;
   m.busy = true;
+  m.preparationFailure = null;
   m.stopping = false;
   m.error = '';
+  m.notice = '';
   activeImport = m;
   S.ui.atomicOperation = true;
   render();
@@ -246,8 +260,25 @@ A.runKnowledgeQueue = async () => {
     }
     if (current() !== m) return;
     if (!m.job)
-      m.job = await request('', { clientId: (m.clientId ||= crypto.randomUUID()), entries: m.review.entries, folderId: m.folderId, policy: m.policy });
+      m.job = await request('', {
+        clientId: (m.clientId ||= crypto.randomUUID()),
+        entries: m.review.entries,
+        folderId: m.folderId,
+        policy: m.policy,
+        preparedBackup: true,
+      });
     else m.job = await request('/' + m.job.id, { state: 'running' });
+    while (m.job.state === 'preparing' && current() === m && !m.stopping) {
+      m.job = await request('/' + m.job.id + '/prepare', {});
+      if (current() === m) render();
+    }
+    if (!m.stopping && m.job.state === 'running' && !m.review?.handles?.size) {
+      m.notice = T(
+        'Recovery copy ready. Choose the original files to continue importing.',
+        'Резервная копия готова. Выберите исходные файлы, чтобы продолжить импорт.',
+      );
+      return;
+    }
     for (const entry of m.job.entries.filter(e => !e.status)) {
       if (current() !== m || m.stopping) break;
       const file = m.review.handles.get(entry.key);
@@ -262,6 +293,7 @@ A.runKnowledgeQueue = async () => {
     if (current() === m && m.stopping && m.job.state !== 'complete') m.job = await request('/' + m.job.id, { state: 'paused' });
   } catch (error) {
     if (m.failedEntry) m.failedEntry.code = error.code || 'REQUEST_FAILED';
+    else if (m.job?.backupProgress) m.preparationFailure = { phase: 'preparation', code: error.code || 'REQUEST_FAILED' };
     if (current() === m) m.error = messages(error);
   } finally {
     if (m.owner === getSessionGeneration()) {

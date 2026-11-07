@@ -77,7 +77,7 @@ import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.
 import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { configureReverseProxy } from './reverse-proxy.js';
-import { readKnowledgeImports, startKnowledgeImport, controlKnowledgeImport, appendKnowledgeImport } from './knowledge-import-store.js';
+import { readKnowledgeImports, startKnowledgeImport, controlKnowledgeImport, appendKnowledgeImport, prepareKnowledgeImport } from './knowledge-import-store.js';
 
 export const app = express();
 
@@ -798,6 +798,13 @@ app.post('/api/knowledge/imports', requireRole('admin', 'editor'), async (reques
 app.post('/api/knowledge/imports/:id', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.json({ job: await controlKnowledgeImport(request.params.id, request.body?.state, request.user, getAccessProfiles()) });
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/imports/:id/prepare', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json({ job: await prepareKnowledgeImport(request.params.id, request.user, getAccessProfiles()) });
   } catch (error) {
     next(error);
   }

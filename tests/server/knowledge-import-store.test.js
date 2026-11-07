@@ -6,7 +6,14 @@ import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { createEmptyDatabase, getWorkspaceDatabase, resetWorkspaceStore } from '../../src/server/workspace-store.js';
-import { startKnowledgeImport, appendKnowledgeImport, readKnowledgeImports, controlKnowledgeImport } from '../../src/server/knowledge-import-store.js';
+import {
+  startKnowledgeImport,
+  appendKnowledgeImport,
+  readKnowledgeImports,
+  controlKnowledgeImport,
+  prepareKnowledgeImport,
+} from '../../src/server/knowledge-import-store.js';
+import { storeKnowledgeBody } from '../../src/server/knowledge-body-store.js';
 import { readKnowledgeNote } from '../../src/server/knowledge-note-store.js';
 import { queryKnowledgeIndex } from '../../src/server/knowledge-search-query.js';
 import { inWorkspace } from '../../src/server/workspace-context.js';
@@ -143,4 +150,61 @@ test('the same actor in another workspace cannot read or append a foreign import
     await assert.rejects(appendKnowledgeImport(job.id, e.key, source, profile('editor')), { code: 'KNOWLEDGE_IMPORT_NOT_FOUND' });
     assert.equal((await getWorkspaceDatabase()).knowledgeNotes.length, 0);
   });
+});
+
+test('resumable recovery preparation pauses across restart and admits no files before completion', async () => {
+  let storage = getStorageProvider();
+  const data = await getWorkspaceDatabase();
+  data.knowledgeNotes = [await storeKnowledgeBody(storage, { id: 'before-import', title: 'Before', formatted_markdown: 'Original independent source' })];
+  await storage.saveDatabase(data);
+  resetWorkspaceStore();
+  const materialRevision = (await getWorkspaceDatabase({ fields: ['revision'] })).revision;
+  const source = 'New source to import',
+    item = entry('new.md', source);
+  let job = await startKnowledgeImport({ clientId: randomUUID(), entries: [item], preparedBackup: true }, profile('editor'));
+  assert.equal(job.state, 'preparing');
+  assert.equal(job.backupPreparation, undefined);
+  assert.ok(job.backupProgress);
+  assert.equal((await storage.listDatabaseBackups()).length, 0);
+  await assert.rejects(appendKnowledgeImport(job.id, item.key, source, profile('editor')), { code: 'KNOWLEDGE_IMPORT_BACKUP_PENDING' });
+  job = await controlKnowledgeImport(job.id, 'paused', profile('editor'));
+  assert.equal(job.state, 'paused');
+  assert.equal((await prepareKnowledgeImport(job.id, profile('editor'))).backupProgress.copied, 0);
+  resetStorageProvider();
+  resetWorkspaceStore();
+  storage = getStorageProvider();
+  job = await controlKnowledgeImport(job.id, 'running', profile('editor'));
+  assert.equal(job.state, 'preparing');
+  let steps = 0;
+  while (job.state === 'preparing') {
+    job = await prepareKnowledgeImport(job.id, profile('editor'));
+    assert.ok(++steps < 100);
+  }
+  assert.equal(job.state, 'running');
+  assert.ok(job.backupId);
+  assert.equal(job.backupProgress, undefined);
+  assert.equal((await storage.listDatabaseBackups()).length, 1);
+  assert.equal((await getWorkspaceDatabase({ fields: ['revision'] })).revision, materialRevision, 'private cursors must not invalidate material views');
+  assert.equal((await storage.loadDatabaseBackup(job.backupId)).knowledgeNotes[0].formatted_markdown, 'Original independent source');
+  job = await appendKnowledgeImport(job.id, item.key, source, profile('editor'));
+  assert.equal(job.state, 'complete');
+  assert.equal((await getWorkspaceDatabase({ fields: ['revision'] })).revision, materialRevision + 1);
+  assert.equal((await readKnowledgeNote(job.entries[0].noteId, profile('editor'))).note.formatted_markdown, source);
+});
+
+test('preparation is owner-bound, sanitized, quota-counted, and cannot be resumed after cancel', async () => {
+  const input = { entries: [entry('a.txt', 'one')], preparedBackup: true };
+  const jobs = [];
+  for (let i = 0; i < 3; i++) jobs.push(await startKnowledgeImport({ ...input, clientId: randomUUID() }, profile('editor')));
+  const objectsBeforeLimit = await fs.readdir(path.join(getStorageProvider().backupsPath, 'objects'));
+  await assert.rejects(startKnowledgeImport({ ...input, clientId: randomUUID() }, profile('editor')), { code: 'KNOWLEDGE_IMPORT_LIMIT' });
+  assert.deepEqual(await fs.readdir(path.join(getStorageProvider().backupsPath, 'objects')), objectsBeforeLimit);
+  await assert.rejects(prepareKnowledgeImport(jobs[0].id, profile('other')), { code: 'KNOWLEDGE_IMPORT_NOT_FOUND' });
+  await assert.rejects(prepareKnowledgeImport(jobs[0].id, profile('viewer')), { code: 'WORKSPACE_FORBIDDEN' });
+  const listed = await readKnowledgeImports(profile('editor'));
+  assert.equal(listed.length, 3);
+  assert.equal(JSON.stringify(listed).includes('sha256'), false);
+  const canceled = await controlKnowledgeImport(jobs[0].id, 'canceled', profile('editor'));
+  assert.equal(canceled.backupProgress, undefined);
+  assert.equal((await prepareKnowledgeImport(jobs[0].id, profile('editor'))).state, 'canceled');
 });

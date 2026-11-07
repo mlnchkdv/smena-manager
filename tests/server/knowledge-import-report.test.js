@@ -21,3 +21,18 @@ test('full import reports include every receipt and exclusion without handles, s
   assert.equal(report.rows[1000].name, 'bad.txt');
   for (const secret of ['private text', 'private-account', 'private\\', 'handles']) assert.ok(!JSON.stringify(report).includes(secret));
 });
+
+test('preparation reports explain the stopped phase without serializing private recovery pointers', () => {
+  const job = {
+    id: 'job',
+    state: 'preparing',
+    entries: [{ name: 'a.md' }],
+    backupProgress: { copied: 71 },
+    backupPreparation: { source: 'PRIVATE_SOURCE', pending: ['PRIVATE_HASH'] },
+  };
+  const report = knowledgeImportReport(job, null, { phase: 'preparation', code: 'BACKUP_PREPARATION_INTEGRITY', message: 'PRIVATE_MESSAGE' });
+  assert.deepEqual(report.preparation, { verifiedObjects: 71, code: 'BACKUP_PREPARATION_INTEGRITY' });
+  assert.equal(report.rows[0].status, 'pending');
+  assert.equal(JSON.stringify(report).includes('PRIVATE_'), false);
+  assert.equal(knowledgeImportReport(job, null, { phase: 'preparation', code: 'PRIVATE_PROVIDER_TOKEN' }).preparation.code, 'REQUEST_FAILED');
+});

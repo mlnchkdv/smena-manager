@@ -223,3 +223,32 @@ export async function stageKnowledgeMetadata(data, storage, previous, { unchange
   validate(result);
   return boundedRoot(result);
 }
+
+// Server-owned journals are independent of note/folder values. Updating a
+// cursor must not download or replace the omitted knowledge collections.
+export async function stageKnowledgeImportJournal(root, jobs, storage) {
+  if (
+    !Array.isArray(jobs) ||
+    jobs.some(job => typeof job?.id !== 'string' || !job.id || job.id.length > 180) ||
+    new Set(jobs.map(job => job.id)).size !== jobs.length
+  )
+    throw knowledgeMetadataError();
+  if (!root._knowledgeCatalog) return boundedRoot(await stageKnowledgeMetadata({ ...root, _knowledgeImports: jobs }, storage, root));
+  const catalog = validate(root);
+  const parts = await writeField(
+    storage,
+    '_knowledgeImports',
+    jobs.map(job => [job.id, job]),
+    catalog.fields._knowledgeImports,
+  );
+  const nextCatalog = { ...catalog, fields: { ...catalog.fields, _knowledgeImports: parts } };
+  if (
+    Object.values(nextCatalog.fields)
+      .flat()
+      .reduce((sum, part) => sum + part.bytes, 0) > KNOWLEDGE_METADATA_WORKSPACE_BYTES
+  )
+    throw Object.assign(new Error('The knowledge metadata exceeds its storage limit.'), { code: 'KNOWLEDGE_METADATA_LIMIT', statusCode: 413 });
+  const next = { ...root, schemaVersion: 4, _knowledgeCatalog: nextCatalog, _knowledgeImports: jobs.map(job => ({ id: job.id })) };
+  delete next._knowledgeMetadataPending;
+  return boundedRoot(next);
+}
