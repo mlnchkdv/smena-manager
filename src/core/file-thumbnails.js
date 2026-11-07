@@ -19,6 +19,20 @@ function mount(key, url) {
     image.className = 'file-thumbnail';
     image.alt = '';
     image.decoding = 'async';
+    image.hidden = true;
+    image.onload = () => {
+      if (cache.get(key)?.url !== url || !image.isConnected) return image.remove();
+      image.hidden = false;
+    };
+    image.onerror = () => {
+      const state = cache.get(key);
+      if (state?.url === url) {
+        URL.revokeObjectURL(url);
+        delete state.url;
+        state.failed = true;
+      }
+      image.remove();
+    };
     image.src = url;
     element.prepend(image);
   }

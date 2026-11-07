@@ -1001,6 +1001,9 @@
   height: 100%;
   object-fit: cover;
 }
+.file-thumbnail:not([hidden]) ~ .art {
+  visibility: hidden;
+}
 .file-preview-text {
   margin: 0;
   padding: 16px;
