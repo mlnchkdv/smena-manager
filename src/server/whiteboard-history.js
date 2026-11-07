@@ -65,8 +65,14 @@ export function validateWhiteboardRestore(current, project) {
     throw new TypeError('Invalid whiteboard restore request.');
   const before = current.whiteboards?.find(p => p.id === project.id) || current.projects?.find(p => p.id === project.id),
     version = whiteboardVersions(current, project.id).find(v => v.id === token.id);
-  if (!before || !version || whiteboardHash(whiteboardOf(before)) !== token.baseHash)
+  if (!before || !version)
     throw Object.assign(new Error('The whiteboard changed. Reopen its history before restoring.'), { statusCode: 409, code: 'WHITEBOARD_RESTORE_STALE' });
-  if (whiteboardHash(whiteboardOf(project)) !== whiteboardHash(version.board))
-    throw new TypeError('The requested whiteboard version does not match its saved content.');
+  const currentHash = whiteboardHash(whiteboardOf(before)),
+    targetHash = whiteboardHash(version.board),
+    proposedHash = whiteboardHash(whiteboardOf(project));
+  // A reload or lost acknowledgement may replay a successful restore. Accept
+  // only the exact saved version already present; never overwrite a new edit.
+  if (currentHash !== token.baseHash && !(currentHash === targetHash && proposedHash === targetHash))
+    throw Object.assign(new Error('The whiteboard changed. Reopen its history before restoring.'), { statusCode: 409, code: 'WHITEBOARD_RESTORE_STALE' });
+  if (proposedHash !== targetHash) throw new TypeError('The requested whiteboard version does not match its saved content.');
 }

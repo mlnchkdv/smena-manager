@@ -39,6 +39,30 @@ test('stale forged and mutated whiteboard restoration is rejected', () => {
   );
 });
 
+test('a restore replay after a lost acknowledgement is harmless only while the exact target version is current', () => {
+  const original = { whiteboards: [{ id: 'b', whiteboard: board('original') }] },
+    edited = { whiteboards: [{ id: 'b', whiteboard: board('edited') }] };
+  captureWhiteboardHistory(original, edited, 'one');
+  const version = whiteboardVersions(edited, 'b')[0],
+    command = { id: 'b', whiteboard: structuredClone(version.board), whiteboardRestoreFrom: { id: version.id, baseHash: whiteboardHash(board('edited')) } };
+  const restored = { ...edited, whiteboards: [structuredClone(command)] };
+  validateWhiteboardRestore(edited, command);
+  captureWhiteboardHistory(edited, restored, 'one');
+  const count = whiteboardVersions(restored, 'b').length;
+  assert.doesNotThrow(() => validateWhiteboardRestore(restored, command));
+  const replayed = { ...restored, whiteboards: [structuredClone(command)] };
+  captureWhiteboardHistory(restored, replayed, 'one');
+  assert.equal(whiteboardVersions(replayed, 'b').length, count);
+  assert.deepEqual(replayed.whiteboards[0].whiteboard, version.board);
+  assert.equal(replayed.whiteboards[0].whiteboardRestoreFrom, undefined);
+  const stale = structuredClone(restored);
+  stale.whiteboards[0].whiteboard.nodes[0].text = 'a later real edit';
+  assert.throws(() => validateWhiteboardRestore(stale, command), { code: 'WHITEBOARD_RESTORE_STALE' });
+  assert.throws(() => validateWhiteboardRestore(restored, { ...command, whiteboard: board('different payload') }), { code: 'WHITEBOARD_RESTORE_STALE' });
+  assert.throws(() => validateWhiteboardRestore(restored, { ...command, id: 'another-board' }), { code: 'WHITEBOARD_RESTORE_STALE' });
+  assert.throws(() => validateWhiteboardRestore({ ...restored, _whiteboardHistory: [] }, command), { code: 'WHITEBOARD_RESTORE_STALE' });
+});
+
 test('whiteboard comparison distinguishes additions removals and content or geometry changes', () => {
   const current = board('new'),
     previous = board('old');
