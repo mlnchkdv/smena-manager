@@ -1,6 +1,7 @@
 import { settingsSearch } from '../ui/settings-search.js';
 import { notificationOverview } from '../ui/notification-overview.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
+import { deliveryTriage } from '../shared/delivery-triage.js';
 import { helpGuides } from '../ui/help-guides.js';
 /* =====================================================================
    SETTINGS · AUTH · ONBOARDING · DESIGN SYSTEM · SYSTEM STATES
@@ -131,7 +132,10 @@ function deliveryStatusPanel() {
     coordination: 'Write coordination needs attention.',
     email: 'Email authorization needs attention.',
     push: 'Web Push is not configured.',
-    cron_stale: 'No recent automatic run. Check the Vercel cron schedule.',
+    cron_stale: copy(
+      'No recent automatic run. Check the scheduler on your hosting server.',
+      'Нет недавнего автоматического запуска. Проверьте планировщик на вашем хостинге.',
+    ),
     cron_degraded: 'The last automatic run reported errors.',
     delivery: 'The latest notification delivery reported errors.',
     outbox_stale: 'Some notifications have been waiting for more than one hour.',
@@ -145,6 +149,7 @@ function deliveryStatusPanel() {
         ? 'Completed with delivery errors'
         : 'Automatic run failed';
   const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${esc(tr(label))}</span>`;
+  const nextChecks = deliveryTriage(operational?.issues, isRussian() ? 'ru' : 'en');
   return `<div class="sblock notification-delivery-card">
     <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
     ${
@@ -155,6 +160,7 @@ function deliveryStatusPanel() {
             .join('')}</ul>`
         : ''
     }
+    ${nextChecks.length ? `<details class="notification-delivery-next" ${disclosureAttributes('delivery-next-checks')}><summary translate="no">${copy('What to check next', 'Что проверить дальше')}</summary><ul class="notification-delivery-issues">${nextChecks.map(check => `<li data-diagnostic-code="${check.code}" translate="no">${esc(check.text)}${check.section ? ` <button class="btn btn-sm btn-ghost" data-a="go" data-r="settings" data-sec="${check.section}">${esc(copy('Open settings', 'Открыть настройки'))}</button>` : ''}</li>`).join('')}</ul></details>` : ''}
     <div class="row" style="gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="email" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test email to me</button><button class="btn btn-secondary btn-sm" data-a="testNotificationDelivery" data-channel="push" ${S.ui.testNotificationSending ? 'disabled' : ''}>Send test push to me</button></div>
     <p class="hint">Tests go only to your account, not to the team. Provider acceptance does not confirm receipt on your device.</p>
     ${Object.values(S.ui.testNotificationResults || {})
