@@ -1238,9 +1238,9 @@ A.previewFile = async el => {
       previewContext: {
         owner: getSessionGeneration(),
         workspace: S.ui.activeWorkspace,
-        pageKey: el.closest('.files-page')?.dataset.previewPageKey,
-        page: Number(el.closest('.files-page')?.dataset.previewPage || 0),
-        pages: Number(el.closest('.files-page')?.dataset.previewPages || 1),
+        pageKey: el.closest?.('.files-page')?.dataset.previewPageKey,
+        page: Number(el.closest?.('.files-page')?.dataset.previewPage || 0),
+        pages: Number(el.closest?.('.files-page')?.dataset.previewPages || 1),
         ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
       },
     });
