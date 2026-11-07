@@ -1,0 +1,219 @@
+.work-risk-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.work-risk-strip .btn {
+  gap: 8px;
+}
+.portfolio-totals {
+  margin-left: auto;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.portfolio-totals summary {
+  cursor: pointer;
+  padding: 8px;
+}
+.portfolio-totals[open] {
+  flex-basis: 100%;
+}
+.portfolio-totals > div {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+}
+.overview-portfolio {
+  container: portfolio / inline-size;
+  margin-bottom: 16px;
+}
+.portfolio-heading {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.portfolio-controls {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.portfolio-controls .inwrap {
+  min-width: 180px;
+  flex: 1;
+}
+.portfolio-controls .search-sm {
+  width: 100%;
+}
+.portfolio-table-wrap {
+  overflow-x: auto;
+}
+.overview-portfolio-table {
+  table-layout: fixed;
+  min-width: 740px;
+}
+.overview-portfolio-table :is(th, td) {
+  text-align: left;
+  padding: 8px 10px;
+  vertical-align: middle;
+}
+.overview-portfolio-table :is(th, td):first-child {
+  width: 30%;
+  padding-left: 14px;
+}
+.overview-portfolio-table :is(th, td):nth-child(2) {
+  width: 16%;
+}
+.overview-portfolio-table :is(th, td):nth-child(4) {
+  width: 14%;
+}
+.portfolio-project-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.portfolio-next {
+  display: block;
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin-top: 5px;
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+.portfolio-next.bad {
+  color: var(--red);
+}
+.portfolio-owner {
+  min-width: 0;
+  font-size: 12px;
+}
+.portfolio-owner > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.portfolio-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px 7px;
+  font-variant-numeric: tabular-nums;
+}
+.portfolio-count:hover {
+  background: var(--surface-2);
+}
+.portfolio-count.bad {
+  color: var(--red);
+}
+.portfolio-cards {
+  display: none;
+}
+.portfolio-card-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+}
+.portfolio-card-counts > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.portfolio-support {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: start;
+  gap: 16px;
+}
+.portfolio-status-row {
+  min-height: 28px;
+  font-size: 12px;
+}
+.portfolio-workload {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 28% 24px;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  text-align: left;
+  font-size: 12px;
+}
+.portfolio-workload i {
+  height: 6px;
+  background: linear-gradient(to right, var(--accent) var(--work), var(--surface-3) var(--work));
+  border-radius: var(--r);
+}
+.portfolio-milestone {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  gap: 8px;
+  min-height: 42px;
+  font-size: 12px;
+}
+.portfolio-milestone .grow {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.portfolio-milestone small {
+  display: block;
+  color: var(--text-2);
+  font-weight: 400;
+}
+@container portfolio (max-width:740px) {
+  .portfolio-table-wrap {
+    display: none;
+  }
+  .portfolio-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+  .portfolio-cards .portfolio-mobile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    text-align: left;
+  }
+  .portfolio-heading .portfolio-controls {
+    flex-basis: 100%;
+  }
+  .portfolio-controls > .inwrap {
+    flex-basis: 100%;
+  }
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .portfolio-count,
+  .portfolio-workload,
+  .portfolio-milestone,
+  .work-risk-strip .btn,
+  .portfolio-totals summary {
+    min-height: 44px;
+  }
+  .portfolio-count {
+    min-width: 44px;
+  }
+  .portfolio-project-name {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .portfolio-controls {
+    width: 100%;
+  }
+  .portfolio-totals {
+    margin-left: 0;
+  }
+}
