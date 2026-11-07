@@ -1,0 +1,44 @@
+.folder-navigation {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+.folder-navigation .ibtn {
+  min-width: 32px;
+  min-height: 32px;
+}
+.bookmark-location {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 8px;
+  min-width: 0;
+}
+.bookmark-location > strong {
+  max-width: min(60vw, 480px);
+}
+.knowledge-folder-jump {
+  display: none;
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-breadcrumbs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--sunken);
+  min-height: 44px;
+  border-bottom: 1px solid var(--divider);
+}
+.knowledge-shell[data-folder-overlay='true'] .knowledge-folder-jump {
+  display: inline-flex;
+  flex: 0 0 44px;
+  min-height: 44px;
+  margin-inline-start: auto;
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .folder-navigation .ibtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

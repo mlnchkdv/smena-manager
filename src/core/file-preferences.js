@@ -49,6 +49,15 @@ const contextFields = [
   'fileFolderQuery',
   'fileSelectedPreset',
 ];
+export const captureFileLocation = () => structuredClone(snapshot());
+export function restoreFileLocation(value) {
+  Object.assign(S.ui, Object.fromEntries(contextFields.filter(field => Object.hasOwn(value, field)).map(field => [field, structuredClone(value[field])])));
+  contextPage = value.page || 0;
+  contextPageKey = value.pageKey || '';
+  contextScroll = value.scroll || 0;
+  contextAnchor = value.anchor || null;
+  pendingPage = pendingScroll = true;
+}
 export function fileContext(projectId = null) {
   const next = projectId || 'workspace';
   if (next === activeContext) {

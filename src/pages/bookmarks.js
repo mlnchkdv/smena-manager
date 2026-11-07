@@ -1,5 +1,7 @@
 import '../actions/material-actions.js';
 import '../features/bookmark-batch.js';
+import { folderNavigation } from '../ui/folder-navigation.js';
+import { folderTrail } from '../shared/knowledge-tools.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
 import { render } from '../shell/render.js';
@@ -108,6 +110,20 @@ export function pageBookmarks() {
     .trim()
     .toLowerCase();
   const folderFilter = S.ui.bookmarkFolder || 'all';
+  const folderIndex = new Map(folders.map(folder => [folder.id, { ...folder, parentId: folder.parent_id }]));
+  const crumbs = folderTrail(folderFilter, folderIndex);
+  const folderPath = folder =>
+    folderTrail(folder.id, folderIndex)
+      .map(item => item.name)
+      .join(' / ');
+  const bookmarkCrumbs = crumbs.length
+    ? crumbs
+        .map(
+          (item, index) =>
+            `${index ? '<span aria-hidden="true">/</span>' : ''}${index === crumbs.length - 1 ? `<strong class="trunc">${esc(item.name)}</strong>` : `<button class="btn btn-ghost btn-sm" data-a="collectionFolderUp" data-kind="bookmarks" data-folder="${esc(item.id)}">${esc(item.name)}</button>`}`,
+        )
+        .join('')
+    : `<strong class="trunc">${esc(folderFilter === 'root' ? kc('No folder', 'Без папки') : kc('Folder unavailable', 'Папка недоступна'))}</strong>`;
   const scope = S.ui.bookmarkScope || 'active';
   const readOnly = S.ui.currentUser?.role === 'viewer';
   const page = bookmarkView(links, { query, folder: folderFilter, scope, page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope }) });
@@ -130,7 +146,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
       ${collectionOptions(
-        `<div class="seg" role="group" aria-label="${kc('Bookmark view', 'Вид закладок')}">${['grid', 'list'].map(value => `<button data-a="setBookmarkLayout" data-value="${value}" aria-pressed="${layout === value}" class="${layout === value ? 'on' : ''}">${ic(value === 'grid' ? 'layout-grid' : 'list', 14)}${value === 'grid' ? kc('Grid', 'Плитка') : kc('List', 'Список')}</button>`).join('')}</div><label class="label" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder"><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folder.name)}</option>`).join('')}</select>
+        `<div class="seg" role="group" aria-label="${kc('Bookmark view', 'Вид закладок')}">${['grid', 'list'].map(value => `<button data-a="setBookmarkLayout" data-value="${value}" aria-pressed="${layout === value}" class="${layout === value ? 'on' : ''}">${ic(value === 'grid' ? 'layout-grid' : 'list', 14)}${value === 'grid' ? kc('Grid', 'Плитка') : kc('List', 'Список')}</button>`).join('')}</div><label class="label" for="bookmark-folder-filter">Filter by folder</label><select class="select" id="bookmark-folder-filter" data-in="bookmarkFolder" data-searchable data-browse-first><option value="all" ${folderFilter === 'all' ? 'selected' : ''}>All folders</option><option value="root" ${folderFilter === 'root' ? 'selected' : ''}>No folder</option>${folders.map(folder => `<option value="${folder.id}" ${folderFilter === folder.id ? 'selected' : ''} translate="no">${esc(folderPath(folder))}</option>`).join('')}</select>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',
@@ -146,6 +162,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       'Bookmark filters',
       'bookmark-toolbar',
     )}
+    <nav class="bookmark-location" aria-label="${kc('Bookmark location', 'Расположение закладок')}" translate="no">${folderNavigation('bookmarks', folderFilter === 'all' ? null : { folder: folderIndex.get(folderFilter)?.parentId || 'all' })}${folderFilter === 'all' ? `<strong>${kc('All bookmarks', 'Все закладки')}</strong>` : `<button class="btn btn-ghost btn-sm" data-a="collectionFolderUp" data-kind="bookmarks" data-folder="all">${kc('All bookmarks', 'Все закладки')}</button><span aria-hidden="true">/</span>${bookmarkCrumbs}`}</nav>
     ${!readOnly && filtered.length ? `<div class="bookmark-bulk row" style="flex-wrap:wrap;gap:8px"><label class="row"><input type="checkbox" data-in="bookmarkSelectPage" ${filtered.every(item => S.ui.bookmarkSelection?.includes(item.id)) ? 'checked' : ''}>${kc('Select page', 'Выбрать страницу')}</label><span role="status">${kc('Selected: ', 'Выбрано: ')}${S.ui.bookmarkSelection?.length || 0}</span>${S.ui.bookmarkSelection?.length ? `<button class="btn btn-secondary" data-a="bookmarkBatch">${kc('Actions', 'Действия')}</button><button class="btn btn-ghost" data-a="clearBookmarkSelection">${kc('Clear selection', 'Снять выбор')}</button>` : ''}</div>` : ''}
     ${S.ui.bookmarkSelectionNotice ? `<p class="hint" role="status">${kc('Selection cleared because the view changed.', 'Выбор снят после изменения представления.')}</p>` : ''}
     ${

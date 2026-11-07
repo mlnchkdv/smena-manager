@@ -203,7 +203,12 @@ export const selectMenu = {
     Object.assign(this, { el: menu, sel, btn, scope: selectionScope() });
     this.position();
     btn.setAttribute('aria-expanded', 'true');
-    (menu.querySelector('input') || menu.querySelector('[aria-selected="true"]:not(:disabled)') || menu.querySelector('.mi:not(:disabled)'))?.focus({
+    const focusSearch = !sel.hasAttribute('data-browse-first') || (innerWidth > 640 && !matchMedia('(pointer: coarse)').matches);
+    (
+      (focusSearch && menu.querySelector('input')) ||
+      menu.querySelector('[aria-selected="true"]:not(:disabled)') ||
+      menu.querySelector('.mi:not(:disabled)')
+    )?.focus({
       preventScroll: true,
     });
   },

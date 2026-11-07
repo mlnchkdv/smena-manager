@@ -13,6 +13,7 @@ import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { filePresetFilters, reorderFilePreset } from '../shared/file-presets.js';
 import { getSessionGeneration } from '../core/api.js';
 import { activeFileFolder, archiveFileFolder, moveFilesToFolder, moveFileFolder, restoreFileFolder, saveFileFolder } from '../shared/file-organization.js';
+import { navigateCollection, collectionLocationAllowed } from '../core/collection-navigation.js';
 
 Object.assign(fileModalRenderers, { fileFolderForm, fileMove: fileMoveForm });
 
@@ -163,13 +164,19 @@ A.reorderFileFilter = el => {
 };
 
 A.openFileFolder = el => {
-  S.ui.fileProject = el.dataset.project || 'all';
-  S.ui.fileFolder = el.dataset.folder || null;
-  S.ui.fileFoldersArchived = false;
-  S.ui.fileFolderOffset = 0;
-  S.ui.fileFolderQuery = '';
-  S.ui.fileQ = '';
-  render();
+  if (!collectionLocationAllowed('files', { values: { fileProject: el.dataset.project || 'all', fileFolder: el.dataset.folder || null } })) return;
+  navigateCollection(
+    'files',
+    () => {
+      S.ui.fileProject = el.dataset.project || 'all';
+      S.ui.fileFolder = el.dataset.folder || null;
+      S.ui.fileFoldersArchived = false;
+      S.ui.fileFolderOffset = 0;
+      S.ui.fileFolderQuery = '';
+      S.ui.fileQ = '';
+    },
+    render,
+  );
   document.querySelector('.files-folder-crumbs button')?.focus({ preventScroll: true });
 };
 A.toggleFileFolderArchive = () => {

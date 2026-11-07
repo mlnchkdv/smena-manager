@@ -30,6 +30,7 @@ import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { knowledgeHeadingSlug } from '../shared/knowledge-markdown.js';
 import { readerToStart } from '../ui/knowledge-reader-position.js';
+import { beginCollectionBrowsing, closeCollectionBrowsing } from '../core/collection-navigation.js';
 A.knowledgeReaderToStart = readerToStart;
 A.knowledgeAnchor = (el, event) => {
   event?.preventDefault();
@@ -358,9 +359,12 @@ A.trashKnowledgeSelection = () => {
   });
 };
 A.toggleKnowledgeMobileFolders = () => {
+  const opening = !S.ui.knowledgeMobileFolders;
+  if (opening) beginCollectionBrowsing('knowledge');
   S.ui.knowledgeMobileFolders = !S.ui.knowledgeMobileFolders;
   S.ui.knowledgeFolderNavOpen = true;
   render();
+  if (!opening) closeCollectionBrowsing('knowledge');
   if (S.ui.knowledgeMobileFolders) document.querySelector('.knowledge-sidebar .knowledge-mobile-folder-button')?.focus({ preventScroll: true });
   else document.querySelector('.knowledge-content .knowledge-mobile-folder-button')?.focus();
 };

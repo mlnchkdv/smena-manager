@@ -15,6 +15,7 @@ import { focusKey, go, render } from '../shell/render.js';
 import { closeModal, openModal } from '../overlays/modals.js';
 
 import { getSessionGeneration } from '../core/api.js';
+import { navigateCollection, collectionLocationAllowed } from '../core/collection-navigation.js';
 
 import { extractWikiLinks } from '../shared/knowledge-links.js';
 import { updateKnowledgeSaveStatus, knowledgeEditBlocked } from '../ui/knowledge-save-status.js';
@@ -285,35 +286,41 @@ A.toggleKnowledgeFavorite = el => {
 };
 
 A.setKnowledgeFolder = el => {
+  if (!collectionLocationAllowed('knowledge', { values: { knowledgeFolder: el.dataset.folder || 'all' } })) return;
   const compactNavigation = !!S.ui.knowledgeFolderOverlay;
-  S.ui.knowledgeOffset = 0;
-  S.ui.knowledgeMobileFolders = false;
-  S.ui.knowledgeDrawer = null;
-  S.ui.knowledgeFolder = el.dataset.folder || 'all';
-  S.ui.knowledgeRevealFolder = S.ui.knowledgeFolder;
-  S.ui.knowledgeFolderCardQuery = '';
-  S.ui.knowledgeFolderCardOffset = 0;
-  S.ui.knowledgeActive = null;
-  S.ui.knowledgeLimit = 200;
-  S.ui.knowledgeTag = '';
-  if (compactNavigation) {
-    S.ui.knowledgeFolderNavOpen = false;
-    S.ui.knowledgeFolderQuery = '';
-  }
-  if (S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder)) {
-    const folders = knowledgeCollections().folders;
-    const collapsed = { ...(S.ui.knowledgeCollapsedFolders || {}) };
-    const byId = new Map(folders.map(folder => [folder.id, folder]));
-    const seen = new Set();
-    let current = byId.get(S.ui.knowledgeFolder);
-    while (current && !seen.has(current.id)) {
-      seen.add(current.id);
-      delete collapsed[current.id];
-      current = byId.get(current.parentId);
-    }
-    S.ui.knowledgeCollapsedFolders = collapsed;
-  }
-  render();
+  navigateCollection(
+    'knowledge',
+    () => {
+      S.ui.knowledgeOffset = 0;
+      S.ui.knowledgeMobileFolders = false;
+      S.ui.knowledgeDrawer = null;
+      S.ui.knowledgeFolder = el.dataset.folder || 'all';
+      S.ui.knowledgeRevealFolder = S.ui.knowledgeFolder;
+      S.ui.knowledgeFolderCardQuery = '';
+      S.ui.knowledgeFolderCardOffset = 0;
+      S.ui.knowledgeActive = null;
+      S.ui.knowledgeLimit = 200;
+      S.ui.knowledgeTag = '';
+      if (compactNavigation) {
+        S.ui.knowledgeFolderNavOpen = false;
+        S.ui.knowledgeFolderQuery = '';
+      }
+      if (S.ui.knowledgeFolder && !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder)) {
+        const folders = knowledgeCollections().folders;
+        const collapsed = { ...(S.ui.knowledgeCollapsedFolders || {}) };
+        const byId = new Map(folders.map(folder => [folder.id, folder]));
+        const seen = new Set();
+        let current = byId.get(S.ui.knowledgeFolder);
+        while (current && !seen.has(current.id)) {
+          seen.add(current.id);
+          delete collapsed[current.id];
+          current = byId.get(current.parentId);
+        }
+        S.ui.knowledgeCollapsedFolders = collapsed;
+      }
+    },
+    render,
+  );
   // The mobile folder sheet disappears after navigation. Move focus to the
   // destination instead of leaving keyboard/screen-reader users on the body.
   if (compactNavigation) document.getElementById('knowledge-view-title')?.focus({ preventScroll: true });
@@ -824,8 +831,14 @@ IN.bookmarkQuery = el => {
   });
 };
 IN.bookmarkFolder = el => {
-  S.ui.bookmarkFolder = el.value;
-  render();
+  if (!collectionLocationAllowed('bookmarks', { values: { bookmarkFolder: el.value || 'all' } })) return;
+  navigateCollection(
+    'bookmarks',
+    () => {
+      S.ui.bookmarkFolder = el.value;
+    },
+    render,
+  );
 };
 IN.bookmarkDraft = el => {
   S.ui.bookmarkDraft[el.dataset.field] = el.value;

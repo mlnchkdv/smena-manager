@@ -8,15 +8,11 @@ import { folderPins } from '../shared/knowledge-folder-shortcuts.js';
 import { render } from '../shell/render.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 let installed = false;
-const positions = new Map();
 export function installFolderShortcuts() {
   if (installed) return;
   installed = true;
   const original = A.setKnowledgeFolder;
   A.setKnowledgeFolder = el => {
-    const key = id => JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url, id, S.ui.knowledgeQuery || '', S.ui.knowledgeSort || '']);
-    positions.set(key(S.ui.knowledgeFolder || 'all'), document.querySelector('.knowledge-main')?.scrollTop || 0);
-    if (positions.size > 80) positions.delete(positions.keys().next().value);
     const query = S.ui.knowledgeFolderQuery || '',
       folder = el.dataset.folder || 'all';
     if (D().knowledgeFolders.some(f => f.id === folder))
@@ -27,12 +23,6 @@ export function installFolderShortcuts() {
       S.ui.knowledgeFolderQuery = query;
       render();
     }
-    const scroll = positions.get(key(folder));
-    if (scroll != null)
-      requestAnimationFrame(() => {
-        const main = document.querySelector('.knowledge-main');
-        if (main && S.ui.knowledgeFolder === folder) main.scrollTop = scroll;
-      });
   };
 }
 export function folderQuickLinks(folders, activeId) {
@@ -57,7 +47,7 @@ export function folderQuickLinks(folders, activeId) {
           folderTrail(activeId, byId)
             .map(f => f.name)
             .join(' / '),
-        )}</p><div class="knowledge-folder-context"><button class="btn btn-ghost btn-sm" data-a="setKnowledgeFolder" data-folder="${esc(active.parentId || 'all')}" aria-label="${kc('Parent folder', 'Родительская папка')}">${ic('arrow-up', 15)}${kc('Parent folder', 'Родительская папка')}</button><button class="ibtn" data-a="pinKnowledgeFolder" data-folder="${esc(active.id)}" aria-pressed="${pins.includes(active.id)}" aria-label="${kc('Pin folder', 'Закрепить папку')}" title="${kc('Pin folder', 'Закрепить папку')}">${ic('pin', 15)}</button></div>`
+        )}</p><div class="knowledge-folder-context"><button class="ibtn" data-a="pinKnowledgeFolder" data-folder="${esc(active.id)}" aria-pressed="${pins.includes(active.id)}" aria-label="${kc('Pin folder', 'Закрепить папку')}" title="${kc('Pin folder', 'Закрепить папку')}">${ic('pin', 15)}</button></div>`
       : ''
   }${pins.length ? `<details open><summary>${kc('Pinned folders', 'Закреплённые папки')} · ${pins.length}</summary>${links(pins)}</details>` : ''}${recent.length ? `<details><summary>${kc('Recent folders', 'Недавние папки')}</summary>${links(recent)}</details>` : ''}</div>`;
 }
