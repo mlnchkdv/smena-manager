@@ -169,3 +169,51 @@ test('Drive exact-id reads reject corrupt or oversized streams and cancellation'
   };
   await assert.rejects(api.listKnowledgeObjectInventory({ scope: 'body', signal: controller.signal }), { name: 'AbortError' });
 });
+test('local snapshot enumeration reads raw envelopes without expanding note bodies or independent objects', async t => {
+  const { directory, api } = await local(t),
+    folder = path.join(directory, 'backups');
+  await fs.mkdir(path.join(folder, 'objects'), { recursive: true });
+  const classic = { createdAt: '2026-11-07T00:00:00Z', data: { notes: [{ id: 'n', bodyRef: { sha256: 'a'.repeat(64), bytes: 12 } }] } };
+  const prepared = { format: 'smena-prepared-backup-v1', source: { kind: 'root', sha256: 'b'.repeat(64), bytes: 123 } };
+  await fs.writeFile(path.join(folder, 'classic.json'), JSON.stringify(classic));
+  await fs.writeFile(path.join(folder, 'prepared.json'), JSON.stringify(prepared));
+  const first = await api.listKnowledgeObjectInventory({ scope: 'snapshot', limit: 1 });
+  const last = await api.listKnowledgeObjectInventory({ scope: 'snapshot', cursor: first.cursor, limit: 1 });
+  assert.equal(last.cursor, null);
+  assert.deepEqual(JSON.parse((await api.readKnowledgeInventoryObject(first.items[0])).text), classic);
+  assert.deepEqual(JSON.parse((await api.readKnowledgeInventoryObject(last.items[0])).text), prepared);
+  assert.equal((await api.readKnowledgeInventoryObject(last.items[0])).integrityChecked, false); // raw envelope is not a verified recovery
+  await fs.writeFile(path.join(folder, 'classic.json'), JSON.stringify({ ...classic, label: 'changed' }));
+  await assert.rejects(api.readKnowledgeInventoryObject(first.items[0]), /inventory/);
+  await assert.rejects(api.readKnowledgeInventoryObject({ ...last.items[0], id: 'snapshot:../private.json' }), /inventory/);
+  assert.deepEqual(await fs.readdir(path.join(folder, 'objects')), []);
+});
+test('Drive snapshot pages require backup ownership and a stable version around the raw read', async () => {
+  const { api, storage } = driveFixture(),
+    text = JSON.stringify({ format: 'smena-prepared-backup-v1', source: { sha256: 'a'.repeat(64), bytes: 100 } });
+  const folder = { id: 'backups', name: 'backups', mimeType: 'application/vnd.google-apps.folder', parents: ['root'] };
+  const snapshot = {
+    id: 'snapshot-1',
+    name: 'prepared.json',
+    version: '4',
+    size: String(Buffer.byteLength(text)),
+    parents: ['backups'],
+    mimeType: 'application/json',
+    appProperties: { smenaBackup: 'true' },
+  };
+  storage.client.files.list = async args => ({ data: { files: args.q.includes('mimeType') ? [folder] : [snapshot] } });
+  storage.client.files.get = async args => ({ data: args.alt ? Readable.from([text]) : { ...snapshot } });
+  const page = await api.listKnowledgeObjectInventory({ scope: 'snapshot' });
+  assert.equal(page.items[0].stamp, '4');
+  assert.equal((await api.readKnowledgeInventoryObject(page.items[0])).text, text);
+  storage.client.files.get = async args => {
+    if (args.alt) {
+      snapshot.version = '5';
+      return { data: Readable.from([text]) };
+    }
+    return { data: { ...snapshot } };
+  };
+  await assert.rejects(api.readKnowledgeInventoryObject(page.items[0]), { code: 'KNOWLEDGE_INVENTORY_CHANGED' });
+  snapshot.appProperties = {};
+  assert.equal((await api.listKnowledgeObjectInventory({ scope: 'snapshot' })).items[0].owned, false);
+});

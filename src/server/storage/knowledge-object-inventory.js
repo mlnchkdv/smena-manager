@@ -11,7 +11,10 @@ const scopes = Object.freeze({
   search: ['knowledge-search', 'smena-knowledge-search-', 'smenaKnowledgeSearch'],
   metadata: ['knowledge-metadata', 'smena-knowledge-metadata-', 'smenaKnowledgeMetadata'],
   backup: ['objects', 'smena-backup-object-', 'smenaBackupObject'],
+  snapshot: ['', '', 'smenaBackup'],
 });
+const snapshotLimit = 64 * 1024 * 1024;
+const limitFor = scope => (scope === 'snapshot' ? snapshotLimit : BACKUP_OBJECT_MAX_BYTES);
 const hash = value => createHash('sha256').update(value).digest('hex');
 const fail = (code = 'KNOWLEDGE_INVENTORY_INTEGRITY') => Object.assign(new Error('Knowledge inventory could not be verified.'), { code, statusCode: 503 });
 const quote = value => String(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'");
@@ -36,7 +39,7 @@ function object(scope, id, sha256, bytes, createdAt) {
   return { scope, area: scope === 'backup' ? 'backup' : 'live', kind: scope, id, sha256, bytes, createdAt, owned: true };
 }
 function verified(buffer, expected) {
-  if (!expected?.owned || buffer.length !== expected.bytes || hash(buffer) !== expected.sha256) throw fail();
+  if (!expected?.owned || buffer.length !== expected.bytes || (expected.scope !== 'snapshot' && hash(buffer) !== expected.sha256)) throw fail();
   let text;
   try {
     text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(buffer);
@@ -44,9 +47,9 @@ function verified(buffer, expected) {
   } catch {
     throw fail();
   }
-  return { text, integrityChecked: true };
+  return { text, sha256: hash(buffer), integrityChecked: expected.scope !== 'snapshot' };
 }
-async function bounded(stream, signal) {
+async function bounded(stream, signal, maximum = BACKUP_OBJECT_MAX_BYTES) {
   const chunks = [];
   let bytes = 0;
   if (signal) addAbortSignal(signal, stream);
@@ -54,7 +57,7 @@ async function bounded(stream, signal) {
     signal?.throwIfAborted();
     const value = Buffer.from(chunk);
     bytes += value.length;
-    if (bytes > BACKUP_OBJECT_MAX_BYTES) {
+    if (bytes > maximum) {
       stream.destroy();
       throw fail();
     }
@@ -65,7 +68,7 @@ async function bounded(stream, signal) {
 const stamp = stat => `${stat.dev}:${stat.ino}:${stat.mtimeMs}:${stat.ctimeMs}`;
 async function localDirectory(storage, scope) {
   const [folder] = validScope(scope),
-    base = scope === 'backup' ? storage.backupsPath : path.dirname(storage.databasePath),
+    base = ['backup', 'snapshot'].includes(scope) ? storage.backupsPath : path.dirname(storage.databasePath),
     directory = path.join(base, folder);
   try {
     if ((await fs.lstat(base)).isSymbolicLink()) throw fail();
@@ -98,6 +101,7 @@ export function localKnowledgeInventory(storage) {
       for await (const entry of await fs.opendir(location.directory)) {
         signal?.throwIfAborted();
         if (++visited > 1000000) throw fail('KNOWLEDGE_INVENTORY_LIMIT');
+        if (scope === 'snapshot' && !entry.name.endsWith('.json')) continue;
         if (entry.name <= after) continue;
         names.push(entry.name);
         names.sort();
@@ -107,6 +111,14 @@ export function localKnowledgeInventory(storage) {
       for (const name of names.slice(0, limit)) {
         const match = /^([a-f0-9]{64})\.json$/.exec(name),
           stat = await fs.lstat(path.join(location.directory, name));
+        if (scope === 'snapshot') {
+          items.push(
+            /^[\w.-]{1,220}\.json$/.test(name) && stat.isFile() && !stat.isSymbolicLink() && stat.size > 0 && stat.size <= snapshotLimit
+              ? { scope, kind: 'snapshot', id: `snapshot:${name}`, bytes: stat.size, stamp: stamp(stat), owned: true }
+              : unknown(scope, name),
+          );
+          continue;
+        }
         items.push(
           match && stat.isFile() && !stat.isSymbolicLink()
             ? object(scope, `${scope}:${match[1]}`, match[1], stat.size, stat.birthtime.toISOString())
@@ -119,18 +131,33 @@ export function localKnowledgeInventory(storage) {
     async readKnowledgeInventoryObject(expected, { signal } = {}) {
       const scope = expected?.scope;
       validScope(scope);
-      if (expected.id !== `${scope}:${expected.sha256}` || !object(scope, expected.id, expected.sha256, expected.bytes).owned) throw fail();
+      const snapshot = scope === 'snapshot',
+        name = snapshot ? String(expected.id || '').slice(9) : expected.sha256 + '.json';
+      if (
+        snapshot
+          ? !expected.owned ||
+            expected.id !== `snapshot:${name}` ||
+            !/^[\w.-]{1,220}\.json$/.test(name) ||
+            !Number.isSafeInteger(expected.bytes) ||
+            expected.bytes < 1 ||
+            expected.bytes > snapshotLimit ||
+            typeof expected.stamp !== 'string'
+          : expected.id !== `${scope}:${expected.sha256}` || !object(scope, expected.id, expected.sha256, expected.bytes).owned
+      )
+        throw fail();
       signal?.throwIfAborted();
       const location = await localDirectory(storage, scope);
       if (!location) throw fail();
-      const target = path.join(location.directory, expected.sha256 + '.json'),
+      const target = path.join(location.directory, name),
         before = await fs.lstat(target);
-      if (!before.isFile() || before.isSymbolicLink() || before.size !== expected.bytes) throw fail();
+      if (!before.isFile() || before.isSymbolicLink() || before.size !== expected.bytes || (snapshot && stamp(before) !== expected.stamp)) throw fail();
       const handle = await fs.open(target, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
       try {
         const opened = await handle.stat();
         if (opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw fail();
-        return verified(await bounded(handle.createReadStream({ autoClose: false }), signal), expected);
+        const buffer = await bounded(handle.createReadStream({ autoClose: false }), signal, limitFor(scope));
+        if (stamp(await handle.stat()) !== stamp(before)) throw fail('KNOWLEDGE_INVENTORY_CHANGED');
+        return verified(buffer, expected);
       } finally {
         await handle.close();
       }
@@ -141,7 +168,7 @@ async function driveParent(storage, scope, signal) {
   validScope(scope);
   signal?.throwIfAborted();
   if (!storage.client?.files || !storage.rootFolderId) throw fail('KNOWLEDGE_INVENTORY_NOT_INITIALIZED');
-  if (scope !== 'backup') return storage.rootFolderId;
+  if (!['backup', 'snapshot'].includes(scope)) return storage.rootFolderId;
   // Read-only inspection never creates a missing backup folder or initializes Drive.
   const result = await storage.client.files.list(
     {
@@ -166,7 +193,7 @@ async function driveParent(storage, scope, signal) {
     throw fail();
   return folder.id;
 }
-const driveFields = 'id,name,size,createdTime,mimeType,parents,trashed,appProperties';
+const driveFields = 'id,name,size,createdTime,mimeType,parents,trashed,appProperties,version';
 function driveObject(file, scope, parent) {
   const [, prefix, marker] = validScope(scope),
     name = String(file?.name || ''),
@@ -178,10 +205,14 @@ function driveObject(file, scope, parent) {
     file.trashed ||
     file.mimeType !== 'application/json' ||
     !file.parents?.includes(parent) ||
-    file.appProperties?.[marker] !== '1' ||
-    name !== `${prefix}${sha256}.json`
+    file.appProperties?.[marker] !== (scope === 'snapshot' ? 'true' : '1') ||
+    (scope !== 'snapshot' && name !== `${prefix}${sha256}.json`)
   )
     return unknown(scope, file?.id);
+  if (scope === 'snapshot')
+    return Number.isSafeInteger(Number(file.size)) && Number(file.size) > 0 && Number(file.size) <= snapshotLimit && /^[1-9]\d{0,30}$/.test(file.version || '')
+      ? { scope, kind: 'snapshot', id: file.id, bytes: Number(file.size), stamp: file.version, owned: true }
+      : unknown(scope, file.id);
   return object(scope, file.id, sha256, Number(file.size), file.createdTime);
 }
 export function driveKnowledgeInventory(storage) {
@@ -200,7 +231,7 @@ export function driveKnowledgeInventory(storage) {
       if (previous && (typeof token !== 'string' || !token || token.length > 32768)) throw fail();
       const result = await storage.client.files.list(
         {
-          q: `'${quote(parent)}' in parents and trashed = false and appProperties has { key='${marker}' and value='1' }`,
+          q: `'${quote(parent)}' in parents and trashed = false and appProperties has { key='${marker}' and value='${scope === 'snapshot' ? 'true' : '1'}' }`,
           fields: `nextPageToken,files(${driveFields})`,
           pageSize: limit,
           ...(token ? { pageToken: token } : {}),
@@ -227,7 +258,9 @@ export function driveKnowledgeInventory(storage) {
         !expected.owned ||
         typeof expected.id !== 'string' ||
         !/^[\w-]{1,256}$/.test(expected.id) ||
-        !object(expected.scope, expected.id, expected.sha256, expected.bytes).owned
+        (expected.scope === 'snapshot'
+          ? !Number.isSafeInteger(expected.bytes) || expected.bytes < 1 || expected.bytes > snapshotLimit || typeof expected.stamp !== 'string'
+          : !object(expected.scope, expected.id, expected.sha256, expected.bytes).owned)
       )
         throw fail();
       const combined = AbortSignal.any([AbortSignal.timeout(15000), ...(signal ? [signal] : [])]),
@@ -235,12 +268,23 @@ export function driveKnowledgeInventory(storage) {
       if (!parent) throw fail();
       const metadata = await storage.client.files.get({ fileId: expected.id, fields: driveFields, supportsAllDrives: true }, { signal: combined }),
         fresh = driveObject(metadata.data, expected.scope, parent);
-      if (!fresh.owned || fresh.id !== expected.id || fresh.sha256 !== expected.sha256 || fresh.bytes !== expected.bytes) throw fail();
+      if (!fresh.owned || fresh.id !== expected.id || fresh.sha256 !== expected.sha256 || fresh.bytes !== expected.bytes || fresh.stamp !== expected.stamp)
+        throw fail();
       const result = await storage.client.files.get(
         { fileId: expected.id, alt: 'media', supportsAllDrives: true },
         { responseType: 'stream', signal: combined },
       );
-      return verified(await bounded(result.data, combined), expected);
+      const buffer = await bounded(result.data, combined, limitFor(expected.scope));
+      if (expected.scope === 'snapshot') {
+        const after = driveObject(
+          (await storage.client.files.get({ fileId: expected.id, fields: driveFields, supportsAllDrives: true }, { signal: combined })).data,
+          expected.scope,
+          parent,
+        );
+        if (!after.owned || after.stamp !== expected.stamp || after.bytes !== expected.bytes || after.id !== expected.id)
+          throw fail('KNOWLEDGE_INVENTORY_CHANGED');
+      }
+      return verified(buffer, expected);
     },
   };
 }
