@@ -1,24 +1,44 @@
 import { validWhiteboardMedia } from './whiteboard-media.js';
 export const BOARD_COLORS = ['neutral', 'violet', 'blue', 'green', 'amber', 'rose'];
+export const BOARD_SHAPES = ['rectangle', 'ellipse', 'diamond'];
+export const BOARD_LINE_STYLES = ['solid', 'dashed', 'dotted'];
+export const BOARD_ENDINGS = ['none', 'arrow', 'dot'];
+export const whiteboardEdgeEnd = (edge, side) => edge[side + 'End'] ?? (side === 'to' && edge.arrow ? 'arrow' : 'none');
 export const emptyWhiteboard = () => ({ version: 1, nodes: [], edges: [] });
 export const whiteboardOf = project => project?.whiteboard || emptyWhiteboard();
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
-  if (!object(board) || ![1, 2].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
+  if (!object(board) || ![1, 2, 3].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
   if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > 200 || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
   const ids = new Set();
   for (const node of board.nodes) {
-    if (!object(node) || !identity(node.id) || ids.has(node.id) || !['text', 'material', 'group'].includes(node.type)) return false;
+    if (!object(node) || !identity(node.id) || ids.has(node.id) || !['text', 'material', 'group', ...(board.version >= 3 ? ['shape'] : [])].includes(node.type))
+      return false;
     ids.add(node.id);
     if (
       Object.keys(node).some(
-        k => !['id', 'type', 'x', 'y', 'width', 'height', 'color', 'title', 'text', 'target', ...(board.version === 2 ? ['media'] : [])].includes(k),
+        k =>
+          ![
+            'id',
+            'type',
+            'x',
+            'y',
+            'width',
+            'height',
+            'color',
+            'title',
+            'text',
+            'target',
+            ...(board.version >= 2 ? ['media'] : []),
+            ...(board.version >= 3 ? ['shape'] : []),
+          ].includes(k),
       )
     )
       return false;
+    if (node.type === 'shape' ? !BOARD_SHAPES.includes(node.shape) : Object.hasOwn(node, 'shape')) return false;
     if (
       Object.hasOwn(node, 'media') &&
       (node.type !== 'material' || typeof node.target !== 'string' || !node.target.startsWith('file:') || !validWhiteboardMedia(node.media))
@@ -34,8 +54,12 @@ export function validWhiteboard(board) {
   const edges = new Set();
   for (const edge of board.edges) {
     if (!object(edge) || !identity(edge.id) || edges.has(edge.id) || !ids.has(edge.from) || !ids.has(edge.to) || edge.from === edge.to) return false;
-    if (Object.keys(edge).some(k => !['id', 'from', 'to', 'label', 'arrow', 'color'].includes(k))) return false;
+    if (Object.keys(edge).some(k => !['id', 'from', 'to', 'label', 'arrow', 'color', ...(board.version >= 3 ? ['fromEnd', 'toEnd', 'style'] : [])].includes(k)))
+      return false;
     if (!text(edge.label, 120) || typeof edge.arrow !== 'boolean' || !BOARD_COLORS.includes(edge.color)) return false;
+    if (Object.hasOwn(edge, 'style') && !BOARD_LINE_STYLES.includes(edge.style)) return false;
+    if (['from', 'to'].some(side => Object.hasOwn(edge, side + 'End') && !BOARD_ENDINGS.includes(edge[side + 'End']))) return false;
+    if (Object.hasOwn(edge, 'toEnd') && edge.arrow !== (edge.toEnd === 'arrow')) return false;
     edges.add(edge.id);
   }
   return true;

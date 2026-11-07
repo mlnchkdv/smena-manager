@@ -16,7 +16,17 @@ import { workspaceSyncState } from '../core/workspace-sync.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { currentWhiteboard } from '../core/whiteboard-state.js';
 import { entityAllowed } from '../shared/relations.js';
-import { BOARD_COLORS, whiteboardOf, validWhiteboard, whiteboardBounds, removeWhiteboardNode } from '../shared/project-whiteboard.js';
+import {
+  BOARD_COLORS,
+  BOARD_SHAPES,
+  BOARD_LINE_STYLES,
+  BOARD_ENDINGS,
+  whiteboardEdgeEnd,
+  whiteboardOf,
+  validWhiteboard,
+  whiteboardBounds,
+  removeWhiteboardNode,
+} from '../shared/project-whiteboard.js';
 import { esc, uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
@@ -26,7 +36,7 @@ import { whiteboardEdges } from '../views/project-whiteboard.js';
 import { overlayAboveDiagram } from '../ui/diagram-focus.js';
 import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
-import { whiteboardConnection } from '../shared/whiteboard-connect.js';
+import { whiteboardConnection, reconnectWhiteboardEdge } from '../shared/whiteboard-connect.js';
 import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
 import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
 import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
@@ -45,6 +55,8 @@ const field = (name, label, value, type = 'text', extra = '') =>
   `<label class="field">${label}<input class="input" data-in="whiteboardField" data-field="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 const colorField = m =>
   `<label class="field">${T('Color', 'Цвет')}<select class="select" data-in="whiteboardField" data-field="color" aria-label="${T('Color', 'Цвет')}">${BOARD_COLORS.map((c, i) => `<option value="${c}" ${c === m.color ? 'selected' : ''}>${colors()[i]}</option>`).join('')}</select></label>`;
+const optionField = (m, key, label, values, names) =>
+  `<label class="field">${label}<select class="select" data-in="whiteboardField" data-field="${key}">${values.map((value, i) => `<option value="${value}" ${m[key] === value ? 'selected' : ''}>${names[i]}</option>`).join('')}</select></label>`;
 function modalForm(m, H) {
   const p = current(),
     board = whiteboardOf(p);
@@ -70,10 +82,13 @@ function modalForm(m, H) {
   } else if (m.kind === 'edge') {
     const select = (key, label) =>
       `<label class="field">${label}<select class="select" data-in="whiteboardField" data-field="${key}">${board.nodes.map(n => `<option value="${esc(n.id)}" ${m[key] === n.id ? 'selected' : ''}>${esc(whiteboardLabel(n))}</option>`).join('')}</select></label>`;
-    body = `${select('from', T('From card', 'От карточки'))}${select('to', T('To card', 'К карточке'))}${field('label', T('Label', 'Подпись'), m.label, 'text', 'maxlength="120"')}${colorField(m)}<label><input type="checkbox" data-in="whiteboardField" data-field="arrow" ${m.arrow ? 'checked' : ''}> ${T('Arrow', 'Стрелка')}</label>`;
+    const ends = [T('None', 'Нет'), T('Arrow', 'Стрелка'), T('Dot', 'Точка')];
+    body = `<p class="hint">${T('Visual connection on this canvas. It does not create a relation between source materials.', 'Визуальная связь на этом холсте. Она не создаёт отношение между исходными материалами.')}</p><div class="whiteboard-form-grid">${select('from', T('From card', 'От карточки'))}${select('to', T('To card', 'К карточке'))}${optionField(m, 'fromEnd', T('Start', 'Начало'), BOARD_ENDINGS, ends)}${optionField(m, 'toEnd', T('End', 'Конец'), BOARD_ENDINGS, ends)}</div>${field('label', T('Label', 'Подпись'), m.label, 'text', 'maxlength="120"')}<div class="whiteboard-form-grid">${colorField(m)}${optionField(m, 'style', T('Line style', 'Стиль линии'), BOARD_LINE_STYLES, [T('Solid', 'Сплошная'), T('Dashed', 'Штриховая'), T('Dotted', 'Пунктирная')])}</div>`;
   } else {
     body = `${m.nodeType === 'material' ? `<p>${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="7" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}${colorField(m)}<details><summary>${T('Size and position', 'Размер и положение')}</summary><div class="whiteboard-form-grid">${field('x', 'X', m.x, 'number', 'min="-50000" max="50000" step="10"')}${field('y', 'Y', m.y, 'number', 'min="-50000" max="50000" step="10"')}${field('width', T('Width', 'Ширина'), m.width, 'number', 'min="160" max="2000" step="10"')}${field('height', T('Height', 'Высота'), m.height, 'number', 'min="100" max="2000" step="10"')}</div></details>`;
   }
+  if (m.kind === 'node' && m.nodeType === 'shape')
+    body = optionField(m, 'shape', T('Shape', 'Фигура'), BOARD_SHAPES, [T('Rectangle', 'Прямоугольник'), T('Ellipse', 'Эллипс'), T('Diamond', 'Ромб')]) + body;
   if (m.kind === 'node' && m.nodeType === 'material') {
     const source = whiteboardMaterial(m.base),
       media = source?.kind === 'file' ? whiteboardMediaPosition(source.item, m.media) : null;
@@ -181,10 +196,12 @@ function newCard(type, point) {
     ...position,
     width: type === 'group' ? 600 : 260,
     height: type === 'group' ? 400 : 180,
+    ...(type === 'shape' ? { shape: 'rectangle' } : {}),
   });
 }
 A.whiteboardNewText = () => newCard('text');
 A.whiteboardNewFrame = () => newCard('group');
+A.whiteboardNewShape = () => newCard('shape');
 A.whiteboardEdit = el => {
   const node = whiteboardOf(current()).nodes.find(n => n.id === (el.dataset.id || whiteboardState().selected));
   if (node) {
@@ -220,7 +237,18 @@ A.whiteboardSave = () => {
     return;
   }
   let item;
-  if (m.kind === 'edge') item = { id: m.id || uid('we'), from: m.from, to: m.to, label: m.label.trim(), arrow: m.arrow, color: m.color };
+  if (m.kind === 'edge')
+    item = {
+      id: m.id || uid('we'),
+      from: m.from,
+      to: m.to,
+      label: m.label.trim(),
+      arrow: m.toEnd === 'arrow',
+      color: m.color,
+      fromEnd: m.fromEnd,
+      toEnd: m.toEnd,
+      style: m.style,
+    };
   else {
     item = { id: m.id || uid('wc'), type: m.nodeType, x: m.x, y: m.y, width: m.width, height: m.height, color: m.color };
     if (m.nodeType === 'material') {
@@ -238,10 +266,12 @@ A.whiteboardSave = () => {
         if (seconds != null) item.media = { seconds };
       } else if (kind !== 'pdf' && old.media) item.media = structuredClone(old.media);
     } else Object.assign(item, { title: m.title.trim(), text: m.text || '' });
+    if (m.nodeType === 'shape') item.shape = m.shape;
   }
   if (
     command(next => {
-      if (item.media) next.version = 2;
+      if (item.media) next.version = Math.max(next.version, 2);
+      if (item.type === 'shape' || m.kind === 'edge') next.version = 3;
       next[collection] = old ? next[collection].map(n => (n.id === old.id ? item : n)) : [...next[collection], item];
     })
   ) {
@@ -337,6 +367,7 @@ A.whiteboardSelect = (el, event) => {
     id = el.dataset.id;
   if (Date.now() < (s.tapOpenUntil || 0)) return;
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
+  if (s.reconnect) return finishReconnect(s.reconnect, id);
   s.selectedEdge = '';
   if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
     const ids = new Set(selectedIds());
@@ -538,6 +569,9 @@ A.whiteboardNewEdge = () => {
     to: selectedIds().find(id => id !== from) || board.nodes.find(n => n.id !== from).id,
     label: '',
     arrow: true,
+    fromEnd: 'none',
+    toEnd: 'arrow',
+    style: 'solid',
     color: 'neutral',
   });
 };
@@ -557,16 +591,55 @@ function finishConnection(from, to) {
 A.whiteboardConnectStart = el => {
   if (!editable(current()) || Date.now() < (whiteboardState().connectSuppressUntil || 0)) return;
   const s = whiteboardState();
+  s.reconnect = null;
   s.connectFrom = s.connectFrom === el.dataset.id ? '' : el.dataset.id;
   render();
 };
 A.whiteboardCancelConnect = () => {
   whiteboardState().connectFrom = '';
+  whiteboardState().reconnect = null;
   render();
 };
+function reconnectIntent(el) {
+  const edge = whiteboardOf(current()).edges.find(edge => edge.id === el.dataset.id),
+    side = el.dataset.boardReconnect;
+  return edge && ['from', 'to'].includes(side) ? { id: edge.id, side, base: edge[side], from: edge[side === 'from' ? 'to' : 'from'] } : null;
+}
+A.whiteboardReconnectStart = el => {
+  if (!editable(current()) || Date.now() < (whiteboardState().connectSuppressUntil || 0)) return;
+  const intent = reconnectIntent(el);
+  if (!intent) return;
+  Object.assign(whiteboardState(), { reconnect: intent, connectFrom: '' });
+  render();
+};
+function finishReconnect(intent, target) {
+  whiteboardState().reconnect = null;
+  let result;
+  if (editable(current()) && target)
+    command(board => {
+      result = reconnectWhiteboardEdge(board, { ...intent, target });
+    });
+  if (result?.error)
+    toast(
+      T(
+        'Connection unchanged: choose another card, or reopen the updated connection.',
+        'Связь не изменена: выберите другую карточку или откройте обновлённую связь.',
+      ),
+      { kind: 'info' },
+    );
+  render();
+}
 A.whiteboardEditEdge = el => {
   const edge = whiteboardOf(current()).edges.find(e => e.id === el.dataset.id);
-  if (edge) openTool({ kind: 'edge', ...edge, base: structuredClone(edge) });
+  if (edge)
+    openTool({
+      kind: 'edge',
+      ...edge,
+      fromEnd: whiteboardEdgeEnd(edge, 'from'),
+      toEnd: whiteboardEdgeEnd(edge, 'to'),
+      style: edge.style || 'solid',
+      base: structuredClone(edge),
+    });
 };
 A.whiteboardSelectEdge = el => {
   if (!whiteboardOf(current()).edges.some(edge => edge.id === el.dataset.id)) return;
@@ -835,15 +908,30 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
+  const endpoint = e.target.closest('[data-board-reconnect]');
   if (e.target.closest('[data-board-edge]') && !spacePan) return;
   const resize = e.target.closest('[data-board-resize]');
   const connector = e.target.closest('[data-board-connect]');
-  if (whiteboardState().navigationMode === 'scroll' && !resize && !connector && !spacePan) return;
+  if (whiteboardState().navigationMode === 'scroll' && !resize && !connector && !endpoint && !spacePan) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
   if (spacePan) {
     gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
+  if (endpoint && editable(current())) {
+    const intent = reconnectIntent(endpoint);
+    if (!intent) return;
+    gesture = { ...intent, kind: 'reconnect', scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
+  if (s.reconnect && editable(current()) && !e.target.closest('button:not([data-board-drag]),a')) {
+    gesture = { ...s.reconnect, kind: 'reconnect', choose: true, scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
     viewport.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
@@ -932,7 +1020,7 @@ function move(e) {
   const s = whiteboardState(),
     g = gesture;
   if (!g) return;
-  if (g.kind === 'connect') {
+  if (g.kind === 'connect' || g.kind === 'reconnect') {
     if (g.scope !== s.scope) return;
     g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
     const box = viewport.getBoundingClientRect(),
@@ -1070,13 +1158,30 @@ function up(e, cancel = false) {
   const g = gesture;
   gesture = null;
   if (!g) return;
-  if (g.kind === 'connect') {
+  if (g.kind === 'connect' || g.kind === 'reconnect') {
     resetPreview();
     if (cancel || g.scope !== whiteboardState().scope) {
       whiteboardState().connectFrom = '';
+      whiteboardState().reconnect = null;
       return;
     }
     whiteboardState().connectSuppressUntil = Date.now() + 350;
+    if (g.kind === 'reconnect') {
+      if (g.moved || g.choose) {
+        const box = viewport.getBoundingClientRect(),
+          ids = whiteboardPickCandidates(
+            whiteboardOf(current()).nodes.filter(n => n.id !== g.from),
+            { x: e.clientX - box.left, y: e.clientY - box.top },
+            whiteboardState(),
+          );
+        finishReconnect(g, ids[0]);
+      } else {
+        whiteboardState().reconnect = { id: g.id, side: g.side, base: g.base, from: g.from };
+        whiteboardState().connectFrom = '';
+        render();
+      }
+      return;
+    }
     if (g.moved || whiteboardState().connectFrom) {
       const box = viewport.getBoundingClientRect();
       const ids = whiteboardPickCandidates(
@@ -1226,7 +1331,12 @@ export function mountProjectWhiteboard() {
       'click',
       event => {
         const s = whiteboardState();
-        if (event.detail === 0 || s.zoom >= 0.65 || event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize]')) return;
+        if (
+          event.detail === 0 ||
+          s.zoom >= 0.65 ||
+          event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-reconnect]')
+        )
+          return;
         if (Date.now() < (s.overviewPanUntil || 0)) {
           event.preventDefault();
           event.stopPropagation();
@@ -1247,7 +1357,7 @@ export function mountProjectWhiteboard() {
       if (
         overlayAboveDiagram() ||
         spacePan ||
-        event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-connect],[data-board-edge]')
+        event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-connect],[data-board-edge],[data-board-reconnect]')
       )
         return;
       if (event.target.closest('button,a,input,textarea,select') && !event.target.closest('[data-board-drag]')) return;
@@ -1314,7 +1424,7 @@ document.addEventListener(
   'keydown',
   e => {
     if (overlayAboveDiagram()) return;
-    if (e.key === 'Escape' && current() && whiteboardState().connectFrom && !gesture) {
+    if (e.key === 'Escape' && current() && (whiteboardState().connectFrom || whiteboardState().reconnect) && !gesture) {
       e.preventDefault();
       e.stopPropagation();
       A.whiteboardCancelConnect();

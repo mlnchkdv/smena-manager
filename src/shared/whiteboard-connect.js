@@ -7,3 +7,19 @@ export function whiteboardConnection(board, from, to, id) {
   if (board.edges.length >= 400) return null;
   return { edge: { id, from, to, label: '', arrow: true, color: 'neutral' }, created: true };
 }
+
+// Change one endpoint against its captured value. Independent labels/styles
+// survive; a competing endpoint change cannot be silently overwritten.
+export function reconnectWhiteboardEdge(board, { id, side, base, target }) {
+  if (!['from', 'to'].includes(side)) return { error: 'invalid' };
+  const edge = board.edges.find(edge => edge.id === id);
+  if (!edge || !board.nodes.some(node => node.id === target)) return { error: 'missing' };
+  if (edge[side] !== base && edge[side] !== target) return { error: 'changed' };
+  if (edge[side === 'from' ? 'to' : 'from'] === target) return { error: 'self' };
+  const from = side === 'from' ? target : edge.from,
+    to = side === 'to' ? target : edge.to;
+  if (board.edges.some(other => other.id !== id && other.from === from && other.to === to)) return { error: 'duplicate' };
+  if (edge[side] === target) return { changed: false };
+  edge[side] = target;
+  return { changed: true };
+}

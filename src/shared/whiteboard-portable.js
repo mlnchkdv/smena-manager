@@ -1,11 +1,16 @@
-import { validWhiteboard, emptyWhiteboard } from './project-whiteboard.js';
+import { validWhiteboard, emptyWhiteboard, whiteboardEdgeEnd } from './project-whiteboard.js';
 const colors = { neutral: undefined, violet: '6', blue: '5', green: '4', amber: '3', rose: '1' };
 const fail = () => {
   throw new TypeError('WHITEBOARD_IMPORT_INVALID');
 };
 export function jsonCanvasExportLosses(board) {
   if (!validWhiteboard(board)) fail();
-  return board.nodes.some(node => node.media) ? ['mediaOffsets'] : [];
+  return [
+    ...(board.nodes.some(node => node.media) ? ['mediaOffsets'] : []),
+    ...(board.nodes.some(node => node.type === 'shape') ? ['shapes'] : []),
+    ...(board.edges.some(edge => edge.style && edge.style !== 'solid') ? ['lineStyles'] : []),
+    ...(board.edges.some(edge => ['from', 'to'].some(side => whiteboardEdgeEnd(edge, side) === 'dot')) ? ['dotEndings'] : []),
+  ];
 }
 export function exportJsonCanvas(board, { allowLossy = false } = {}) {
   if (!validWhiteboard(board)) fail();
@@ -13,7 +18,7 @@ export function exportJsonCanvas(board, { allowLossy = false } = {}) {
   return {
     nodes: board.nodes.map(n => ({
       id: n.id,
-      type: n.type === 'material' ? 'link' : n.type,
+      type: n.type === 'material' ? 'link' : n.type === 'shape' ? 'text' : n.type,
       x: n.x,
       y: n.y,
       width: n.width,
@@ -29,7 +34,8 @@ export function exportJsonCanvas(board, { allowLossy = false } = {}) {
       id: e.id,
       fromNode: e.from,
       toNode: e.to,
-      toEnd: e.arrow ? 'arrow' : 'none',
+      fromEnd: whiteboardEdgeEnd(e, 'from') === 'arrow' ? 'arrow' : 'none',
+      toEnd: whiteboardEdgeEnd(e, 'to') === 'arrow' ? 'arrow' : 'none',
       label: e.label,
       ...(colors[e.color] ? { color: colors[e.color] } : {}),
     })),
@@ -113,14 +119,21 @@ export function parseWhiteboardImport(source) {
     )
       fail();
     edgeIds.add(e.id);
-    let from = ids.get(e.fromNode),
+    const from = ids.get(e.fromNode),
       to = ids.get(e.toNode);
     const start = e.fromEnd === 'arrow',
       end = (e.toEnd ?? 'arrow') === 'arrow';
-    if (start && !end) [from, to] = [to, from];
-    if (start && end) warnings.add('doubleArrows');
     if (e.fromSide || e.toSide) warnings.add('sides');
-    board.edges.push({ id: 'import-edge-' + i, from, to, arrow: start || end, color: color(e.color), label: string(e.label ?? '', 120) });
+    if (start) board.version = 3;
+    board.edges.push({
+      id: 'import-edge-' + i,
+      from,
+      to,
+      arrow: end,
+      ...(start ? { fromEnd: 'arrow', toEnd: end ? 'arrow' : 'none' } : {}),
+      color: color(e.color),
+      label: string(e.label ?? '', 120),
+    });
   }
   if (!validWhiteboard(board)) fail();
   return { board, format: 'JSON Canvas 1.0', warnings: [...warnings] };

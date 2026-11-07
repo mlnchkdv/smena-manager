@@ -154,6 +154,72 @@
   fill: var(--text-3);
   stroke: none;
 }
+.whiteboard-edges g[data-line-style='dashed'] > path:first-child {
+  stroke-dasharray: 10 6;
+}
+.whiteboard-edges g[data-line-style='dotted'] > path:first-child {
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+.whiteboard-edge-end {
+  position: absolute;
+  z-index: 8;
+  width: calc(44px / var(--whiteboard-zoom, 1));
+  height: calc(44px / var(--whiteboard-zoom, 1));
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
+  touch-action: none;
+  cursor: crosshair;
+}
+.whiteboard-edge-end::before {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: calc(18px / var(--whiteboard-zoom, 1));
+  height: calc(18px / var(--whiteboard-zoom, 1));
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.whiteboard-edge-end > svg {
+  position: relative;
+  width: calc(10px / var(--whiteboard-zoom, 1));
+  height: calc(10px / var(--whiteboard-zoom, 1));
+}
+.whiteboard-shape-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.whiteboard-shape-art > * {
+  fill: var(--surface);
+  stroke: var(--wb-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.whiteboard-card[data-kind='shape']:not(.in-outline) {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+  padding: var(--shape-pad-y) var(--shape-pad-x);
+}
+.whiteboard-card[data-kind='shape']:not(.in-outline) > .whiteboard-card-head,
+.whiteboard-card[data-kind='shape']:not(.in-outline) > .whiteboard-card-content {
+  position: relative;
+  border: 0;
+}
 .whiteboard-edges text {
   fill: var(--text-2);
   font-size: 12px;

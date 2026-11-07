@@ -1,3 +1,4 @@
+import { whiteboardEdgeEnd } from './project-whiteboard.js';
 export function whiteboardEdgeGeometry(from, to, headSize = 12) {
   const a = { x: from.x + from.width / 2, y: from.y + from.height / 2 },
     b = { x: to.x + to.width / 2, y: to.y + to.height / 2 };
@@ -18,13 +19,35 @@ export function whiteboardEdgeGeometry(from, to, headSize = 12) {
   return { x1, y1, x2, y2, head, labelX: (x1 + x2) / 2, labelY: (y1 + y2) / 2 };
 }
 
-export function whiteboardEdgeText(board, edge, { noLabel = 'No label', directed = 'Directed', undirected = 'No arrow', colors = {} } = {}) {
+export function whiteboardEdgeText(
+  board,
+  edge,
+  {
+    nameOf,
+    noLabel = 'No label',
+    directed = 'Directed',
+    undirected = 'No arrow',
+    colors = {},
+    start = 'Start',
+    end = 'End',
+    style = 'Line',
+    endings = {},
+    styles = {},
+  } = {},
+) {
   if (!edge) return '—';
   const name = id => {
     const node = board.nodes.find(node => node.id === id);
-    return node?.title || node?.target || id;
+    return (node && nameOf?.(node)) || node?.title || node?.target || id;
   };
-  return `${name(edge.from)} ${edge.arrow ? '→' : '—'} ${name(edge.to)} · ${edge.label || noLabel} · ${edge.arrow ? directed : undirected} · ${colors[edge.color] || edge.color}`;
+  const a = whiteboardEdgeEnd(edge, 'from'),
+    b = whiteboardEdgeEnd(edge, 'to');
+  const symbol = a === 'arrow' ? (b === 'arrow' ? '↔' : '←') : b === 'arrow' ? '→' : '—';
+  const details =
+    edge.style || edge.fromEnd || edge.toEnd
+      ? ` · ${style}: ${styles[edge.style || 'solid'] || edge.style || 'solid'} · ${start}: ${endings[a] || a} · ${end}: ${endings[b] || b}`
+      : '';
+  return `${name(edge.from)} ${symbol} ${name(edge.to)} · ${edge.label || noLabel} · ${a === 'arrow' || b === 'arrow' ? directed : undirected} · ${colors[edge.color] || edge.color}${details}`;
 }
 
 export function whiteboardDiffVisibleIds(current, previous, rows) {

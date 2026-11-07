@@ -13,5 +13,6 @@ export function patchWhiteboardContext(board, { kind, id, field, base, value }) 
   if (item[field] !== base && item[field] !== value) return { error: 'changed' };
   if (item[field] === value) return { changed: false };
   item[field] = value;
+  if (kind === 'edge' && field === 'arrow' && Object.hasOwn(item, 'toEnd')) item.toEnd = value ? 'arrow' : 'none';
   return { changed: true };
 }

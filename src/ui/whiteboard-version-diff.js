@@ -1,22 +1,10 @@
 import { esc } from '../core/utils.js';
 import { wbText as T } from '../core/whiteboard-state.js';
-import { whiteboardBounds } from '../shared/project-whiteboard.js';
-import { whiteboardDiffVisibleIds, whiteboardEdgeGeometry, whiteboardEdgeText } from '../shared/whiteboard-edge.js';
-export function whiteboardConnectionText(board, edge) {
-  return whiteboardEdgeText(board, edge, {
-    noLabel: T('No label', 'Без подписи'),
-    directed: T('Directed', 'Со стрелкой'),
-    undirected: T('No arrow', 'Без стрелки'),
-    colors: {
-      neutral: T('Neutral', 'Нейтральный'),
-      violet: T('Violet', 'Фиолетовый'),
-      blue: T('Blue', 'Синий'),
-      green: T('Green', 'Зелёный'),
-      amber: T('Amber', 'Янтарный'),
-      rose: T('Rose', 'Розовый'),
-    },
-  });
-}
+import { whiteboardBounds, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
+import { whiteboardShapeSvg } from '../shared/whiteboard-diagram.js';
+import { whiteboardDiffVisibleIds, whiteboardEdgeGeometry } from '../shared/whiteboard-edge.js';
+import { whiteboardConnectionText } from './whiteboard-edge-text.js';
+export { whiteboardConnectionText };
 export function whiteboardVersionDiff(current, previous, diff, changedOnly = false) {
   const changes = new Map(diff.rows.filter(row => row.kind === 'card').map(row => [row.id, row]));
   const connections = new Map(diff.rows.filter(row => row.kind === 'connection').map(row => [row.id, row]));
@@ -51,14 +39,30 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
         const color = edgeColors[edge.color] || edgeColors.neutral,
           { x1, y1, x2, y2, head, labelX, labelY } = geometry;
         const line = `x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" vector-effect="non-scaling-stroke"`;
-        return `<g><title>${esc(whiteboardConnectionText(board, edge))}</title>${change ? `<line ${line} stroke="${colors[change.change]}" stroke-width="5" stroke-dasharray="8 4"/>` : ''}<line ${line} stroke="${color}" stroke-width="1.8"/>${edge.arrow ? `<polygon points="${head}" fill="${color}"/>` : ''}<text x="${labelX}" y="${labelY - size / 3}" text-anchor="middle" font-size="${size}" fill="var(--text)" stroke="var(--surface)" stroke-width="${size / 5}" paint-order="stroke" stroke-linejoin="round">${marks[change?.change] || ''} ${esc(edge.label.length > 40 ? edge.label.slice(0, 39) + '…' : edge.label)}</text></g>`;
+        const ends =
+          whiteboardEdgeEnd(edge, 'from') === 'arrow'
+            ? `<polygon points="${whiteboardEdgeGeometry(to, from, Math.max(12, box.width / 70)).head}" fill="${color}"/>`
+            : whiteboardEdgeEnd(edge, 'from') === 'dot'
+              ? `<circle cx="${x1}" cy="${y1}" r="${Math.max(5, box.width / 160)}" fill="${color}"/>`
+              : '';
+        const tip =
+          whiteboardEdgeEnd(edge, 'to') === 'arrow'
+            ? `<polygon points="${head}" fill="${color}"/>`
+            : whiteboardEdgeEnd(edge, 'to') === 'dot'
+              ? `<circle cx="${x2}" cy="${y2}" r="${Math.max(5, box.width / 160)}" fill="${color}"/>`
+              : '';
+        return `<g><title>${esc(whiteboardConnectionText(board, edge))}</title>${change ? `<line ${line} stroke="${colors[change.change]}" stroke-width="5" stroke-dasharray="8 4"/>` : ''}<line ${line} stroke="${color}" stroke-width="1.8" ${edge.style === 'dashed' ? 'stroke-dasharray="10 6"' : edge.style === 'dotted' ? 'stroke-dasharray="2 6" stroke-linecap="round"' : ''}/>${ends}${tip}<text x="${labelX}" y="${labelY - size / 3}" text-anchor="middle" font-size="${size}" fill="var(--text)" stroke="var(--surface)" stroke-width="${size / 5}" paint-order="stroke" stroke-linejoin="round">${marks[change?.change] || ''} ${esc(edge.label.length > 40 ? edge.label.slice(0, 39) + '…' : edge.label)}</text></g>`;
       })
       .join('')}${[...nodes]
       .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))
       .map(node => {
         const change = changes.get(node.id),
           color = colors[change?.change] || 'var(--border-strong)';
-        return `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="8" fill="var(--surface)" fill-opacity="${node.type === 'group' ? '.3' : '.9'}" stroke="${color}" stroke-width="${change ? 2 : 1}" vector-effect="non-scaling-stroke"/><text x="${node.x + 8}" y="${node.y + size + 6}" font-size="${Math.min(size, node.height / 3)}" fill="var(--text)">${marks[change?.change] || ''} ${esc((node.title || T(node.type === 'group' ? 'Frame' : 'Material', node.type === 'group' ? 'Рамка' : 'Материал')).slice(0, 24))}</text>`;
+        const shape =
+          node.type === 'shape'
+            ? whiteboardShapeSvg(node, `fill="var(--surface)" stroke="${color}" stroke-width="${change ? 2 : 1}" vector-effect="non-scaling-stroke"`)
+            : '';
+        return `${shape || `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="8" fill="var(--surface)" fill-opacity="${node.type === 'group' ? '.3' : '.9'}" stroke="${color}" stroke-width="${change ? 2 : 1}" vector-effect="non-scaling-stroke"/>`}<text x="${node.x + 8}" y="${node.y + size + 6}" font-size="${Math.min(size, node.height / 3)}" fill="var(--text)">${marks[change?.change] || ''} ${esc((node.title || T(node.type === 'group' ? 'Frame' : 'Material', node.type === 'group' ? 'Рамка' : 'Материал')).slice(0, 24))}</text>`;
       })
       .join(
         '',
