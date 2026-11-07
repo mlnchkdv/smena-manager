@@ -4,7 +4,7 @@ import { getStorageProvider } from './storage/index.js';
 import { externalizeKnowledgeVersions } from './knowledge-version-blobs.js';
 import { externalizeKnowledgeBodies } from './knowledge-body-store.js';
 import { stageKnowledgeSearch } from './knowledge-search-store.js';
-import { knowledgeMetadataFields, KNOWLEDGE_METADATA_WORKSPACE_BYTES } from './storage/knowledge-metadata-shards.js';
+import { knowledgeMetadataFields, KNOWLEDGE_METADATA_WORKSPACE_BYTES, materializeKnowledgeMetadata } from './storage/knowledge-metadata-shards.js';
 import { getRedisHealth, hasSharedRedis, withRedisLock, WorkspaceCoordinationError } from './redis.js';
 import { directDriveWritesEnabled } from './deployment-config.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -315,8 +315,24 @@ export async function queryWorkspaceGraph(user, input) {
     // source itself is a file (its write access must be checked on real data).
     const needsFiles =
       options.mode !== 'candidates' || ((!options.kind || options.kind === 'file') && !options.wikiOnly) || options.source?.startsWith('file:');
-    const stored = needsFiles ? await storage.loadDatabaseCatalogIndex(core => catalogReadScope(core, user)) : await storage.loadDatabaseCore();
+    let stored = needsFiles
+      ? await storage.loadDatabaseCatalogIndex(core => catalogReadScope(core, user))
+      : await storage.loadDatabaseCore({ knowledge: false });
     if (!stored) throw new Error('The configured storage does not contain a workspace database.');
+    // File-index reads deliberately leave knowledge sharded. Graphs need note
+    // metadata, never bodies/search/import journals. Typed candidate lookups
+    // only need the source note unless notes themselves are being searched.
+    catalogReadScope(stored, user);
+    if (stored._knowledgeCatalog) {
+      const notes = options.mode !== 'candidates' || options.wikiOnly || !options.kind || options.kind === 'note';
+      const sourceId = options.source?.startsWith('note:') ? options.source.slice(5) : null;
+      if (notes || sourceId)
+        stored = await materializeKnowledgeMetadata(stored, storage, {
+          fields: notes ? ['knowledgeNotes', 'knowledgeFolders'] : ['knowledgeNotes'],
+          ...(notes ? {} : { ids: [sourceId] }),
+        });
+      if (!notes) stored = { ...stored, knowledgeNotes: sourceId ? stored.knowledgeNotes : [] };
+    }
     return queryGraph(await loadAggregate(storage, stored), user, options);
   }
   if (process.env.VERCEL) await reloadWorkspaceStore({ maxAgeMs: 2000 });
