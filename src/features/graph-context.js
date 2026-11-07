@@ -24,7 +24,10 @@ export async function refreshGraphContext() {
   const scopes = [];
   if (S.ui.route === 'graph') scopes.push(['view', '']);
   if (S.ui.modals.at(-1)?.type === 'relations') scopes.push(['candidates', '']);
-  for (const source of new Set([...document.querySelectorAll('[data-catalog-key]')].map(el => el.dataset.catalogKey))) scopes.push(['connections', source]);
+  for (const source of new Set(
+    [...document.querySelectorAll('[data-catalog-key]')].filter(el => !el.closest('details:not([open])')).map(el => el.dataset.catalogKey),
+  ))
+    scopes.push(['connections', source]);
   for (const [mode, source] of scopes.slice(0, 4)) {
     const slot = mode + source;
     let key = graphReadKey(mode, source);
@@ -67,3 +70,18 @@ export async function refreshGraphContext() {
     }
   }
 }
+document.addEventListener(
+  'toggle',
+  event => {
+    const disclosure = event.target;
+    if (!disclosure.matches?.('.relations-compact')) return;
+    if (disclosure.open) {
+      // One reading context per collection avoids retaining a full graph for
+      // every card, and keeps a small cache from cycling on a large result set.
+      for (const sibling of disclosure.closest('.bookmark-grid')?.querySelectorAll('.relations-compact[open]') || [])
+        if (sibling !== disclosure) sibling.open = false;
+    }
+    void refreshGraphContext();
+  },
+  true,
+);

@@ -6,6 +6,7 @@ import { ic } from '../core/icons.js';
 import { entityAllowed, RELATION_TYPES, workspaceGraph } from '../shared/relations.js';
 import { graphReadModel } from '../core/graph-query-state.js';
 import { graphChoiceContexts } from '../shared/graph-list-context.js';
+import { disclosureAttributes } from './disclosure.js';
 
 export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task', whiteboard: 'Whiteboard' };
 export const ENTITY_ICONS = {
@@ -46,11 +47,13 @@ export function relationsPanel(key, compact = false, hideEmpty = false) {
     remote && !remote.view
       ? `<p class="hint" role="status">${esc(remote.error || 'Loading connections…')}${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`
       : '';
-  if (hideEmpty && !edges.length && !unresolved.length && !status) return '';
+  if (hideEmpty && (!remote || !compact) && !edges.length && !unresolved.length && !status) return '';
   const outgoing = rows(false);
   const incoming = rows(true);
   const content = `<section class="relations-panel" data-catalog-key="${esc(key)}" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${status}${edges.length ? `${outgoing ? `<h4>Related materials</h4>${outgoing}` : ''}${incoming ? `<h4>Where used</h4>${incoming}` : ''}` : status ? '' : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolvedHtml}${remote?.view?.truncated ? '<p class="hint">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}</section>`;
-  return compact ? `<details class="relations-compact"><summary><span>Connections</span> · ${edges.length}</summary>${content}</details>` : content;
+  return compact
+    ? `<details class="relations-compact" ${disclosureAttributes('relations:' + key)}><summary><span>Connections</span> · ${remote && !remote.view ? '—' : edges.length}</summary>${content}</details>`
+    : content;
 }
 
 export function relationPicker(m) {
