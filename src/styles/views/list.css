@@ -31,6 +31,29 @@
   gap: 4px;
   white-space: nowrap;
 }
+.task-sort-header,
+.task-title-open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.task-sort-header {
+  width: 100%;
+  min-height: 32px;
+  gap: 4px;
+}
+.task-title-open {
+  flex: 1;
+  min-height: var(--row-h);
+}
 .trow {
   border-bottom: 1px solid var(--divider);
   position: relative;

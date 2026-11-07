@@ -33,11 +33,11 @@ export function cellPrio(t) {
   return `<button class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
 }
 export function cellDue(t) {
-  return `<button class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}" aria-label="Due date">${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
+  return `<button class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}"><span class="sr">${esc(tr('Due date'))}: </span>${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
 }
 export function cellLabels(t) {
   const shown = isRussian() ? 1 : 2;
-  return `<button class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" aria-label="Labels" style="gap:4px;overflow:hidden">${t.labels.length ? t.labels.slice(0, shown).map(lbl).join('') + (t.labels.length > shown ? `<span class="faint" style="font-size:11px">+${t.labels.length - shown}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
+  return `<button class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" style="gap:4px;overflow:hidden"><span class="sr">${esc(tr('Labels'))}: </span>${t.labels.length ? t.labels.slice(0, shown).map(lbl).join('') + (t.labels.length > shown ? `<span class="faint" style="font-size:11px">+${t.labels.length - shown}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
 }
 export function cellProject(t) {
   const p = proj(t.project);
@@ -52,25 +52,25 @@ export function taskRow(t, cols, tpl, opt = {}) {
   const editing = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === 'title';
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
   const sd = t.subtasks.filter(s => s.done).length;
-  return `<div class="trow ${t.status === 'done' ? 'done' : ''} ${sel ? 'sel' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" style="--cols:${tpl}" data-task-row="${t.id}" data-group="${opt.group || ''}" data-lkey="${opt.key || ''}" data-ctx="task" data-id="${t.id}">
-    <div class="handle" draggable="${opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
-    <div class="c-check">${
+  return `<div class="trow ${t.status === 'done' ? 'done' : ''} ${sel ? 'sel' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" role="row" style="--cols:${tpl}" data-task-row="${t.id}" data-group="${opt.group || ''}" data-lkey="${opt.key || ''}" data-ctx="task" data-id="${t.id}">
+    <div class="handle" role="cell" draggable="${opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
+    <div class="c-check" role="cell">${
       opt.complete
         ? `<input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Mark ${esc(t.title)} complete">`
         : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
     }</div>
-    <div class="ttl" ${editing ? '' : `data-a="openTask" data-id="${t.id}"`} data-dbl="editTitle">
+    <div class="ttl" role="cell" data-id="${t.id}" data-dbl="editTitle">
       ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
-      <span class="key" translate="no">${t.key}</span>
+      ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}">`}<span class="key" translate="no">${t.key}</span>
       ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt" translate="no">${esc(t.title)}</span>`}
       ${t.recur ? `<span class="meta-mini" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 11)}</span>` : ''}
       ${t.subtasks.length ? `<span class="meta-mini">${ic('list-checks', 11)}${sd}/${t.subtasks.length}</span>` : ''}
-      ${cc ? `<span class="meta-mini">${ic('message-square', 11)}${cc}</span>` : ''}
+      ${cc ? `<span class="meta-mini">${ic('message-square', 11)}${cc}</span>` : ''}${editing ? '' : '</button>'}
     </div>
-    ${cols.map(c => `<div class="c-meta c-${c === 'labels' ? 'lbl' : c}">${CELL[c](t)}</div>`).join('')}
-    <div class="c-more"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More actions">${ic('ellipsis', 15)}</button></div>
+    ${cols.map(c => `<div class="c-meta c-${c === 'labels' ? 'lbl' : c}" role="cell">${CELL[c](t)}</div>`).join('')}
+    <div class="c-more" role="cell"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More actions">${ic('ellipsis', 15)}</button></div>
   </div>
-  ${open ? `<div class="subrows">${t.subtasks.map(s => `<div class="subrow ${s.done ? 'done' : ''}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="Complete subtask"><span translate="no">${esc(s.title)}</span></div>`).join('')}</div>` : ''}`;
+  ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
 }
 export function listHtml(groups, key, opt = {}) {
   const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
@@ -98,13 +98,16 @@ export function listHtml(groups, key, opt = {}) {
       )
     );
   const v = S.views[key];
+  const columnCount = cols.length + 4;
+  const sortHeader = (field, label) =>
+    `<div role="columnheader" ${v?.sort.f === field ? `aria-sort="${v.sort.dir > 0 ? 'ascending' : 'descending'}"` : ''}><button class="task-sort-header" data-a="sortBy" data-key="${key}" data-f="${field}">${label}${v?.sort.f === field ? ic(v.sort.dir > 0 ? 'arrow-up' : 'arrow-down', 11) : ''}</button></div>`;
   return `<div class="tlist" role="table" aria-label="Tasks">
     <div class="thead" style="--cols:${tpl}" role="row">
-      <div></div>
-      <div>${opt.complete ? '' : `<input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === visibleIds.length ? 'checked' : ''} ${nSel && nSel < visibleIds.length ? 'data-indet="1"' : ''} aria-label="Select visible tasks">`}</div>
-      <div data-a="sortBy" data-key="${key}" data-f="title" style="cursor:pointer">Task ${v?.sort.f === 'title' ? ic(v.sort.dir > 0 ? 'arrow-up' : 'arrow-down', 11) : ''}</div>
-      ${cols.map(c => `<div data-a="sortBy" data-key="${key}" data-f="${c === 'labels' ? 'manual' : c}" style="cursor:pointer">${LCOLS[c][0]} ${v?.sort.f === c ? ic(v.sort.dir > 0 ? 'arrow-up' : 'arrow-down', 11) : ''}</div>`).join('')}
-      <div></div>
+      <div role="columnheader" aria-hidden="true"></div>
+      <div role="columnheader">${opt.complete ? '' : `<input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === visibleIds.length ? 'checked' : ''} ${nSel && nSel < visibleIds.length ? 'data-indet="1"' : ''} aria-label="Select visible tasks">`}</div>
+      ${sortHeader('title', 'Task')}
+      ${cols.map(c => sortHeader(c === 'labels' ? 'manual' : c, LCOLS[c][0])).join('')}
+      <div role="columnheader"><span class="sr">More actions</span></div>
     </div>
     ${groups
       .map(g => {
@@ -114,16 +117,16 @@ export function listHtml(groups, key, opt = {}) {
         const comp = S.ui.composer && S.ui.composer.ctx === key && S.ui.composer.group === g.key;
         return `${
           groups.length > 1 || g.key !== 'all'
-            ? `<div class="grp" data-grp-drop="${g.key}" data-key="${key}">
+            ? `<div role="row"><div class="grp" role="cell" aria-colspan="${columnCount}" data-grp-drop="${g.key}" data-key="${key}">
           <button class="ibtn ibtn-xs" data-a="toggleGroup" data-gk="${gk}" aria-expanded="${!coll}" aria-label="Toggle group">${ic(coll ? 'chevron-right' : 'chevron-down', 13)}</button>
           ${g.html || ''}<span>${esc(g.name)}</span><span class="cnt">${g.tasks.length}</span>
           ${opt.noAdd ? '' : `<button class="ibtn ibtn-xs" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}" aria-label="Add task to ${esc(g.name)}">${ic('plus', 13)}</button>`}
-        </div>`
+        </div></div>`
             : ''
         }
         ${coll ? '' : window.items.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key, commentCounts })).join('')}
-        ${!coll && window.pages > 1 ? `<div class="row" style="justify-content:center;gap:12px;padding:10px;flex-wrap:wrap"><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page - 1}" ${window.page === 0 ? 'disabled' : ''}>Previous</button><span class="hint"><span>Page</span> ${window.page + 1} / ${window.pages}</span><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page + 1}" ${window.page + 1 === window.pages ? 'disabled' : ''}>Next</button></div>` : ''}
-        ${coll || opt.noAdd ? '' : comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-key-enter="commitComposer" placeholder="Task name — press Enter to add, Esc to cancel" aria-label="New task name"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}Add task</button>`}`;
+        ${!coll && window.pages > 1 ? `<div role="row"><div class="row" role="cell" aria-colspan="${columnCount}" style="justify-content:center;gap:12px;padding:10px;flex-wrap:wrap"><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page - 1}" ${window.page === 0 ? 'disabled' : ''}>Previous</button><span class="hint"><span>Page</span> ${window.page + 1} / ${window.pages}</span><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page + 1}" ${window.page + 1 === window.pages ? 'disabled' : ''}>Next</button></div></div>` : ''}
+        ${coll || opt.noAdd ? '' : `<div role="row"><div role="cell" aria-colspan="${columnCount}">${comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-key-enter="commitComposer" placeholder="Task name — press Enter to add, Esc to cancel" aria-label="New task name"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}Add task</button>`}</div></div>`}`;
       })
       .join('')}
   </div>${bulkBar(all)}`;

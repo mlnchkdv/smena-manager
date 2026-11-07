@@ -114,6 +114,8 @@
     overflow-wrap: anywhere;
   }
   .home-deadline-task,
+  .task-title-open,
+  .task-sort-header,
   .task-table-open,
   .member-mobile-open,
   .home-page .mini-task-open {
