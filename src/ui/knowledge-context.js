@@ -37,8 +37,9 @@ export function knowledgeContext(note, { reading = false } = {}) {
   const path = folderTrail(note.folderId, D().knowledgeFolders)
     .map(f => f.name)
     .join(' / ');
-  const refs = knowledgeRelations(D().knowledgeNotes, note);
-  const showContext = !reading || open || refs.outgoing.some(r => r.note) || refs.backlinks.length || unlinkedMentions(D().knowledgeNotes, note, []).length;
+  // Discovering unlinked mentions scans loaded bodies. Do that only after the
+  // user opens context, never merely to decide whether its button is visible.
+  const showContext = !reading || open || D().knowledgeNotes.length > 1;
   const links = relationsPanel(`note:${note.id}`, true, reading);
   if (reading && !note.tags?.length && !links && !showContext) return '';
   return `<section class="knowledge-preview-context">${path && !reading ? `<p class="hint" translate="no">${esc(path)}</p>` : ''}${note.tags?.length ? `<div class="knowledge-context-tags">${(note.tags || []).map(tag => `<button class="knowledge-tag" data-a="filterKnowledgePreviewTag" data-tag="${esc(tag)}" translate="no">${esc(tag)}</button>`).join('')}</div>` : ''}${links}${showContext ? `<section class="knowledge-context"><button class="btn btn-ghost btn-sm" data-a="toggleKnowledgeContext" data-id="${esc(note.id)}" aria-expanded="${open}" translate="no">${kc('Context and mentions', 'Контекст и упоминания')}</button>${body}</section>` : ''}</section>`;

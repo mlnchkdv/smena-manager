@@ -161,6 +161,10 @@ let graphSurfaceRestorer;
 export const registerGraphSurfaceRestorer = restorer => {
   graphSurfaceRestorer = restorer;
 };
+var knowledgeReadingRestorer;
+export function registerKnowledgeReadingRestorer(restorer) {
+  knowledgeReadingRestorer = restorer;
+}
 export function render() {
   captureGraphQueryPosition();
   captureReaderPosition();
@@ -216,9 +220,15 @@ export function render() {
   }
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
   const restoreGraphSurface = graphSurfaceRestorer?.();
-  $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
+  const restoreKnowledgeSurface = knowledgeReadingRestorer?.();
+  const appHtml = S.ui.auth ? renderAuth() : renderShell();
+  if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#app'), appHtml);
+  else $('#app').innerHTML = appHtml;
   restoreGraphSurface?.();
-  $('#layer').innerHTML = renderLayer();
+  const layerHtml = renderLayer();
+  if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#layer'), layerHtml);
+  else $('#layer').innerHTML = layerHtml;
+  restoreKnowledgeSurface?.finish();
   restorePlayers();
   translateApp();
   normalizeTablists();
@@ -336,17 +346,21 @@ export function afterRender() {
         whiteboardModule = null;
       });
   }
-  resizeKnowledgeTitle();
-  refreshKnowledgeOutline();
-  refreshKnowledgeFind();
-  restoreReaderPosition();
-  refreshFolderKeyboard();
-  if (S.ui.route === 'knowledge') {
+  const readerActive = !S.ui.modals.length && !S.ui.palette;
+  if (readerActive) {
+    resizeKnowledgeTitle();
+    refreshKnowledgeOutline();
+    refreshKnowledgeFind();
+    restoreReaderPosition();
+  }
+  const catalogActive = readerActive && !S.ui.knowledgeDrawer && !S.ui.drawer;
+  if (catalogActive) refreshFolderKeyboard();
+  if (S.ui.route === 'knowledge' && catalogActive) {
     if (knowledgeGridKeyboard) knowledgeGridKeyboard.refreshKnowledgeGridKeyboard();
     else
       knowledgeGridKeyboardLoading ||= import('../ui/knowledge-grid-keyboard.js').then(module => {
         knowledgeGridKeyboard = module;
-        if (S.ui.route === 'knowledge') module.refreshKnowledgeGridKeyboard();
+        if (S.ui.route === 'knowledge' && !S.ui.knowledgeDrawer && !S.ui.drawer && !S.ui.modals.length && !S.ui.palette) module.refreshKnowledgeGridKeyboard();
       });
   }
   if (knowledgeTableModule || document.querySelector('.knowledge-table-wrap')) {

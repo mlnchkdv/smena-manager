@@ -60,6 +60,18 @@ export function knowledgeExcerpt(note, query, length = 180) {
           .trim()
       : markdownText(value);
   const { terms } = parseKnowledgeQuery(query);
+  if (!terms.length) {
+    // A card needs only an opening excerpt. Never normalize megabytes of a
+    // loaded source again while a toolbar, modal or background sync redraws it.
+    const budget = Math.min(32000, Math.max(4096, length * 8));
+    let raw = String(note.summary || ''),
+      text = clean(raw.slice(0, budget));
+    if (!text) {
+      raw = knowledgeDisplayParts(note).body;
+      text = clean(raw.slice(0, budget));
+    }
+    return text ? text.slice(0, length) + (text.length > length || raw.length > budget ? '…' : '') : '';
+  }
   const summary = clean(note.summary);
   const body = clean(knowledgeDisplayParts(note).body);
   const score = text => terms.filter(term => text.toLocaleLowerCase().includes(term)).length;

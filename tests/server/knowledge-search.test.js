@@ -1,6 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { knowledgeExcerpt, noteCardExcerpt, createKnowledgeMatcher } from '../../src/shared/knowledge-search.js';
+
+test('blank card excerpts are bounded while searches retain distant matches and exact source', () => {
+  const source = '# Opening\n\n' + 'Readable text '.repeat(150000) + '\n\nDISTANT_UNIQUE_TERM';
+  const note = { id: 'large', formatted_markdown: source, sourceFormat: 'markdown' };
+  const excerpt = noteCardExcerpt(note, '');
+  assert.ok(excerpt.startsWith('Opening Readable text'));
+  assert.ok(excerpt.length <= 181);
+  assert.ok(excerpt.endsWith('…'));
+  assert.match(knowledgeExcerpt(note, 'DISTANT_UNIQUE_TERM'), /DISTANT_UNIQUE_TERM/);
+  assert.equal(knowledgeExcerpt({ ...note, summary: 'Short summary' }, ''), 'Short summary');
+  assert.equal(knowledgeExcerpt({ ...note, summary: '   ' }, ''), excerpt);
+  assert.equal(note.formatted_markdown, source);
+});
 import { knowledgeView } from '../../src/shared/knowledge-view.js';
 test('card excerpts skip only the initial stock prompt while searches and stored source retain it', () => {
   const formatted_markdown = '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.\n\nНастоящий регламент';

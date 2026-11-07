@@ -2400,9 +2400,8 @@ const ATTRIBUTES = ['aria-label', 'title', 'placeholder', 'data-tip', 'data-msg'
 /** Translate user-interface text in a rendered subtree without changing data values. */
 export function translateElement(root) {
   if (!root || !isRussian()) return root;
-  const elements = root.nodeType === Node.ELEMENT_NODE ? [root, ...root.querySelectorAll('*')] : [...root.querySelectorAll('*')];
-  for (const el of elements) {
-    if (el.closest?.('[translate="no"]')) continue;
+  if (root.nodeType === Node.ELEMENT_NODE && (root.closest('[translate="no"]') || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(root.tagName))) return root;
+  const attributes = el => {
     for (const attr of ATTRIBUTES) {
       if (el.hasAttribute?.(attr)) {
         const value = el.getAttribute(attr);
@@ -2410,17 +2409,24 @@ export function translateElement(root) {
         el.setAttribute(attr, translated === value ? CONTROL_LABELS[value] || value : translated);
       }
     }
-  }
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+  };
+  if (root.nodeType === Node.ELEMENT_NODE) attributes(root);
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      if (node.parentElement?.closest('[translate="no"]')) return NodeFilter.FILTER_REJECT;
-      const tag = node.parentElement?.tagName;
-      return tag && !['SCRIPT', 'STYLE', 'TEXTAREA'].includes(tag) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      // Reject the element, not each descendant text node: user documents can
+      // contain thousands of nodes and must never be walked or translated.
+      if (node.nodeType === Node.ELEMENT_NODE)
+        return node.getAttribute('translate') === 'no' || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(node.tagName)
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT;
+      return node.parentElement ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     },
   });
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  for (const node of nodes) node.nodeValue = t(node.nodeValue);
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.nodeType === Node.ELEMENT_NODE) attributes(node);
+    else node.nodeValue = t(node.nodeValue);
+  }
   return root;
 }
 

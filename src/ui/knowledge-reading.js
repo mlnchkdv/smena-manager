@@ -1,6 +1,6 @@
 import { entityAllowed } from '../shared/relations.js';
 import { S } from '../core/store.js';
-import { knowledgeAsset } from '../shared/knowledge-assets.js';
+import { knowledgeAsset, knowledgeFileReferences } from '../shared/knowledge-assets.js';
 import { knowledgeImageUrl } from '../core/knowledge-media-state.js';
 import { resolveKnowledgeBlock } from '../shared/knowledge-block-references.js';
 import { D } from '../core/store.js';
@@ -8,11 +8,15 @@ import { t } from '../core/i18n.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeRelations } from '../shared/knowledge-links.js';
 import { knowledgeBodyState, ensureKnowledgeBody } from '../core/knowledge-bodies.js';
-import { render } from '../shell/render.js';
+import { render, registerKnowledgeReadingRestorer } from '../shell/render.js';
+import { getSessionGeneration, getActiveWorkspace } from '../core/api.js';
+import { knowledgeReadingInputs } from '../shared/knowledge-reading-state.js';
+import { captureKnowledgeReadingSurface, knowledgeReadingSurface } from './knowledge-reading-surface.js';
 import { preparedMarkdown, clearMarkdownPreparation } from '../core/knowledge-markdown-demand.js';
 import { A } from '../actions/actions.js';
 import '../styles/knowledge-large-document.css';
 const readText = (en, ru) => (document.documentElement.lang === 'ru' ? ru : en);
+registerKnowledgeReadingRestorer(captureKnowledgeReadingSurface);
 A.retryKnowledgeMarkdown = () => {
   clearMarkdownPreparation();
   render();
@@ -63,11 +67,30 @@ export function knowledgeReadingHtml(note, source) {
       return `<p role="alert" translate="no">${readText('Preview could not be prepared. Edit or download the complete source.', 'Не удалось подготовить предпросмотр. Откройте редактор или скачайте полный исходник.')}</p><button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry preview', 'Повторить предпросмотр')}</button>`;
     tokenized = { source, tokens: prepared.tokens };
   }
-  const wikiTargets = new Map(
-    knowledgeRelations(D().knowledgeNotes, note)
-      .outgoing.filter(ref => ref.note)
-      .map(ref => [ref.title.toLocaleLowerCase('ru-RU'), ref.note.id]),
+  const options = knowledgeMarkdownOptions(note);
+  const markup = () => {
+    const wikiTargets = new Map(
+      knowledgeRelations(D().knowledgeNotes, note)
+        .outgoing.filter(ref => ref.note)
+        .map(ref => [ref.title.toLocaleLowerCase('ru-RU'), ref.note.id]),
+    );
+    return renderKnowledgeMarkdown(source, { ...options, wikiTargets, sourceId: note.id, tokenized });
+  };
+  if (source.length <= 32000) return markup();
+  // Search highlighting transforms the markup before insertion. Never replace
+  // that transformed document with retained nodes from a different match state.
+  if (S.ui.knowledgeFind) return `<div class="knowledge-large-document">${markup()}</div>`;
+  const assets = knowledgeFileReferences({ ...note, formatted_markdown: source }).map(id => [
+    id,
+    entityAllowed(D(), `file:${id}`, { role: S.ui.currentUser?.role, memberId: D().me }),
+    knowledgeImageUrl(id),
+  ]);
+  const inputs = knowledgeReadingInputs(
+    D(),
+    note,
+    source,
+    [getSessionGeneration(), getActiveWorkspace(), document.documentElement.lang, S.ui.currentUser?.id, S.ui.currentUser?.role],
+    assets,
   );
-  const markup = renderKnowledgeMarkdown(source, { ...knowledgeMarkdownOptions(note), wikiTargets, sourceId: note.id, tokenized });
-  return source.length > 32000 ? `<div class="knowledge-large-document">${markup}</div>` : markup;
+  return knowledgeReadingSurface(inputs, markup);
 }
