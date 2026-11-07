@@ -137,7 +137,20 @@ export async function stageKnowledgeSearch(next, previous, storage, { forceIds =
   }
   const groups = new Map();
   for (const id of changed) {
-    const prefix = parts.find(part => bucket(id).startsWith(part.prefix))?.prefix || bucket(id)[0];
+    const key = bucket(id);
+    let prefix = parts.find(part => key.startsWith(part.prefix))?.prefix;
+    if (!prefix) {
+      // A previous large bucket may have split and then lost some children.
+      // Choose an unused trie branch, never a parent of retained siblings.
+      for (let length = 1; length <= 6; length++) {
+        const candidate = key.slice(0, length);
+        if (!parts.some(part => part.prefix.startsWith(candidate))) {
+          prefix = candidate;
+          break;
+        }
+      }
+      if (!prefix) throw knowledgeSearchError();
+    }
     if (!groups.has(prefix)) groups.set(prefix, []);
     groups.get(prefix).push(id);
   }
@@ -159,6 +172,7 @@ export async function stageKnowledgeSearch(next, previous, storage, { forceIds =
     if (rows.size) parts.push(...(await storePart(storage, prefix, [...rows.values()])));
   }
   parts.sort((a, b) => a.prefix.localeCompare(b.prefix));
+  knowledgeSearchParts({ _knowledgeSearch: { version: 1, parts } });
   const directory = await writeKnowledgeDirectory(storage, parts, priorIndex, part => loadSearchPart(storage, part));
   next._knowledgeSearch = { version: 1, parts, ...(directory ? { directory } : {}) };
   return next;
