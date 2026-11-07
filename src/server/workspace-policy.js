@@ -194,17 +194,23 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
     if (!Array.isArray(incoming.relations)) throw permissionError('relations');
     const exposed = new Set((visible.relations || []).map(edge => edge.id));
     const before = new Map((current.relations || []).map(edge => [edge.id, edge]));
+    const recorded = [];
     for (const edge of incoming.relations) {
       const previous = before.get(edge.id);
-      if (previous && same(previous, edge)) continue;
+      if (previous && same(previous, edge)) {
+        recorded.push(previous);
+        continue;
+      }
       if (previous && !exposed.has(edge.id)) throw permissionError('relations');
       const targets = [edge.from, edge.to, ...(previous ? [previous.from, previous.to] : [])];
       if (targets.some(key => !entityAllowed(candidate, key, { role, memberId }, true))) throw permissionError('relations');
       if (previous?.deletedAt && !edge.deletedAt) throw permissionError('relations');
+      const now = new Date().toISOString();
+      recorded.push({ ...edge, createdBy: previous?.createdBy || memberId, createdAt: previous?.createdAt || now, recordedBy: memberId, recordedAt: now });
     }
     const incomingIds = new Set(incoming.relations.map(edge => edge.id));
     if ((visible.relations || []).some(edge => !incomingIds.has(edge.id))) throw permissionError('relations');
-    candidate.relations = [...(current.relations || []).filter(edge => !exposed.has(edge.id)), ...incoming.relations];
+    candidate.relations = [...(current.relations || []).filter(edge => !exposed.has(edge.id)), ...recorded];
   }
   return candidate;
 }

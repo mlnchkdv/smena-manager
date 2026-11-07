@@ -15,7 +15,7 @@ export const ENTITY_COLLECTIONS = Object.freeze({
   task: 'tasks',
   whiteboard: 'whiteboards',
 });
-export const RELATION_TYPES = Object.freeze({ related: 'Related to', source: 'Source', example: 'Example', used: 'Used in' });
+export const RELATION_TYPES = Object.freeze({ related: 'Related to', source: 'Source', example: 'Example', used: 'Used in', decision: 'Decision for' });
 export const entityKey = (kind, id) => `${kind}:${id}`;
 export function resolveGraphEntity(data, key) {
   const split = String(key || '').indexOf(':');

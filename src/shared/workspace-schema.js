@@ -57,7 +57,7 @@ export function validateWorkspaceData(value) {
           typeof key === 'string' && Object.keys(ENTITY_COLLECTIONS).some(kind => key.startsWith(`${kind}:`) && validIdentity(key.slice(kind.length + 1)));
         if (!validEndpoint(relation.from) || !validEndpoint(relation.to) || relation.from === relation.to || !Object.hasOwn(RELATION_TYPES, relation.type))
           invalid.push('relations.endpoint');
-        for (const field of ['createdAt', 'deletedAt'])
+        for (const field of ['createdAt', 'deletedAt', 'recordedAt'])
           if (relation[field] != null && (typeof relation[field] !== 'string' || !Number.isFinite(Date.parse(relation[field]))))
             invalid.push(`relations.${field}`);
       }

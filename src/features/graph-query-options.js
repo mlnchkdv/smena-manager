@@ -14,7 +14,7 @@ export function graphQueryOptions(mode, source = '') {
       wikiOnly: !!modal?.wikiLabel,
       inline: !!modal?.inline,
     };
-  if (mode === 'connections') return { ...options, mode: 'view', center: source, depth: 1, includeArchived: true };
+  if (mode === 'connections') return { ...options, mode: 'view', center: source, depth: 1, includeArchived: true, summary: true };
   return {
     ...options,
     mode,

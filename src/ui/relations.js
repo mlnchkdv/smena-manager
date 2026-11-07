@@ -7,6 +7,8 @@ import { entityAllowed, RELATION_TYPES, workspaceGraph } from '../shared/relatio
 import { graphReadModel } from '../core/graph-query-state.js';
 import { graphChoiceContexts } from '../shared/graph-list-context.js';
 import { disclosureAttributes } from './disclosure.js';
+import { createRelationRollupReader } from '../shared/relation-rollup.js';
+import { relationRollupView } from './relation-rollup.js';
 
 export const ENTITY_LABELS = { note: 'Note', bookmark: 'Bookmark', file: 'File', project: 'Project', task: 'Task', whiteboard: 'Whiteboard' };
 export const ENTITY_ICONS = {
@@ -36,7 +38,9 @@ export function relationsPanel(key, compact = false, hideEmpty = false) {
       .filter(edge => (incoming ? edge.to === key : edge.from === key))
       .map(edge => {
         const node = nodes.get(incoming ? edge.from : edge.to);
-        return `<div class="relation-row"><button class="relation-open" data-a="openRelatedEntity" data-key="${esc(node.key)}">${ic(ENTITY_ICONS[node.kind], 14)}<span class="trunc" translate="no">${esc(node.title)}</span></button><span class="relation-type">${RELATION_TYPES[edge.type] || 'Related to'}</span>${edge.origin === 'manual' && writable && (remote ? node.writable : entityAllowed(D(), node.key, graphOptions(), true)) ? `<button class="ibtn ibtn-xs" data-a="removeRelation" data-id="${esc(edge.id)}" aria-label="Remove connection">${ic('x', 13)}</button>` : `<span class="relation-origin">${edge.origin === 'wiki' ? 'Wiki link' : 'Automatic'}</span>`}</div>`;
+        const author = D().members?.find(member => member.id === edge.recordedBy && !['removed', 'deactivated'].includes(member.status));
+        const origin = edge.origin === 'manual' ? kc('Manual', 'Вручную') : edge.origin === 'wiki' ? tr('Wiki link') : tr('Automatic');
+        return `<div class="relation-row"><div class="relation-main"><button class="relation-open" data-a="openRelatedEntity" data-key="${esc(node.key)}">${ic(ENTITY_ICONS[node.kind], 14)}<span class="trunc" translate="no">${esc(node.title)}</span></button><div class="relation-caption"><span class="relation-type">${tr(RELATION_TYPES[edge.type] || 'Related to')}</span><span class="relation-origin" translate="no">${esc(origin)}${author?.name ? ' · ' + esc(author.name) : ''}</span></div></div>${edge.origin === 'manual' && writable && (remote ? node.writable : entityAllowed(D(), node.key, graphOptions(), true)) ? `<button class="ibtn ibtn-xs" data-a="removeRelation" data-id="${esc(edge.id)}" aria-label="Remove connection">${ic('x', 13)}</button>` : ''}</div>`;
       })
       .join('');
   const unresolved = graph.unresolved.filter(ref => ref.from === key);
@@ -48,9 +52,11 @@ export function relationsPanel(key, compact = false, hideEmpty = false) {
       ? `<p class="hint" role="status">${esc(remote.error || 'Loading connections…')}${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</p>`
       : '';
   if (hideEmpty && (!remote || !compact) && !edges.length && !unresolved.length && !status) return '';
+  if (!remote) cachedGraph.rollups ||= createRelationRollupReader(graph, D().members);
+  const rollup = remote ? remote.view?.rollup : cachedGraph.rollups(key);
   const outgoing = rows(false);
   const incoming = rows(true);
-  const content = `<section class="relations-panel" data-catalog-key="${esc(key)}" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${status}${edges.length ? `${outgoing ? `<h4>Related materials</h4>${outgoing}` : ''}${incoming ? `<h4>Where used</h4>${incoming}` : ''}` : status ? '' : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolvedHtml}${remote?.view?.truncated ? '<p class="hint">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}</section>`;
+  const content = `<section class="relations-panel" data-catalog-key="${esc(key)}" aria-label="Material connections"><div class="relations-head"><h3>Connections</h3><span class="sp"></span><button class="btn btn-ghost btn-sm" data-a="showGraph" data-key="${esc(key)}">${ic('network', 14)}Show in graph</button>${writable ? `<button class="ibtn ibtn-sm" data-a="addRelationPicker" data-key="${esc(key)}" aria-label="Add connection">${ic('plus', 14)}</button>` : ''}</div>${status}${relationRollupView(rollup, ENTITY_LABELS, key)}${edges.length ? `${outgoing ? `<h4>Related materials</h4>${outgoing}` : ''}${incoming ? `<h4>Where used</h4>${incoming}` : ''}` : status ? '' : '<p class="hint">No connections yet. Link this material to give it context.</p>'}${unresolvedHtml}${remote?.view?.truncated ? '<p class="hint">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}</section>`;
   return compact
     ? `<details class="relations-compact" ${disclosureAttributes('relations:' + key)}><summary><span>Connections</span> · ${remote && !remote.view ? '—' : edges.length}</summary>${content}</details>`
     : content;

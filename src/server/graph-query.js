@@ -3,6 +3,7 @@ import { entityAllowed, workspaceGraph, ENTITY_COLLECTIONS } from '../shared/rel
 import { graphView } from '../shared/graph-view.js';
 import { currentCatalogUser } from './file-catalog-query.js';
 import { canEditProject } from '../shared/project-access.js';
+import { relationRollup } from '../shared/relation-rollup.js';
 
 export function validateGraphQuery(input = {}) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError('Invalid graph query.');
@@ -13,7 +14,7 @@ export function validateGraphQuery(input = {}) {
   if (options.kind && !Object.hasOwn(ENTITY_COLLECTIONS, options.kind)) throw new TypeError('Invalid graph type.');
   if (options.mode && !['view', 'candidates', 'export'].includes(options.mode)) throw new TypeError('Invalid graph mode.');
   if (options.depth !== undefined && ![1, 2].includes(Number(options.depth))) throw new TypeError('Invalid graph depth.');
-  for (const field of ['connectedOnly', 'includeArchived', 'wikiOnly', 'inline'])
+  for (const field of ['connectedOnly', 'includeArchived', 'wikiOnly', 'inline', 'summary'])
     if (options[field] !== undefined && typeof options[field] !== 'boolean') throw new TypeError('Invalid graph flag.');
   if (!Number.isSafeInteger(options.revision) || options.revision < 0) throw new TypeError('Invalid graph revision.');
   if (!options.documents || !['knowledge', 'bookmarks'].every(name => Number.isSafeInteger(options.documents[name]) && options.documents[name] >= 0))
@@ -58,6 +59,7 @@ export function queryGraph(data, user, input) {
   }
   return {
     ...view,
+    ...(options.summary && options.center ? { rollup: relationRollup(graph, options.center, data.members) } : {}),
     nodes: view.nodes.map(node => ({
       ...publicNode(node),
       writable: ['admin', 'editor'].includes(access.role) && (!node.project || writable.has(node.project)),

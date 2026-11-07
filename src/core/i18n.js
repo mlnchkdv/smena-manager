@@ -424,6 +424,7 @@ const RU = {
   Source: 'Источник',
   Example: 'Пример',
   'Used in': 'Используется в',
+  'Decision for': 'Решение по',
   'Wiki link': 'Вики-ссылка',
   Automatic: 'Автоматически',
   'Find material': 'Найти материал',
