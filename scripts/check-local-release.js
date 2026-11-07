@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { releaseSourceSnapshot, assertReleaseSourceStable } from './release-source-snapshot.js';
 
 // Local acceptance only. This command never deploys, invokes cron or sends mail.
 if (Number(process.versions.node.split('.')[0]) !== 22) throw new Error('Local release checks require Node 22.x.');
@@ -55,8 +56,23 @@ const check = async (name, command, environment = env) => {
   });
   await record();
   if (result.code !== 0) throw new Error(name + ' failed; review its local log.');
+  await verifySource(name);
+};
+const verifySource = async phase => {
+  const snapshot = await releaseSourceSnapshot({ root });
+  report.source.checkpoints.push({ phase, ...snapshot });
+  try {
+    assertReleaseSourceStable(report.source.baseline, snapshot);
+  } catch (error) {
+    report.source.status = 'changed';
+    throw error;
+  }
+  report.source.status = 'stable-at-checkpoints';
+  await record();
 };
 try {
+  report.source = { baseline: await releaseSourceSnapshot({ root }), checkpoints: [], status: 'recorded' };
+  await record();
   await check('lint', ['node_modules/eslint/bin/eslint.js', 'src', 'scripts', 'tests', 'vite.config.js']);
   await check('ui-tokens', ['scripts/check-ui-tokens.js']);
   if (args.includes('--reuse-server-tests')) {
