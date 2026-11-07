@@ -56,7 +56,8 @@ export class LocalStorageProvider {
     return this.readDatabaseRoot(options);
   }
 
-  async readDatabaseRoot({ knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
+  async readDatabaseRoot({ knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize, knowledgeSignal } = {}) {
+    knowledgeSignal?.throwIfAborted();
     try {
       const value = await fs.promises.readFile(this.databasePath, 'utf8');
       this.knowledgeRoot = JSON.parse(value);
@@ -65,6 +66,7 @@ export class LocalStorageProvider {
         ids: knowledgeIds,
         fields: knowledgeFields,
         authorize: knowledgeAuthorize,
+        signal: knowledgeSignal,
       });
     } catch (error) {
       if (error?.code === 'ENOENT') return null;
@@ -88,10 +90,11 @@ export class LocalStorageProvider {
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeMetadataError();
     return path.join(path.dirname(this.databasePath), 'knowledge-metadata', `${hash}.json`);
   }
-  async readKnowledgeMetadata(hash) {
+  async readKnowledgeMetadata(hash, { signal } = {}) {
+    signal?.throwIfAborted();
     const target = this.knowledgeMetadataPath(hash);
     if ((await fs.promises.stat(target)).size > KNOWLEDGE_METADATA_MAX_BYTES) throw knowledgeMetadataError();
-    return fs.promises.readFile(target, 'utf8');
+    return fs.promises.readFile(target, { encoding: 'utf8', signal });
   }
   async writeKnowledgeMetadata(text, hash) {
     const target = this.knowledgeMetadataPath(hash);
@@ -111,10 +114,11 @@ export class LocalStorageProvider {
       await fs.promises.unlink(temporary).catch(() => undefined);
     }
   }
-  async readKnowledgeSearch(hash) {
+  async readKnowledgeSearch(hash, { signal } = {}) {
+    signal?.throwIfAborted();
     const target = this.knowledgeSearchPath(hash);
     if ((await fs.promises.stat(target)).size > SEARCH_OBJECT_MAX_BYTES) throw knowledgeSearchError();
-    return fs.promises.readFile(target, 'utf8');
+    return fs.promises.readFile(target, { encoding: 'utf8', signal });
   }
   async writeKnowledgeSearch(text, hash) {
     if (typeof text !== 'string' || Buffer.byteLength(text) > SEARCH_OBJECT_MAX_BYTES || crypto.createHash('sha256').update(text).digest('hex') !== hash)

@@ -276,6 +276,7 @@ export function render() {
   restoreGraphQueryPosition();
   selectMenu.restore(selectState);
   syncBrowserLocation();
+  window.dispatchEvent(new Event('smena:rendered'));
 }
 let thumbnailModule;
 let knowledgeTableModule;

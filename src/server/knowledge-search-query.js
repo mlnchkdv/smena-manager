@@ -10,6 +10,7 @@ import { readKnowledgeDirectory, directoryMayMatch } from './knowledge-search-di
 // Membership and metadata filters precede reads, snippets and counts. The cold
 // path scans compressed derived parts, never current bodies or history blobs.
 export async function queryKnowledgeIndex(database, profile, profiles = [], options = {}) {
+  options.signal?.throwIfAborted();
   const actor = knowledgeActor(database, profile, profiles);
   const favorites = database._userPrefs?.[actor.id]?.favorites || '[]';
   const { terms, rules } = options.mode === 'workspace' ? { terms: searchTerms(options.query), rules: [] } : parseKnowledgeQuery(options.query);
@@ -26,7 +27,7 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
   const parts = terms.length && eligible.some(note => note.bodyRef) ? knowledgeSearchParts(database) : [];
   const membership = new Map(parts.flatMap(part => part.members.map(([id, sha]) => [id, { part, sha }])));
   const storage = getStorageProvider();
-  const directory = parts.length ? await readKnowledgeDirectory(storage, database._knowledgeSearch) : null;
+  const directory = parts.length ? await readKnowledgeDirectory(storage, database._knowledgeSearch, { signal: options.signal }) : null;
   const groups = new Map();
   for (const note of eligible) {
     if (!terms.length || !note.bodyRef) {
@@ -43,8 +44,9 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
   const work = [...groups];
   async function worker() {
     while (work.length) {
+      options.signal?.throwIfAborted();
       const [part, notes] = work.shift(),
-        rows = await loadSearchPart(storage, part);
+        rows = await loadSearchPart(storage, part, { signal: options.signal });
       for (const note of notes) {
         const row = rows.get(note.id);
         if (!row || row[1] !== note.bodyRef.sha256) throw knowledgeSearchError();
@@ -59,7 +61,7 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
   if (terms.length)
     for (const note of result.visible) {
       const indexed = membership.get(note.id);
-      const body = indexed ? (await loadSearchPart(storage, indexed.part)).get(note.id)?.[2] : note.formatted_markdown;
+      const body = indexed ? (await loadSearchPart(storage, indexed.part, { signal: options.signal })).get(note.id)?.[2] : note.formatted_markdown;
       const context = knowledgeSearchContext({ ...note, formatted_markdown: body }, options.query);
       if (context) snippets[note.id] = { ...context, text: String(context.text || '').slice(0, 240) };
     }

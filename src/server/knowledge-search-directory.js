@@ -35,7 +35,8 @@ export function directoryMayMatch(bits, terms, metadata) {
     }
   return true;
 }
-export async function readKnowledgeDirectory(storage, index) {
+export async function readKnowledgeDirectory(storage, index, { signal } = {}) {
+  signal?.throwIfAborted();
   const ref = index?.directory;
   if (!ref) return null;
   if (
@@ -53,7 +54,8 @@ export async function readKnowledgeDirectory(storage, index) {
   const cached = cachedSearchValue(storage, key);
   if (cached) return cached;
   try {
-    const text = await storage.readKnowledgeSearch(ref.sha256);
+    const text = await storage.readKnowledgeSearch(ref.sha256, { signal });
+    signal?.throwIfAborted();
     if (typeof text !== 'string' || Buffer.byteLength(text) !== ref.bytes || digest(text) !== ref.sha256) throw knowledgeSearchError();
     const object = JSON.parse(text);
     if (object.format !== 'smena-knowledge-directory-v1' || object.rawBytes !== ref.rawBytes || typeof object.data !== 'string') throw knowledgeSearchError();
@@ -73,6 +75,7 @@ export async function readKnowledgeDirectory(storage, index) {
     cacheSearchValue(storage, key, result, raw.length * 2);
     return result;
   } catch {
+    signal?.throwIfAborted();
     throw knowledgeSearchError();
   }
 }

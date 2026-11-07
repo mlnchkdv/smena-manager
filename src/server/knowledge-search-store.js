@@ -43,11 +43,13 @@ export function knowledgeSearchParts(data) {
   return parts;
 }
 export const knowledgeSearchCovered = (note, parts) => parts.some(part => part.members.some(([id, hash]) => id === note.id && hash === note.bodyRef?.sha256));
-export async function loadSearchPart(storage, part) {
+export async function loadSearchPart(storage, part, { signal } = {}) {
+  signal?.throwIfAborted();
   if (!validSearchPart(part)) throw knowledgeSearchError();
   const cached = cachedSearchValue(storage, partCacheKey(part));
   if (cached) return cached;
-  const text = await storage.readKnowledgeSearch(part.sha256);
+  const text = await storage.readKnowledgeSearch(part.sha256, { signal });
+  signal?.throwIfAborted();
   if (typeof text !== 'string' || Buffer.byteLength(text) !== part.bytes || digest(text) !== part.sha256) throw knowledgeSearchError();
   try {
     const object = JSON.parse(text);

@@ -1,3 +1,4 @@
+import { sourceSearchStatus, sourceSearchIncomplete } from '../ui/search-source-status.js';
 /* ---------- SEARCH RESULTS ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -40,7 +41,7 @@ export function pageSearch() {
   const offsets = (S.ui.searchOffsets ||= {}),
     totals = {};
   const r = searchAll(q, { totals, offsets });
-  const demandFiles = fileCatalogInfo()?.mode === 'demand';
+  const demandFiles = fileCatalogInfo()?.mode === 'demand' && !r.filesComplete;
   const folderMap = new Map(D().knowledgeFolders.map(folder => [folder.id, folder]));
   const cat = S.ui.searchCat;
   const cats = [
@@ -80,9 +81,7 @@ export function pageSearch() {
     <div class="search-navigation"><div class="tabs search-category-tabs" role="group" aria-label="Search categories">${cats.map(([k, n]) => `<button class="tab ${cat === k ? 'on' : ''}" aria-pressed="${cat === k}" data-a="set" data-k="searchCat" data-v="${k}">${n}<span class="cnt">${categoryCount(k)}</span></button>`).join('')}</div>
     <div class="search-category-picker"><label class="sr" for="search-category">Search categories</label><select class="select" id="search-category" data-in="searchCategory" aria-label="Search categories">${cats.map(([k, n]) => `<option value="${k}" ${cat === k ? 'selected' : ''} translate="no">${esc(t(n))} · ${categoryCount(k)}</option>`).join('')}</select></div>
     ${q ? `<details class="ui-menu search-tools" ${disclosureAttributes('search:tools')}><summary id="search-tools-summary" aria-label="Search tools" title="Search tools">${ic('ellipsis', 18)}</summary><div class="ui-menu-content"><button class="btn btn-ghost btn-sm" data-a="searchInGraph">Search in graph</button><p class="hint">Search results are paged. File results continue in Files.</p></div></details>` : ''}</div>
-    ${q && demandFiles && ['all', 'files'].includes(cat) ? `<section class="search-file-continuation panel" aria-label="Files"><p class="hint">Use Files to search the complete file catalog.</p><button class="btn btn-secondary btn-sm" data-a="searchAllFileResults">Search file catalog</button></section>` : ''}
-    ${q && ['all', 'knowledge'].includes(cat) && r.knowledgeStatus ? `<p class="hint" role="status">${t(r.knowledgeStatus === 'error' ? 'Knowledge search is unavailable.' : r.knowledgeStatus === 'local' ? 'Search covers downloaded notes only.' : 'Searching knowledge…')}${r.knowledgeStatus === 'error' ? '<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">Try again</button>' : ''}</p>` : ''}
-    ${q && ['all', 'whiteboards'].includes(cat) && r.whiteboardStatus ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? (r.whiteboardStatus === 'error' ? 'Поиск в содержимом холстов недоступен.' : 'Поиск в содержимом холстов…') : r.whiteboardStatus === 'error' ? 'Whiteboard content search is unavailable.' : 'Searching whiteboard content…'}${r.whiteboardStatus === 'error' ? `<button class="btn btn-ghost btn-sm" data-a="retryWhiteboardSearch">${t('Try again')}</button>` : ''}</p>` : ''}
+    ${q ? sourceSearchStatus(r, cat) : ''}
     ${
       !q
         ? `<div class="row" style="gap:6px;flex-wrap:wrap"><span class="faint" style="font-size:12.5px">Recent:</span>${recentSearches()
@@ -186,11 +185,13 @@ export function pageSearch() {
                 })
                 .join(''),
             )
-          : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
-            ? ''
-            : r.knowledgeStatus && ['all', 'knowledge'].includes(cat)
+          : sourceSearchIncomplete(r, cat) && r.fileStatus && ['all', 'files'].includes(cat)
+            ? `<div class="panel">${empty('search-x', isRussian() ? 'Поиск файлов не завершён' : 'File search is incomplete', isRussian() ? 'Проверьте статус источника выше.' : 'Check the source status above.')}</div>`
+            : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
               ? ''
-              : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
+              : r.knowledgeStatus && ['all', 'knowledge'].includes(cat)
+                ? ''
+                : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }
   </div>`;
 }

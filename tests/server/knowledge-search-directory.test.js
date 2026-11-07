@@ -96,3 +96,37 @@ test('the shared search cache budget evicts across providers without mixing iden
   assert.equal(cachedSearchValue(second, 'new'), 'fresh');
   resetKnowledgeSearchCache();
 });
+
+test('aborting cold search stops scheduling remaining index parts and never reads source bodies', async () => {
+  await inWorkspace(randomUUID(), async () => {
+    const storage = getStorageProvider(),
+      objects = new Map();
+    storage.writeKnowledgeSearch = storage.writeKnowledgeBody = async (text, hash) => objects.set(hash, text);
+    storage.readKnowledgeSearch = storage.readKnowledgeBody = async hash => objects.get(hash);
+    const profile = { id: 'reader', email: 'reader@example.test' };
+    const next = { members: [{ ...profile, role: 'Member' }], knowledgeNotes: [], knowledgeFolders: [] };
+    for (let i = 0; i < 200; i++)
+      next.knowledgeNotes.push(await storeKnowledgeBody(storage, { id: 'cancel-' + i, title: 'Note ' + i, formatted_markdown: 'common body ' + i }));
+    await stageKnowledgeSearch(next, {}, storage, { reset: true });
+    resetKnowledgeSearchCache();
+    const controller = new AbortController();
+    let parts = 0;
+    storage.readKnowledgeBody = async () => {
+      throw Error('Original body read');
+    };
+    storage.readKnowledgeSearch = async (hash, { signal } = {}) => {
+      assert.equal(signal, controller.signal);
+      if (hash !== next._knowledgeSearch.directory.sha256) {
+        parts++;
+        controller.abort();
+        signal.throwIfAborted();
+      }
+      return objects.get(hash);
+    };
+    await assert.rejects(queryKnowledgeIndex(next, profile, [], { query: 'common', signal: controller.signal }), { name: 'AbortError' });
+    assert.ok(parts > 0 && parts <= 3);
+    assert.ok(parts < next._knowledgeSearch.parts.length);
+  });
+  resetStorageProvider();
+  resetKnowledgeSearchCache();
+});

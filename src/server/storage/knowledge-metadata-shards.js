@@ -62,16 +62,19 @@ function validate(root) {
   }
   return catalog;
 }
-async function readPart(storage, field, part) {
+async function readPart(storage, field, part, signal) {
+  signal?.throwIfAborted();
   const key = 'knowledge-meta:' + field + ':' + part.sha256;
   const cached = cachedSearchValue(storage, key);
   if (cached) return cached;
   let text;
   try {
-    text = await storage.readKnowledgeMetadata(part.sha256);
+    text = await storage.readKnowledgeMetadata(part.sha256, { signal });
   } catch {
+    signal?.throwIfAborted();
     throw knowledgeMetadataError();
   }
+  signal?.throwIfAborted();
   if (typeof text !== 'string' || Buffer.byteLength(text) !== part.bytes || digest(text) !== part.sha256) throw knowledgeMetadataError();
   let value;
   try {
@@ -108,7 +111,8 @@ async function readPart(storage, field, part) {
 }
 // Logical schema stays v3. Raw v4 roots make older deployments fail closed
 // instead of interpreting identity rows as complete, editable notes.
-export async function materializeKnowledgeMetadata(root, storage, { knowledge = true, ids, fields: requestedFields, authorize } = {}) {
+export async function materializeKnowledgeMetadata(root, storage, { knowledge = true, ids, fields: requestedFields, authorize, signal } = {}) {
+  signal?.throwIfAborted();
   if (root && authorize) await authorize(root);
   if (!root?._knowledgeCatalog) {
     if (root?.schemaVersion === 4) throw knowledgeMetadataError();
@@ -126,8 +130,9 @@ export async function materializeKnowledgeMetadata(root, storage, { knowledge = 
     await Promise.all(
       Array.from({ length: Math.min(8, pending.length) }, async () => {
         while (pending.length) {
+          signal?.throwIfAborted();
           const part = pending.shift();
-          for (const [id, value] of await readPart(storage, field, part)) if (!selected || selected.has(id)) rows.set(id, structuredClone(value));
+          for (const [id, value] of await readPart(storage, field, part, signal)) if (!selected || selected.has(id)) rows.set(id, structuredClone(value));
         }
       }),
     );

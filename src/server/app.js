@@ -1,3 +1,4 @@
+import { requestSignal } from './request-signal.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 import { queryKnowledgeIndex } from './knowledge-search-query.js';
 import { whiteboardCatalogProjection, restoreWhiteboardBodies } from './whiteboard-catalog.js';
@@ -508,13 +509,15 @@ app.get('/api/workspace', async (request, response, next) => {
 });
 
 app.get('/api/whiteboards/search', async (request, response, next) => {
+  const signal = requestSignal(request, response);
   try {
     const q = String(request.query.q || '').slice(0, 1000);
-    const database = await getWorkspaceDatabase({ catalog: 'metadata' });
+    const database = await getWorkspaceDatabase({ catalog: 'metadata', knowledge: false, knowledgeSignal: signal });
     const data = projectWorkspace(workspaceCoreData(bindAccessProfiles(database, getAccessProfiles())), request.user);
     data.me = memberForProfile(data, request.user)?.id || request.user.id;
     const totals = {},
       offsets = { whiteboards: Math.max(0, Number(request.query.offset) || 0) };
+    signal.throwIfAborted();
     const results = searchWorkspace(data, q, { role: request.user.role, totals, offsets, limit: Number(request.query.limit) || 30 });
     response.setHeader('Cache-Control', 'no-store');
     response.json({
@@ -528,7 +531,7 @@ app.get('/api/whiteboards/search', async (request, response, next) => {
       revision: database.revision,
     });
   } catch (error) {
-    next(error);
+    if (!signal.aborted) next(error);
   }
 });
 
@@ -735,6 +738,7 @@ app.patch('/api/knowledge/notes/:id', requireRole('admin', 'editor'), async (req
   }
 });
 app.get('/api/knowledge/search', async (request, response, next) => {
+  const signal = requestSignal(request, response);
   try {
     const { q = '', folder = 'all', tag = '', sort = 'updated', offset = '0', mode = 'knowledge', recent = '[]' } = request.query;
     if (
@@ -756,10 +760,13 @@ app.get('/api/knowledge/search', async (request, response, next) => {
     if (!Array.isArray(recentIds) || recentIds.length > 100 || recentIds.some(id => typeof id !== 'string' || id.length > 180))
       return response.status(400).json({ error: 'Invalid search parameters.', code: 'INVALID_SEARCH' });
     const database = await getWorkspaceDatabase({
+      knowledgeSignal: signal,
+      knowledgeAuthorize: root => knowledgeActor(root, request.user, getAccessProfiles()),
       fields: ['members', '_userPrefs', 'knowledgeNotes', 'knowledgeFolders', 'createdAt', 'revision', '_documentRevisions', '_knowledgeSearch'],
     });
     response.json(
       await queryKnowledgeIndex(database, request.user, getAccessProfiles(), {
+        signal,
         query: q,
         mode,
         recent: recentIds,
@@ -770,7 +777,7 @@ app.get('/api/knowledge/search', async (request, response, next) => {
       }),
     );
   } catch (error) {
-    next(error);
+    if (!signal.aborted) next(error);
   }
 });
 

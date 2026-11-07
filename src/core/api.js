@@ -161,8 +161,9 @@ export const getAuthConfig = async () => {
   knowledgeDemandEnabled = result.knowledgeCatalogEnabled === true;
   return result;
 };
-export const searchWhiteboards = (query, limit, offset) =>
-  request(`/api/whiteboards/search?${new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })}`, {}, true);
+export const searchWhiteboards = (query, limit, offset, signal) =>
+  request(`/api/whiteboards/search?${new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })}`, { signal }, true);
+export const searchWorkspaceFiles = (options, signal) => request('/api/files/catalog/search', { method: 'POST', body: JSON.stringify(options), signal }, true);
 export const getWhiteboardVersions = id => request(`/api/whiteboards/${encodeURIComponent(id)}/versions`, {}, true);
 export const getPersonalPreferences = () => request('/api/preferences', {}, true);
 export const listFileExports = () => request('/api/files/exports', {}, true);
@@ -307,10 +308,19 @@ export async function getWorkspaceDocument(name) {
   return result.data;
 }
 export const getKnowledgeNote = id => request(`/api/knowledge/notes/${encodeURIComponent(id)}`, {}, true);
-export async function searchKnowledgePage({ query = '', folder = 'all', tag = '', sort = 'updated', offset = 0, mode = 'knowledge', recent = [] } = {}) {
+export async function searchKnowledgePage({
+  query = '',
+  folder = 'all',
+  tag = '',
+  sort = 'updated',
+  offset = 0,
+  mode = 'knowledge',
+  recent = [],
+  signal,
+} = {}) {
   return request(
     `/api/knowledge/search?${new URLSearchParams({ q: query, folder, tag, sort, mode, recent: JSON.stringify(recent), offset: String(offset) })}`,
-    {},
+    { signal },
     true,
   );
 }

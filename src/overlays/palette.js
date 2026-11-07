@@ -1,3 +1,4 @@
+import { sourceSearchStatus, sourceSearchIncomplete } from '../ui/search-source-status.js';
 import { shortcut } from '../ui/shortcut.js';
 import { isFavorite } from '../core/favorites.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
@@ -14,7 +15,6 @@ import { go, render } from '../shell/render.js';
 import { sortTasks, viewOf } from '../shell/view-engine.js';
 import { searchAll } from '../core/search.js';
 import { t as tr, workspaceRoleLabel } from '../core/i18n.js';
-import { openModal } from './modals.js';
 import { A } from '../actions/actions.js';
 import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 import { matchesLocalizedName } from '../shared/localized-search.js';
@@ -71,6 +71,8 @@ export function commands() {
 export function paletteItems() {
   const pl = S.ui.palette;
   pl.knowledgeStatus = '';
+  pl.fileStatus = '';
+  pl.whiteboardStatus = '';
   const q = pl.q.trim();
   const ql = q.toLowerCase();
   const groups = [];
@@ -115,8 +117,10 @@ export function paletteItems() {
     }
     if (cmds.length) groups.push({ name: 'Commands', items: cmds.slice(0, 5) });
   }
-  const r = searchAll(q);
+  const r = searchAll(q, { consumer: 'palette' });
   pl.knowledgeStatus = r.knowledgeStatus;
+  pl.fileStatus = r.fileStatus;
+  pl.whiteboardStatus = r.whiteboardStatus;
   const sc = pl.mode === 'search' ? pl.scope : 'all';
   const lim = sc === 'all' ? 4 : 12;
   if (pl.mode === 'search' && !q) {
@@ -196,13 +200,13 @@ export function paletteItems() {
     groups.push({
       name: 'Files',
       items: r.files.slice(0, lim).map(f => ({
-        icon: FT[f.type].i,
+        icon: (FT[f.type] || FT.other).i,
         name: f.name,
         authoredName: true,
-        sub: proj(f.project).name,
+        sub: proj(f.project)?.name || f.projectName || '',
         authoredSub: true,
         r: f.size,
-        run: () => openModal({ type: 'filePreview', file: f, tid: f.task }),
+        run: () => A.previewFile({ dataset: { id: f.id }, closest: () => null }),
       })),
     });
   if (sc === 'all' || sc === 'comments')
@@ -311,7 +315,7 @@ export function paletteHtml() {
             .join('')}</div>`
         : ''
     }
-    ${pl.knowledgeStatus && ['all', 'knowledge'].includes(pl.scope || 'all') ? `<p class="hint" role="status">${tr(pl.knowledgeStatus === 'error' ? 'Knowledge search is unavailable.' : pl.knowledgeStatus === 'local' ? 'Search covers downloaded notes only.' : 'Searching knowledge…')}</p>` : ''}
+    ${sourceSearchStatus(pl, pl.mode === 'search' ? pl.scope || 'all' : 'all')}
     <div class="pal-list" id="pal-list" role="listbox">${
       flat.length
         ? groups
@@ -327,7 +331,9 @@ export function paletteHtml() {
                   .join('')}</div>`,
             )
             .join('')
-        : `<div class="empty-state sm"><div class="glyph">${ic('search-x', 18)}</div><h2 class="es-h">No results found</h2><p>Try a different keyword, or press Tab to search everything.</p></div>`
+        : sourceSearchIncomplete(pl, pl.mode === 'search' ? pl.scope || 'all' : 'all')
+          ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? 'Поиск не завершён.' : 'Search is incomplete.'}</p>`
+          : `<div class="empty-state sm"><div class="glyph">${ic('search-x', 18)}</div><h2 class="es-h">No results found</h2><p>Try a different keyword, or press Tab to search everything.</p></div>`
     }</div>
     <div class="pal-f"><span><kbd>↑</kbd><kbd>↓</kbd>navigate</span><span><kbd>↵</kbd>select</span>${pl.mode === 'cmd' ? '<span><kbd>Tab</kbd>search mode</span>' : '<span><kbd>⌫</kbd>back to commands</span>'}<span class="sp" style="flex:1"></span><span>${LOGO(12)}</span></div>
   </div>`;

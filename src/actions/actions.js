@@ -1212,7 +1212,20 @@ A.toggleMediaGallery = () => {
     : [...c.allIds];
   render();
 };
-A.previewFile = el => {
+let previewSelection = 0;
+A.previewFile = async el => {
+  const intent = ++previewSelection;
+  const owner = getSessionGeneration(),
+    route = JSON.stringify([S.ui.route, S.ui.params]);
+  if (!D().files.some(x => x.id === el.dataset.id)) {
+    try {
+      await (await import('../features/file-catalog-demand.js')).ensureFileIdentities([el.dataset.id]);
+    } catch {
+      if (owner === getSessionGeneration()) toast('Unable to load files. Check connection and retry.', { kind: 'err' });
+      return;
+    }
+  }
+  if (intent !== previewSelection || owner !== getSessionGeneration() || route !== JSON.stringify([S.ui.route, S.ui.params])) return;
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
   if (f && entityAllowed(D(), `file:${f.id}`, graphOptions(), true))

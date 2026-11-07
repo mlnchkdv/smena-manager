@@ -34,7 +34,7 @@ export function catalogQuery(database, user, options = {}) {
   if (
     !Number.isSafeInteger(offset) ||
     offset < 0 ||
-    ![25, 50, 100].includes(limit) ||
+    ![25, 30, 50, 100].includes(limit) ||
     typeof query !== 'string' ||
     typeof recursive !== 'boolean' ||
     query.length > 500 ||

@@ -166,6 +166,7 @@ export async function getWorkspaceDatabase(options = {}) {
       knowledgeIds: options.knowledgeIds,
       knowledgeFields: options.fields,
       knowledgeAuthorize: options.knowledgeAuthorize,
+      knowledgeSignal: options.knowledgeSignal,
     });
     const core = await loadAggregate(storage, stored);
     return clone(options.fields ? Object.fromEntries(options.fields.map(field => [field, core[field]])) : core);
@@ -278,13 +279,17 @@ export async function getWorkspaceFileCatalogPage(user, options) {
   return read(user, options);
 }
 
-export async function queryWorkspaceFileCatalog(user, options) {
+export async function queryWorkspaceFileCatalog(user, options, { signal } = {}) {
+  signal?.throwIfAborted();
   const storage = getStorageProvider();
   const loadIndex = storage.loadDatabaseCatalogIndex || storage.loadDatabaseCatalog;
   if (typeof loadIndex === 'function') {
-    const data = await loadIndex.call(storage, core =>
-      catalogReadScope(core, user, options.context !== 'all' && options.context ? options.context : options.project),
-    );
+    const select = core => catalogReadScope(core, user, options.context !== 'all' && options.context ? options.context : options.project);
+    const data =
+      typeof storage.loadDatabaseCatalogIndex === 'function'
+        ? await storage.loadDatabaseCatalogIndex(select, { signal })
+        : await storage.loadDatabaseCatalog(select, undefined, false, { signal });
+    signal?.throwIfAborted();
     if (!data) throw new Error('The configured storage does not contain a workspace database.');
     return catalogQuery(data, user, options);
   }
@@ -319,12 +324,14 @@ export async function queryWorkspaceGraph(user, input) {
   return queryGraph(state().database, user, options);
 }
 
-export async function getWorkspaceFilesSnapshot(user, ids) {
+export async function getWorkspaceFilesSnapshot(user, ids, { signal } = {}) {
+  signal?.throwIfAborted();
   if (!Array.isArray(ids) || ids.length > 500 || ids.some(id => typeof id !== 'string' || !id)) throw new TypeError('Invalid file selection.');
   const storage = getStorageProvider();
   const selected = new Set(ids);
   if (typeof storage.loadDatabaseCatalog === 'function') {
-    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', ids));
+    const data = await storage.loadDatabaseCatalog(core => catalogReadScope(core, user, 'all', ids), undefined, false, { signal });
+    signal?.throwIfAborted();
     if (!data) throw new Error('The configured storage does not contain a workspace database.');
     data.files = data.files.filter(file => selected.has(file.id));
     return data;

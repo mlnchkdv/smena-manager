@@ -259,8 +259,11 @@ export class GoogleDriveStorageProvider {
   }
 
   async readDatabaseRoot(options = {}) {
+    options.signal?.throwIfAborted();
     await this.init();
+    options.signal?.throwIfAborted();
     const fileId = await this.findDatabaseFile();
+    options.signal?.throwIfAborted();
     if (!fileId) return null;
     const response = await this.readVersionedJson(fileId);
     const etag = responseHeader(response, 'etag');
@@ -272,7 +275,8 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(root, etag);
   }
 
-  async readCatalogPart(id, descriptor) {
+  async readCatalogPart(id, descriptor, signal) {
+    signal?.throwIfAborted();
     const key = descriptor && `${id}:${descriptor.sha256}`;
     if (key && this.catalogParts.has(key)) {
       const text = this.catalogParts.get(key);
@@ -280,7 +284,8 @@ export class GoogleDriveStorageProvider {
       this.catalogParts.set(key, text);
       return text;
     }
-    const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
+    const part = await this.client.files.get({ fileId: id, alt: 'media', supportsAllDrives: true }, { responseType: 'text', ...(signal ? { signal } : {}) });
+    signal?.throwIfAborted();
     // Only immutable, checksum-verified bytes enter this bounded process cache.
     // Each request still reads the current root and checks project ACLs first.
     if (
@@ -312,12 +317,12 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part)), storageVersion(root));
   }
 
-  async loadDatabaseCore({ identities = true, knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize } = {}) {
-    const root = await this.readDatabaseRoot({ knowledge, ids: knowledgeIds, fields: knowledgeFields, authorize: knowledgeAuthorize });
+  async loadDatabaseCore({ identities = true, knowledge = true, knowledgeIds, knowledgeFields, knowledgeAuthorize, knowledgeSignal } = {}) {
+    const root = await this.readDatabaseRoot({ knowledge, ids: knowledgeIds, fields: knowledgeFields, authorize: knowledgeAuthorize, signal: knowledgeSignal });
     if (!root) return null;
     const core = [2, 3].includes(root._fileCatalog?.version)
       ? catalogCore(root, { identities })
-      : await materializeCatalog(root, id => this.readCatalogPart(id));
+      : await materializeCatalog(root, (id, part) => this.readCatalogPart(id, part, knowledgeSignal));
     return rememberStorageVersion(core, storageVersion(root));
   }
 
@@ -489,20 +494,21 @@ export class GoogleDriveStorageProvider {
     };
   }
 
-  async loadDatabaseCatalog(select, projectFile, search = false) {
-    const root = await this.readDatabaseRoot({ knowledge: false });
+  async loadDatabaseCatalog(select, projectFile, search = false, { signal } = {}) {
+    signal?.throwIfAborted();
+    const root = await this.readDatabaseRoot({ knowledge: false, signal });
     if (!root) return null;
     if (![2, 3].includes(root._fileCatalog?.version)) {
-      const data = await materializeCatalog(root, id => this.readCatalogPart(id));
+      const data = await materializeCatalog(root, id => this.readCatalogPart(id, undefined, signal));
       return rememberStorageVersion(projectFile ? { ...data, files: data.files.map(projectFile) } : data, storageVersion(root));
     }
     const core = catalogCore(root);
-    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part), select(core), projectFile, search);
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part, signal), select(core), projectFile, search);
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
   }
 
-  async loadDatabaseCatalogIndex(select) {
-    return this.loadDatabaseCatalog(select, fileCatalogIndex, true);
+  async loadDatabaseCatalogIndex(select, options = {}) {
+    return this.loadDatabaseCatalog(select, fileCatalogIndex, true, options);
   }
 
   async getDatabaseVersion() {
@@ -860,36 +866,48 @@ export class GoogleDriveStorageProvider {
     });
     return uniqueDriveMatch(result);
   }
-  async findKnowledgeSearch(hash) {
+  async findKnowledgeSearch(hash, { signal } = {}) {
+    signal?.throwIfAborted();
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeSearchError();
     await this.init();
-    const result = await this.client.files.list({
-      q: `name = 'smena-knowledge-search-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeSearch' and value='1' }`,
-      fields: 'files(id,size)',
-      spaces: 'drive',
-      pageSize: 2,
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-    });
+    signal?.throwIfAborted();
+    const result = await this.client.files.list(
+      {
+        q: `name = 'smena-knowledge-search-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeSearch' and value='1' }`,
+        fields: 'files(id,size)',
+        spaces: 'drive',
+        pageSize: 2,
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+      },
+      signal ? { signal } : undefined,
+    );
     return uniqueDriveMatch(result);
   }
-  async findKnowledgeMetadata(hash) {
+  async findKnowledgeMetadata(hash, { signal } = {}) {
+    signal?.throwIfAborted();
     if (!/^[a-f0-9]{64}$/.test(hash || '')) throw knowledgeMetadataError();
     await this.init();
-    const result = await this.client.files.list({
-      q: `name = 'smena-knowledge-metadata-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeMetadata' and value='1' }`,
-      fields: 'files(id,size)',
-      spaces: 'drive',
-      pageSize: 2,
-      includeItemsFromAllDrives: true,
-      supportsAllDrives: true,
-    });
+    signal?.throwIfAborted();
+    const result = await this.client.files.list(
+      {
+        q: `name = 'smena-knowledge-metadata-${hash}.json' and '${escapeDriveQuery(this.rootFolderId)}' in parents and trashed = false and appProperties has { key='smenaKnowledgeMetadata' and value='1' }`,
+        fields: 'files(id,size)',
+        spaces: 'drive',
+        pageSize: 2,
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+      },
+      signal ? { signal } : undefined,
+    );
     return uniqueDriveMatch(result);
   }
-  async readKnowledgeMetadata(hash) {
-    const file = await this.findKnowledgeMetadata(hash);
+  async readKnowledgeMetadata(hash, { signal } = {}) {
+    signal?.throwIfAborted();
+    const file = await this.findKnowledgeMetadata(hash, { signal });
     if (!file || Number(file.size) > KNOWLEDGE_METADATA_MAX_BYTES) throw knowledgeMetadataError();
-    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' })).data;
+    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text', ...(signal ? { signal } : {}) }))
+      .data;
   }
   async writeKnowledgeMetadata(text, hash) {
     if (typeof text !== 'string' || Buffer.byteLength(text) > KNOWLEDGE_METADATA_MAX_BYTES || createHash('sha256').update(text).digest('hex') !== hash)
@@ -911,10 +929,12 @@ export class GoogleDriveStorageProvider {
       supportsAllDrives: true,
     });
   }
-  async readKnowledgeSearch(hash) {
-    const file = await this.findKnowledgeSearch(hash);
+  async readKnowledgeSearch(hash, { signal } = {}) {
+    signal?.throwIfAborted();
+    const file = await this.findKnowledgeSearch(hash, { signal });
     if (!file || Number(file.size) > SEARCH_OBJECT_MAX_BYTES) throw knowledgeSearchError();
-    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text' })).data;
+    return (await this.client.files.get({ fileId: file.id, alt: 'media', supportsAllDrives: true }, { responseType: 'text', ...(signal ? { signal } : {}) }))
+      .data;
   }
   async writeKnowledgeSearch(text, hash) {
     if (typeof text !== 'string' || Buffer.byteLength(text) > SEARCH_OBJECT_MAX_BYTES || createHash('sha256').update(text).digest('hex') !== hash)

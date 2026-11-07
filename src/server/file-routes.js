@@ -5,7 +5,9 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Router, urlencoded } from 'express';
 import multer from 'multer';
-import { requireRole } from './auth.js';
+import { requireRole, getWorkspaceAccessProfiles } from './auth.js';
+import { searchFilePage } from './file-search.js';
+import { requestSignal } from './request-signal.js';
 import { filePresentationType, formatFileSize, getFileResponsePolicy, getFileUploadPolicy, validateFileUpload, multipartFilename } from './file-policy.js';
 import { getStorageProvider } from './storage/index.js';
 import {
@@ -216,6 +218,15 @@ fileRouter.post('/catalog/query', async (request, response, next) => {
     response.json(await queryWorkspaceFileCatalog(request.user, request.body));
   } catch (error) {
     next(error);
+  }
+});
+fileRouter.post('/catalog/search', async (request, response, next) => {
+  const signal = requestSignal(request, response);
+  try {
+    response.setHeader('Cache-Control', 'no-store');
+    response.json(await searchFilePage({ ...request.body, signal }, request.user, getWorkspaceAccessProfiles()));
+  } catch (error) {
+    if (!signal.aborted) next(error);
   }
 });
 
