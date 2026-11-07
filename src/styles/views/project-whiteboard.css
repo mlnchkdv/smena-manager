@@ -1007,3 +1007,20 @@
     height: 200px;
   }
 }
+.whiteboard-material-image {
+  position: relative;
+  height: 72px;
+  min-height: 40px;
+  overflow: hidden;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+.whiteboard-material-image .art {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--text-3);
+}
+.whiteboard-material-image .file-thumbnail {
+  object-fit: contain;
+}

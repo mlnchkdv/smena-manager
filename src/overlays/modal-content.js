@@ -314,7 +314,7 @@ export function filePreviewModal(m, H) {
   const t = FT[f.type] || FT.other;
   const preview = m.preview;
   const content = ['video', 'audio'].includes(preview.kind)
-    ? `<${preview.kind} controls playsinline preload="metadata" data-file-player="${esc(f.id)}" src="${esc(preview.url)}" aria-label="${esc(f.name)}" class="file-preview-player"></${preview.kind}><p class="hint" data-media-fallback hidden>${isRussian() ? 'Браузер не может воспроизвести этот формат. Скачайте файл.' : 'This browser cannot play this format. Download the file.'}</p>`
+    ? `<${preview.kind} controls playsinline preload="metadata" data-file-player="${esc(f.id)}" data-file-preview-key="${esc(m.previewInstance)}" ${m.initialTime != null ? `data-media-start="${m.initialTime}"` : ''} src="${esc(preview.url)}" aria-label="${esc(f.name)}" class="file-preview-player"></${preview.kind}>${m.initialTime != null ? `<p class="hint" data-media-start-status role="status">${isRussian() ? 'Начальная позиция' : 'Start position'}: ${m.initialTime} ${isRussian() ? 'с. Если она выходит за длительность, откроется конец файла.' : 's. Positions beyond the duration open near the end.'}</p>` : ''}<p class="hint" data-media-fallback hidden>${isRussian() ? 'Браузер не может воспроизвести этот формат. Скачайте файл.' : 'This browser cannot play this format. Download the file.'}</p>`
     : preview.kind === 'image' || preview.kind === 'pdf'
       ? `<img src="${esc(preview.url)}" alt="${esc(f.name)}" class="file-preview-image" translate="no">`
       : preview.kind === 'text'

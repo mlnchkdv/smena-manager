@@ -10,7 +10,8 @@ import './whiteboard-tools.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
-import { whiteboardScope, whiteboardState, whiteboardLabel, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardScope, whiteboardState, whiteboardLabel, whiteboardMaterial, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardMediaPosition, parseWhiteboardTime, formatWhiteboardTime } from '../shared/whiteboard-media.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { currentWhiteboard } from '../core/whiteboard-state.js';
@@ -72,6 +73,23 @@ function modalForm(m, H) {
     body = `${select('from', T('From card', 'От карточки'))}${select('to', T('To card', 'К карточке'))}${field('label', T('Label', 'Подпись'), m.label, 'text', 'maxlength="120"')}${colorField(m)}<label><input type="checkbox" data-in="whiteboardField" data-field="arrow" ${m.arrow ? 'checked' : ''}> ${T('Arrow', 'Стрелка')}</label>`;
   } else {
     body = `${m.nodeType === 'material' ? `<p>${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="7" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}${colorField(m)}<details><summary>${T('Size and position', 'Размер и положение')}</summary><div class="whiteboard-form-grid">${field('x', 'X', m.x, 'number', 'min="-50000" max="50000" step="10"')}${field('y', 'Y', m.y, 'number', 'min="-50000" max="50000" step="10"')}${field('width', T('Width', 'Ширина'), m.width, 'number', 'min="160" max="2000" step="10"')}${field('height', T('Height', 'Высота'), m.height, 'number', 'min="100" max="2000" step="10"')}</div></details>`;
+  }
+  if (m.kind === 'node' && m.nodeType === 'material') {
+    const source = whiteboardMaterial(m.base),
+      media = source?.kind === 'file' ? whiteboardMediaPosition(source.item, m.media) : null;
+    if (media && ['pdf', 'video', 'audio'].includes(media.kind))
+      body = `${
+        media.kind === 'pdf'
+          ? field('mediaPage', T('PDF page', 'Страница PDF'), m.mediaPage ?? '', 'number', 'min="1" max="100000" placeholder="1"')
+          : field(
+              'mediaTime',
+              T('Start at (hh:mm:ss)', 'Начать с (чч:мм:сс)'),
+              m.mediaTime ?? '',
+              'text',
+              'maxlength="16" placeholder="00:00:00" inputmode="numeric"',
+            )
+      }
+      <p class="hint">${T('Leave blank to open the beginning. Only the position is saved; the source file and its access rules stay unchanged.', 'Оставьте пустым, чтобы открыть начало. Сохраняется только позиция; исходный файл и права доступа не меняются.')}</p>${body}`;
   }
   if (!editable(p) && m.kind !== 'material')
     body = `<p class="hint">${T('Read only', 'Только просмотр')}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.kind === 'edge' ? m.label : m.base?.text || whiteboardLabel(m.base))}</p>`;
@@ -171,7 +189,14 @@ A.whiteboardEdit = el => {
   const node = whiteboardOf(current()).nodes.find(n => n.id === (el.dataset.id || whiteboardState().selected));
   if (node) {
     const { type, ...values } = node;
-    openTool({ ...values, kind: 'node', nodeType: type, base: structuredClone(node) });
+    openTool({
+      ...values,
+      mediaPage: node.media?.page ?? '',
+      mediaTime: node.media?.seconds == null ? '' : formatWhiteboardTime(node.media.seconds),
+      kind: 'node',
+      nodeType: type,
+      base: structuredClone(node),
+    });
   }
 };
 IN.whiteboardField = el => {
@@ -198,11 +223,25 @@ A.whiteboardSave = () => {
   if (m.kind === 'edge') item = { id: m.id || uid('we'), from: m.from, to: m.to, label: m.label.trim(), arrow: m.arrow, color: m.color };
   else {
     item = { id: m.id || uid('wc'), type: m.nodeType, x: m.x, y: m.y, width: m.width, height: m.height, color: m.color };
-    if (m.nodeType === 'material') item.target = old.target;
-    else Object.assign(item, { title: m.title.trim(), text: m.text || '' });
+    if (m.nodeType === 'material') {
+      item.target = old.target;
+      const source = whiteboardMaterial(old),
+        kind = source?.kind === 'file' ? whiteboardMediaPosition(source.item, old.media).kind : null;
+      if (kind === 'pdf' && m.mediaPage !== '' && m.mediaPage !== 0) item.media = { page: m.mediaPage };
+      else if (['video', 'audio'].includes(kind)) {
+        const seconds = parseWhiteboardTime(m.mediaTime);
+        if (Number.isNaN(seconds)) {
+          m.error = T('Use hours:minutes:seconds, up to 168:00:00.', 'Укажите часы:минуты:секунды, не более 168:00:00.');
+          render();
+          return;
+        }
+        if (seconds != null) item.media = { seconds };
+      } else if (kind !== 'pdf' && old.media) item.media = structuredClone(old.media);
+    } else Object.assign(item, { title: m.title.trim(), text: m.text || '' });
   }
   if (
     command(next => {
+      if (item.media) next.version = 2;
       next[collection] = old ? next[collection].map(n => (n.id === old.id ? item : n)) : [...next[collection], item];
     })
   ) {
@@ -215,6 +254,19 @@ A.whiteboardAddMaterial = () => {
   if (!editable(current())) return;
   openTool({ kind: 'material', query: '', files: [], loading: false });
   void queryFiles();
+};
+A.whiteboardOpenMedia = el => {
+  const node = whiteboardOf(current()).nodes.find(node => node.id === el.dataset.id),
+    source = node && whiteboardMaterial(node);
+  if (source?.kind !== 'file') return;
+  const position = whiteboardMediaPosition(source.item, node.media);
+  A.previewFile({
+    dataset: {
+      id: source.id,
+      ...(position.page ? { page: String(position.page) } : {}),
+      ...(position.seconds != null ? { seconds: String(position.seconds) } : {}),
+    },
+  });
 };
 let queryTimer;
 IN.whiteboardQuery = el => {

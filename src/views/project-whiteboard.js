@@ -4,6 +4,8 @@ import { toast } from '../ui/toast.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { esc } from '../core/utils.js';
 import { whiteboardMaterialPreview } from '../shared/whiteboard-material.js';
+import { whiteboardMediaPosition, formatWhiteboardTime } from '../shared/whiteboard-media.js';
+import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
@@ -20,7 +22,7 @@ function groupResizeBox(board, state, editable) {
 const button = (action, icon, en, ru, extra = '', context = '') =>
   `<button class="ibtn" data-a="${action}" aria-label="${esc(T(en, ru) + (context ? ': ' + context : ''))}" title="${esc(T(en, ru) + (context ? ': ' + context : ''))}" ${extra}>${ic(icon, 16)}</button>`;
 const icons = { text: 'sticky-note', material: 'file-text', group: 'square-dashed' };
-function materialContent(node, preview) {
+function materialContent(node, preview, source) {
   if (!preview)
     return `<p class="hint">${esc(T('It may have been removed, or access is unavailable.', 'Возможно, материал удалён или нет доступа.'))}</p><button class="link" data-a="whiteboardRetryMaterials">${T('Retry', 'Повторить')}</button>`;
   const names = {
@@ -31,7 +33,10 @@ function materialContent(node, preview) {
     file: T('File', 'Файл'),
     whiteboard: T('Whiteboard', 'Холст'),
   };
-  return `<span class="whiteboard-material-kind">${esc(names[preview.kind] || T('Material', 'Материал'))}</span>${preview.text ? `<p class="whiteboard-material-excerpt" translate="no">${esc(preview.text)}</p>` : ''}${preview.tags.length ? `<div class="whiteboard-material-tags" translate="no">${preview.tags.map(tag => `<span>${esc(tag)}</span>`).join('')}</div>` : ''}<button class="btn btn-ghost btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${T('Open material', 'Открыть материал')}</button>`;
+  const media = preview.kind === 'file' ? whiteboardMediaPosition(source.item, node.media) : null;
+  const image = media?.kind === 'image' && canLoadThumbnail(source.item);
+  const position = media?.page ? T(`Page ${media.page}`, `Страница ${media.page}`) : media?.seconds != null ? formatWhiteboardTime(media.seconds) : '';
+  return `<span class="whiteboard-material-kind">${esc(names[preview.kind] || T('Material', 'Материал'))}${position ? ` · ${esc(position)}` : ''}</span>${image ? `<div class="whiteboard-material-image" data-file-thumb="${esc(source.id)}"><span class="art" aria-hidden="true">${ic('image', 24)}</span></div>` : preview.text ? `<p class="whiteboard-material-excerpt" translate="no">${esc(preview.text)}</p>` : ''}${preview.tags.length ? `<div class="whiteboard-material-tags" translate="no">${preview.tags.map(tag => `<span>${esc(tag)}</span>`).join('')}</div>` : ''}${media?.kind ? `<button class="btn btn-ghost btn-sm" data-a="whiteboardOpenMedia" data-id="${esc(node.id)}">${ic('arrow-up-right', 14)}${T('Open preview', 'Открыть предпросмотр')}</button>` : `<button class="btn btn-ghost btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${T('Open material', 'Открыть материал')}</button>`}`;
 }
 // The view can arrive before its interaction chunk. Keep the first navigation
 // action rather than dropping it while afterRender imports that chunk.
@@ -83,7 +88,7 @@ export function whiteboardCard(node, editable, outline = false) {
   const preview = whiteboardMaterialPreview(material);
   return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px"`}>
     <div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(preview?.icon || icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`, whiteboardLabel(node)) : ''}</div>
-    ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? materialContent(node, preview) : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
+    ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? materialContent(node, preview, material) : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
     ${editable && !outline && state.selected === node.id ? `<span id="whiteboard-resize-help" class="sr">${T('Drag an edge or corner. On the corner handle, use arrow keys to resize, Shift for larger steps. Escape cancels a drag. Resizing a frame keeps its contents unchanged.', 'Потяните край или угол. На угловом маркере меняйте размер стрелками, Shift — крупный шаг. Escape отменяет перетаскивание. Размер рамки меняется без изменения содержимого.')}</span><span class="whiteboard-resize-size" aria-hidden="true"></span>${['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'].map(direction => `<button class="whiteboard-resize" data-board-resize="${direction}" tabindex="${direction === 'se' ? '0' : '-1'}" aria-label="${esc(T('Resize card', 'Изменить размер карточки'))}: ${label} (${direction.toUpperCase()})" aria-describedby="whiteboard-resize-help" title="${esc(T('Drag to resize', 'Потяните, чтобы изменить размер'))}"></button>`).join('')}` : ''}
     ${editable && !outline && state.selected === node.id ? `<button class="whiteboard-connect" data-board-connect="${esc(node.id)}" data-a="whiteboardConnectStart" data-id="${esc(node.id)}" aria-label="${esc(T('Connect from card', 'Связать с другой карточкой'))}: ${label}" title="${esc(T('Drag to another card, or click then choose a card', 'Перетащите на другую карточку или нажмите и выберите её'))}">${ic('plus', 14)}</button>` : ''}
   </article>`;

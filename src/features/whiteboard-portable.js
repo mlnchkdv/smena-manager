@@ -2,10 +2,10 @@ import { A, IN, confirmDlg } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { whiteboardScope, whiteboardState, wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
-import { parseWhiteboardImport, exportJsonCanvas } from '../shared/whiteboard-portable.js';
+import { parseWhiteboardImport, exportJsonCanvas, jsonCanvasExportLosses } from '../shared/whiteboard-portable.js';
 import { pasteWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { entityAllowed } from '../shared/relations.js';
-import { canEditWhiteboard } from '../shared/whiteboards.js';
+import { canEditWhiteboard, canReadWhiteboard } from '../shared/whiteboards.js';
 import { currentWhiteboard } from '../core/whiteboard-state.js';
 import { whiteboardCommand } from './project-whiteboard.js';
 import { getWhiteboardVersions } from '../core/api.js';
@@ -62,6 +62,7 @@ A.whiteboardImport = () => {
             const target = n.target;
             Object.assign(n, { type: 'text', title: T('Unavailable material', 'Недоступный материал'), text: target });
             delete n.target;
+            delete n.media;
             if (!result.warnings.includes('access')) result.warnings.push('access');
           }
         const data = await getWhiteboardVersions(p.id);
@@ -126,10 +127,26 @@ A.applyWhiteboardImport = () => {
 A.whiteboardExportCanvas = () => {
   const p = current();
   if (!p) return;
-  const url = URL.createObjectURL(new Blob([JSON.stringify(exportJsonCanvas(whiteboardOf(p)), null, 2)], { type: 'application/json' }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'whiteboard.canvas';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const board = structuredClone(whiteboardOf(p)),
+    scope = whiteboardScope(p.id);
+  const download = () => {
+    if (current()?.id !== p.id || scope !== whiteboardScope(p.id) || !canReadWhiteboard(D(), current(), D().me, S.ui.currentUser?.role)) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(exportJsonCanvas(board, { allowLossy: true }), null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'whiteboard.canvas';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  if (jsonCanvasExportLosses(board).length)
+    confirmDlg({
+      title: T('Review export', 'Проверка экспорта'),
+      body: T(
+        'JSON Canvas omits PDF pages and media start times. Smena JSON preserves them. Export without these positions?',
+        'JSON Canvas не переносит страницы PDF и время начала медиа. Smena JSON сохраняет их. Экспортировать без этих позиций?',
+      ),
+      ok: T('Export', 'Экспортировать'),
+      run: download,
+    });
+  else download();
 };

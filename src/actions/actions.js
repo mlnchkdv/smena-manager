@@ -66,6 +66,7 @@ import { disableWorkspaceSync, queueWorkspaceSync, retryWorkspaceSync, workspace
 import { workspaceHref } from '../shared/product.js';
 
 import { entityAllowed, resolveGraphEntity } from '../shared/relations.js';
+import { whiteboardMediaPosition } from '../shared/whiteboard-media.js';
 import { graphOptions } from '../ui/relations.js';
 
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
@@ -1230,10 +1231,18 @@ A.previewFile = async el => {
   if (intent !== previewSelection || owner !== getSessionGeneration() || route !== JSON.stringify([S.ui.route, S.ui.params])) return;
   const f = D().files.find(x => x.id === el.dataset.id);
   S.ui.pop = null;
+  const position = f
+    ? whiteboardMediaPosition(
+        f,
+        el.dataset.page ? { page: Number(el.dataset.page) } : el.dataset.seconds != null ? { seconds: Number(el.dataset.seconds) } : null,
+      )
+    : {};
   if (f && entityAllowed(D(), `file:${f.id}`, graphOptions(), true))
     openModal({
       type: 'filePreview',
       file: f,
+      initialPage: position.page,
+      initialTime: position.seconds,
       tid: f.task,
       previewContext: {
         owner: getSessionGeneration(),

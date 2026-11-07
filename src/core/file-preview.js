@@ -1,6 +1,9 @@
 import { downloadWorkspaceFile, mediaContentUrl, getSessionGeneration } from './api.js';
 import { S } from './store.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
+import { uid } from './utils.js';
+import { clampedMediaStart } from '../shared/whiteboard-media.js';
+import { isRussian } from './i18n.js';
 
 const previews = new Map();
 
@@ -8,7 +11,7 @@ export function disposeClosedPreviews() {
   for (const [modal, state] of previews) {
     if (!S.ui.auth && S.ui.modals.includes(modal) && state.owner === S.ui.currentUser?.id && state.generation === getSessionGeneration()) continue;
     document.querySelectorAll('[data-file-player]').forEach(player => {
-      if (player.dataset.filePlayer === modal.file.id) {
+      if (player.dataset.filePlayer === modal.file.id && player.dataset.filePreviewKey === modal.previewInstance) {
         player.pause();
         player.removeAttribute('src');
         player.load();
@@ -23,6 +26,7 @@ export function disposeClosedPreviews() {
 }
 
 export function ensureFilePreview(modal, refresh) {
+  modal.previewInstance ||= uid('preview');
   if (modal.preview) return;
   const policy = filePreviewPolicy(modal.file);
   modal.preview = { kind: policy.kind ? 'loading' : 'unsupported' };
@@ -67,13 +71,38 @@ export function preserveFilePlayers() {
   return () => {
     for (const player of players) {
       const replacement = [...document.querySelectorAll('[data-file-player]')].find(
-        el => el.dataset.filePlayer === player.dataset.filePlayer && el.getAttribute('src') === player.getAttribute('src'),
+        el =>
+          el.dataset.filePreviewKey === player.dataset.filePreviewKey &&
+          el.dataset.filePlayer === player.dataset.filePlayer &&
+          el.getAttribute('src') === player.getAttribute('src'),
       );
       if (replacement) replacement.replaceWith(player);
     }
     document.querySelectorAll('[data-file-player]').forEach(player => {
+      const unavailable = () => {
+        player.dataset.seekUnavailable = 'true';
+        const hint = player.parentElement?.querySelector('[data-media-start-status]');
+        if (hint)
+          hint.textContent = isRussian()
+            ? 'Не удалось перейти к сохранённой позиции. Используйте управление проигрывателем.'
+            : 'The saved start position is unavailable. Use the player controls.';
+      };
+      if (player.dataset.seekUnavailable) unavailable();
       if (player.dataset.bound) return;
       player.dataset.bound = 'true';
+      if (player.hasAttribute('data-media-start')) {
+        const seek = () => {
+          const position = clampedMediaStart(Number(player.dataset.mediaStart), player.duration);
+          if (position == null) return unavailable();
+          try {
+            player.currentTime = position;
+          } catch {
+            unavailable();
+          }
+        };
+        player.addEventListener('loadedmetadata', seek, { once: true });
+        if (player.readyState >= 1) seek();
+      }
       player.addEventListener('error', () => {
         const fallback = player.parentElement?.querySelector('[data-media-fallback]');
         if (fallback) fallback.hidden = false;

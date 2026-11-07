@@ -6,14 +6,14 @@ export function whiteboardSelectionNodes(board, selection) {
 export function copyWhiteboardSelection(board, selection) {
   const nodes = structuredClone(whiteboardSelectionNodes(board, selection)),
     ids = new Set(nodes.map(n => n.id));
-  return { version: 1, nodes, edges: structuredClone(board.edges.filter(e => ids.has(e.from) && ids.has(e.to))) };
+  return { version: board.version, nodes, edges: structuredClone(board.edges.filter(e => ids.has(e.from) && ids.has(e.to))) };
 }
 export function pasteWhiteboardSelection(board, fragment, idFactory, dx = 40, dy = 40) {
   if (!validWhiteboard(fragment)) return null;
   const ids = new Map(fragment.nodes.map(n => [n.id, idFactory('wc')]));
   const nodes = fragment.nodes.map(n => ({ ...structuredClone(n), id: ids.get(n.id), x: n.x + dx, y: n.y + dy }));
   const edges = fragment.edges.map(e => ({ ...structuredClone(e), id: idFactory('we'), from: ids.get(e.from), to: ids.get(e.to) }));
-  const next = { version: 1, nodes: [...board.nodes, ...nodes], edges: [...board.edges, ...edges] };
+  const next = { version: Math.max(board.version, fragment.version), nodes: [...board.nodes, ...nodes], edges: [...board.edges, ...edges] };
   return validWhiteboard(next) ? { board: next, ids: nodes.map(n => n.id) } : null;
 }
 export function arrangeWhiteboardSelection(board, selection, mode) {

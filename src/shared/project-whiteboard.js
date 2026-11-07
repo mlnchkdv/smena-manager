@@ -1,3 +1,4 @@
+import { validWhiteboardMedia } from './whiteboard-media.js';
 export const BOARD_COLORS = ['neutral', 'violet', 'blue', 'green', 'amber', 'rose'];
 export const emptyWhiteboard = () => ({ version: 1, nodes: [], edges: [] });
 export const whiteboardOf = project => project?.whiteboard || emptyWhiteboard();
@@ -5,14 +6,24 @@ const object = value => value && typeof value === 'object' && !Array.isArray(val
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
-  if (!object(board) || board.version !== 1 || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
+  if (!object(board) || ![1, 2].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
   if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > 200 || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
   const ids = new Set();
   for (const node of board.nodes) {
     if (!object(node) || !identity(node.id) || ids.has(node.id) || !['text', 'material', 'group'].includes(node.type)) return false;
     ids.add(node.id);
-    if (Object.keys(node).some(k => !['id', 'type', 'x', 'y', 'width', 'height', 'color', 'title', 'text', 'target'].includes(k))) return false;
+    if (
+      Object.keys(node).some(
+        k => !['id', 'type', 'x', 'y', 'width', 'height', 'color', 'title', 'text', 'target', ...(board.version === 2 ? ['media'] : [])].includes(k),
+      )
+    )
+      return false;
+    if (
+      Object.hasOwn(node, 'media') &&
+      (node.type !== 'material' || typeof node.target !== 'string' || !node.target.startsWith('file:') || !validWhiteboardMedia(node.media))
+    )
+      return false;
     if (!['x', 'y', 'width', 'height'].every(k => Number.isSafeInteger(node[k]) && Math.abs(node[k]) <= 50000)) return false;
     if (node.width < 160 || node.width > 2000 || node.height < 100 || node.height > 2000 || !BOARD_COLORS.includes(node.color)) return false;
     if (node.type === 'material') {

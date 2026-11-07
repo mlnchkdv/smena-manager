@@ -3,8 +3,13 @@ const colors = { neutral: undefined, violet: '6', blue: '5', green: '4', amber: 
 const fail = () => {
   throw new TypeError('WHITEBOARD_IMPORT_INVALID');
 };
-export function exportJsonCanvas(board) {
+export function jsonCanvasExportLosses(board) {
   if (!validWhiteboard(board)) fail();
+  return board.nodes.some(node => node.media) ? ['mediaOffsets'] : [];
+}
+export function exportJsonCanvas(board, { allowLossy = false } = {}) {
+  if (!validWhiteboard(board)) fail();
+  if (!allowLossy && jsonCanvasExportLosses(board).length) throw new TypeError('WHITEBOARD_EXPORT_LOSS_REVIEW_REQUIRED');
   return {
     nodes: board.nodes.map(n => ({
       id: n.id,

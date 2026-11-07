@@ -69,4 +69,15 @@ test('whiteboards inherit project access and new material references require rea
   node.target = 'note:n';
   const saved = mergeClientWorkspace(data, visible, 'editor', 'editor');
   assert.ok(workspaceGraph(saved, { role: 'editor', memberId: 'editor' }).edges.some(e => e.id === 'whiteboard:p:ref'));
+  data.files = [
+    { id: 'private-file', project: 'private', name: 'Private.pdf' },
+    { id: 'visible-file', project: 'p', name: 'Visible.pdf' },
+  ];
+  const mediaClient = projectWorkspace(data, { id: 'editor', role: 'editor' });
+  mediaClient.projects[0].whiteboard = { version: 2, nodes: [{ ...node, target: 'file:private-file', media: { page: 2 } }], edges: [] };
+  assert.throws(() => mergeClientWorkspace(data, mediaClient, 'editor', 'editor'), /permission/);
+  mediaClient.projects[0].whiteboard.nodes[0].target = 'file:visible-file';
+  const mediaSaved = mergeClientWorkspace(data, mediaClient, 'editor', 'editor');
+  assert.deepEqual(mediaSaved.projects.find(project => project.id === 'p').whiteboard, mediaClient.projects[0].whiteboard);
+  assert.deepEqual(mediaSaved.projects.find(project => project.id === 'p').whiteboard.nodes[0].media, { page: 2 });
 });
