@@ -22,6 +22,7 @@ export function knowledgeCatalogNote(note) {
   delete value.formatted_markdown;
   delete value.bodyRef;
   delete value.searchVersion;
+  delete value.governance;
   value.history = (note.history || []).map(version => {
     const { id, at, by, editedBy, savedAt, contentRef } = version;
     return { id, at, by, editedBy, savedAt, ...(contentRef ? { contentRef } : { remote: true }) };

@@ -131,6 +131,7 @@ test('real sharded review writes survive restart, preserve body/history pointers
       'Restoring the exact approved snapshot is recognized without deleting decisions',
     );
     const catalog = await readKnowledgeCatalog(owner);
+    assert.equal(catalog.knowledgeNotes[0].governance, undefined, 'Cold catalog omits the on-demand review journal');
     catalog.knowledgeNotes[0].governance = { ...approved.governance, ownerId: 'editor' };
     catalog.knowledgeNotes[0].sourceFormat = 'text';
     await replaceKnowledgeCatalog(catalog, catalog.revision, owner);
