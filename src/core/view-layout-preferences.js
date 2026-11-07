@@ -1,6 +1,15 @@
 import { D, S } from './store.js';
 
 const key = name => (S.ui.currentUser?.id ? `smena.layout.v1:${S.ui.currentUser.id}:${D().ws.id || D().ws.url}:${name}` : null);
+export function readLayoutPreferenceEntry(name) {
+  try {
+    const target = key(name),
+      raw = target && localStorage.getItem(target);
+    return raw === null || !target ? { stored: false } : { stored: true, value: JSON.parse(raw) };
+  } catch {
+    return { stored: false };
+  }
+}
 export function readLayoutPreference(name, fallback) {
   if (!key(name)) return fallback;
   try {

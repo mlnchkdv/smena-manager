@@ -969,3 +969,35 @@
     display: none;
   }
 }
+
+.graph-entry-guide {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.graph-entry-guide > summary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.graph-entry-guide[open] > summary {
+  margin-bottom: 8px;
+}
+.graph-entry-center {
+  max-width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+.graph-entry-center strong {
+  max-width: min(36vw, 220px);
+}
+.graph-entry-guide .hint {
+  margin-block: 8px 0;
+}
+@media (pointer: coarse) {
+  .graph-entry-guide > summary {
+    min-height: 44px;
+    align-content: center;
+  }
+}

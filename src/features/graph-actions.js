@@ -23,6 +23,7 @@ export function showGraph(el) {
   S.ui.drawer = null;
   go('graph', S.ui.graphCenter ? { center: S.ui.graphCenter } : {});
 }
+A.graphEntryCenter = el => showGraph(el);
 export function searchInGraph() {
   S.ui.graphQuery = S.ui.searchQ || '';
   for (const field of ['graphKind', 'graphProject', 'graphConnected']) S.ui[field] = '';

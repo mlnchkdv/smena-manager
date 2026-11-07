@@ -1,7 +1,8 @@
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { refreshGraphListKeyboard } from '../ui/graph-list-keyboard.js';
 import { diagramViewsControl } from '../ui/diagram-views.js';
-import { preparePersonalGraph } from '../core/diagram-view-state.js';
+import { preparePersonalGraph, activeDiagramView } from '../core/diagram-view-state.js';
+import { graphEntryPlan } from '../shared/graph-entry-plan.js';
 import { diagramPreferences } from '../shared/diagram-views.js';
 import { D, S, visibleProjects } from '../core/store.js';
 import { esc } from '../core/utils.js';
@@ -87,11 +88,20 @@ export function pageGraph() {
         connectedOnly: ui.graphConnected === 'yes',
       });
   const selected = view.nodes.find(node => node.key === ui.graphSelected) || (!ui.graphSelectionClosed && view.nodes.find(node => node.key === center)) || null;
+  const entry = graphEntryPlan(view, {
+    preference: ui.graphClustersChosen ? ui.graphClustersEnabled : undefined,
+    savedView: !!activeDiagramView('graph'),
+    center,
+    query: ui.graphQuery || '',
+  });
+  ui.graphClustersEnabled = entry.grouped;
+  ui.graphClustersAutomatic = entry.automatic;
   const clustered = ui.graphClustersEnabled
     ? clusterGraph(view, {
         expanded: ui.graphClustersExpanded,
         selected: selected?.key,
         reveal: !!center || !!ui.graphQuery?.trim(),
+        dense: entry.dense && !activeDiagramView('graph'),
         label: (group, members) => {
           const colon = group.indexOf(':'),
             kind = group.slice(0, colon),
@@ -147,6 +157,9 @@ export function pageGraph() {
       S.prefs.motion === 'reduce' || (S.prefs.motion === 'system' && matchMedia('(prefers-reduced-motion: reduce)').matches),
       `${S.ui.currentUser?.id}:${D().ws.id || D().ws.url}`,
     );
+  const entryGuide = entry.dense
+    ? `<details class="graph-entry-guide" ${disclosureAttributes('graph:entry')}><summary translate="no">${isRussian() ? 'Начать исследование графа' : 'Explore this graph'}${entry.automatic ? ' · ' + (isRussian() ? 'сгруппирован автоматически' : 'grouped automatically') : ''}</summary><div class="row wrap" translate="no">${entry.entries.map(item => `<button class="btn btn-secondary btn-sm graph-entry-center" data-a="graphEntryCenter" data-key="${esc(item.key)}" title="${esc(item.title)}"><strong class="trunc">${esc(item.title)}</strong><span class="hint">${item.count} · ${isRussian() ? 'показано' : 'shown'}</span></button>`).join('')}${entry.automatic ? `<button class="btn btn-ghost btn-sm" data-a="toggleGraphClusters">${isRussian() ? 'Показать отдельные узлы' : 'Show individual nodes'}</button>` : ''}</div><p class="hint" translate="no">${isRussian() ? 'Выберите связанную группу для локального просмотра. Подсчёт относится к показанным материалам; поиск и фильтры охватывают весь доступный граф.' : 'Choose a connected set for a local view. Counts refer to displayed materials; search and filters cover the accessible graph.'}</p></details>`
+    : '';
   const clusterControls = ui.graphClustersEnabled
     ? `<details class="graph-cluster-tools" ${disclosureAttributes('graph:clusters')}><summary translate="no">${isRussian() ? 'Группы загруженных материалов' : 'Groups of loaded materials'} · ${clustered.clusters?.length || 0}</summary><div class="row wrap"><button class="btn btn-ghost btn-sm" data-a="collapseGraphClusters" translate="no">${isRussian() ? 'Свернуть все группы' : 'Collapse all groups'}</button>${(clustered.clusters || []).map(cluster => graphGroupButton(cluster)).join('')}</div><p class="hint" translate="no">${isRussian() ? 'Поиск, выбор материала и локальный граф раскрывают соответствующие узлы. Группируется только текущее загруженное окно. Раскройте группу или отключите группировку для просмотра отдельных материалов.' : 'Search, material selection and the local graph reveal matching nodes. Only the current loaded window is grouped. Expand a group or turn grouping off to view individual materials.'}</p></details>`
     : '';
@@ -178,6 +191,6 @@ export function pageGraph() {
     ${activeFilters || center ? `<p class="graph-active-context hint" role="status">${activeContext}</p>` : ''}<div class="graph-meta"><details class="graph-legend-disclosure"><summary>Material types</summary><div class="graph-legend" aria-label="Material types">${legend}</div></details><div class="graph-summary" role="status"><span>Materials</span>: ${pending ? '—' : view.total}<span class="graph-meta-dot">·</span><span>Connections</span>: ${pending ? '—' : view.edges.length}</div></div>
     ${pending ? `<section class="graph-pending" aria-busy="${!remote.error}" aria-label="Graph navigation"><div class="catalog-context-status graph-query-status" role="status"><span>${esc(remote.error || 'Loading graph…')}</span>${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryGraphQuery">Try again</button>' : ''}</div></section>` : ''}
     ${view.total > view.nodes.length ? '<p class="hint" role="status">Showing up to 250 materials. Refine the filters or open a local graph.</p>' : ''}
-${!list ? clusterControls : ''}${!view.nodes.length ? (remote && !remote.view ? '' : empty('network', 'No matching materials.', center ? 'The selected material is unavailable or excluded by filters.' : 'Add materials or change the filters to explore connections.')) : `<div class="graph-layout ${selected ? 'has-detail' : ''}"><section class="graph-stage" aria-label="Graph navigation">${list ? `<div class="graph-list">${(ui.graphClustersEnabled ? clustered.nodes : view.nodes).map(node => (node.cluster ? graphGroupButton(node, true) : (index => `<button class="graph-list-item ${selected?.key === node.key ? 'on' : ''}" data-a="selectGraphNode" data-key="${esc(node.key)}" aria-label="${esc([node.title, tr(ENTITY_LABELS[node.kind]), graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')), signatures.filter(signature => signature === signatures[index]).length > 1 ? `#${signatures.slice(0, index + 1).filter(signature => signature === signatures[index]).length}` : ''].filter(Boolean).join(' · '))}" aria-pressed="${selected?.key === node.key}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="graph-list-copy"><span class="trunc" translate="no">${esc(node.title)}</span>${graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')) ? `<small class="trunc" translate="no">${esc(graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')))}</small>` : ''}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`)(view.nodes.indexOf(node)))).join('')}</div>` : `${controls}<div class="graph-surface" data-graph-topology="${esc(graphTopologyKey(clustered))}" role="img" aria-label="Interactive material graph. Use List view for keyboard navigation."><div id="knowledge-graph-canvas"></div></div><p class="graph-help">${S.prefs.graphPhysics ? '<span class="graph-physics-status" role="status" data-graph-physics-status>Layout settled</span>' : ''}${S.prefs.graphSimple ? '<span>Compact nodes. Labels appear when you select or point at a node.</span> ' : ''}<span class="graph-help-pointer">Select a node to see its connections. Drag to move; pinch or scroll to zoom.</span><span class="graph-help-touch">Enable interaction to move the graph. Switch back to scroll the page.</span></p>`}</section>${graphDetails(selected)}</div>`}
+${!list ? entryGuide + clusterControls : ''}${!view.nodes.length ? (remote && !remote.view ? '' : empty('network', 'No matching materials.', center ? 'The selected material is unavailable or excluded by filters.' : 'Add materials or change the filters to explore connections.')) : `<div class="graph-layout ${selected ? 'has-detail' : ''}"><section class="graph-stage" aria-label="Graph navigation">${list ? `<div class="graph-list">${(ui.graphClustersEnabled ? clustered.nodes : view.nodes).map(node => (node.cluster ? graphGroupButton(node, true) : (index => `<button class="graph-list-item ${selected?.key === node.key ? 'on' : ''}" data-a="selectGraphNode" data-key="${esc(node.key)}" aria-label="${esc([node.title, tr(ENTITY_LABELS[node.kind]), graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')), signatures.filter(signature => signature === signatures[index]).length > 1 ? `#${signatures.slice(0, index + 1).filter(signature => signature === signatures[index]).length}` : ''].filter(Boolean).join(' · '))}" aria-pressed="${selected?.key === node.key}">${ic(ENTITY_ICONS[node.kind], 16)}<span class="graph-list-copy"><span class="trunc" translate="no">${esc(node.title)}</span>${graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')) ? `<small class="trunc" translate="no">${esc(graphListContext(node, tr(ENTITY_LABELS[node.kind]), tr('No folder')))}</small>` : ''}</span><span class="badge">${ENTITY_LABELS[node.kind]}</span></button>`)(view.nodes.indexOf(node)))).join('')}</div>` : `${controls}<div class="graph-surface" data-graph-topology="${esc(graphTopologyKey(clustered))}" role="img" aria-label="Interactive material graph. Use List view for keyboard navigation."><div id="knowledge-graph-canvas"></div></div><p class="graph-help">${S.prefs.graphPhysics ? '<span class="graph-physics-status" role="status" data-graph-physics-status>Layout settled</span>' : ''}${S.prefs.graphSimple ? '<span>Compact nodes. Labels appear when you select or point at a node.</span> ' : ''}<span class="graph-help-pointer">Select a node to see its connections. Drag to move; pinch or scroll to zoom.</span><span class="graph-help-touch">Enable interaction to move the graph. Switch back to scroll the page.</span></p>`}</section>${graphDetails(selected)}</div>`}
   </div>`;
 }

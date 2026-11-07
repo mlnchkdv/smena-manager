@@ -1,4 +1,4 @@
-export function clusterGraph(graph, { expanded = [], selected = '', reveal = false, label = group => group } = {}) {
+export function clusterGraph(graph, { expanded = [], selected = '', reveal = false, dense = false, label = group => group } = {}) {
   if (reveal) return { ...graph, clusters: [] };
   const groups = new Map(),
     membership = new Map(),
@@ -10,6 +10,16 @@ export function clusterGraph(graph, { expanded = [], selected = '', reveal = fal
     if (!groups.has(group)) groups.set(group, []);
     groups.get(group).push(node);
   }
+  // Sparse folders otherwise leave hundreds of single nodes in a dense view.
+  // An expanded group and the current selection always retain their identity.
+  if (dense)
+    for (const [group, members] of [...groups]) {
+      if (!/^(note|bookmark)-folder:/.test(group) || members.length >= 3 || open.has(group) || members.some(node => node.key === selected)) continue;
+      const fallback = 'kind:' + members[0].kind;
+      if (open.has(fallback)) continue;
+      groups.delete(group);
+      groups.set(fallback, [...(groups.get(fallback) || []), ...members]);
+    }
   const nodes = [],
     clusters = [];
   for (const [group, members] of groups) {
