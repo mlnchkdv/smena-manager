@@ -28,7 +28,15 @@ function form(m, H) {
     n
       ? n.type === 'material'
         ? n.target
-        : [n.title || n.label, n.text, n.x != null ? `X: ${n.x} · Y: ${n.y} · ${n.width} × ${n.height}` : ''].filter(Boolean).join(' · ').slice(0, 400)
+        : [
+            n.title || n.label,
+            n.sequence != null ? `${T('Frame order', 'Порядок рамки')}: ${n.sequence + 1}` : '',
+            n.text,
+            n.x != null ? `X: ${n.x} · Y: ${n.y} · ${n.width} × ${n.height}` : '',
+          ]
+            .filter(Boolean)
+            .join(' · ')
+            .slice(0, 400)
       : '—';
   return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Compare with the current whiteboard before restoring. The current state will remain in history.', 'Сравните версию с текущим холстом перед восстановлением. Текущее состояние останется в истории.')}</p><details class="whiteboard-history-limits"><summary>${T('History limits', 'Ограничения истории')}</summary><p class="hint">${T('Up to 5 previous versions per whiteboard within a shared 700,000-character budget. Linked materials remain unchanged.', 'До 5 предыдущих версий холста в общем лимите 700 000 символов. Исходные материалы не меняются.')}</p></details>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}"><span>${esc(fmtTimestamp(v.sourceAt || v.at))} · ${esc(author(v))}</span><small>${C(v.board.nodes.length, 'card')} · ${C(v.board.edges.length, 'connection')}</small></button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
     version

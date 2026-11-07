@@ -9,6 +9,7 @@ import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
+import { whiteboardPresentationNavigation } from '../ui/whiteboard-presentation.js';
 import { whiteboardConnectionText } from '../ui/whiteboard-edge-text.js';
 import { whiteboardCurve, whiteboardShapeSvg } from '../shared/whiteboard-diagram.js';
 import { whiteboardOf, whiteboardBounds, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
@@ -131,7 +132,7 @@ function connectionHandles(board, state, editable) {
 export function projectWhiteboard(project) {
   const board = whiteboardOf(project),
     state = whiteboardState(project.id),
-    editable = !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
+    editable = !state.presentationId && !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
   if (!state.selected) state.selection = [];
   const selectedIds = (state.selection?.length ? state.selection : state.selected ? [state.selected] : []).filter(id => board.nodes.some(n => n.id === id));
   const selectedMaterial = selectedIds.length === 1 ? board.nodes.find(n => n.id === selectedIds[0] && n.type === 'material' && whiteboardMaterial(n)) : null;
@@ -141,7 +142,7 @@ export function projectWhiteboard(project) {
         `<button class="whiteboard-edge-row" data-a="whiteboardSelectEdge" data-id="${esc(edge.id)}">${ic('move-right', 14)}<span>${esc(whiteboardConnectionText(board, edge, whiteboardLabel))}</span><small>${esc(edge.label)}</small></button>`,
     )
     .join('');
-  return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
+  return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}${state.presentationId ? ' is-presenting' : ''}" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
   ${
     editable
       ? `<details class="ui-menu whiteboard-add"><summary class="btn btn-primary btn-sm" aria-label="${T('Add', 'Добавить')}">${ic('plus', 15)}<span>${T('Add', 'Добавить')}</span></summary><div>${[
@@ -157,7 +158,7 @@ export function projectWhiteboard(project) {
   }
   ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm whiteboard-view-toggle" data-a="whiteboardToggleOutline" aria-label="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}" title="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}">${ic(state.outline ? 'list' : 'layout-dashboard', 15)}<span>${state.outline ? T('Outline', 'Список') : T('Canvas', 'Холст')}</span></button>${state.outline ? '' : `${whiteboardNavigation(state, editable)}`}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-label="${state.focus ? T('Exit focus', 'Выйти из фокуса') : T('Focus', 'Фокус')}" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}<span>${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</span></button><button class="ibtn whiteboard-tools" data-a="openWhiteboardTools" aria-label="${T('More tools', 'Другие инструменты')}" title="${T('More tools', 'Другие инструменты')}">${ic('ellipsis', 16)}</button>
   </div><p id="whiteboard-help" class="sr">${T('Move cards by their title. Drag empty space to pan; pinch or Ctrl + wheel to zoom. Arrow keys on a selected card move it. Outline mode lists every card and connection.', 'Перемещайте карточки за заголовок. Пустое место — панорама; щипок или Ctrl + колесо — масштаб. Стрелки на выбранной карточке перемещают её. В списке доступны все карточки и связи.')}</p>
-  ${whiteboardContext(board, state, editable)}
+  ${whiteboardPresentationNavigation(board, state)}${whiteboardContext(board, state, editable)}
   ${state.connectFrom || state.reconnect ? `<div class="whiteboard-connect-status" role="status"><span>${T('Choose a destination card. Escape cancels.', 'Выберите карточку назначения. Escape — отмена.')}</span><button class="btn btn-ghost btn-sm" data-a="whiteboardCancelConnect">${T('Cancel', 'Отмена')}</button></div>` : ''}
   ${
     state.outline

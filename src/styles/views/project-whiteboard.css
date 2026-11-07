@@ -1090,3 +1090,52 @@
 .whiteboard-material-image .file-thumbnail {
   object-fit: contain;
 }
+.whiteboard-frame-order {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.whiteboard-frame-order li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.whiteboard-frame-order li > .btn {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+}
+.whiteboard-frame-order .ibtn {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+.whiteboard-presentation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-bottom: 1px solid var(--divider);
+  background: var(--surface);
+}
+.whiteboard-presentation .ibtn,
+.whiteboard-presentation .btn {
+  min-height: 44px;
+  min-width: 44px;
+  flex-shrink: 0;
+}
+.whiteboard-presentation-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+.project-whiteboard.is-presenting > .whiteboard-toolbar,
+.project-whiteboard.is-presenting > .whiteboard-context,
+.project-whiteboard.is-presenting > .whiteboard-help {
+  display: none;
+}

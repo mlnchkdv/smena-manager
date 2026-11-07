@@ -8,6 +8,7 @@ import './whiteboard-history.js';
 import './whiteboard-portable.js';
 import './whiteboard-tools.js';
 import './whiteboard-extract.js';
+import './whiteboard-presentation.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
@@ -51,7 +52,8 @@ const colors = () => [
   T('Rose', 'Розовый'),
 ];
 const current = currentWhiteboard;
-const editable = p => p && !p.archived && canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
+const editable = p =>
+  p && !p.archived && !whiteboardState(p.id).presentationId && canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
 const field = (name, label, value, type = 'text', extra = '') =>
   `<label class="field">${label}<input class="input" data-in="whiteboardField" data-field="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 const colorField = m =>
@@ -268,11 +270,12 @@ A.whiteboardSave = () => {
       } else if (kind !== 'pdf' && old.media) item.media = structuredClone(old.media);
     } else Object.assign(item, { title: m.title.trim(), text: m.text || '' });
     if (m.nodeType === 'shape') item.shape = m.shape;
+    if (m.nodeType === 'group' && old?.sequence != null) item.sequence = old.sequence;
   }
   if (
     command(next => {
       if (item.media) next.version = Math.max(next.version, 2);
-      if (item.type === 'shape' || m.kind === 'edge') next.version = 3;
+      if (item.type === 'shape' || m.kind === 'edge') next.version = Math.max(next.version, 3);
       next[collection] = old ? next[collection].map(n => (n.id === old.id ? item : n)) : [...next[collection], item];
     })
   ) {
@@ -498,6 +501,7 @@ A.whiteboardArrange = el => {
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
 };
 A.whiteboardToggleFocus = () => {
+  if (whiteboardState().presentationId) return A.whiteboardPresentEnd();
   whiteboardState().focus = !whiteboardState().focus;
   syncDiagramWindow();
   render();
@@ -526,11 +530,13 @@ A.whiteboardLocate = el => {
   const node = whiteboardOf(current()).nodes.find(n => n.id === el.dataset.id);
   if (!node) return;
   const s = whiteboardState();
+  const intent = uid('locate');
+  s.locateIntent = intent;
   Object.assign(s, { selected: node.id, selection: [node.id], outline: false, fit: false, autoFit: false });
   render();
   requestAnimationFrame(() => {
     const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
-    if (!box || s !== whiteboardState()) return;
+    if (!box || s !== whiteboardState() || s.locateIntent !== intent) return;
     const camera = whiteboardNodeCamera(node, box);
     if (!camera) return;
     Object.assign(s, camera);
@@ -1425,6 +1431,18 @@ document.addEventListener(
   'keydown',
   e => {
     if (overlayAboveDiagram()) return;
+    if (
+      current() &&
+      whiteboardState().presentationId &&
+      !e.target.closest('input,textarea,select,[contenteditable]') &&
+      ['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') A.whiteboardPresentEnd();
+      else A.whiteboardPresentStep({ dataset: { dir: e.key === 'ArrowLeft' ? '-1' : '1' } });
+      return;
+    }
     if (e.key === 'Escape' && current() && (whiteboardState().connectFrom || whiteboardState().reconnect) && !gesture) {
       e.preventDefault();
       e.stopPropagation();

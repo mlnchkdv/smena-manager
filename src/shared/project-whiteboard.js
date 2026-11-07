@@ -10,7 +10,7 @@ const object = value => value && typeof value === 'object' && !Array.isArray(val
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
-  if (!object(board) || ![1, 2, 3].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
+  if (!object(board) || ![1, 2, 3, 4].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
   if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > 200 || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
   const ids = new Set();
@@ -34,11 +34,14 @@ export function validWhiteboard(board) {
             'target',
             ...(board.version >= 2 ? ['media'] : []),
             ...(board.version >= 3 ? ['shape'] : []),
+            ...(board.version >= 4 ? ['sequence'] : []),
           ].includes(k),
       )
     )
       return false;
     if (node.type === 'shape' ? !BOARD_SHAPES.includes(node.shape) : Object.hasOwn(node, 'shape')) return false;
+    if (Object.hasOwn(node, 'sequence') && (node.type !== 'group' || !Number.isSafeInteger(node.sequence) || node.sequence < 0 || node.sequence > 1000000))
+      return false;
     if (
       Object.hasOwn(node, 'media') &&
       (node.type !== 'material' || typeof node.target !== 'string' || !node.target.startsWith('file:') || !validWhiteboardMedia(node.media))

@@ -1,4 +1,5 @@
 import { movedWhiteboardNodes, validWhiteboard } from './project-whiteboard.js';
+import { appendFrameSequence } from './whiteboard-presentation.js';
 export function whiteboardSelectionNodes(board, selection) {
   const ids = new Set(selection.flatMap(id => movedWhiteboardNodes(board, id).map(n => n.id)));
   return board.nodes.filter(n => ids.has(n.id));
@@ -13,7 +14,8 @@ export function pasteWhiteboardSelection(board, fragment, idFactory, dx = 40, dy
   const ids = new Map(fragment.nodes.map(n => [n.id, idFactory('wc')]));
   const nodes = fragment.nodes.map(n => ({ ...structuredClone(n), id: ids.get(n.id), x: n.x + dx, y: n.y + dy }));
   const edges = fragment.edges.map(e => ({ ...structuredClone(e), id: idFactory('we'), from: ids.get(e.from), to: ids.get(e.to) }));
-  const next = { version: Math.max(board.version, fragment.version), nodes: [...board.nodes, ...nodes], edges: [...board.edges, ...edges] };
+  const next = { version: Math.max(board.version, fragment.version), nodes: [...structuredClone(board.nodes), ...nodes], edges: [...board.edges, ...edges] };
+  appendFrameSequence({ nodes: next.nodes.slice(0, board.nodes.length) }, nodes);
   return validWhiteboard(next) ? { board: next, ids: nodes.map(n => n.id) } : null;
 }
 export function arrangeWhiteboardSelection(board, selection, mode) {
