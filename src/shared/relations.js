@@ -4,6 +4,7 @@ import { canEditProject, canReadProject, entityProjectId } from './project-acces
 import { bindWikiReferences } from './knowledge-links.js';
 import { folderTrail } from './knowledge-tools.js';
 import { canReadWhiteboard, canEditWhiteboard } from './whiteboards.js';
+import { coldKnowledgeBodyLinks } from './knowledge-body-links.js';
 export { bindWikiReferences } from './knowledge-links.js';
 
 export const ENTITY_COLLECTIONS = Object.freeze({
@@ -72,8 +73,10 @@ export function workspaceGraph(data, options = {}) {
   for (const note of notes) {
     const from = entityKey('note', note.id);
     if (!visible.has(from)) continue;
-    for (const id of knowledgeFileReferences(note)) add({ id: `media:${note.id}:${id}`, from, to: `file:${id}`, type: 'source', origin: 'wiki' });
-    for (const ref of materialReferences(note.formatted_markdown))
+    const coldLinks = typeof note.formatted_markdown !== 'string' ? coldKnowledgeBodyLinks(note) : [];
+    const files = new Set([...knowledgeFileReferences(note), ...coldLinks.filter(ref => ref.syntax === 'media').map(ref => ref.key.slice(5))]);
+    for (const id of files) add({ id: `media:${note.id}:${id}`, from, to: `file:${id}`, type: 'source', origin: 'wiki' });
+    for (const ref of [...materialReferences(note.formatted_markdown), ...coldLinks.filter(ref => ref.syntax === 'inline')])
       add({ id: `inline:${note.id}:${ref.key}`, from, to: ref.key, type: 'source', origin: 'wiki' });
     for (const ref of note.wikiRefs || []) {
       if (!ref.target || !noteIds.has(ref.target)) unresolved.push({ from, label: ref.label });

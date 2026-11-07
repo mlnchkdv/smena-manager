@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { KNOWLEDGE_BODY_KIND, KNOWLEDGE_BODY_MAX_BYTES, externalKnowledgeBody, validKnowledgeBodyRef } from '../shared/knowledge-body.js';
 import { noteCardExcerpt } from '../shared/knowledge-search.js';
 import { cacheSearchValue } from './knowledge-search-cache.js';
+import { indexKnowledgeBodyLinks } from '../shared/knowledge-body-links.js';
 
 export const knowledgeBodyError = (code = 'KNOWLEDGE_BODY_INTEGRITY', statusCode = 503) =>
   Object.assign(
@@ -22,7 +23,7 @@ export async function storeKnowledgeBody(storage, note) {
   cacheSearchValue(storage, 'body:' + sha256, note.formatted_markdown.toLocaleLowerCase(), Buffer.byteLength(note.formatted_markdown) * 2);
   const metadata = { ...note, searchVersion: 1, bodyPreview: noteCardExcerpt(note, '').slice(0, 180) };
   delete metadata.formatted_markdown;
-  return { ...metadata, bodyRef: { kind: KNOWLEDGE_BODY_KIND, sha256, bytes } };
+  return { ...metadata, bodyLinks: indexKnowledgeBodyLinks(note.formatted_markdown, sha256), bodyRef: { kind: KNOWLEDGE_BODY_KIND, sha256, bytes } };
 }
 
 export async function loadKnowledgeBody(storage, note) {
@@ -41,6 +42,7 @@ export async function loadKnowledgeBody(storage, note) {
   delete metadata.bodyRef;
   delete metadata.bodyPreview;
   delete metadata.searchVersion;
+  delete metadata.bodyLinks;
   return { ...metadata, formatted_markdown: object.formatted_markdown };
 }
 
@@ -62,8 +64,8 @@ export async function stageKnowledgeBodyWindow(data, storage, ids, { signal } = 
     // Canonical existing refs must verify too; a caller cannot migrate a
     // broken object into the published index just by marking it completed.
     if (externalKnowledgeBody(note)) {
-      await loadKnowledgeBody(storage, note);
-      knowledgeNotes.push(note);
+      const loaded = await loadKnowledgeBody(storage, note);
+      knowledgeNotes.push({ ...note, bodyLinks: indexKnowledgeBodyLinks(loaded.formatted_markdown, note.bodyRef.sha256) });
     } else knowledgeNotes.push(await storeKnowledgeBody(storage, note));
   }
   signal?.throwIfAborted();
