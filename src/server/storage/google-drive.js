@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import { Readable } from 'node:stream';
 import { drivePreparedBackups, restorePreparedBackup } from './prepared-backup-objects.js';
 import { driveKnowledgeImportJournals } from './knowledge-import-journal.js';
+import { driveKnowledgeInventory } from './knowledge-object-inventory.js';
 import { createHash } from 'node:crypto';
 import { rememberStorageVersion, storageVersion } from './version-token.js';
 import { configureProviderTimeout, recordProviderFailure } from '../provider-safety.js';
@@ -104,6 +105,7 @@ export class GoogleDriveStorageProvider {
   constructor({ scope } = {}) {
     Object.assign(this, drivePreparedBackups(this));
     Object.assign(this, driveKnowledgeImportJournals(this));
+    Object.assign(this, driveKnowledgeInventory(this));
     this.scope = scope;
     this.allowBootstrap = false;
     if (scope) {

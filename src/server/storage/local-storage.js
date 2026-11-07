@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { localPreparedBackups, restorePreparedBackup } from './prepared-backup-objects.js';
 import { renameWithRetry } from './windows-file-retry.js';
 import { localKnowledgeImportJournals } from './knowledge-import-journal.js';
+import { localKnowledgeInventory } from './knowledge-object-inventory.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { mediaBackupPart } from '../../shared/media-backup-part.js';
@@ -24,6 +25,7 @@ export class LocalStorageProvider {
     this.backupsPath = path.resolve(options.backupsPath || process.env.BACKUPS_PATH || path.join(path.dirname(this.databasePath), 'backups'));
     Object.assign(this, localPreparedBackups(this));
     Object.assign(this, localKnowledgeImportJournals(this));
+    Object.assign(this, localKnowledgeInventory(this));
   }
 
   documentPath(name) {
