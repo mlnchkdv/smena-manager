@@ -9,6 +9,7 @@ import { refreshWorkspaces, workspaceSettingsFeedback } from '../ui/workspaces.j
 import { MOD, dOff, esc, fmtDate, fmtTimestamp } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { D, S, me, myNotificationPreferences } from '../core/store.js';
+import { viewStorageSettings } from '../ui/view-storage-settings.js';
 import { av, fsize, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
@@ -286,6 +287,7 @@ export function settingsBody(sec, title) {
     case 'appearance':
       return (
         H(isRussian() ? 'Оформление вашего интерфейса в текущем пространстве.' : 'Customize your interface in the current workspace.') +
+        viewStorageSettings() +
         `
       <div class="sblock" style="margin-top:0"><h2>Theme</h2><div class="themecards" style="margin-top:12px" role="radiogroup" aria-label="Theme">${[
         ['light', 'Light'],

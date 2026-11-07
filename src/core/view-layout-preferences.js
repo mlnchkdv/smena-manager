@@ -2,6 +2,8 @@ import { D, S } from './store.js';
 import { layoutPreferenceKeys, readScopedLayout } from '../shared/layout-preference-storage.js';
 
 const keys = name => layoutPreferenceKeys(S.ui.currentUser?.id, D().ws.id || D().ws.url, name);
+export const localViewResetApplies = (event, section) =>
+  event.detail?.user === S.ui.currentUser?.id && event.detail.workspace === (D().ws.id || D().ws.url) && event.detail.section === section;
 export function readLayoutPreferenceEntry(name) {
   try {
     return readScopedLayout(localStorage, keys(name));

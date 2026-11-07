@@ -1,7 +1,7 @@
 import { D, S } from './store.js';
 import { fileViewKey, readFileView, writeFileView } from '../shared/file-view.js';
 import { readFilePresets, writeFilePresets } from '../shared/file-presets.js';
-import { readLayoutPreference } from './view-layout-preferences.js';
+import { readLayoutPreference, localViewResetApplies } from './view-layout-preferences.js';
 import { fileContextKey, readFileContext, writeFileContext } from '../shared/file-context-store.js';
 export function fileFolderView() {
   return innerWidth <= 640
@@ -150,6 +150,25 @@ document.addEventListener(
   true,
 );
 const key = () => fileViewKey(S.ui.currentUser?.id, D().ws?.id || D().ws?.url);
+window.addEventListener('smena:device-view-reset', event => {
+  if (!localViewResetApplies(event, 'files')) return;
+  let storage;
+  try {
+    storage = localStorage;
+  } catch {
+    /* The in-memory default remains available. */
+  }
+  const value = readFileView(storage, key());
+  Object.assign(S.ui, {
+    fileView: value.view,
+    fileSort: value.sort,
+    filePageSize: value.pageSize,
+    fileFolderLayout: value.folderLayout,
+    fileFoldersCollapsed: value.foldersCollapsed,
+    fileFoldersHasChoice: false,
+  });
+  // A view reset must not use the account-change path: that path cancels transfers.
+});
 export function filePreferences() {
   const next = key();
   if (next === loadedKey) return;

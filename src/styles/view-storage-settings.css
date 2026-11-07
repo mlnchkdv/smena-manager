@@ -1,0 +1,49 @@
+.view-storage-settings > summary {
+  cursor: pointer;
+  min-height: 36px;
+  align-content: center;
+  font-weight: 500;
+}
+.view-storage-settings dl {
+  margin-block: 12px;
+}
+.view-storage-settings dt {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  margin-block-start: 12px;
+}
+.view-storage-settings dd {
+  margin: 4px 0 0;
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+.view-reset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 10px;
+  border-top: 1px solid var(--divider);
+}
+.view-reset-row > div {
+  min-width: 0;
+}
+.view-reset-row strong {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.view-reset-row .hint {
+  margin: 4px 0 0;
+}
+.view-reset-row > button {
+  flex: 0 0 auto;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .view-storage-settings > summary {
+    min-height: 44px;
+  }
+  .view-reset-row > button {
+    min-height: 44px;
+  }
+}

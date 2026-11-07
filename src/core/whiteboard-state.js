@@ -1,4 +1,4 @@
-import { readLayoutPreference } from './view-layout-preferences.js';
+import { readLayoutPreference, localViewResetApplies } from './view-layout-preferences.js';
 import { activeDiagramView } from './diagram-view-state.js';
 import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
@@ -16,6 +16,9 @@ export const wbText = (en, ru) => (isRussian() ? ru : en);
 export const wbCount = (count, kind) => countLabel(count, kind, isRussian() ? 'ru-RU' : 'en-US');
 export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.ui.activeWorkspace, D().ws.id || D().ws.url, id]);
 let state;
+window.addEventListener('smena:device-view-reset', event => {
+  if (state && localViewResetApplies(event, 'other')) Object.assign(state, { minimap: false, resizeAspect: false, resizeGuides: true, collapsedGroups: {} });
+});
 export function whiteboardState(id = S.ui.params.id) {
   const scope = whiteboardScope(id);
   if (state?.scope !== scope) {

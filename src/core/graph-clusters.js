@@ -1,7 +1,10 @@
 import { D, S } from './store.js';
 import { getSessionGeneration } from './api.js';
-import { readLayoutPreferenceEntry, writeLayoutPreference } from './view-layout-preferences.js';
+import { readLayoutPreferenceEntry, writeLayoutPreference, localViewResetApplies } from './view-layout-preferences.js';
 let owner;
+window.addEventListener('smena:device-view-reset', event => {
+  if (localViewResetApplies(event, 'other')) owner = undefined;
+});
 export function prepareGraphClusters() {
   const scope = JSON.stringify([getSessionGeneration(), S.ui.activeWorkspace, D().ws.id || D().ws.url]);
   if (scope !== owner) {

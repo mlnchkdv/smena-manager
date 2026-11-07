@@ -1,7 +1,10 @@
 import { D, S } from './store.js';
-import { readLayoutPreference, writeLayoutPreference } from './view-layout-preferences.js';
+import { readLayoutPreference, writeLayoutPreference, localViewResetApplies } from './view-layout-preferences.js';
 
 const views = new Map();
+window.addEventListener('smena:device-view-reset', event => {
+  if (localViewResetApplies(event, 'other')) views.clear();
+});
 export function collectionView(name, defaults) {
   const scope = JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
   let view = views.get(name);

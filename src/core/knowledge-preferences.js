@@ -1,6 +1,10 @@
 import { D, S } from './store.js';
 import { knowledgeViewKeys, readScopedLayout } from '../shared/layout-preference-storage.js';
+import { localViewResetApplies } from './view-layout-preferences.js';
 let loadedKey;
+window.addEventListener('smena:device-view-reset', event => {
+  if (localViewResetApplies(event, 'knowledge')) loadedKey = undefined;
+});
 const keys = () => knowledgeViewKeys(S.ui.currentUser?.id, D().ws.id || D().ws.url);
 const key = () => keys()[0];
 export function knowledgePreferences() {
