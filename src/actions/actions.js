@@ -35,6 +35,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
 import { applyWorkListIntent } from '../shared/work-list-intent.js';
+import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import {
@@ -1451,11 +1452,14 @@ document.addEventListener('input', e => {
 /* selection & bulk */
 A.selRow = el => {
   const id = el.dataset.id;
+  const item = task(id);
+  if (!item || !canEditProject(proj(item.project), D().me, S.ui.currentUser?.role || 'viewer')) return;
   S.ui.sel.has(id) ? S.ui.sel.delete(id) : S.ui.sel.add(id);
   render();
 };
 A.selAll = el => {
-  const ids = $$('[data-task-row]', el.closest('.tlist')).map(r => r.dataset.taskRow);
+  const shown = $$('[data-task-row]', el.closest('.tlist')).map(r => r.dataset.taskRow);
+  const ids = selectedEditableTasks(shown, new Set(shown), D(), S.ui.currentUser?.role || 'viewer').map(task => task.id);
   const all = ids.every(i => S.ui.sel.has(i));
   ids.forEach(i => (all ? S.ui.sel.delete(i) : S.ui.sel.add(i)));
   render();
@@ -1479,24 +1483,49 @@ A.pdfPreviewPage = el => {
 };
 A.bulkSet = el => {
   const f = el.dataset.f;
-  let v = el.dataset.v || null;
-  const ids = [...S.ui.sel];
+  const v = el.dataset.v || null;
+  if (
+    !['status', 'assignee', 'priority'].includes(f) ||
+    (f === 'status' && !ST[v]) ||
+    (f === 'priority' && !PR[v]) ||
+    (f === 'assignee' && v && !D().members.some(m => m.id === v && m.status === 'active'))
+  )
+    return;
+  const ids = taskBulkIds();
+  if (!ids.length) return;
   S.ui.pop = null;
   if (mutate(() => ids.forEach(id => applyPatch(task(id), { [f]: v })))) toast(`Updated ${ids.length} task${ids.length > 1 ? 's' : ''}`);
 };
 A.bulkDelete = () => {
-  const ids = [...S.ui.sel];
+  const ids = taskBulkIds();
+  if (!ids.length) return;
   confirmDlg({
     title: `Delete ${ids.length} task${ids.length > 1 ? 's' : ''}?`,
-    body: 'The selected tasks, their subtasks, and comments will be permanently deleted.',
+    body: isRussian()
+      ? 'Выбранные задачи будут перемещены в корзину. Их можно восстановить в настройках.'
+      : 'The selected tasks will move to Trash. You can restore them in Settings.',
     ok: `Delete ${ids.length} task${ids.length > 1 ? 's' : ''}`,
     danger: true,
     run: () => {
+      const permitted = new Set(taskBulkIds());
+      const current = ids.filter(id => permitted.has(id));
+      if (!current.length) return;
       const snap = snapshot();
-      if (mutate(() => deleteTasks(ids))) toast(`Deleted ${ids.length} tasks`, { action: 'Undo', onAction: () => restore(snap) });
+      if (mutate(() => deleteTasks(current))) toast(`Deleted ${current.length} tasks`, { action: 'Undo', onAction: () => restore(snap) });
     },
   });
 };
+
+function taskBulkIds() {
+  let ids;
+  try {
+    ids = JSON.parse(document.querySelector('.bulkbar[data-task-scope]')?.dataset.taskScope || '[]');
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(ids) || ids.some(id => typeof id !== 'string')) return [];
+  return selectedEditableTasks(ids, S.ui.sel, D(), S.ui.currentUser?.role || 'viewer').map(task => task.id);
+}
 
 /* views: sort, group, filters, columns */
 A.sortBy = el => {

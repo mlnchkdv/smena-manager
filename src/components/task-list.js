@@ -10,6 +10,8 @@ import { fxc } from '../shell/render.js';
 import { activityExtra, inProject, isRussian, t as tr } from '../core/i18n.js';
 import { listWindow } from '../shared/list-window.js';
 import { activityDateExtra, activityVerbForm } from '../shared/activity-copy.js';
+import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
+import { canEditProject } from '../shared/project-access.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
@@ -44,7 +46,8 @@ export function cellProject(t) {
 export const CELL = { status: cellStatus, assignee: cellAssignee, priority: cellPrio, due: cellDue, labels: cellLabels, project: cellProject };
 
 export function taskRow(t, cols, tpl, opt = {}) {
-  const sel = S.ui.sel.has(t.id);
+  const editable = canEditProject(proj(t.project), D().me, S.ui.currentUser?.role || 'viewer');
+  const sel = editable && S.ui.sel.has(t.id);
   const open = S.ui.openTasks[t.id];
   const editing = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === 'title';
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
@@ -54,7 +57,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
     <div class="c-check">${
       opt.complete
         ? `<input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Mark ${esc(t.title)} complete">`
-        : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
+        : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
     }</div>
     <div class="ttl" ${editing ? '' : `data-a="openTask" data-id="${t.id}"`} data-dbl="editTitle">
       ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
@@ -126,9 +129,10 @@ export function listHtml(groups, key, opt = {}) {
   </div>${bulkBar(all)}`;
 }
 export function bulkBar(ids) {
-  const n = ids.filter(id => S.ui.sel.has(id)).length;
+  const selected = selectedEditableTasks(ids, S.ui.sel, D(), S.ui.currentUser?.role || 'viewer').map(task => task.id);
+  const n = selected.length;
   if (!n) return '';
-  return `<div class="bulkbar${S.ui.fx.bulk ? ' enter' : ''}" role="toolbar" aria-label="Bulk actions"><b style="font-weight:600">${n} selected</b><span class="sep"></span>
+  return `<div class="bulkbar${S.ui.fx.bulk ? ' enter' : ''}" data-task-scope="${esc(JSON.stringify(selected))}" role="toolbar" aria-label="Bulk actions"><b style="font-weight:600">${n} selected</b><span class="sep"></span>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-status">${ic('circle-dot', 14)}Status</button>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-assignee">${ic('user', 14)}Assignee</button>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-priority">${ic('signal-high', 14)}Priority</button>
