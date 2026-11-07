@@ -107,7 +107,7 @@ export function permsTable() {
           .slice(1)
           .map(
             v =>
-              `<td>${v ? `<span style="color:var(--green);display:inline-flex" aria-label="Allowed">${ic('check', 15)}</span>` : `<span class="faint" style="display:inline-flex" aria-label="Not allowed">${ic('minus', 15)}</span>`}</td>`,
+              `<td>${v ? `<span role="img" style="color:var(--green);display:inline-flex" aria-label="Allowed">${ic('check', 15)}</span>` : `<span role="img" class="faint" style="display:inline-flex" aria-label="Not allowed">${ic('minus', 15)}</span>`}</td>`,
           )
           .join('')}</tr>`,
     )
