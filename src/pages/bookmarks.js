@@ -84,7 +84,7 @@ function bookmarkCard(link, folders, readOnly) {
     <div class="bookmark-card-top">
       <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
       <div class="grow min0"><a id="bookmark-title-${esc(link.id)}" class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
-      <span class="bookmark-importance tone-${importance.tone}" aria-label="${esc(`${t('Importance')}: ${t(importance.label)}`)}">${prIcon(importance.priority, 13)}<span>${importance.label}</span></span>
+      <span class="bookmark-importance tone-${importance.tone}"><span class="sr">${esc(t('Importance'))}: </span>${prIcon(importance.priority, 13)}<span>${importance.label}</span></span>
     </div>
     ${link.description ? `<p class="bookmark-description" translate="no">${esc(link.description)}</p>` : ''}
     ${link.description && link.description.length > 120 ? `<details class="bookmark-reading-details" ${disclosureAttributes(`bookmark:${link.id}`)}><summary id="bookmark-reading-${esc(link.id)}" data-open-label="Collapse description" data-closed-label="Read full description">${disclosureOpen(`bookmark:${link.id}`) ? 'Collapse description' : 'Read full description'}</summary><div class="bookmark-full-description"><p translate="no">${esc(link.description)}</p><a href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(parsed.toString())}</a></div></details>` : ''}

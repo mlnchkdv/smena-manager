@@ -9,7 +9,7 @@ import { segmentedControl } from '../ui/segmented-control.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { notificationWorkflow } from '../ui/notification-workflow.js';
-import { isRussian } from '../core/i18n.js';
+import { isRussian, t as tr } from '../core/i18n.js';
 
 function notificationRow(n) {
   const t = n.task ? task(n.task) : null;
@@ -17,7 +17,7 @@ function notificationRow(n) {
   const contextId = `notification-${esc(n.id)}`;
   return `<div class="nrow notification-item ${n.read ? '' : 'unread'}"><button type="button" class="notification-open" data-a="openNotif" data-id="${esc(n.id)}">
     ${notifIcon(n)}<span class="grow notification-copy"><span class="notification-title" id="${contextId}">${notifText(n)}</span><span class="notification-snippet muted trunc" translate="no">${notifSnippet(n)}</span><span class="notification-meta faint">${p ? `<span translate="no">${esc(p.name)}</span> · ` : ''}${ago(n.at)}</span></span>
-    ${n.read ? '' : '<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:8px" aria-label="Unread"></span>'}
+    ${n.read ? '' : '<span role="img" style="width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:8px" aria-label="Unread"></span>'}
     </button>${notificationReadButton(n, contextId)}</div>`;
 }
 
@@ -32,7 +32,7 @@ export function pageNotifications() {
   const buckets = {};
   inboxEventGroups(ns).forEach(group => (buckets[dayBucket(group.notification.at)] ||= []).push(group));
   return `<div class="page notifications-page layout-reading">
-    <div class="ph compact-page-head"><div><div class="notification-heading"><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent" aria-label="${unread} unread" title="${unread} unread">${unread}</span>` : ''}</h1>${notificationWorkflow('notifications')}</div><p class="page-description" translate="no">${isRussian() ? 'Обзор событий. Для ответов на комментарии откройте «Входящие».' : 'Event overview. Open Inbox to reply to comments.'}</p></div>
+    <div class="ph compact-page-head"><div><div class="notification-heading"><h1 class="row" style="gap:10px">Notifications ${unread ? `<span class="badge accent"><span class="sr">${esc(tr('Unread'))}: </span>${unread}</span>` : ''}</h1>${notificationWorkflow('notifications')}</div><p class="page-description" translate="no">${isRussian() ? 'Обзор событий. Для ответов на комментарии откройте «Входящие».' : 'Event overview. Open Inbox to reply to comments.'}</p></div>
       <div class="acts">${segmentedControl({
         label: 'Notification filter',
         key: 'notifFilter',

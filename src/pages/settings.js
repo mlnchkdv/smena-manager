@@ -73,10 +73,11 @@ const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams'
 export function srow(t, d, ctl) {
   ctl = ctl.replace(/data-setting-control aria-label="[^"]*"/gu, () => `aria-label="${esc(t)}"`);
   const toggleId = ctl.match(/id="(setting-toggle-[^"]+)"/)?.[1];
-  return `<div class="srow${toggleId ? ' srow-toggle' : ''}"><div>${toggleId ? `<label class="t" for="${toggleId}">${t}</label>` : `<div class="t">${t}</div>`}${d ? `<div class="d">${d}</div>` : ''}</div><div class="row">${ctl}</div></div>`;
+  if (toggleId) ctl = ctl.replace(`id="${toggleId}"`, `id="${toggleId}" aria-labelledby="${toggleId}-label" ${d ? `aria-describedby="${toggleId}-description"` : ''}`);
+  return `<${toggleId ? `label for="${toggleId}"` : 'div'} class="srow${toggleId ? ' srow-toggle' : ''}"><div><div class="t" ${toggleId ? `id="${toggleId}-label"` : ''}>${t}</div>${d ? `<div class="d" ${toggleId ? `id="${toggleId}-description"` : ''}>${d}</div>` : ''}</div><div class="row">${ctl}</div></${toggleId ? 'label' : 'div'}>`;
 }
 export const tog = (k, on, src = 'pref') =>
-  `<label class="toggle-target"><input id="setting-toggle-${src}-${esc(k)}" type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} data-setting-control aria-label="${k}"></label>`;
+  `<span class="toggle-target"><input id="setting-toggle-${src}-${esc(k)}" type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} data-setting-control aria-label="${k}"></span>`;
 export const sel = (k, opts, v) =>
   `<select class="select" style="width:auto;min-width:180px" data-in="prefSel" data-k="${k}" data-setting-control aria-label="${k}">${opts
     .map(o => {
