@@ -22,6 +22,7 @@
     "check:deploy": "node scripts/check-deployment-config.js",
     "check:live": "node scripts/smoke-deployment.js",
     "check:bundle": "node scripts/check-bundle-size.js",
+    "check:release:local": "node scripts/check-local-release.js",
     "postinstall": "node scripts/build-sanitizer.js",
     "lint": "eslint .",
     "format": "prettier --write .",
