@@ -1,27 +1,21 @@
 import { D, S } from './store.js';
+import { layoutPreferenceKeys, readScopedLayout } from '../shared/layout-preference-storage.js';
 
-const key = name => (S.ui.currentUser?.id ? `smena.layout.v1:${S.ui.currentUser.id}:${D().ws.id || D().ws.url}:${name}` : null);
+const keys = name => layoutPreferenceKeys(S.ui.currentUser?.id, D().ws.id || D().ws.url, name);
 export function readLayoutPreferenceEntry(name) {
   try {
-    const target = key(name),
-      raw = target && localStorage.getItem(target);
-    return raw === null || !target ? { stored: false } : { stored: true, value: JSON.parse(raw) };
+    return readScopedLayout(localStorage, keys(name));
   } catch {
     return { stored: false };
   }
 }
 export function readLayoutPreference(name, fallback) {
-  if (!key(name)) return fallback;
-  try {
-    const value = JSON.parse(localStorage.getItem(key(name)) || 'null');
-    return typeof value === typeof fallback && (typeof value !== 'number' || Number.isFinite(value)) ? value : fallback;
-  } catch {
-    return fallback;
-  }
+  const { stored, value } = readLayoutPreferenceEntry(name);
+  return stored && typeof value === typeof fallback && (typeof value !== 'number' || Number.isFinite(value)) ? value : fallback;
 }
 export function writeLayoutPreference(name, value) {
   try {
-    const target = key(name);
+    const target = keys(name)[0];
     if (target) localStorage.setItem(target, JSON.stringify(value));
   } catch {
     /* Optional device layout; never block workspace work. */

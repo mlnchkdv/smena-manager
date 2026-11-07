@@ -1,13 +1,15 @@
 import { D, S } from './store.js';
+import { knowledgeViewKeys, readScopedLayout } from '../shared/layout-preference-storage.js';
 let loadedKey;
-const key = () => `smena.knowledge.ui.v1:${S.ui.currentUser?.id || 'anonymous'}:${D().ws.id || D().ws.url}`;
+const keys = () => knowledgeViewKeys(S.ui.currentUser?.id, D().ws.id || D().ws.url);
+const key = () => keys()[0];
 export function knowledgePreferences() {
   const next = key();
   if (next !== loadedKey) {
     loadedKey = next;
     let value = {};
     try {
-      const parsed = JSON.parse(localStorage.getItem(next) || '{}');
+      const parsed = readScopedLayout(localStorage, keys()).value;
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) value = parsed;
     } catch {
       /* optional device preferences */
@@ -39,6 +41,7 @@ export function knowledgePreferences() {
 }
 export function saveKnowledgePreferences() {
   try {
+    if (!key()) return;
     localStorage.setItem(
       key(),
       JSON.stringify({
