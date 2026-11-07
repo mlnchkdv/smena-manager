@@ -67,6 +67,7 @@ import { workspaceHref } from '../shared/product.js';
 
 import { entityAllowed, resolveGraphEntity } from '../shared/relations.js';
 import { whiteboardMediaPosition } from '../shared/whiteboard-media.js';
+import { whiteboardCopyTaskHtml } from '../shared/whiteboard-extract.js';
 import { graphOptions } from '../ui/relations.js';
 
 import { WORKSPACE_TRANSPORT_MAX_BYTES, jsonByteLength } from '../shared/workspace-size.js';
@@ -1005,6 +1006,16 @@ A.submitTask = () => {
   const title = ($('#f-title')?.value ?? f.title).trim();
   f.title = title;
   f.desc = $('#f-desc')?.value ?? f.desc;
+  const source = !m.edit && f.whiteboardSource;
+  if (source && !entityAllowed(D(), `whiteboard:${source.id}`, graphOptions(), true)) {
+    toast(
+      isRussian()
+        ? 'Исходный холст недоступен. Скопируйте текст перед закрытием формы.'
+        : 'The source canvas is unavailable. Copy your text before closing the form.',
+      { kind: 'err' },
+    );
+    return;
+  }
   if (!title) {
     S.ui.errors.title = 'Give the task a name';
     render();
@@ -1050,13 +1061,28 @@ A.submitTask = () => {
   let t;
   if (
     !mutate(() => {
-      t = createTask({ ...base, desc: f.desc ? `<p>${esc(f.desc)}</p>` : '', attachments: files });
+      t = createTask({
+        ...base,
+        desc: source ? whiteboardCopyTaskHtml(f.desc, source, D().ws.url) : f.desc ? `<p>${esc(f.desc)}</p>` : '',
+        attachments: files,
+      });
+      if (source) {
+        D().relations ||= [];
+        D().relations.push({
+          id: uid('rel'),
+          from: `task:${t.id}`,
+          to: `whiteboard:${source.id}`,
+          type: 'source',
+          createdBy: D().me,
+          createdAt: new Date().toISOString(),
+        });
+      }
       files.forEach(x => D().files.unshift({ ...x, project: t.project, task: t.id }));
     })
   )
     return;
   if (f.more) {
-    Object.assign(f, { title: '', desc: '', subtasks: [], files: [] });
+    Object.assign(f, { title: '', desc: '', subtasks: [], files: [], whiteboardSource: null });
     render();
     setTimeout(() => $('#f-title')?.focus(), 0);
     toast(`Created ${t.key}`, { ms: 2000 });

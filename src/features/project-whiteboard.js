@@ -7,6 +7,7 @@ import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelec
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
 import './whiteboard-tools.js';
+import './whiteboard-extract.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';

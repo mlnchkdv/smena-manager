@@ -1,5 +1,7 @@
 import { setPersonalFavorite } from './actions.js';
 import { noteTypes } from '../shared/knowledge-types.js';
+import { whiteboardCopyMarkdown, whiteboardCopySourceCurrent } from '../shared/whiteboard-extract.js';
+import { currentWhiteboard, whiteboardScope } from '../core/whiteboard-state.js';
 import { bookmarkUrlKey } from '../shared/web-capture.js';
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
@@ -59,8 +61,22 @@ function normalizedBookmarkUrl(value) {
 }
 
 /* ---------- knowledge base ---------- */
-A.newKnowledgeNote = el => {
+A.newKnowledgeNote = (el, options = {}) => {
   if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
+  const copy = options?.whiteboardCopy;
+  if (
+    copy &&
+    (options.scope !== whiteboardScope(copy.source?.id) ||
+      !whiteboardCopySourceCurrent(currentWhiteboard(), copy.source) ||
+      !entityAllowed(D(), `whiteboard:${copy.source.id}`, graphOptions(), true) ||
+      typeof copy.title !== 'string' ||
+      copy.title.length > 120 ||
+      !copy.title.trim() ||
+      typeof copy.text !== 'string' ||
+      copy.text.length > 6000 ||
+      !copy.text.trim())
+  )
+    return;
   const hubSource = el?.dataset?.hubSource;
   if (hubSource && (!hubSource.startsWith('project:') || !entityAllowed(D(), hubSource, graphOptions(), true))) return;
   const selectedType = noteTypes(D().ws).find(t => t.id === el?.dataset?.typeId);
@@ -69,14 +85,16 @@ A.newKnowledgeNote = el => {
     const now = new Date().toISOString();
     const note = {
       id: uid('kn'),
-      title: `${selectedType ? (isRussian() && selectedType.ru ? selectedType.ru : selectedType.name) : isRussian() ? 'Новая заметка' : 'New note'} ${notes.length + 1}`,
+      title:
+        copy?.title ||
+        `${selectedType ? (isRussian() && selectedType.ru ? selectedType.ru : selectedType.name) : isRussian() ? 'Новая заметка' : 'New note'} ${notes.length + 1}`,
       category: 'General',
       typeId: selectedType?.id || 'note',
       summary: '',
       extracted_skills: [],
       tags: [],
       wikilinks: [],
-      formatted_markdown: '',
+      formatted_markdown: copy ? whiteboardCopyMarkdown(copy) : '',
       folderId:
         S.ui.knowledgeFolder &&
         !['all', 'root', 'favorites'].includes(S.ui.knowledgeFolder) &&
@@ -93,6 +111,10 @@ A.newKnowledgeNote = el => {
       note.folderId = null;
       D().relations ||= [];
       D().relations.push({ id: uid('rel'), from: hubSource, to: `note:${note.id}`, type: 'related', createdBy: D().me, createdAt: now });
+    }
+    if (copy) {
+      note.folderId = null;
+      if (S.ui.modals.at(-1)?.whiteboardCopy && S.ui.modals.at(-1).scope === options.scope) S.ui.modals.pop();
     }
     notes.unshift(note);
     S.ui.knowledgeActive = null;
