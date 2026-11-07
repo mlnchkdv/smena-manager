@@ -9,6 +9,7 @@ import { getStorageProvider } from './storage/index.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { expandKnowledgeBodies } from './knowledge-body-store.js';
 import { externalKnowledgeBody } from '../shared/knowledge-body.js';
+import { preserveKnowledgeGovernance } from '../shared/knowledge-governance.js';
 
 function assertName(name) {
   if (!DOCUMENT_NAMES.includes(name)) throw Object.assign(new Error('Workspace document not found.'), { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
@@ -58,8 +59,9 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
         async database => {
           const document = projectDocument(name, database);
           if (document.revision !== expectedRevision) throw new WorkspaceDocumentConflictError(document.revision);
-          const incoming = structuredClone(workspaceDocumentData(name, nextData));
+          let incoming = structuredClone(workspaceDocumentData(name, nextData));
           if (name === 'knowledge') {
+            incoming = preserveKnowledgeGovernance(database, incoming);
             const actor = options.profile && knowledgeActor(database, options.profile, options.profiles, { write: true });
             // Until the demand-aware client is enabled, legacy collection PUTs
             // must not turn an unloaded body into an empty snapshot. Per-note

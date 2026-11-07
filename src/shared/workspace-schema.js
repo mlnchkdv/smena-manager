@@ -7,6 +7,7 @@ import { validNoteTypes, validNoteProperties } from './knowledge-types.js';
 import { validKnowledgeTemplates } from './knowledge-templates.js';
 import { validWhiteboard } from './project-whiteboard.js';
 import { validWhiteboardDocument } from './whiteboards.js';
+import { validKnowledgeGovernance } from './knowledge-governance.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -269,6 +270,7 @@ export function validateDocumentInput(name, value) {
     )
       invalid.push('knowledgeNotes.materialTargets');
     if (name === 'knowledge' && !validNoteProperties(item)) invalid.push('knowledgeNotes.properties');
+    if (name === 'knowledge' && !validKnowledgeGovernance(item.governance)) invalid.push('knowledgeNotes.governance');
     if (
       item.wikiRefs != null &&
       (!Array.isArray(item.wikiRefs) ||
