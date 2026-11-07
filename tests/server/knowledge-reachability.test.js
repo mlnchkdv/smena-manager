@@ -88,6 +88,34 @@ const inventoryOf = f =>
     createdAt: new Date(now - 60 * day).toISOString(),
   }));
 
+test('known reachable objects need no leaf reads, while unknown or duplicate canonical objects block the preview', async () => {
+  const f = await fixture();
+  let state = await beginKnowledgeReachability({
+    root: f.current,
+    backupsComplete: true,
+    backups: [{ format: 'smena-prepared-backup-v1', source: f.independentSource }, { data: f.root(f.legacy) }],
+  });
+  while (state.pending.length) state = await stepKnowledgeReachability(state, f.read);
+  const inventory = inventoryOf(f).map(object =>
+    state.reachable[object.area === 'backup' ? `backup:${object.sha256}` : `live:${object.kind}:${object.sha256}`]
+      ? { ...object, recognizedFormat: undefined, integrityChecked: undefined }
+      : object,
+  );
+  const options = { now, inventoryComplete: true, currentRootFingerprint: state.rootFingerprint };
+  assert.equal(previewKnowledgeMaintenance(state, inventory, options).complete, true);
+  const required = inventory.find(object => object.area === 'live' && object.sha256 === f.active.bodyRef.sha256);
+  const duplicate = previewKnowledgeMaintenance(state, inventory.concat({ ...required, id: 'another-physical-file' }), options);
+  assert.equal(duplicate.complete, false);
+  assert.equal(duplicate.counts.unknown, 1);
+  assert.deepEqual(duplicate.candidates, []);
+  const backup = inventory.find(object => object.area === 'backup');
+  assert.equal(previewKnowledgeMaintenance(state, inventory.concat({ ...backup, id: 'duplicate-independent-object' }), options).complete, true);
+  const unverified = inventory.map(object => (object.sha256 === f.decoy.bodyRef.sha256 ? { ...object, recognizedFormat: undefined } : object));
+  const partial = previewKnowledgeMaintenance(state, unverified, options);
+  assert.equal(partial.complete, false);
+  assert.equal(partial.counts.unreferenced, 0);
+});
+
 test('resumable inspection protects active/trash/version/search/import/backup references without reading source bodies', async () => {
   const f = await fixture();
   let state = await beginKnowledgeReachability({

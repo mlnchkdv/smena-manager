@@ -210,7 +210,6 @@ export function previewKnowledgeMaintenance(
       !['live', 'backup'].includes(object.area) ||
       (object.area === 'live' && !liveKinds.has(object.kind)) ||
       object.owned !== true ||
-      object.recognizedFormat !== true ||
       !/^[a-f0-9]{64}$/.test(object.sha256 || '') ||
       !Number.isSafeInteger(object.bytes) ||
       object.bytes < 1 ||
@@ -228,8 +227,13 @@ export function previewKnowledgeMaintenance(
     const target = state.reachable[key(object)];
     if (target) {
       if (target.bytes !== object.bytes) throw error();
+      if (object.area === 'live' && seen.has(key(object))) counts.unknown++;
       counts.reachable++;
       seen.add(key(object));
+      continue;
+    }
+    if (object.recognizedFormat !== true) {
+      counts.unknown++;
       continue;
     }
     if (state.pending.length || !state.rootsComplete || !rootCurrent) {
