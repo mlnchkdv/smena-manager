@@ -1,6 +1,7 @@
 /* ---------- HOME ---------- */
 import { appLocationPath } from '../shared/app-location.js';
-import { DAY, TODAY, diffD, esc, fmtDate, fmtFullDate, parse } from '../core/utils.js';
+import { TODAY, diffD, esc, fmtDate, fmtFullDate, parse } from '../core/utils.js';
+import { completedWithin } from '../shared/work-list-intent.js';
 import { ic } from '../core/icons.js';
 import { D, S, allTasks, canSee, isOver, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
 import { av, avStack, empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
@@ -24,7 +25,7 @@ export function pageHome() {
   const mineAll = all.filter(t => t.assignee === D().me);
   const activeP = visibleProjects().filter(p => canSee(p) && p.status !== 'complete');
   const open = all.filter(t => t.status !== 'done');
-  const doneWk = all.filter(t => t.status === 'done' && t.completedAt && Date.now() - t.completedAt < 7 * DAY);
+  const doneWk = all.filter(t => completedWithin(t, 7));
   const over = all.filter(isOver);
   const tab = S.ui.homeTab;
   const personal = readLayoutPreference('homeView', 'personal') !== 'team';
@@ -56,7 +57,7 @@ export function pageHome() {
     <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Workspace summary</summary><div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}Active projects</span><span class="v">${activeP.length}</span><span class="d">${activeP.filter(p => p.status === 'risk').length} at risk</span></button>
       <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}Open tasks</span><span class="v">${open.length}</span><span class="d">${open.filter(t => t.assignee === D().me).length} assigned to you</span></button>
-      <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}Completed</span><span class="v">${doneWk.length}</span><span class="d up">this week</span></button>
+      <button class="stat" data-a="goTasks" data-f="done"><span class="k">${ic('circle-check', 14)}Completed</span><span class="v">${doneWk.length}</span><span class="d up">Last 7 days</span></button>
       <button class="stat" data-a="goTasks" data-f="overdue"><span class="k">${ic('clock-alert', 14)}Overdue</span><span class="v" style="${over.length ? 'color:var(--red)' : ''}">${over.length}</span><span class="d ${over.length ? 'bad' : ''}">${over.length ? 'need attention' : 'all on track'}</span></button>
     </div></details>
     <div class="grid2 home-work-grid">

@@ -34,6 +34,7 @@ import { effectiveDark } from '../core/theme.js';
 import { mutate, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
+import { applyWorkListIntent } from '../shared/work-list-intent.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
 import {
@@ -3263,24 +3264,18 @@ A.toggleExpand = el => {
   render();
 };
 A.goTasks = el => {
-  const f = el.dataset.f;
-  const v = viewOf('tasks');
-  v.mode = 'list';
-  v.filters =
-    f === 'open'
-      ? [{ f: 'status', op: 'not', v: ['done'] }]
-      : f === 'done'
-        ? [
-            { f: 'status', op: 'is', v: ['done'] },
-            { f: 'updated', op: 'is', v: ['7'] },
-          ]
-        : f === 'overdue'
-          ? [{ f: 'due', op: 'is', v: ['overdue'] }]
-          : [];
+  const { f: kind, project, assignee } = el.dataset;
+  if (project && !visibleProjects().some(p => p.id === project && canSee(p))) return;
+  if (assignee && !D().members.some(m => m.id === assignee)) return;
+  applyWorkListIntent(viewOf('tasks'), { kind, project, assignee });
+  for (const map of [S.ui.listPages, S.ui.collapsedGroups]) {
+    for (const key of Object.keys(map || {})) if (key.startsWith('tasks:')) delete map[key];
+  }
   go('tasks');
 };
 A.goFilteredList = el => {
   const v = viewOf('p:' + el.dataset.id);
+  v.q = '';
   v.filters = [{ f: 'status', op: 'is', v: [el.dataset.st] }];
   v.group = 'status';
   go('project', { id: el.dataset.id, tab: 'list' }, { tab: true });

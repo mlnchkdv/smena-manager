@@ -5,7 +5,10 @@ import { LABELS, PR, PRIOS, STATUSES } from '../core/constants.js';
 import { D, S, canSee, isOver, mem, pColor, proj, visibleProjects } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
-import { t as tr } from '../core/i18n.js';
+import { registerRussianLabels, t as tr } from '../core/i18n.js';
+import { completedWithin } from '../shared/work-list-intent.js';
+
+registerRussianLabels({ 'Completed date': 'Дата завершения' });
 
 export const FIELDS = {
   status: { name: 'Status', icon: 'circle-dot', opts: () => STATUSES.map(s => ({ id: s.id, name: s.name, html: stIcon(s.id) })) },
@@ -57,6 +60,7 @@ export const FIELDS = {
     ],
   },
 };
+FIELDS.completed = { ...FIELDS.updated, name: 'Completed date', icon: 'circle-check' };
 export function viewOf(key) {
   if (!S.views[key])
     S.views[key] = {
@@ -82,7 +86,8 @@ export function matchF(t, f) {
       const n = diffD(parse(t.due), TODAY);
       return v === 'overdue' ? isOver(t) : v === 'today' ? n === 0 : v === 'week' ? n >= 0 && n <= 7 : n > 7;
     });
-  } else if (f.f === 'created' || f.f === 'updated') {
+  } else if (f.f === 'completed') hit = f.v.some(v => completedWithin(t, v));
+  else if (f.f === 'created' || f.f === 'updated') {
     const ts = f.f === 'created' ? t.created : t.updated;
     hit = f.v.some(v => Date.now() - ts <= +v * DAY);
   } else hit = f.v.includes(t[f.f]);
