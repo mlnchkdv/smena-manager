@@ -139,5 +139,5 @@ export function filePrev(f) {
   else if (f.type === 'zip') art = `<div style="color:${t.c}">${ic('folder-archive', 30)}</div>`;
   else art = `<div class="art"><i class="h"></i><i></i><i></i><i style="width:80%"></i><i></i><i style="width:60%"></i></div>`;
   const ext = (f.name.split('.').pop() || '').slice(0, 4);
-  return `<div class="fprev" ${canLoadThumbnail(f) ? `data-file-thumb="${esc(f.id)}"` : ''}>${art}<span class="ext" style="--c:${t.c}">${esc(ext)}</span></div>`;
+  return `<div class="fprev" ${canLoadThumbnail(f) ? `data-file-thumb="${esc(f.id)}"` : ''}>${art}<span class="ext">${esc(ext)}</span></div>`;
 }

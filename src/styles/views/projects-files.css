@@ -320,8 +320,8 @@
   font-weight: 500;
   padding: 2px 5px;
   border-radius: 4px;
-  background: var(--c);
-  color: #fff;
+  background: var(--text);
+  color: var(--surface);
   text-transform: uppercase;
 }
 .fcard .fi {
