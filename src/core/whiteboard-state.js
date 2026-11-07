@@ -28,6 +28,8 @@ export function whiteboardState(id = S.ui.params.id) {
       fit: true,
       autoFit: true,
       selected: '',
+      selectedEdge: '',
+      contextDrafts: {},
       selection: [],
       multiSelect: false,
       outline: false,
@@ -39,7 +41,7 @@ export function whiteboardState(id = S.ui.params.id) {
           .filter(([key, value]) => typeof key === 'string' && value === true)
           .slice(0, 200),
       ),
-      navigationMode: matchMedia('(max-width: 640px), (pointer: coarse)').matches ? 'scroll' : 'pan',
+      navigationMode: matchMedia('(max-width: 640px), (pointer: coarse)').matches ? 'scroll' : 'move',
       undo: [],
       redo: [],
     };

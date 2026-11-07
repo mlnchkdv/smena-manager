@@ -28,6 +28,7 @@ import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 import { whiteboardConnection } from '../shared/whiteboard-connect.js';
 import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
 import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
+import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -284,6 +285,7 @@ A.whiteboardSelect = (el, event) => {
     id = el.dataset.id;
   if (Date.now() < (s.tapOpenUntil || 0)) return;
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
+  s.selectedEdge = '';
   if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
     const ids = new Set(selectedIds());
     ids.has(id) ? ids.delete(id) : ids.add(id);
@@ -340,6 +342,7 @@ A.whiteboardPickCard = el => {
 IN.whiteboardSelection = el => {
   const s = whiteboardState(),
     ids = new Set(selectedIds());
+  s.selectedEdge = '';
   el.checked ? ids.add(el.dataset.id) : ids.delete(el.dataset.id);
   s.selection = [...ids];
   s.selected = s.selection[0] || '';
@@ -353,6 +356,7 @@ A.whiteboardDeselect = () => {
   const s = whiteboardState();
   s.selected = '';
   s.selection = [];
+  s.selectedEdge = '';
   render();
 };
 let clipboard;
@@ -421,8 +425,14 @@ A.whiteboardToggleOutline = () => {
 };
 A.whiteboardTogglePan = () => {
   const s = whiteboardState();
-  s.navigationMode = s.navigationMode === 'pan' ? 'scroll' : 'pan';
+  s.navigationMode = s.navigationMode === 'scroll' ? 'move' : 'scroll';
   render();
+};
+IN.whiteboardNavigation = el => {
+  if (!['scroll', 'pan', 'move'].includes(el.value)) return;
+  whiteboardState().navigationMode = el.value;
+  render();
+  document.querySelector('[data-in="whiteboardNavigation"] + .select-btn')?.focus({ preventScroll: true });
 };
 IN.whiteboardOutlineQuery = el => {
   whiteboardState().outlineQuery = el.value;
@@ -506,6 +516,60 @@ A.whiteboardEditEdge = el => {
   const edge = whiteboardOf(current()).edges.find(e => e.id === el.dataset.id);
   if (edge) openTool({ kind: 'edge', ...edge, base: structuredClone(edge) });
 };
+A.whiteboardSelectEdge = el => {
+  if (!whiteboardOf(current()).edges.some(edge => edge.id === el.dataset.id)) return;
+  Object.assign(whiteboardState(), { selectedEdge: el.dataset.id, selected: '', selection: [] });
+  render();
+};
+function contextEdit(el, value, base) {
+  const s = whiteboardState(),
+    { kind, id, field, scope } = el.dataset;
+  if (scope !== s.scope || (kind === 'edge' ? s.selectedEdge !== id : s.selected !== id)) return false;
+  let result;
+  const accepted = command(board => {
+    result = patchWhiteboardContext(board, { kind, id, field, base, value });
+  });
+  if (result?.error) {
+    toast(T('The selection changed. Review the current value and try again.', 'Выделение изменилось. Проверьте текущее значение и повторите.'), {
+      kind: 'info',
+    });
+    return false;
+  }
+  return accepted;
+}
+IN.whiteboardContextText = el => {
+  const s = whiteboardState();
+  if (el.dataset.scope !== s.scope) return;
+  const key = el.dataset.kind + ':' + el.dataset.id;
+  s.contextDrafts[key] = { value: el.value, base: s.contextDrafts[key]?.base ?? JSON.parse(el.dataset.base) };
+  el.closest('form')
+    .querySelectorAll('button')
+    .forEach(button => {
+      button.hidden = false;
+    });
+};
+A.whiteboardContextApply = form => {
+  const s = whiteboardState(),
+    key = form.dataset.kind + ':' + form.dataset.id,
+    draft = s.contextDrafts[key];
+  if (!draft || form.dataset.scope !== s.scope) return;
+  const input = form.querySelector('input');
+  delete s.contextDrafts[key];
+  if (!contextEdit(input, draft.value.trim(), draft.base)) s.contextDrafts[key] = draft;
+  render();
+};
+A.whiteboardContextCancel = el => {
+  const form = el.closest('form'),
+    s = whiteboardState();
+  if (form?.dataset.scope !== s.scope) return;
+  delete s.contextDrafts[form.dataset.kind + ':' + form.dataset.id];
+  render();
+};
+IN.whiteboardContextField = el => contextEdit(el, el.value, JSON.parse(el.dataset.base));
+A.whiteboardContextArrow = el => {
+  const base = JSON.parse(el.dataset.base);
+  contextEdit(el, !base, base);
+};
 function removeNode(id) {
   if (command(board => removeWhiteboardNode(board, id))) {
     whiteboardState().selected = '';
@@ -555,9 +619,12 @@ function history(back) {
   }
   from.pop();
   to.push(entry);
-  s.selected = '';
+  const restored = structuredClone(back ? entry.before : entry.after);
+  s.selection = selectedIds().filter(id => restored.nodes.some(node => node.id === id));
+  s.selected = s.selection.includes(s.selected) ? s.selected : s.selection[0] || '';
+  s.selectedEdge = restored.edges.some(edge => edge.id === s.selectedEdge) ? s.selectedEdge : '';
   mutate(() => {
-    p.whiteboard = structuredClone(back ? entry.before : entry.after);
+    p.whiteboard = restored;
   });
 }
 A.whiteboardUndo = () => history(true);
@@ -719,7 +786,7 @@ function down(e) {
   if (e.target.closest('[data-board-edge]') && !spacePan) return;
   const resize = e.target.closest('[data-board-resize]');
   const connector = e.target.closest('[data-board-connect]');
-  if (e.pointerType === 'touch' && whiteboardState().navigationMode === 'scroll' && !resize && !connector) return;
+  if (whiteboardState().navigationMode === 'scroll' && !resize && !connector && !spacePan) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const s = whiteboardState(),
     box = viewport.getBoundingClientRect();
@@ -783,11 +850,18 @@ function down(e) {
     return;
   }
   const handle = e.target.closest('[data-board-drag]');
+  if (handle && s.navigationMode === 'pan') {
+    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   if (handle && (e.shiftKey || e.ctrlKey || e.metaKey)) {
     pointers.delete(e.pointerId);
     return;
   }
   if (handle && editable(current())) {
+    s.selectedEdge = '';
     if (!selectedIds().includes(handle.dataset.boardDrag)) s.selection = [handle.dataset.boardDrag];
     const nodes = whiteboardSelectionNodes(whiteboardOf(current()), s.selection?.length ? s.selection : [handle.dataset.boardDrag]);
     s.selected = handle.dataset.boardDrag;
