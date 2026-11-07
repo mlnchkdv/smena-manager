@@ -14,6 +14,7 @@ const directory = path.join(root, 'output', 'release-checks', runId),
   dist = path.join(directory, 'dist');
 await mkdir(directory, { recursive: true });
 const env = { ...process.env, NODE_ENV: 'test', DOTENV_CONFIG_PATH: path.join(directory, 'no-external-env'), SMENA_TEST_MODE: 'true' };
+const testConcurrency = 4;
 for (const key of Object.keys(env))
   if (
     /^(GOOGLE_|GMAIL_|VAPID_|REDIS_|VERCEL|ACCESS_IDS_|SESSION_SECRET|CRON_SECRET|DATABASE_PATH|UPLOADS_PATH|BACKUPS_PATH|APP_ORIGIN|WORKSPACE_WRITE_MODE)/.test(
@@ -26,6 +27,7 @@ const report = {
   startedAt: new Date().toISOString(),
   node: process.version,
   scope: 'isolated local code checks',
+  testConcurrency,
   checks: [],
   status: 'running',
   browser: { status: 'not-run', reason: 'Run the CLI browser matrix separately; this command does not infer UI acceptance from a build.' },
@@ -65,7 +67,7 @@ try {
       .filter(name => name.endsWith('.test.js'))
       .sort()
       .map(name => path.join('tests', 'server', name));
-    await check('server-shared', ['--test', ...tests]);
+    await check('server-shared', ['--test', '--test-concurrency=' + testConcurrency, ...tests]);
   }
   await check('production-build', ['node_modules/vite/bin/vite.js', 'build', '--outDir', dist], { ...env, NODE_ENV: 'production' });
   await check('startup-budget', ['scripts/check-bundle-size.js', dist]);
