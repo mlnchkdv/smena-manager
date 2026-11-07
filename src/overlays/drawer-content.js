@@ -86,6 +86,7 @@ export function knowledgeDrawerHtml(note) {
         `<button class="btn btn-ghost" data-a="knowledgeReaderToStart">${isRussian() ? 'К началу заметки' : 'Back to top'}</button><button class="btn btn-ghost" data-a="openNoteProperties" data-id="${esc(note.id)}">${isRussian() ? 'Свойства заметки' : 'Note properties'}</button>` +
           noteUtilities(note) +
           `<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}">${ic('download', 15)}<span>${isRussian() ? 'Сохранить офлайн' : 'Keep offline'}</span></button><button class="btn btn-ghost" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-pressed="${!!isFavorite('note', note)}">${ic('star', 15)}<span>${isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites'}</span></button>`,
+        note.id,
       )
     : '';
   return `<div class="drawer-scrim full knowledge-drawer-scrim${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" data-a="closeKnowledgeDrawer"></div><aside class="drawer full knowledge-drawer${S.ui.fx.knowledgeDrawer ? ' enter' : ''}" role="dialog" aria-modal="true" aria-labelledby="knowledge-drawer-title" tabindex="-1">

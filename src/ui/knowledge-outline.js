@@ -1,8 +1,9 @@
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { kc } from './knowledge-types.js';
+import { disclosureAttributes } from './disclosure.js';
 
-export function knowledgeOutline(markup, actions = '') {
+export function knowledgeOutline(markup, actions = '', noteId = '') {
   const template = document.createElement('template');
   // Markup is emitted by our allowlisted renderer. Parse only its headings,
   // rather than building a second, document-sized DOM just for the outline.
@@ -16,10 +17,10 @@ export function knowledgeOutline(markup, actions = '') {
   const hasOutline = headings.length >= 4;
   const base = headings.reduce((level, heading) => Math.min(level, Number(heading.tagName.slice(1))), 6);
   const utilities = actions
-    ? `<details class="ui-menu knowledge-outline knowledge-reader-actions"><summary class="ibtn" aria-label="${kc('Note actions', 'Действия с заметкой')}" title="${kc('Note actions', 'Действия с заметкой')}">${ic('ellipsis', 16)}</summary><div>${actions}</div></details>`
+    ? `<details class="ui-menu knowledge-outline knowledge-reader-actions" ${disclosureAttributes('knowledge-reader-actions:' + noteId)}><summary class="ibtn" aria-label="${kc('Note actions', 'Действия с заметкой')}" title="${kc('Note actions', 'Действия с заметкой')}">${ic('ellipsis', 16)}</summary><div>${actions}</div></details>`
     : '';
   if (!hasOutline) return utilities;
-  return `<details class="ui-menu knowledge-outline knowledge-reader-outline"><summary class="ibtn" aria-label="${kc('On this page', 'На этой странице')}" title="${kc('On this page', 'На этой странице')}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${
+  return `<details class="ui-menu knowledge-outline knowledge-reader-outline" ${disclosureAttributes('knowledge-reader-outline:' + noteId)}><summary class="ibtn" aria-label="${kc('On this page', 'На этой странице')}" title="${kc('On this page', 'На этой странице')}">${ic(hasOutline ? 'list-tree' : 'ellipsis', 16)}</summary><div>${
     hasOutline
       ? `<nav aria-label="On this page"><p class="knowledge-outline-label">On this page</p>${headings
           .map(
