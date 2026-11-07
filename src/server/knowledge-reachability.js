@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { backupObjectReferences, BACKUP_OBJECT_MAX_BYTES } from './prepared-workspace-backup.js';
 import { materializeKnowledgeMetadata, knowledgeMetadataFields } from './storage/knowledge-metadata-shards.js';
 import { knowledgeSearchParts } from './knowledge-search-store.js';
+import { isDeepStrictEqual } from 'node:util';
 
 const digest = text => createHash('sha256').update(text).digest('hex');
 const error = (code = 'KNOWLEDGE_MAINTENANCE_INTEGRITY') => Object.assign(new Error('Knowledge object inspection is incomplete.'), { code, statusCode: 503 });
@@ -17,7 +18,7 @@ function retain(state, object, required) {
   descriptor(object);
   const id = key(object),
     existing = state.reachable[id];
-  if (existing && existing.bytes !== object.bytes) throw error();
+  if (existing && (existing.bytes !== object.bytes || existing.kind !== object.kind || !isDeepStrictEqual(existing.expected, object.expected))) throw error();
   if (!existing) state.retainedCount++;
   state.reachable[id] = { ...object, required: required || !!existing?.required };
   if (state.retainedCount > 100000) throw error('KNOWLEDGE_MAINTENANCE_LIMIT');
@@ -58,7 +59,26 @@ async function rootReferences(state, root, mode) {
   }
   await materializeKnowledgeMetadata(root, {}, { knowledge: false }); // pointer validation only; no child reads
   if (root._knowledgeSearch) knowledgeSearchParts(root);
-  for (const object of backupObjectReferences(root)) enqueue(state, object, mode);
+  for (const object of backupObjectReferences(root)) if (object.kind !== 'metadata') enqueue(state, object, mode);
+  for (const [field, parts] of Object.entries(root._knowledgeCatalog?.fields || {})) {
+    const groups = new Map(parts.map(part => [part.prefix, []]));
+    const identities = field === '_knowledgeSearch' ? (parts.length ? ['search'] : []) : root[field].map(row => row.id);
+    for (const id of identities) {
+      const hashed = digest(id);
+      let group;
+      for (let length = 1; length <= 6; length++) {
+        group = groups.get(hashed.slice(0, length));
+        if (group) break;
+      }
+      if (!group) throw error();
+      group.push(id);
+    }
+    for (const part of parts) {
+      const ids = groups.get(part.prefix).sort();
+      if (ids.length !== part.count) throw error();
+      enqueue(state, { kind: 'metadata', sha256: part.sha256, bytes: part.bytes, expected: { field, prefix: part.prefix, ids } }, mode);
+    }
+  }
   imports(state, root._knowledgeImports);
 }
 
@@ -123,11 +143,25 @@ export async function stepKnowledgeReachability(previous, readObject) {
   }
   if (object.kind === 'root') await rootReferences(state, value, task.mode);
   else {
+    const expected = object.expected;
     if (
       value?.format !== 'smena-knowledge-metadata-v1' ||
+      !expected ||
+      value.field !== expected.field ||
+      value.prefix !== expected.prefix ||
       !knowledgeMetadataFields.includes(value.field) ||
       !Array.isArray(value.rows) ||
-      value.rows.some(row => !Array.isArray(row) || row.length !== 2 || typeof row[0] !== 'string' || !row[1] || typeof row[1] !== 'object')
+      value.rows.some(
+        row =>
+          !Array.isArray(row) ||
+          row.length !== 2 ||
+          typeof row[0] !== 'string' ||
+          !row[1] ||
+          typeof row[1] !== 'object' ||
+          Array.isArray(row[1]) ||
+          (value.field !== '_knowledgeSearch' && row[1].id !== row[0]),
+      ) ||
+      !isDeepStrictEqual(value.rows.map(row => row[0]).sort(), expected.ids)
     )
       throw error();
     if (value.field === '_knowledgeSearch') {

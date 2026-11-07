@@ -231,3 +231,44 @@ test('10,001 note references remain bounded and require metadata reads only', as
   assert.equal(result.counts.unreferenced, 0);
   assert.deepEqual(result.candidates, []);
 });
+
+test('metadata hashes cannot substitute another collection or a different declared note identity', async () => {
+  const f = await fixture(),
+    part = f.current._knowledgeCatalog.fields.knowledgeNotes[0];
+  const fakeText = JSON.stringify({
+    format: 'smena-knowledge-metadata-v1',
+    field: 'knowledgeFolders',
+    prefix: part.prefix,
+    rows: [['active', { id: 'active', name: 'Folder' }]],
+  });
+  const wrongField = structuredClone(f.current);
+  Object.assign(wrongField._knowledgeCatalog.fields.knowledgeNotes[0], { sha256: hash(fakeText), bytes: Buffer.byteLength(fakeText) });
+  let otherId;
+  for (let i = 0; ; i++)
+    if (hash('other-' + i).startsWith(part.prefix)) {
+      otherId = 'other-' + i;
+      break;
+    }
+  const wrongIdentity = structuredClone(f.current);
+  wrongIdentity.knowledgeNotes[0].id = otherId;
+  for (const root of [wrongField, wrongIdentity]) {
+    let state = await beginKnowledgeReachability({ root });
+    const targetHash = root._knowledgeCatalog.fields.knowledgeNotes[0].sha256;
+    let rejected = false;
+    for (let step = 0; state.pending.length && step < 100; step++) {
+      const read = object => (object.sha256 === hash(fakeText) ? fakeText : f.read(object));
+      if (state.pending.at(-1).object.sha256 === targetHash) {
+        const before = JSON.stringify(state);
+        await assert.rejects(stepKnowledgeReachability(state, read), { code: 'KNOWLEDGE_MAINTENANCE_INTEGRITY' });
+        assert.equal(JSON.stringify(state), before);
+        rejected = true;
+        break;
+      }
+      state = await stepKnowledgeReachability(state, read);
+    }
+    assert.equal(rejected, true);
+  }
+  const wrongPrefix = structuredClone(f.current);
+  wrongPrefix._knowledgeCatalog.fields.knowledgeNotes[0].prefix += hash('active')[part.prefix.length] === '0' ? '1' : '0';
+  await assert.rejects(beginKnowledgeReachability({ root: wrongPrefix }), { code: 'KNOWLEDGE_MAINTENANCE_INTEGRITY' });
+});
