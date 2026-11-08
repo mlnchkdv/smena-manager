@@ -252,6 +252,12 @@ export function mergePortableWorkspace(current, payload, options = {}) {
       createdAt: text(raw.createdAt || raw.created_at) || now,
       updatedAt: text(raw.updatedAt || raw.updated_at) || now,
     });
+    // A portable copy is new knowledge, not proof of a decision by a member of
+    // this workspace. Canonical backups use their own restore path instead.
+    const importedNote = data.knowledgeNotes.at(-1);
+    delete importedNote.governance;
+    delete importedNote.intake;
+    delete importedNote.intakeSummary;
     noteTitles.add(normalizedName(title));
     counts.notes += 1;
   }

@@ -5,6 +5,33 @@ import { buildPortableWorkspace, mergePortableWorkspace } from '../../src/shared
 const emptyWorkspace = () => ({ knowledgeNotes: [], knowledgeFolders: [], links: [], linkFolders: [] });
 const ids = prefix => prefix + '-generated';
 
+test('portable note copies never inherit foreign review or intake decisions', () => {
+  const workspace = emptyWorkspace();
+  workspace.knowledgeNotes = [
+    { id: 'kept', title: 'Existing', formatted_markdown: '# Existing', governance: { canonical: true }, intake: { canonical: true } },
+  ];
+  const payload = {
+    format: 'kms-brain-workspace',
+    version: 1,
+    notes: [
+      {
+        id: 'new',
+        title: 'Imported',
+        formatted_markdown: '# Imported',
+        governance: { foreign: true },
+        intake: { foreign: true },
+        intakeSummary: { state: 'closed' },
+      },
+    ],
+  };
+  const result = mergePortableWorkspace(workspace, payload);
+  assert.deepEqual(result.data.knowledgeNotes[0].governance, { canonical: true });
+  assert.deepEqual(result.data.knowledgeNotes[0].intake, { canonical: true });
+  const imported = result.data.knowledgeNotes.find(note => note.id === 'new');
+  for (const field of ['governance', 'intake', 'intakeSummary']) assert.equal(imported[field], undefined);
+  assert.deepEqual(payload.notes[0].governance, { foreign: true }, 'Caller input is not changed');
+});
+
 test('KMS Brain workspace snapshots import notes, folders, and bookmarks', () => {
   const payload = {
     format: 'kms-brain-workspace',
