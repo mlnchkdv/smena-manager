@@ -3,6 +3,7 @@ import { noteCardExcerpt } from '../shared/knowledge-search.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { externalKnowledgeBody } from '../shared/knowledge-body.js';
+import { knowledgeIntakeSummary } from '../shared/knowledge-intake.js';
 
 // A token describes the canonical body version; it never grants read access.
 export function knowledgeBodyToken(note) {
@@ -23,6 +24,10 @@ export function knowledgeCatalogNote(note) {
   delete value.bodyRef;
   delete value.searchVersion;
   delete value.governance;
+  delete value.intake;
+  const intake = knowledgeIntakeSummary(note);
+  if (intake) value.intakeSummary = intake;
+  else delete value.intakeSummary;
   value.history = (note.history || []).map(version => {
     const { id, at, by, editedBy, savedAt, contentRef } = version;
     return { id, at, by, editedBy, savedAt, ...(contentRef ? { contentRef } : { remote: true }) };

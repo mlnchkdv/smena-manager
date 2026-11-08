@@ -8,6 +8,7 @@ import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
 import { entityAllowed } from '../shared/relations.js';
 import { restoreKnowledgeTrashReferences } from './knowledge-catalog.js';
 import { preserveKnowledgeGovernance } from '../shared/knowledge-governance.js';
+import { preserveKnowledgeIntake } from '../shared/knowledge-intake.js';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const FILE_FIELDS = ['storageFileId', 'storageName', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
@@ -85,6 +86,7 @@ export function validateClientFiles(current, candidate, role, memberId) {
 export function mergeClientWorkspace(current, incoming, role, memberId) {
   incoming = restoreKnowledgeTrashReferences(current, incoming);
   incoming = preserveKnowledgeGovernance(current, incoming);
+  incoming = preserveKnowledgeIntake(current, incoming);
   if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) throw new TypeError('Workspace data must be an object.');
   const candidate = { ...current, ...structuredClone(incoming) };
   candidate.recentSearches = structuredClone(current.recentSearches || []);

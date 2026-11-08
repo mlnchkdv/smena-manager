@@ -76,6 +76,7 @@ import { workspaceRevisionEtag } from '../shared/revision-etag.js';
 import { getKnowledgeVersion, knowledgeVersionPage } from './knowledge-versions.js';
 import { readKnowledgeNote, patchKnowledgeNote } from './knowledge-note-store.js';
 import { readKnowledgeGovernance, writeKnowledgeGovernance } from './knowledge-governance-store.js';
+import { readKnowledgeIntake, writeKnowledgeIntake, readKnowledgeIntakeQueue } from './knowledge-intake-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { configureReverseProxy } from './reverse-proxy.js';
 import { readKnowledgeImports, startKnowledgeImport, controlKnowledgeImport, appendKnowledgeImport, prepareKnowledgeImport } from './knowledge-import-store.js';
@@ -674,6 +675,27 @@ app.get('/api/knowledge/notes/:id', async (request, response, next) => {
 app.get('/api/knowledge/notes/:id/review', async (request, response, next) => {
   try {
     response.json(await readKnowledgeGovernance(request.params.id, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/intake', async (request, response, next) => {
+  try {
+    response.json(await readKnowledgeIntakeQueue(request.query, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/api/knowledge/notes/:id/intake', async (request, response, next) => {
+  try {
+    response.json(await readKnowledgeIntake(request.params.id, request.user, getAccessProfiles()));
+  } catch (error) {
+    next(error);
+  }
+});
+app.post('/api/knowledge/notes/:id/intake', requireRole('admin', 'editor'), async (request, response, next) => {
+  try {
+    response.json(await writeKnowledgeIntake(request.params.id, request.body, request.user, getAccessProfiles()));
   } catch (error) {
     next(error);
   }

@@ -24,7 +24,7 @@ export function smartCollections() {
           `<div class="row"><button class="btn btn-ghost grow" data-a="applyKnowledgeQuery" data-id="${esc(item.id)}" data-shared="${shared ? '1' : ''}" translate="no">${esc(item.name)}</button>${!shared || S.ui.currentUser?.role === 'admin' ? `<button class="ibtn" data-a="editKnowledgeQuery" data-id="${esc(item.id)}" data-shared="${shared ? '1' : ''}" aria-label="${kc('Edit collection', 'Изменить подборку')}">…</button>` : ''}</div>`,
       )
       .join('');
-  return `<details class="knowledge-smart-collections" ${knowledgeDisclosure('catalog', 'collections')} translate="no"><summary>${kc('Smart collections', 'Умные подборки')}</summary><button class="btn btn-ghost" data-a="knowledgeCaptureCollection">${kc('To process', 'На разбор')}</button>${section(personal(), false)}${section(D().ws.knowledgeQueries || [], true)}<button class="btn btn-ghost" data-a="newKnowledgeQuery">${kc('New collection', 'Новая подборка')}</button></details>`;
+  return `<details class="knowledge-smart-collections" ${knowledgeDisclosure('catalog', 'collections')} translate="no"><summary>${kc('Smart collections', 'Умные подборки')}</summary><button class="btn btn-ghost" data-a="openKnowledgeIntakeQueue">${kc('Team intake', 'Командный разбор')}</button>${section(personal(), false)}${section(D().ws.knowledgeQueries || [], true)}<button class="btn btn-ghost" data-a="newKnowledgeQuery">${kc('New collection', 'Новая подборка')}</button></details>`;
 }
 function builder(m) {
   const b = m.builder || {},

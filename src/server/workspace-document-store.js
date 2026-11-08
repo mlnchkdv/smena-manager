@@ -10,6 +10,7 @@ import { knowledgeActor } from './knowledge-access.js';
 import { expandKnowledgeBodies } from './knowledge-body-store.js';
 import { externalKnowledgeBody } from '../shared/knowledge-body.js';
 import { preserveKnowledgeGovernance } from '../shared/knowledge-governance.js';
+import { preserveKnowledgeIntake } from '../shared/knowledge-intake.js';
 
 function assertName(name) {
   if (!DOCUMENT_NAMES.includes(name)) throw Object.assign(new Error('Workspace document not found.'), { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
@@ -62,6 +63,7 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
           let incoming = structuredClone(workspaceDocumentData(name, nextData));
           if (name === 'knowledge') {
             incoming = preserveKnowledgeGovernance(database, incoming);
+            incoming = preserveKnowledgeIntake(database, incoming);
             const actor = options.profile && knowledgeActor(database, options.profile, options.profiles, { write: true });
             // Until the demand-aware client is enabled, legacy collection PUTs
             // must not turn an unloaded body into an empty snapshot. Per-note

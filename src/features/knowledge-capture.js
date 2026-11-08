@@ -89,13 +89,4 @@ A.saveQuickCapture = async () => {
     note.updatedBy = D().me;
   });
 };
-A.finishKnowledgeCapture = el => {
-  if (S.ui.currentUser?.role === 'viewer' || knowledgeEditBlocked()) return;
-  const note = D().knowledgeNotes.find(n => n.id === el.dataset.id);
-  if (note)
-    mutate(() => {
-      note.captureStatus = 'processed';
-      note.updatedAt = new Date().toISOString();
-      note.updatedBy = D().me;
-    });
-};
+A.finishKnowledgeCapture = el => A.openKnowledgeIntake(el);

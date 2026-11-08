@@ -1,0 +1,44 @@
+.knowledge-intake-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.knowledge-intake-heading h3 {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+.knowledge-intake-state {
+  color: var(--text-2);
+}
+.knowledge-intake-result {
+  padding-block: 12px;
+  border-block: 1px solid var(--border);
+  margin-block: 12px;
+}
+.knowledge-intake .field {
+  margin-block: 12px;
+}
+.knowledge-intake-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+.knowledge-intake-list li {
+  border-bottom: 1px solid var(--border);
+}
+.knowledge-intake-list button {
+  width: 100%;
+  min-height: 56px;
+  align-items: flex-start;
+  flex-direction: column;
+  text-align: start;
+  white-space: normal;
+}
+.knowledge-intake-list small {
+  color: var(--text-2);
+}
+.knowledge-intake .btn {
+  white-space: normal;
+}

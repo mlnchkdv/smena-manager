@@ -12,7 +12,10 @@ export function parseKnowledgeQuery(query) {
 }
 export function matchesKnowledgeRules(note, rules) {
   return rules.every(rule => {
-    if (rule.field === 'capture') return note.captureStatus === rule.value;
+    if (rule.field === 'capture') {
+      const state = note.intakeSummary?.state || note.intake?.state;
+      return (state === 'closed' ? 'processed' : state === 'open' ? 'unprocessed' : note.captureStatus) === rule.value;
+    }
     if (rule.field === 'type') return (note.typeId || 'note').toLowerCase() === rule.value;
     if (rule.field === 'tag') return [...(note.tags || []), ...(note.tagAliases || [])].some(tag => tag.toLocaleLowerCase() === rule.value);
     if (rule.field === 'has') return Object.hasOwn(note.properties || {}, rule.value) && note.properties[rule.value] !== '';

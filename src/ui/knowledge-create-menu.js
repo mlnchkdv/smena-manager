@@ -36,6 +36,7 @@ A.newKnowledgeNoteFromTools = el => {
   A.newKnowledgeNote(el);
 };
 const commands = () => [
+  ['openKnowledgeIntakeQueue', 'inbox', 'Team intake', 'Командный разбор'],
   ...(S.ui.currentUser?.role === 'viewer' ? [] : [['chooseKnowledgeFiles', 'file-up', 'Import notes', 'Импорт заметок']]),
   ...(S.ui.currentUser?.role !== 'viewer' && knowledgeCatalogMode() ? [['knowledgeImportQueue', 'list', 'Import queue', 'Очередь импорта']] : []),
   ['saveKnowledgeView', 'bookmark-plus', 'Save search', 'Сохранить поиск'],
