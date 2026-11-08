@@ -20,8 +20,9 @@ import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout
 import { openModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
 import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
+A.openKnowledgeReview = async el => (await import('../features/knowledge-review.js')).openKnowledgeReview(el.dataset.id);
 export function noteUtilities(note) {
-  return `<button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
+  return `<button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="openKnowledgeReview" data-id="${esc(note.id)}" translate="no">${ic('badge-check', 15)}<span>${kc('Review note', 'Проверка заметки')}</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
 }
 A.viewKnowledgeHistory = el => {
   const id = el.dataset.id;

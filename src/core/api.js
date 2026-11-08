@@ -14,6 +14,8 @@ export const stepKnowledgeMigration = (id, pause = false) =>
 export const trashKnowledgeNotes = (ids, revision) => request('/api/knowledge/trash', { method: 'POST', body: JSON.stringify({ ids, revision }) }, true);
 export const restoreKnowledgeTrash = (id, revision) =>
   request(`/api/knowledge/trash/${encodeURIComponent(id)}/restore`, { method: 'POST', body: JSON.stringify({ revision }) }, true);
+export const knowledgeReviewRequest = (id, payload) =>
+  request(`/api/knowledge/notes/${encodeURIComponent(id)}/review`, payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) }, true);
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';

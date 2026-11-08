@@ -1,0 +1,100 @@
+.knowledge-review {
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.knowledge-review-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.knowledge-review-status > span {
+  color: var(--text-2);
+}
+.knowledge-review-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.knowledge-review-section > summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+.knowledge-review-section h3 {
+  font-size: var(--fs-sm);
+  margin: 0 0 10px;
+}
+.knowledge-review-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.knowledge-review-fields .field {
+  min-width: 0;
+}
+.knowledge-review-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.knowledge-review-buttons .btn {
+  white-space: normal;
+}
+.knowledge-review-people {
+  max-height: 220px;
+  overflow: auto;
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.knowledge-review-people label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.knowledge-review-people input {
+  flex-shrink: 0;
+}
+.knowledge-review-results,
+.knowledge-review-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.knowledge-review-results li,
+.knowledge-review-history li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-block: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.knowledge-review-results li p,
+.knowledge-review-history li p {
+  margin: 2px 0;
+  white-space: pre-wrap;
+}
+.knowledge-review-results li > span,
+.knowledge-review-history small {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+}
+.knowledge-review-error {
+  padding: 10px;
+  border: 1px solid var(--red);
+  border-radius: var(--r);
+  margin-bottom: 12px;
+}
+@media (max-width: 540px) {
+  .knowledge-review-fields {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
