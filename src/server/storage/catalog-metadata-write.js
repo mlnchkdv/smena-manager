@@ -13,6 +13,7 @@ const SCOPES = {
   preferences: ['members', '_userPrefs', 'notifPrefs', 'notifs'],
   directory: ['_workspaceDirectory'],
   mediaCopies: ['_mediaBackups'],
+  workflow: ['projects'],
 };
 const forbidden = () => Object.assign(new Error('This change requires a canonical catalog write.'), { statusCode: 403, code: 'METADATA_WRITE_FORBIDDEN' });
 const omit = (value, keys) => Object.fromEntries(Object.entries(value || {}).filter(([key]) => !keys.includes(key)));
@@ -59,7 +60,12 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
   if (!same(omit(current, allowed), omit(next, allowed))) throw forbidden();
   if (!Number.isSafeInteger(next.revision) || next.revision !== current.revision + 1 || !Number.isFinite(Date.parse(next.updatedAt))) throw forbidden();
   if (scope === 'preferences') assertPersonalPatch(current, next, memberId);
-  else if (!['directory', 'mediaCopies'].includes(scope)) {
+  else if (scope === 'workflow') {
+    if (current.projects.length !== next.projects.length) throw forbidden();
+    const fields = ['workflow', 'workflowRevision', 'workflowUpdatedBy', 'workflowUpdatedAt'];
+    for (let index = 0; index < current.projects.length; index++)
+      if (!same(omit(current.projects[index], fields), omit(next.projects[index], fields))) throw forbidden();
+  } else if (!['directory', 'mediaCopies'].includes(scope)) {
     const document = ['knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(scope) ? 'knowledge' : scope;
     if (
       document !== scope &&

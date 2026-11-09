@@ -9,6 +9,7 @@ import { validWhiteboard } from './project-whiteboard.js';
 import { validWhiteboardDocument } from './whiteboards.js';
 import { validKnowledgeGovernance } from './knowledge-governance.js';
 import { validKnowledgeIntake } from './knowledge-intake.js';
+import { validProjectWorkflow } from './project-workflow.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -97,6 +98,11 @@ export function validateWorkspaceData(value) {
     if (ids.some(id => typeof id !== 'string' || !/^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(id)) || new Set(ids).size !== ids.length) invalid.push(`${field}.id`);
   }
   const projectIds = new Set((Array.isArray(value.projects) ? value.projects : []).map(item => item?.id));
+  const projectCycles = new Map(
+    (Array.isArray(value.projects) ? value.projects : [])
+      .filter(project => isObject(project) && Object.hasOwn(project, 'workflow') && (project.workflow == null || Array.isArray(project.workflow.cycles)))
+      .map(project => [project.id, new Set((project.workflow?.cycles || []).map(cycle => cycle?.id))]),
+  );
   const taskIds = new Set((Array.isArray(value.tasks) ? value.tasks : []).map(item => item?.id));
   const validDate = date => {
     if (date == null || date === '') return true;
@@ -108,6 +114,8 @@ export function validateWorkspaceData(value) {
     if (!isObject(task)) continue;
     if (task.project != null && !projectIds.has(task.project)) invalid.push('tasks.project');
     if (task.status != null && !['backlog', 'todo', 'progress', 'review', 'done'].includes(task.status)) invalid.push('tasks.status');
+    if (task.cycleId != null && task.cycleId !== '' && !validIdentity(task.cycleId)) invalid.push('tasks.cycleId');
+    if (task.cycleId && projectCycles.has(task.project) && !projectCycles.get(task.project).has(task.cycleId)) invalid.push('tasks.cycleId');
     if (task.priority != null && !['none', 'urgent', 'high', 'medium', 'low'].includes(task.priority)) invalid.push('tasks.priority');
     for (const field of ['subtasks', 'attachments', 'deps', 'labels']) if (task[field] != null && !Array.isArray(task[field])) invalid.push(`tasks.${field}`);
     for (const field of ['subtasks', 'attachments']) if (task[field] != null && !validEntityArray(task[field])) invalid.push(`tasks.${field}`);
@@ -130,6 +138,20 @@ export function validateWorkspaceData(value) {
     if (task.desc != null && typeof task.desc !== 'string') invalid.push('tasks.desc');
   }
   for (const project of Array.isArray(value.projects) ? value.projects : []) {
+    if (isObject(project) && !validProjectWorkflow(project.workflow)) invalid.push('projects.workflow');
+    if (
+      project?.workflowRevision != null &&
+      (!Number.isSafeInteger(project.workflowRevision) || project.workflowRevision < 0 || project.workflowRevision > 1000000)
+    )
+      invalid.push('projects.workflowRevision');
+    if (project?.workflowUpdatedBy != null && project.workflowUpdatedBy !== '' && !validIdentity(project.workflowUpdatedBy))
+      invalid.push('projects.workflowUpdatedBy');
+    if (
+      project?.workflowUpdatedAt != null &&
+      project.workflowUpdatedAt !== '' &&
+      (typeof project.workflowUpdatedAt !== 'string' || !Number.isFinite(Date.parse(project.workflowUpdatedAt)))
+    )
+      invalid.push('projects.workflowUpdatedAt');
     if (!isObject(project)) continue;
     if (project.whiteboard != null && !validWhiteboard(project.whiteboard)) invalid.push('projects.whiteboard');
     if (project.iconImage != null && project.iconImage !== '' && !projectImageData(project.iconImage)) invalid.push('projects.iconImage');

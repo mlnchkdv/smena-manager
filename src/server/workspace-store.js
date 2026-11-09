@@ -243,7 +243,7 @@ export async function mutateWorkspaceCatalogCommand(mutator, expectedRevision, o
       )
     )
       throw Object.assign(new Error('The file command changed its authorized target.'), { code: 'FILE_FORBIDDEN', statusCode: 403 });
-    validateTaskTransitions(current, next);
+    validateTaskTransitions(current, next, { memberId, role: actor.role });
     validateMembershipTransition(current, next);
     validateTransportSize(next, false);
     try {
@@ -542,7 +542,8 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);
   validateMembershipTransition(current, nextData);
-  if (!options.replaceDocuments) validateTaskTransitions(current, nextData);
+  if (!options.replaceDocuments)
+    validateTaskTransitions(current, nextData, options.actorMemberId ? { memberId: options.actorMemberId, role: options.role || 'admin' } : undefined);
   if (!options.replaceDocuments) assignCanonicalTaskKeys(current, nextData);
   else
     for (const project of nextData.projects || [])
@@ -648,7 +649,9 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
   if (
-    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(options.scope) ||
+    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'workflow', 'knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(
+      options.scope,
+    ) ||
     options.backupLabel ||
     options.replaceDocuments ||
     options.actorMemberId ||

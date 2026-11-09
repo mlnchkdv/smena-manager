@@ -1,7 +1,8 @@
 import { canReadProject } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { projectWorkflowIssues } from '../shared/project-workflow.js';
 
-export function validateTaskTransitions(current, candidate) {
+export function validateTaskTransitions(current, candidate, actor) {
   const previous = new Map((current.tasks || []).map(task => [task.id, task]));
   const members = new Map((candidate.members || []).map(member => [member.id, member]));
   const projects = new Map((candidate.projects || []).map(project => [project.id, project]));
@@ -18,6 +19,15 @@ export function validateTaskTransitions(current, candidate) {
       const project = projects.get(task.project);
       if (project && !canReadProject(project, member.id, workspaceMemberRole(member))) invalid('ASSIGNEE_PROJECT_ACCESS');
     }
+  }
+  const workflowNeeded =
+    (current.projects || []).some(project => project.workflow != null) ||
+    (candidate.projects || []).some(project => project.workflow != null) ||
+    candidate.tasks.some(task => task.cycleId && (previous.get(task.id)?.cycleId !== task.cycleId || previous.get(task.id)?.project !== task.project));
+  if (workflowNeeded) {
+    const workflow = projectWorkflowIssues(current, candidate, { actor });
+    if (workflow.length)
+      throw Object.assign(new TypeError('The task change does not satisfy the project workflow.'), { code: workflow[0].code, statusCode: 400 });
   }
   if (!graphChanged) return;
   const indegree = new Map(candidate.tasks.map(task => [task.id, 0]));

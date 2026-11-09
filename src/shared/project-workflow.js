@@ -88,6 +88,8 @@ export function sameProjectWorkflow(a, b) {
   return signature(a) === signature(b);
 }
 
+const standardWorkflow = defaultProjectWorkflow();
+
 // Pure, bounded diagnostics for the complete proposed task set. Bulk swaps are
 // evaluated together. Callers must still authorize canonical membership first.
 export function projectWorkflowIssues(current, next, { actor, limit = 20 } = {}) {
@@ -113,8 +115,9 @@ export function projectWorkflowIssues(current, next, { actor, limit = 20 } = {})
     const before = beforeProjects.get(project.id);
     const changed = !sameProjectWorkflow(before?.workflow, project.workflow);
     if (changed && actor && projectAccess(before || project, actor.memberId, actor.role) < 4) add({ code: 'WORKFLOW_FORBIDDEN', projectId: project.id });
-    if (cycleSignature(before?.workflow?.cycles) !== cycleSignature(project.workflow?.cycles)) changedCycles.add(project.id);
-    flows.set(project.id, project.workflow || defaultProjectWorkflow());
+    if (cycleSignature(before?.workflow?.cycles) !== cycleSignature(project.workflow?.cycles) || (before?.workflow == null) !== (project.workflow == null))
+      changedCycles.add(project.id);
+    flows.set(project.id, project.workflow || standardWorkflow);
   }
   for (const task of tasks.values()) {
     const flow = flows.get(task.project);

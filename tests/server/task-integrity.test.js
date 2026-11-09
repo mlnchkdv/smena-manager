@@ -2,6 +2,21 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from '../../src/server/task-integrity.js';
 import { calendarDate, nextRecurrenceDate, resolveTimeZone, formatTimestamp } from '../../src/shared/calendar-time.js';
+import { defaultProjectWorkflow } from '../../src/shared/project-workflow.js';
+
+test('canonical task validation enforces process rules even with unchanged dependency graphs', () => {
+  const current = { projects: [{ id: 'p', workflow: defaultProjectWorkflow() }], tasks: [{ id: 'a', project: 'p', status: 'todo', deps: [] }], members: [] };
+  current.projects[0].workflow.transitions.todo = ['progress'];
+  const next = structuredClone(current);
+  next.tasks[0].status = 'done';
+  assert.throws(() => validateTaskTransitions(current, next), { code: 'WORKFLOW_TRANSITION' });
+  next.tasks[0].status = 'progress';
+  current.projects[0].workflow.ready.progress.description = true;
+  next.projects[0].workflow.ready.progress.description = true;
+  assert.throws(() => validateTaskTransitions(current, next), { code: 'WORKFLOW_READY' });
+  next.tasks[0].desc = '<p>Ready</p>';
+  assert.doesNotThrow(() => validateTaskTransitions(current, next));
+});
 
 test('timestamps honor the selected time zone and 12/24-hour preference', () => {
   const instant = '2026-10-18T12:30:00Z';

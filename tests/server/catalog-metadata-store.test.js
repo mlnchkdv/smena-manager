@@ -8,8 +8,10 @@ import { createCatalogAccounting } from '../../src/server/file-catalog-accountin
 import { createEmptyDatabase, getWorkspaceDatabase, mutateWorkspaceMetadata, resetWorkspaceStore } from '../../src/server/workspace-store.js';
 import { replaceWorkspaceDocument } from '../../src/server/workspace-document-store.js';
 import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
+import { defaultProjectWorkflow } from '../../src/shared/project-workflow.js';
+import { readProjectWorkflow, writeProjectWorkflow } from '../../src/server/project-workflow-store.js';
 
-async function fixture(t) {
+async function fixture(t, extra = {}) {
   const keys = ['VERCEL', 'WORKSPACE_WRITE_MODE', 'REDIS_URL'];
   const env = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   delete process.env.VERCEL;
@@ -38,6 +40,7 @@ async function fixture(t) {
       { id: 'mine', recipient: 'me', read: false },
       { id: 'theirs', recipient: 'other', read: false },
     ],
+    ...extra,
   };
   storage.init = async () => {};
   storage.loadDatabase = async () => structuredClone(raw);
@@ -141,6 +144,64 @@ test('document and personal saves read no catalog parts and never poison the ful
   assert.equal(complete.notifs[1].read, false);
   assert.deepEqual(f.root()._fileCatalog.accounting, createCatalogAccounting(complete));
   assert.deepEqual(complete._fileRegistry, f.raw._fileRegistry);
+});
+test('workflow configuration uses root CAS without reading file parts; exact target replay does not write twice', async t => {
+  const f = await fixture(t),
+    owner = { id: 'me', role: 'admin' },
+    viewer = { id: 'other', role: 'editor' };
+  const before = await readProjectWorkflow('p', owner),
+    flow = defaultProjectWorkflow();
+  flow.wip.progress = 2;
+  const pointers = structuredClone(f.root()._fileCatalog.shards),
+    registry = structuredClone(f.root()._fileRegistry);
+  await assert.rejects(writeProjectWorkflow('p', { workflow: flow, workflowHash: before.workflowHash }, viewer), { code: 'WORKSPACE_FORBIDDEN' });
+  f.race(root => {
+    root.revision++;
+    root.ws = { name: 'Concurrent workspace' };
+    root._fileCatalog.accounting.revision++;
+    root._fileCatalog.accounting.catalogBytes++;
+  });
+  const saved = await writeProjectWorkflow('p', { workflow: flow, workflowHash: before.workflowHash }, owner);
+  assert.equal(saved.revision, 1);
+  assert.equal(saved.updatedBy, 'me');
+  assert.equal(saved.workflow.wip.progress, 2);
+  assert.equal(f.root().ws.name, 'Concurrent workspace');
+  assert.equal(f.reads.writes, 1);
+  assert.equal(f.reads.full, 0);
+  const revision = f.root().revision;
+  assert.equal((await writeProjectWorkflow('p', { workflow: flow, workflowHash: before.workflowHash }, owner)).revision, 1);
+  assert.equal(f.root().revision, revision);
+  assert.equal(f.reads.writes, 1);
+  const stale = structuredClone(flow);
+  stale.wip.progress = 3;
+  await assert.rejects(writeProjectWorkflow('p', { workflow: stale, workflowHash: before.workflowHash }, owner), { code: 'WORKFLOW_STALE' });
+  assert.deepEqual(f.root()._fileCatalog.shards, pointers);
+  assert.deepEqual(f.root()._fileRegistry, registry);
+  assert.deepEqual((await f.full()).files, f.raw.files);
+  assert.equal(f.reads.full, 0);
+  await assert.rejects(
+    mutateWorkspaceMetadata(
+      db => {
+        db.projects[0].name = 'Forbidden rename';
+        return db;
+      },
+      revision,
+      { role: 'admin', scope: 'workflow' },
+    ),
+    { code: 'METADATA_WRITE_FORBIDDEN' },
+  );
+  assert.equal(f.root().revision, revision);
+});
+test('thin workflow activation refuses unknown legacy cycle identities before publication', async t => {
+  const f = await fixture(t, { tasks: [{ id: 'legacy', title: 'Legacy', project: 'p', status: 'todo', cycleId: 'external-cycle' }] });
+  const actor = { id: 'me', role: 'admin' },
+    model = await readProjectWorkflow('p', actor);
+  await assert.rejects(writeProjectWorkflow('p', { workflow: defaultProjectWorkflow(), workflowHash: model.workflowHash }, actor), {
+    code: 'WORKFLOW_CYCLE_UNAVAILABLE',
+  });
+  assert.equal(f.reads.writes, 0);
+  assert.equal(f.reads.full, 0);
+  assert.equal(f.root().revision, 9);
 });
 
 test('stale documents and forbidden personal/file/ACL changes never publish or materialize', async t => {

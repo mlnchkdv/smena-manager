@@ -137,6 +137,13 @@ test('cycle archival retains assignments and IDs while rejecting new assignments
   next.projects[0].workflow.cycles = [];
   assert.ok(projectWorkflowIssues(current, next).some(issue => issue.code === 'WORKFLOW_CYCLE_UNAVAILABLE' && issue.taskId === 'a'));
 });
+test('enabling a process validates legacy cycle fields even when the new cycle list is empty', () => {
+  const current = base();
+  current.tasks[0].cycleId = 'external-cycle';
+  const next = structuredClone(current);
+  next.projects[0].workflow = defaultProjectWorkflow();
+  assert.ok(projectWorkflowIssues(current, next).some(issue => issue.code === 'WORKFLOW_CYCLE_UNAVAILABLE'));
+});
 test('dependency readiness never discloses the state of a private dependency; diagnostics are bounded', () => {
   const current = configured();
   current.projects.push({ id: 'private', private: true, lead: 'other' });
