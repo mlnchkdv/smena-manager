@@ -2,6 +2,10 @@ import { mergeWorkspaceData } from './workspace-merge.js';
 
 const pending = new Set();
 
+export function cancelPendingUndo() {
+  pending.clear();
+}
+
 export function captureUndo(data) {
   const command = { before: structuredClone(data), after: null };
   pending.add(command);

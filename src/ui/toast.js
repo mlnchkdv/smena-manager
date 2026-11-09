@@ -4,7 +4,8 @@ import { ic } from '../core/icons.js';
 import { S, save, flushLocalSave } from '../core/store.js';
 import { render } from '../shell/render.js';
 import { translateElement } from '../core/i18n.js';
-import { completeUndo } from '../shared/undo.js';
+import { completeUndo, cancelPendingUndo } from '../shared/undo.js';
+import { needsTaskWorkflowCommands, taskWorkflowCommands, prepareTaskWorkflowCommands } from '../core/task-workflow-loader.js';
 
 export function toast(msg, opt = {}) {
   const host = $('#toasts');
@@ -30,6 +31,12 @@ export function toast(msg, opt = {}) {
 }
 export function mutate(fn, label) {
   void label;
+  if (!mutationAllowed()) return false;
+  fn();
+  commitMutation();
+  return true;
+}
+function mutationAllowed() {
   if (S.ui.atomicOperation) {
     toast('A workspace operation is in progress. Please wait.', { kind: 'info' });
     return false;
@@ -38,12 +45,39 @@ export function mutate(fn, label) {
     window.dispatchEvent(new CustomEvent('smena:permission-denied', { detail: { fields: ['*'], role: 'viewer' } }));
     return false;
   }
-  fn();
+  return true;
+}
+function commitMutation() {
   completeUndo(S.data);
   save();
   // A committed command must enter recovery/sync before the next navigation;
   // the 150 ms local debounce remains for ordinary form/input saves.
   flushLocalSave();
   render();
+}
+export function mutateTaskCommand(fn) {
+  if (!needsTaskWorkflowCommands(S.data)) return mutate(fn);
+  if (!mutationAllowed()) {
+    cancelPendingUndo();
+    return false;
+  }
+  const guard = taskWorkflowCommands();
+  if (!guard) {
+    prepareTaskWorkflowCommands(render, true);
+    cancelPendingUndo();
+    toast('Preparing project checks. Try the command again in a moment.', { kind: 'info' });
+    render();
+    return false;
+  }
+  const result = guard.run(S.data, fn, () => S.data);
+  if (!result.applied) {
+    S.data = result.data;
+    S.ui.fx = {};
+    cancelPendingUndo();
+    render();
+    toast(guard.explain(result.issues[0]), { kind: 'err', ms: 8000 });
+    return false;
+  }
+  commitMutation();
   return true;
 }

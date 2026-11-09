@@ -5,7 +5,7 @@ import { t } from '../core/i18n.js';
    ===================================================================== */
 import { esc } from '../core/utils.js';
 import { D, S, logAct, task } from '../core/store.js';
-import { mutate, toast } from '../ui/toast.js';
+import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { A, IN, confirmDlg, deleteTasks } from './actions.js';
 import { purgeWorkspaceTrash } from '../core/api.js';
 import { knowledgeCatalogMode } from '../core/api.js';
@@ -17,7 +17,7 @@ import { restoredFileFolder } from '../shared/file-organization.js';
 A.restoreTask = el => {
   const t = task(el.dataset.id);
   if (
-    mutate(() => {
+    mutateTaskCommand(() => {
       t.archived = false;
       t.archivedAt = null;
       logAct('restored', t);
@@ -92,7 +92,8 @@ A.restoreTrash = el => {
       const check = trashRestorePlan(current, D(), D().me, S.ui.currentUser?.role);
       if (check.error) return toast(t(check.error), { kind: 'err' });
       let restored = false;
-      const changed = mutate(() => {
+      const command = ['project', 'task'].includes(current.kind) ? mutateTaskCommand : mutate;
+      const changed = command(() => {
         restored = restoreTrash(current);
       });
       if (changed && restored) toast(`“${item.name}” restored.`);

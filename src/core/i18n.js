@@ -17,6 +17,7 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Preparing project checks. Try the command again in a moment.': 'Подготовка проверок проекта. Повторите команду через несколько секунд.',
   'Status…': 'Статус…',
   'Priority…': 'Приоритет…',
   Uploads: 'Загрузки',

@@ -3,7 +3,7 @@
    ===================================================================== */
 import { $, esc } from '../core/utils.js';
 import { S, logAct, save, task } from '../core/store.js';
-import { mutate, toast } from '../ui/toast.js';
+import { mutateTaskCommand as mutate, toast } from '../ui/toast.js';
 import { render } from '../shell/render.js';
 import { A, BLUR, IN, createTask } from './actions.js';
 

@@ -29,6 +29,7 @@ import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
+import { needsTaskWorkflowCommands, prepareTaskWorkflowCommands } from '../core/task-workflow-loader.js';
 
 export const ROUTE_NAMES = {
   ...Object.fromEntries(NAVIGATION_ITEMS.map(item => [item[0], item[1]])),
@@ -166,6 +167,7 @@ export function registerKnowledgeReadingRestorer(restorer) {
   knowledgeReadingRestorer = restorer;
 }
 export function render() {
+  if (S.ui.currentUser && !S.ui.auth && needsTaskWorkflowCommands(D())) prepareTaskWorkflowCommands(render);
   captureGraphQueryPosition();
   captureReaderPosition();
   captureActionMenuState();

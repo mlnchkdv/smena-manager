@@ -31,7 +31,7 @@ import { detachTaskFile } from '../shared/file-identity.js';
 import { filePreferences, saveFilePreferences, fileContext } from '../core/file-preferences.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
-import { mutate, toast } from '../ui/toast.js';
+import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
 import { applyWorkListIntent } from '../shared/work-list-intent.js';
@@ -183,6 +183,8 @@ export function applyPatch(t, patch) {
     else if (k === 'start') logAct('changed start date of', t, nv ? `to ${nv}` : '(cleared)', { field: k, value: nv || null });
     else if (k === 'project') {
       const p = proj(nv);
+      // Cycle identities belong to their project, even when names coincide.
+      if (!Object.hasOwn(patch, 'cycleId')) t.cycleId = '';
       t.key = nextKey(p);
       logAct('moved', t, `to ${p.name}`, { field: 'project', from: old, value: nv, fromLabel: proj(old)?.name || '', valueLabel: p.name });
     } else if (k === 'labels') logAct('updated labels on', t);
@@ -198,17 +200,16 @@ export function updateTask(id, patch) {
   if (id === '__form') {
     Object.assign(S.ui.form, patch);
     render();
-    return;
+    return true;
   }
   const t = task(id);
-  if (!t) return;
+  if (!t) return false;
   let msgs = [];
-  if (
-    mutate(() => {
-      msgs = applyPatch(t, patch);
-    })
-  )
-    msgs.forEach(m => toast(m, { kind: 'info' }));
+  const applied = mutateTaskCommand(() => {
+    msgs = applyPatch(t, patch);
+  });
+  if (applied) msgs.forEach(m => toast(m, { kind: 'info' }));
+  return applied;
 }
 export function confirmDlg(o) {
   S.ui.confirmText = '';
@@ -220,9 +221,9 @@ export function snapshot() {
 export function restore(snap) {
   const result = undoCommand(snap, S.data);
   if (result.conflicts.length) return toast('Unable to undo: the affected data has changed.', { kind: 'err' });
-  S.data = result.data;
-  save();
-  render();
+  return mutateTaskCommand(() => {
+    S.data = result.data;
+  });
 }
 export async function copy(text, msg = 'Link copied') {
   try {
@@ -823,8 +824,9 @@ A.toggleDone = el => {
   if (!t) return;
   const wasDone = t.status === 'done';
   S.ui.pop = null;
-  updateTask(t.id, { status: wasDone ? (t.prevStatus && t.prevStatus !== 'done' ? t.prevStatus : 'todo') : 'done' });
-  if (!wasDone && !S.ui.offline) toast(`Completed “${t.title}”`, { action: 'Undo', onAction: () => updateTask(t.id, { status: t.prevStatus || 'todo' }) });
+  const applied = updateTask(t.id, { status: wasDone ? (t.prevStatus && t.prevStatus !== 'done' ? t.prevStatus : 'todo') : 'done' });
+  if (applied && !wasDone && !S.ui.offline)
+    toast(`Completed “${t.title}”`, { action: 'Undo', onAction: () => updateTask(t.id, { status: t.prevStatus || 'todo' }) });
 };
 A.toggleFavTask = el => {
   const item = allTasks().find(item => item.id === el.dataset.id);
@@ -861,10 +863,12 @@ A.dupTask = el => {
   const t = task(el.dataset.id);
   S.ui.pop = null;
   let n;
-  mutate(() => {
-    n = createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, title: t.title + ' (copy)', created: Date.now(), fav: false });
-    n.key = nextKey(proj(n.project));
-  });
+  if (
+    !mutateTaskCommand(() => {
+      n = createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, title: t.title + ' (copy)', created: Date.now(), fav: false });
+    })
+  )
+    return;
   toast('Task duplicated', { action: 'Open', onAction: () => A.openTask({ dataset: { id: n.id } }) });
 };
 A.archiveTask = el => {
@@ -872,11 +876,14 @@ A.archiveTask = el => {
   const snap = snapshot();
   S.ui.pop = null;
   if (S.ui.drawer === t.id) S.ui.drawer = null;
-  mutate(() => {
-    t.archived = true;
-    t.archivedAt = Date.now();
-    logAct('archived', t);
-  });
+  if (
+    !mutateTaskCommand(() => {
+      t.archived = true;
+      t.archivedAt = Date.now();
+      logAct('archived', t);
+    })
+  )
+    return;
   toast(`Archived “${t.title}”`, { action: 'Undo', onAction: () => restore(snap) });
 };
 export function moveToTrash(kind, name, data) {
@@ -910,7 +917,7 @@ A.delTask = el => {
   if (!t) return;
   const run = () => {
     const snap = snapshot();
-    if (mutate(() => deleteTasks([t.id]))) toast(`“${t.title}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
+    if (mutateTaskCommand(() => deleteTasks([t.id]))) toast(`“${t.title}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
   };
   if (S.prefs.confirmDel === false && !el.dataset.demo) return run();
   confirmDlg({
@@ -1039,7 +1046,7 @@ A.submitTask = () => {
   if (m.edit) {
     const t = task(m.edit);
     if (
-      !mutate(() => {
+      !mutateTaskCommand(() => {
         applyPatch(t, base);
         if (
           f.desc !==
@@ -1060,7 +1067,7 @@ A.submitTask = () => {
   }
   let t;
   if (
-    !mutate(() => {
+    !mutateTaskCommand(() => {
       t = createTask({
         ...base,
         desc: source ? whiteboardCopyTaskHtml(f.desc, source, D().ws.url) : f.desc ? `<p>${esc(f.desc)}</p>` : '',
@@ -1096,7 +1103,7 @@ A.submitTask = () => {
 
 /* inline composer */
 A.startComposer = el => {
-  S.ui.composer = { ctx: el.dataset.ctx, group: el.dataset.group, gb: JSON.parse(el.dataset.gb || '{}') };
+  S.ui.composer = { ctx: el.dataset.ctx, group: el.dataset.group, gb: JSON.parse(el.dataset.gb || '{}'), title: '' };
   S.ui.pop = null;
   render();
   setTimeout(() => $('#composer-in')?.focus(), 0);
@@ -1104,6 +1111,9 @@ A.startComposer = el => {
 A.cancelComposer = () => {
   S.ui.composer = null;
   render();
+};
+IN.composer = el => {
+  if (S.ui.composer) S.ui.composer.title = el.value;
 };
 KEY.commitComposer = () => A.commitComposer();
 A.commitComposer = () => {
@@ -1118,7 +1128,11 @@ A.commitComposer = () => {
   const f = { title: v, ...c.gb };
   f.project = f.project || projectFromKey(c.ctx) || curProjectId() || 'p1';
   if (c.ctx === 'mytasks') f.assignee = D().me;
-  mutate(() => createTask(f));
+  c.title = v;
+  if (mutateTaskCommand(() => createTask(f))) {
+    c.title = '';
+    render();
+  }
   setTimeout(() => $('#composer-in')?.focus(), 0);
 };
 KEY.commitTitle = el => DBL._commitTitle(el);
@@ -1529,7 +1543,7 @@ A.bulkSet = el => {
   const ids = taskBulkIds();
   if (!ids.length) return;
   S.ui.pop = null;
-  if (mutate(() => ids.forEach(id => applyPatch(task(id), { [f]: v })))) toast(`Updated ${ids.length} task${ids.length > 1 ? 's' : ''}`);
+  if (mutateTaskCommand(() => ids.forEach(id => applyPatch(task(id), { [f]: v })))) toast(`Updated ${ids.length} task${ids.length > 1 ? 's' : ''}`);
 };
 A.bulkDelete = () => {
   const ids = taskBulkIds();
@@ -1737,7 +1751,7 @@ A.colDoneAll = el => {
     return;
   }
   const snap = snapshot();
-  if (mutate(() => ts.forEach(t => applyPatch(t, { status: 'done' }))))
+  if (mutateTaskCommand(() => ts.forEach(t => applyPatch(t, { status: 'done' }))))
     toast(`Marked ${ts.length} tasks as done`, { action: 'Undo', onAction: () => restore(snap) });
 };
 A.colArchive = () => {
@@ -1745,7 +1759,7 @@ A.colArchive = () => {
   S.ui.pop = null;
   const snap = snapshot();
   if (
-    mutate(() =>
+    mutateTaskCommand(() =>
       ts.forEach(t => {
         t.archived = true;
         t.archivedAt = Date.now();
@@ -2055,10 +2069,13 @@ A.dupProject = el => {
   const p = proj(el.dataset.id);
   S.ui.pop = null;
   let n;
-  mutate(() => {
-    n = createProject({ ...p, name: p.name + ' copy' }, 'blank');
-    tasksOf(p.id).forEach(t => createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, project: n.id, status: 'todo' }));
-  });
+  if (
+    !mutateTaskCommand(() => {
+      n = createProject({ ...p, name: p.name + ' copy' }, 'blank');
+      tasksOf(p.id).forEach(t => createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, project: n.id, status: 'todo', cycleId: '' }));
+    })
+  )
+    return;
   toast(`Duplicated ${p.name}`, { action: 'Open', onAction: () => go('project', { id: n.id }) });
 };
 A.archiveProject = el => {
