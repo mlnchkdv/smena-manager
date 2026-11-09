@@ -29,6 +29,7 @@ export function openModal(m) {
   }, 30);
 }
 export function closeModal() {
+  if (S.ui.modals.at(-1)?.beforeClose?.() === false) return;
   if (S.ui.atomicOperation) {
     S.ui.modals.at(-1)?.requestClose?.();
     return;

@@ -37,6 +37,7 @@ export function ctxMenu(p) {
       I('openProject', 'arrow-up-right', 'Open') +
       I('toggleFavProj', 'star', isFavorite('project', pr) ? 'Remove from favorites' : 'Add to favorites') +
       I('editProject', 'pencil', 'Rename & edit') +
+      I('openProjectWorkflow', 'workflow', 'Project process') +
       I('share', 'share-2', 'Share') +
       I('copyLink', 'link', 'Copy link') +
       I('dupProject', 'copy', 'Duplicate') +

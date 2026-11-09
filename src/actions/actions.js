@@ -279,6 +279,19 @@ A.toggleMaterialLocation = (el, event) => {
   if (details) details.open = !details.open;
 };
 A.openProject = el => go('project', { id: el.dataset.id, tab: S.prefs.defaultTab || 'board' });
+A.openProjectWorkflow = async el => {
+  const id = el.dataset.id,
+    generation = getSessionGeneration(),
+    workspace = D().ws.id || D().ws.url;
+  const opener = S.ui.popOpener;
+  S.ui.pop = null;
+  try {
+    const module = await import('../features/project-workflow.js');
+    if (generation === getSessionGeneration() && workspace === (D().ws.id || D().ws.url) && canSee(proj(id))) return module.openProjectWorkflow(id, opener);
+  } catch {
+    if (generation === getSessionGeneration()) toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
+  }
+};
 A.teamTaskScope = el => {
   if (S.ui.route !== 'team' || !['assigned', 'projects'].includes(el.dataset.v)) return;
   S.ui.teamTaskView = { key: (S.ui.activeWorkspace || 'default') + ':' + S.ui.params.id, scope: el.dataset.v, page: 0 };
@@ -637,6 +650,7 @@ A.syncSystemNow = async () => {
   }
 };
 A.ctxBtn = el => {
+  S.ui.popOpener = focusKey(el);
   const r = el.getBoundingClientRect();
   const d = el.dataset;
   const p = S.ui.pop;

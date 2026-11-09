@@ -24,6 +24,8 @@ export function modalHtml(m) {
     `<div class="modal-h"><div><h2 id="mt-${m.type}">${title}</h2>${sub ? `<div class="muted" style="font-size:12.5px;margin-top:2px">${sub}</div>` : ''}</div><button class="ibtn ibtn-sm" data-a="closeModal" aria-label="Close">${ic('x', 16)}</button></div>`;
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
+    case 'projectWorkflow':
+      return wrap('md project-workflow-dialog', m.render(m, H));
     case 'uploadQueue':
       return wrap('md', fileModalRenderers.uploadQueue(m, H));
     case 'uploadReview':

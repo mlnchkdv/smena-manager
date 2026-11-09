@@ -61,7 +61,7 @@ export function pageProject() {
           <button class="ibtn ibtn-sm" data-a="share" data-id="${p.id}" data-tip="Add member" aria-label="Add member">${ic('user-plus', 15)}</button>
           <button class="btn btn-secondary btn-sm hide-m" data-a="share" data-id="${p.id}">${ic('share-2', 13)}Share</button>
           <button class="ibtn ibtn-sm" data-a="editProject" data-id="${p.id}" data-tip="Project settings" aria-label="Project settings">${ic('settings', 15)}</button>
-          <button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="More">${ic('ellipsis', 15)}</button>
+          <button class="ibtn ibtn-sm" id="project-menu-${esc(p.id)}" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="More">${ic('ellipsis', 15)}</button>
         </div>
         <button class="ibtn project-mobile-menu" id="project-mobile-menu-${esc(p.id)}" data-a="ctxBtn" data-ctx="project" data-id="${esc(p.id)}" aria-label="${actionLabel('Project options', p.name)}">${ic('ellipsis', 18)}</button>
       </div>
