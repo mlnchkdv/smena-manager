@@ -662,7 +662,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof storage.loadDatabaseMetadata !== 'function' || typeof storage.saveDatabaseMetadata !== 'function')
     return mutateWorkspaceDatabase(mutator, expectedRevision, options);
   return withWorkspaceWrite(async coordination => {
-    const baseline = await storage.loadDatabaseMetadata();
+    const baseline = await storage.loadDatabaseMetadata({ knowledge: options.scope !== 'workflow' });
     const current = baseline && (await loadAggregate(storage, clone(baseline)));
     // Legacy/migration side effects require complete validation and reindexing.
     // Never install an empty/identity-only catalog as a canonical cache entry.

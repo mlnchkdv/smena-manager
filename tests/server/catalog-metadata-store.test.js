@@ -10,9 +10,10 @@ import { replaceWorkspaceDocument } from '../../src/server/workspace-document-st
 import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
 import { defaultProjectWorkflow } from '../../src/shared/project-workflow.js';
 import { readProjectWorkflow, writeProjectWorkflow } from '../../src/server/project-workflow-store.js';
+import { stageKnowledgeMetadata, materializeKnowledgeMetadata } from '../../src/server/storage/knowledge-metadata-shards.js';
 
-async function fixture(t, extra = {}) {
-  const keys = ['VERCEL', 'WORKSPACE_WRITE_MODE', 'REDIS_URL'];
+async function fixture(t, extra = {}, { shardKnowledge = false } = {}) {
+  const keys = ['VERCEL', 'WORKSPACE_WRITE_MODE', 'REDIS_URL', 'KNOWLEDGE_CATALOG_ENABLED', 'KNOWLEDGE_METADATA_SHARDS_ENABLED'];
   const env = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   delete process.env.VERCEL;
   resetStorageProvider();
@@ -55,11 +56,26 @@ async function fixture(t, extra = {}) {
   let root = await writeCatalogShards(raw, null, writePart);
   const reads = { full: 0, metadata: 0, core: 0, writes: 0 };
   const drive = new GoogleDriveStorageProvider();
+  const knowledgeParts = new Map();
+  if (shardKnowledge) {
+    process.env.KNOWLEDGE_CATALOG_ENABLED = 'true';
+    process.env.KNOWLEDGE_METADATA_SHARDS_ENABLED = 'true';
+    root = await stageKnowledgeMetadata(root, {
+      writeKnowledgeMetadata: async (text, sha) => {
+        knowledgeParts.set(sha, text);
+      },
+    });
+  }
+  reads.knowledge = 0;
+  drive.readKnowledgeMetadata = async sha => {
+    reads.knowledge++;
+    return knowledgeParts.get(sha);
+  };
   drive.databaseFileId = 'db';
   let beforeWrite;
-  drive.readDatabaseRoot = async () => {
+  drive.readDatabaseRoot = async (options = {}) => {
     reads.metadata++;
-    return rememberStorageVersion(structuredClone(root), `v${root.revision}`);
+    return rememberStorageVersion(await materializeKnowledgeMetadata(structuredClone(root), drive, options), `v${root.revision}`);
   };
   drive.updateVersionedJson = async (request, options) => {
     if (beforeWrite) {
@@ -77,9 +93,9 @@ async function fixture(t, extra = {}) {
   drive.readCatalogPart = () => assert.fail('Metadata writes must not read immutable parts');
   storage.loadDatabaseMetadata = drive.loadDatabaseMetadata.bind(drive);
   storage.saveDatabaseMetadata = drive.saveDatabaseMetadata.bind(drive);
-  storage.loadDatabaseCore = async ({ identities }) => {
+  storage.loadDatabaseCore = async options => {
     reads.core++;
-    return catalogCore(root, { identities });
+    return shardKnowledge ? drive.loadDatabaseCore(options) : catalogCore(root, { identities: options.identities });
   };
   storage.loadDatabase = async () => {
     reads.full++;
@@ -107,6 +123,7 @@ async function fixture(t, extra = {}) {
     raw,
     root: () => root,
     full: () => materializeCatalog(root, async id => parts.get(id)),
+    knowledge: () => materializeKnowledgeMetadata(structuredClone(root), drive),
     race: callback => {
       beforeWrite = callback;
     },
@@ -202,6 +219,29 @@ test('thin workflow activation refuses unknown legacy cycle identities before pu
   assert.equal(f.reads.writes, 0);
   assert.equal(f.reads.full, 0);
   assert.equal(f.root().revision, 9);
+});
+test('workflow reads and writes retain sharded knowledge without reading its metadata or bodies, including denied actors', async t => {
+  const notes = Array.from({ length: 1001 }, (_, i) => ({ id: `n-${i}`, title: `Заметка / Note ${i}`, summary: 'Metadata '.repeat(20) }));
+  const f = await fixture(t, { knowledgeNotes: notes }, { shardKnowledge: true }),
+    actor = { id: 'me', role: 'admin' };
+  const directory = structuredClone(f.root()._knowledgeCatalog),
+    files = structuredClone(f.root()._fileCatalog.shards);
+  const model = await readProjectWorkflow('p', actor),
+    flow = defaultProjectWorkflow();
+  flow.wip.progress = 3;
+  await assert.rejects(writeProjectWorkflow('p', { workflow: flow, workflowHash: model.workflowHash }, { id: 'other', role: 'viewer' }), {
+    code: 'WORKSPACE_FORBIDDEN',
+  });
+  const saved = await writeProjectWorkflow('p', { workflow: flow, workflowHash: model.workflowHash }, actor);
+  assert.equal(saved.workflow.wip.progress, 3);
+  assert.equal(f.reads.knowledge, 0);
+  assert.equal(f.reads.full, 0);
+  assert.deepEqual(f.root()._knowledgeCatalog, directory);
+  assert.deepEqual(f.root()._fileCatalog.shards, files);
+  assert.equal(f.root().schemaVersion, 4);
+  const complete = await f.knowledge();
+  assert.equal(complete.knowledgeNotes.length, 1001);
+  assert.equal(complete.knowledgeNotes.at(-1).title, notes.at(-1).title);
 });
 
 test('stale documents and forbidden personal/file/ACL changes never publish or materialize', async t => {

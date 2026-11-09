@@ -332,8 +332,8 @@ export class GoogleDriveStorageProvider {
     return rememberStorageVersion(core, storageVersion(root));
   }
 
-  async loadDatabaseMetadata() {
-    const root = await this.readDatabaseRoot();
+  async loadDatabaseMetadata({ knowledge = true } = {}) {
+    const root = await this.readDatabaseRoot({ knowledge });
     const core = metadataWriteBase(root);
     if (!core) return null; // Legacy storage must take the canonical write path.
     const data = rememberStorageVersion(structuredClone(core), storageVersion(root));
