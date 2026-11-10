@@ -12,6 +12,7 @@ import { fileFolderPageSize, fileFolderPageStart } from '../shared/file-folder-p
 import { folderNavigation } from './folder-navigation.js';
 
 export function visibleFileFolderKeys(projectId, currentFolder, index) {
+  if (fileFolderView().collapsed) return [];
   const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
   const archived = Boolean(S.ui.fileFoldersArchived);
   const entries = index.folderEntries

@@ -620,6 +620,7 @@ const RU = {
   'No comments yet. Start the conversation.': 'Комментариев пока нет. Начните обсуждение.',
   'No comments yet.': 'Комментариев пока нет.',
   'No attachments': 'Нет вложений',
+  'File counts are unavailable.': 'Не удалось загрузить количество файлов.',
   'Leave a comment… type @ to mention': 'Оставьте комментарий… используйте @ для упоминания',
   Comment: 'Комментарий',
   Mention: 'Упомянуть',

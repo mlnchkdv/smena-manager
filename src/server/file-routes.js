@@ -220,6 +220,16 @@ fileRouter.post('/catalog/query', async (request, response, next) => {
     next(error);
   }
 });
+
+fileRouter.post('/catalog/counts', async (request, response, next) => {
+  const signal = requestSignal(request, response);
+  try {
+    response.setHeader('Cache-Control', 'no-store');
+    response.json(await queryWorkspaceFileCatalog(request.user, { ...request.body, countsOnly: true }, { signal }));
+  } catch (error) {
+    if (!signal.aborted) next(error);
+  }
+});
 fileRouter.post('/catalog/search', async (request, response, next) => {
   const signal = requestSignal(request, response);
   try {

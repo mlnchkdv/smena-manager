@@ -67,6 +67,34 @@ test('partial-client deletion stores all unloaded project/task files in recovera
   assert.deepEqual(retained, current.files);
 });
 
+test('count-only requests retain revision and canonical ACL checks without returning or sorting file rows', () => {
+  const db = data(),
+    user = { id: 'm', role: 'editor' };
+  const options = {
+    revision: 7,
+    countsOnly: true,
+    countFolders: [
+      ['public', 'folder'],
+      ['secret', 'folder'],
+      ['missing', 'folder'],
+    ],
+  };
+  assert.deepEqual(catalogQuery(db, user, options), {
+    revision: 7,
+    folderCounts: [
+      ['public', 'folder', 1100],
+      ['secret', 'folder', 0],
+      ['missing', 'folder', 0],
+    ],
+  });
+  assert.throws(() => catalogQuery(db, user, { ...options, revision: 6 }), { code: 'REVISION_CONFLICT' });
+  assert.throws(() => catalogQuery(db, user, { ...options, countFolders: Array.from({ length: 33 }, () => ['public', 'folder']) }));
+  db.members[0].role = 'Guest';
+  assert.equal(catalogQuery(db, { ...user, role: 'admin' }, options).folderCounts[1][2], 0);
+  db.members[0].status = 'deactivated';
+  assert.throws(() => catalogQuery(db, user, options), { code: 'AUTH_REQUIRED' });
+});
+
 test('catalog reads recheck a role downgrade or deactivation after authentication', () => {
   const db = data();
   db.members[0].role = 'Member';

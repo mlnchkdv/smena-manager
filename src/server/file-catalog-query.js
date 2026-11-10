@@ -24,6 +24,7 @@ export function catalogQuery(database, user, options = {}) {
     folder = '',
     recursive = false,
     countFolders = [],
+    countsOnly = false,
   } = options;
   if (revision !== database.revision)
     throw Object.assign(new Error('The workspace changed after it was loaded. Refresh and retry.'), {
@@ -40,6 +41,7 @@ export function catalogQuery(database, user, options = {}) {
     query.length > 500 ||
     !['date', 'name', 'size', 'project'].includes(sort) ||
     ![project, context, folder, type].every(value => typeof value === 'string') ||
+    typeof countsOnly !== 'boolean' ||
     !Array.isArray(countFolders) ||
     countFolders.length > 32 ||
     countFolders.some(key => !Array.isArray(key) || key.length !== 2 || key.some(value => typeof value !== 'string'))
@@ -60,8 +62,10 @@ export function catalogQuery(database, user, options = {}) {
     text: 'Text Текст',
     other: 'Other files Другие файлы',
   });
-  const results = filterIndexedFiles(index, { project, folder, recursive, type, query, sort });
   const summary = database._catalogIndex ? createFileIndex({ ...database, files: database._catalogIndex }, projects) : index;
+  const folderCounts = countFolders.map(([p, f]) => [p, f, summary.count(p, f)]);
+  if (countsOnly) return structuredClone({ revision, folderCounts });
+  const results = filterIndexedFiles(index, { project, folder, recursive, type, query, sort });
   const pages = Math.max(1, Math.ceil(results.length / limit));
   const page = Math.min(Math.floor(offset / limit), pages - 1);
   return structuredClone({
@@ -73,7 +77,7 @@ export function catalogQuery(database, user, options = {}) {
     allTotal: summary.files.length,
     totalBytes: summary.totalBytes,
     projectCount: summary.projectsWithFiles.size,
-    folderCounts: countFolders.map(([p, f]) => [p, f, summary.count(p, f)]),
+    folderCounts,
     resultIds: results.length <= 500 ? results.map(file => file.id) : null,
   });
 }

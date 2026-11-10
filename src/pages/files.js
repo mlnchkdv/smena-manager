@@ -253,7 +253,8 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!remote?.loading && !remote.error)}
+    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error)}
+    ${remote?.countsError ? `<p class="hint" role="alert">${tr('File counts are unavailable.')} <button class="btn btn-ghost btn-sm" data-a="retryFileCatalog">${tr('Try again')}</button></p>` : ''}
     <section class="files-operations" aria-label="File operations">
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
