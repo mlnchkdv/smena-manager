@@ -330,8 +330,52 @@
   color: var(--text-3);
 }
 @media (max-height: 500px) {
+  .whiteboards-page {
+    padding-block: 8px;
+  }
+  .whiteboards-heading {
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .whiteboards-heading p {
+    display: none;
+  }
+  .whiteboards-page > .hint {
+    margin-block: 4px;
+  }
+  .whiteboard-page {
+    padding-block: 6px;
+  }
+  .whiteboard-document-heading {
+    margin-bottom: 4px;
+  }
+  .whiteboard-description {
+    margin-block: 4px;
+  }
+  .whiteboard-toolbar .whiteboard-focus-toggle {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: var(--accent-line);
+    min-height: 44px;
+  }
   .whiteboard-page .project-whiteboard:not(.is-focused) .whiteboard-viewport {
     height: max(180px, calc(100dvh - 170px));
+  }
+}
+@media (min-width: 641px) and (max-height: 500px) {
+  .whiteboards-filters {
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: 6px;
+  }
+  .whiteboards-search {
+    grid-column: auto;
+  }
+  .whiteboards-desktop-filters {
+    display: none;
+  }
+  .whiteboards-filter-trigger {
+    display: inline-flex;
+    min-height: 44px;
   }
 }
 .whiteboard-version-comparison details {

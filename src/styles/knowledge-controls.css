@@ -566,6 +566,12 @@
 }
 /* Short screens need catalog content before secondary context and prose. */
 @media (min-width: 641px) and (max-height: 500px) {
+  .knowledge-content > .knowledge-breadcrumbs[data-root='true'] {
+    display: none;
+  }
+  .knowledge-content > .knowledge-breadcrumbs {
+    margin-bottom: 4px;
+  }
   .knowledge-main {
     padding-block: 8px;
   }

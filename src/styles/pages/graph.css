@@ -1049,6 +1049,41 @@
 .graph-entry-guide .hint {
   margin-block: 8px 0;
 }
+.graph-context-tools {
+  display: contents;
+}
+@media (min-width: 641px) and (max-height: 600px) {
+  .graph-page:not(.is-focused) {
+    padding-block: 8px;
+  }
+  .graph-page .graph-limit-status {
+    margin-block: 2px;
+  }
+  .graph-page:not(.is-focused) .graph-meta {
+    margin-block: 2px;
+  }
+  .graph-context-tools {
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 4px;
+  }
+  .graph-context-tools > details {
+    flex: 1 1 220px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .graph-context-tools > details[open] {
+    flex-basis: 100%;
+  }
+  .graph-context-tools > details > summary {
+    min-height: 44px;
+    align-content: center;
+  }
+}
 @media (pointer: coarse) {
   .graph-entry-guide > summary {
     min-height: 44px;
