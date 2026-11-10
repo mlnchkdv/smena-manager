@@ -8,6 +8,23 @@
 .project-workflow-body > p {
   margin: 0;
 }
+.project-workflow-body > .alert.warn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+}
+.project-workflow-body > .alert.warn p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.project-workflow-body > .alert.warn .btn {
+  flex: 1 1 180px;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .workflow-section {
   display: grid;
   gap: 12px;
