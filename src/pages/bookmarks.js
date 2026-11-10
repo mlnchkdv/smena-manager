@@ -4,6 +4,7 @@ import { folderNavigation } from '../ui/folder-navigation.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { A } from '../actions/actions.js';
+import { openModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 import { materialFavorite } from '../ui/material-favorite.js';
 import { receiveWebCapture } from '../ui/web-capture.js';
@@ -91,12 +92,23 @@ function bookmarkCard(link, folders, readOnly) {
     <div class="bookmark-tags" translate="no">${(link.tags || []).map(tag => `<span class="chip">#${esc(tag)}</span>`).join('')}${folder ? `<span class="chip bookmark-folder-chip">${ic('folder', 11)}${esc(folder.name)}</span>` : ''}</div>
     <div class="bookmark-card-foot"><div class="bookmark-card-meta"><span class="bookmark-read-state" translate="no" title="${kc('Shared across workspace members; favorites are personal.', 'Общий для участников пространства; избранное — личное.')}">${kc('Team', 'Команда')} · ${link.readingStatus === 'reading' ? kc('In progress', 'В работе') : link.is_read ? kc('Processed', 'Разобрано') : kc('To read', 'Прочитать')}</span><span>${ic('clock-3', 12)}${ago(new Date(link.updated_at || link.created_at).getTime())}</span></div><div class="bookmark-card-actions">${materialFavorite('bookmark', link)}${
       readOnly
-        ? ''
-        : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${actionName(link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read')}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><button class="ibtn ibtn-xs" data-a="copyBookmark" data-id="${link.id}" data-tip="Copy link" aria-label="${actionName('Copy link')}">${ic('copy', 14)}</button><details class="bookmark-action-menu ui-menu"><summary aria-label="${actionName('More actions')}" title="${actionName('More actions')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="copyBookmark" data-id="${esc(link.id)}">${ic('copy', 14)}Copy link</button><button class="btn btn-ghost btn-sm" data-a="addRelationPicker" data-key="bookmark:${esc(link.id)}">${ic('plus', 14)}Add connection</button><button class="btn btn-ghost btn-sm" data-a="keepBookmarkOffline" data-id="${esc(link.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost btn-sm" data-a="editBookmark" data-id="${link.id}">${ic('pencil', 14)}Edit bookmark</button><button class="btn btn-ghost btn-sm" data-a="toggleBookmarkArchive" data-id="${link.id}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}</button><button class="btn btn-ghost btn-sm danger" data-a="deleteBookmark" data-id="${link.id}">${ic('trash-2', 14)}Delete bookmark</button></div></details>`
+        ? `<details class="bookmark-action-menu ui-menu"><summary aria-label="${actionName('More actions')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="bookmarkConnections" data-id="${esc(link.id)}">${ic('network', 14)}Connections</button><button class="btn btn-ghost btn-sm" data-a="copyBookmark" data-id="${esc(link.id)}">${ic('copy', 14)}Copy link</button></div></details>`
+        : `<button class="ibtn ibtn-xs" data-a="toggleBookmarkRead" data-id="${link.id}" data-tip="${link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read'}" aria-label="${actionName(link.is_read ? 'Mark bookmark as unread' : 'Mark bookmark as read')}">${ic(link.is_read ? 'circle' : 'circle-check', 14)}</button><details class="bookmark-action-menu ui-menu"><summary aria-label="${actionName('More actions')}" title="${actionName('More actions')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="bookmarkConnections" data-id="${esc(link.id)}">${ic('network', 14)}Connections</button><button class="btn btn-ghost btn-sm" data-a="copyBookmark" data-id="${esc(link.id)}">${ic('copy', 14)}Copy link</button><button class="btn btn-ghost btn-sm" data-a="addRelationPicker" data-key="bookmark:${esc(link.id)}">${ic('plus', 14)}Add connection</button><button class="btn btn-ghost btn-sm" data-a="keepBookmarkOffline" data-id="${esc(link.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost btn-sm" data-a="editBookmark" data-id="${link.id}">${ic('pencil', 14)}Edit bookmark</button><button class="btn btn-ghost btn-sm" data-a="toggleBookmarkArchive" data-id="${link.id}">${ic(link.is_archived ? 'archive-restore' : 'archive', 14)}${link.is_archived ? 'Restore bookmark' : 'Archive bookmark'}</button><button class="btn btn-ghost btn-sm danger" data-a="deleteBookmark" data-id="${link.id}">${ic('trash-2', 14)}Delete bookmark</button></div></details>`
     }</div></div>
-    ${link.excerpt ? `<details translate="no"><summary>${kc('Saved excerpt', 'Сохранённый фрагмент')}</summary><blockquote class="bookmark-excerpt">${esc(link.excerpt)}</blockquote></details>` : ''}${relationsPanel(`bookmark:${link.id}`, true, true)}
+    ${link.excerpt ? `<details translate="no"><summary>${kc('Saved excerpt', 'Сохранённый фрагмент')}</summary><blockquote class="bookmark-excerpt">${esc(link.excerpt)}</blockquote></details>` : ''}
   </article>`;
 }
+
+A.bookmarkConnections = el => {
+  const id = el.dataset.id;
+  openModal({
+    type: 'bookmarkConnections',
+    render: (_modal, H) => {
+      const link = bookmarksData().links.find(item => item.id === id);
+      return `${H('Connections')}<div class="modal-b"><p translate="no">${esc(link?.title || '')}</p>${link ? relationsPanel(`bookmark:${id}`) : '<p role="status">Material unavailable</p>'}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">Close</button></div>`;
+    },
+  });
+};
 
 A.setBookmarkLayout = el => {
   writeLayoutPreference('bookmarkLayout', el.dataset.value === 'list' ? 'list' : 'grid');
@@ -156,10 +168,10 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
           ['archived', 'Archived'],
         ],
       })}${readOnly ? '' : `<button class="btn btn-secondary" data-a="newBookmarkFolder">${ic('folder-plus', 14)}New folder</button>`}`,
-        { key: 'bookmarks', label: 'Bookmark filters', active: folderFilter !== 'all' || scope !== 'active' },
+        { key: 'bookmarks', label: 'Bookmark filters and view', active: folderFilter !== 'all' || scope !== 'active' },
       )}
     `,
-      'Bookmark filters',
+      'Bookmark filters and view',
       'bookmark-toolbar',
     )}
     <nav class="bookmark-location" aria-label="${kc('Bookmark location', 'Расположение закладок')}" translate="no">${folderNavigation('bookmarks', folderFilter === 'all' ? null : { folder: folderIndex.get(folderFilter)?.parentId || 'all' })}${folderFilter === 'all' ? `<strong>${kc('All bookmarks', 'Все закладки')}</strong>` : `<button class="btn btn-ghost btn-sm" data-a="collectionFolderUp" data-kind="bookmarks" data-folder="all">${kc('All bookmarks', 'Все закладки')}</button><span aria-hidden="true">/</span>${bookmarkCrumbs}`}</nav>

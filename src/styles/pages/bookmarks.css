@@ -116,7 +116,6 @@
 }
 .bookmark-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
 .bookmark-card.is-unread {
@@ -309,9 +308,10 @@
 
 .bookmark-card-foot {
   display: grid;
-  gap: 4px;
-  margin-top: 10px;
-  padding-top: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
 }
 .bookmark-read-state {
   color: var(--text-3);
@@ -328,10 +328,12 @@
 }
 .bookmark-card-meta {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 12px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  overflow-wrap: anywhere;
   color: var(--text-3);
   font-size: var(--fs-xs);
 }

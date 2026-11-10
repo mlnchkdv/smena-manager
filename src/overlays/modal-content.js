@@ -37,6 +37,8 @@ export function modalHtml(m) {
       return wrap('md sidebar-customize-dialog', m.render(m, H));
     case 'whiteboardTool':
       return wrap('md whiteboard-tool-dialog', m.render(m, H));
+    case 'bookmarkConnections':
+      return wrap('md bookmark-connections-dialog', m.render(m, H));
     case 'knowledgeTool':
       return wrap('md knowledge-tool-dialog', m.render(m, H));
     case 'workspaceCreate':
