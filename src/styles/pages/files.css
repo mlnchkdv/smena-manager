@@ -284,6 +284,7 @@
 }
 .workspace-file-grid {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  align-items: start;
 }
 .workspace-file-card {
   display: flex;
@@ -360,6 +361,13 @@
 .workspace-file-actions {
   width: 48px;
   text-align: right;
+}
+
+@media (min-width: 641px) {
+  .workspace-file-card .fprev {
+    aspect-ratio: 2;
+    max-height: 140px;
+  }
 }
 
 @media (max-width: 900px) {
