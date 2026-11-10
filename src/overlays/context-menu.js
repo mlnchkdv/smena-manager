@@ -5,6 +5,7 @@ import { ST } from '../core/constants.js';
 import { D, S, mem, proj, task, visibleProjects } from '../core/store.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { canEditProject } from '../shared/project-access.js';
+import { isRussian } from '../core/i18n.js';
 
 export function ctxMenu(p) {
   const I = (act, icon, label, extra = '', r = '') =>
@@ -39,6 +40,7 @@ export function ctxMenu(p) {
       I('toggleFavProj', 'star', isFavorite('project', pr) ? 'Remove from favorites' : 'Add to favorites') +
       I('editProject', 'pencil', 'Rename & edit') +
       I('openProjectWorkflow', 'workflow', 'Project process') +
+      I('openProjectAutomations', 'zap', isRussian() ? 'Правила проекта' : 'Project rules') +
       I('share', 'share-2', 'Share') +
       I('copyLink', 'link', 'Copy link') +
       I('dupProject', 'copy', 'Duplicate') +

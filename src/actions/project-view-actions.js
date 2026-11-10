@@ -9,6 +9,22 @@ import { go, render } from '../shell/render.js';
 import { primaryTeamId } from '../shared/team-relations.js';
 import { TEMPLATES, openModal } from '../overlays/modals.js';
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
+import { getSessionGeneration } from '../core/api.js';
+
+A.openProjectAutomations = async el => {
+  const before = JSON.stringify([getSessionGeneration(), D().ws.id, S.ui.route, S.ui.params]),
+    modal = S.ui.modals.at(-1),
+    opener = S.ui.popOpener;
+  S.ui.pop = null;
+  try {
+    const module = await import('../features/project-automations.js');
+    if (before === JSON.stringify([getSessionGeneration(), D().ws.id, S.ui.route, S.ui.params]) && modal === S.ui.modals.at(-1) && canSee(proj(el.dataset.id)))
+      return module.openProjectAutomations(el.dataset.id, opener);
+  } catch {
+    if (before === JSON.stringify([getSessionGeneration(), D().ws.id, S.ui.route, S.ui.params]))
+      toast('Unable to load this action. Reload the page and try again.', { kind: 'err' });
+  }
+};
 
 A.saveView = el => {
   if (!canEditProject(proj(el.dataset.id), D().me, S.ui.currentUser?.role || 'viewer'))

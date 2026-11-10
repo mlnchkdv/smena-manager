@@ -27,6 +27,8 @@ export function modalHtml(m) {
   switch (m.type) {
     case 'projectWorkflow':
       return wrap('md project-workflow-dialog', m.render(m, H));
+    case 'projectAutomations':
+      return wrap('md project-automations-dialog', m.render(m, H));
     case 'uploadQueue':
       return wrap('md', fileModalRenderers.uploadQueue(m, H));
     case 'uploadReview':

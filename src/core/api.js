@@ -21,6 +21,8 @@ export const knowledgeIntakeRequest = (id, payload) =>
 export const getKnowledgeIntakeQueue = options => request(`/api/knowledge/intake?${new URLSearchParams(options)}`, {}, true);
 export const projectWorkflowRequest = (id, payload) =>
   request(`/api/projects/${encodeURIComponent(id)}/workflow`, payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) }, true);
+export const projectAutomationsRequest = (id, payload, suffix = '') =>
+  request(`/api/projects/${encodeURIComponent(id)}/automations${suffix}`, payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) }, true);
 
 export const SESSION_STORAGE_KEY = 'smena.session.v1';
 let memorySessionToken = '';

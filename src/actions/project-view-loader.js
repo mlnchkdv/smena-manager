@@ -20,6 +20,7 @@ export function registerProjectViewActions(actions, inputs) {
       'goTasks',
       'goFilteredList',
       'goCycleTasks',
+      'openProjectAutomations',
       'newProject',
       'editProject',
       'pformSet',
