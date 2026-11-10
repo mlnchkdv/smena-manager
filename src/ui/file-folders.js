@@ -11,6 +11,13 @@ import { fileFolderView } from '../core/file-preferences.js';
 import { fileFolderPageSize, fileFolderPageStart } from '../shared/file-folder-pages.js';
 import { folderNavigation } from './folder-navigation.js';
 
+function folderWindowSize(compact) {
+  const panel = document.querySelector('#main-content .files-folders');
+  const content = document.querySelector('#main-content');
+  const contentWidth = panel?.clientWidth || Math.max(0, (content?.clientWidth || innerWidth) - 48);
+  return fileFolderPageSize({ width: innerWidth, height: innerHeight, contentWidth }, compact);
+}
+
 export function visibleFileFolderKeys(projectId, currentFolder, index) {
   if (fileFolderView().collapsed) return [];
   const terms = normalizeFileSearch(S.ui.fileFolderQuery).trim().split(/\s+/).filter(Boolean);
@@ -23,7 +30,7 @@ export function visibleFileFolderKeys(projectId, currentFolder, index) {
         (terms.length ? terms.every(term => entry.search.includes(term)) : archived || (entry.folder.parentId || null) === (currentFolder?.id || null)),
     )
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
-  const limit = fileFolderPageSize({ width: innerWidth, height: innerHeight }, fileFolderView().compact);
+  const limit = folderWindowSize(fileFolderView().compact);
   const start = fileFolderPageStart(S.ui.fileFolderOffset, entries.length, limit);
   return entries.slice(start, start + limit).map(entry => [entry.project.id, entry.folder.id]);
 }
@@ -42,7 +49,7 @@ export function fileFolderBrowser(projects, projectId, currentFolder, hasFiles, 
     })
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name));
   const { compact, collapsed } = fileFolderView();
-  const limit = fileFolderPageSize({ width: innerWidth, height: innerHeight }, compact);
+  const limit = folderWindowSize(compact);
   const start = fileFolderPageStart(S.ui.fileFolderOffset, entries.length, limit);
   S.ui.fileFolderOffset = start;
   const page = entries.slice(start, start + limit);

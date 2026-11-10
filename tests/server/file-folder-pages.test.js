@@ -24,3 +24,14 @@ test('folder pages fit short/mobile viewports and still reach every folder after
     }
   }
 });
+
+test('tablet folder windows leave room for files and use the actual content width', () => {
+  assert.equal(fileFolderPageSize({ width: 767, height: 900, contentWidth: 650 }), 2);
+  assert.equal(fileFolderPageSize({ width: 1024, height: 768, contentWidth: 900 }), 3);
+  assert.equal(fileFolderPageSize({ width: 1366, height: 768, contentWidth: 990 }), 3);
+  assert.equal(fileFolderPageSize({ width: 1366, height: 768, contentWidth: 990 }, true), 4);
+  assert.equal(fileFolderPageSize({ width: 1920, height: 1080, contentWidth: 1600 }), 8);
+  assert.equal(fileFolderPageSize({ width: 390, height: 844, contentWidth: 350 }), 3);
+  assert.equal(fileFolderPageSize({ width: 320, height: 567, contentWidth: 280 }), 2);
+  assert.equal(fileFolderPageSize({ width: 767, height: 900, contentWidth: 0 }), 1);
+});
