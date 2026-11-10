@@ -10,6 +10,7 @@ import { restoreKnowledgeTrashReferences } from './knowledge-catalog.js';
 import { preserveKnowledgeGovernance } from '../shared/knowledge-governance.js';
 import { preserveKnowledgeIntake } from '../shared/knowledge-intake.js';
 import { preserveProjectWorkflows } from './project-workflow-policy.js';
+import { preserveProjectAutomations } from './project-automations-policy.js';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const FILE_FIELDS = ['storageFileId', 'storageName', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
@@ -217,5 +218,5 @@ export function mergeClientWorkspace(current, incoming, role, memberId) {
     if ((visible.relations || []).some(edge => !incomingIds.has(edge.id))) throw permissionError('relations');
     candidate.relations = [...(current.relations || []).filter(edge => !exposed.has(edge.id)), ...recorded];
   }
-  return preserveProjectWorkflows(current, candidate);
+  return preserveProjectAutomations(current, preserveProjectWorkflows(current, candidate));
 }

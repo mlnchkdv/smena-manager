@@ -3,6 +3,7 @@ import { catalogCore } from './file-catalog-shards.js';
 import { readCatalogAccounting } from '../file-catalog-accounting.js';
 import { FILE_CATALOG_MAX_BYTES } from '../../shared/file-catalog.js';
 import { notificationRecipient } from '../../shared/notification-model.js';
+import { PROJECT_AUTOMATION_FIELDS, validateStoredProjectAutomations } from '../project-automations-policy.js';
 
 const SCOPES = {
   knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch'],
@@ -14,6 +15,7 @@ const SCOPES = {
   directory: ['_workspaceDirectory'],
   mediaCopies: ['_mediaBackups'],
   workflow: ['projects'],
+  automations: ['projects'],
 };
 const forbidden = () => Object.assign(new Error('This change requires a canonical catalog write.'), { statusCode: 403, code: 'METADATA_WRITE_FORBIDDEN' });
 const omit = (value, keys) => Object.fromEntries(Object.entries(value || {}).filter(([key]) => !keys.includes(key)));
@@ -60,9 +62,10 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
   if (!same(omit(current, allowed), omit(next, allowed))) throw forbidden();
   if (!Number.isSafeInteger(next.revision) || next.revision !== current.revision + 1 || !Number.isFinite(Date.parse(next.updatedAt))) throw forbidden();
   if (scope === 'preferences') assertPersonalPatch(current, next, memberId);
-  else if (scope === 'workflow') {
+  else if (scope === 'workflow' || scope === 'automations') {
+    if (scope === 'automations') validateStoredProjectAutomations(next);
     if (current.projects.length !== next.projects.length) throw forbidden();
-    const fields = ['workflow', 'workflowRevision', 'workflowUpdatedBy', 'workflowUpdatedAt'];
+    const fields = scope === 'automations' ? PROJECT_AUTOMATION_FIELDS : ['workflow', 'workflowRevision', 'workflowUpdatedBy', 'workflowUpdatedAt'];
     for (let index = 0; index < current.projects.length; index++)
       if (!same(omit(current.projects[index], fields), omit(next.projects[index], fields))) throw forbidden();
   } else if (!['directory', 'mediaCopies'].includes(scope)) {

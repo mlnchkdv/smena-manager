@@ -25,6 +25,7 @@ import { indexStoredFiles, physicalFileKey } from './file-registry.js';
 import { applyEntityDefaults } from '../shared/workspace-defaults.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
+import { validateStoredProjectAutomations } from './project-automations-policy.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { migrateWorkspaceSchema } from '../shared/workspace-schema-migrations.js';
 import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
@@ -90,6 +91,7 @@ function normalizeDatabase(value) {
   applyEntityDefaults(data);
   migrateMilestoneIds(data);
   validateWorkspaceData(data);
+  validateStoredProjectAutomations(data);
   const safe = sanitizeWorkspaceContent(data);
   indexStoredFiles(safe);
   return copyStorageVersion(value, safe);
@@ -541,6 +543,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   if (!options.replaceDocuments) captureWhiteboardHistory(current, nextData, options.actorMemberId || '');
   applyEntityDefaults(nextData);
   validateWorkspaceData(nextData);
+  validateStoredProjectAutomations(nextData);
   validateMembershipTransition(current, nextData);
   if (!options.replaceDocuments)
     validateTaskTransitions(current, nextData, options.actorMemberId ? { memberId: options.actorMemberId, role: options.role || 'admin' } : undefined);
@@ -649,9 +652,17 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof mutator !== 'function' || !Number.isSafeInteger(expectedRevision) || expectedRevision < 0)
     throw new TypeError('A mutation function and a non-negative expected revision are required.');
   if (
-    ![...DOCUMENT_NAMES, 'preferences', 'directory', 'mediaCopies', 'workflow', 'knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(
-      options.scope,
-    ) ||
+    ![
+      ...DOCUMENT_NAMES,
+      'preferences',
+      'directory',
+      'mediaCopies',
+      'workflow',
+      'automations',
+      'knowledgeTrash',
+      'knowledgeMigration',
+      'knowledgeImport',
+    ].includes(options.scope) ||
     options.backupLabel ||
     options.replaceDocuments ||
     options.actorMemberId ||
@@ -662,7 +673,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof storage.loadDatabaseMetadata !== 'function' || typeof storage.saveDatabaseMetadata !== 'function')
     return mutateWorkspaceDatabase(mutator, expectedRevision, options);
   return withWorkspaceWrite(async coordination => {
-    const baseline = await storage.loadDatabaseMetadata({ knowledge: options.scope !== 'workflow' });
+    const baseline = await storage.loadDatabaseMetadata({ knowledge: !['workflow', 'automations'].includes(options.scope) });
     const current = baseline && (await loadAggregate(storage, clone(baseline)));
     // Legacy/migration side effects require complete validation and reindexing.
     // Never install an empty/identity-only catalog as a canonical cache entry.
@@ -689,7 +700,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
       if (Number(error?.response?.status || error?.code) !== 412) throw error;
       state().database = null;
       state().lastLoadedAt = 0;
-      const latest = await storage.loadDatabaseCore({ identities: false }).catch(() => null);
+      const latest = await storage.loadDatabaseCore({ identities: false, knowledge: false }).catch(() => null);
       throw new RevisionConflictError(Number(latest?.revision ?? current.revision));
     }
   });

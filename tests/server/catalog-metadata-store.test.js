@@ -10,6 +10,8 @@ import { replaceWorkspaceDocument } from '../../src/server/workspace-document-st
 import { applyPersonalSettings } from '../../src/shared/personal-settings.js';
 import { defaultProjectWorkflow } from '../../src/shared/project-workflow.js';
 import { readProjectWorkflow, writeProjectWorkflow } from '../../src/server/project-workflow-store.js';
+import { readProjectAutomations, writeProjectAutomations, previewProjectAutomations } from '../../src/server/project-automations-store.js';
+import { metadataWriteBase, patchCatalogMetadata } from '../../src/server/storage/catalog-metadata-write.js';
 import { stageKnowledgeMetadata, materializeKnowledgeMetadata } from '../../src/server/storage/knowledge-metadata-shards.js';
 
 async function fixture(t, extra = {}, { shardKnowledge = false } = {}) {
@@ -242,6 +244,138 @@ test('workflow reads and writes retain sharded knowledge without reading its met
   const complete = await f.knowledge();
   assert.equal(complete.knowledgeNotes.length, 1001);
   assert.equal(complete.knowledgeNotes.at(-1).title, notes.at(-1).title);
+});
+
+test('automation drafts and preview keep file/knowledge shards cold, including a root CAS race and lost acknowledgement replay', async t => {
+  const notes = Array.from({ length: 1001 }, (_, i) => ({ id: 'n-' + i, title: 'Metadata ' + i, summary: 'Unchanged '.repeat(20) }));
+  const f = await fixture(
+      t,
+      { knowledgeNotes: notes, tasks: [{ id: 'a', project: 'p', status: 'todo', priority: 'low', deps: [], subtasks: [] }] },
+      { shardKnowledge: true },
+    ),
+    actor = { id: 'me', role: 'admin' };
+  const directory = structuredClone(f.root()._knowledgeCatalog),
+    files = structuredClone(f.root()._fileCatalog.shards),
+    registry = structuredClone(f.root()._fileRegistry);
+  const model = await readProjectAutomations('p', actor),
+    program = {
+      version: 1,
+      rules: [{ id: 'r', name: 'Draft', enabled: false, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
+    };
+  await assert.rejects(writeProjectAutomations('p', { program, programHash: model.programHash }, { id: 'other', role: 'viewer' }), {
+    code: 'WORKSPACE_FORBIDDEN',
+  });
+  f.race(root => {
+    root.revision++;
+    root.ws = { name: 'Concurrent configuration' };
+    root._fileCatalog.accounting.revision++;
+    root._fileCatalog.accounting.catalogBytes++;
+  });
+  const saved = await writeProjectAutomations('p', { program, programHash: model.programHash }, actor);
+  assert.equal(saved.revision, 1);
+  assert.equal(f.root().ws.name, 'Concurrent configuration');
+  assert.equal(f.reads.writes, 1);
+  const revision = f.root().revision;
+  assert.equal((await writeProjectAutomations('p', { program, programHash: model.programHash }, actor)).revision, 1);
+  assert.equal(f.root().revision, revision);
+  assert.equal(f.reads.writes, 1);
+  const preview = await previewProjectAutomations('p', { program, transitions: [{ taskId: 'a', to: 'progress' }] }, actor);
+  assert.equal(preview.blocked, false);
+  assert.equal(preview.canExecute, false);
+  assert.equal(preview.appliedOperations, 0);
+  assert.equal(f.root().tasks[0].status, 'todo');
+  assert.equal(f.root().tasks[0].priority, 'low');
+  assert.equal(f.root().revision, revision);
+  assert.equal(f.reads.writes, 1);
+  const stale = structuredClone(program);
+  stale.rules[0].name += ' stale';
+  await assert.rejects(writeProjectAutomations('p', { program: stale, programHash: model.programHash }, actor), { code: 'AUTOMATION_STALE' });
+  assert.equal(f.reads.full, 0);
+  assert.equal(f.reads.knowledge, 0);
+  assert.deepEqual(f.root()._knowledgeCatalog, directory);
+  assert.deepEqual(f.root()._fileCatalog.shards, files);
+  assert.deepEqual(f.root()._fileRegistry, registry);
+  assert.deepEqual((await f.full()).files, f.raw.files);
+});
+
+test('automation metadata scope cannot change tasks, project access, process, names or corrupt configuration', async t => {
+  const f = await fixture(t, { tasks: [{ id: 'a', project: 'p', status: 'todo', priority: 'low', deps: [], subtasks: [] }] }),
+    revision = f.root().revision;
+  for (const mutate of [
+    db => (db.projects[0].name = 'Forbidden'),
+    db => (db.projects[0].members = ['forged']),
+    db => (db.projects[0].workflow = defaultProjectWorkflow()),
+    db => (db.tasks[0].priority = 'high'),
+  ]) {
+    await assert.rejects(
+      mutateWorkspaceMetadata(
+        db => {
+          mutate(db);
+          return db;
+        },
+        revision,
+        { role: 'admin', scope: 'automations' },
+      ),
+      { code: 'METADATA_WRITE_FORBIDDEN' },
+    );
+    assert.equal(f.root().revision, revision);
+  }
+  const base = metadataWriteBase(f.root()),
+    next = { ...structuredClone(base), revision: revision + 1, updatedAt: new Date().toISOString() };
+  next.projects[0].automations = { version: 99, rules: [] };
+  assert.throws(() => patchCatalogMetadata(f.root(), base, next, 'automations'), { code: 'AUTOMATION_INTEGRITY' });
+  assert.equal(f.reads.writes, 0);
+  assert.equal(f.reads.full, 0);
+});
+
+test('automation CAS retry rechecks revoked canonical membership instead of trusting the original admin profile', async t => {
+  const f = await fixture(t),
+    actor = { id: 'me', role: 'admin' },
+    model = await readProjectAutomations('p', actor);
+  const program = {
+    version: 1,
+    rules: [{ id: 'r', name: 'Draft', enabled: false, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
+  };
+  f.race(root => {
+    root.revision++;
+    root.members[0].role = 'Guest';
+    root.members[1].role = 'Owner';
+    root._fileCatalog.accounting.revision++;
+    root._fileCatalog.accounting.catalogBytes++;
+  });
+  await assert.rejects(writeProjectAutomations('p', { program, programHash: model.programHash }, actor), { code: 'WORKSPACE_FORBIDDEN' });
+  assert.equal(f.root().projects[0].automations, undefined);
+  assert.equal(f.root().members[0].role, 'Guest');
+  assert.equal(f.reads.writes, 0);
+  assert.equal(f.reads.full, 0);
+});
+
+test('automation CAS retry preserves a concurrently saved rule set and reports stale intent', async t => {
+  const f = await fixture(t),
+    actor = { id: 'me', role: 'admin' },
+    model = await readProjectAutomations('p', actor);
+  const program = {
+      version: 1,
+      rules: [{ id: 'r', name: 'My draft', enabled: false, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
+    },
+    concurrent = structuredClone(program);
+  concurrent.rules[0].name = 'Other session';
+  f.race(root => {
+    root.revision++;
+    Object.assign(root.projects[0], {
+      automations: concurrent,
+      automationsRevision: 1,
+      automationsUpdatedBy: 'me',
+      automationsUpdatedAt: '2026-11-10T13:00:00Z',
+    });
+    root._fileCatalog.accounting.revision++;
+    root._fileCatalog.accounting.catalogBytes++;
+  });
+  await assert.rejects(writeProjectAutomations('p', { program, programHash: model.programHash }, actor), { code: 'AUTOMATION_STALE' });
+  assert.deepEqual(f.root().projects[0].automations, concurrent);
+  assert.equal(f.root().projects[0].automationsRevision, 1);
+  assert.equal(f.reads.writes, 0);
+  assert.equal(f.reads.full, 0);
 });
 
 test('stale documents and forbidden personal/file/ACL changes never publish or materialize', async t => {
