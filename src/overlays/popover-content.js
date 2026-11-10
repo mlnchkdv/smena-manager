@@ -4,7 +4,7 @@ import { ic, wsLogo } from '../core/icons.js';
 import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, me, mem, pColor, proj, systemConnectionState, task, visibleProjects } from '../core/store.js';
 import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
-import { FIELDS, applyView, viewOf } from '../shell/view-engine.js';
+import { FIELDS, applyView, viewOf, filterFields } from '../shell/view-engine.js';
 import { calendarItemsForView } from '../core/calendar-data.js';
 import { calendarPlanItem } from '../ui/calendar-plan-item.js';
 import { TCOLS } from '../views/table.js';
@@ -15,11 +15,13 @@ import { locale, isRussian, t as tr, workspaceRoleLabel } from '../core/i18n.js'
 import { tgt } from './popovers.js';
 import { canCreateWorkspace } from '../shared/workspace-permissions.js';
 import { matchesLocalizedName } from '../shared/localized-search.js';
+import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
+import { taskCycleProject } from '../shared/task-cycles.js';
 export function popList(items, opt = {}) {
   const q = (S.ui.pop.q || '').toLowerCase();
   const list = items.filter(it => (opt.localized ? matchesLocalizedName(it.name, q, tr) : !q || it.name.toLowerCase().includes(q)));
   return `${opt.search ? `<div class="pin"><input data-pop-q data-in="popQ" id="pop-q" placeholder="${esc(tr(opt.search))}" value="${esc(S.ui.pop.q || '')}" aria-label="${esc(tr(opt.search))}"></div>` : ''}
-    ${list.map(it => `<button class="mi" data-a="${it.act || 'popPick'}" data-v="${esc(it.id)}" role="menuitemradio" aria-checked="${!!it.on}">${it.html || ''}<span class="trunc">${esc(opt.localized ? tr(it.name) : it.name)}</span>${it.kbd ? `<span class="r"><kbd>${it.kbd}</kbd></span>` : ''}${it.on ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`).join('') || `<div class="mi faint" style="cursor:default">${esc(tr('No matches'))}</div>`}`;
+    ${list.map(it => `<button class="mi" data-a="${it.act || 'popPick'}" data-v="${esc(it.id)}" role="menuitemradio" aria-checked="${!!it.on}">${it.html || ''}<span class="trunc" ${opt.verbatim ? 'translate="no"' : ''}>${esc(opt.localized ? tr(it.name) : it.name)}</span>${it.kbd ? `<span class="r"><kbd>${it.kbd}</kbd></span>` : ''}${it.on ? `<span class="ck">${ic('check', 14)}</span>` : ''}</button>`).join('') || `<div class="mi faint" style="cursor:default">${esc(tr('No matches'))}</div>`}`;
 }
 export function miniCal(p, val) {
   const m = parse(p.m);
@@ -327,12 +329,11 @@ export function popHtml(p) {
       const f = v.filters[p.i];
       if (!f) break;
       inner =
-        `<div class="mh">${FIELDS[f.f].name} ${f.op === 'not' ? 'is not' : 'is'}</div>` +
-        FIELDS[f.f]
-          .opts()
+        `<div class="mh" translate="no">${esc(tr(FIELDS[f.f]?.name || 'Filter'))} ${tr(f.op === 'not' ? 'is not' : 'is')}</div>` +
+        (FIELDS[f.f]?.opts?.(p.key) || [])
           .map(
             o =>
-              `<label class="mi" style="cursor:pointer"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${p.i}" data-v="${o.id}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}${esc(o.name)}</label>`,
+              `<label class="mi" style="cursor:pointer"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${p.i}" data-v="${esc(o.id)}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}<span ${FIELDS[f.f]?.dynamic ? 'translate="no"' : ''}>${esc(o.name)}</span></label>`,
           )
           .join('');
       break;
@@ -398,6 +399,22 @@ export function popHtml(p) {
         .map(m => `<button class="mi" data-a="bulkSet" data-f="assignee" data-v="${m.id}">${av(m.id || null, 'sm', false, true)}${esc(m.name)}</button>`)
         .join('');
       break;
+    case 'bulk-cycle': {
+      const scope = JSON.parse(document.querySelector('.bulkbar[data-task-scope]')?.dataset.taskScope || '[]');
+      const items = selectedEditableTasks(scope, S.ui.sel, D(), S.ui.currentUser?.role || 'viewer'),
+        project = taskCycleProject(items, D().projects);
+      inner = project
+        ? popList(
+            [{ id: '', name: tr('No cycle') }, ...(project.workflow?.cycles || []).filter(cycle => !cycle.archived)].map(cycle => ({
+              ...cycle,
+              act: 'bulkCyclePick',
+              on: items.every(task => (task.cycleId || '') === cycle.id),
+            })),
+            { search: isRussian() ? 'Поиск циклов' : 'Search cycles', verbatim: true },
+          )
+        : `<p class="mi">${tr('Select tasks from one project to set a cycle.')}</p>`;
+      break;
+    }
   }
   if (!inner) return '';
   return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
@@ -407,22 +424,22 @@ export function filterBuilder(p) {
   const rows = v.filters
     .map((f, i) => {
       const F = FIELDS[f.f];
-      const opts = F.opts();
+      const opts = F?.opts?.(p.key) || [];
       const names = f.v.map(id => opts.find(o => o.id === id)?.name || id);
       const open = p.edit === i;
       return `<div class="frow"><span class="conj">${i ? 'and' : 'Where'}</span>
-      <select class="select" data-in="fField" data-key="${p.key}" data-i="${i}" aria-label="Field">${Object.entries(FIELDS)
+      <select class="select" data-in="fField" data-key="${p.key}" data-i="${i}" aria-label="Field">${filterFields(p.key)
         .map(([k, x]) => `<option value="${k}" ${f.f === k ? 'selected' : ''}>${x.name}</option>`)
         .join('')}</select>
       <select class="select" data-in="fOp" data-key="${p.key}" data-i="${i}" aria-label="Operator"><option value="is" ${f.op === 'is' ? 'selected' : ''}>is</option><option value="not" ${f.op === 'not' ? 'selected' : ''}>is not</option></select>
-      <button class="valbtn" data-a="fEdit" data-i="${i}" aria-expanded="${open}"><span class="trunc grow">${names.length ? esc(names.join(', ')) : '<span class="faint">Select…</span>'}</span>${ic('chevron-down', 12)}</button>
+      <button class="valbtn" data-a="fEdit" data-i="${i}" aria-expanded="${open}"><span class="trunc grow">${names.length ? `<span ${F?.dynamic ? 'translate="no"' : ''}>${esc(names.join(', '))}</span>` : '<span class="faint">Select…</span>'}</span>${ic('chevron-down', 12)}</button>
       <button class="ibtn ibtn-xs" data-a="rmFilter" data-key="${p.key}" data-i="${i}" aria-label="Remove filter">${ic('trash-2', 13)}</button></div>
-      ${open ? `<div style="margin-left:50px;border:1px solid var(--border);border-radius:var(--r);padding:4px;max-height:200px;overflow:auto">${opts.map(o => `<label class="mi" style="cursor:pointer;min-height:28px"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${i}" data-v="${o.id}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}${esc(o.name)}</label>`).join('')}</div>` : ''}`;
+      ${open ? `<div style="margin-left:50px;border:1px solid var(--border);border-radius:var(--r);padding:4px;max-height:200px;overflow:auto">${opts.map(o => `<label class="mi" style="cursor:pointer;min-height:28px"><input type="checkbox" class="check" data-a="fToggleVal" data-key="${p.key}" data-i="${i}" data-v="${esc(o.id)}" ${f.v.includes(o.id) ? 'checked' : ''}>${o.html || ''}<span ${FIELDS[f.f]?.dynamic ? 'translate="no"' : ''}>${esc(o.name)}</span></label>`).join('')}</div>` : ''}`;
     })
     .join('');
   return `<div class="mh fb-h">Filter by${v.filters.length ? `<button class="btn btn-sm btn-ghost" data-a="clearFilters" data-key="${p.key}">Clear all</button>` : ''}</div>
     ${rows ? `<div class="fb-rows">${rows}</div>` : '<p class="fb-empty">No filters applied. Combine filters to narrow the task list, e.g. Status is In Progress and Assignee is Sarah.</p>'}
-    <div class="msep"></div><div class="fb-add"><span class="faint">Add filter:</span>${Object.entries(FIELDS)
+    <div class="msep"></div><div class="fb-add"><span class="faint">Add filter:</span>${filterFields(p.key)
       .map(([k, x]) => `<button class="badge" style="cursor:pointer" data-a="addFilter" data-key="${p.key}" data-f="${k}">${ic(x.icon, 11)}${x.name}</button>`)
       .join('')}</div>`;
 }

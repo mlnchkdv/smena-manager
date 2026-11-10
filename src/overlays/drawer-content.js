@@ -23,6 +23,7 @@ import { knowledgeLocation } from '../ui/knowledge-location.js';
 import { knowledgeReadingSource } from '../shared/knowledge-markdown.js';
 import { knowledgeReadingHtml } from '../ui/knowledge-reading.js';
 import { knowledgeContext } from '../ui/knowledge-context.js';
+import { taskCycleControl } from '../ui/task-cycle.js';
 import { knowledgeMetadata } from '../ui/knowledge-metadata.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { redundantMarkdownSummary } from '../shared/markdown-text.js';
@@ -97,6 +98,7 @@ export function knowledgeDrawerHtml(note) {
 
 /* ---------------- TASK DRAWER ---------------- */
 export function drawerHtml(t) {
+  const cycleControl = taskCycleControl(t);
   const p = proj(t.project);
   const u = S.ui;
   const cs = commentsOf(t.id);
@@ -135,6 +137,7 @@ export function drawerHtml(t) {
         ${t.deps.length ? prop('git-branch', 'Blocked by', `<button class="pillbtn ${t.deps.length ? '' : 'empty'}" data-a="pop" data-pop="deps" data-id="${t.id}" style="height:auto;min-height:26px;flex-wrap:wrap">${t.deps.length ? t.deps.map(d => (task(d) ? `<span class="depchip mono" style="font-size:11px;padding:1px 5px;border-radius:4px;background:var(--surface-3)">${task(d).key}</span><span class="trunc" style="max-width:160px">${esc(task(d).title)}</span>` : '')).join('') : ic('git-branch', 13) + 'None'}</button>`) : ''}
       </dl>
       <details class="task-extra-properties" ${disclosureAttributes('task-properties:' + t.id)}><summary>More properties</summary><dl class="kv task-properties">
+        ${cycleControl ? prop('repeat', 'Cycle', cycleControl) : ''}
         ${prop('calendar-arrow-up', 'Start date', `<button class="pillbtn ${t.start ? '' : 'empty'}" data-a="pop" data-pop="date" data-field="start" data-id="${t.id}">${ic('calendar', 13)}${t.start ? fmtDate(t.start) : 'Set date'}</button>`)}
         ${prop('repeat', 'Repeat', `<button class="pillbtn ${t.recur ? '' : 'empty'}" data-a="pop" data-pop="recur" data-id="${t.id}">${ic('repeat', 13)}${t.recur || 'Does not repeat'}</button>`)}
         ${prop('timer', 'Estimate', `<button class="pillbtn ${t.estimate ? '' : 'empty'}" data-a="pop" data-pop="estimate" data-id="${t.id}">${ic('timer', 13)}${t.estimate ? esc(t.estimate) : 'Add estimate'}</button>`)}

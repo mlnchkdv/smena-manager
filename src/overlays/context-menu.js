@@ -4,6 +4,7 @@ import { ic } from '../core/icons.js';
 import { ST } from '../core/constants.js';
 import { D, S, mem, proj, task, visibleProjects } from '../core/store.js';
 import { canEditFile, canRemoveFile } from '../shared/file-access.js';
+import { canEditProject } from '../shared/project-access.js';
 
 export function ctxMenu(p) {
   const I = (act, icon, label, extra = '', r = '') =>
@@ -95,6 +96,9 @@ export function ctxMenu(p) {
     );
   }
   if (p.ctx === 'savedview') {
+    const view = D().savedViews.find(view => view.id === p.vid);
+    if (!view || !canEditProject(proj(view.project), D().me, S.ui.currentUser?.role || 'viewer'))
+      return `<button class="mi" disabled>${ic('lock', 15)}View only</button>`;
     return `<button class="mi" data-a="renameView" data-id="${p.vid}">${ic('pencil', 15)}Rename view</button><button class="mi danger" data-a="delView" data-id="${p.vid}">${ic('trash-2', 15)}Delete view</button>`;
   }
   return '';

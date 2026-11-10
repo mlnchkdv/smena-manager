@@ -1,0 +1,60 @@
+.project-cycle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.project-cycle-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 0.45fr);
+  gap: 12px;
+  align-items: center;
+}
+.project-cycle-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+  border-radius: var(--r);
+  padding: 4px 0;
+}
+.project-cycle-title strong {
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.project-cycle-title:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.project-cycle-progress {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.project-cycle-footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+.project-cycle-summary .hint {
+  margin: 0;
+}
+.project-cycle-summary .panel-b > p {
+  margin-top: 8px;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .project-cycle-title,
+  .project-cycle-footer .btn {
+    min-height: 44px;
+  }
+}
+
+.project-cycle-title:hover {
+  color: var(--accent);
+}

@@ -2,10 +2,11 @@
    ACTIONS · SUBTASKS: open, navigate, rename, notes, promote
    ===================================================================== */
 import { $, esc } from '../core/utils.js';
-import { S, logAct, save, task } from '../core/store.js';
+import { S, logAct, save, task, proj } from '../core/store.js';
 import { mutateTaskCommand as mutate, toast } from '../ui/toast.js';
 import { render } from '../shell/render.js';
 import { A, BLUR, IN, createTask } from './actions.js';
+import { copiedTaskCycle } from '../shared/task-cycles.js';
 
 export const subOf = (t, sid) => t && t.subtasks.find(s => s.id === sid);
 A.openSub = el => {
@@ -62,6 +63,7 @@ A.promoteSub = el => {
       n = createTask({
         title: s.title,
         project: t.project,
+        cycleId: copiedTaskCycle(proj(t.project), t.cycleId),
         status: s.done ? 'done' : 'todo',
         assignee: s.assignee || t.assignee,
         priority: t.priority,

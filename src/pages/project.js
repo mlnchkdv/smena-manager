@@ -20,6 +20,7 @@ import { timelineHtml, tlControls } from '../views/timeline.js';
 import { filesHtml } from '../views/files.js';
 import { PROJECT_TABS } from '../shared/project-tabs.js';
 import { projectViewPicker } from '../ui/project-view-picker.js';
+import { canEditProject } from '../shared/project-access.js';
 
 export const PTABS = PROJECT_TABS;
 
@@ -65,10 +66,10 @@ export function pageProject() {
         </div>
         <button class="ibtn project-mobile-menu" id="project-mobile-menu-${esc(p.id)}" data-a="ctxBtn" data-ctx="project" data-id="${esc(p.id)}" aria-label="${actionLabel('Project options', p.name)}">${ic('ellipsis', 18)}</button>
       </div>
-      ${projectViewPicker(p, tab, views)}<nav class="tabs" aria-label="Project views">
+      ${projectViewPicker(p, tab, views, canEditProject(p, D().me, S.ui.currentUser?.role || 'viewer'))}<nav class="tabs" aria-label="Project views">
         ${PTABS.map(([k, n, i]) => `<button ${tab === k ? 'aria-current="page"' : ''} class="tab ${tab === k ? 'on' : ''}" data-a="go" data-r="project" data-id="${p.id}" data-tab="${k}">${ic(i, 14)}${n}</button>`).join('')}
         ${views.map(v => `<button ${tab === 'v:' + v.id ? 'aria-current="page"' : ''} class="tab ${tab === 'v:' + v.id ? 'on' : ''}" data-a="go" data-r="project" data-id="${p.id}" data-tab="v:${v.id}" data-ctx="savedview" data-vid="${v.id}">${ic('list-filter', 14)}${esc(v.name)}</button>`).join('')}
-        <button class="tab" data-a="saveView" data-id="${p.id}" data-tip="Save current filters as a view" aria-label="Save view">${ic('plus', 14)}</button>
+        ${canEditProject(p, D().me, S.ui.currentUser?.role || 'viewer') ? `<button class="tab" data-a="saveView" data-id="${p.id}" data-tip="Save current filters as a view" aria-label="Save view">${ic('plus', 14)}</button>` : ''}
       </nav>
     </div>
     <div class="pbody${S.ui.fx.tab ? ' fx-tab' : ''}">${body}${tab === 'overview' ? relationsPanel(`project:${p.id}`) : ''}</div>

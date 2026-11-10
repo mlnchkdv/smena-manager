@@ -15,9 +15,11 @@ export function openModal(m) {
     const all = $$('.modal');
     const last = all[all.length - 1];
     if (!last?.isConnected) return;
-    // A fast keyboard, paste or autofill can already be editing another field.
-    // Delayed focus must not redirect that input into the autofocus field.
-    if (last.contains(document.activeElement) && document.activeElement.matches('input,textarea,select,[contenteditable]')) return;
+    // Keep an already chosen field, including enhanced select triggers and
+    // their portalled options. A late autofocus must not steal keyboard input.
+    const active = document.activeElement;
+    if (last.contains(active) && active.matches('input,textarea,select,[contenteditable],.select-btn,[role="combobox"]')) return;
+    if (document.querySelector('.select-menu')?.contains(active)) return;
     if (m.type === 'knowledgeMove' && matchMedia('(max-width:640px)').matches) {
       const heading = last?.querySelector('h2');
       heading?.setAttribute('tabindex', '-1');

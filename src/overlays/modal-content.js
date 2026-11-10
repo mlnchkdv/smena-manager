@@ -18,6 +18,7 @@ import { fileModalRenderers, workspaceModalRenderers } from './modals.js';
 import { shortcut } from '../ui/shortcut.js';
 import { TEMPLATES, SHORTCUTS } from './modal-data.js';
 import { fileFolderPath } from '../shared/file-organization.js';
+import { taskCycleControl } from '../ui/task-cycle.js';
 
 export function modalHtml(m) {
   const H = (title, sub = '') =>
@@ -129,6 +130,7 @@ export function taskModal(m, H) {
   const f = S.ui.form;
   const p = proj(f.project);
   const err = S.ui.errors.title;
+  const cycleControl = taskCycleControl(f, true);
   return `${H(m.edit ? 'Edit task' : 'New task', m.edit ? `<span class="mono">${task(m.edit)?.key}</span>` : '')}
   <form class="modal-b" data-submit="submitTask" style="gap:12px">
     <div class="field"><label class="sr" for="f-title">Task name</label><input class="input input-lg ${err ? 'is-error' : ''}" id="f-title" data-in="form" data-f="title" value="${esc(f.title)}" placeholder="Task name" autofocus aria-invalid="${!!err}" ${err ? 'aria-describedby="f-title-err"' : ''} style="font-size:15px;font-weight:500">${err ? `<span class="err" id="f-title-err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
@@ -144,6 +146,7 @@ export function taskModal(m, H) {
       ${formChip('labels', f.labels.length ? f.labels.map(lbl).join('') : `${ic('tag', 13)}Labels`, 'Labels', f.labels.length ? f.labels.map(id => LB[id]?.name || id).join(', ') : tr('No labels selected'))}
       ${formChip('recur', `${ic('repeat', 13)}${f.recur || 'Repeat'}`, 'Repeat', tr(f.recur || 'Does not repeat'))}
     </div>
+    ${cycleControl ? `<label class="field"><span class="label">${tr('Cycle')}</span>${cycleControl}</label>` : ''}
     <div class="field"><span class="label">Subtasks</span>
       ${f.subtasks.map((s, i) => `<div class="subt" style="padding:0 4px">${ic('circle', 13)}<span class="s" translate="no">${esc(s.title)}</span><button type="button" class="ibtn ibtn-xs x" style="opacity:1" data-a="formRmSub" data-i="${i}" aria-label="Remove">${ic('x', 12)}</button></div>`).join('')}
       <div class="inwrap">${ic('plus', 14)}<input class="input" id="f-sub" data-key-enter="formAddSub" aria-label="Add subtask" placeholder="Add a subtask and press Enter"></div></div>

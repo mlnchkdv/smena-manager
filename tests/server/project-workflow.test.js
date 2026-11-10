@@ -13,6 +13,19 @@ const configured = () => {
   value.projects[0].workflow = defaultProjectWorkflow();
   return value;
 };
+test('WIP counts all project cycles, including a different cycle hidden by a personal filter', () => {
+  const current = configured(),
+    flow = current.projects[0].workflow;
+  flow.cycles = ['one', 'two'].map(id => ({ id, name: id, start: '2026-11-09', end: '2026-11-15', archived: false }));
+  flow.wip.progress = 1;
+  current.tasks[0].cycleId = 'one';
+  current.tasks.push({ id: 'b', project: 'p', cycleId: 'two', status: 'progress' });
+  const next = structuredClone(current);
+  next.tasks[0].status = 'progress';
+  const issue = projectWorkflowIssues(current, next).find(issue => issue.code === 'WORKFLOW_WIP');
+  assert.equal(issue.count, 2);
+  assert.equal(issue.limit, 1);
+});
 test('the standard workflow preserves canonical states, independent instances and legacy behavior', () => {
   const before = base(),
     next = structuredClone(before);

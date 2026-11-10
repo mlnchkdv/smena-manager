@@ -12,6 +12,7 @@ import { listWindow } from '../shared/list-window.js';
 import { activityDateExtra, activityVerbForm } from '../shared/activity-copy.js';
 import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { canEditProject } from '../shared/project-access.js';
+import { taskCycleProject } from '../shared/task-cycles.js';
 
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
@@ -132,13 +133,16 @@ export function listHtml(groups, key, opt = {}) {
   </div>${bulkBar(all)}`;
 }
 export function bulkBar(ids) {
-  const selected = selectedEditableTasks(ids, S.ui.sel, D(), S.ui.currentUser?.role || 'viewer').map(task => task.id);
+  const items = selectedEditableTasks(ids, S.ui.sel, D(), S.ui.currentUser?.role || 'viewer');
+  const selected = items.map(task => task.id),
+    cycleProject = taskCycleProject(items, D().projects);
   const n = selected.length;
   if (!n) return '';
   return `<div class="bulkbar${S.ui.fx.bulk ? ' enter' : ''}" data-task-scope="${esc(JSON.stringify(selected))}" role="toolbar" aria-label="Bulk actions"><b style="font-weight:600">${n} selected</b><span class="sep"></span>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-status">${ic('circle-dot', 14)}Status</button>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-assignee">${ic('user', 14)}Assignee</button>
     <button class="btn btn-sm" data-a="pop" data-pop="bulk-priority">${ic('signal-high', 14)}Priority</button>
+    ${cycleProject?.workflow?.cycles?.length ? `<button class="btn btn-sm" data-a="pop" data-pop="bulk-cycle">${ic('repeat', 14)}Cycle</button>` : ''}
     <button class="btn btn-sm" data-a="bulkDelete">${ic('trash-2', 14)}Delete</button><span class="sep"></span>
     <button class="btn btn-sm" data-a="clearSel" aria-label="Clear selection">${ic('x', 14)}</button></div>`;
 }

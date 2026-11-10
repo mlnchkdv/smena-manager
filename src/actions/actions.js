@@ -34,7 +34,6 @@ import { effectiveDark } from '../core/theme.js';
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
-import { applyWorkListIntent } from '../shared/work-list-intent.js';
 import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
 import { closePop, openPop, tgt } from '../overlays/popovers.js';
@@ -87,6 +86,8 @@ import { changedFavorite } from '../shared/personal-favorites.js';
 import { changePdfPreviewPage } from '../core/file-preview.js';
 import { retryPersonalPreferences } from '../core/personal-preferences.js';
 import { nextTaskKey } from './task-key.js';
+import { registerProjectViewActions } from './project-view-loader.js';
+import { newTaskCycle, copiedTaskCycle, taskCycleProject, filteredTaskCycle } from '../shared/task-cycles.js';
 
 export const A = {},
   IN = {},
@@ -134,7 +135,7 @@ export function createTask(f) {
       recur: null,
     },
     f,
-    { project: p.id },
+    { project: p.id, cycleId: newTaskCycle(p, f.cycleId) },
   );
   t.id = f.id || uid('t');
   t.key = f.key || nextKey(p);
@@ -145,10 +146,10 @@ export function createTask(f) {
 }
 export function applyPatch(t, patch) {
   const msgs = [];
-  for (const k of Object.keys(patch)) {
+  for (const k of Object.keys(patch).sort((a, b) => Number(b === 'project') - Number(a === 'project'))) {
     const old = t[k],
       nv = patch[k];
-    if (JSON.stringify(old) === JSON.stringify(nv)) continue;
+    if ((k === 'cycleId' && (old || '') === (nv || '')) || JSON.stringify(old) === JSON.stringify(nv)) continue;
     t[k] = nv;
     if (k === 'status') {
       if (nv === 'done') {
@@ -172,6 +173,7 @@ export function applyPatch(t, patch) {
           recurrenceFromDue: t.due,
           completedAt: null,
           attachments: [],
+          cycleId: copiedTaskCycle(proj(t.project), t.cycleId),
         });
         delete n.prevStatus;
         msgs.push(`Next “${t.title}” scheduled for ${fmtDate(nd)}`);
@@ -185,8 +187,10 @@ export function applyPatch(t, patch) {
       const p = proj(nv);
       // Cycle identities belong to their project, even when names coincide.
       if (!Object.hasOwn(patch, 'cycleId')) t.cycleId = '';
-      t.key = nextKey(p);
       logAct('moved', t, `to ${p.name}`, { field: 'project', from: old, value: nv, fromLabel: proj(old)?.name || '', valueLabel: p.name });
+    } else if (k === 'cycleId') {
+      const cycle = proj(t.project)?.workflow?.cycles?.find(cycle => cycle.id === nv);
+      logAct('changed cycle of', t, '', { field: k, from: old || null, value: nv || null, valueLabel: cycle?.name || '' });
     } else if (k === 'labels') logAct('updated labels on', t);
     else if (k === 'title') logAct('renamed', t, `to “${nv}”`);
     else if (k === 'recur') logAct('set repeat on', t, nv ? nv.toLowerCase() : 'off');
@@ -198,6 +202,8 @@ export function applyPatch(t, patch) {
 }
 export function updateTask(id, patch) {
   if (id === '__form') {
+    if (Object.hasOwn(patch, 'project') && patch.project !== S.ui.form.project && !Object.hasOwn(patch, 'cycleId'))
+      patch = { ...patch, cycleId: newTaskCycle(proj(patch.project)) };
     Object.assign(S.ui.form, patch);
     render();
     return true;
@@ -879,7 +885,15 @@ A.dupTask = el => {
   let n;
   if (
     !mutateTaskCommand(() => {
-      n = createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, title: t.title + ' (copy)', created: Date.now(), fav: false });
+      n = createTask({
+        ...JSON.parse(JSON.stringify(t)),
+        id: uid('t'),
+        key: undefined,
+        title: t.title + ' (copy)',
+        created: Date.now(),
+        fav: false,
+        cycleId: copiedTaskCycle(proj(t.project), t.cycleId),
+      });
     })
   )
     return;
@@ -952,6 +966,7 @@ A.editTask = el => {
       .replace(/\s+/g, ' ')
       .trim(),
     project: t.project,
+    cycleId: t.cycleId || '',
     status: t.status,
     assignee: t.assignee,
     priority: t.priority,
@@ -978,6 +993,7 @@ A.newTask = el => {
     title: '',
     desc: '',
     project: canSee(proj(pid)) ? pid : 'p1',
+    cycleId: newTaskCycle(proj(pid), filteredTaskCycle(proj(pid), viewOf(S.ui.params.tab?.startsWith('v:') ? 's' + S.ui.params.tab : 'p:' + pid).filters)),
     status: 'todo',
     assignee: d.assignee || D().me,
     priority: 'medium',
@@ -992,6 +1008,7 @@ A.newTask = el => {
   S.ui.errors = {};
   openModal({ type: 'task' });
 };
+IN.taskCycle = el => updateTask(el.dataset.id, { cycleId: el.value });
 IN.form = el => {
   S.ui.form[el.dataset.f] = el.value;
   if (el.dataset.f === 'title' && S.ui.errors.title && el.value.trim()) {
@@ -1048,6 +1065,7 @@ A.submitTask = () => {
   const base = {
     title,
     project: f.project,
+    cycleId: f.cycleId,
     status: f.status,
     assignee: f.assignee,
     priority: f.priority,
@@ -1141,6 +1159,7 @@ A.commitComposer = () => {
   }
   const f = { title: v, ...c.gb };
   f.project = f.project || projectFromKey(c.ctx) || curProjectId() || 'p1';
+  f.cycleId = filteredTaskCycle(proj(f.project), viewOf(c.ctx).filters);
   if (c.ctx === 'mytasks') f.assignee = D().me;
   c.title = v;
   if (mutateTaskCommand(() => createTask(f))) {
@@ -1546,9 +1565,9 @@ A.pdfPreviewPage = el => {
 };
 A.bulkSet = el => {
   const f = el.dataset.f;
-  const v = el.dataset.v || null;
+  const v = f === 'cycleId' ? el.dataset.v || '' : el.dataset.v || null;
   if (
-    !['status', 'assignee', 'priority'].includes(f) ||
+    !['status', 'assignee', 'priority', 'cycleId'].includes(f) ||
     (f === 'status' && !ST[v]) ||
     (f === 'priority' && !PR[v]) ||
     (f === 'assignee' && v && !D().members.some(m => m.id === v && m.status === 'active'))
@@ -1556,9 +1575,17 @@ A.bulkSet = el => {
     return;
   const ids = taskBulkIds();
   if (!ids.length) return;
+  const selected = new Set(ids),
+    items = D().tasks.filter(task => selected.has(task.id));
+  if (f === 'cycleId') {
+    const project = taskCycleProject(items, D().projects);
+    if (!project) return toast('Select tasks from one project to set a cycle.', { kind: 'err' });
+    if (v && !project.workflow?.cycles?.some(cycle => cycle.id === v && !cycle.archived)) return toast('Choose an available cycle.', { kind: 'err' });
+  }
   S.ui.pop = null;
-  if (mutateTaskCommand(() => ids.forEach(id => applyPatch(task(id), { [f]: v })))) toast(`Updated ${ids.length} task${ids.length > 1 ? 's' : ''}`);
+  if (mutateTaskCommand(() => items.forEach(task => applyPatch(task, { [f]: v })))) toast(`Updated ${ids.length} task${ids.length > 1 ? 's' : ''}`);
 };
+A.bulkCyclePick = el => A.bulkSet({ dataset: { f: 'cycleId', v: el.dataset.v } });
 A.bulkDelete = () => {
   const ids = taskBulkIds();
   if (!ids.length) return;
@@ -1696,47 +1723,6 @@ IN.fOp = el => {
   save();
   render();
 };
-A.saveView = el => {
-  const k = 'p:' + el.dataset.id;
-  openModal({ type: 'saveView', pid: el.dataset.id, nf: viewOf(k).filters.length });
-};
-A.saveViewSubmit = () => {
-  const m = S.ui.modals[S.ui.modals.length - 1];
-  const name = $('#sv-name').value.trim() || 'Untitled view';
-  const type = $('#sv-type').value;
-  const sv = { id: uid('v'), project: m.pid, name, type, filters: JSON.parse(JSON.stringify(viewOf('p:' + m.pid).filters)) };
-  D().savedViews.push(sv);
-  save();
-  S.ui.modals.pop();
-  go('project', { id: m.pid, tab: 'v:' + sv.id }, { tab: true });
-  toast(`Saved view “${name}”`);
-};
-A.renameView = el => {
-  const v = D().savedViews.find(x => x.id === el.dataset.id);
-  S.ui.pop = null;
-  openModal({
-    type: 'prompt',
-    title: 'Rename view',
-    label: 'View name',
-    value: v.name,
-    run: val => {
-      if (val) {
-        v.name = val;
-        save();
-      }
-    },
-  });
-};
-A.delView = el => {
-  const v = D().savedViews.find(x => x.id === el.dataset.id);
-  S.ui.pop = null;
-  D().savedViews = D().savedViews.filter(x => x !== v);
-  save();
-  if (S.ui.params.tab === 'v:' + v.id) go('project', { id: v.project, tab: 'list' }, { tab: true });
-  else render();
-  toast(`Deleted view “${v.name}”`);
-};
-
 /* board column menu */
 A.toggleCol = el => {
   delete S.ui.collapsedCols[el.dataset.ck];
@@ -1975,57 +1961,6 @@ A.deleteMilestone = el => {
     },
   });
 };
-A.newProject = () => {
-  if (S.ui.currentUser?.role === 'editor' && D().ws.permissions?.createProjects === false) {
-    toast('You do not have permission to save workspace changes.', { kind: 'err' });
-    return;
-  }
-  const availableTeams = teamsList();
-  const initialTeam = primaryTeamId(availableTeams, me().team);
-  S.ui.pform = { name: '', desc: '', icon: 'folder', iconImage: null, color: 'indigo', team: initialTeam, lead: D().me, due: '', tmpl: 'blank' };
-  S.ui.projectIconQuery = '';
-  S.ui.errors = {};
-  S.ui.pop = null;
-  openModal({ type: 'project' });
-};
-A.editProject = el => {
-  const p = proj(el.dataset.id);
-  S.ui.pop = null;
-  S.ui.pform = {
-    name: p.name,
-    desc: p.desc,
-    icon: p.icon,
-    iconImage: p.iconImage || null,
-    color: p.color,
-    team: p.team,
-    lead: p.lead,
-    due: p.due,
-    tmpl: 'blank',
-  };
-  S.ui.projectIconQuery = '';
-  S.ui.errors = {};
-  openModal({ type: 'project', edit: p.id });
-};
-IN.pform = el => {
-  S.ui.pform[el.dataset.f] = el.value;
-  if (el.dataset.f === 'name' && S.ui.errors.pname && el.value.trim()) {
-    S.ui.errors.pname = null;
-    render();
-  }
-};
-A.pformSet = el => {
-  S.ui.pform[el.dataset.f] = el.dataset.v;
-  if (el.dataset.f === 'icon') S.ui.pform.iconImage = null;
-  if (el.dataset.f === 'color') {
-    S.ui.pform.colorDraft = '';
-    S.ui.errors.projectColor = null;
-  }
-  if (el.dataset.f === 'tmpl') {
-    const t = TEMPLATES.find(x => x.id === el.dataset.v);
-    if (t && S.ui.pform.icon === 'folder') S.ui.pform.icon = t.icon === 'file' ? 'folder' : t.icon;
-  }
-  render();
-};
 export function makeKey(name) {
   let k = name
     .split(/\s+/)
@@ -2079,86 +2014,6 @@ export function createProject(f, tmplId) {
   );
   return p;
 }
-A.dupProject = el => {
-  const p = proj(el.dataset.id);
-  S.ui.pop = null;
-  let n;
-  if (
-    !mutateTaskCommand(() => {
-      n = createProject({ ...p, name: p.name + ' copy' }, 'blank');
-      tasksOf(p.id).forEach(t => createTask({ ...JSON.parse(JSON.stringify(t)), id: uid('t'), key: undefined, project: n.id, status: 'todo', cycleId: '' }));
-    })
-  )
-    return;
-  toast(`Duplicated ${p.name}`, { action: 'Open', onAction: () => go('project', { id: n.id }) });
-};
-A.archiveProject = el => {
-  const p = proj(el.dataset.id);
-  S.ui.pop = null;
-  confirmDlg({
-    title: `Archive ${p.name}?`,
-    body: 'The project will be hidden from the sidebar and project lists. Tasks, files, and comments are kept, and you can restore it from Settings → Projects.',
-    ok: 'Archive project',
-    icon: 'archive',
-    run: () => {
-      const snap = snapshot();
-      if (
-        mutate(() => {
-          p.archived = true;
-          p.archivedAt = Date.now();
-        })
-      ) {
-        if (S.ui.route === 'project' && S.ui.params.id === p.id) go('projects');
-        toast(`Archived ${p.name}`, { action: 'Undo', onAction: () => restore(snap) });
-      }
-    },
-  });
-};
-A.restoreProject = el => {
-  const p = proj(el.dataset.id);
-  mutate(() => {
-    p.archived = false;
-    p.archivedAt = null;
-  });
-  toast(`Restored ${p.name}`);
-};
-A.delProject = el => {
-  const p = proj(el.dataset.id);
-  S.ui.pop = null;
-  const n = tasksOf(p.id).length;
-  confirmDlg({
-    title: `Delete ${p.name}?`,
-    body: `The project and its <b>${n} task${n === 1 ? '' : 's'}</b>, files, and comments will be moved to the trash.`,
-    ok: 'Move to trash',
-    danger: true,
-    typeName: p.name,
-    run: () => {
-      const snap = snapshot();
-      if (
-        mutate(() => {
-          const projectTasks = D().tasks.filter(t => t.project === p.id);
-          const ids = projectTasks.map(t => t.id);
-          const comments = D().comments.filter(comment => ids.includes(comment.task));
-          const files = D().files.filter(file => file.project === p.id);
-          moveToTrash('project', p.name, {
-            project: structuredClone(p),
-            tasks: structuredClone(projectTasks),
-            comments: structuredClone(comments),
-            files: structuredClone(files),
-            orderIndex: D().projOrder.indexOf(p.id),
-          });
-          deleteTasks(ids, false);
-          D().projects = D().projects.filter(x => x !== p);
-          D().projOrder = D().projOrder.filter(x => x !== p.id);
-          D().files = D().files.filter(f => f.project !== p.id);
-        })
-      ) {
-        if (S.ui.route === 'project' && S.ui.params.id === p.id) go('projects');
-        toast(`“${p.name}” moved to trash`, { action: 'Undo', onAction: () => restore(snap) });
-      }
-    },
-  });
-};
 A.requestAccess = el => {
   void el;
   toast('Ask a workspace administrator to add you to this project. No automatic request was sent.', { kind: 'info', ms: 8000 });
@@ -2534,6 +2389,7 @@ A.delFile = el => {
 
 /* inbox & notifications */
 registerNotificationActions(A);
+registerProjectViewActions(A, IN);
 
 /* search & palette */
 A.openPalette = () => {
@@ -3357,21 +3213,4 @@ A.closeMnav = () => {
 A.toggleExpand = el => {
   S.ui.expanded[el.dataset.id] = !S.ui.expanded[el.dataset.id];
   render();
-};
-A.goTasks = el => {
-  const { f: kind, project, assignee } = el.dataset;
-  if (project && !visibleProjects().some(p => p.id === project && canSee(p))) return;
-  if (assignee && !D().members.some(m => m.id === assignee)) return;
-  applyWorkListIntent(viewOf('tasks'), { kind, project, assignee });
-  for (const map of [S.ui.listPages, S.ui.collapsedGroups]) {
-    for (const key of Object.keys(map || {})) if (key.startsWith('tasks:')) delete map[key];
-  }
-  go('tasks');
-};
-A.goFilteredList = el => {
-  const v = viewOf('p:' + el.dataset.id);
-  v.q = '';
-  v.filters = [{ f: 'status', op: 'is', v: [el.dataset.st] }];
-  v.group = 'status';
-  go('project', { id: el.dataset.id, tab: 'list' }, { tab: true });
 };

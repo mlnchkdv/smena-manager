@@ -5,7 +5,7 @@
    ===================================================================== */
 import { S } from './store.js';
 import { countLabel } from '../shared/count-label.js';
-import { activityMoveExtra } from '../shared/activity-copy.js';
+import { activityMoveExtra, activityCycleExtra } from '../shared/activity-copy.js';
 
 export const LANGUAGES = [
   ['English (US)', 'English (US)'],
@@ -17,6 +17,11 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  Cycle: 'Цикл',
+  'No cycle': 'Без цикла',
+  'changed cycle of': 'изменил(а) цикл задачи',
+  'Select tasks from one project to set a cycle.': 'Для назначения цикла выберите задачи одного проекта.',
+  'Choose an available cycle.': 'Выберите доступный цикл.',
   'The project process changed before saving. Your draft is kept for review; the server version was not overwritten.':
     'Правила проекта изменились до сохранения. Черновик доступен для проверки; сохранённая версия не перезаписана.',
   'Project process': 'Процесс проекта',
@@ -2383,6 +2388,8 @@ export function t(value) {
 }
 
 export function activityExtra(value, verb, change = null) {
+  const cycle = activityCycleExtra({ extra: value, verb, change }, isRussian() ? 'ru-RU' : 'en-US');
+  if (cycle !== null) return cycle;
   const transition = activityMoveExtra({ extra: value, verb, change }, isRussian() ? 'ru-RU' : 'en-US');
   if (transition !== null) return transition;
   if (!isRussian() || !value) return value;

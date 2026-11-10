@@ -55,6 +55,15 @@ export function activityVerbForm(translated, self, locale = 'en-US') {
   return self && locale.startsWith('ru') ? String(translated).replace(/л\(а\)/gu, 'ли') : translated;
 }
 
+export function activityCycleExtra(activity, locale = 'en-US') {
+  if (activity.verb !== 'changed cycle of' || activity.change?.field !== 'cycleId') return null;
+  const ru = locale.startsWith('ru'),
+    change = activity.change;
+  if (!change.value) return ru ? '— без цикла' : '— no cycle';
+  if (typeof change.valueLabel !== 'string' || !change.valueLabel) return ru ? '— цикл изменён' : '— cycle changed';
+  return ru ? `в цикл «${change.valueLabel}»` : `to cycle “${change.valueLabel}”`;
+}
+
 export function activityTransitionExtra(value, verb, locale = 'en-US') {
   if (verb !== 'moved' || !locale.startsWith('ru')) return null;
   const match = /^from (.+) to (.+)$/u.exec(String(value || ''));

@@ -307,6 +307,41 @@
   font-size: var(--fs-xs);
   color: var(--text-3);
 }
+.chipsbar .chip {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--h-sm);
+}
+.filter-chip-main {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+.filter-chip-main > :is(svg, b, .filter-chip-op) {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.filter-chip-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chipsbar .chip > .ibtn {
+  flex-shrink: 0;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .chipsbar :is(.chip, .filter-chip-main) {
+    min-height: 44px;
+  }
+  .chipsbar .chip > .ibtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 /* columns scroll on wheel/touch without a visible bar, so every column keeps the same inner width */
 .bcol-b {
   scrollbar-width: none;

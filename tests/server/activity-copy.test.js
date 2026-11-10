@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { activityDateExtra, activityVerbForm, activityTransitionExtra, activityMoveExtra } from '../../src/shared/activity-copy.js';
+import { activityDateExtra, activityVerbForm, activityTransitionExtra, activityMoveExtra, activityCycleExtra } from '../../src/shared/activity-copy.js';
 import { countLabel } from '../../src/shared/count-label.js';
 
 test('new activity date values render independently of the creation language', () => {
@@ -80,4 +80,16 @@ test('shared material counts agree in Russian and English, including 21', () => 
     [0, 1, 2, 5, 11, 21].map(n => countLabel(n, 'comment', 'ru-RU')),
     ['0 комментариев', '1 комментарий', '2 комментария', '5 комментариев', '11 комментариев', '21 комментарий'],
   );
+});
+
+test('cycle activity retains the recorded name verbatim across languages and later configuration changes', () => {
+  const activity = { verb: 'changed cycle of', change: { field: 'cycleId', value: 'c', valueLabel: 'Done / План' } };
+  const before = structuredClone(activity);
+  assert.equal(activityCycleExtra(activity, 'en-US'), 'to cycle “Done / План”');
+  assert.equal(activityCycleExtra(activity, 'ru-RU'), 'в цикл «Done / План»');
+  assert.deepEqual(activity, before);
+  assert.equal(activityCycleExtra({ verb: 'changed cycle of', change: { field: 'cycleId', value: null } }, 'ru-RU'), '— без цикла');
+  assert.equal(activityCycleExtra({ verb: 'changed cycle of', change: { field: 'cycleId', value: 'unknown' } }, 'en-US'), '— cycle changed');
+  assert.equal(activityCycleExtra({ verb: 'moved', change: activity.change }, 'ru-RU'), null);
+  assert.equal(activityCycleExtra({ verb: 'changed cycle of', extra: 'to legacy' }, 'ru-RU'), null);
 });

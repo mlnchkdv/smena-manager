@@ -7,8 +7,11 @@ import { av, prIcon, stIcon } from '../ui/helpers.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { registerRussianLabels, t as tr } from '../core/i18n.js';
 import { completedWithin } from '../shared/work-list-intent.js';
+import { matchesTaskCycle, taskCycleValue } from '../shared/task-cycles.js';
 
 registerRussianLabels({ 'Completed date': 'Дата завершения' });
+
+const cycleFilterProject = key => proj(key?.startsWith('p:') ? key.slice(2) : D().savedViews.find(view => key === 'sv:' + view.id)?.project);
 
 export const FIELDS = {
   status: { name: 'Status', icon: 'circle-dot', opts: () => STATUSES.map(s => ({ id: s.id, name: s.name, html: stIcon(s.id) })) },
@@ -61,6 +64,25 @@ export const FIELDS = {
   },
 };
 FIELDS.completed = { ...FIELDS.updated, name: 'Completed date', icon: 'circle-check' };
+FIELDS.cycleId = {
+  name: 'Cycle',
+  icon: 'repeat',
+  dynamic: true,
+  visible: key => !!cycleFilterProject(key)?.workflow?.cycles?.length,
+  opts: key => {
+    const project = cycleFilterProject(key);
+    return project
+      ? [
+          { id: taskCycleValue(project.id), name: tr('No cycle') },
+          ...(project.workflow?.cycles || []).map(cycle => ({
+            id: taskCycleValue(project.id, cycle.id),
+            name: cycle.name + (cycle.archived ? ' · ' + tr('Archived') : ''),
+          })),
+        ]
+      : [];
+  },
+};
+export const filterFields = key => Object.entries(FIELDS).filter(([, field]) => !field.visible || field.visible(key));
 export function viewOf(key) {
   if (!S.views[key])
     S.views[key] = {
@@ -78,6 +100,7 @@ export function matchF(t, f) {
   if (!f.v || !f.v.length) return true;
   let hit;
   if (f.f === 'labels') hit = f.v.some(v => t.labels.includes(v));
+  else if (f.f === 'cycleId') hit = matchesTaskCycle(t, f.v);
   else if (f.f === 'assignee') hit = f.v.includes(t.assignee || 'none');
   else if (f.f === 'due') {
     hit = f.v.some(v => {
@@ -161,13 +184,14 @@ export function filterChips(key) {
   const chips = v.filters
     .map((f, i) => {
       const F = FIELDS[f.f];
-      const opts = F.opts();
+      const opts = F?.opts?.(key) || [];
       const names = f.v.map(id => {
         const name = opts.find(o => o.id === id)?.name || id;
-        return ['assignee', 'project'].includes(f.f) ? name : tr(name);
+        return ['assignee', 'project', 'cycleId'].includes(f.f) ? name : tr(name);
       });
       const val = names.length ? (names.length > 2 ? tr(`${names.length} selected`) : names.join(', ')) : tr('any');
-      return `${i ? `<span>${tr('and')}</span>` : ''}<span class="chip"><button data-a="pop" data-pop="fvals" data-key="${key}" data-i="${i}" style="display:inline-flex;gap:5px;align-items:center">${ic(F.icon, 12)}<b>${esc(tr(F.name))}</b> <span>${tr(f.op === 'not' ? 'is not' : 'is')}</span> <span>${esc(val)}</span></button><button class="ibtn" data-a="rmFilter" data-key="${key}" data-i="${i}" aria-label="Remove filter">${ic('x', 12)}</button></span>`;
+      const label = `${tr(F?.name || 'Filter')} ${tr(f.op === 'not' ? 'is not' : 'is')} ${val}`;
+      return `${i ? `<span>${tr('and')}</span>` : ''}<span class="chip"><button class="filter-chip-main" data-a="pop" data-pop="fvals" data-key="${key}" data-i="${i}" aria-label="${esc(label)}" title="${esc(label)}">${ic(F?.icon || 'filter', 12)}<b>${esc(tr(F?.name || 'Filter'))}</b> <span class="filter-chip-op">${tr(f.op === 'not' ? 'is not' : 'is')}</span> <span class="filter-chip-value" ${F?.dynamic ? 'translate="no"' : ''}>${esc(val)}</span></button><button class="ibtn" data-a="rmFilter" data-key="${key}" data-i="${i}" aria-label="Remove filter">${ic('x', 12)}</button></span>`;
     })
     .join('');
   return `<div class="chipsbar">${ic('list-filter', 13)}${chips}<button class="btn btn-sm btn-ghost" data-a="pop" data-pop="filter" data-key="${key}">${ic('plus', 12)}Add</button><span class="sp"></span><button class="btn btn-sm btn-ghost" data-a="clearFilters" data-key="${key}">Clear all</button></div>`;
