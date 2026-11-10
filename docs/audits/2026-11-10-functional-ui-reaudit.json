@@ -1,0 +1,5291 @@
+{
+  "schemaVersion": 1,
+  "audit": "Functional and responsive UI/UX re-audit 2026-11-10",
+  "sourceCommit": "662cbfab01ac1d4c5fdee7e25114a48bbff728bb",
+  "artifactManifestSha256": "2aa2842f742804d80a0caaede29dbbe0fa98d3247e6382bc7986d8c9e720d8f9",
+  "productionAccepted": false,
+  "production": {
+    "at": "2026-11-10T16:04:23.046364+00:00",
+    "origin": "https://smena-manager.vercel.app",
+    "readOnly": true,
+    "rows": [
+      {
+        "path": "/",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/files",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/files",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/knowledge",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/knowledge",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/whiteboards",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/whiteboards",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/graph",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/smena/graph",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/api/health",
+        "language": "ru-RU",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      },
+      {
+        "path": "/api/health",
+        "language": "en-US",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED",
+        "publicError": ["Payment required", "", "DEPLOYMENT_DISABLED"]
+      }
+    ],
+    "finalReadOnlyCheckAt": "2026-11-10T17:03:21.605714+00:00",
+    "finalReadOnlyCheck": [
+      {
+        "path": "/",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED"
+      },
+      {
+        "path": "/api/health",
+        "status": 402,
+        "vercelError": "DEPLOYMENT_DISABLED"
+      }
+    ],
+    "writes": 0
+  },
+  "local": {
+    "browser": "WebKit",
+    "isolated": true,
+    "realGoogle": false,
+    "physicalDevices": false,
+    "languages": ["ru", "en"],
+    "sizes": [
+      [320, 567],
+      [390, 844],
+      [767, 900],
+      [844, 390],
+      [1024, 768],
+      [1366, 768],
+      [1920, 1080]
+    ]
+  },
+  "routeMatrix": {
+    "states": 250,
+    "routes": 31,
+    "rootHorizontalOverflowStates": 0,
+    "initialRun": {
+      "completed": false,
+      "states": 190,
+      "resumed": true,
+      "limitation": "DOM read during session restoration; not established as logout"
+    },
+    "resumedRun": {
+      "completed": true,
+      "states": 60
+    },
+    "rows": [
+      {
+        "locale": "ru",
+        "route": "home",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "home",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "home",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "mytasks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 606,
+            "height": 258,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "mytasks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 536,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "mytasks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 416,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "favorites",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "search",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "search",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "search",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "overview",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "projects",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "files",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 422,
+            "height": 267,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "tasks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 234,
+            "height": 258,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 234,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 257,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 348,
+            "height": 120,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 331,
+            "height": 120,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 333,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 284,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 320,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 243,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "knowledge",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 243,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "bookmarks",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 275,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 210,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboards",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 210,
+            "height": 275,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 412,
+            "height": 300,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 276,
+            "h": 245,
+            "top": 413
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 412,
+            "height": 363,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 356,
+            "h": 308,
+            "top": 413
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 553,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 719,
+            "h": 514,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 274,
+            "height": 300,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 808,
+            "h": 298,
+            "top": 275
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 421,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 709,
+            "h": 382,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 421,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1032,
+            "h": 382,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "graph",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 733,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1586,
+            "h": 694,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "members",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "teams",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "activity",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "archive",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "settings/workspace",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "settings/workspace",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "settings/workspace",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "member/audit-editor",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "member/audit-editor",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "member/audit-editor",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 287,
+            "height": 280,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 292,
+            "h": 280,
+            "top": 287
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 262,
+            "height": 524,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 372,
+            "h": 524,
+            "top": 262
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 680,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 715,
+            "h": 680,
+            "top": 208
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 179,
+            "height": 220,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 792,
+            "h": 220,
+            "top": 179
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 548,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 720,
+            "h": 548,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 548,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1062,
+            "h": 548,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "whiteboard/audit-board",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 860,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1616,
+            "h": 860,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/overview",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/overview",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/overview",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/board",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/list",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 366,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/list",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 318,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/list",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 274,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/table",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/table",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/table",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/calendar",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/calendar",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/calendar",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/timeline",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/timeline",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/timeline",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/files",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 1047,
+            "height": 163,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/files",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/files",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 565,
+            "height": 307,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/activity",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/activity",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "ru",
+        "route": "project/ap/activity",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "home",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "home",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "home",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "mytasks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 536,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "mytasks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 536,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "mytasks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 416,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "favorites",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "search",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "search",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "search",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "overview",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "projects",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "files",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "tasks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 234,
+            "height": 258,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 234,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 257,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 348,
+            "height": 120,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 331,
+            "height": 120,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 333,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 284,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 286,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 243,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "knowledge",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 243,
+            "height": 155,
+            "class": "knowledge-preview-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "bookmarks",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 275,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 248,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 210,
+            "height": 253,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboards",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 210,
+            "height": 293,
+            "class": "whiteboard-document-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 412,
+            "height": 300,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 276,
+            "h": 245,
+            "top": 413
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 394,
+            "height": 381,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 356,
+            "h": 326,
+            "top": 395
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 553,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 719,
+            "h": 514,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 274,
+            "height": 300,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 808,
+            "h": 298,
+            "top": 275
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 421,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 709,
+            "h": 382,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 421,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1032,
+            "h": 382,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "graph",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 335,
+            "height": 733,
+            "class": "graph-stage"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1586,
+            "h": 694,
+            "top": 336
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "members",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "teams",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "activity",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "archive",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "settings/workspace",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "settings/workspace",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "settings/workspace",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "member/audit-editor",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "member/audit-editor",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "member/audit-editor",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 287,
+            "height": 280,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 292,
+            "h": 280,
+            "top": 287
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 262,
+            "height": 524,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 372,
+            "h": 524,
+            "top": 262
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 208,
+            "height": 680,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 715,
+            "h": 680,
+            "top": 208
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 179,
+            "height": 220,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 792,
+            "h": 220,
+            "top": 179
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 548,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 720,
+            "h": 548,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 548,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1062,
+            "h": 548,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "whiteboard/audit-board",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 198,
+            "height": 860,
+            "class": "whiteboard-viewport"
+          }
+        ],
+        "canvas": [
+          {
+            "w": 1616,
+            "h": 860,
+            "top": 198
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/overview",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/overview",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/overview",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 767,
+        "height": 900,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 844,
+        "height": 390,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 1024,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/board",
+        "width": 1920,
+        "height": 1080,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/list",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 318,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/list",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 318,
+            "height": 210,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/list",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 274,
+            "height": 41,
+            "class": "trow  "
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/table",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/table",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/table",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/calendar",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/calendar",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/calendar",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/timeline",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/timeline",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/timeline",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/files",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 485,
+            "height": 163,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/files",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 485,
+            "height": 163,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/files",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [
+          {
+            "top": 565,
+            "height": 307,
+            "class": "fcard workspace-file-card"
+          }
+        ],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/activity",
+        "width": 320,
+        "height": 567,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/activity",
+        "width": 390,
+        "height": 844,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      },
+      {
+        "locale": "en",
+        "route": "project/ap/activity",
+        "width": 1366,
+        "height": 768,
+        "rootOverflow": 0,
+        "anonymous": [],
+        "firstContent": [],
+        "canvas": []
+      }
+    ]
+  },
+  "settings": {
+    "completed": true,
+    "fatal": "",
+    "rows": [
+      {
+        "lang": "ru",
+        "route": "workspace",
+        "width": 320,
+        "height": 567,
+        "heading": "Рабочее пространство",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "workspace",
+        "width": 1366,
+        "height": 768,
+        "heading": "Рабочее пространство",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "appearance",
+        "width": 320,
+        "height": 567,
+        "heading": "Оформление",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "appearance",
+        "width": 1366,
+        "height": 768,
+        "heading": "Оформление",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "language",
+        "width": 320,
+        "height": 567,
+        "heading": "Язык",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "language",
+        "width": 1366,
+        "height": 768,
+        "heading": "Язык",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "datetime",
+        "width": 320,
+        "height": 567,
+        "heading": "Дата и время",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "datetime",
+        "width": 1366,
+        "height": 768,
+        "heading": "Дата и время",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "data-transfer",
+        "width": 320,
+        "height": 567,
+        "heading": "Перенос данных",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "data-transfer",
+        "width": 1366,
+        "height": 768,
+        "heading": "Перенос данных",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "help",
+        "width": 320,
+        "height": 567,
+        "heading": "Помощь и ресурсы",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "help",
+        "width": 1366,
+        "height": 768,
+        "heading": "Помощь и ресурсы",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "heading": "Участники",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "heading": "Участники",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "heading": "Команды",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "heading": "Команды",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "heading": "Проекты",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "heading": "Проекты",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "permissions",
+        "width": 320,
+        "height": 567,
+        "heading": "Разрешения",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "permissions",
+        "width": 1366,
+        "height": 768,
+        "heading": "Разрешения",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "notif-mentions",
+        "width": 320,
+        "height": 567,
+        "heading": "Упоминания",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "notif-mentions",
+        "width": 1366,
+        "height": 768,
+        "heading": "Упоминания",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "notif-assign",
+        "width": 320,
+        "height": 567,
+        "heading": "Назначение задач",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "notif-assign",
+        "width": 1366,
+        "height": 768,
+        "heading": "Назначение задач",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "notif-email",
+        "width": 320,
+        "height": 567,
+        "heading": "Эл. почта",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "notif-email",
+        "width": 1366,
+        "height": 768,
+        "heading": "Эл. почта",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "notif-push",
+        "width": 320,
+        "height": 567,
+        "heading": "Уведомления браузера",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "notif-push",
+        "width": 1366,
+        "height": 768,
+        "heading": "Уведомления браузера",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "profile",
+        "width": 320,
+        "height": 567,
+        "heading": "Профиль",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "profile",
+        "width": 1366,
+        "height": 768,
+        "heading": "Профиль",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "security",
+        "width": 320,
+        "height": 567,
+        "heading": "Безопасность аккаунта",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "security",
+        "width": 1366,
+        "height": 768,
+        "heading": "Безопасность аккаунта",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "preferences",
+        "width": 320,
+        "height": 567,
+        "heading": "Предпочтения",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "preferences",
+        "width": 1366,
+        "height": 768,
+        "heading": "Предпочтения",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "ru",
+        "route": "shortcuts",
+        "width": 320,
+        "height": 567,
+        "heading": "Горячие клавиши",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "ru",
+        "route": "shortcuts",
+        "width": 1366,
+        "height": 768,
+        "heading": "Горячие клавиши",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "workspace",
+        "width": 320,
+        "height": 567,
+        "heading": "Workspace",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "workspace",
+        "width": 1366,
+        "height": 768,
+        "heading": "Workspace",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "appearance",
+        "width": 320,
+        "height": 567,
+        "heading": "Appearance",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "appearance",
+        "width": 1366,
+        "height": 768,
+        "heading": "Appearance",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "language",
+        "width": 320,
+        "height": 567,
+        "heading": "Language",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "language",
+        "width": 1366,
+        "height": 768,
+        "heading": "Language",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "datetime",
+        "width": 320,
+        "height": 567,
+        "heading": "Date & time",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "datetime",
+        "width": 1366,
+        "height": 768,
+        "heading": "Date & time",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "data-transfer",
+        "width": 320,
+        "height": 567,
+        "heading": "Data transfer",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "data-transfer",
+        "width": 1366,
+        "height": 768,
+        "heading": "Data transfer",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "help",
+        "width": 320,
+        "height": 567,
+        "heading": "Help & resources",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "help",
+        "width": 1366,
+        "height": 768,
+        "heading": "Help & resources",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "heading": "Members",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "heading": "Members",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "heading": "Teams",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "heading": "Teams",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "heading": "Projects",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "heading": "Projects",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "permissions",
+        "width": 320,
+        "height": 567,
+        "heading": "Permissions",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "permissions",
+        "width": 1366,
+        "height": 768,
+        "heading": "Permissions",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "notif-mentions",
+        "width": 320,
+        "height": 567,
+        "heading": "Mentions",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "notif-mentions",
+        "width": 1366,
+        "height": 768,
+        "heading": "Mentions",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "notif-assign",
+        "width": 320,
+        "height": 567,
+        "heading": "Task assignments",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "notif-assign",
+        "width": 1366,
+        "height": 768,
+        "heading": "Task assignments",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "notif-email",
+        "width": 320,
+        "height": 567,
+        "heading": "Email",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "notif-email",
+        "width": 1366,
+        "height": 768,
+        "heading": "Email",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "notif-push",
+        "width": 320,
+        "height": 567,
+        "heading": "Browser notifications",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "notif-push",
+        "width": 1366,
+        "height": 768,
+        "heading": "Browser notifications",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "profile",
+        "width": 320,
+        "height": 567,
+        "heading": "Profile",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "profile",
+        "width": 1366,
+        "height": 768,
+        "heading": "Profile",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "security",
+        "width": 320,
+        "height": 567,
+        "heading": "Account security",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "security",
+        "width": 1366,
+        "height": 768,
+        "heading": "Account security",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "preferences",
+        "width": 320,
+        "height": 567,
+        "heading": "Preferences",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "preferences",
+        "width": 1366,
+        "height": 768,
+        "heading": "Preferences",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      },
+      {
+        "lang": "en",
+        "route": "shortcuts",
+        "width": 320,
+        "height": 567,
+        "heading": "Keyboard shortcuts",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 567,
+        "settingsWidth": 320
+      },
+      {
+        "lang": "en",
+        "route": "shortcuts",
+        "width": 1366,
+        "height": 768,
+        "heading": "Keyboard shortcuts",
+        "overflow": 0,
+        "alerts": [],
+        "viewport": 768,
+        "settingsWidth": 834
+      }
+    ]
+  },
+  "settledFiles": {
+    "completed": true,
+    "fatal": "",
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "settleMs": 3776,
+        "calls": [
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          },
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 311,
+        "firstBottom": 474.0625,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "settleMs": 3067,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 311,
+        "firstBottom": 474.0625,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 767,
+        "height": 900,
+        "settleMs": 3276,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 683,
+        "firstBottom": 1005.625,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 844,
+        "height": 390,
+        "settleMs": 3060,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 242,
+        "firstBottom": 588.6875,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 1024,
+        "height": 768,
+        "settleMs": 3046,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 496.875,
+        "firstBottom": 808.0625,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "settleMs": 2646,
+        "calls": [],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 422.3125,
+        "firstBottom": 729.125,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "ru",
+        "width": 1920,
+        "height": 1080,
+        "settleMs": 2942,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 505.75,
+        "firstBottom": 773.046875,
+        "busy": false,
+        "title": "Открыть \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4 дн. назад\n    \n    Проект · AUDIT · Pr"
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "settleMs": 5146,
+        "calls": [
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          },
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 311,
+        "firstBottom": 474.0625,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "settleMs": 3194,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 311,
+        "firstBottom": 474.0625,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 767,
+        "height": 900,
+        "settleMs": 4550,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 683,
+        "firstBottom": 1005.625,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 844,
+        "height": 390,
+        "settleMs": 4126,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 242,
+        "firstBottom": 588.6875,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 1024,
+        "height": 768,
+        "settleMs": 5235,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 496.875,
+        "firstBottom": 808.0625,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "settleMs": 3273,
+        "calls": [],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 422.3125,
+        "firstBottom": 729.125,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      },
+      {
+        "lang": "en",
+        "width": 1920,
+        "height": 1080,
+        "settleMs": 4165,
+        "calls": [
+          {
+            "url": "/api/files/catalog/query",
+            "method": "POST",
+            "data": {
+              "query": "",
+              "offset": 0,
+              "limit": 100,
+              "project": "all",
+              "sort": "date",
+              "type": "all",
+              "folder": "",
+              "recursive": false
+            }
+          },
+          {
+            "url": "/api/files/catalog/resolve",
+            "method": "POST",
+            "data": {
+              "offset": 0
+            }
+          }
+        ],
+        "overflow": 0,
+        "count": 100,
+        "firstTop": 505.75,
+        "firstBottom": 773.046875,
+        "busy": false,
+        "title": "Open \n      png\n      AUDIT-CARD.pngAudit Owner · 68 B · 4d ago\n    \n    Проект · AUDIT · Project · "
+      }
+    ]
+  },
+  "workflowConfirmation": [
+    {
+      "kind": "workflow-confirm",
+      "locale": "ru",
+      "width": 320,
+      "unchanged": true,
+      "root": 0,
+      "body": 73,
+      "dialog": 0,
+      "buttons": [
+        {
+          "text": "Сбросить черновик",
+          "w": 140.296875,
+          "h": 44
+        },
+        {
+          "text": "Продолжить редактирование",
+          "w": 200.046875,
+          "h": 44
+        }
+      ],
+      "text": "Сбросить несохранённый черновик процесса?Сбросить черновикПродолжить редактирование"
+    },
+    {
+      "kind": "workflow-confirm",
+      "locale": "ru",
+      "width": 1366,
+      "unchanged": true,
+      "root": 0,
+      "body": 0,
+      "dialog": 0,
+      "buttons": [
+        {
+          "text": "Сбросить черновик",
+          "w": 140.296875,
+          "h": 30
+        },
+        {
+          "text": "Продолжить редактирование",
+          "w": 200.046875,
+          "h": 30
+        }
+      ],
+      "text": "Сбросить несохранённый черновик процесса?Сбросить черновикПродолжить редактирование"
+    },
+    {
+      "kind": "workflow-confirm",
+      "locale": "en",
+      "width": 320,
+      "unchanged": true,
+      "root": 0,
+      "body": 0,
+      "dialog": 0,
+      "buttons": [
+        {
+          "text": "Discard draft",
+          "w": 97.25,
+          "h": 44
+        },
+        {
+          "text": "Keep editing",
+          "w": 95.796875,
+          "h": 44
+        }
+      ],
+      "text": "Discard the unsaved process draft?Discard draftKeep editing"
+    },
+    {
+      "kind": "workflow-confirm",
+      "locale": "en",
+      "width": 1366,
+      "unchanged": true,
+      "root": 0,
+      "body": 0,
+      "dialog": 0,
+      "buttons": [
+        {
+          "text": "Discard draft",
+          "w": 97.25,
+          "h": 30
+        },
+        {
+          "text": "Keep editing",
+          "w": 95.796875,
+          "h": 30
+        }
+      ],
+      "text": "Discard the unsaved process draft?Discard draftKeep editing"
+    }
+  ],
+  "noteActionLabels": {
+    "states": 4,
+    "undefinedHypothesisRejected": true,
+    "cause": "Local actionLabel closure binds note title/location"
+  },
+  "viewerTaskDrawer": {
+    "completed": true,
+    "fatal": "",
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "role": "Guest",
+        "controls": {
+          "complete": [
+            {
+              "text": "Отметить выполненной",
+              "disabled": false,
+              "visible": true
+            }
+          ],
+          "titleEditable": true,
+          "statusButtons": 1,
+          "comments": true,
+          "attachmentInputs": 3
+        },
+        "canonicalUnchanged": true,
+        "workspacePuts": 0,
+        "toast": "У вас есть только право просмотра этого рабочего пространства."
+      },
+      {
+        "lang": "ru",
+        "width": 1366,
+        "role": "Guest",
+        "controls": {
+          "complete": [
+            {
+              "text": "Отметить выполненной",
+              "disabled": false,
+              "visible": true
+            }
+          ],
+          "titleEditable": true,
+          "statusButtons": 1,
+          "comments": true,
+          "attachmentInputs": 3
+        },
+        "canonicalUnchanged": true,
+        "workspacePuts": 0,
+        "toast": "У вас есть только право просмотра этого рабочего пространства."
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "role": "Guest",
+        "controls": {
+          "complete": [
+            {
+              "text": "Mark complete",
+              "disabled": false,
+              "visible": true
+            }
+          ],
+          "titleEditable": true,
+          "statusButtons": 1,
+          "comments": true,
+          "attachmentInputs": 3
+        },
+        "canonicalUnchanged": true,
+        "workspacePuts": 0,
+        "toast": "You have view-only access to this workspace."
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "role": "Guest",
+        "controls": {
+          "complete": [
+            {
+              "text": "Mark complete",
+              "disabled": false,
+              "visible": true
+            }
+          ],
+          "titleEditable": true,
+          "statusButtons": 1,
+          "comments": true,
+          "attachmentInputs": 3
+        },
+        "canonicalUnchanged": true,
+        "workspacePuts": 0,
+        "toast": "You have view-only access to this workspace."
+      }
+    ]
+  },
+  "import": {
+    "state": "complete",
+    "entries": [
+      {
+        "name": "AUDIT_GRAPH_1011_0.md",
+        "status": "imported",
+        "noteId": "knda77115e-9e04-40cd-bc76-b34cafe39a4d"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_1.md",
+        "status": "imported",
+        "noteId": "knbae27bc9-ac47-4ab5-a281-2e3fd5e4a7ce"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_2.md",
+        "status": "imported",
+        "noteId": "kn2a71bf2f-1854-4a92-88ae-0a3cd7ee9d74"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_3.md",
+        "status": "imported",
+        "noteId": "kn3880bc01-2990-42b3-84fe-0fe5f5788df6"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_4.md",
+        "status": "imported",
+        "noteId": "kne4f33fe1-71d6-4e8f-942f-12088df39a3d"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_5.md",
+        "status": "imported",
+        "noteId": "kn50c98d65-5442-48d1-8e6b-11c43ea9c8c6"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_6.md",
+        "status": "imported",
+        "noteId": "knd36bcc1e-88a8-4fc0-8f48-b39409c5effa"
+      },
+      {
+        "name": "AUDIT_GRAPH_1011_7.md",
+        "status": "imported",
+        "noteId": "kn60095bb7-e8a5-48c5-8e11-9c0f36c3daa9"
+      }
+    ]
+  },
+  "noteVersions": {
+    "completed": true,
+    "rows": [
+      {
+        "lang": "ru",
+        "reload": true,
+        "restoreExact": true,
+        "searchUpdated": true
+      },
+      {
+        "lang": "en",
+        "reload": true,
+        "restoreExact": true,
+        "searchUpdated": true
+      }
+    ],
+    "frontmatterHiddenInReader": true,
+    "sourceUnchangedBeforeEdit": true,
+    "freshLargeImportStressTest": false
+  },
+  "graphConnectedScenario": {
+    "completed": true,
+    "fatal": "",
+    "prefix": "AUDIT_GRAPH_1011",
+    "rows": [
+      {
+        "lang": "ru",
+        "nodes": 8,
+        "edges": 8,
+        "physicsOn": {
+          "targetMoved": 59.65758776365147,
+          "othersMoved": 7
+        },
+        "physicsOff": {
+          "targetMoved": 59.65758776365149,
+          "othersMoved": 0
+        },
+        "stableAfterPolling": false,
+        "mobile": {
+          "overflow": 0,
+          "detail": true
+        }
+      },
+      {
+        "lang": "en",
+        "nodes": 8,
+        "edges": 8,
+        "physicsOn": {
+          "targetMoved": 59.65758776365147,
+          "othersMoved": 7
+        },
+        "physicsOff": {
+          "targetMoved": 59.65758776365149,
+          "othersMoved": 0
+        },
+        "stableAfterPolling": false,
+        "mobile": {
+          "overflow": 0,
+          "detail": true
+        }
+      }
+    ]
+  },
+  "graphIdleAfterSettling": {
+    "completed": true,
+    "polls": 3,
+    "differences": [
+      {
+        "renderer": ["4", "4"],
+        "pan": [
+          {
+            "x": 253.9625432803627,
+            "y": 5.815708492489534
+          },
+          {
+            "x": 253.9625432803627,
+            "y": 5.815708492489534
+          }
+        ],
+        "zoom": [1.2, 1.2],
+        "maxMovement": 0
+      },
+      {
+        "renderer": ["4", "4"],
+        "pan": [
+          {
+            "x": 253.9625432803627,
+            "y": 5.815708492489534
+          },
+          {
+            "x": 253.9625432803627,
+            "y": 5.815708492489534
+          }
+        ],
+        "zoom": [1.2, 1.2],
+        "maxMovement": 0
+      }
+    ],
+    "interpretation": "No continuous remount or coordinate/camera movement reproduced after settling; immediate post-action equality check alone was false"
+  },
+  "accessibility": {
+    "scope": "wcag2a/wcag2aa/wcag21aa, 390 px; not full accessibility certification",
+    "general": {
+      "completed": true,
+      "fatal": "",
+      "rows": [
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "files",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "knowledge",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "bookmarks",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "graph",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "whiteboards",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "whiteboard/audit-board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "ru",
+          "theme": "light",
+          "route": "project/ap/board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 1
+            }
+          ]
+        },
+        {
+          "lang": "ru",
+          "theme": "dark",
+          "route": "files",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "dark",
+          "route": "knowledge",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "dark",
+          "route": "graph",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "dark",
+          "route": "whiteboard/audit-board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "files",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "knowledge",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "bookmarks",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "graph",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "whiteboards",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "whiteboard/audit-board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "route": "project/ap/board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 1
+            }
+          ]
+        },
+        {
+          "lang": "en",
+          "theme": "dark",
+          "route": "files",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "dark",
+          "route": "knowledge",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "dark",
+          "route": "graph",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "dark",
+          "route": "whiteboard/audit-board",
+          "overflow": 0,
+          "violations": [],
+          "incomplete": [
+            {
+              "id": "aria-prohibited-attr",
+              "nodes": 1
+            },
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        }
+      ]
+    },
+    "fullyLoadedFiles": {
+      "completed": true,
+      "fatal": "",
+      "rows": [
+        {
+          "lang": "ru",
+          "theme": "light",
+          "cards": 100,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "ru",
+          "theme": "dark",
+          "cards": 100,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "light",
+          "cards": 100,
+          "violations": [],
+          "incomplete": []
+        },
+        {
+          "lang": "en",
+          "theme": "dark",
+          "cards": 100,
+          "violations": [],
+          "incomplete": []
+        }
+      ]
+    },
+    "generalFilesScansMayContainSkeleton": true
+  },
+  "cleanup": {
+    "completed": true,
+    "onlySyntheticLocal": true,
+    "notesTrashed": 8,
+    "activeNotes": 178,
+    "otherNoteIdentitiesUnchanged": true,
+    "owner": "audit-owner",
+    "language": "ru",
+    "theme": "light",
+    "productionWrites": 0
+  },
+  "previousCodeAcceptance": {
+    "freshThisAudit": false,
+    "testsPassed": 962,
+    "initialJavaScriptKiB": 599.5,
+    "budgetKiB": 600,
+    "fullGate": "2026-11-10T15-26-31-171Z",
+    "finalCssGate": "2026-11-10T15-44-45-694Z",
+    "finalCssGateStatus": "partial",
+    "serverTestsReusedByCssGate": true
+  },
+  "newWork": [
+    {
+      "id": "R01",
+      "priority": "P0",
+      "kind": "production-blocker",
+      "title": "Restore working production origin and accept it"
+    },
+    {
+      "id": "R02",
+      "priority": "P1",
+      "kind": "confirmed-defect",
+      "title": "RU 320 project process discard confirmation body overflow"
+    },
+    {
+      "id": "R03",
+      "priority": "P1",
+      "kind": "confirmed-ux-defect",
+      "title": "Task drawer shows unavailable mutating actions to viewer; no ACL bypass observed"
+    },
+    {
+      "id": "R04",
+      "priority": "P1",
+      "kind": "confirmed-redundant-requests",
+      "title": "Decouple file page query cache from viewport folder counters"
+    },
+    {
+      "id": "R05",
+      "priority": "P2",
+      "kind": "measured-ux-opportunity",
+      "title": "Height-aware folder window for tablet file catalog"
+    },
+    {
+      "id": "R06",
+      "priority": "P2",
+      "kind": "measured-ux-opportunity",
+      "title": "Compact mixed media/text file cards"
+    },
+    {
+      "id": "R07",
+      "priority": "P2",
+      "kind": "measured-ux-opportunity",
+      "title": "Low-height initial layout and existing focus discoverability"
+    },
+    {
+      "id": "R08",
+      "priority": "P2",
+      "kind": "ux-opportunity",
+      "title": "Bookmark density and existing list mode discoverability"
+    },
+    {
+      "id": "R09",
+      "priority": "P1",
+      "kind": "measured-maintenance-risk",
+      "title": "Recover startup JavaScript headroom without raising budget"
+    },
+    {
+      "id": "R10",
+      "priority": "P1",
+      "kind": "acceptance-gap",
+      "title": "Nested geometry, settled catalog, capability-aware UI acceptance"
+    },
+    {
+      "id": "R11",
+      "priority": "P1/P2",
+      "kind": "existing-partial-N05",
+      "title": "Long Markdown initial paint and cold search acceptance"
+    },
+    {
+      "id": "R12",
+      "priority": "P1",
+      "kind": "existing-partial-N13",
+      "title": "Safe read-only inventory UI and durable maintenance jobs"
+    },
+    {
+      "id": "R13",
+      "priority": "P1",
+      "kind": "existing-live-acceptance-gap",
+      "title": "Real hosting, Google and physical device operational matrix"
+    }
+  ],
+  "excludedAsNewDefects": [
+    "undefined note labels",
+    "transparent synthetic PNG",
+    "unsettled file DOM measurement",
+    "raw oversized fixture PUT 413",
+    "unproven session logout",
+    "unproven continuous graph remount after settling"
+  ],
+  "deferredByUser": ["AI provider selection", "physical phone acceptance until devices available"]
+}
