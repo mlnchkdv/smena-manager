@@ -355,7 +355,7 @@ export async function recoverWorkspaceConflict() {
       // A safe field merge can still violate a newly published project rule.
       // The canonical server refused it atomically. Keep the latest local work
       // for explicit recovery instead of leaving a conflict without a reviewable copy.
-      if (conflict.scope === 'workspace' && error.status === 400 && /^WORKFLOW_/.test(error.code || '')) {
+      if (conflict.scope === 'workspace' && error.status === 400 && /^(?:WORKFLOW_|AUTOMATION_)/.test(error.code || '')) {
         const paths = ['tasks.workflow'];
         const durable = storeConflictRecovery(scopeData(S.data), {
           scope: conflict.scope,

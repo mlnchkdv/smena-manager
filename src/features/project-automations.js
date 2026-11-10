@@ -14,13 +14,14 @@ import { render } from '../shell/render.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
 import { waitForPersonalPreferences } from '../core/personal-preferences.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 import '../styles/project-automations.css';
 
 const word = (en, ru) => (isRussian() ? ru : en);
 const active = () => (S.ui.modals.at(-1)?.type === 'projectAutomations' ? S.ui.modals.at(-1) : null);
 const scope = () => JSON.stringify([getSessionGeneration(), D().ws.id || D().ws.url]);
 const fresh = m => !!m && active() === m && m.scope === scope() && !!proj(m.projectId);
-const valid = m => validProjectAutomations(m.draft) && m.draft.rules.every(rule => !rule.enabled);
+const valid = m => validProjectAutomations(m.draft);
 const dirty = m => !!m.model && (!valid(m) || projectAutomationsSignature(m.model.program) !== projectAutomationsSignature(m.draft));
 const selected = m => m.draft?.rules.find(rule => rule.id === m.ruleId);
 const statusLabel = id => (id === 'created' ? word('Created', 'Создана') : t(ST[id]?.name || id));
@@ -62,6 +63,11 @@ function message(error) {
       'Enter a rule name, at least one source status and at least one assignment.',
       'Укажите название правила, хотя бы один исходный статус и одно назначение.',
     );
+  if (['AUTOMATION_ASSIGNEE_UNAVAILABLE', 'AUTOMATION_CYCLE_UNAVAILABLE', 'AUTOMATION_ACTION_CONFLICT'].includes(error.code))
+    return word(
+      'An enabled rule has an unavailable target or conflicts with another enabled rule. Check assignments or disable it.',
+      'У включённого правила недоступно назначение или есть конфликт с другим правилом. Проверьте назначения или отключите правило.',
+    );
   return word(
     'The result could not be confirmed. Your draft is retained in this window. Retry or refresh.',
     'Не удалось подтвердить результат. Черновик остаётся в этом окне. Повторите действие или обновите данные.',
@@ -81,8 +87,9 @@ function editor(m, disabled) {
     assignee: [keep, ['', word('Unassigned', 'Без исполнителя')], ...members.map(member => [member.id, member.name])],
     cycleId: [keep, ['', word('No cycle', 'Без цикла')], ...(p.workflow?.cycles || []).filter(cycle => !cycle.archived).map(cycle => [cycle.id, cycle.name])],
   };
-  return `<fieldset class="automation-editor" ${disabled}><legend class="sr">${word('Rule draft', 'Черновик правила')}</legend>
+  return `<fieldset class="automation-editor" ${disabled}><legend class="sr">${word('Rule settings', 'Настройки правила')}</legend>
     ${field(word('Rule name', 'Название правила'), `<input class="input" id="automation-name" data-in="automationName" maxlength="80" value="${esc(rule.name)}" translate="no">`)}
+    <label class="automation-enabled"><input class="check" type="checkbox" data-in="automationEnabled" ${rule.enabled ? 'checked' : ''} ${!m.model.executionAvailable ? 'disabled' : ''}>${word('Rule enabled after saving', 'Правило включено после сохранения')}</label>
     <fieldset class="automation-sources"><legend>${word('When moving from', 'При переходе из')}</legend>${['created', ...WORKFLOW_STATES]
       .filter(state => state !== rule.trigger.to)
       .map(
@@ -109,7 +116,7 @@ function editor(m, disabled) {
         );
       })
       .join('')}</div>
-  </fieldset>${writable ? `<p class="hint">${word('Rules remain disabled. Changes here become part of the draft; save it separately.', 'Правила остаются отключёнными. Изменения входят в черновик; сохраните его отдельно.')}</p>` : ''}`;
+  </fieldset>${writable ? `<p class="hint">${word('Only saved, enabled rules run on future task creation or status changes. Saving rules does not change existing tasks.', 'Сохранённые включённые правила действуют при последующем создании задачи или смене статуса. Сохранение правил не меняет существующие задачи.')}</p>` : ''}`;
 }
 function report(m) {
   const result = m.result;
@@ -134,7 +141,7 @@ function preview(m, blocked) {
   const shown = found.slice(0, 50),
     current = tasks.find(task => task.id === m.taskId);
   if (current && !shown.includes(current)) shown.unshift(current);
-  return `<section class="automation-preview"><h3>${word('Try on a task', 'Проверить на задаче')}</h3><p class="hint">${word('Simulate a status change using all draft rules. The task stays unchanged.', 'Расчёт смены статуса по всем черновикам правил. Задача останется без изменений.')}</p>
+  return `<section class="automation-preview"><h3>${word('Try on a task', 'Проверить на задаче')}</h3><p class="hint">${word('Preview includes disabled rules and unsaved edits. The task stays unchanged.', 'Расчёт включает отключённые правила и несохранённые правки. Задача останется без изменений.')}</p>
     ${field(word('Find task', 'Найти задачу'), `<input class="input" id="automation-query" data-in="automationQuery" value="${esc(m.query || '')}" placeholder="${word('Task name or key', 'Название или номер задачи')}" ${blocked ? 'disabled' : ''}>`)}
     ${field(word('Task', 'Задача'), select('automation-task', 'automationTask', [['', word('Choose a task', 'Выберите задачу')], ...shown.map(task => [task.id, `${task.key || ''} ${task.title}`.trim()])], m.taskId || '', blocked ? 'disabled' : ''))}
     ${found.length > 50 ? `<p class="hint">${word('First 50 matches shown. Refine your search.', 'Показаны первые 50 совпадений. Уточните поиск.')}</p>` : ''}
@@ -149,17 +156,40 @@ function preview(m, blocked) {
       ),
     )}<button class="btn btn-secondary" data-a="automationPreview" ${blocked || !current || !m.draft.rules.length || !valid(m) ? 'disabled' : ''}>${word('Preview result', 'Рассчитать результат')}</button></div>${report(m)}</section>`;
 }
+function history(m, blocked) {
+  const rows = m.model.history || [],
+    shown = rows.slice(0, m.historyCount || 5);
+  return `<details class="automation-history" ${disclosureAttributes('project-rule-history:' + m.projectId)}><summary>${word('Execution history', 'История выполнения')} · ${rows.length}</summary><div class="automation-history-content"><p class="hint">${word('Recent saved runs. Older records are gradually removed. Refresh to load the latest runs.', 'Последние сохранённые запуски. Старые записи постепенно удаляются. Обновите данные, чтобы увидеть новые запуски.')}</p>
+  ${
+    !rows.length
+      ? `<p class="hint">${word('Runs appear when a saved, enabled rule matches a task change.', 'Записи появятся после срабатывания сохранённого включённого правила.')}</p>`
+      : `<ol>${shown
+          .map(
+            run =>
+              `<li><strong translate="no">${fmtTimestamp(run.at)} · ${esc(D().members.find(member => member.id === run.actorId)?.name || word('Former participant', 'Бывший участник'))}</strong><p>${word('Matched tasks', 'Совпавшие задачи')}: ${run.matchedTasks} · ${word('Assignments', 'Назначения')}: ${run.assignments} · ${word('Already matched', 'Уже соответствуют')}: ${run.noops}</p><span class="hint">${run.programHash === m.model.programHash ? word('Current rule version', 'Текущая версия правил') : word('Previous rule version', 'Предыдущая версия правил')} · ${word('Save', 'Сохранение')} #${run.revision}</span><div class="automation-actions">${run.tasks
+                .map(id => {
+                  const task = D().tasks.find(task => task.id === id && task.project === m.projectId);
+                  return task
+                    ? `<button class="btn btn-ghost btn-sm automation-history-task" data-a="automationOpenTask" data-id="${esc(id)}" ${blocked || dirty(m) ? 'disabled' : ''} title="${esc(task.title)}"><span class="trunc" translate="no">${esc(task.key || task.title)}</span></button>`
+                    : `<span class="hint">${word('Task moved or unavailable', 'Задача перенесена или недоступна')}</span>`;
+                })
+                .join('')}</div></li>`,
+          )
+          .join('')}</ol>`
+  }
+  ${rows.length > shown.length ? `<button class="btn btn-secondary btn-sm" data-a="automationMoreHistory">${word('More runs', 'Ещё записи')}</button>` : ''}</div></details>`;
+}
 function view(m, H) {
   const model = m.model,
     blocked = m.busy || m.loading || !!m.failed,
     disabled = !model?.canConfigure || blocked ? 'disabled' : '';
-  return `${H(word('Project rules', 'Правила проекта'), `<span translate="no">${esc(model?.name || proj(m.projectId)?.name || '')}</span>`)}<div class="modal-b project-automations-body" translate="no" aria-busy="${!!(m.busy || m.loading)}">
+  return `${H(word('Project rules', 'Правила проекта'), `<span translate="no">${esc(model?.name || proj(m.projectId)?.name || '')}</span>`)}<div class="modal-b project-automations-body" data-keep="project-rules:${esc(m.projectId)}" translate="no" aria-busy="${!!(m.busy || m.loading)}">
     ${m.loading ? `<p role="status">${word('Loading rules…', 'Загрузка правил…')}</p>` : ''}
     ${m.error ? `<p class="alert err" role="alert">${esc(m.error)}</p>` : ''}
-    ${m.confirm ? `<div class="alert warn" role="alert"><p>${word('Discard the unsaved rule draft?', 'Сбросить несохранённый черновик правил?')}</p><div class="automation-actions"><button class="btn btn-secondary" data-a="automationDiscard">${word('Discard draft', 'Сбросить черновик')}</button><button class="btn btn-ghost" data-a="automationKeep">${word('Keep editing', 'Продолжить редактирование')}</button></div></div>` : ''}
+    ${m.confirm === 'activate' ? `<div class="alert warn automation-confirm" role="alert"><p>${word('Enabled rules will run on future task creation and status changes. Normal task notifications follow participant preferences. Existing tasks stay unchanged.', 'Включённые правила будут срабатывать при последующем создании задачи и смене статуса. Обычные уведомления зависят от настроек участников. Существующие задачи не изменятся.')}</p><div class="automation-actions"><button class="btn btn-primary" data-a="automationConfirmSave">${word('Save enabled rules', 'Сохранить включённые правила')}</button><button class="btn btn-ghost" data-a="automationKeep">${word('Keep editing', 'Продолжить редактирование')}</button></div></div>` : m.confirm ? `<div class="alert warn automation-confirm" role="alert"><p>${word('Discard the unsaved rule draft?', 'Сбросить несохранённый черновик правил?')}</p><div class="automation-actions"><button class="btn btn-secondary" data-a="automationDiscard">${word('Discard draft', 'Сбросить черновик')}</button><button class="btn btn-ghost" data-a="automationKeep">${word('Keep editing', 'Продолжить редактирование')}</button></div></div>` : ''}
     ${
       model
-        ? `<p class="alert info">${word('Preview only. Draft rules do not run or send notifications.', 'Только предпросмотр. Черновики правил не выполняются и не отправляют уведомления.')}</p>${!model.canConfigure ? `<p class="hint">${word('Full project access is required to save rules.', 'Для сохранения правил нужен полный доступ к проекту.')}</p>` : ''}
+        ? `<p class="alert info">${model.executionAvailable ? word('Enabled rules run with task changes. Preview never applies changes.', 'Включённые правила выполняются вместе с изменением задачи. Предпросмотр ничего не применяет.') : word('Preview only. Draft rules do not run or send notifications.', 'Только предпросмотр. Черновики правил не выполняются и не отправляют уведомления.')}</p>${!model.canConfigure ? `<p class="hint">${word('Full project access is required to save rules.', 'Для сохранения правил нужен полный доступ к проекту.')}</p>` : ''}
       <div class="automation-rule-picker">${
         m.draft.rules.length
           ? field(
@@ -174,10 +204,10 @@ function view(m, H) {
             )
           : ''
       }${model.canConfigure ? `<button class="btn btn-secondary" data-a="automationAdd" ${disabled || m.draft.rules.length >= AUTOMATION_LIMITS.rules ? 'disabled' : ''}>${word('Add rule', 'Добавить правило')}</button>${selected(m) ? `<button class="btn btn-ghost" data-a="automationRemove" ${disabled}>${word('Remove', 'Убрать')}</button>` : ''}` : ''}</div>
-      ${editor(m, disabled)}${preview(m, blocked)}<p class="hint" id="automation-status" role="status" aria-live="polite" tabindex="-1">${dirty(m) ? word('Unsaved draft in this window', 'Несохранённый черновик в этом окне') : word('Draft matches saved settings', 'Черновик соответствует сохранённому')} · ${word('Revision', 'Ревизия')} ${model.revision}${model.updatedAt ? ` · ${fmtTimestamp(model.updatedAt)}` : ''}</p>`
+      ${editor(m, disabled)}${preview(m, blocked)}${history(m, blocked)}<p class="hint" id="automation-status" role="status" aria-live="polite" tabindex="-1">${dirty(m) ? word('Unsaved changes in this window', 'Несохранённые изменения в этом окне') : word('Rules match saved settings', 'Правила соответствуют сохранённому')} · ${word('Revision', 'Ревизия')} ${model.revision}${model.updatedAt ? ` · ${fmtTimestamp(model.updatedAt)}` : ''}</p>`
         : ''
     }
-    </div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="automationReload" ${m.loading || m.busy ? 'disabled' : ''}>${word('Refresh', 'Обновить')}</button>${m.failed ? `<button class="btn btn-primary" data-a="automationRetry" ${m.busy ? 'disabled' : ''}>${word('Retry same save', 'Повторить запись')}</button>` : model?.canConfigure ? `<button class="btn btn-primary" data-a="automationSave" ${disabled || !dirty(m) || !valid(m) ? 'disabled' : ''}>${m.busy ? word('Saving…', 'Сохранение…') : word('Save draft', 'Сохранить черновик')}</button>` : `<button class="btn btn-ghost" data-a="closeModal">${word('Close', 'Закрыть')}</button>`}</div>`;
+    </div><div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="automationReload" ${m.loading || m.busy ? 'disabled' : ''}>${word('Refresh', 'Обновить')}</button>${m.failed ? `<button class="btn btn-primary" data-a="automationRetry" ${m.busy ? 'disabled' : ''}>${word('Retry same save', 'Повторить запись')}</button>` : model?.canConfigure ? `<button class="btn btn-primary" data-a="automationSave" ${disabled || !dirty(m) || !valid(m) ? 'disabled' : ''}>${m.busy ? word('Saving…', 'Сохранение…') : word('Save rules', 'Сохранить правила')}</button>` : `<button class="btn btn-ghost" data-a="closeModal">${word('Close', 'Закрыть')}</button>`}</div>`;
 }
 async function load(m) {
   if (!fresh(m) || m.busy || m.loading) return;
@@ -222,6 +252,7 @@ const edit = fn => {
   const m = active();
   if (!fresh(m) || !m.model?.canConfigure || m.busy || m.loading || m.failed) return;
   fn(m, selected(m));
+  m.confirm = '';
   m.error = '';
   m.result = null;
   render();
@@ -236,6 +267,10 @@ IN.automationRule = el => {
 IN.automationName = el =>
   edit((m, rule) => {
     if (rule) rule.name = el.value.slice(0, 80);
+  });
+IN.automationEnabled = el =>
+  edit((m, rule) => {
+    if (rule && m.model.executionAvailable) rule.enabled = el.checked;
   });
 IN.automationSource = el =>
   edit((m, rule) => {
@@ -327,7 +362,7 @@ async function send(m, payload) {
   } catch (error) {
     if (fresh(m)) {
       m.error = saved
-        ? word('Draft saved. Refresh workspace data before continuing.', 'Черновик сохранён. Обновите данные пространства перед продолжением.')
+        ? word('Rules saved. Refresh workspace data before continuing.', 'Правила сохранены. Обновите данные пространства перед продолжением.')
         : message(error);
       m.failed = saved || error.local || (error.status >= 400 && error.status < 500 && error.code !== 'REVISION_CONFLICT') ? null : payload;
     }
@@ -341,8 +376,32 @@ async function send(m, payload) {
 }
 A.automationSave = () => {
   const m = active();
-  if (fresh(m) && m.model?.canConfigure && !m.failed && dirty(m) && valid(m))
+  if (!fresh(m) || !m.model?.canConfigure || m.failed || m.busy || m.loading || !dirty(m) || !valid(m)) return;
+  if (m.draft.rules.some(rule => rule.enabled)) {
+    m.confirm = 'activate';
+    render();
+    document.querySelector('[data-a=automationConfirmSave]')?.focus();
+    return;
+  }
+  return send(m, { program: structuredClone(m.draft), programHash: m.model.programHash });
+};
+A.automationConfirmSave = () => {
+  const m = active();
+  if (fresh(m) && m.confirm === 'activate' && m.model?.canConfigure && !m.failed && !m.loading && valid(m))
     return send(m, { program: structuredClone(m.draft), programHash: m.model.programHash });
+};
+A.automationMoreHistory = () => {
+  const m = active();
+  if (fresh(m)) {
+    m.historyCount = (m.historyCount || 5) + 5;
+    render();
+  }
+};
+A.automationOpenTask = el => {
+  const m = active();
+  if (!fresh(m) || dirty(m) || m.busy || !D().tasks.some(task => task.id === el.dataset.id && task.project === m.projectId)) return;
+  closeModal();
+  if (active() !== m) return A.openTask(el);
 };
 A.automationRetry = () => {
   const m = active();

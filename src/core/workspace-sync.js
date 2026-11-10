@@ -120,8 +120,9 @@ export function createWorkspaceSync(options = {}) {
         notify({ status: 'saved', revision, data: structuredClone(canonical), sentData: structuredClone(data) });
       } catch (error) {
         if (writeGeneration !== generation) return;
+        const ruleRejected = error.status === 400 && /^(?:WORKFLOW_|AUTOMATION_)/.test(error.code || '');
         lastError =
-          error.status === 409 || error.code === 'REVISION_CONFLICT'
+          ruleRejected || error.status === 409 || error.code === 'REVISION_CONFLICT'
             ? 'conflict'
             : error.status === 401
               ? 'unauthorized'
@@ -134,7 +135,7 @@ export function createWorkspaceSync(options = {}) {
                     : !error.status || error.code === 'NETWORK_ERROR'
                       ? 'offline'
                       : 'unavailable';
-        if (error.status === 409 || error.code === 'REVISION_CONFLICT') {
+        if (ruleRejected || error.status === 409 || error.code === 'REVISION_CONFLICT') {
           enabled = false;
           const latestLocal = pending || data;
           conflict = {

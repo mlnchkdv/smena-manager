@@ -9,7 +9,7 @@ import { memberProfileModal } from '../ui/member-profile.js';
 import { ensureFilePreview } from '../core/file-preview.js';
 import { render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
-import { t as tr, templateText, isRussian } from '../core/i18n.js';
+import { t as tr, templateText, isRussian, projectRuleConflictLabel } from '../core/i18n.js';
 import { relationPicker, relationsPanel } from '../ui/relations.js';
 import { knowledgeImportReview } from '../ui/knowledge-import-review.js';
 import { knowledgeMovePicker } from '../ui/knowledge-move-picker.js';
@@ -60,7 +60,7 @@ export function modalHtml(m) {
       return wrap(
         '',
         `${H('Review synchronization conflict', 'Download your local copy before choosing the server version.')}
-        <div class="modal-b">${recovery.reason === 'workflow' ? `<p class="alert warn">${tr('The project process changed before saving. Your draft is kept for review; the server version was not overwritten.')}</p>` : `<p>${esc(recovery.scope)} · ${tr('Conflicting fields')}: ${esc((recovery.conflicts || []).slice(0, 20).join(', '))}</p>`}
+        <div class="modal-b">${recovery.reason === 'workflow' ? `<p class="alert warn">${esc(projectRuleConflictLabel(recovery.rejectedCode))}</p>` : `<p>${esc(recovery.scope)} · ${tr('Conflicting fields')}: ${esc((recovery.conflicts || []).slice(0, 20).join(', '))}</p>`}
         <details ${recovery.reason === 'workflow' ? '' : 'open'}><summary>Local version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${preview(recovery.data)}</pre></details>
         <details><summary>Server version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${recovery.remote ? preview(recovery.remote) : tr('The latest server version will be fetched before applying.')}</pre></details>
         <p class="hint">The preview is limited. The download contains the complete recovery copy.</p></div>

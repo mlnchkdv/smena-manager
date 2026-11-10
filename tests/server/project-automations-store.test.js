@@ -11,7 +11,7 @@ import { readProjectAutomations, writeProjectAutomations, previewProjectAutomati
 import { readProjectWorkflow, writeProjectWorkflow } from '../../src/server/project-workflow-store.js';
 import { defaultProjectWorkflow } from '../../src/shared/project-workflow.js';
 
-test('local draft settings survive restart, reject activation/stale writes, and preview canonical transitions without publishing tasks', async () => {
+test('local rule settings survive restart, reject invalid activation/stale writes, and preview canonical transitions without publishing tasks', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-project-automations-'));
   const keys = [
     'DATABASE_PATH',
@@ -79,7 +79,7 @@ test('local draft settings survive restart, reject activation/stale writes, and 
     };
     const initial = await readProjectAutomations('p', full, profiles);
     assert.equal(initial.canConfigure, true);
-    assert.equal(initial.executionAvailable, false);
+    assert.equal(initial.executionAvailable, true);
     assert.equal((await readProjectAutomations('p', editor, profiles)).canConfigure, false);
     assert.equal((await readProjectAutomations('p', viewer, profiles)).canPreview, false);
     await assert.rejects(readProjectAutomations('secret', editor, profiles), { code: 'PROJECT_NOT_FOUND' });
@@ -109,8 +109,9 @@ test('local draft settings survive restart, reject activation/stale writes, and 
     await assert.rejects(writeProjectAutomations('p', { program: changed, programHash: initial.programHash }, full, profiles), { code: 'AUTOMATION_STALE' });
     const active = structuredClone(program);
     active.rules[0].enabled = true;
+    active.rules[0].actions.push({ field: 'assignee', value: 'unavailable' });
     await assert.rejects(writeProjectAutomations('p', { program: active, programHash: configured.programHash }, full, profiles), {
-      code: 'AUTOMATION_EXECUTION_UNAVAILABLE',
+      code: 'AUTOMATION_ASSIGNEE_UNAVAILABLE',
     });
     const preview = await previewProjectAutomations('p', { program, transitions: [{ taskId: 'a', to: 'progress' }] }, editor, profiles);
     assert.equal(preview.blocked, false);
@@ -193,7 +194,7 @@ test('local draft settings survive restart, reject activation/stale writes, and 
           assert.equal(response.status, 200);
           assert.equal(response.body.canConfigure, actor.id === full.id);
           assert.equal(response.body.canPreview, actor.id !== viewer.id);
-          assert.equal(response.body.executionAvailable, false);
+          assert.equal(response.body.executionAvailable, true);
         }
         const beforePreview = await getWorkspaceDatabase({ fields: ['revision', 'tasks', 'notifs'] });
         const preview = await call(editor, 'POST', { program, transitions: [{ taskId: 'a', to: 'progress' }] }, '/preview', 'p', lang);
@@ -217,7 +218,7 @@ test('local draft settings survive restart, reject activation/stale writes, and 
       const stale = await call(full, 'POST', { program, programHash: initialHttp.programHash });
       assert.equal(stale.status, 409);
       assert.equal(stale.body.code, 'AUTOMATION_STALE');
-      assert.equal((await call(full, 'POST', { program: active, programHash: savedHttp.body.programHash })).body.code, 'AUTOMATION_EXECUTION_UNAVAILABLE');
+      assert.equal((await call(full, 'POST', { program: active, programHash: savedHttp.body.programHash })).body.code, 'AUTOMATION_ASSIGNEE_UNAVAILABLE');
       assert.equal((await call(viewer, 'POST', { program, transitions: [{ taskId: 'a', to: 'progress' }] }, '/preview')).status, 403);
       assert.equal((await call(full, 'POST', { program, actorId: 'owner', transitions: [{ taskId: 'a', to: 'progress' }] }, '/preview')).status, 400);
       assert.equal((await call(full, 'POST', { program, transitions: [{ taskId: 'hidden', to: 'progress' }] }, '/preview')).status, 404);

@@ -41,7 +41,7 @@ import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAnd
 import { toast } from './ui/toast.js';
 import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
-import { t as tr, workspaceDraftLabel } from './core/i18n.js';
+import { t as tr, workspaceDraftLabel, projectRuleConflictLabel } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
@@ -165,7 +165,7 @@ async function handleWorkspaceConflict() {
           result.recoveryDurable === false
             ? 'Local recovery storage is unavailable. Keep this tab open until changes are saved.'
             : result.reason === 'workflow'
-              ? 'The project process changed before saving. Your draft is kept for review; the server version was not overwritten.'
+              ? projectRuleConflictLabel(S.ui.syncRecovery?.rejectedCode)
               : 'The same data changed in two sessions. Your version was saved as a recovery copy in this browser.',
           {
             kind: 'err',

@@ -4,7 +4,7 @@ import { isActiveMember } from './workspace-membership.js';
 import { WORKFLOW_STATES } from './project-workflow.js';
 
 // Planning only: this module does not write, enqueue, send or schedule anything.
-// A future executor must recheck canonical membership, workflow and revision,
+// The server executor must recheck canonical membership, workflow and revision,
 // and persist its idempotency receipt atomically with the task changes.
 export const AUTOMATION_LIMITS = Object.freeze({ rules: 20, events: 100, operations: 200, issues: 20, previewBytes: 256 * 1024 });
 const fields = ['priority', 'assignee', 'cycleId'];

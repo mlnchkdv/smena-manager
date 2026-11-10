@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { defaultProjectAutomations, validProjectAutomations, projectAutomationsSignature } from '../shared/project-automations.js';
+import { validateAutomationHistory } from './project-automation-history.js';
 
 export const PROJECT_AUTOMATION_FIELDS = Object.freeze(['automations', 'automationsRevision', 'automationsUpdatedBy', 'automationsUpdatedAt']);
 export const projectAutomationProgram = project => project.automations ?? defaultProjectAutomations();
@@ -34,7 +35,7 @@ export function validateStoredProjectAutomations(data) {
     )
       throw integrity();
   }
-  return data;
+  return validateAutomationHistory(data);
 }
 
 // Snapshot clients retain canonical configuration, including when an old
@@ -51,7 +52,7 @@ export function preserveProjectAutomations(current, incoming) {
       if (!validProjectAutomations(projectAutomationProgram(project)) || projectAutomationsHash(before) !== projectAutomationsHash(project))
         throw Object.assign(new Error('Use the canonical project automation settings endpoint.'), { code: 'AUTOMATION_ENDPOINT_REQUIRED', statusCode: 400 });
     }
-    for (const field of PROJECT_AUTOMATION_FIELDS) {
+    for (const field of [...PROJECT_AUTOMATION_FIELDS, 'automationHistory']) {
       if (before && Object.hasOwn(before, field)) result[field] = structuredClone(before[field]);
       else delete result[field];
     }

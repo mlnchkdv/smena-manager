@@ -4,6 +4,40 @@ import { createWorkspaceSync } from '../../src/core/workspace-sync.js';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('a rejected project rule retains the latest draft as a reviewable conflict without automatic retries', async () => {
+  for (const code of ['WORKFLOW_READY', 'AUTOMATION_ASSIGNEE_UNAVAILABLE', 'AUTOMATION_EVENT_LIMIT']) {
+    let release,
+      retries = 0;
+    const events = [],
+      base = { tasks: [{ id: 't', status: 'todo', title: 'Original' }] };
+    const sync = createWorkspaceSync({
+      notify: event => events.push(event.status),
+      schedule: () => {
+        retries++;
+      },
+      writeWorkspace: async () => {
+        await new Promise(resolve => {
+          release = resolve;
+        });
+        throw Object.assign(new Error('Rejected'), { status: 400, code });
+      },
+    });
+    sync.configure(5, 'editor', base);
+    const first = sync.queue({ tasks: [{ id: 't', status: 'progress', title: 'Original' }] });
+    await tick();
+    const latest = { tasks: [{ id: 't', status: 'progress', title: 'Latest unsaved text' }] };
+    void sync.queue(latest);
+    release();
+    await first;
+    assert.deepEqual(sync.getConflict().local, latest);
+    assert.deepEqual(sync.getConflict().base, base);
+    assert.equal(sync.state().lastError, 'conflict');
+    assert.equal(sync.state().enabled, false);
+    assert.equal(retries, 0);
+    assert.deepEqual(events, ['syncing', 'conflict']);
+  }
+});
+
 test('canonical responses cannot switch the current member to the shared file owner', async () => {
   let saved;
   const sync = createWorkspaceSync({

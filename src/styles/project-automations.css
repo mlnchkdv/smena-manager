@@ -22,6 +22,21 @@
   flex-wrap: wrap;
   align-items: end;
 }
+.automation-actions .btn {
+  max-width: 100%;
+  height: auto;
+  min-height: 32px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.automation-confirm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+.automation-confirm .automation-actions > .btn {
+  flex: 1 1 180px;
+}
 .automation-rule-picker .field,
 .automation-preview-tools .field {
   flex: 1 1 190px;
@@ -61,6 +76,48 @@
   min-height: 32px;
   font-size: var(--fs-sm);
 }
+.automation-enabled {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--fs-sm);
+}
+.automation-history {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  min-width: 0;
+}
+.automation-history > summary {
+  cursor: pointer;
+  min-height: 32px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.automation-history-content,
+.automation-history li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding-top: 10px;
+  overflow-wrap: anywhere;
+}
+.automation-history ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+}
+.automation-history li {
+  padding-bottom: 12px;
+}
+.automation-history li + li {
+  border-top: 1px solid var(--border);
+}
+.automation-history-task {
+  min-width: 0;
+  max-width: 100%;
+}
 .automation-preview {
   border-top: 1px solid var(--border);
   padding-top: 14px;
@@ -96,6 +153,8 @@
 }
 @media (max-width: 640px), (pointer: coarse) {
   .project-automations-dialog .btn,
+  .automation-enabled,
+  .automation-history > summary,
   .automation-sources label {
     min-height: 44px;
   }

@@ -1079,6 +1079,36 @@
   animation: toastIn 0.2s var(--ease) both;
   max-width: 400px;
 }
+.toast:has(.ta) {
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) 32px;
+  align-items: start;
+}
+.toast:has(.ta) > .grow {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.toast:has(.ta) > .ta {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  justify-self: start;
+  min-height: 32px;
+  text-align: start;
+}
+.toast:has(.ta) > .ibtn {
+  grid-column: 3;
+  grid-row: 1;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .toast:has(.ta) {
+    grid-template-columns: 15px minmax(0, 1fr) 44px;
+  }
+  .toast:has(.ta) > .ta,
+  .toast:has(.ta) > .ibtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .toast.out {
   animation: toastOut 0.16s ease both;
 }

@@ -2449,3 +2449,10 @@ export function translateApp() {
 }
 
 export const workspaceDraftLabel = () => (isRussian() ? 'Есть несохранённые изменения' : 'Unsaved changes');
+
+export const projectRuleConflictLabel = code =>
+  code?.startsWith('AUTOMATION_')
+    ? isRussian()
+      ? 'Правила проекта не разрешили сохранить изменение. Черновик сохранён для проверки; серверные данные не перезаписаны.'
+      : 'Project rules prevented this change. Your draft is kept for review; server data was not overwritten.'
+    : t('The project process changed before saving. Your draft is kept for review; the server version was not overwritten.');

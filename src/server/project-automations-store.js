@@ -5,6 +5,7 @@ import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { validProjectAutomations, planProjectAutomations, AUTOMATION_LIMITS } from '../shared/project-automations.js';
 import { validateTaskTransitions } from './task-integrity.js';
 import { projectAutomationProgram, projectAutomationsHash, validateStoredProjectAutomations } from './project-automations-policy.js';
+import { validateAutomationTargets } from './project-automations-execution.js';
 
 const fail = (code, statusCode = 400) => Object.assign(new Error('The project automation operation is unavailable.'), { code, statusCode });
 const fields = ['revision', 'members', 'projects', 'tasks'];
@@ -31,7 +32,8 @@ function model(selected) {
     actor: actor.id,
     canConfigure: !project.archived && access >= 4,
     canPreview: !project.archived && access >= 3,
-    executionAvailable: false,
+    executionAvailable: true,
+    history: project.automationHistory || [],
     program: projectAutomationProgram(project),
     programHash: projectAutomationsHash(project),
     revision: project.automationsRevision || 0,
@@ -40,7 +42,7 @@ function model(selected) {
   };
 }
 export async function readProjectAutomations(id, profile, profiles = []) {
-  const data = await getWorkspaceDatabase({ fields });
+  const data = await getWorkspaceDatabase({ fields: ['members', 'projects'] });
   return model(context(data, id, profile, profiles));
 }
 export async function writeProjectAutomations(id, input, profile, profiles = []) {
@@ -58,9 +60,7 @@ export async function writeProjectAutomations(id, input, profile, profiles = [])
         data => {
           const selected = context(data, id, profile, profiles, 4),
             { project, actor } = selected;
-          // Draft configuration is useful independently; do not advertise active
-          // rules before durable execution/replay and journal integration exist.
-          if (input.program.rules.some(rule => rule.enabled)) throw fail('AUTOMATION_EXECUTION_UNAVAILABLE', 409);
+          validateAutomationTargets(data, project, input.program);
           const target = { automations: input.program };
           if (projectAutomationsHash(project) === projectAutomationsHash(target))
             throw Object.assign(new Error('Automation settings already match.'), { code: 'AUTOMATION_REPLAY_OK', result: model(selected) });

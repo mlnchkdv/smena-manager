@@ -26,6 +26,7 @@ import { applyEntityDefaults } from '../shared/workspace-defaults.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { validateStoredProjectAutomations } from './project-automations-policy.js';
+import { executeProjectAutomations } from './project-automations-execution.js';
 import { mergePortableWorkspace } from '../shared/portable-workspace.js';
 import { migrateWorkspaceSchema } from '../shared/workspace-schema-migrations.js';
 import { FILE_CATALOG_MAX_BYTES } from '../shared/file-catalog.js';
@@ -547,6 +548,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   validateMembershipTransition(current, nextData);
   if (!options.replaceDocuments)
     validateTaskTransitions(current, nextData, options.actorMemberId ? { memberId: options.actorMemberId, role: options.role || 'admin' } : undefined);
+  if (!options.replaceDocuments) nextData = executeProjectAutomations(current, nextData, options.actorMemberId);
   if (!options.replaceDocuments) assignCanonicalTaskKeys(current, nextData);
   else
     for (const project of nextData.projects || [])

@@ -246,7 +246,49 @@ test('workflow reads and writes retain sharded knowledge without reading its met
   assert.equal(complete.knowledgeNotes.at(-1).title, notes.at(-1).title);
 });
 
-test('automation drafts and preview keep file/knowledge shards cold, including a root CAS race and lost acknowledgement replay', async t => {
+test('automation metadata settings preserve receipts and reject attempts to erase the server journal', async t => {
+  const f = await fixture(t),
+    actor = { id: 'me', role: 'admin' };
+  const history = [
+    {
+      id: 'a'.repeat(64),
+      at: '2026-11-10T13:00:00.000Z',
+      actorId: 'me',
+      sourceRevision: 1,
+      revision: 2,
+      programHash: 'b'.repeat(64),
+      tasks: ['former-task'],
+      matchedTasks: 1,
+      assignments: 1,
+      noops: 0,
+    },
+  ];
+  f.root().projects[0].automationHistory = structuredClone(history);
+  const model = await readProjectAutomations('p', actor);
+  assert.deepEqual(model.history, history);
+  await assert.rejects(
+    mutateWorkspaceMetadata(
+      db => {
+        db.projects[0].automationHistory = [];
+        return db;
+      },
+      f.root().revision,
+      { role: 'admin', scope: 'automations' },
+    ),
+    { code: 'METADATA_WRITE_FORBIDDEN' },
+  );
+  const program = {
+    version: 1,
+    rules: [{ id: 'r', name: 'New draft', enabled: false, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
+  };
+  const saved = await writeProjectAutomations('p', { program, programHash: model.programHash }, actor);
+  assert.deepEqual(saved.history, history);
+  assert.deepEqual(f.root().projects[0].automationHistory, history);
+  assert.equal(f.reads.full, 0);
+  assert.equal(f.reads.writes, 1);
+});
+
+test('automation activation and preview keep file/knowledge shards cold, including a root CAS race and lost acknowledgement replay', async t => {
   const notes = Array.from({ length: 1001 }, (_, i) => ({ id: 'n-' + i, title: 'Metadata ' + i, summary: 'Unchanged '.repeat(20) }));
   const f = await fixture(
       t,
@@ -260,7 +302,7 @@ test('automation drafts and preview keep file/knowledge shards cold, including a
   const model = await readProjectAutomations('p', actor),
     program = {
       version: 1,
-      rules: [{ id: 'r', name: 'Draft', enabled: false, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
+      rules: [{ id: 'r', name: 'Draft', enabled: true, trigger: { from: ['todo'], to: 'progress' }, actions: [{ field: 'priority', value: 'high' }] }],
     };
   await assert.rejects(writeProjectAutomations('p', { program, programHash: model.programHash }, { id: 'other', role: 'viewer' }), {
     code: 'WORKSPACE_FORBIDDEN',
