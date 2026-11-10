@@ -75,6 +75,9 @@ test('shared material counts agree in Russian and English, including 21', () => 
   assert.equal(countLabel(11, 'card', 'ru-RU'), '11 карточек');
   assert.equal(countLabel(2, 'connection', 'ru-RU'), '2 связи');
   assert.equal(countLabel(1, 'connection', 'en-US'), '1 connection');
+  assert.equal(countLabel(1, 'attachment', 'en-US'), '1 attachment');
+  assert.equal(countLabel(2, 'attachment', 'ru-RU'), '2 вложения');
+  assert.equal(countLabel(11, 'attachment', 'ru-RU'), '11 вложений');
   assert.equal(countLabel(1, 'team', 'en-US'), '1 team');
   assert.deepEqual(
     [0, 1, 2, 5, 11, 21].map(n => countLabel(n, 'comment', 'ru-RU')),

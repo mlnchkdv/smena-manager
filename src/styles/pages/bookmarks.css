@@ -230,6 +230,13 @@
 }
 .bookmark-folder-chip {
   color: var(--accent) !important;
+  white-space: nowrap;
+}
+.bookmark-folder-chip > span {
+  min-width: 0;
+}
+.bookmark-folder-chip > svg {
+  flex-shrink: 0;
 }
 .bookmark-card-foot {
   min-height: 28px;

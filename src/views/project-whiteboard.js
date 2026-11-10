@@ -163,7 +163,7 @@ export function projectWhiteboard(project) {
   ${
     state.outline
       ? `<div class="whiteboard-outline">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
-      : `<div class="whiteboard-viewport" data-overview="${state.zoom < 0.65}" data-navigation="${state.navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})">${whiteboardEdges(board)}${[
+      : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${state.navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})">${whiteboardEdges(board)}${[
           ...board.nodes,
         ]
           .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))
