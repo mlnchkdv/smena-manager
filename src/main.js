@@ -31,9 +31,9 @@ import './features/teams.js';
 import './features/subtasks.js';
 import './actions/teams.js';
 import './actions/subtasks.js';
-import './actions/archive.js';
+import { registerArchiveActions } from './actions/archive-loader.js';
 import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline } from './core/store.js';
-import { A } from './actions/actions.js';
+import { A, IN } from './actions/actions.js';
 import { retryOverlays } from './overlays/drawer.js';
 import { restoreDeploymentContext } from './core/deployment-context.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
@@ -54,6 +54,7 @@ import { retryPersonalPreferences } from './core/personal-preferences.js';
 
 void import('./core/deployment-recovery.js').then(module => module.installDeploymentRecovery(__SMENA_BUILD_ID__));
 A.retryOverlays = retryOverlays;
+registerArchiveActions(A, IN);
 
 window.addEventListener('smena:page-module-ready', event => {
   if (event.detail?.route === S.ui.route) render();
