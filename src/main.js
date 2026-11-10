@@ -159,13 +159,21 @@ async function handleWorkspaceConflict() {
         toast('Changes from both sessions were safely merged.');
       } else if (result.status === 'manual') {
         S.ui.syncConflict = true;
+        if (result.recoveryDurable === false) S.ui.recoveryUnavailable = true;
         render();
-        toast('The same data changed in two sessions. Your version was saved as a recovery copy in this browser.', {
-          kind: 'err',
-          ms: 15_000,
-          action: 'Review conflict',
-          onAction: () => A.reviewSyncConflict(),
-        });
+        toast(
+          result.recoveryDurable === false
+            ? 'Local recovery storage is unavailable. Keep this tab open until changes are saved.'
+            : result.reason === 'workflow'
+              ? 'The project process changed before saving. Your draft is kept for review; the server version was not overwritten.'
+              : 'The same data changed in two sessions. Your version was saved as a recovery copy in this browser.',
+          {
+            kind: 'err',
+            ms: 15_000,
+            action: 'Review conflict',
+            onAction: () => A.reviewSyncConflict(),
+          },
+        );
       }
       return result;
     })

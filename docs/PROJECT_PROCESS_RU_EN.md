@@ -28,6 +28,8 @@
 
 Если ответ записи потерян, повторите **ту же запись**. Сервер распознаёт уже сохранённую цель и не создаёт новую ревизию. Если другой участник изменил процесс, форма сохраняет черновик и предлагает обновление; чужое изменение не перезаписывается автоматически.
 
+Если правила изменились между локальной командой задачи и её записью, сервер может отклонить даже корректное объединение полей. Приложение сохраняет актуальный локальный черновик для ручной проверки и скачивания; серверная версия не перезаписывается. Если localStorage недоступен, вкладку нужно держать открытой и скачать полную копию. JSON-предпросмотр ограничен и не заменяет полную копию.
+
 Проверки команд на клиенте предотвращают постановку запрещённого изменения в очередь синхронизации. Канонические права, целостность и ревизия дополнительно проверяются сервером. Локальная приёмка не подтверждает работу настоящего Google Drive, production или физических телефонов.
 
 ## English
@@ -43,5 +45,7 @@ The optional **Cycles** disclosure provides names, planning dates, search, pages
 Task cycle selection and filtering are the following P07 step; the settings dialog alone does not complete P07.
 
 Closing or refreshing an unsaved draft requires explicit discard. Drafts remain in the current tab's memory; a browser reload does not persist an unsaved form. A lost acknowledgement offers the same save again; an already-matching canonical target does not create another revision. Concurrent configuration edits retain the local draft and require refresh rather than overwriting another participant.
+
+When process rules change between a local task command and its write, the server can reject an otherwise conflict-free field merge. The latest local draft remains available for explicit review and a complete download; the canonical version is retained. If localStorage is unavailable, keep the tab open and download the draft. The bounded JSON preview is not the complete recovery export.
 
 Client command checks prevent known-invalid writes from entering sync. The server independently enforces canonical permissions, integrity and revision fences. Local acceptance does not establish real Google Drive, production or physical-device acceptance.

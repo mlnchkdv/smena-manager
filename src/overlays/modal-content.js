@@ -57,8 +57,8 @@ export function modalHtml(m) {
       return wrap(
         '',
         `${H('Review synchronization conflict', 'Download your local copy before choosing the server version.')}
-        <div class="modal-b"><p>${esc(recovery.scope)} · ${tr('Conflicting fields')}: ${esc((recovery.conflicts || []).slice(0, 20).join(', '))}</p>
-        <details open><summary>Local version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${preview(recovery.data)}</pre></details>
+        <div class="modal-b">${recovery.reason === 'workflow' ? `<p class="alert warn">${tr('The project process changed before saving. Your draft is kept for review; the server version was not overwritten.')}</p>` : `<p>${esc(recovery.scope)} · ${tr('Conflicting fields')}: ${esc((recovery.conflicts || []).slice(0, 20).join(', '))}</p>`}
+        <details ${recovery.reason === 'workflow' ? '' : 'open'}><summary>Local version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${preview(recovery.data)}</pre></details>
         <details><summary>Server version</summary><pre translate="no" style="max-height:200px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere">${recovery.remote ? preview(recovery.remote) : tr('The latest server version will be fetched before applying.')}</pre></details>
         <p class="hint">The preview is limited. The download contains the complete recovery copy.</p></div>
         <div class="modal-f"><button class="btn btn-secondary" data-a="downloadSyncRecovery">Download local copy</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">Cancel</button><button class="btn btn-primary" data-a="reloadWorkspaceVersion">Load server version</button></div>`,

@@ -17,6 +17,8 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'The project process changed before saving. Your draft is kept for review; the server version was not overwritten.':
+    'Правила проекта изменились до сохранения. Черновик доступен для проверки; сохранённая версия не перезаписана.',
   'Project process': 'Процесс проекта',
   'Preparing project checks. Try the command again in a moment.': 'Подготовка проверок проекта. Повторите команду через несколько секунд.',
   'Status…': 'Статус…',

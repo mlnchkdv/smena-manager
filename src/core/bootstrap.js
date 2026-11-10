@@ -352,6 +352,22 @@ export async function recoverWorkspaceConflict() {
       }
       return { status: 'merged', revision: S.ui.workspaceRevision };
     } catch (error) {
+      // A safe field merge can still violate a newly published project rule.
+      // The canonical server refused it atomically. Keep the latest local work
+      // for explicit recovery instead of leaving a conflict without a reviewable copy.
+      if (conflict.scope === 'workspace' && error.status === 400 && /^WORKFLOW_/.test(error.code || '')) {
+        const paths = ['tasks.workflow'];
+        const durable = storeConflictRecovery(scopeData(S.data), {
+          scope: conflict.scope,
+          reason: 'workflow',
+          rejectedCode: error.code,
+          baseRevision: conflict.revision,
+          remoteRevision: Number(snapshot.revision || 0),
+          remote,
+          conflicts: paths,
+        });
+        return { status: 'manual', conflicts: paths, reason: 'workflow', recoveryDurable: durable };
+      }
       if (error.status !== 409 && error.code !== 'REVISION_CONFLICT') throw error;
       local = merged.data;
       base = remote;
