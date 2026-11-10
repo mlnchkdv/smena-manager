@@ -1,9 +1,18 @@
 /* ---------------- POPOVERS ---------------- */
 import { $, TODAY, iso, parse } from '../core/utils.js';
-import { S, task } from '../core/store.js';
+import { D, S, task, proj } from '../core/store.js';
+import { canEditProject } from '../shared/project-access.js';
+import { toast } from '../ui/toast.js';
 import { focusKey, render } from '../shell/render.js';
 
 export function openPop(el, extra = {}) {
+  const target = task(el.dataset.id);
+  if (
+    target &&
+    ['status', 'assignee', 'priority', 'date', 'labels', 'deps', 'project', 'recur', 'estimate', 'subassignee'].includes(el.dataset.pop) &&
+    !canEditProject(proj(target.project), D().me, S.ui.currentUser?.role || 'viewer')
+  )
+    return toast('View only', { kind: 'info' });
   const box = el.getBoundingClientRect();
   const r = box.width ? box : el.closest('.ui-menu')?.querySelector('summary')?.getBoundingClientRect() || box;
   const d = el.dataset;

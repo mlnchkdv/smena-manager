@@ -258,6 +258,15 @@
 .drawer.full .drawer-b {
   padding: 28px 48px 40px;
 }
+.drawer [hidden] {
+  display: none !important;
+}
+.task-properties .pillbtn:disabled,
+.trow .pillbtn:disabled,
+.subview .pillbtn:disabled {
+  opacity: 1;
+  cursor: default;
+}
 .ttl-edit {
   width: 100%;
   border: 0;

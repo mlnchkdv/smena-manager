@@ -618,6 +618,8 @@ const RU = {
   Heading: 'Заголовок',
   Link: 'Ссылка',
   'No comments yet. Start the conversation.': 'Комментариев пока нет. Начните обсуждение.',
+  'No comments yet.': 'Комментариев пока нет.',
+  'No attachments': 'Нет вложений',
   'Leave a comment… type @ to mention': 'Оставьте комментарий… используйте @ для упоминания',
   Comment: 'Комментарий',
   Mention: 'Упомянуть',

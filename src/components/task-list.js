@@ -23,26 +23,27 @@ export const LCOLS = {
   labels: ['Labels', '168px'],
   project: ['Project', '160px'],
 };
+const taskDisabled = t => (canEditProject(proj(t.project), D().me, S.ui.currentUser?.role || 'viewer') ? '' : 'disabled');
 export function cellStatus(t) {
-  return `<button class="pillbtn" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="${esc(tr('Status'))}: ${esc(tr(ST[t.status].name))}">${stPill(t.status)}</button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="${esc(tr('Status'))}: ${esc(tr(ST[t.status].name))}">${stPill(t.status)}</button>`;
 }
 export function cellAssignee(t) {
   const m = mem(t.assignee);
-  return `<button class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc" ${m ? 'translate="no"' : ''}>${m ? esc(m.name) : 'Unassigned'}</span></button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc" ${m ? 'translate="no"' : ''}>${m ? esc(m.name) : 'Unassigned'}</span></button>`;
 }
 export function cellPrio(t) {
-  return `<button class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
 }
 export function cellDue(t) {
-  return `<button class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}"><span class="sr">${esc(tr('Due date'))}: </span>${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}"><span class="sr">${esc(tr('Due date'))}: </span>${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
 }
 export function cellLabels(t) {
   const shown = isRussian() ? 1 : 2;
-  return `<button class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" style="gap:4px;overflow:hidden"><span class="sr">${esc(tr('Labels'))}: </span>${t.labels.length ? t.labels.slice(0, shown).map(lbl).join('') + (t.labels.length > shown ? `<span class="faint" style="font-size:11px">+${t.labels.length - shown}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn ${t.labels.length ? '' : 'empty'}" data-a="pop" data-pop="labels" data-id="${t.id}" style="gap:4px;overflow:hidden"><span class="sr">${esc(tr('Labels'))}: </span>${t.labels.length ? t.labels.slice(0, shown).map(lbl).join('') + (t.labels.length > shown ? `<span class="faint" style="font-size:11px">+${t.labels.length - shown}</span>` : '') : `${ic('tag', 13)}<span>Add</span>`}</button>`;
 }
 export function cellProject(t) {
   const p = proj(t.project);
-  return `<button class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="${esc(tr('Project'))}: ${esc(p?.name || '')}"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p?.name)}</span></button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn" data-a="pop" data-pop="project" data-id="${t.id}" aria-label="${esc(tr('Project'))}: ${esc(p?.name || '')}"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p?.name)}</span></button>`;
 }
 export const CELL = { status: cellStatus, assignee: cellAssignee, priority: cellPrio, due: cellDue, labels: cellLabels, project: cellProject };
 
@@ -50,17 +51,17 @@ export function taskRow(t, cols, tpl, opt = {}) {
   const editable = canEditProject(proj(t.project), D().me, S.ui.currentUser?.role || 'viewer');
   const sel = editable && S.ui.sel.has(t.id);
   const open = S.ui.openTasks[t.id];
-  const editing = S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === 'title';
+  const editing = editable && S.ui.editCell && S.ui.editCell.id === t.id && S.ui.editCell.f === 'title';
   const cc = opt.commentCounts ? opt.commentCounts.get(t.id) || 0 : commentsOf(t.id).length;
   const sd = t.subtasks.filter(s => s.done).length;
   return `<div class="trow ${t.status === 'done' ? 'done' : ''} ${sel ? 'sel' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" role="row" style="--cols:${tpl}" data-task-row="${t.id}" data-group="${opt.group || ''}" data-lkey="${opt.key || ''}" data-ctx="task" data-id="${t.id}">
-    <div class="handle" role="cell" draggable="${opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
+    <div class="handle" role="cell" draggable="${editable && opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${editable && opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
     <div class="c-check" role="cell">${
       opt.complete
-        ? `<input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Mark ${esc(t.title)} complete">`
+        ? `<input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleDone" data-id="${t.id}" aria-label="Mark ${esc(t.title)} complete">`
         : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
     }</div>
-    <div class="ttl" role="cell" data-id="${t.id}" data-dbl="editTitle">
+    <div class="ttl" role="cell" data-id="${t.id}" ${editable ? 'data-dbl="editTitle"' : ''}>
       ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
       ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}">`}<span class="key" translate="no">${t.key}</span>
       ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt" translate="no">${esc(t.title)}</span>`}
@@ -71,7 +72,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
     ${cols.map(c => `<div class="c-meta c-${c === 'labels' ? 'lbl' : c}" role="cell">${CELL[c](t)}</div>`).join('')}
     <div class="c-more" role="cell"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More actions">${ic('ellipsis', 15)}</button></div>
   </div>
-  ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
+  ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
 }
 export function listHtml(groups, key, opt = {}) {
   const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
@@ -165,7 +166,7 @@ export function actHtml(a, opt = {}) {
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);
   return `<div class="mini mini-task ${t.status === 'done' ? 'done' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" data-id="${t.id}" data-ctx="task">
-    <label class="mini-complete-target"><input type="checkbox" class="check round" ${S.ui.currentUser?.role === 'viewer' ? 'disabled' : ''} ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Complete ${esc(t.title)}"></label>
+    <label class="mini-complete-target"><input type="checkbox" class="check round" ${taskDisabled(t)} ${t.status === 'done' ? 'checked' : ''} data-a="toggleDone" data-id="${t.id}" aria-label="Complete ${esc(t.title)}"></label>
     <span class="mini-task-status" data-tip="${ST[t.status].name}">${stIcon(t.status)}</span>
     <div class="mini-task-content"><button type="button" class="tt mini-task-open" data-a="openTask" data-id="${t.id}" translate="no">${esc(t.title)}</button><div class="mini-task-context">${opt.noProj ? '' : `<span class="trunc" translate="no">${esc(p?.name || '')}</span>`}${t.due ? dueHtml(t, false) : ''}</div></div>
     ${opt.noProj ? '' : `<span class="pj hide-m"><span class="pdot" style="--c:${pColor(p)}"></span><span class="trunc" translate="no">${esc(p.name)}</span></span>`}

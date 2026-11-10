@@ -10,6 +10,7 @@ export function projectAccess(project, memberId, role = 'editor') {
   return role === 'viewer' ? Math.min(level, 1) : level;
 }
 
+export const canCommentProject = (project, memberId, role) => projectAccess(project, memberId, role) >= 2;
 export const canReadProject = (project, memberId, role) => projectAccess(project, memberId, role) >= 1;
 export const canEditProject = (project, memberId, role) => projectAccess(project, memberId, role) >= 3;
 

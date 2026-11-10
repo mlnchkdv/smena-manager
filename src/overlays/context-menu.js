@@ -14,6 +14,12 @@ export function ctxMenu(p) {
   if (p.ctx === 'task') {
     const t = task(p.id);
     if (!t) return '';
+    if (!canEditProject(proj(t.project), D().me, S.ui.currentUser?.role || 'viewer'))
+      return (
+        I('openTask', 'panel-right-open', 'Open') +
+        I('toggleFavTask', 'star', isFavorite('task', t) ? 'Remove from favorites' : 'Add to favorites') +
+        I('copyLink', 'link', 'Copy link')
+      );
     return (
       I('openTask', 'panel-right-open', 'Open') +
       I('editTask', 'pencil', 'Edit', '', 'E') +
