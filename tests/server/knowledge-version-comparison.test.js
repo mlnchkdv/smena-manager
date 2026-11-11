@@ -31,3 +31,14 @@ test('large text comparison is bounded and preserves insertion deletion and unch
   assert.equal(singleLine.after.length, 12000);
   assert.equal(singleLine.truncated, true);
 });
+
+test('large string fields compare exact source including a changed final character', () => {
+  const source = 'Строка "quoted" \\ path\n'.repeat(60000);
+  const note = { formatted_markdown: source, properties: { approved: false } };
+  assert.deepEqual(knowledgeVersionChanges(note, { ...note }, []).fields, []);
+  assert.deepEqual(knowledgeVersionChanges(note, { ...note, formatted_markdown: source + 'x', properties: { approved: true } }, []).fields, [
+    'formatted_markdown',
+    'properties',
+  ]);
+  assert.equal(note.formatted_markdown, source);
+});

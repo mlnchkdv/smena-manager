@@ -11,9 +11,27 @@ import { t, isRussian } from '../core/i18n.js';
 import { knowledgeVersionState } from '../core/knowledge-version-state.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { knowledgeCategoryLabel } from './knowledge-category.js';
+import { A } from '../actions/actions.js';
+import { render } from '../shell/render.js';
+import { getSessionGeneration } from '../core/api.js';
 
-function versionComparison(note, version) {
-  const change = knowledgeVersionChanges(note, version, D().knowledgeFolders);
+const previewKey = (noteId, versionId) => JSON.stringify([getSessionGeneration(), noteId, versionId]);
+const previewLimit = (noteId, versionId) => S.ui.knowledgeVersionPreview?.[previewKey(noteId, versionId)] || 24000;
+A.refreshKnowledgeHistory = () => render();
+A.moreKnowledgeVersionPreview = el => {
+  const note = D().knowledgeNotes.find(note => note.id === el.dataset.id);
+  const reference = note?.history?.find(version => version.id === el.dataset.version);
+  if (!reference || !knowledgeVersionState(note.id, reference).value) return;
+  S.ui.knowledgeVersionPreview = Object.fromEntries(
+    [
+      ...Object.entries(S.ui.knowledgeVersionPreview || {}),
+      [previewKey(note.id, reference.id), Math.min(100000, previewLimit(note.id, reference.id) + 24000)],
+    ].slice(-20),
+  );
+  render();
+};
+
+function versionComparison(note, version, change) {
   const value = (field, data) => {
     if (field === 'folderId')
       return data
@@ -42,7 +60,10 @@ export function knowledgeHistory(note, readOnly = false, expanded = false) {
   const text = (en, ru) => (isRussian() ? ru : en);
   const versions = note.history || [];
   const visible = S.ui.knowledgeHistoryVisible?.[note.id] || 5;
-  return `<details class="knowledge-history" ${expanded ? 'open' : knowledgeDisclosure(note.id, 'history')}><summary>Version history</summary><p class="hint" translate="no">${text('Up to 20 previous versions. Snapshots are stored separately, up to 8 MiB each; workspace history budget: 256 MiB. Nothing is deleted automatically from Drive.', 'До 20 предыдущих версий. Снимки хранятся отдельно, до 8 МиБ каждый; бюджет истории пространства — 256 МиБ. Автоматического удаления с Диска нет.')}</p><p class="hint">Autosaves within two minutes are grouped into one version.</p>${!knowledgeVersionFits(note) ? `<p class="alert info" translate="no">${text('This snapshot exceeds the version budget. Shorten it or download the source before editing.', 'Снимок превышает бюджет версии. Сократите его или скачайте исходник перед редактированием.')}</p>` : ''}${
+  const open = section => (S.ui.knowledgeOpenSections || []).includes(`${note.id}:${section}`);
+  if (!expanded && !open('history'))
+    return `<details class="knowledge-history" ${knowledgeDisclosure(note.id, 'history')}><summary data-a="refreshKnowledgeHistory">Version history</summary></details>`;
+  return `<details class="knowledge-history" ${expanded ? 'open' : knowledgeDisclosure(note.id, 'history')}><summary ${expanded ? '' : 'data-a="refreshKnowledgeHistory"'}>Version history</summary><p class="hint" translate="no">${text('Up to 20 previous versions. Snapshots are stored separately, up to 8 MiB each; workspace history budget: 256 MiB. Nothing is deleted automatically from Drive.', 'До 20 предыдущих версий. Снимки хранятся отдельно, до 8 МиБ каждый; бюджет истории пространства — 256 МиБ. Автоматического удаления с Диска нет.')}</p><p class="hint">Autosaves within two minutes are grouped into one version.</p>${!knowledgeVersionFits(note) ? `<p class="alert info" translate="no">${text('This snapshot exceeds the version budget. Shorten it or download the source before editing.', 'Снимок превышает бюджет версии. Сократите его или скачайте исходник перед редактированием.')}</p>` : ''}${
     versions
       .slice(0, visible)
       .map(reference => {
@@ -51,12 +72,16 @@ export function knowledgeHistory(note, readOnly = false, expanded = false) {
         const title = version?.title || reference.title || text('Saved version', 'Сохранённая версия');
         const heading = `<span translate="no">${esc(title)} · ${esc(fmtTimestamp(reference.at, true))}</span><span class="hint"> · ${reference.by && mem(reference.by) ? `<span translate="no">${esc(mem(reference.by).name)}</span>` : '<span>Unknown member</span>'}</span>`;
         if (!version)
-          return `<div class="knowledge-history-row"><div>${heading}<button class="btn btn-secondary btn-sm" data-a="loadKnowledgeVersion" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" ${state.loading ? 'disabled' : ''} translate="no">${state.loading ? text('Loading…', 'Загрузка…') : state.error ? text('Retry version', 'Повторить чтение') : text('View version', 'Посмотреть версию')}</button></div></div>`;
+          return `<div class="knowledge-history-row" data-knowledge-version="${esc(reference.id)}"><div>${heading}<button class="btn btn-secondary btn-sm" data-a="loadKnowledgeVersion" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" ${state.loading ? 'disabled' : ''} translate="no">${state.loading ? text('Loading…', 'Загрузка…') : state.error ? text('Retry version', 'Повторить чтение') : text('View version', 'Посмотреть версию')}</button></div></div>`;
         const historical = { ...version, id: note.id, sourceFormat: note.sourceFormat, history: [note, ...versions] };
-        const changed = knowledgeVersionChanges(note, version, D().knowledgeFolders).fields.length > 0;
+        if (!open(`version:${reference.id}`))
+          return `<div class="knowledge-history-row" data-knowledge-version="${esc(reference.id)}"><details ${knowledgeDisclosure(note.id, `version:${reference.id}`)}><summary data-a="refreshKnowledgeHistory">${heading}</summary></details></div>`;
+        const changes = knowledgeVersionChanges(note, version, D().knowledgeFolders);
+        const changed = changes.fields.length > 0;
         const body = knowledgeDisplayParts(historical).body;
+        const limit = previewLimit(note.id, reference.id);
         const actions = `<div class="knowledge-version-actions"><button class="btn btn-ghost btn-sm" data-a="downloadKnowledgeVersion" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" translate="no">${text('Download this version', 'Скачать эту версию')}</button>${readOnly ? '' : `<button class="btn btn-secondary btn-sm" data-a="restoreKnowledgeVersion" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" ${changed ? '' : 'disabled'}>Restore version</button>`}</div>`;
-        return `<div class="knowledge-history-row"><details ${knowledgeDisclosure(note.id, `version:${reference.id}`)}><summary>${heading}</summary>${versionComparison(note, version)}${actions}<h4>Version content</h4><div class="knowledge-quick-content" tabindex="0" role="region" aria-label="${esc(t('Version content'))}" translate="no">${renderKnowledgeMarkdown(body.slice(0, 100000), knowledgeMarkdownOptions(historical))}</div>${body.length > 100000 ? `<p class="hint" translate="no">${text('Preview shortened. Download the complete version to read every byte.', 'Предпросмотр сокращён. Скачайте полную версию для чтения всего текста.')}</p>` : ''}${knowledgeMetadata(historical, `metadata:${version.id}`)}</details></div>`;
+        return `<div class="knowledge-history-row" data-knowledge-version="${esc(reference.id)}"><details ${knowledgeDisclosure(note.id, `version:${reference.id}`)}><summary data-a="refreshKnowledgeHistory">${heading}</summary>${versionComparison(note, version, changes)}${actions}<h4>Version content</h4><div class="knowledge-quick-content" tabindex="0" role="region" aria-label="${esc(t('Version content'))}" translate="no">${renderKnowledgeMarkdown(body.slice(0, limit), knowledgeMarkdownOptions(historical))}</div>${body.length > limit ? `<p class="hint" translate="no">${text('Preview shortened. Download the complete version to read every byte.', 'Предпросмотр сокращён. Скачайте полную версию для чтения всего текста.')}</p>` : ''}${body.length > limit && limit < 100000 ? `<button class="btn btn-secondary btn-sm" data-a="moreKnowledgeVersionPreview" data-id="${esc(note.id)}" data-version="${esc(reference.id)}" translate="no">${text('Show more preview', 'Показать ещё')}</button>` : ''}${knowledgeMetadata(historical, `metadata:${version.id}`)}</details></div>`;
       })
       .join('') || '<p class="hint">No previous versions yet.</p>'
   }${versions.length > visible ? `<button class="btn btn-secondary btn-sm" data-a="moreKnowledgeVersions" data-id="${esc(note.id)}" translate="no">${text('Show more versions', 'Ещё версии')} · ${Math.min(visible, versions.length)} / ${versions.length}</button>` : ''}</details>`;

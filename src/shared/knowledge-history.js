@@ -78,7 +78,11 @@ export function knowledgeVersionChanges(note, version, folders) {
   current.folderId ||= null;
   const restored = historyContent(version, folders);
   return {
-    fields: fields.filter(field => JSON.stringify(current[field]) !== JSON.stringify(restored[field])),
+    fields: fields.filter(field =>
+      typeof current[field] === 'string' && typeof restored[field] === 'string'
+        ? current[field] !== restored[field]
+        : JSON.stringify(current[field]) !== JSON.stringify(restored[field]),
+    ),
     current,
     restored,
     missingFolder: Boolean(version.folderId && !folders.some(folder => folder.id === version.folderId)),
