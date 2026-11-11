@@ -1,0 +1,792 @@
+{
+  "scope": "isolated Local storage; Windows WebKit; synthetic Markdown only",
+  "date": "2026-11-11",
+  "codeCommits": ["fb62710", "b9b8fe9", "38d00cc", "6aa1085", "92f7811"],
+  "performanceBaseline": "327848e",
+  "performanceAfter": "6aa1085",
+  "scrollRegressionFix": "92f7811",
+  "measurementNotes": [
+    "Descriptive single-run browser measurements; app bootstrap excluded.",
+    "No parallel build or heavy test workload during accepted before/after browser profiles.",
+    "First and warm document opens are separate; no process-cold browser-search claim.",
+    "Initial expanded version preview changed from 100000 to 24000 characters; complete source download/restore retained.",
+    "Final scroll correction separately validated after the timing matrix.",
+    "Maximum event-loop timer gaps are observational; not a certified input-latency metric."
+  ],
+  "before": [
+    {
+      "kind": "rich",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 4748,
+        "maxGapMs": 2053,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 15426,
+        "maxGapMs": 1442,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 3233,
+        "maxGapMs": 1145,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 3789,
+        "maxGapMs": 1943,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 1328,
+        "maxGapMs": 972,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "rich",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 3270,
+        "maxGapMs": 964,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 2803,
+        "maxGapMs": 2378,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 3969,
+        "maxGapMs": 1639,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 150,
+        "maxGapMs": 83,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 1493,
+        "maxGapMs": 1158,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 6268,
+        "maxGapMs": 2061,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 20109,
+        "maxGapMs": 1985,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 3081,
+        "maxGapMs": 1048,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 4568,
+        "maxGapMs": 2616,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 3586,
+        "maxGapMs": 3275,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "complex",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 3770,
+        "maxGapMs": 1196,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 2705,
+        "maxGapMs": 2358,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 3734,
+        "maxGapMs": 1532,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 281,
+        "maxGapMs": 219,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 3159,
+        "maxGapMs": 2835,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    }
+  ],
+  "after": [
+    {
+      "kind": "rich",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 2048,
+        "maxGapMs": 739,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 6769,
+        "maxGapMs": 508,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1452,
+        "maxGapMs": 370,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 1454,
+        "maxGapMs": 539,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 633,
+        "maxGapMs": 394,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "rich",
+      "lang": "ru",
+      "width": 1366,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 2431,
+        "maxGapMs": 1173,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 769,
+        "maxGapMs": 534,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1642,
+        "maxGapMs": 513,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 35,
+        "maxGapMs": 0,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 774,
+        "maxGapMs": 456,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "rich",
+      "lang": "en",
+      "width": 390,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 2331,
+        "maxGapMs": 612,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 890,
+        "maxGapMs": 383,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1234,
+        "maxGapMs": 314,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 45,
+        "maxGapMs": 0,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 499,
+        "maxGapMs": 250,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "rich",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1852648,
+      "search": {
+        "elapsedMs": 2102,
+        "maxGapMs": 940,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 640,
+        "maxGapMs": 502,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1312,
+        "maxGapMs": 455,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 44,
+        "maxGapMs": 0,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 653,
+        "maxGapMs": 371,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 2505,
+        "maxGapMs": 711,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 7173,
+        "maxGapMs": 720,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1294,
+        "maxGapMs": 372,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 981,
+        "maxGapMs": 513,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 618,
+        "maxGapMs": 379,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "complex",
+      "lang": "ru",
+      "width": 1366,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 2495,
+        "maxGapMs": 1245,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 701,
+        "maxGapMs": 477,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1433,
+        "maxGapMs": 497,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 54,
+        "maxGapMs": 50,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 538,
+        "maxGapMs": 398,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "en",
+      "width": 390,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 2408,
+        "maxGapMs": 568,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 793,
+        "maxGapMs": 456,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1520,
+        "maxGapMs": 372,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 42,
+        "maxGapMs": 0,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 424,
+        "maxGapMs": 282,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 2062,
+        "maxGapMs": 903,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 608,
+        "maxGapMs": 424,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 1280,
+        "maxGapMs": 422,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 35,
+        "maxGapMs": 0,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 509,
+        "maxGapMs": 317,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    }
+  ],
+  "nodeBefore": [
+    {
+      "kind": "rich",
+      "bytes": 1852595,
+      "firstParagraphMs": 93.7,
+      "summaryMs": 48.9,
+      "tokenizeMs": 309.6,
+      "serializeMs": 16.8,
+      "tokenBytes": 7469289,
+      "prepareMs": 260.2,
+      "historyPreviewMs": 19.5,
+      "versionComparisonMs": 23.9,
+      "textComparisonMs": 2.6
+    },
+    {
+      "kind": "complex",
+      "bytes": 1891837,
+      "firstParagraphMs": 96.8,
+      "summaryMs": 90.8,
+      "tokenizeMs": 952.6,
+      "serializeMs": 125.5,
+      "tokenBytes": 20650457,
+      "prepareMs": 1725.6,
+      "historyPreviewMs": 165.6,
+      "versionComparisonMs": 31.5,
+      "textComparisonMs": 2.8
+    }
+  ],
+  "nodeOpeningAfter": [
+    {
+      "kind": "rich",
+      "bytes": 1852595,
+      "firstParagraphMs": 10.1,
+      "summaryMs": 6.6,
+      "tokenizeMs": 258.7,
+      "serializeMs": 15.9,
+      "tokenBytes": 7469289,
+      "prepareMs": 207,
+      "historyPreviewMs": 12.8,
+      "versionComparisonMs": 20.3,
+      "textComparisonMs": 2.2
+    },
+    {
+      "kind": "complex",
+      "bytes": 1891837,
+      "firstParagraphMs": 7.3,
+      "summaryMs": 6.6,
+      "tokenizeMs": 906,
+      "serializeMs": 119.7,
+      "tokenBytes": 20650457,
+      "prepareMs": 1002.9,
+      "historyPreviewMs": 70.2,
+      "versionComparisonMs": 55.1,
+      "textComparisonMs": 4.1
+    }
+  ],
+  "searchExcerptMicrobenchmark": [
+    {
+      "name": "far",
+      "before": {
+        "medianMs": 592.1,
+        "result": {
+          "label": "Matching text",
+          "text": "… bold and code. Readable text bold and code. ENDNEEDLE07"
+        }
+      },
+      "after": {
+        "medianMs": 362.6,
+        "result": {
+          "label": "Matching text",
+          "text": "… bold and code. Readable text bold and code. ENDNEEDLE07"
+        }
+      }
+    },
+    {
+      "name": "many",
+      "before": {
+        "medianMs": 479.9,
+        "result": {
+          "label": "Matching text",
+          "text": "LONGWORKER07 Paragraph 0 Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable t…"
+        }
+      },
+      "after": {
+        "medianMs": 273.8,
+        "result": {
+          "label": "Matching text",
+          "text": "LONGWORKER07 Paragraph 0 Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable text bold and code. Readable t…"
+        }
+      }
+    },
+    {
+      "name": "summary",
+      "before": {
+        "medianMs": 304.4,
+        "result": {
+          "label": "Matching text",
+          "text": "Summary release"
+        }
+      },
+      "after": {
+        "medianMs": 0.2,
+        "result": {
+          "label": "Matching text",
+          "text": "Summary release"
+        }
+      }
+    }
+  ],
+  "microbenchmarkNotes": "4 iterations per search case; exact before/after output equality; no time thresholds in tests.",
+  "finalFunctional": {
+    "completed": true,
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "cap": 300,
+        "retained": true,
+        "clearPreservedText": true,
+        "historyGrows": true,
+        "closedVersionLazy": true,
+        "keyboardReopen": true,
+        "overflow": 0
+      },
+      {
+        "lang": "ru",
+        "width": 844,
+        "cap": 300,
+        "retained": true,
+        "clearPreservedText": true,
+        "historyGrows": true,
+        "closedVersionLazy": true,
+        "keyboardReopen": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "cap": 300,
+        "retained": true,
+        "clearPreservedText": true,
+        "historyGrows": true,
+        "closedVersionLazy": true,
+        "keyboardReopen": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "width": 844,
+        "cap": 300,
+        "retained": true,
+        "clearPreservedText": true,
+        "historyGrows": true,
+        "closedVersionLazy": true,
+        "keyboardReopen": true,
+        "overflow": 0
+      }
+    ]
+  },
+  "farMatchFunctional": {
+    "completed": true,
+    "rows": [
+      {
+        "lang": "ru",
+        "kind": "rich",
+        "width": 390,
+        "farMatchVisible": true,
+        "rulesOnlyUnmarked": true,
+        "overflow": 0
+      },
+      {
+        "lang": "ru",
+        "kind": "complex",
+        "width": 390,
+        "farMatchVisible": true,
+        "rulesOnlyUnmarked": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "kind": "rich",
+        "width": 390,
+        "farMatchVisible": true,
+        "rulesOnlyUnmarked": true,
+        "overflow": 0
+      },
+      {
+        "lang": "en",
+        "kind": "complex",
+        "width": 390,
+        "farMatchVisible": true,
+        "rulesOnlyUnmarked": true,
+        "overflow": 0
+      }
+    ]
+  },
+  "coldSearch": {
+    "scope": "first knowledge search after process restart; OS cache not purged; no comparable baseline",
+    "rows": [
+      {
+        "round": "process-cold",
+        "status": 200,
+        "elapsedMs": 1626,
+        "total": 1,
+        "correctNote": true
+      },
+      {
+        "round": "warm",
+        "status": 200,
+        "elapsedMs": 915,
+        "total": 1,
+        "correctNote": true
+      }
+    ]
+  },
+  "release": {
+    "status": "local-code-passed",
+    "node": "v22.23.3",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "passed",
+        "durationMs": 52723
+      },
+      {
+        "name": "ui-tokens",
+        "status": "passed",
+        "durationMs": 459
+      },
+      {
+        "name": "server-shared",
+        "status": "passed",
+        "durationMs": 553773
+      },
+      {
+        "name": "production-build",
+        "status": "passed",
+        "durationMs": 138488
+      },
+      {
+        "name": "startup-budget",
+        "status": "passed",
+        "durationMs": 403
+      }
+    ],
+    "source": {
+      "baseline": {
+        "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+        "files": 1100,
+        "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+      },
+      "checkpoints": [
+        {
+          "phase": "lint",
+          "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+          "files": 1100,
+          "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+        },
+        {
+          "phase": "ui-tokens",
+          "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+          "files": 1100,
+          "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+        },
+        {
+          "phase": "server-shared",
+          "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+          "files": 1100,
+          "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+        },
+        {
+          "phase": "production-build",
+          "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+          "files": 1100,
+          "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+        },
+        {
+          "phase": "startup-budget",
+          "head": "92f7811cdab9361ffdca9d39c16df1029964707f",
+          "files": 1100,
+          "sha256": "12a2077413b93f714682090a75ee01a60360f7b5e122daf702ac9f85e96076ae"
+        }
+      ],
+      "status": "stable-at-checkpoints"
+    },
+    "buildManifestHash": "ba02c481031881aeb30c414447fbc000e6c61e2abbb1d34aaa20f767ba713d8b",
+    "serverShared": {
+      "tests": 983,
+      "pass": 983,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "initialJavaScriptKiB": 594.6,
+    "initialLimitKiB": 600
+  },
+  "cleanup": {
+    "completed": true,
+    "rows": [
+      {
+        "kind": "rich",
+        "restoredOriginal": true,
+        "sourceHash": "38b325f22c72dd5947b916508b0d5eff36a890c777118b2aad27733f842c587d",
+        "trashed": true
+      },
+      {
+        "kind": "complex",
+        "restoredOriginal": true,
+        "sourceHash": "f9bb23d0af9193c27711497c8c3a54655dfe03b4930964c034c596ff304edf8c",
+        "trashed": true
+      }
+    ],
+    "notes": 178,
+    "language": "ru"
+  },
+  "production": {
+    "status": "not-run",
+    "reason": "Unavailable per task; prior audit reported Vercel 402 DEPLOYMENT_DISABLED; no VPS URL supplied."
+  },
+  "physicalDevices": {
+    "status": "not-run",
+    "reason": "Viewport emulation only; no devices available."
+  },
+  "remaining": [
+    "First large-note display still 6.8–7.2 seconds in the accepted timing matrix.",
+    "Warm search with distant body matches still roughly 2.05–2.51 seconds.",
+    "Investigate token transfer/deserialization and DOM insertion next; preserve complete source, ACL and sanitization."
+  ]
+}
