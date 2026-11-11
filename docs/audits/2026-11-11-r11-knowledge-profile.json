@@ -1,0 +1,321 @@
+{
+  "scope": "Isolated Local fixture, Windows WebKit, not physical iOS",
+  "completed": true,
+  "states": [
+    {
+      "kind": "rich",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1852637,
+      "search": {
+        "elapsedMs": 3922,
+        "maxGapMs": 1594,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 12700,
+        "maxGapMs": 1004,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2423,
+        "maxGapMs": 848,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 3433,
+        "maxGapMs": 2999,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 1085,
+        "maxGapMs": 787,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "rich",
+      "lang": "ru",
+      "width": 1366,
+      "bytes": 1852637,
+      "search": {
+        "elapsedMs": 6340,
+        "maxGapMs": 3244,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 1653,
+        "maxGapMs": 1393,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2853,
+        "maxGapMs": 1086,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 108,
+        "maxGapMs": 57,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 1114,
+        "maxGapMs": 847,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "rich",
+      "lang": "en",
+      "width": 390,
+      "bytes": 1852637,
+      "search": {
+        "elapsedMs": 2909,
+        "maxGapMs": 1030,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 1509,
+        "maxGapMs": 969,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2046,
+        "maxGapMs": 637,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 78,
+        "maxGapMs": 68,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 824,
+        "maxGapMs": 532,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "rich",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1852637,
+      "search": {
+        "elapsedMs": 2055,
+        "maxGapMs": 538,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 1460,
+        "maxGapMs": 1071,
+        "overflow": 0
+      },
+      "fallback": false,
+      "frontmatter": true,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2488,
+        "maxGapMs": 867,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 68,
+        "maxGapMs": 63,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 1106,
+        "maxGapMs": 812,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "ru",
+      "width": 390,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 7540,
+        "maxGapMs": 1909,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 19698,
+        "maxGapMs": 1711,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2749,
+        "maxGapMs": 903,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 4169,
+        "maxGapMs": 3687,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 3706,
+        "maxGapMs": 3402,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 1,
+      "versionCalls": 1
+    },
+    {
+      "kind": "complex",
+      "lang": "ru",
+      "width": 1366,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 5064,
+        "maxGapMs": 2411,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 2092,
+        "maxGapMs": 1718,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2961,
+        "maxGapMs": 1108,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 120,
+        "maxGapMs": 67,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 3026,
+        "maxGapMs": 2693,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "en",
+      "width": 390,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 3346,
+        "maxGapMs": 361,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 1974,
+        "maxGapMs": 1666,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2990,
+        "maxGapMs": 870,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 104,
+        "maxGapMs": 57,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 2895,
+        "maxGapMs": 2670,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    },
+    {
+      "kind": "complex",
+      "lang": "en",
+      "width": 1366,
+      "bytes": 1891837,
+      "search": {
+        "elapsedMs": 4610,
+        "maxGapMs": 1969,
+        "overflow": 0
+      },
+      "initial": {
+        "elapsedMs": 1842,
+        "maxGapMs": 1547,
+        "overflow": 0
+      },
+      "fallback": true,
+      "frontmatter": false,
+      "retained": true,
+      "repeat": {
+        "elapsedMs": 2767,
+        "maxGapMs": 1134,
+        "overflow": 0
+      },
+      "historical": {
+        "elapsedMs": 102,
+        "maxGapMs": 58,
+        "overflow": 0
+      },
+      "highlight": {
+        "elapsedMs": 2334,
+        "maxGapMs": 2078,
+        "overflow": 0
+      },
+      "sourceExact": true,
+      "bodyCalls": 0,
+      "versionCalls": 0
+    }
+  ],
+  "timingBoundary": "App bootstrap excluded. First body/version loads and later memory-cached actions are reported separately. The first search in this matrix may have a warmed server cache; use the separate restarted-process cold-search result.",
+  "limitations": [
+    "Approx. 1.85/1.89 MB documents still have multi-second initial preparation and main-thread pauses in history/highlighting. These measurements do not establish a physical-phone performance budget.",
+    "Full original/editor/version hashes matched; ordinary rich MD and excessive-complexity plain fallback differ deliberately.",
+    "Version previews are bounded to 100000 characters; full versions remain downloadable."
+  ],
+  "restartedProcessColdSearch": {
+    "lang": "ru",
+    "width": 390,
+    "elapsedMs": 4772,
+    "httpStatus": 200,
+    "separateFromMatrix": true
+  },
+  "shortNoteSwitch": {
+    "ru": true,
+    "en": true,
+    "frontmatterHidden": true,
+    "manualPlainButton": "Not accepted separately; automatic complexity fallback is accepted."
+  }
+}

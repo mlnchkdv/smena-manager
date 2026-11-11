@@ -4,3 +4,9 @@
     contain-intrinsic-size: auto 120px;
   }
 }
+.knowledge-format-fallback .knowledge-plain-text {
+  max-height: none;
+  font-family: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

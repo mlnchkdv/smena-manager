@@ -1,5 +1,6 @@
 import { entityAllowed } from '../shared/relations.js';
 import { S } from '../core/store.js';
+import { esc } from '../core/utils.js';
 import { knowledgeAsset, knowledgeFileReferences } from '../shared/knowledge-assets.js';
 import { knowledgeImageUrl } from '../core/knowledge-media-state.js';
 import { resolveKnowledgeBlock } from '../shared/knowledge-block-references.js';
@@ -12,7 +13,7 @@ import { render, registerKnowledgeReadingRestorer } from '../shell/render.js';
 import { getSessionGeneration, getActiveWorkspace } from '../core/api.js';
 import { knowledgeReadingInputs } from '../shared/knowledge-reading-state.js';
 import { captureKnowledgeReadingSurface, knowledgeReadingSurface } from './knowledge-reading-surface.js';
-import { preparedMarkdown, clearMarkdownPreparation } from '../core/knowledge-markdown-demand.js';
+import { preparedMarkdown, clearMarkdownPreparation, readMarkdownPlain } from '../core/knowledge-markdown-demand.js';
 import { A } from '../actions/actions.js';
 import '../styles/knowledge-large-document.css';
 const readText = (en, ru) => (document.documentElement.lang === 'ru' ? ru : en);
@@ -20,6 +21,9 @@ registerKnowledgeReadingRestorer(captureKnowledgeReadingSurface);
 A.retryKnowledgeMarkdown = () => {
   clearMarkdownPreparation();
   render();
+};
+A.readKnowledgePlain = el => {
+  if (S.ui.knowledgeDrawer === el.dataset.id) readMarkdownPlain();
 };
 export const knowledgeMarkdownOptions = (note = {}) => ({
   plainText: note.sourceFormat === 'text',
@@ -58,17 +62,30 @@ export const knowledgeMarkdownOptions = (note = {}) => ({
 });
 
 export function knowledgeReadingHtml(note, source) {
-  let tokenized;
+  let tokenized, fallback;
   if (note.sourceFormat !== 'text' && source.length > 32000) {
     const prepared = preparedMarkdown(source);
     if (prepared.pending)
-      return `<p role="status" translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p>`;
-    if (prepared.error)
-      return `<p role="alert" translate="no">${readText('Preview could not be prepared. Edit or download the complete source.', 'Не удалось подготовить предпросмотр. Откройте редактор или скачайте полный исходник.')}</p><button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry preview', 'Повторить предпросмотр')}</button>`;
+      return `<p role="status" translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p><button class="btn btn-secondary btn-sm" data-a="readKnowledgePlain" data-id="${esc(note.id)}" translate="no">${readText('Read without formatting', 'Читать без форматирования')}</button>`;
+    if (prepared.error) fallback = prepared.error;
     tokenized = { source, tokens: prepared.tokens };
   }
   const options = knowledgeMarkdownOptions(note);
   const markup = () => {
+    const fallbackLabel =
+      fallback === 'plain'
+        ? readText('Showing the complete text without formatting. The original is unchanged.', 'Показан полный текст без форматирования. Исходник не изменён.')
+        : fallback === 'complexity'
+          ? readText(
+              'Complex formatting. Showing the complete text without formatting; the original is unchanged.',
+              'Сложное форматирование. Показан полный текст без оформления; исходник не изменён.',
+            )
+          : readText(
+              'Formatted preview is unavailable. Showing the complete text; the original is unchanged.',
+              'Форматированный предпросмотр недоступен. Показан полный текст; исходник не изменён.',
+            );
+    if (fallback)
+      return `<div class="knowledge-format-fallback"><p class="hint" role="status" translate="no">${fallbackLabel}</p>${fallback === 'complexity' ? '' : `<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry formatting', 'Повторить форматирование')}</button>`}${renderKnowledgeMarkdown(source, { plainText: true })}</div>`;
     const wikiTargets = new Map(
       knowledgeRelations(D().knowledgeNotes, note)
         .outgoing.filter(ref => ref.note)
@@ -89,7 +106,7 @@ export function knowledgeReadingHtml(note, source) {
     D(),
     note,
     source,
-    [getSessionGeneration(), getActiveWorkspace(), document.documentElement.lang, S.ui.currentUser?.id, S.ui.currentUser?.role],
+    [getSessionGeneration(), getActiveWorkspace(), document.documentElement.lang, S.ui.currentUser?.id, S.ui.currentUser?.role, fallback || 'formatted'],
     assets,
   );
   return knowledgeReadingSurface(inputs, markup);

@@ -9,6 +9,15 @@ export function clearMarkdownPreparation() {
   clearTimeout(timer);
   state = null;
 }
+export function readMarkdownPlain() {
+  if (!state || state.owner !== getSessionGeneration()) return;
+  worker?.terminate();
+  worker = null;
+  clearTimeout(timer);
+  state.pending = false;
+  state.error = 'plain';
+  render();
+}
 export function preparedMarkdown(source) {
   const owner = getSessionGeneration();
   if (state?.owner !== owner) clearMarkdownPreparation();
@@ -29,21 +38,21 @@ export function preparedMarkdown(source) {
     worker.onmessage = ({ data }) => {
       if (state !== current || data.id !== current.id) return;
       current.tokens = data.tokens;
-      current.error = !!data.error;
+      current.error = data.error || (!Array.isArray(data.tokens) ? 'parse' : false);
       complete();
     };
     worker.onerror = event => {
       event.preventDefault();
-      current.error = true;
+      current.error = 'worker';
       complete();
     };
     timer = setTimeout(() => {
-      current.error = true;
+      current.error = 'timeout';
       complete();
-    }, 10000);
+    }, 30000);
     worker.postMessage({ id: current.id, source });
   } catch {
-    current.error = true;
+    current.error = 'worker';
     queueMicrotask(complete);
   }
   return current;
