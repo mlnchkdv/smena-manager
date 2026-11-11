@@ -82,6 +82,7 @@ import { readProjectAutomations, writeProjectAutomations, previewProjectAutomati
 import { knowledgeActor } from './knowledge-access.js';
 import { configureReverseProxy } from './reverse-proxy.js';
 import { readKnowledgeImports, startKnowledgeImport, controlKnowledgeImport, appendKnowledgeImport, prepareKnowledgeImport } from './knowledge-import-store.js';
+import { knowledgeInspectionRouter } from './knowledge-inspection-routes.js';
 
 export const app = express();
 
@@ -225,6 +226,7 @@ app.use('/api', (request, response, next) => {
 });
 app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
+app.use('/api/storage/inspection', knowledgeInspectionRouter);
 
 app.post('/api/graph/query', async (request, response, next) => {
   try {

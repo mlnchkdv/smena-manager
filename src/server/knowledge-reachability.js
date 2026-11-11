@@ -98,16 +98,27 @@ export async function beginKnowledgeReachability({ root, backups = [], backupsCo
     rootsComplete: backupsComplete === true,
   };
   await rootReferences(state, root, 'canonical');
-  for (const backup of backups) {
-    if (backup?.format === 'smena-prepared-backup-v1') {
-      if (backup.source?.kind !== 'root') throw error();
-      enqueue(state, descriptor(backup.source), 'independent');
-    } else if (backup && !Object.hasOwn(backup, 'format') && backup.data && !Object.hasOwn(backup, 'version')) {
-      // Legacy monolithic snapshots may retain external pointers even when
-      // their current bodies were expanded. Keep those references conservatively.
-      await rootReferences(state, backup.data, 'canonical');
-    } else throw error('KNOWLEDGE_MAINTENANCE_FORMAT_UNSUPPORTED');
-  }
+  for (const backup of backups) await backupReferences(state, backup);
+  return state;
+}
+
+async function backupReferences(state, backup) {
+  if (backup?.format === 'smena-prepared-backup-v1') {
+    if (backup.source?.kind !== 'root') throw error();
+    enqueue(state, descriptor(backup.source), 'independent');
+  } else if (backup && !Object.hasOwn(backup, 'format') && backup.data && !Object.hasOwn(backup, 'version')) {
+    // Legacy monolithic snapshots may retain external pointers even when
+    // their current bodies were expanded. Keep those references conservatively.
+    await rootReferences(state, backup.data, 'canonical');
+  } else throw error('KNOWLEDGE_MAINTENANCE_FORMAT_UNSUPPORTED');
+}
+
+// Add a single verified snapshot while a durable controller pages through the
+// backup inventory. The caller must not mark rootsComplete until enumeration ends.
+export async function appendKnowledgeBackup(previous, backup) {
+  if (previous?.format !== 'smena-knowledge-reachability-v1') throw error();
+  const state = structuredClone(previous);
+  await backupReferences(state, backup);
   return state;
 }
 
