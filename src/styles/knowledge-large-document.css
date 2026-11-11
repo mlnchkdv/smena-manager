@@ -3,6 +3,14 @@
     content-visibility: auto;
     contain-intrinsic-size: auto 120px;
   }
+  .knowledge-plain-chunk {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 3600px;
+  }
+}
+.knowledge-plain-chunk {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .knowledge-format-fallback .knowledge-plain-text {
   max-height: none;

@@ -134,9 +134,27 @@ const markdown = new Marked({
 });
 
 export const tokenizeKnowledgeMarkdown = source => markdown.lexer(String(source || ''));
+function plainDocument(source) {
+  const chunks = [];
+  let start = 0;
+  while (start < source.length) {
+    let end = Math.min(source.length, start + 16000);
+    if (end < source.length) {
+      const before = source.lastIndexOf('\n', end);
+      end = before >= start ? before + 1 : source.indexOf('\n', end) + 1;
+      if (!end) end = source.length;
+    }
+    chunks.push(`<div class="knowledge-plain-chunk">${escape(source.slice(start, end))}</div>`);
+    start = end;
+  }
+  return `<div class="knowledge-plain-text">${chunks.join('')}</div>`;
+}
 export function renderKnowledgeMarkdown(source, options = {}) {
   options = { ...options, embedBudget: options.embedBudget || { count: 0 } };
-  if (options.plainText) return `<pre class="knowledge-plain-text">${escape(source)}</pre>`;
+  if (options.plainText) {
+    const plain = String(source ?? '');
+    return options.chunkedPlainText && plain.length > 32000 ? plainDocument(plain) : `<pre class="knowledge-plain-text">${escape(plain)}</pre>`;
+  }
   const headings = new Set();
   const externalLink = (href, label) =>
     /^(https?:\/\/|mailto:)/i.test(href) ? `<a href="${escape(href)}" target="_blank" rel="noopener noreferrer">${label}</a>` : label;

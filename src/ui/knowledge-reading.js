@@ -66,11 +66,11 @@ export function knowledgeReadingHtml(note, source) {
   if (note.sourceFormat !== 'text' && source.length > 32000) {
     const prepared = preparedMarkdown(source);
     if (prepared.pending)
-      return `<p role="status" translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p><button class="btn btn-secondary btn-sm" data-a="readKnowledgePlain" data-id="${esc(note.id)}" translate="no">${readText('Read without formatting', 'Читать без форматирования')}</button>`;
+      return `<p role="status" data-knowledge-preparing translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p><button class="btn btn-secondary btn-sm" data-a="readKnowledgePlain" data-id="${esc(note.id)}" translate="no">${readText('Read without formatting', 'Читать без форматирования')}</button>`;
     if (prepared.error) fallback = prepared.error;
     tokenized = { source, tokens: prepared.tokens };
   }
-  const options = knowledgeMarkdownOptions(note);
+  const options = { ...knowledgeMarkdownOptions(note), chunkedPlainText: true };
   const markup = () => {
     const fallbackLabel =
       fallback === 'plain'
@@ -85,7 +85,7 @@ export function knowledgeReadingHtml(note, source) {
               'Форматированный предпросмотр недоступен. Показан полный текст; исходник не изменён.',
             );
     if (fallback)
-      return `<div class="knowledge-format-fallback"><p class="hint" role="status" translate="no">${fallbackLabel}</p>${fallback === 'complexity' ? '' : `<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry formatting', 'Повторить форматирование')}</button>`}${renderKnowledgeMarkdown(source, { plainText: true })}</div>`;
+      return `<div class="knowledge-format-fallback"><p class="hint" role="status" translate="no">${fallbackLabel}</p>${fallback === 'complexity' ? '' : `<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeMarkdown" translate="no">${readText('Retry formatting', 'Повторить форматирование')}</button>`}${renderKnowledgeMarkdown(source, { plainText: true, chunkedPlainText: true })}</div>`;
     const wikiTargets = new Map(
       knowledgeRelations(D().knowledgeNotes, note)
         .outgoing.filter(ref => ref.note)
@@ -94,9 +94,8 @@ export function knowledgeReadingHtml(note, source) {
     return renderKnowledgeMarkdown(source, { ...options, wikiTargets, sourceId: note.id, tokenized });
   };
   if (source.length <= 32000) return markup();
-  // Search highlighting transforms the markup before insertion. Never replace
-  // that transformed document with retained nodes from a different match state.
-  if (S.ui.knowledgeFind) return `<div class="knowledge-large-document">${markup()}</div>`;
+  // Search marks are applied to live text nodes after insertion, so toolbar
+  // actions and match navigation can retain the reading surface too.
   const assets = knowledgeFileReferences({ ...note, formatted_markdown: source }).map(id => [
     id,
     entityAllowed(D(), `file:${id}`, { role: S.ui.currentUser?.role, memberId: D().me }),

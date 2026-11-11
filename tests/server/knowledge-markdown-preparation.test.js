@@ -25,3 +25,16 @@ test('plain fallback preserves far text and never executes embedded HTML or Mark
       .replaceAll('&gt;', '>').length,
   );
 });
+
+test('chunked plain documents preserve exact whitespace, Unicode and long unbroken lines', () => {
+  const source = '\n\n  <script>&lt;"\' 😀</script>\n' + '  literal **code** 😀\n\n'.repeat(30000) + 'x'.repeat(40000) + '\nEND';
+  const html = renderKnowledgeMarkdown(source, { plainText: true, chunkedPlainText: true });
+  const decoded = html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&(amp|lt|gt|quot|#39);/g, (_, entity) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[entity]);
+  assert.equal(decoded, source);
+  assert.doesNotMatch(html, /<(?:script|img|iframe)\b/);
+  assert.ok((html.match(/knowledge-plain-chunk/g) || []).length > 10);
+  assert.ok((html.match(/knowledge-plain-chunk/g) || []).length < 200);
+  assert.match(renderKnowledgeMarkdown('literal', { plainText: true, chunkedPlainText: true }), /^<pre/);
+});
