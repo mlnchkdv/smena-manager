@@ -1,0 +1,342 @@
+{
+  "scope": "Isolated Local fixture; no live integration or physical device acceptance",
+  "release": {
+    "status": "local-code-passed",
+    "node": "v22.23.3",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "passed",
+        "durationMs": 58524
+      },
+      {
+        "name": "ui-tokens",
+        "status": "passed",
+        "durationMs": 389
+      },
+      {
+        "name": "server-shared",
+        "status": "passed",
+        "durationMs": 342867
+      },
+      {
+        "name": "production-build",
+        "status": "passed",
+        "durationMs": 57917
+      },
+      {
+        "name": "startup-budget",
+        "status": "passed",
+        "durationMs": 239
+      }
+    ],
+    "sourceStatus": "stable-at-checkpoints",
+    "buildManifestHash": "b4c0f25e58aa80fdb974168993328c4e7dba653d73378c8f799bed167f82aa70",
+    "serverSharedTests": {
+      "passed": 978,
+      "failed": 0,
+      "skipped": 0
+    },
+    "initialJavaScriptKiB": 592.2,
+    "initialJavaScriptLimitKiB": 600
+  },
+  "production": {
+    "checkedAt": "2026-11-11T10:13:17+00:00",
+    "paths": [
+      {
+        "path": "/",
+        "status": 402,
+        "code": "DEPLOYMENT_DISABLED"
+      },
+      {
+        "path": "/api/health",
+        "status": 402,
+        "code": "DEPLOYMENT_DISABLED"
+      }
+    ],
+    "alternateVpsUrl": "not supplied",
+    "status": "blocked"
+  },
+  "physicalDevices": {
+    "status": "not-run",
+    "reason": "No physical devices available per user"
+  },
+  "r12": {
+    "status": "local-accepted-with-incomplete-data-report",
+    "jobWalk": {
+      "completed": true,
+      "canonicalRootUnchanged": true,
+      "steps": [
+        {
+          "step": 0,
+          "phase": "backups",
+          "objects": 0,
+          "backups": 2,
+          "verified": 0
+        },
+        {
+          "step": 34,
+          "phase": "inventory",
+          "objects": 0,
+          "backups": 35,
+          "verified": 0
+        },
+        {
+          "step": 57,
+          "phase": "references",
+          "objects": 2126,
+          "backups": 35,
+          "verified": 0
+        },
+        {
+          "step": 154,
+          "phase": "verification",
+          "objects": 2126,
+          "backups": 35,
+          "verified": 0
+        },
+        {
+          "step": 1454,
+          "phase": "complete",
+          "objects": 2126,
+          "backups": 35,
+          "verified": 2126
+        }
+      ],
+      "result": {
+        "deletionEnabled": false,
+        "job": {
+          "phase": "complete",
+          "paused": false,
+          "startedAt": 1794393052629,
+          "updatedAt": 1794394206721,
+          "code": "",
+          "backups": 35,
+          "skippedBackups": 15,
+          "inspected": 96,
+          "objects": 2126,
+          "verified": 2126,
+          "bytes": 86252052,
+          "plan": {
+            "asOf": "2026-11-11T10:50:06.830Z",
+            "complete": false,
+            "rootCurrent": true,
+            "rootsComplete": false,
+            "inventoryComplete": true,
+            "pending": 0,
+            "missing": 0,
+            "retentionDays": 30,
+            "counts": {
+              "reachable": 830,
+              "unreferenced": 0,
+              "unclassified": 1213,
+              "retained": 0,
+              "unknown": 83,
+              "candidates": 0,
+              "candidateBytes": 0
+            },
+            "deletionEnabled": false
+          },
+          "candidates": []
+        }
+      }
+    },
+    "rights": {
+      "completed": true,
+      "deleteCommandStatus": 400,
+      "foreignWorkspaceStatus": 403,
+      "memberReadStatus": 403,
+      "memberStartStatus": 403,
+      "noJobDisclosure": true
+    },
+    "matrix": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "ru",
+          "width": 320,
+          "height": 567,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "height": 844,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 767,
+          "height": 900,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "height": 390,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 1024,
+          "height": 768,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 1366,
+          "height": 768,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "ru",
+          "width": 1920,
+          "height": 1080,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 320,
+          "height": 567,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "height": 844,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 767,
+          "height": 900,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "height": 390,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 1024,
+          "height": 768,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 1366,
+          "height": 768,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        },
+        {
+          "lang": "en",
+          "width": 1920,
+          "height": 1080,
+          "passed": true,
+          "failures": [],
+          "actionCount": 2
+        }
+      ]
+    },
+    "backendRestart": {
+      "checkpointPreserved": true,
+      "paused": true
+    },
+    "sanitizedDownloads": [
+      "ru",
+      "en"
+    ],
+    "limits": {
+      "objects": 10000,
+      "snapshots": 2000,
+      "checkpointBytes": 8388608,
+      "snapshotReadBytes": 8388608,
+      "deletionEnabled": false
+    }
+  },
+  "finalUiFollowup": {
+    "status": "partial",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "passed",
+        "durationMs": 45368
+      },
+      {
+        "name": "ui-tokens",
+        "status": "passed",
+        "durationMs": 307
+      },
+      {
+        "name": "server-shared",
+        "status": "not-run",
+        "reason": "Explicitly reused an earlier run. Its evidence must be reviewed separately."
+      },
+      {
+        "name": "production-build",
+        "status": "passed",
+        "durationMs": 45132
+      },
+      {
+        "name": "startup-budget",
+        "status": "passed",
+        "durationMs": 218
+      }
+    ],
+    "sourceStatus": "stable-at-checkpoints",
+    "buildManifestHash": "3ecb5613212e9409864fdc420bdf2e7a62aaa168f396a11619406cc82cab3d88",
+    "serverTests": "Reused the immediately preceding fresh 978/978 full run; subsequent changes only affect inspection UI disclosures, retained content and scrolling."
+  },
+  "cleanup": {
+    "restoredOriginalSyntheticLongNotes": 2,
+    "returnedToTrash": 2,
+    "activeNotes": 178,
+    "language": "ru",
+    "liveWrites": false
+  },
+  "acceptedLocally": [
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12"
+  ],
+  "externallyBlocked": [
+    "R01",
+    "R13 live/physical acceptance"
+  ]
+}

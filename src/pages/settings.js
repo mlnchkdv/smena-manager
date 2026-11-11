@@ -73,7 +73,8 @@ const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams'
 export function srow(t, d, ctl) {
   ctl = ctl.replace(/data-setting-control aria-label="[^"]*"/gu, () => `aria-label="${esc(t)}"`);
   const toggleId = ctl.match(/id="(setting-toggle-[^"]+)"/)?.[1];
-  if (toggleId) ctl = ctl.replace(`id="${toggleId}"`, `id="${toggleId}" aria-labelledby="${toggleId}-label" ${d ? `aria-describedby="${toggleId}-description"` : ''}`);
+  if (toggleId)
+    ctl = ctl.replace(`id="${toggleId}"`, `id="${toggleId}" aria-labelledby="${toggleId}-label" ${d ? `aria-describedby="${toggleId}-description"` : ''}`);
   return `<${toggleId ? `label for="${toggleId}"` : 'div'} class="srow${toggleId ? ' srow-toggle' : ''}"><div><div class="t" ${toggleId ? `id="${toggleId}-label"` : ''}>${t}</div>${d ? `<div class="d" ${toggleId ? `id="${toggleId}-description"` : ''}>${d}</div>` : ''}</div><div class="row">${ctl}</div></${toggleId ? 'label' : 'div'}>`;
 }
 export const tog = (k, on, src = 'pref') =>
@@ -427,6 +428,7 @@ export function settingsBody(sec, title) {
       return (
         H('Full workspace backups and KMS Brain data transfer.') +
         storageCapacityPanel() +
+        `<details class="sblock settings-data-option" ${disclosureAttributes('settings-storage-inspection')}><summary><strong translate="no">${isRussian() ? 'Проверка хранилища знаний' : 'Knowledge storage check'}</strong><small translate="no">${isRussian() ? 'Тексты, версии и резервные копии' : 'Note bodies, versions and backups'}</small></summary><div class="settings-data-option-body" translate="no"><p class="lead">${isRussian() ? 'Проверяем ссылки и целостность объектов небольшими порциями, без изменения заметок и файлов.' : 'Inspect references and object integrity in bounded steps without changing notes or files.'}</p><button class="btn btn-secondary" data-a="knowledgeStorageInspection">${ic('database', 14)}${isRussian() ? 'Открыть проверку' : 'Open check'}</button></div></details>` +
         `<div class="sblock settings-backups"><div class="row between settings-backup-head"><h2>Backups</h2><div class="row settings-backup-actions"><button class="btn btn-secondary" data-a="loadWorkspaceBackups">${ic('refresh-cw', 14)}Refresh</button><button class="btn btn-primary" data-a="createWorkspaceBackup">${ic('database-backup', 14)}Create backup</button></div></div><p class="muted settings-backup-description">Automatic backups require a working daily schedule. Check the copies below to confirm successful runs. The latest 30 automatic copies are retained; manual copies are not removed automatically.</p>
         ${S.ui.backupsLoading ? `<div class="muted" style="padding:18px 0">${ic('loader', 14)} Loading…</div>` : S.ui.backupsError ? `<div class="alert warn" role="alert" style="margin-top:14px">${ic('triangle-alert', 15)}<span>${esc(tr(S.ui.backupsError))}</span></div>` : Array.isArray(S.ui.backups) ? (S.ui.backups.length ? `<div style="margin-top:14px">${S.ui.backups.map(backup => srow(esc(backupDisplayLabel(backup.label)), `${settingsTimestamp(backup.createdAt)} · ${fsize(backup.size || 0)}`, `<button class="btn btn-secondary btn-sm" data-a="restoreWorkspaceBackup" data-id="${esc(backup.id)}">${ic('history', 13)}Restore</button>`)).join('')}</div>` : '<p class="faint" style="padding:16px 0 0">No backups yet.</p>') : '<p class="faint" style="padding:16px 0 0">Select Refresh to show available backups.</p>'}
         </div>

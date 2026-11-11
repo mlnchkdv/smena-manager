@@ -1,0 +1,56 @@
+.knowledge-inspection {
+  min-width: 0;
+}
+.knowledge-inspection > p {
+  line-height: 1.5;
+  margin-block: 0 12px;
+}
+.inspection-status {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.inspection-status small {
+  color: var(--text-3);
+}
+.inspection-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0 0 16px;
+}
+.inspection-metrics > div {
+  min-width: 0;
+}
+.inspection-metrics dt {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+.inspection-metrics dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.inspection-details {
+  border-top: 1px solid var(--divider);
+  padding-top: 8px;
+}
+.inspection-details > summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+}
+.inspection-details p {
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.inspection-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 360px) {
+  .inspection-metrics {
+    gap: 8px;
+  }
+}

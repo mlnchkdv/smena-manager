@@ -8,6 +8,8 @@ export const knowledgeCatalogMode = () => knowledgeDemandEnabled;
 export const knowledgeImportRequest = (suffix = '', payload) =>
   request('/api/knowledge/imports' + suffix, payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) }, true);
 export const getKnowledgeMigration = () => request('/api/knowledge/migration', {}, true);
+export const knowledgeInspectionRequest = (operation = 'read', id) =>
+  request('/api/storage/inspection', operation === 'read' ? {} : { method: 'POST', body: JSON.stringify({ operation, id }) }, true);
 export const startKnowledgeMigration = reviewKey => request('/api/knowledge/migration', { method: 'POST', body: JSON.stringify({ reviewKey }) }, true);
 export const stepKnowledgeMigration = (id, pause = false) =>
   request(`/api/knowledge/migration/${encodeURIComponent(id)}`, { method: 'POST', body: JSON.stringify({ pause }) }, true);

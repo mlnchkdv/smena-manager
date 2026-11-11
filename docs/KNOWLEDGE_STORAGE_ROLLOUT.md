@@ -53,3 +53,10 @@ Outstanding boundaries: cold search scans compressed derived parts rather than p
 Metadata sharding is a separate default-off gate. It publishes immutable verified parts before the CAS root; old servers must fail closed on raw schema v4. Missing parts are errors, never empty initialization. Keep a compatible server for rollback; turning the gate off does not flatten migrated storage. Local 10,001-row checks do not constitute live migration acceptance.
 
 Каталожный транспорт N02 использует revision-bound страницы (`GET .../catalog?page=1&collection=...`) и PATCH-дельты с явными remove/order. Частичная страница никогда не подставляется как полный каталог. Клиент собирает согласованный снимок и хранит только две последние базы дельт в памяти текущей сессии/пространства. Тела по-прежнему загружаются отдельно. HTTP-лимит не увеличен; слишком крупная единичная операция отклоняется. Большой bulk следует выполнять ограниченными операциями. После успешной записи сервер возвращает только канонические изменённые записи; слишком крупное подтверждение заменяется чтением страниц ровно опубликованной ревизии. Старый PUT сохранён для совместимых клиентов до обновления, но не является масштабируемым путём.
+
+
+## Проверка объектов / Object inspection
+
+R12 добавляет отдельный административный отчёт без удаления. Пауза, продолжение после рестарта, ограничения и различие между завершённым обходом и полным отчётом описаны в [KNOWLEDGE_STORAGE_INSPECTION.md](KNOWLEDGE_STORAGE_INSPECTION.md). Реальный Drive требует отдельной приёмки.
+
+R12 adds a resumable administrator inspection report with no deletion. See the bilingual [inspection guide](KNOWLEDGE_STORAGE_INSPECTION.md) for bounds, persistence and incomplete-result handling. Live Drive acceptance remains pending.

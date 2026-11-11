@@ -3143,6 +3143,13 @@ A.keepBookmarkOffline = async el => (await import('../features/offline-knowledge
 
 A.knowledgeArchive = async () => (await import('../features/knowledge-archive.js')).openKnowledgeArchive();
 A.knowledgeStorageMigration = async () => (await import('../features/knowledge-migration.js')).openKnowledgeMigration();
+A.knowledgeStorageInspection = async () => {
+  const generation = getSessionGeneration(),
+    workspace = D().ws.id || D().ws.url;
+  const module = await import('../features/knowledge-inspection.js');
+  if (generation === getSessionGeneration() && workspace === (D().ws.id || D().ws.url) && S.ui.route === 'settings' && S.ui.params.sec === 'data-transfer')
+    module.openKnowledgeInspection();
+};
 
 A.newWhiteboard = async el => (await import('../features/whiteboards.js')).newWhiteboard(el);
 
