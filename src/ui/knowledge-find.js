@@ -9,13 +9,20 @@ import { parseKnowledgeQuery } from '../shared/knowledge-query.js';
 let states = new WeakMap(),
   scan,
   frame,
+  revealFrame,
+  revealGeneration = 0,
   lastTarget = '';
 const root = () => document.querySelector('.knowledge-drawer .knowledge-quick-content');
 const surface = node => node?.querySelector('[data-knowledge-reader]') || node;
 const current = find => find && find.owner === S.ui.currentUser?.id && find.workspace === (D().ws.id || D().ws.url);
 function cancelScan() {
   cancelAnimationFrame(frame);
+  cancelReveal();
   scan = null;
+}
+function cancelReveal() {
+  cancelAnimationFrame(revealFrame);
+  revealGeneration++;
 }
 function unmark(node) {
   if (!node) return;
@@ -47,8 +54,32 @@ function reveal(find) {
   const key = JSON.stringify([find.owner, find.workspace, find.noteId, find.query, find.index]);
   if (key === lastTarget) return;
   lastTarget = key;
-  target.scrollIntoView({ block: 'center' });
+  cancelReveal();
+  const body = target.closest('.knowledge-drawer-body');
+  if (!body) return;
+  target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+  const generation = revealGeneration;
+  let remaining = 8,
+    stable = 0;
+  // content-visibility can replace estimated heights over several frames. A
+  // bounded correction keeps distant matches visible without laying out every
+  // skipped block. User input cancels it.
+  const settle = () => {
+    if (generation !== revealGeneration || S.ui.knowledgeFind !== find || !current(find) || !target.isConnected || !body.isConnected) return;
+    const box = body.getBoundingClientRect(),
+      match = target.getBoundingClientRect();
+    const visible = match.top >= box.top + 8 && match.bottom <= box.bottom - 8;
+    if (visible) stable++;
+    else {
+      stable = 0;
+      body.scrollTop += match.top - box.top - body.clientHeight / 2 + match.height / 2;
+    }
+    if (--remaining > 0 && stable < 2) revealFrame = requestAnimationFrame(settle);
+  };
+  settle();
 }
+
+for (const event of ['pointerdown', 'touchstart', 'wheel', 'keydown']) document.addEventListener(event, cancelReveal, { capture: true, passive: true });
 
 // Shell markup contains only the toolbar. Mark live, sanitized text nodes after
 // insertion instead of serializing/reparsing a multi-megabyte reader.
