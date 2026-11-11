@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { knowledgeExcerpt, noteCardExcerpt, createKnowledgeMatcher } from '../../src/shared/knowledge-search.js';
+import { knowledgeExcerpt, noteCardExcerpt, createKnowledgeMatcher, knowledgeSearchContext } from '../../src/shared/knowledge-search.js';
 
 test('blank card excerpts are bounded while searches retain distant matches and exact source', () => {
   const source = '# Opening\n\n' + 'Readable text '.repeat(150000) + '\n\nDISTANT_UNIQUE_TERM';
@@ -72,4 +72,21 @@ test('folder and tag filters exclude unrelated full text before searching', () =
   const matcher = createKnowledgeMatcher('"Full text" ключевая');
   assert.equal(matcher(relevant), true);
   assert.equal(matcher({ formatted_markdown: 'Full other text ключевая' }), false);
+});
+
+test('summary hits avoid the body, while additional distant terms still select matching content', () => {
+  const summaryOnly = {
+    summary: 'Команда — release notes',
+    get formatted_markdown() {
+      throw Error('Unnecessary body scan');
+    },
+  };
+  assert.equal(knowledgeExcerpt(summaryOnly, 'команда release'), summaryOnly.summary);
+  assert.deepEqual(knowledgeSearchContext(summaryOnly, 'команда release'), { label: 'Matching text', text: summaryOnly.summary });
+  const source = '**Команда** ' + 'readable '.repeat(150000) + '\n\nКоманда DISTANT_TERM';
+  const note = { summary: 'Команда', formatted_markdown: source, sourceFormat: 'markdown' };
+  const context = knowledgeSearchContext(note, 'команда distant_term');
+  assert.equal(context.label, 'Matching text');
+  assert.equal(context.text, knowledgeExcerpt(note, 'команда distant_term'));
+  assert.equal(note.formatted_markdown, source);
 });

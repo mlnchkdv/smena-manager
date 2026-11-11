@@ -91,8 +91,8 @@ function notePreviewCard(note, folder, readOnly, folderIndex, serverContext) {
   const actionLabel = action => esc(`${t(action)}: ${note.title || t('Untitled note')} · ${location || t('No folder')}`);
   const titleId = `knowledge-note-title-${esc(note.id)}`;
   const tags = (note.tags || []).filter(Boolean).slice(0, 3);
-  const excerpt = serverContext ? '' : noteCardExcerpt(note, S.ui.knowledgeQuery);
   const context = serverContext || knowledgeSearchContext(note, S.ui.knowledgeQuery);
+  const excerpt = context ? '' : noteCardExcerpt(note, S.ui.knowledgeQuery);
   return `<article class="knowledge-preview-card${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
     ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${!context && !excerpt ? 'hidden' : ''} ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
