@@ -101,18 +101,29 @@ const markdown = new Marked({
       name: 'knowledgeTable',
       level: 'block',
       tokenizer(src) {
-        const lines = src.split('\n');
-        if (!lines[0]?.includes('|') || !lines[1]?.includes('|')) return;
-        const header = tableCells(lines[0]),
-          separator = tableCells(lines[1]);
+        const firstEnd = src.indexOf('\n');
+        if (firstEnd < 0 || !src.slice(0, firstEnd).includes('|')) return;
+        const secondEnd = src.indexOf('\n', firstEnd + 1),
+          secondLine = src.slice(firstEnd + 1, secondEnd < 0 ? src.length : secondEnd);
+        if (!secondLine.includes('|')) return;
+        const header = tableCells(src.slice(0, firstEnd)),
+          separator = tableCells(secondLine);
         if (!header.length || header.length !== separator.length || !separator.every(value => /^:?-{3,}:?$/.test(value))) return;
-        let count = 2;
+        let cursor = secondEnd < 0 ? src.length : secondEnd + 1;
         const rows = [];
-        while (lines[count]?.includes('|') && !/^\s*(?:```|~~~)/.test(lines[count])) rows.push(tableCells(lines[count++]));
+        // Inspect only actual table rows. Splitting the entire remaining note
+        // for every block made long documents approach quadratic work.
+        while (cursor < src.length) {
+          const end = src.indexOf('\n', cursor),
+            line = src.slice(cursor, end < 0 ? src.length : end);
+          if (!line.includes('|') || /^\s*(?:```|~~~)/.test(line)) break;
+          rows.push(tableCells(line));
+          cursor = end < 0 ? src.length : end + 1;
+        }
         const cells = row => row.map(text => ({ text, tokens: this.lexer.inline(text) }));
         return {
           type: 'knowledgeTable',
-          raw: lines.slice(0, count).join('\n') + (count < lines.length ? '\n' : ''),
+          raw: src.slice(0, cursor),
           header: cells(header),
           rows: rows.map(cells),
           align: separator.map(value => (value.endsWith(':') ? (value.startsWith(':') ? 'center' : 'right') : 'left')),

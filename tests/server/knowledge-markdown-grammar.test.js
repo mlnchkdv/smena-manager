@@ -25,3 +25,14 @@ test('TXT stays literal in reading and original sources stay unchanged', () => {
   assert.match(renderKnowledgeMarkdown(source, { plainText: true }), /^<pre class="knowledge-plain-text"># Plain/);
   assert.equal(note.formatted_markdown, source);
 });
+
+test('tables at document end and repeated non-table blocks retain their boundaries', () => {
+  const table = 'A | B\n--- | ---\nx | **y**';
+  const tail = renderKnowledgeMarkdown(table);
+  assert.match(tail, /<td[^>]*>x<\/td><td[^>]*><strong>y<\/strong><\/td>/);
+  const source = Array.from({ length: 500 }, (_, i) => `## Section ${i}\n\nPlain paragraph ${i}.`).join('\n\n') + '\n\n' + table;
+  const html = renderKnowledgeMarkdown(source);
+  assert.equal((html.match(/data-knowledge-heading=/g) || []).length, 500);
+  assert.equal((html.match(/<table>/g) || []).length, 1);
+  assert.match(html, /Plain paragraph 499/);
+});

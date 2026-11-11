@@ -20,13 +20,17 @@ export function markdownText(value) {
     .trim();
 }
 export function firstMarkdownParagraph(value) {
-  return (
-    String(value || '')
-      .replace(/^[ \t]*```[^\n]*\n[\s\S]*?^[ \t]*```[ \t]*$/gm, '')
-      .split(/\r?\n\s*\r?\n/)
-      .map(part => markdownText(part.replace(/^\s*#{1,6}\s+.*$/gm, '')))
-      .find(Boolean) || ''
-  );
+  const source = String(value || '').replace(/^[ \t]*```[^\n]*\n[\s\S]*?^[ \t]*```[ \t]*$/gm, '');
+  const clean = part => markdownText(part.replace(/^\s*#{1,6}\s+.*$/gm, ''));
+  let start = 0;
+  // A summary needs the first readable paragraph, not a normalized copy of
+  // every paragraph in a multi-megabyte source.
+  for (const boundary of source.matchAll(/\r?\n\s*\r?\n/g)) {
+    const paragraph = clean(source.slice(start, boundary.index));
+    if (paragraph) return paragraph;
+    start = boundary.index + boundary[0].length;
+  }
+  return clean(source.slice(start));
 }
 export function redundantMarkdownSummary(summary, source) {
   const normalize = value => markdownText(value).replace(/[-_]/g, '').toLocaleLowerCase();

@@ -13,3 +13,9 @@ test('TXT excerpts remain literal and derived Markdown never rewrites source', (
   assert.match(knowledgeExcerpt(note, ''), /---/);
   assert.equal(note.formatted_markdown, '---\n\n| A | B |');
 });
+
+test('large notes return the first readable paragraph after structural content', () => {
+  const source = '# Заголовок\r\n\r\n```js\nignored();\n```\r\n\r\n**Первый** user_id.\r\n\r\n' + 'Later **paragraph**.\n\n'.repeat(60000);
+  assert.equal(firstMarkdownParagraph(source), 'Первый user_id.');
+  assert.ok(source.endsWith('Later **paragraph**.\n\n'));
+});
