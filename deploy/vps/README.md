@@ -423,3 +423,19 @@ On the actual VPS/origin, use a separate test workspace and disposable media: ma
 Direct Drive supports the configured per-file limit (default 20 GiB), slicing at most 8 MiB. Proxy uploads remain capped at 100 MiB on VPS (Nginx 105m); do not route large videos through an enlarged JSON/multipart API. Resumable ZIP export currently caps a batch at **1 GiB / 500 files**; larger video downloads use the individual file route. Do not present that ZIP limit as unlimited large-file export.
 
 Локально проверены протокол возобновления и смещения больше 4 ГиБ, а не реальная скорость передачи. Для больших медиа нужны прямая загрузка в Drive и проверка контрольной суммы скачанного файла. Проверки блокировки экрана на физических телефонах остаются отдельными.
+
+### Build and disk budget / Сборка и место
+
+For the supplied 4-core / 8 GiB / 120 GB Ubuntu host, every npm/test/build command now runs as `smena-build` in a transient systemd service: **3 GiB aggregate MemoryMax**, 2500 MiB MemoryHigh, 512 MiB swap cap, 300% CPU quota, 256 tasks and 45-minute timeout. The cap includes child Node processes; the 1536 MiB Node heap flag alone is not an aggregate limit. Build environment excludes runtime secrets, and filesystem writes are restricted to staging, build cache and private temporary files. A failing/OOM build never switches the current release. Actual peak RSS/build duration must still be measured on Ubuntu; no swap or host settings are changed automatically.
+
+Before staging and before bundling, free space must be at least **8 GiB and 10%** of the filesystem. Failed staging is retained for inspection. Review cleanup under the deployment lock:
+
+```bash
+sudo /opt/smena-node/bin/node deploy/vps/cleanup-releases.mjs
+# Review the candidate IDs and protected IDs, then use the exact printed key:
+sudo /opt/smena-node/bin/node deploy/vps/cleanup-releases.mjs --apply REVIEW_KEY
+```
+
+Default is read-only. Apply refuses a stale review, symlinks and paths outside managed releases. It protects current, previous and five newest releases; release candidates must be >7 days old, failed stages >2 days. It touches **neither shared immutable assets nor application data, secrets, backups or Node installations**. Shared assets deliberately remain available to old browser tabs; asset garbage collection requires a separate retention/usage policy, rather than deleting chunks merely because their release was removed. Check disk monitoring and inspect unexpectedly large failed stages before applying cleanup.
+
+Ограничение cgroup действует суммарно на процессы каждой команды сборки, а не отдельно на каждый Node. Очистка по умолчанию ничего не удаляет; применение требует ключа просмотренного плана. Реальное выполнение systemd/cgroup и замеры ресурсов принимаются на VPS.

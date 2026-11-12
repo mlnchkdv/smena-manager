@@ -20,6 +20,7 @@ import {
 } from './lib.mjs';
 import { activateRelease } from './transaction.mjs';
 import { verifyBackend, verifyVhost } from './health.mjs';
+import { assertBuildDisk, buildInvocation } from './build-resources.mjs';
 
 const CONFIG = '/etc/smena-manager/deploy.json';
 const SITE = '/etc/nginx/sites-available/smena-manager.conf';
@@ -311,6 +312,7 @@ async function buildRelease(config, ref, fetchSource) {
     return null;
   }
   const id = `${commit}-${randomUUID()}`;
+  await assertBuildDisk(ROOT);
   const stage = path.join(ROOT, 'releases', `.stage-${id}`);
   const target = releasePath(id);
   await fs.mkdir(stage, { mode: 0o755 });
@@ -320,23 +322,21 @@ async function buildRelease(config, ref, fetchSource) {
   try {
     await extractCommit(config, commit, stage);
     // Never run npm lifecycle scripts or tests with production credentials.
-    const env = { ...cleanEnv(), PATH: `${path.dirname(config.node)}:/usr/bin:/bin`, HOME: '/var/lib/smena-build', NODE_OPTIONS: '--max-old-space-size=2048' };
+    const env = { ...cleanEnv(), PATH: `${path.dirname(config.node)}:/usr/bin:/bin`, HOME: '/var/lib/smena-build', NODE_OPTIONS: '--max-old-space-size=1536' };
     const npm = path.join(path.dirname(config.node), 'npm');
     for (const args of [
       ['ci', '--include=dev'],
       ['run', 'lint'],
     ])
-      command('runuser', ['-u', 'smena-build', '--', npm, ...args], {
-        cwd: stage,
-        env: { ...env, ...(args.at(-1) === 'build' ? { VERCEL_GIT_COMMIT_SHA: commit } : {}) },
-      });
+      command('systemd-run', buildInvocation(stage, npm, args, env));
     const tests = (await fs.readdir(path.join(stage, 'tests/server')))
       .filter(name => name.endsWith('.test.js'))
       .sort()
       .map(name => path.join(stage, 'tests/server', name));
     if (!tests.length) throw new Error('Release tests are missing.');
-    command('runuser', ['-u', 'smena-build', '--', config.node, '--test', '--test-concurrency=2', ...tests], { cwd: stage, env });
-    command('runuser', ['-u', 'smena-build', '--', npm, 'run', 'build'], { cwd: stage, env: { ...env, VERCEL_GIT_COMMIT_SHA: commit } });
+    command('systemd-run', buildInvocation(stage, config.node, ['--test', '--test-concurrency=2', ...tests], env));
+    await assertBuildDisk(ROOT);
+    command('systemd-run', buildInvocation(stage, npm, ['run', 'build'], { ...env, VERCEL_GIT_COMMIT_SHA: commit }));
     // This directory was created exclusively for this build and is not user data.
     const testData = path.join(stage, '.data');
     if (path.dirname(testData) !== stage || (await fs.realpath(stage)) !== stage) throw new Error('Unsafe test-data cleanup target.');
