@@ -368,3 +368,17 @@ progress prevent known-success duplicates; provider/crash ambiguity remains.
 A new production VPS starts with delivery paused (`NOTIFICATION_START_PAUSED=true`). Open Settings → Browser notifications → Workspace diagnostics, refresh and review recipients/age. Skip old items deliberately, then enable the reviewed queue. A changed revision requires a fresh preview. Pause prevents new claims; an in-flight delivery may finish. Diagnostics tests remain separate and target only the signed-in admin. The durable decision is protected from ordinary workspace saves. No automatic backlog purge or send occurs during review.
 
 На новом VPS сначала проверьте получателей и возраст очереди в диагностике уведомлений. Пропуск старых заданий сохраняет служебную запись. Кнопка включения разрешает плановую доставку; обновление статуса само по себе ничего не отправляет.
+
+### Independent recovery acceptance / Независимая проверка восстановления
+
+Before DNS cutover: freeze team writes, create a fresh native workspace copy and an **independent media copy** (a workspace JSON alone does not contain photos/videos). Record the copy IDs, revision, note/version counts and source checksums outside Git. Restore into an isolated test workspace; verify exact Markdown, previous versions, folders, access rules, image opening and video Range playback. Do not restore over the team workspace as part of a migration smoke test. Remove neither originals nor the latest known-good copy.
+
+Download the complete recovery set (native manifests **and every referenced immutable object**, plus independent media binaries) to a separate protected directory. Keep a second encrypted copy on a different account/provider/device. The inventory tool verifies byte completeness against the inventory you created; it does **not** prove that all referenced objects were exported, that permissions are correct, or that recovery works. Those are separate restore checks.
+
+```bash
+node deploy/vps/backup-inventory.mjs create /secure/export /secure/export.inventory.json
+# After copying/decrypting on the second device:
+node deploy/vps/backup-inventory.mjs verify /secure/received-export /secure/export.inventory.json
+```
+
+Создайте свежую штатную копию данных и независимую копию медиа; проверьте восстановление в отдельном пространстве. Инвентаризация читает файлы потоково, не обращается к Google, не восстанавливает данные и не изменяет экспорт. Она обнаруживает отсутствующие, добавленные и повреждённые объекты. Храните manifest отдельно от папки экспорта и зашифрованную копию вне исходного аккаунта/сервера. Наличие JSON без бинарных вложений не считается резервной копией файлов.
