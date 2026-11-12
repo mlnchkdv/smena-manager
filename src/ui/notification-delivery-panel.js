@@ -13,13 +13,13 @@ function queueReviewPanel(status) {
   if (!review) return '';
   const copy = (en, ru) => (isRussian() ? ru : en);
   const button = (action, en, ru) =>
-    `<button class="btn btn-secondary btn-sm" data-a="reviewNotificationDelivery" data-action="${action}" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${copy(en, ru)}</button>`;
+    `<button class="btn btn-secondary btn-sm" data-a="reviewNotificationDelivery" data-action="${action}" ${S.ui.notificationDeliveryLoading || (action === 'resume' && !review.resumeAllowed) ? 'disabled' : ''}>${copy(en, ru)}</button>`;
   return `<details ${disclosureAttributes('notification-queue-review')} translate="no"><summary>${copy('Review delivery queue', 'Проверить очередь доставки')} · ${copy(review.paused ? 'Paused' : 'Enabled', review.paused ? 'На паузе' : 'Включена')}</summary>
     <p class="hint">${copy('Resuming enables automatic delivery to the recipients below. Pause stops new attempts; an active attempt may finish. Skipping retains an audit record and does not send.', 'Возобновление разрешит автоматическую доставку получателям ниже. Пауза останавливает новые попытки; начатая может завершиться. Пропуск сохраняет запись и ничего не отправляет.')}</p>
     <p>${copy('Pending jobs', 'Заданий в ожидании')}: ${review.jobs} · ${copy('Older than 7 days', 'Старше 7 дней')}: ${review.olderThanWeek}</p>
     <div class="row" style="flex-wrap:wrap;gap:8px">${review.paused ? button('resume', 'Enable reviewed queue', 'Включить проверенную очередь') : button('pause', 'Pause delivery', 'Приостановить доставку')}${review.olderThanWeek ? button('skip-before', 'Skip items older than 7 days', 'Пропустить старше 7 дней') : ''}</div>
-    ${review.preview.length ? `<ul class="notification-delivery-issues">${review.preview.map(job => `<li>${esc(job.recipient)} · ${esc(job.channels.join(', '))} · ${settingsTimestamp(job.createdAt)}</li>`).join('')}</ul>` : ''}
-    ${review.truncated ? `<p class="hint">${copy('First 50 jobs shown. Inspect and skip the oldest batch before enabling a large backlog.', 'Показаны первые 50 заданий. Разберите старые задания перед включением большой очереди.')}</p>` : ''}
+    ${review.recipients?.length ? `<div class="notification-review-preview" tabindex="0" role="region" aria-label="${copy('Queue recipients', 'Получатели очереди')}"><ul class="notification-delivery-issues">${review.recipients.map(group => `<li><b>${esc(group.recipient)}</b> · ${group.jobs} · ${esc(group.channels.map(channel => (channel === 'email' ? copy('Email', 'Почта') : 'Push')).join(', '))}<br><span class="hint">${copy('Oldest pending', 'Самое старое ожидание')}: ${settingsTimestamp(group.oldestAt)}</span></li>`).join('')}</ul></div>` : ''}
+    ${!review.resumeAllowed ? `<p class="hint">${copy('First 100 recipients shown. Skip old items to reduce this backlog before enabling delivery.', 'Показаны первые 100 получателей. Сократите старую очередь перед включением доставки.')}</p>` : ''}
     ${status.channels?.push?.migrationRequired ? `<p class="hint">${copy('Devices requiring reconnection after domain/key change', 'Устройства, требующие повторного подключения после смены домена/ключа')}: ${status.channels.push.migrationRequired}</p>` : ''}
   </details>`;
 }

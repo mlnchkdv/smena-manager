@@ -19,7 +19,7 @@
 | P11   | Память сборки, место и релизы           | Build cgroup: 3 GiB aggregate, CPU/tasks/time, секреты исключены; disk guard 8 GiB/10%. Cleanup preview+review key сохраняет current/previous/5 newest и все shared assets/data. 9 tests pass; Linux peak/OOM/cleanup приёмка ожидается.        |
 | P12   | Сжатие статики                          | Явный gzip только static; API off. TLS acceptance сравнивает identity/gzip байты и Vary, отрицательные сценарии добавлены. Реальный Nginx/HTTPS ожидает VPS.                                                                                    |
 | P13   | Длинные MD и холодный поиск             | Worker отдаёт безопасное начало до полной AST; 16 tests pass. WebKit RU390/EN1366: первое чтение 2,2–3,8 с, полный MD 8,2–11,7 с, source/history SHA совпали. Search process-cold708/warm535 мс. Долгая полная обработка остаётся ограничением. |
-| P14   | Итоговая RU/EN и адаптивная приёмка     | Запланировано; физические устройства отдельно.                                                                                                                                                                                                  |
+| P14   | Итоговая RU/EN и адаптивная приёмка     | Исправлена найденная перегрузка review: сводка всех получателей, ограниченная высота и keyboard scroll. Review разрешения привязаны к origin, >100 получателей требуют сокращения. Итоговая матрица и release gate выполняются.                 |
 
 Локальные тесты не подтверждают DNS/TLS, доступ к Google с IP Aeza, получение
 сообщений, настоящий плановый запуск или поведение мобильной ОС. Эти результаты

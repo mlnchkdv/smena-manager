@@ -17,6 +17,10 @@ export const locale = () => (S.prefs.lang === 'Русский' ? 'ru-RU' : S.pre
 export const isRussian = () => locale() === 'ru-RU';
 
 const RU = {
+  'Queue changed. Refresh the preview before continuing.': 'Очередь изменилась. Обновите предпросмотр перед продолжением.',
+  'A delivery is in progress. Pause and wait before skipping.': 'Выполняется доставка. Приостановите очередь и дождитесь её завершения перед пропуском.',
+  'Configure the origin and reduce the queue to at most 100 recipients before enabling delivery.':
+    'Настройте адрес сайта и сократите очередь до 100 получателей перед включением доставки.',
   Cycle: 'Цикл',
   'No cycle': 'Без цикла',
   'changed cycle of': 'изменил(а) цикл задачи',
