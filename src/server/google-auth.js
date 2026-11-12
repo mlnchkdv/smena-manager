@@ -19,7 +19,7 @@ export function getGoogleAuthConfiguration(options = {}) {
   const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
   const originAllowed = !isLocalhost || env.GOOGLE_LOCALHOST_ENABLED === 'true';
   const hasEligibleProfile = profiles.some(profile => profile.active && profile.email);
-  const hasSessionSecret = !env.VERCEL || String(env.SESSION_SECRET || '').trim().length >= 32;
+  const hasSessionSecret = (!env.VERCEL && env.NODE_ENV !== 'production') || String(env.SESSION_SECRET || '').trim().length >= 32;
 
   return {
     clientId,

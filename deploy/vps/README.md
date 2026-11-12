@@ -382,3 +382,9 @@ node deploy/vps/backup-inventory.mjs verify /secure/received-export /secure/expo
 ```
 
 Создайте свежую штатную копию данных и независимую копию медиа; проверьте восстановление в отдельном пространстве. Инвентаризация читает файлы потоково, не обращается к Google, не восстанавливает данные и не изменяет экспорт. Она обнаруживает отсутствующие, добавленные и повреждённые объекты. Храните manifest отдельно от папки экспорта и зашифрованную копию вне исходного аккаунта/сервера. Наличие JSON без бинарных вложений не считается резервной копией файлов.
+
+### Session migration / Перенос сессий
+
+Preserve SESSION_SECRET across updates and restarts. Production refuses an absent/short key; Access ID is disabled by default unless explicitly enabled for a controlled emergency. Cookies are HttpOnly, Secure, SameSite=Lax and host-only. A **new domain requires a fresh Google login**; this is expected and differs from an accidental logout on refresh. Old-host browser storage/cookies are not copied to the new host. After signing in on the new origin, check refresh, mobile-size navigation, restart, session revocation and concurrent account tabs. Verify owner/editor/viewer rights and a member-owned separate workspace; try direct URLs across workspaces and ensure denied metadata/binary access. Run the latter locally until a member can sign in to the actual new domain. Never change team roles merely to fake this acceptance.
+
+Сохраняйте ключ сессий при обновлении. На новом домене выполните новый вход через Google, затем проверьте обновление страницы, мобильную навигацию и перезапуск. Права проверяются по серверным профилям; доступ к чужому пространству и бинарным файлам должен отклоняться. Локальные тесты не заменяют consent и вход на реальном HTTPS-origin.

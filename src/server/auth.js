@@ -21,13 +21,16 @@ export function accessIdLoginEnabled(environment = process.env) {
     .trim()
     .toLowerCase();
   if (configured) return ['1', 'true', 'yes', 'on'].includes(configured);
-  return !environment.VERCEL;
+  return !environment.VERCEL && environment.NODE_ENV !== 'production';
 }
 
 function sessionSecret() {
   const value = process.env.SESSION_SECRET?.trim();
+  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+    if (!value || value.length < 32) throw new Error('A stable SESSION_SECRET of at least 32 characters is required in production.');
+    return value;
+  }
   if (value) return value;
-  if (process.env.VERCEL) throw new Error('SESSION_SECRET is required on Vercel.');
   return ephemeralSecret;
 }
 
