@@ -388,3 +388,13 @@ node deploy/vps/backup-inventory.mjs verify /secure/received-export /secure/expo
 Preserve SESSION_SECRET across updates and restarts. Production refuses an absent/short key; Access ID is disabled by default unless explicitly enabled for a controlled emergency. Cookies are HttpOnly, Secure, SameSite=Lax and host-only. A **new domain requires a fresh Google login**; this is expected and differs from an accidental logout on refresh. Old-host browser storage/cookies are not copied to the new host. After signing in on the new origin, check refresh, mobile-size navigation, restart, session revocation and concurrent account tabs. Verify owner/editor/viewer rights and a member-owned separate workspace; try direct URLs across workspaces and ensure denied metadata/binary access. Run the latter locally until a member can sign in to the actual new domain. Never change team roles merely to fake this acceptance.
 
 Сохраняйте ключ сессий при обновлении. На новом домене выполните новый вход через Google, затем проверьте обновление страницы, мобильную навигацию и перезапуск. Права проверяются по серверным профилям; доступ к чужому пространству и бинарным файлам должен отклоняться. Локальные тесты не заменяют consent и вход на реальном HTTPS-origin.
+
+### Ubuntu acceptance / Приёмка хоста
+
+```bash
+sudo /opt/smena-node/bin/node /srv/smena-manager/current/deploy/vps/inspect-host.mjs YOUR_DOMAIN EXPECTED_FULL_GIT_SHA
+```
+
+Read-only: validates installed Nginx and systemd units, the single managed API instance, matching backend/frontend releases and the local TLS vhost. It probes fixed Google hosts without credentials and without following redirects. HTTPS reachability is **not** authorization or successful Drive reading. No cron, restore, send, restart or rollback is triggered. Run after installation and each deployment; then perform the separately authorized Google/data acceptance. In a staging host, exercise one valid update and a deliberately failing build/health check: old code/config must recover, data and secrets must be untouched, cron must stay stopped if recovery itself fails. Keep the deploy journal and expected SHA as evidence; never print the environment file.
+
+Проверка на Windows использует подставные команды и отказы. Это не означает, что unit-файлы уже запускались на Ubuntu. Реальную установку, обновление и аварийный откат нужно принять на VPS до открытия доступа команде.
