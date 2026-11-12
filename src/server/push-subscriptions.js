@@ -8,14 +8,15 @@ import { notificationPath } from '../shared/notification-links.js';
 import { notificationAction, notificationLocale, notificationSnippet } from '../shared/notification-copy.js';
 import { storageVersion } from './storage/version-token.js';
 import { reportProviderError } from './provider-safety.js';
+import { pushRegistrationContext, pushRegistrationMatches } from './push-registration-context.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BASE64URL = /^[A-Za-z0-9_-]+$/u;
 
-function pushConfig() {
-  const publicKey = process.env.VAPID_PUBLIC_KEY?.trim();
-  const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
-  const subject = process.env.VAPID_SUBJECT?.trim() || 'mailto:avdeevandry1999@gmail.com';
+function pushConfig(env = process.env) {
+  const publicKey = env.VAPID_PUBLIC_KEY?.trim();
+  const privateKey = env.VAPID_PRIVATE_KEY?.trim();
+  const subject = env.VAPID_SUBJECT?.trim() || 'mailto:avdeevandry1999@gmail.com';
   return { enabled: Boolean(publicKey && privateKey), publicKey: publicKey || '', privateKey: privateKey || '', subject };
 }
 
@@ -115,6 +116,7 @@ export async function upsertPushSubscription(memberId, profileId, value, options
   const subscription = normalizePushSubscription(value);
   const now = new Date().toISOString();
   const record = {
+    ...pushRegistrationContext(process.env, options.origin),
     id: subscriptionId(subscription.endpoint),
     memberId,
     profileId,
@@ -186,18 +188,25 @@ export async function pushDeliveryStatus() {
   const storage = getStorageProvider();
   const items = typeof storage.loadPushSubscriptions === 'function' ? await storage.loadPushSubscriptions() : [];
   const pruned = prunePushSubscriptions(items);
-  return { configured: true, subscriptions: pruned.items.length, stale: pruned.removedIds.length };
+  const context = pushRegistrationContext();
+  const subscriptions = pruned.items.filter(item => pushRegistrationMatches(item, context)).length;
+  return { configured: true, subscriptions, migrationRequired: pruned.items.length - subscriptions, stale: pruned.removedIds.length };
 }
 
 export async function deliverPushNotifications(data, notifications = [], options = {}) {
-  const config = pushConfig();
+  const env = options.env || process.env;
+  const config = pushConfig(env);
   if (!config.enabled || !notifications.length) {
     return { configured: config.enabled, attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 };
   }
-  const storage = getStorageProvider();
+  const storage = options.storage || getStorageProvider();
   const storedSubscriptions = await storage.loadPushSubscriptions();
   const pruned = prunePushSubscriptions(storedSubscriptions);
-  const subscriptions = pruned.items;
+  const context = pushRegistrationContext(env);
+  const subscriptions = pruned.items.filter(item => pushRegistrationMatches(item, context));
+  const skipIds = new Set(options.skipIds || []);
+  if (skipIds.size && notifications.length !== 1) throw new TypeError('Device delivery progress belongs to one notification.');
+  const deliveredIds = new Set();
   webpush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
   const stale = new Set(pruned.removedIds);
   const sender = options.send || ((subscription, payload, settings) => webpush.sendNotification(subscription, payload, settings));
@@ -213,6 +222,7 @@ export async function deliverPushNotifications(data, notifications = [], options
       const targets = subscriptions.filter(item => item.memberId === notification.recipient);
       await Promise.all(
         targets.map(async target => {
+          if (skipIds.has(target.id)) return;
           try {
             normalizePushSubscription(target.subscription);
           } catch {
@@ -226,6 +236,7 @@ export async function deliverPushNotifications(data, notifications = [], options
             try {
               await sender(target.subscription, payload, settings);
               delivered += 1;
+              deliveredIds.add(target.id);
               return;
             } catch (error) {
               const status = Number(error?.statusCode || error?.status || 0);
@@ -250,5 +261,5 @@ export async function deliverPushNotifications(data, notifications = [], options
   );
 
   if (stale.size) await mutateSubscriptions(items => items.filter(item => !stale.has(item.id)));
-  return { configured: true, attempted, delivered, failed, retried, removed: stale.size };
+  return { configured: true, attempted, delivered, failed, retried, removed: stale.size, deliveredIds: [...deliveredIds] };
 }

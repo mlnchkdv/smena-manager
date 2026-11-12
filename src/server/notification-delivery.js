@@ -107,8 +107,8 @@ export async function claimNotificationTestCooldown(key, cooldownMs = 60_000, no
 export async function deliverWorkspaceNotifications(data, notifications = [], options = {}) {
   if (data._notificationOutbox) {
     const channels = { push: { ...EMPTY_CHANNEL }, email: { ...EMPTY_CHANNEL } };
-    const sender = (name, send) => async (workspace, events) => {
-      const result = await send(workspace, events);
+    const sender = (name, send) => async (workspace, events, deliveryOptions) => {
+      const result = await send(workspace, events, deliveryOptions);
       for (const key of Object.keys(EMPTY_CHANNEL)) channels[name][key] += Number(result[key] || 0);
       return result;
     };

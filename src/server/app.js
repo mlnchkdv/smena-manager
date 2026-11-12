@@ -375,6 +375,7 @@ app.post('/api/push/subscriptions', async (request, response, next) => {
     const member = memberForProfile(bindAccessProfiles(stored, getAccessProfiles()), request.user);
     if (!member) throw Object.assign(new Error('Your profile is not linked to a workspace member.'), { statusCode: 403, code: 'MEMBER_REQUIRED' });
     const result = await upsertPushSubscription(member.id, request.user.id, request.body?.subscription, {
+      origin: request.get('origin'),
       locale: request.body?.locale,
       userAgent: request.get('user-agent'),
     });

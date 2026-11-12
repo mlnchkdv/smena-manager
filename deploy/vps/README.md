@@ -349,3 +349,16 @@ client ID и refresh token. Общий grant сохраняет совмести
 EN: use a separate Gmail client and token, verify Console publishing, then opt into
 strict isolation. The checker never rotates/revokes grants or treats a declaration
 as a live Google verification. [Google token lifecycle](https://developers.google.com/identity/protocols/oauth2).
+
+## Push после переноса / Push migration
+
+При заданном APP_ORIGIN отправляются только подписки этого origin и текущего
+VAPID public-key fingerprint. Старые записи остаются для разбора/отката, но
+на VPS не получают отправки. Пользователь включает push на новом домене.
+Диагностика возвращает migrationRequired без endpoints. При частичном успехе
+очередь сохраняет device IDs и не повторяет уже подтверждённую отправку на них.
+Сбой процесса после принятия провайдером и до записи подтверждения остаётся
+ограничением at-least-once; абсолютное exactly-once не обещается.
+
+EN: origin/key-bound registrations, retained legacy records and per-device retry
+progress prevent known-success duplicates; provider/crash ambiguity remains.

@@ -94,12 +94,18 @@ export async function drainNotificationOutbox(options) {
     }
     let outcome = 'pending';
     let reason = 'provider_error';
+    const validIds = values =>
+      [...new Set((Array.isArray(values) ? values : []).filter(id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(id)))].slice(-100);
+    const previousIds = claim.channel === 'push' ? validIds(data._notificationOutbox.find(item => item.id === claim.id)?.channels.push?.deliveredTo) : [];
+    let deliveredIds = previousIds;
     const key = claim.channel === 'email' ? emailPreferenceForNotification(claim.notification) : pushPreferenceForNotification(claim.notification);
     if (!eligibleNotification(data, claim.notification) || !notificationPreferencesForMember(data, claim.notification.recipient)[key]) outcome = 'skipped';
     else {
       try {
-        const result = await options.send[claim.channel](data, [claim.notification]);
-        if (result.configured && !result.failed && result.delivered > 0) outcome = 'sent';
+        const result = await options.send[claim.channel](data, [claim.notification], { skipIds: previousIds });
+        if (claim.channel === 'push') deliveredIds = validIds([...previousIds, ...(Array.isArray(result.deliveredIds) ? result.deliveredIds : [])]);
+        if (result.configured && !result.failed && (result.delivered > 0 || (claim.channel === 'push' && previousIds.length > 0 && result.attempted === 0)))
+          outcome = 'sent';
         else if (result.configured && result.attempted === 0 && !result.failed) {
           outcome = 'skipped';
           reason = 'no_destination';
@@ -117,6 +123,7 @@ export async function drainNotificationOutbox(options) {
         await options.mutate(next => {
           const state = next._notificationOutbox?.find(item => item.id === claim.id)?.channels?.[claim.channel];
           if (state?.token === token) {
+            if (claim.channel === 'push' && deliveredIds.length) state.deliveredTo = deliveredIds;
             Object.assign(state, {
               reason: outcome === 'sent' ? null : reason,
               status: outcome,
