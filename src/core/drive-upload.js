@@ -32,8 +32,17 @@ const sleep = (ms, signal) =>
 export async function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, options = {}) {
   const { signal, onProgress, onAccepted, assertScope = () => {}, xhrFactory = () => new XMLHttpRequest(), wait = sleep, resume = false } = options;
   const url = new URL(uploadUrl);
-  if (url.protocol !== 'https:' || url.hostname !== 'www.googleapis.com' || !url.pathname.startsWith('/upload/drive/'))
+  if (
+    url.protocol !== 'https:' ||
+    url.hostname !== 'www.googleapis.com' ||
+    url.port ||
+    url.username ||
+    url.password ||
+    url.hash ||
+    !url.pathname.startsWith('/upload/drive/')
+  )
     throw new UploadTransferError('Invalid upload destination.');
+  if (!Number.isSafeInteger(file?.size) || file.size <= 0) throw new UploadTransferError('Invalid file size.');
   const chunkSize = Math.max(256 * 1024, Math.min(8 * 1024 * 1024, Math.floor(chunkSizeBytes / (256 * 1024)) * 256 * 1024 || 8 * 1024 * 1024));
   const check = () => {
     assertScope();
