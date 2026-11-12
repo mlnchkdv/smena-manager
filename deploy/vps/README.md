@@ -112,6 +112,18 @@ sudo chmod 0640 /etc/smena-manager/smena.env /etc/smena-manager/access-ids.json
 Вход использует Google Identity Services popup и `POST /api/auth/google`.
 Новый `/api/auth/callback` или redirect URI для входа не нужен. Уже настроенный
 локальный redirect для отдельного получения Gmail grant оставьте как есть.
+
+После выбора домена защищённый ENV можно подготовить штатным helper:
+
+```bash
+sudo /opt/smena-node/bin/node deploy/vps/configure-origin.mjs --domain tasks.example.com
+sudo /opt/smena-node/bin/node deploy/vps/configure-origin.mjs --domain tasks.example.com --write
+```
+
+Первая команда только проверяет и показывает origin без секретов. Вторая меняет
+только `APP_ORIGIN`, сохраняя остальные строки и права файла. Домен должен
+совпадать с выбранным при `install.sh`. DNS, TLS и Google Console этим helper
+не изменяются. EN: preview is read-only; `--write` updates APP_ORIGIN only.
 Сохраняются существующие пользователи OAuth consent screen и разрешения API.
 Повторно выдавать Drive/Gmail refresh token при рабочем grant не требуется.
 

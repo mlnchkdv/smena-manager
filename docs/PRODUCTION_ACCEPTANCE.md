@@ -34,13 +34,13 @@ The operation must be atomic: a failed restore leaves the current core data, doc
 
 ## 3. OAuth/Gmail ownership / Владелец OAuth и Gmail
 
-- Keep the OAuth client in the approved Google Cloud project and use the production HTTPS callback only.
+- Keep the OAuth client in the approved Google Cloud project. Add the production HTTPS origin to Authorized JavaScript origins; current GIS popup sign-in uses no new redirect callback.
 - Request the minimum scopes currently required: profile/email, Drive storage, and Gmail send.
 - Store refresh tokens only in the deployment secret store; never commit them or place them in a browser bundle.
 - Rotate the Gmail refresh token after an owner change, suspected exposure, or Google revocation. Confirm `emailAuthorizationStatus()` is degraded before re-authorizing and healthy afterwards.
 - Document the owner account, consent-screen publishing state, redirect URIs, and a revocation procedure in the password manager, not in Git.
 
-- OAuth-клиент хранится в утверждённом Google Cloud-проекте, используется только production HTTPS callback.
+- OAuth-клиент хранится в утверждённом Google Cloud-проекте. HTTPS-origin добавляется в Authorized JavaScript origins; текущий GIS popup не требует нового redirect callback.
 - Запрашиваются только необходимые scope: профиль/email, Drive storage и Gmail send.
 - Refresh token хранится только в секретах деплоя; в Git и клиентский bundle он не попадает.
 - После смены владельца, подозрения на утечку или отзыва Google токен нужно заменить. До повторной авторизации `emailAuthorizationStatus()` должен показывать degraded, после — healthy.
