@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { probeMonitor } from '../../deploy/vps/monitor.mjs';
+import { probeMonitor, hostMemory } from '../../deploy/vps/monitor.mjs';
 import { monitorAuthorized } from '../../src/server/monitor-readiness.js';
 test('monitor is loopback-only, independently keyed and does not conflate HTTP 200 with readiness', async () => {
   const secret = 'synthetic-monitor-key-at-least-32-characters';
@@ -25,4 +25,21 @@ test('monitor is loopback-only, independently keyed and does not conflate HTTP 2
   );
   assert.equal((await probeMonitor({ ...options, fetcher: async url => Response.json({ status: url.endsWith('/health') ? 'ok' : 'ready' }) })).ok, true);
   assert.equal((await probeMonitor({ ...options, disk: async () => ({ bavail: 1, bsize: 1 }) })).issues.includes('disk_low'), true);
+});
+
+test('Linux monitoring uses reclaimable MemAvailable instead of free pages; unreadable data remains unknown', async () => {
+  const options = { platform: 'linux', total: 8 * 1024 ** 3, free: () => 0, read: async () => 'MemFree:        1 kB\nMemAvailable:  4194304 kB\n' };
+  assert.equal((await hostMemory(options)).available, 4 * 1024 ** 3);
+  assert.equal(
+    (
+      await hostMemory({
+        ...options,
+        read: async () => {
+          throw Error('unavailable');
+        },
+      })
+    ).available,
+    null,
+  );
+  assert.equal((await hostMemory({ ...options, read: async () => 'MemAvailable: 999999999999999999999 kB' })).available, null);
 });
