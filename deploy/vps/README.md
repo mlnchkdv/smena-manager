@@ -333,3 +333,19 @@ Nginx и сборке. Сборка при недостатке ресурсов
 Предыдущий [промпт передачи задачи](../../docs/VPS_AEZA_DEPLOYMENT_PROMPT_RU.md)
 содержит более широкий контекст. Для установки используйте текущий комплект
 и этот порядок действий, сверяясь с актуальным кодом.
+
+## Изоляция Google grants / Grant isolation
+
+`check:deploy` отличает отдельное имя переменной Gmail от действительно отдельных
+client ID и refresh token. Общий grant сохраняет совместимость и даёт предупреждение.
+Для изоляции задайте отдельные GMAIL_OAUTH_CLIENT_ID/SECRET и выполните локально
+`npm run setup:gmail -- --require-isolated-client`. Команда открывает consent только
+при явном запуске; полученный token не сохраняется, если в нём остались Drive scopes.
+После проверки включите `GMAIL_REQUIRE_ISOLATED_GRANT=true`. Существующий grant
+не отзывается автоматически. GOOGLE_OAUTH_PUBLISHING_STATUS — декларация оператора;
+фактический статус проверяется в Console. External Testing с Drive/Gmail scopes
+может иметь семидневные refresh grants.
+
+EN: use a separate Gmail client and token, verify Console publishing, then opt into
+strict isolation. The checker never rotates/revokes grants or treats a declaration
+as a live Google verification. [Google token lifecycle](https://developers.google.com/identity/protocols/oauth2).

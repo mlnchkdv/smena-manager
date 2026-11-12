@@ -1,3 +1,5 @@
+import { googleGrantPolicy } from '../shared/google-grant-policy.js';
+
 function value(env, key) {
   return String(env[key] || '').trim();
 }
@@ -74,6 +76,20 @@ export function inspectDeploymentConfig(options = {}) {
       message: 'Authorize a dedicated Gmail refresh token so email delivery does not depend on the Google Drive token.',
     });
   }
+
+  const grants = googleGrantPolicy(env);
+  if (grants.gmailConfigured && !grants.gmailIsolated) {
+    const issue = { key: 'GMAIL_GRANT_SHARED', message: 'Use a separate Gmail OAuth client and refresh token to isolate mail from Drive authorization.' };
+    (grants.requireIsolation ? issues : warnings).push(issue);
+  }
+  if (env.NODE_ENV === 'production' && credentialMode === 'oauth2' && !['production', 'internal'].includes(grants.publishingStatus))
+    warnings.push({
+      key: 'GOOGLE_OAUTH_PUBLISHING_STATUS',
+      message:
+        grants.publishingStatus === 'testing'
+          ? 'Testing grants may expire after seven days. Verify Google Console publishing before unattended operation.'
+          : 'Verify the Google Console publishing status; its lifecycle has not been confirmed by this configuration check.',
+    });
 
   return {
     ready: issues.length === 0,

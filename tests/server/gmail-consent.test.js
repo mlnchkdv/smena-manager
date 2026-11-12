@@ -27,6 +27,7 @@ test('Gmail consent URL requests offline minimal access and an explicit confirma
   const url = new URL(gmailConsentUrl(config, 'csrf-state'));
   assert.equal(url.origin, 'https://accounts.google.com');
   assert.equal(url.searchParams.get('access_type'), 'offline');
+  assert.equal(url.searchParams.get('include_granted_scopes'), 'false');
   assert.equal(url.searchParams.get('prompt'), 'consent select_account');
   assert.equal(url.searchParams.get('state'), 'csrf-state');
   assert.equal(url.searchParams.get('redirect_uri'), config.redirectUri);

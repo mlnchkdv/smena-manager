@@ -24,7 +24,7 @@ export function gmailConsentUrl(config, state) {
   const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
   return client.generateAuthUrl({
     access_type: 'offline',
-    include_granted_scopes: true,
+    include_granted_scopes: false,
     login_hint: config.sender,
     prompt: 'consent select_account',
     scope: ['openid', 'email', GMAIL_SEND_SCOPE],
@@ -97,6 +97,9 @@ async function main() {
   if (!config.clientId || !config.clientSecret) {
     throw new Error('Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (or their GMAIL_OAUTH_* equivalents) before running this command.');
   }
+  const isolated = process.argv.includes('--require-isolated-client');
+  if (isolated && (!process.env.GMAIL_OAUTH_CLIENT_ID || config.clientId === process.env.GOOGLE_CLIENT_ID?.trim()))
+    throw new Error('Configure a separate GMAIL_OAUTH_CLIENT_ID and secret before requesting an isolated Gmail grant.');
   const state = randomBytes(24).toString('base64url');
   const client = new OAuth2Client(config.clientId, config.clientSecret, config.redirectUri);
   const codePromise = callbackCode(config, state);
@@ -120,6 +123,8 @@ async function main() {
   }
   const tokenInfo = await client.getTokenInfo(tokens.access_token);
   if (!(tokenInfo.scopes || []).includes(GMAIL_SEND_SCOPE)) throw new Error('The required gmail.send permission was not granted.');
+  if (isolated && (tokenInfo.scopes || []).some(scope => scope.startsWith('https://www.googleapis.com/auth/drive')))
+    throw new Error('The Gmail grant still contains Drive scopes. Use the separate Gmail client; the token was not saved.');
 
   const outputDir = path.resolve('.data');
   const outputPath = path.join(outputDir, 'gmail-oauth.env');

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { domainToASCII } from 'node:url';
 import { isIP } from 'node:net';
 import { HTTP_SECURITY_HEADERS } from '../../src/shared/http-security.js';
+import { googleGrantPolicy } from '../../src/shared/google-grant-policy.js';
 
 export const ROOT = '/srv/smena-manager';
 export const ENV_FILE = '/etc/smena-manager/smena.env';
@@ -95,6 +96,8 @@ export function validateVpsEnvironment(env, profiles, domain) {
   }
   if (env.GMAIL_OAUTH_CLIENT_ID || env.GMAIL_OAUTH_CLIENT_SECRET)
     require(Boolean(env.GMAIL_OAUTH_CLIENT_ID && env.GMAIL_OAUTH_CLIENT_SECRET), 'GMAIL_OAUTH_CLIENT_PAIR');
+  const grants = googleGrantPolicy(env);
+  require(!grants.requireIsolation || !grants.gmailConfigured || grants.gmailIsolated, 'GMAIL_GRANT_SHARED');
   if (env.VAPID_PUBLIC_KEY || env.VAPID_PRIVATE_KEY) {
     for (const [key, length] of [
       ['VAPID_PUBLIC_KEY', 65],
