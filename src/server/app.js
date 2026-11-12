@@ -179,6 +179,16 @@ app.get('/api/cron/status', requireCronSecret, async (_request, response, next) 
 });
 
 app.use('/api/auth', authRouter);
+app.get('/api/monitor/readiness', async (request, response, next) => {
+  try {
+    const { monitorAuthorized, monitorReadiness } = await import('./monitor-readiness.js');
+    if (!monitorAuthorized(request)) return response.sendStatus(404);
+    const result = await monitorReadiness();
+    response.status(result.status === 'ready' ? 200 : 503).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {

@@ -386,7 +386,10 @@ async function switchRelease(config, target, previous) {
     installConfig: () => writeManaged(files),
     validateConfig: async () => {
       command('nginx', ['-t']);
-      command('systemd-analyze', ['verify', '/etc/systemd/system/' + APP, '/etc/systemd/system/' + CRON, '/etc/systemd/system/' + TIMER]);
+      command('systemd-analyze', [
+        'verify',
+        ...[APP, CRON, TIMER, 'smena-manager-monitor.service', 'smena-manager-monitor.timer'].map(unit => '/etc/systemd/system/' + unit),
+      ]);
       systemctl('daemon-reload');
     },
     startApp: async () => systemctl('start', APP),

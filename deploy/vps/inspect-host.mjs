@@ -4,7 +4,13 @@ import { pathToFileURL } from 'node:url';
 import { domainName } from './lib.mjs';
 import { verifyBackend, verifyVhost } from './health.mjs';
 
-const units = ['smena-manager.service', 'smena-manager-cron.service', 'smena-manager-cron.timer'];
+const units = [
+  'smena-manager.service',
+  'smena-manager-cron.service',
+  'smena-manager-cron.timer',
+  'smena-manager-monitor.service',
+  'smena-manager-monitor.timer',
+];
 const command = (program, args) => {
   const result = spawnSync(program, args, { encoding: 'utf8', timeout: 30000, maxBuffer: 1024 * 1024 });
   if (result.error || result.status !== 0) throw Error(`Host check failed: ${program}. Inspect its service journal locally.`);

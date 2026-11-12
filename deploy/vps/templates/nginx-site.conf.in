@@ -28,6 +28,7 @@ server {
 
     # Automation is loopback-only; never pass its bearer secret via Nginx.
     location ^~ /api/cron/ { return 404; }
+    location ^~ /api/monitor/ { return 404; }
     location = /api { include /etc/nginx/snippets/smena-manager-proxy.conf; }
     location ^~ /api/ { include /etc/nginx/snippets/smena-manager-proxy.conf; }
 

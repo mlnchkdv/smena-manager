@@ -1,0 +1,20 @@
+# Managed by Smena Manager VPS kit
+[Unit]
+Description=Smena Manager independent read-only monitor
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=smena
+Group=smena
+WorkingDirectory=/srv/smena-manager/current
+EnvironmentFile=/etc/smena-manager/smena.env
+ExecStart={{NODE}} deploy/vps/monitor.mjs
+TimeoutStartSec=240
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/smena-manager
+MemoryMax=256M

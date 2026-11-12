@@ -398,3 +398,18 @@ sudo /opt/smena-node/bin/node /srv/smena-manager/current/deploy/vps/inspect-host
 Read-only: validates installed Nginx and systemd units, the single managed API instance, matching backend/frontend releases and the local TLS vhost. It probes fixed Google hosts without credentials and without following redirects. HTTPS reachability is **not** authorization or successful Drive reading. No cron, restore, send, restart or rollback is triggered. Run after installation and each deployment; then perform the separately authorized Google/data acceptance. In a staging host, exercise one valid update and a deliberately failing build/health check: old code/config must recover, data and secrets must be untouched, cron must stay stopped if recovery itself fails. Keep the deploy journal and expected SHA as evidence; never print the environment file.
 
 Проверка на Windows использует подставные команды и отказы. Это не означает, что unit-файлы уже запускались на Ubuntu. Реальную установку, обновление и аварийный откат нужно принять на VPS до открытия доступа команде.
+
+### Independent operational monitor / Независимый мониторинг
+
+The optional `smena-manager-monitor.timer` runs every five minutes, separately from cron and Gmail. Configure a random **different** MONITOR_SECRET (32+ characters) in the protected environment, deploy the matching API/units, restart the API to load it, and explicitly enable the timer:
+
+```bash
+sudo systemctl enable --now smena-manager-monitor.timer
+sudo systemctl status smena-manager-monitor.service
+sudo journalctl -u smena-manager-monitor.service --since today
+sudo cat /var/lib/smena-manager/monitor-last-run.json
+```
+
+The loopback-only, separately keyed `/api/monitor/readiness` is blocked in Nginx. It reads each workspace's storage/coordination, saved cron result, backup age and channel authorization; returns codes/counts without content, recipients or credentials. A paused queue is an explicit issue. The helper also checks process health, <4 GiB free disk and low host memory; HTTP 200 with degraded content still fails. It never invokes cron, resend, restore or cleanup. First-day stale backup/cron alerts are expected until the real scheduled run succeeds. It fails in the service journal and writes a protected summary independently of application email; configure an **external** uptime/certificate/failed-monitor alert before inviting the team. No external alert destination is silently selected or contacted. A journal alone cannot notify you if the whole VPS is offline. Check all required monitors actually run after reboot.
+
+Монитор не использует пользовательскую сессию или ключ cron и ничего не рассылает. Проверки выполняются только после явного включения timer. Успешный health не подтверждает работоспособность Google/копий/планировщика. Для отказа всего VPS нужен внешний монитор HTTPS и отдельный канал оповещения; подключение такого канала остаётся операционной приёмкой.

@@ -65,6 +65,10 @@ export function validateVpsEnvironment(env, profiles, domain) {
   for (const key of ['PATH', 'HOME', 'NODE_PATH', 'LD_PRELOAD', 'LD_LIBRARY_PATH', 'ACCESS_IDS_JSON']) require(!Object.hasOwn(env, key), `REMOVE_${key}`);
   require(!env.NODE_OPTIONS || /^--max-old-space-size=(512|1024|1536|2048|3072|4096)$/.test(env.NODE_OPTIONS), 'NODE_OPTIONS');
   for (const key of ['SESSION_SECRET', 'CRON_SECRET']) require(!placeholder(env[key]) && env[key].length >= 32, key);
+  if (env.MONITOR_SECRET)
+    require(!placeholder(env.MONITOR_SECRET) &&
+      env.MONITOR_SECRET.length >= 32 &&
+      ![env.SESSION_SECRET, env.CRON_SECRET].includes(env.MONITOR_SECRET), 'MONITOR_SECRET');
   require(!placeholder(env.GOOGLE_CLIENT_ID) && env.GOOGLE_CLIENT_ID.endsWith('.apps.googleusercontent.com'), 'GOOGLE_CLIENT_ID');
   for (const key of ['GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']) require(!placeholder(env[key]) && env[key].length >= 16, key);
   for (const key of ['FOLDER', 'DATABASE_FILE', 'UPLOADS_FOLDER', 'BACKUPS_FOLDER', 'SESSIONS_FILE', 'PUSH_FILE', 'DELIVERY_FILE']) {
@@ -144,6 +148,8 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     '/etc/systemd/system/smena-manager.service': 'smena-manager.service.in',
     '/etc/systemd/system/smena-manager-cron.service': 'smena-manager-cron.service.in',
     '/etc/systemd/system/smena-manager-cron.timer': 'smena-manager-cron.timer.in',
+    '/etc/systemd/system/smena-manager-monitor.service': 'smena-manager-monitor.service.in',
+    '/etc/systemd/system/smena-manager-monitor.timer': 'smena-manager-monitor.timer.in',
     '/etc/letsencrypt/renewal-hooks/deploy/smena-manager-nginx.sh': 'certbot-reload.sh.in',
   };
   const rendered = new Map();
