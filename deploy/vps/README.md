@@ -439,3 +439,9 @@ sudo /opt/smena-node/bin/node deploy/vps/cleanup-releases.mjs --apply REVIEW_KEY
 Default is read-only. Apply refuses a stale review, symlinks and paths outside managed releases. It protects current, previous and five newest releases; release candidates must be >7 days old, failed stages >2 days. It touches **neither shared immutable assets nor application data, secrets, backups or Node installations**. Shared assets deliberately remain available to old browser tabs; asset garbage collection requires a separate retention/usage policy, rather than deleting chunks merely because their release was removed. Check disk monitoring and inspect unexpectedly large failed stages before applying cleanup.
 
 Ограничение cgroup действует суммарно на процессы каждой команды сборки, а не отдельно на каждый Node. Очистка по умолчанию ничего не удаляет; применение требует ключа просмотренного плана. Реальное выполнение systemd/cgroup и замеры ресурсов принимаются на VPS.
+
+### Static compression / Сжатие статики
+
+Public static locations explicitly enable built-in Nginx gzip (level 4, minimum 1024 bytes, Vary: Accept-Encoding). API locations inherit `gzip off`; binary media are not recompressed. No optional Brotli/gzip_static module is assumed. Activation and read-only host inspection now fetch the same built JS asset as identity and gzip through the actual local TLS vhost, check Content-Encoding/Vary, decompress with a bounded output and compare bytes. Missing gzip fails release acceptance rather than trusting configuration text. Verify this on Ubuntu after `nginx -t`; local synthetic HTTP responses do not establish that the VPS module/config has run.
+
+Сжатие включено для публичной статики; ответы API с пользовательскими данными остаются без него. Проверяется не только заголовок, но и совпадение распакованных байтов. Фактическая проверка через HTTPS-Nginx ожидает VPS.

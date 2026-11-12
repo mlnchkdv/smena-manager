@@ -61,6 +61,10 @@ test('rendered VPS configs retain API paths, trusted proxy boundaries, Google se
   const proxy = files.get('/etc/nginx/snippets/smena-manager-proxy.conf');
   const headers = files.get('/etc/nginx/snippets/smena-manager-security.conf');
   assert.match(site, /location \^~ \/api\/cron\/ \{ return 404; \}/);
+  assert.match(site, /gzip off;/);
+  assert.match(site, /location \^~ \/api\/monitor\/ \{ return 404; \}/);
+  assert.match(files.get('/etc/nginx/snippets/smena-manager-static-gzip.conf'), /gzip_vary on;/);
+  assert.doesNotMatch(proxy, /gzip on/);
   assert.match(site, /shared/);
   assert.match(site, /try_files \$uri =404/);
   assert.match(proxy, /proxy_pass http:\/\/127\.0\.0\.1:3001;/);

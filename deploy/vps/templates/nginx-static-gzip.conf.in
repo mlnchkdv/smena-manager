@@ -1,0 +1,7 @@
+# Managed by Smena Manager VPS kit
+# Static public files only. API responses inherit gzip off from the server.
+gzip on;
+gzip_vary on;
+gzip_min_length 1024;
+gzip_comp_level 4;
+gzip_types text/css text/plain application/javascript text/javascript application/json application/manifest+json image/svg+xml application/wasm;

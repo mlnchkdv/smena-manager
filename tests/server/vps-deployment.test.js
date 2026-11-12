@@ -5,10 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { activateRelease } from '../../deploy/vps/transaction.mjs';
 import { parseOptions, publishAssets } from '../../deploy/vps/manage.mjs';
-import { verifyVhost, verifyBackend } from '../../deploy/vps/health.mjs';
+import { verifyVhost, verifyBackend, verifyStaticCompression } from '../../deploy/vps/health.mjs';
 import { domainInNginxDump } from '../../deploy/vps/lib.mjs';
 import { createGracefulShutdown } from '../../src/server/graceful-shutdown.js';
 import http from 'node:http';
+import { gzipSync } from 'node:zlib';
 
 function fixture(failAt, recoveryFails = false) {
   const state = { selected: 'old', backend: 'old', config: 'old', timer: true, status: '', calls: [] };
@@ -105,17 +106,21 @@ test('busy cron aborts before stopping the backend; failed recovery never resume
 test('VPS health verifies the TLS vhost release, storage and access protection without calling cron', async () => {
   const sha = 'a'.repeat(40);
   const requests = [];
-  const response = url => {
+  const response = (url, options = {}) => {
     const target = new URL(url).pathname;
     requests.push(target);
     if (target === '/') return new Response('<script type="module" src="/assets/app.js"></script>', { headers: { 'Content-Type': 'text/html' } });
+    if (target === '/assets/app.js')
+      return new Response(options.headers?.['Accept-Encoding'] === 'gzip' ? gzipSync('const sample=1;'.repeat(200)) : 'const sample=1;'.repeat(200), {
+        headers: options.headers?.['Accept-Encoding'] === 'gzip' ? { 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' } : {},
+      });
     if (target === '/api/health') return Response.json({ status: 'ok', service: 'smena-manager', release: sha });
     if (target === '/api/auth/config') return Response.json({ deploymentReady: true, googleAuthEnabled: true, workspaceStorageAvailable: true });
     if (target === '/app-version.json') return Response.json({ version: sha });
     return new Response('{}', { status: 401 });
   };
   await verifyBackend(sha, { fetcher: async url => response(url) });
-  await verifyVhost('tasks.team.invalid', sha, { fetcher: async url => response(url) });
+  await verifyVhost('tasks.team.invalid', sha, { fetcher: async (url, options) => response(url, options) });
   assert.equal(
     requests.some(url => url.includes('/cron/')),
     false,
@@ -141,6 +146,19 @@ test('shared assets retain old lazy chunks and refuse same-name replacement with
   } finally {
     assert.ok(path.resolve(directory).startsWith(path.resolve(os.tmpdir()) + path.sep) && path.basename(directory).startsWith('smena-vps-assets-'));
     await fs.rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('compression acceptance rejects a successful response without gzip or with different decoded bytes', async () => {
+  for (const mismatch of [false, true]) {
+    const fetcher = async (url, options = {}) => {
+      if (url.endsWith('/')) return new Response('<script src="/assets/app.js"></script>');
+      if (options.headers?.['Accept-Encoding'] !== 'gzip') return new Response('const x=1;'.repeat(200));
+      return mismatch
+        ? new Response(gzipSync('different content'), { headers: { 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding' } })
+        : new Response('plain');
+    };
+    await assert.rejects(verifyStaticCompression('tasks.team.invalid', { fetcher }), mismatch ? /differ/ : /missing/);
   }
 });
 

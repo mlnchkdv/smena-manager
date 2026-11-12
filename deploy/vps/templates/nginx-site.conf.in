@@ -22,6 +22,7 @@ server {
     root /srv/smena-manager/current/dist;
     index index.html;
     autoindex off;
+    gzip off;
     client_max_body_size 105m;
     client_body_timeout 60s;
     include /etc/nginx/snippets/smena-manager-security.conf;
@@ -33,6 +34,7 @@ server {
     location ^~ /api/ { include /etc/nginx/snippets/smena-manager-proxy.conf; }
 
     location ^~ /assets/ {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         # Shared immutable assets retain old lazy chunks across release switches.
         root /srv/smena-manager/shared;
         try_files $uri =404;
@@ -40,27 +42,32 @@ server {
         include /etc/nginx/snippets/smena-manager-security.conf;
     }
     location = /index.html {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         try_files $uri =404;
         add_header Cache-Control "no-store" always;
         include /etc/nginx/snippets/smena-manager-security.conf;
     }
     location = /sw.js {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         try_files $uri =404;
         add_header Cache-Control "no-store" always;
         include /etc/nginx/snippets/smena-manager-security.conf;
     }
     location ~ ^/(app-version\.json|offline-assets\.json|offline\.html|manifest\.webmanifest|manifest\.json)$ {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         try_files $uri =404;
         add_header Cache-Control "no-store" always;
         include /etc/nginx/snippets/smena-manager-security.conf;
     }
     location ~ /\. { deny all; }
     location ~* \.(js|mjs|css|map|json|svg|png|jpe?g|webp|gif|ico|woff2?|ttf|wasm|pdf)$ {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         try_files $uri =404;
         add_header Cache-Control "public, max-age=0, must-revalidate" always;
         include /etc/nginx/snippets/smena-manager-security.conf;
     }
     location / {
+        include /etc/nginx/snippets/smena-manager-static-gzip.conf;
         try_files $uri $uri/ /index.html;
         add_header Cache-Control "no-store" always;
         include /etc/nginx/snippets/smena-manager-security.conf;

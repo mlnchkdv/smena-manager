@@ -1,5 +1,6 @@
 import https from 'node:https';
 import { Readable } from 'node:stream';
+import { gunzipSync } from 'node:zlib';
 import { smokeDeployment } from '../../scripts/smoke-deployment.js';
 
 // Check this machine's actual TLS vhost, with normal certificate verification
@@ -17,7 +18,7 @@ export function localTlsFetch(origin) {
           servername: expected.hostname,
           path: url.pathname + url.search,
           method: 'GET',
-          headers: { Host: expected.hostname },
+          headers: { Host: expected.hostname, ...(options.headers?.['Accept-Encoding'] ? { 'Accept-Encoding': options.headers['Accept-Encoding'] } : {}) },
           signal: options.signal,
         },
         response => {
@@ -44,4 +45,32 @@ export async function verifyVhost(domain, commit, { fetcher = localTlsFetch(`htt
     const data = await response.json();
     if (!response.ok || (target === '/api/health' ? data.release : data.version) !== commit) throw new Error('Frontend/backend release mismatch.');
   }
+  await verifyStaticCompression(domain, { fetcher });
+}
+
+async function boundedBytes(response) {
+  let bytes = 0;
+  const chunks = [];
+  for await (const chunk of response.body) {
+    bytes += chunk.length;
+    if (bytes > 8 * 1024 * 1024) throw Error('Static compression probe exceeds its limit.');
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+export async function verifyStaticCompression(domain, { fetcher = localTlsFetch(`https://${domain}`) } = {}) {
+  const origin = `https://${domain}`;
+  const page = await fetcher(origin + '/', { signal: AbortSignal.timeout(10000) });
+  const html = (await boundedBytes(page)).toString('utf8');
+  const asset = html.match(/src=["'](\/assets\/[a-zA-Z0-9_.-]+\.js)["']/)?.[1];
+  if (!page.ok || !asset) throw Error('No static JavaScript asset for compression verification.');
+  const plain = await fetcher(origin + asset, { headers: { 'Accept-Encoding': 'identity' }, signal: AbortSignal.timeout(10000) });
+  const expected = await boundedBytes(plain);
+  if (!plain.ok || expected.length < 1024) throw Error('Static compression probe requires a real built asset.');
+  const compressed = await fetcher(origin + asset, { headers: { 'Accept-Encoding': 'gzip' }, signal: AbortSignal.timeout(10000) });
+  if (!compressed.ok || compressed.headers.get('content-encoding') !== 'gzip' || !/accept-encoding/i.test(compressed.headers.get('vary') || ''))
+    throw Error('Static gzip encoding/Vary is missing.');
+  const decoded = gunzipSync(await boundedBytes(compressed), { maxOutputLength: 8 * 1024 * 1024 });
+  if (!decoded.equals(expected)) throw Error('Compressed static bytes differ from identity.');
+  return { encoding: 'gzip', verified: true };
 }
