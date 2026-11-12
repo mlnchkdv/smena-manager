@@ -2,6 +2,8 @@
 
 **Развёртывание на VPS Aeza / VPS deployment:** [Ubuntu 24.04: Nginx, systemd, установка, обновление и откат / installation, updates and rollback](deploy/vps/README.md). Google Drive и Google Sign-In сохраняются; конфигурация рассчитана на 4 CPU / 8 ГБ RAM. Реальное развёртывание и приёмка нового домена выполняются отдельно / actual server deployment and domain acceptance are separate.
 
+**Подготовка к публикации / Prelaunch:** [14 пунктов: внедрение, локальные проверки и оставшаяся живая приёмка / implementation, local checks and pending live acceptance](docs/PRELAUNCH_IMPLEMENTATION_2026-11-12.md).
+
 **06.11.2026 — U01–U03 и повторный аудит / delivery and repeat audit:** [Журнал внедрения / Delivery ledger](docs/PRODUCT_DELIVERY_2026-11-06.md) · [Новый план: 15 приоритетов + 12 направлений / New 15+12 roadmap](docs/PRODUCT_REAUDIT_AFTER_U01_U03_2026-11-06.md) · [Включение нового хранения / Storage rollout](docs/KNOWLEDGE_STORAGE_ROLLOUT.md). Раздельные тела, возобновляемый TXT/MD-импорт и холодный поиск локально приняты; 782 tests, RU/EN, seven viewport sizes selectively. Production remains 402; the catalog gate defaults to off until reviewed migration. U11–U14/F01–F12 remain pending; the AI provider is deferred.
 
 **06.11.2026 — предыдущий аудит и развитие холстов / previous audit and whiteboard improvements:** [Проверки, пять внедрённых изменений, 14 необходимых улучшений и 12 направлений развития / Evidence, five delivered changes, 14-item backlog and 12 product directions](docs/PRODUCT_AUDIT_AND_WHITEBOARDS_2026-11-06.md). RU/EN, семь размеров ключевых экранов; 749 tests passed. Production возвращает 402: приёмка проведена локально на изолированных данных / production returns 402; isolated local acceptance only, no live deployment claim.

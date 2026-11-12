@@ -1,0 +1,615 @@
+{
+  "date": "2026-11-12",
+  "status": "local-implementation-complete; live acceptance pending",
+  "target": {
+    "os": "Ubuntu 24.04",
+    "cpuCores": 4,
+    "ramGiB": 8,
+    "diskGB": 120
+  },
+  "source": {
+    "baseline": {
+      "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+      "files": 1129,
+      "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+    },
+    "checkpoints": [
+      {
+        "phase": "lint",
+        "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+        "files": 1129,
+        "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+      },
+      {
+        "phase": "ui-tokens",
+        "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+        "files": 1129,
+        "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+      },
+      {
+        "phase": "server-shared",
+        "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+        "files": 1129,
+        "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+      },
+      {
+        "phase": "production-build",
+        "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+        "files": 1129,
+        "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+      },
+      {
+        "phase": "startup-budget",
+        "head": "caa2981c0b866aea9dc975177ac4d56d7096f2d1",
+        "files": 1129,
+        "sha256": "fd966a1ecdd3e14e3a588f05609a91b677d8221ca91d57c8de56470e19507bfe"
+      }
+    ],
+    "status": "stable-at-checkpoints"
+  },
+  "release": {
+    "node": "v22.23.3",
+    "checks": [
+      {
+        "name": "lint",
+        "status": "passed",
+        "durationMs": 18294
+      },
+      {
+        "name": "ui-tokens",
+        "status": "passed",
+        "durationMs": 280
+      },
+      {
+        "name": "server-shared",
+        "status": "passed",
+        "durationMs": 278328
+      },
+      {
+        "name": "production-build",
+        "status": "passed",
+        "durationMs": 45866
+      },
+      {
+        "name": "startup-budget",
+        "status": "passed",
+        "durationMs": 313
+      }
+    ],
+    "status": "local-code-passed",
+    "buildManifestHash": "a1bbf131987a0335507b46f27423b947d025d92f826abe72eeb92c91c6004636",
+    "startedAt": "2026-11-12T14:56:32.027Z",
+    "finishedAt": "2026-11-12T15:02:21.218Z"
+  },
+  "serverSharedTests": {
+    "passed": 1004,
+    "failed": 0,
+    "skipped": 0
+  },
+  "startupJavaScriptKiB": 595.6,
+  "startupBudgetKiB": 600,
+  "deployKitLint": "passed",
+  "browser": {
+    "engine": "Windows WebKit",
+    "matrixBuildSource": "7a8ba5bbe471df466082efe3214aa4b68096cbf2; subsequent caa2981 changes only monitor sidecar and its test; UI source unchanged",
+    "cases": 352,
+    "languages": ["ru", "en"],
+    "routes": [
+      "home",
+      "inbox",
+      "mytasks",
+      "favorites",
+      "notifications",
+      "overview",
+      "projects",
+      "files",
+      "tasks",
+      "calendar",
+      "timeline",
+      "knowledge",
+      "bookmarks",
+      "whiteboards",
+      "graph",
+      "members",
+      "activity",
+      "archive",
+      "teams",
+      "settings/workspace",
+      "settings/security",
+      "whiteboard/audit-board"
+    ],
+    "viewports": [
+      [320, 567],
+      [390, 844],
+      [768, 1024],
+      [1024, 768],
+      [1366, 768],
+      [1920, 1080],
+      [844, 390],
+      [683, 384]
+    ],
+    "scope": "navigation/layout/visible accessible button names, not every business action in every route",
+    "missingVisibleButtonNames": 0,
+    "alerts": 0,
+    "initialOverflowObservations": [
+      {
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "overflow": 192,
+        "locale": "en",
+        "title": "Notifications · AUDIT 06.11",
+        "heading": "Notifications Unread: 49",
+        "unlabeledButtons": 0,
+        "alerts": [],
+        "controls": [44, 44, 44]
+      }
+    ],
+    "overflowFollowUp": {
+      "method": "five repetitions of desktop-to-320 resize, measured at 0/100/200/400 ms",
+      "samples": [
+        {
+          "round": 0,
+          "ms": 0,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 0,
+          "ms": 100,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 0,
+          "ms": 200,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 0,
+          "ms": 400,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 1,
+          "ms": 0,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 1,
+          "ms": 100,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 1,
+          "ms": 200,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 1,
+          "ms": 400,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 2,
+          "ms": 0,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 2,
+          "ms": 100,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 2,
+          "ms": 200,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 2,
+          "ms": 400,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 3,
+          "ms": 0,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 3,
+          "ms": 100,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 3,
+          "ms": 200,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 3,
+          "ms": 400,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 4,
+          "ms": 0,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 4,
+          "ms": 100,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 4,
+          "ms": 200,
+          "overflow": 0,
+          "outside": []
+        },
+        {
+          "round": 4,
+          "ms": 400,
+          "overflow": 0,
+          "outside": []
+        }
+      ],
+      "disposition": "not reproduced; keep a live-browser recheck, not an invented CSS fix"
+    },
+    "queue": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "ru",
+          "width": 320,
+          "height": 567,
+          "overflow": 0,
+          "label": "Проверить очередь доставки · На паузе",
+          "buttons": [
+            {
+              "label": "Включить проверенную очередь",
+              "disabled": false,
+              "height": 44
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "height": 844,
+          "overflow": 0,
+          "label": "Проверить очередь доставки · На паузе",
+          "buttons": [
+            {
+              "label": "Включить проверенную очередь",
+              "disabled": false,
+              "height": 44
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "height": 390,
+          "overflow": 0,
+          "label": "Проверить очередь доставки · На паузе",
+          "buttons": [
+            {
+              "label": "Включить проверенную очередь",
+              "disabled": false,
+              "height": 26
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "ru",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0,
+          "label": "Проверить очередь доставки · На паузе",
+          "buttons": [
+            {
+              "label": "Включить проверенную очередь",
+              "disabled": false,
+              "height": 26
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "en",
+          "width": 320,
+          "height": 567,
+          "overflow": 0,
+          "label": "Review delivery queue · Paused",
+          "buttons": [
+            {
+              "label": "Enable reviewed queue",
+              "disabled": false,
+              "height": 44
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "height": 844,
+          "overflow": 0,
+          "label": "Review delivery queue · Paused",
+          "buttons": [
+            {
+              "label": "Enable reviewed queue",
+              "disabled": false,
+              "height": 44
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "height": 390,
+          "overflow": 0,
+          "label": "Review delivery queue · Paused",
+          "buttons": [
+            {
+              "label": "Enable reviewed queue",
+              "disabled": false,
+              "height": 26
+            }
+          ],
+          "sendDisabled": true
+        },
+        {
+          "lang": "en",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0,
+          "label": "Review delivery queue · Paused",
+          "buttons": [
+            {
+              "label": "Enable reviewed queue",
+              "disabled": false,
+              "height": 26
+            }
+          ],
+          "sendDisabled": true
+        }
+      ],
+      "persisted": true,
+      "staleReview409": true
+    },
+    "editorProtectedRoutes": "review POST and readiness GET returned 403 to a synthetic editor; assertions in completed queue test",
+    "keyboard": {
+      "completed": true,
+      "rows": [
+        {
+          "width": 320,
+          "region": true,
+          "height": 225,
+          "scroll": 180,
+          "scrollable": true,
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "region": true,
+          "height": 238,
+          "scroll": 190,
+          "scrollable": true,
+          "overflow": 0
+        }
+      ],
+      "tabOrder": true,
+      "pageDown": true,
+      "enterCollapse": true,
+      "keyboardQuickPreview": true,
+      "escapeClose": true,
+      "focusReturned": true
+    },
+    "touchEmulation": {
+      "completed": true,
+      "device": {
+        "coarse": true,
+        "touch": 0,
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Mobile/15E148 Safari/604.1"
+      },
+      "rows": [
+        {
+          "lang": "en",
+          "width": 390,
+          "route": "knowledge",
+          "foldersTap": true,
+          "quickPreview": true,
+          "touchEvents": 6,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "route": "files",
+          "previewTap": true,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "route": "graph",
+          "gestureToggle": true,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "route": "knowledge",
+          "foldersTap": true,
+          "quickPreview": true,
+          "touchEvents": 6,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "route": "files",
+          "previewTap": true,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "route": "graph",
+          "gestureToggle": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "route": "knowledge",
+          "foldersTap": true,
+          "quickPreview": true,
+          "touchEvents": 6,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "route": "files",
+          "previewTap": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "route": "graph",
+          "gestureToggle": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "route": "knowledge",
+          "foldersTap": true,
+          "quickPreview": true,
+          "touchEvents": 6,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "route": "files",
+          "previewTap": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "route": "graph",
+          "gestureToggle": true,
+          "overflow": 0
+        }
+      ],
+      "sessionAfterReload": true
+    },
+    "finalExactBuildSmoke": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "en",
+          "width": 390,
+          "finalEntry": true,
+          "quickPreview": true,
+          "sessionAfterReload": true,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 1366,
+          "finalEntry": true,
+          "quickPreview": true,
+          "sessionAfterReload": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "finalEntry": true,
+          "quickPreview": true,
+          "sessionAfterReload": true,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 1366,
+          "finalEntry": true,
+          "quickPreview": true,
+          "sessionAfterReload": true,
+          "overflow": 0
+        }
+      ],
+      "activeNotes": 178,
+      "queuePaused": true
+    }
+  },
+  "syntheticCleanup": {
+    "completed": true,
+    "rows": [
+      {
+        "id": "kn2057e261-1b4e-409d-9657-ca4888b62a9d",
+        "restoredOriginal": true,
+        "trashed": true
+      },
+      {
+        "id": "kn51ec3d20-a582-4390-9ab2-900e3dd23079",
+        "restoredOriginal": true,
+        "trashed": true
+      }
+    ],
+    "notes": 178,
+    "language": "ru"
+  },
+  "languageAtEnd": "ru",
+  "markdownEvidence": "2026-11-12-markdown-prelaunch.json",
+  "production": {
+    "status": "not-run",
+    "reason": "User directed local checks while site is unavailable; VPS origin has not been supplied."
+  },
+  "physicalDevices": {
+    "status": "not-run",
+    "reason": "No real iPhone/Android devices available. Emulation is not OS/background-transfer acceptance."
+  },
+  "automationNotes": [
+    "Two early WebKit scroll attempts timed out/detached during layout. Explicit native scrolling followed by ordinary click and keyboard checks succeeded; no forced clicks counted as acceptance.",
+    "The mobile WebKit context reported coarse pointer but maxTouchPoints=0. Touch support was validated by delivered touchstart events, not by spoofing navigator properties.",
+    "683x384 is an effective small layout viewport; actual desktop 200% browser zoom is not claimed."
+  ],
+  "externalPending": [
+    "Choose domain; configure DNS/TLS and APP_ORIGIN; register exact GIS JavaScript origin.",
+    "Create/authorize isolated Gmail client/grant and verify actual Google publishing/lifecycle; do not infer Console status from configuration.",
+    "Activate on Ubuntu; verify real cgroup limits, Google egress/authorization, matching HTTPS release/gzip, update and failure rollback.",
+    "Stop old hosting writes/cron; create fresh native and independent media/offsite copies; perform isolated full restore and checksum checks.",
+    "Observe first real scheduled run with delivery paused; inspect generated queue, backups and result status before enabling reviewed delivery.",
+    "Reconnect actual push devices to the new origin/key and verify receipt without duplicate successful-device retries.",
+    "Check Google login/refresh/restart and roles/own-workspace isolation on the actual origin.",
+    "Transfer disposable 1-5 GiB media and photo batch through Aeza/Drive; verify downloaded hashes, Range/ZIP limits, real iOS/Android lock/unlock.",
+    "Enable independent monitor and an external uptime/alert channel; verify fresh observations after reboot."
+  ]
+}
