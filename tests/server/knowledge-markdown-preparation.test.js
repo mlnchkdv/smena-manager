@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareKnowledgeMarkdown } from '../../src/shared/knowledge-markdown-preparation.js';
+import { prepareKnowledgeMarkdown, prepareMarkdownOpening } from '../../src/shared/knowledge-markdown-preparation.js';
 import { renderKnowledgeMarkdown } from '../../src/shared/knowledge-markdown.js';
 
 test('ordinary Markdown stays tokenized; excessive token complexity returns a typed bounded result', () => {
@@ -9,6 +9,20 @@ test('ordinary Markdown stays tokenized; excessive token complexity returns a ty
   assert.deepEqual(prepareKnowledgeMarkdown(source), { error: 'complexity' });
   assert.equal(source.endsWith('END_OF_SOURCE'), true);
   assert.deepEqual(prepareKnowledgeMarkdown('x'.repeat(2 * 1024 * 1024 + 1)), { error: 'source-limit' });
+});
+
+test('opening preview is bounded and omits a cut block; literal fallback remains escaped with the original unchanged', () => {
+  const source = '# First\n\nA complete **paragraph**.\n\n```js\n' + '<script>unsafe</script>\n'.repeat(90000);
+  const opening = prepareMarkdownOpening(source);
+  assert.ok(opening.source.length <= 16000);
+  const html = renderKnowledgeMarkdown(opening.source, { tokenized: opening });
+  assert.match(html, /A complete <strong>paragraph<\/strong>/);
+  assert.doesNotMatch(html, /unsafe|<script/);
+  assert.equal(source.endsWith('<script>unsafe</script>\n'), true);
+  const literal = prepareMarkdownOpening('x'.repeat(40000));
+  assert.equal(literal.plain, true);
+  assert.equal(literal.source.length, 16000);
+  assert.equal(prepareMarkdownOpening('Short'), null);
 });
 test('plain fallback preserves far text and never executes embedded HTML or Markdown resources', () => {
   const source = '<script>alert(1)</script>\n\n![Image](https://example.test/tracker.png)\n' + 'Readable text '.repeat(100000) + '\nEND_OF_SOURCE';

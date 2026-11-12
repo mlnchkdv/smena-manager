@@ -37,6 +37,13 @@ export function preparedMarkdown(source) {
     worker = new Worker(new URL('./knowledge-markdown-parser.js', import.meta.url), { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (state !== current || data.id !== current.id) return;
+      if (data.opening) {
+        if (owner !== getSessionGeneration()) return;
+        current.opening = data.opening;
+        render();
+        return;
+      }
+      delete current.opening;
       current.tokens = data.tokens;
       current.error = data.error || (!Array.isArray(data.tokens) ? 'parse' : false);
       complete();

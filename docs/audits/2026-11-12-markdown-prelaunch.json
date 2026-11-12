@@ -1,0 +1,84 @@
+{
+  "scope": "isolated Local storage / Windows WebKit; synthetic notes only",
+  "source": "prelaunch P13; full preparation latency remains material",
+  "browser": {
+    "completed": true,
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 390,
+        "kind": "rich",
+        "bytes": 1852648,
+        "firstReadableMs": 2157,
+        "opening": true,
+        "fullMs": 11690,
+        "retained": true,
+        "historyHash": true,
+        "sourceHash": true,
+        "overflow": 0,
+        "searchMs": 2456
+      },
+      {
+        "lang": "ru",
+        "width": 390,
+        "kind": "complex",
+        "bytes": 1891837,
+        "firstReadableMs": 2218,
+        "opening": true,
+        "fullMs": 8245,
+        "retained": true,
+        "historyHash": true,
+        "sourceHash": true,
+        "overflow": 0,
+        "searchMs": 1154
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "kind": "rich",
+        "bytes": 1852648,
+        "firstReadableMs": 3758,
+        "opening": true,
+        "fullMs": 9863,
+        "retained": true,
+        "historyHash": true,
+        "sourceHash": true,
+        "overflow": 0,
+        "searchMs": 1481
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "kind": "complex",
+        "bytes": 1891837,
+        "firstReadableMs": 2208,
+        "opening": true,
+        "fullMs": 8881,
+        "retained": true,
+        "historyHash": true,
+        "sourceHash": true,
+        "overflow": 0,
+        "searchMs": 1458
+      }
+    ]
+  },
+  "search": [
+    {
+      "round": "process-cold",
+      "status": 200,
+      "elapsedMs": 708,
+      "total": 1,
+      "correctNote": true
+    },
+    {
+      "round": "warm",
+      "status": 200,
+      "elapsedMs": 535,
+      "total": 1,
+      "correctNote": true
+    }
+  ],
+  "production": "not-run: no available hosting origin",
+  "physicalDevices": "not-run",
+  "method": "First-readable and full-document times differ; fresh page per note/locale, no concurrent build/tests; server process cold is not cold OS/provider storage. Single descriptive runs, no SLA."
+}

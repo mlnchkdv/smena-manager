@@ -66,7 +66,7 @@ export function knowledgeReadingHtml(note, source) {
   if (note.sourceFormat !== 'text' && source.length > 32000) {
     const prepared = preparedMarkdown(source);
     if (prepared.pending)
-      return `<p role="status" data-knowledge-preparing translate="no">${readText('Preparing Markdown preview… You can continue using the toolbar.', 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p><button class="btn btn-secondary btn-sm" data-a="readKnowledgePlain" data-id="${esc(note.id)}" translate="no">${readText('Read without formatting', 'Читать без форматирования')}</button>`;
+      return `${prepared.opening ? `<div class="knowledge-opening-preview" data-knowledge-opening translate="no">${renderKnowledgeMarkdown(prepared.opening.source, { ...knowledgeMarkdownOptions(note), plainText: !!prepared.opening.plain, tokenized: prepared.opening })}</div>` : ''}<p role="status" data-knowledge-preparing translate="no">${readText(prepared.opening ? 'Showing the beginning. Preparing the complete document…' : 'Preparing Markdown preview… You can continue using the toolbar.', prepared.opening ? 'Показано начало. Подготавливается полный документ…' : 'Подготовка предпросмотра Markdown… Панель действий остаётся доступной.')}</p><button class="btn btn-secondary btn-sm" data-a="readKnowledgePlain" data-id="${esc(note.id)}" translate="no">${readText('Read without formatting', 'Читать без форматирования')}</button>`;
     if (prepared.error) fallback = prepared.error;
     tokenized = { source, tokens: prepared.tokens };
   }
