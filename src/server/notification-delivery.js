@@ -7,6 +7,7 @@ import { copyStorageVersion, storageVersion } from './storage/version-token.js';
 import { drainNotificationOutbox } from './notification-outbox.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 import { reportProviderError } from './provider-safety.js';
+import { notificationDeliveryPaused, notificationReviewStatus } from './notification-review.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
 
@@ -105,6 +106,7 @@ export async function claimNotificationTestCooldown(key, cooldownMs = 60_000, no
 }
 
 export async function deliverWorkspaceNotifications(data, notifications = [], options = {}) {
+  if (notificationDeliveryPaused(data)) return { processed: 0, failed: 0, paused: true, push: { ...EMPTY_CHANNEL }, email: { ...EMPTY_CHANNEL } };
   if (data._notificationOutbox) {
     const channels = { push: { ...EMPTY_CHANNEL }, email: { ...EMPTY_CHANNEL } };
     const sender = (name, send) => async (workspace, events, deliveryOptions) => {
@@ -144,10 +146,10 @@ export async function notificationDeliveryStatus() {
     loadStatus(),
     emailAuthorizationStatus(),
     pushDeliveryStatus(),
-    getWorkspaceDatabase({ fields: ['_notificationOutbox'] }),
+    getWorkspaceDatabase({ fields: ['_notificationOutbox', '_notificationDeliveryReview', 'revision', 'members'] }),
   ]);
   const outbox = notificationQueueStatus(data);
-  return { delivery, channels: { email, push }, outbox };
+  return { delivery, channels: { email, push }, outbox, review: notificationReviewStatus(data) };
 }
 
 export function notificationQueueStatus(data, now = Date.now()) {

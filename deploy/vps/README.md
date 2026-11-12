@@ -362,3 +362,9 @@ VAPID public-key fingerprint. Старые записи остаются для 
 
 EN: origin/key-bound registrations, retained legacy records and per-device retry
 progress prevent known-success duplicates; provider/crash ambiguity remains.
+
+### First notification queue start / Первый запуск очереди
+
+A new production VPS starts with delivery paused (`NOTIFICATION_START_PAUSED=true`). Open Settings → Browser notifications → Workspace diagnostics, refresh and review recipients/age. Skip old items deliberately, then enable the reviewed queue. A changed revision requires a fresh preview. Pause prevents new claims; an in-flight delivery may finish. Diagnostics tests remain separate and target only the signed-in admin. The durable decision is protected from ordinary workspace saves. No automatic backlog purge or send occurs during review.
+
+На новом VPS сначала проверьте получателей и возраст очереди в диагностике уведомлений. Пропуск старых заданий сохраняет служебную запись. Кнопка включения разрешает плановую доставку; обновление статуса само по себе ничего не отправляет.

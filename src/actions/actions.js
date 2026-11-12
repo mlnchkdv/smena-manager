@@ -2779,6 +2779,7 @@ A.refreshNotificationDelivery = async () => {
     render();
   }
 };
+A.reviewNotificationDelivery = async el => (await import('../ui/notification-delivery-panel.js')).reviewQueue(el);
 A.retryNotificationDelivery = async () => {
   if (S.ui.currentUser?.role !== 'admin' || S.ui.notificationDeliveryLoading) return;
   S.ui.notificationDeliveryLoading = true;

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { notificationDeliveryPaused } from './notification-review.js';
 import { emailPreferenceForNotification, notificationPreferencesForMember, pushPreferenceForNotification } from '../shared/notification-model.js';
 import { canReadProject } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
@@ -71,6 +72,7 @@ export async function drainNotificationOutbox(options) {
     let data;
     for (let retry = 0; retry < 3; retry += 1) {
       const current = await options.load();
+      if (notificationDeliveryPaused(current, options.env)) return { processed, failed, paused: true };
       claim = null;
       for (const item of current._notificationOutbox || []) {
         for (const [channel, state] of Object.entries(item.channels)) {

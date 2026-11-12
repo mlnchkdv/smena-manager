@@ -344,6 +344,19 @@ app.get('/api/notifications/delivery-status', requireRole('admin'), async (_requ
   }
 });
 
+app.post('/api/notifications/review', requireRole('admin'), async (request, response, next) => {
+  try {
+    const { reviewNotificationQueue } = await import('./notification-review.js');
+    await mutateWorkspaceDatabase(data => reviewNotificationQueue(data, request.body || {}, request.user.id), request.body?.revision, {
+      role: 'admin',
+      outboxWorker: true,
+    });
+    response.json(await notificationDeliveryStatus());
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post('/api/notifications/retry', requireRole('admin'), async (_request, response, next) => {
   try {
     const result = await retryNotificationOutbox();
