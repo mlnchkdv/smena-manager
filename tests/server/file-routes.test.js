@@ -245,4 +245,15 @@ test('authenticated editors can upload and range-download a workspace file', asy
   assert.equal((await check({ projectId: 'p1', folderId: 'folder-a' })).status, 200);
   assert.equal((await check({ projectId: 'private-project' })).status, 403);
   assert.equal((await check({ profileId: 'another-account', projectId: 'p1' })).status, 403);
+  const recover = async payload =>
+    fetch(`${origin}/api/files/upload-check`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ticket: createUploadTicket({ profileId: getAccessProfiles()[0].id, projectId: 'p1', ...payload }, Date.now() - 2 * 86400000) }),
+    });
+  const renewed = await recover({});
+  assert.equal(renewed.status, 200);
+  assert.ok((await renewed.json()).ticket.startsWith('smena_upload_'));
+  assert.equal((await recover({ profileId: 'another-account' })).status, 403);
+  assert.equal((await recover({ projectId: 'private-project' })).status, 403);
 });

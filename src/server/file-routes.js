@@ -20,7 +20,7 @@ import {
   getWorkspaceUploadSnapshot,
   RevisionConflictError,
 } from './workspace-store.js';
-import { createUploadTicket, verifyUploadTicket } from './upload-ticket.js';
+import { createUploadTicket, renewUploadTicket, verifyUploadTicket } from './upload-ticket.js';
 import { detachTaskFile } from '../shared/file-identity.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { canEditProject, canReadProject } from '../shared/project-access.js';
@@ -436,12 +436,12 @@ fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (reques
 
 fileRouter.post('/upload-check', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    const ticket = verifyUploadTicket(request.body?.ticket);
+    const ticket = verifyUploadTicket(request.body?.ticket, Date.now(), { allowRenewal: true });
     if (ticket.profileId !== request.user.id)
       throw Object.assign(new Error('This upload belongs to another account.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
     assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, ticket.projectId, ticket.taskId, ticket.folderId);
     response.setHeader('Cache-Control', 'no-store');
-    response.json({ ok: true });
+    response.json({ ok: true, ticket: renewUploadTicket(ticket) });
   } catch (error) {
     next(error);
   }

@@ -158,7 +158,7 @@ export function createUploadQueue({
       notify();
     },
     resume(job) {
-      if (!['paused', 'failed', 'needs-file'].includes(job.phase) || !job.file) return;
+      if (!['paused', 'failed', 'needs-file'].includes(job.phase) || (!job.file && !job.session?.uploaded?.id)) return;
       clearRetry(job);
       job.retryCount = 0;
       job.error = '';

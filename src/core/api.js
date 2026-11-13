@@ -521,67 +521,12 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
   });
 }
 
-let fileRegistrationTail = Promise.resolve();
 async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
   const generation = sessionGeneration;
-  const resumed = Boolean(metadata.checkpoint?.uploadUrl);
-  const session =
-    metadata.checkpoint ||
-    (await request(
-      '/api/files/upload-session',
-      {
-        method: 'POST',
-        signal: metadata.signal,
-        body: JSON.stringify({
-          name: file.name,
-          size: file.size,
-          mimeType: file.type || 'application/octet-stream',
-          project: metadata.project || '',
-          folderId: metadata.folderId || null,
-          task: metadata.task || '',
-        }),
-      },
-      true,
-    ));
+  const { uploadDirectFile } = await import('./direct-upload-session.js');
   assertSessionGeneration(generation);
-  await metadata.onCheckpoint?.(session);
-  if (resumed) await request('/api/files/upload-check', { method: 'POST', signal: metadata.signal, body: JSON.stringify({ ticket: session.ticket }) }, true);
-  const { uploadDriveChunks: transfer } = await import('./drive-upload.js');
-  const uploaded =
-    session.uploaded ||
-    (await transfer(session.uploadUrl, file, session.chunkSizeBytes || 8 * 1024 * 1024, {
-      onProgress,
-      signal: metadata.signal,
-      resume: resumed,
-      assertScope: () => assertSessionGeneration(generation),
-      onAccepted: bytes => metadata.onAccepted?.(bytes),
-    }));
-  assertSessionGeneration(generation);
-  session.uploaded = uploaded;
-  await metadata.onCheckpoint?.(session);
-  metadata.onVerifying?.();
-  // Bytes can transfer concurrently; registration and application of revisioned
-  // snapshots must stay ordered, including a retry after a lost final response.
-  const register = async () => {
-    assertSessionGeneration(generation);
-    const result = await request(
-      '/api/files/upload-complete',
-      {
-        method: 'POST',
-        signal: metadata.signal,
-        body: JSON.stringify({ ticket: session.ticket, fileId: uploaded.id || '' }),
-      },
-      true,
-    );
-    assertSessionGeneration(generation);
-    metadata.onRegistered?.(result);
-    return result;
-  };
-  const pending = fileRegistrationTail.then(register, register);
-  fileRegistrationTail = pending.catch(() => {});
-  return pending;
+  return uploadDirectFile(file, metadata, onProgress, { request, assertScope: () => assertSessionGeneration(generation) });
 }
-
 export function uploadWorkspaceFile(file, metadata, onProgress) {
   return metadata.direct && file.size > 0 ? uploadWorkspaceFileDirect(file, metadata, onProgress) : uploadWorkspaceFileThroughApi(file, metadata, onProgress);
 }

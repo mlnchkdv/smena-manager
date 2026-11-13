@@ -3,6 +3,7 @@ import { workspaceScope } from './workspace-context.js';
 
 const PREFIX = 'smena_upload_';
 const LIFETIME_MS = 24 * 60 * 60 * 1000;
+const RECOVERY_MS = 7 * LIFETIME_MS;
 
 function secret() {
   const value = process.env.SESSION_SECRET?.trim();
@@ -21,11 +22,14 @@ function safeEqual(left, right) {
 }
 
 export function createUploadTicket(payload, now = Date.now()) {
-  const encoded = Buffer.from(JSON.stringify({ version: 1, ...payload, workspace: workspaceScope(), expiresAt: now + LIFETIME_MS })).toString('base64url');
+  const renewUntil = payload.renewUntil ?? now + RECOVERY_MS;
+  const encoded = Buffer.from(
+    JSON.stringify({ version: 1, ...payload, workspace: workspaceScope(), renewUntil, expiresAt: Math.min(now + LIFETIME_MS, renewUntil) }),
+  ).toString('base64url');
   return `${PREFIX}${encoded}.${signature(encoded)}`;
 }
 
-export function verifyUploadTicket(ticket, now = Date.now()) {
+export function verifyUploadTicket(ticket, now = Date.now(), { allowRenewal = false } = {}) {
   if (!ticket?.startsWith(PREFIX)) throw Object.assign(new Error('Upload ticket is invalid.'), { statusCode: 400, code: 'UPLOAD_TICKET_INVALID' });
   const signed = ticket.slice(PREFIX.length);
   const separator = signed.lastIndexOf('.');
@@ -40,10 +44,22 @@ export function verifyUploadTicket(ticket, now = Date.now()) {
   } catch {
     throw Object.assign(new Error('Upload ticket is invalid.'), { statusCode: 400, code: 'UPLOAD_TICKET_INVALID' });
   }
-  if (payload.version !== 1 || !Number.isFinite(payload.expiresAt) || payload.expiresAt <= now) {
+  // Old tickets had a 24-hour expiry but no explicit recovery deadline.
+  const renewUntil = payload.renewUntil ?? payload.expiresAt + RECOVERY_MS - LIFETIME_MS;
+  if (
+    payload.version !== 1 ||
+    !Number.isFinite(payload.expiresAt) ||
+    !Number.isFinite(renewUntil) ||
+    renewUntil <= now ||
+    (!allowRenewal && payload.expiresAt <= now)
+  ) {
     throw Object.assign(new Error('Upload ticket has expired.'), { statusCode: 400, code: 'UPLOAD_TICKET_EXPIRED' });
   }
   if ((payload.workspace || 'default') !== workspaceScope())
     throw Object.assign(new Error('This upload belongs to another workspace.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
   return payload;
+}
+
+export function renewUploadTicket(payload, now = Date.now()) {
+  return createUploadTicket({ ...payload, renewUntil: payload.renewUntil ?? payload.expiresAt + RECOVERY_MS - LIFETIME_MS }, now);
 }

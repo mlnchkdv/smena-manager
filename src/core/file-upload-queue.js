@@ -88,6 +88,7 @@ function persist() {
       task: job.task,
       folderId: job.folderId,
       createdAt: job.createdAt,
+      restorePhase: job.phase,
       fingerprint: job.fingerprint,
       accepted: job.accepted,
       pct: job.bytes ? Math.min(99, Math.floor(((job.accepted || 0) / job.bytes) * 100)) : 0,
@@ -187,7 +188,7 @@ async function run(job, signal) {
     );
   if (!current() || signal.aborted) throw new Error('Upload cancelled.');
   if (!canEditProject(proj(job.project), D().me, S.ui.currentUser?.role)) throw new Error('You do not have access to this project.');
-  if (!job.fingerprint?.startsWith('sha256-v2:')) {
+  if (!job.session?.uploaded?.id && !job.fingerprint?.startsWith('sha256-v2:')) {
     // Legacy samples did not cover the middle of a file. Do not resume their
     // provider session using unverified bytes after migrating the checkpoint.
     job.session = null;
@@ -214,7 +215,7 @@ async function run(job, signal) {
     save();
   };
   const result = await uploadWorkspaceFile(
-    job.file,
+    job.file || { name: job.name, size: job.bytes, type: job.mimeType },
     {
       revision: S.ui.workspaceRevision,
       project: job.project,
@@ -292,6 +293,16 @@ export function restoreUploadQueue() {
       if (entries.length) {
         S.ui.uploadQueueExpanded = true;
         void engine.add(entries, { restored: true });
+        // Catalog registration needs only the trusted provider ID, not access
+        // to the original bytes again. The server still verifies ownership.
+        engine.batch(() =>
+          engine.jobs
+            .filter(job => job.session?.uploaded?.id)
+            .forEach(job => {
+              if (job.restorePhase === 'paused') job.phase = 'paused';
+              else engine.resume(job);
+            }),
+        );
       }
     } catch {
       /* An invalid checkpoint never prevents loading the workspace. */
