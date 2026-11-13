@@ -1376,10 +1376,28 @@ export async function handleFiles(files, ctx) {
   if (generation !== getSessionGeneration()) return [];
   return module.enqueueFiles(picked, ctx);
 }
-A.chooseStoredFiles = el => {
+A.chooseStoredFiles = async el => {
   const input = document.getElementById(el.dataset.picker);
   if (input?.matches('input[type="file"][data-in="uploadFiles"]') && canEditProject(proj(input.dataset.project), D().me, S.ui.currentUser?.role)) {
     const generation = getSessionGeneration();
+    const workspace = S.ui.activeWorkspace;
+    if (S.ui.filePolicy?.directUploadEnabled && typeof window.showOpenFilePicker === 'function' && !input.hasAttribute('webkitdirectory')) {
+      try {
+        const handles = await window.showOpenFilePicker({ multiple: true, id: 'smena-uploads' });
+        const pairs = await Promise.all(handles.map(async handle => [await handle.getFile(), handle]));
+        if (generation !== getSessionGeneration() || workspace !== S.ui.activeWorkspace) return;
+        await handleFiles(
+          pairs.map(([file]) => file),
+          { project: input.dataset.project, task: input.dataset.task, folderId: input.dataset.folder, sourceHandles: new Map(pairs) },
+        );
+        return;
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+        // Feature restrictions or a dismissed permission keep the standard file
+        // input available; no file bytes are cached to emulate filesystem access.
+        if (generation !== getSessionGeneration() || workspace !== S.ui.activeWorkspace) return;
+      }
+    }
     // The catalog may rerender while the OS picker is open. A detached input
     // no longer bubbles change to the delegated document listener.
     input.onchange = event => {

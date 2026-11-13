@@ -1,5 +1,6 @@
-// No File contents or login token are persisted. Provider tickets are encrypted
-// at rest with a non-extractable per-scope key; this is not protection from XSS.
+// No File contents or login token are persisted. Browser-granted read-only file
+// handles are stored separately; provider tickets remain encrypted per scope.
+// This is not protection from XSS. Reopening a source always verifies its hash.
 export function createUploadJournal({ storage, crypto = globalThis.crypto }) {
   const encode = value => new TextEncoder().encode(value);
   let epoch = 0,
@@ -11,8 +12,19 @@ export function createUploadJournal({ storage, crypto = globalThis.crypto }) {
   };
   return {
     save(scope, entries, current = () => true) {
-      const started = epoch,
+      const started = epoch;
+      let captured;
+      try {
         captured = structuredClone(entries);
+      } catch {
+        captured = structuredClone(
+          entries.map(entry => {
+            const copy = { ...entry };
+            delete copy.sourceHandle;
+            return copy;
+          }),
+        );
+      }
       return sequence(async () => {
         if (started !== epoch || !current()) return;
         let key = await storage.get(`key:${scope}`);
@@ -22,9 +34,23 @@ export function createUploadJournal({ storage, crypto = globalThis.crypto }) {
           await storage.put(`key:${scope}`, key);
         }
         const iv = crypto.getRandomValues(new Uint8Array(12));
-        const payload = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: encode(scope) }, key, encode(JSON.stringify(captured)));
+        const sources = captured.filter(entry => entry.sourceHandle).map(entry => [entry.id, entry.sourceHandle]);
+        const payload = await crypto.subtle.encrypt(
+          { name: 'AES-GCM', iv, additionalData: encode(scope) },
+          key,
+          encode(JSON.stringify(captured, (name, value) => (name === 'sourceHandle' ? undefined : value))),
+        );
         if (started !== epoch || !current()) return;
-        await storage.put(`queue:${scope}`, { version: 1, iv, payload, at: Date.now() });
+        const row = { version: 1, iv, payload, sources, at: Date.now() };
+        try {
+          await storage.put(`queue:${scope}`, row);
+        } catch (error) {
+          if (!sources.length || !['DataCloneError', 'NotSupportedError'].includes(error?.name)) throw error;
+          if (started !== epoch || !current()) return;
+          // Some browsers expose the picker but cannot persist its handles.
+          // Preserve encrypted metadata; source re-selection remains available.
+          await storage.put(`queue:${scope}`, { ...row, sources: [] });
+        }
       });
     },
     async read(scope) {
@@ -33,7 +59,11 @@ export function createUploadJournal({ storage, crypto = globalThis.crypto }) {
         key = row && (await storage.get(`key:${scope}`));
       if (!row || !key || row.version !== 1 || row.at < Date.now() - 7 * 86400000) return [];
       const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: row.iv, additionalData: encode(scope) }, key, row.payload);
-      return JSON.parse(new TextDecoder().decode(plain));
+      const sources = new Map(row.sources || []);
+      return JSON.parse(new TextDecoder().decode(plain)).map(entry => ({
+        ...entry,
+        ...(sources.has(entry.id) ? { sourceHandle: sources.get(entry.id) } : {}),
+      }));
     },
     clear() {
       epoch++;

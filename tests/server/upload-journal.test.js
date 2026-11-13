@@ -11,6 +11,25 @@ function storage() {
     clear: async () => rows.clear(),
   };
 }
+
+test('file handles survive with encrypted checkpoints, remain scoped and clear on signout', async () => {
+  const db = storage(),
+    journal = createUploadJournal({ storage: db });
+  const entries = [{ id: 'source', sourceHandle: { kind: 'file', name: 'large.mp4' }, session: { ticket: 'private' } }];
+  await journal.save('one', entries);
+  assert.deepEqual(await createUploadJournal({ storage: db }).read('one'), entries);
+  assert.equal(new TextDecoder().decode(db.rows.get('queue:one').payload).includes('private'), false);
+  assert.deepEqual(await journal.read('two'), []);
+  const put = db.put;
+  db.put = async (key, value) => {
+    if (value.sources?.length) throw Object.assign(Error('no handles'), { name: 'DataCloneError' });
+    return put(key, value);
+  };
+  await journal.save('unsupported', entries);
+  assert.deepEqual(await journal.read('unsupported'), [{ id: 'source', session: { ticket: 'private' } }]);
+  await journal.clear();
+  assert.equal(db.rows.size, 0);
+});
 test('journal survives a new instance, encrypts provider tickets, authenticates scope and clears on signout', async () => {
   const db = storage(),
     first = createUploadJournal({ storage: db });

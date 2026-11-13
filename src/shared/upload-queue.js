@@ -60,6 +60,7 @@ export function createUploadQueue({
         job.pct = 100;
         job.accepted = job.bytes;
         job.file = null;
+        job.sourceHandle = null;
         job.session = null;
         settle(job, result);
       }
@@ -170,7 +171,9 @@ export function createUploadQueue({
       clearRetry(job);
       job.phase = 'cancelled';
       job.controller?.abort();
+      job.sourceController?.abort();
       job.file = null;
+      job.sourceHandle = null;
       job.session = null;
       settle(job, null);
       notify();

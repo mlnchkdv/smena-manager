@@ -10,6 +10,7 @@ import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/upload-queue.js';
 import { createUploadOwner, fullUploadFingerprint } from '../shared/upload-journal.js';
+import { recoverUploadSource } from '../shared/upload-sources.js';
 import { uploadJournal } from './upload-journal.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
@@ -88,8 +89,10 @@ function persist() {
       task: job.task,
       folderId: job.folderId,
       createdAt: job.createdAt,
-      restorePhase: job.phase,
+      checkpointAt: Date.now(),
+      restorePhase: job.phase === 'needs-file' ? job.restorePhase : job.phase,
       fingerprint: job.fingerprint,
+      sourceHandle: job.sourceHandle,
       accepted: job.accepted,
       pct: job.bytes ? Math.min(99, Math.floor(((job.accepted || 0) / job.bytes) * 100)) : 0,
       session: job.session
@@ -107,7 +110,11 @@ function persist() {
   // Synchronous fallback survives a reload even if the last IndexedDB write
   // was interrupted. New browser sessions use the encrypted durable journal.
   try {
-    if (pending.length) sessionStorage.setItem(prefix + capturedScope, JSON.stringify(pending));
+    if (pending.length)
+      sessionStorage.setItem(
+        prefix + capturedScope,
+        JSON.stringify(pending, (name, value) => (name === 'sourceHandle' ? undefined : value)),
+      );
     else sessionStorage.removeItem(prefix + capturedScope);
   } catch {
     /* The durable journal can still succeed. */
@@ -274,7 +281,12 @@ export function restoreUploadQueue() {
       } catch {
         /* Session-only fallback. */
       }
-      if (!Array.isArray(saved) || !saved.length) saved = JSON.parse(sessionStorage.getItem(prefix + restoredScope) || '[]');
+      const fallback = JSON.parse(sessionStorage.getItem(prefix + restoredScope) || '[]');
+      const sourceHandles = new Map((Array.isArray(saved) ? saved : []).filter(job => job.sourceHandle).map(job => [job.id, job.sourceHandle]));
+      if (!Array.isArray(saved) || !saved.length || (Array.isArray(fallback) && (fallback[0]?.checkpointAt || 0) > (saved[0]?.checkpointAt || 0)))
+        saved = Array.isArray(fallback)
+          ? fallback.map(job => ({ ...job, ...(sourceHandles.has(job.id) ? { sourceHandle: sourceHandles.get(job.id) } : {}) }))
+          : [];
       const entries = Array.isArray(saved)
         ? saved
             .filter(
@@ -303,6 +315,9 @@ export function restoreUploadQueue() {
               else engine.resume(job);
             }),
         );
+        // Ownership is acquired before attaching or persisting restored files;
+        // another open tab must never replay this queue concurrently.
+        if (entries.some(job => job.sourceHandle)) void restoreSources(false);
       }
     } catch {
       /* An invalid checkpoint never prevents loading the workspace. */
@@ -356,6 +371,7 @@ export async function enqueueFiles(files, ctx) {
     entries.push({
       id: uid('u'),
       file,
+      sourceHandle: ctx.sourceHandles?.get(file),
       name: file.name,
       relativePath: file.webkitRelativePath || file.name,
       bytes: file.size,
@@ -483,6 +499,57 @@ A.uploadQueuePage = el => {
   S.ui.uploadQueuePage = Math.max(0, Number(el.dataset.page) || 0);
   render();
 };
+async function restoreSources() {
+  if (!valid()) return;
+  const targetEngine = engine,
+    targetOwner = owner,
+    targetGeneration = generation;
+  if (!(await targetOwner.acquire())) return;
+  const current = () => valid() && engine === targetEngine && owner === targetOwner && generation === targetGeneration;
+  for (const job of targetEngine.jobs) {
+    if (!current()) return;
+    if (job.phase !== 'needs-file' || !job.sourceHandle || job.sourceChecking) continue;
+    job.sourceChecking = true;
+    job.sourceController = new AbortController();
+    changed();
+    const recovered = await recoverUploadSource(job, { current: () => current() && job.phase === 'needs-file', signal: job.sourceController.signal });
+    job.sourceChecking = false;
+    job.sourceController = null;
+    if (!current()) return;
+    if (!recovered || job.phase !== 'needs-file') {
+      changed();
+      continue;
+    }
+    if (!job.fingerprint?.startsWith('sha256-v2:')) {
+      job.session = null;
+      job.accepted = 0;
+      job.pct = 0;
+    }
+    Object.assign(job, recovered);
+    if (job.restorePhase === 'paused') {
+      job.phase = 'paused';
+      changed();
+    } else engine.resume(job);
+  }
+}
+A.restoreUploadSources = async () => {
+  if (!valid()) return;
+  const targetEngine = engine,
+    targetGeneration = generation;
+  // Invoke permission requests in the click's activation, before awaiting a
+  // browser lock or I/O. Denial simply keeps the original-file picker available.
+  const requests = engine.jobs
+    .filter(job => job.phase === 'needs-file' && job.sourceHandle)
+    .map(job => {
+      try {
+        return job.sourceHandle.requestPermission({ mode: 'read' });
+      } catch {
+        return null;
+      }
+    });
+  await Promise.allSettled(requests);
+  if (valid() && engine === targetEngine && generation === targetGeneration) await restoreSources();
+};
 A.reselectUploadFiles = () => {
   const input = document.getElementById('file-upload-reselect');
   if (!input) return;
@@ -493,17 +560,32 @@ A.reselectUploadFiles = () => {
     if (!valid()) return;
     const targetEngine = engine,
       targetGeneration = generation;
+    const targetOwner = owner;
+    if (!(await targetOwner.acquire()) || !valid() || targetEngine !== engine || targetOwner !== owner) return;
     let matched = 0;
     for (const file of picked) {
-      const candidates = engine.jobs.filter(
-        job => job.phase === 'needs-file' && uploadFileKey(file) === uploadFileKey({ name: job.name, size: job.bytes, lastModified: job.lastModified }),
-      );
+      const candidates = engine.jobs.filter(job => job.phase === 'needs-file' && file.name === job.name && file.size === job.bytes);
       if (!candidates.length) continue;
-      const fingerprint = await fullUploadFingerprint(file);
+      candidates.forEach(job => {
+        job.sourceChecking = true;
+      });
+      changed();
+      let fingerprint;
+      try {
+        fingerprint = await fullUploadFingerprint(file);
+      } catch {
+        continue;
+      } finally {
+        candidates.forEach(job => {
+          job.sourceChecking = false;
+        });
+        if (valid()) changed();
+      }
       if (!valid() || targetEngine !== engine || targetGeneration !== generation) return;
       for (const job of candidates) {
+        if (job.phase !== 'needs-file') continue;
         if (job.fingerprint?.startsWith('sha256-v2:') && fingerprint !== job.fingerprint) continue;
-        if (job.fingerprint && !job.fingerprint.startsWith('sha256-v2:')) {
+        if (!job.fingerprint?.startsWith('sha256-v2:')) {
           job.session = null;
           job.accepted = 0;
           job.pct = 0;
