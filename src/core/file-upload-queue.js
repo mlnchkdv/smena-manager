@@ -11,6 +11,7 @@ import { canEditProject } from '../shared/project-access.js';
 import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/upload-queue.js';
 import { createUploadOwner, fullUploadFingerprint, readUploadFallback } from '../shared/upload-journal.js';
 import { recoverUploadSource } from '../shared/upload-sources.js';
+import { uploadDirectFile } from './direct-upload-session.js';
 import { uploadJournal } from './upload-journal.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
@@ -229,6 +230,7 @@ async function run(job, signal) {
       task: job.task,
       folderId: job.folderId,
       direct,
+      directTransfer: uploadDirectFile,
       signal,
       checkpoint: job.session,
       onCheckpoint: session => {

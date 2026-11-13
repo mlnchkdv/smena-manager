@@ -523,7 +523,9 @@ function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {
 
 async function uploadWorkspaceFileDirect(file, metadata, onProgress) {
   const generation = sessionGeneration;
-  const { uploadDirectFile } = await import('./direct-upload-session.js');
+  // Queue entry loads the transfer code before starting jobs. A reconnection
+  // must not depend on a lazy script fetch interrupted by the network outage.
+  const uploadDirectFile = metadata.directTransfer || (await import('./direct-upload-session.js')).uploadDirectFile;
   assertSessionGeneration(generation);
   return uploadDirectFile(file, metadata, onProgress, { request, assertScope: () => assertSessionGeneration(generation) });
 }
