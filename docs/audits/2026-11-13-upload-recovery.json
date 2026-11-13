@@ -1,0 +1,451 @@
+{
+  "date": "2026-11-13",
+  "codeCommit": "eb02602",
+  "scope": "isolated local synthetic data only",
+  "changes": [
+    "automatic offline/temporary-error recovery without resuming manual pauses",
+    "server-confirmed checkpoints only",
+    "bounded authorization renewal with ACL recheck",
+    "idempotent catalog recovery without source bytes",
+    "optional native file-handle persistence with full source verification",
+    "safe durable recovery with blocked session storage",
+    "compact transfer details",
+    "preloaded transfer code avoids offline lazy-module failure"
+  ],
+  "codeChecks": {
+    "fullSuite": {
+      "status": "passed",
+      "tests": 1013,
+      "codeCommit": "15b87a2",
+      "report": "output/release-checks/2026-11-13T10-42-57-606Z/report.json"
+    },
+    "subsequentTargeted": [
+      {
+        "tests": 12,
+        "status": "passed",
+        "includes": "blocked-session-storage regression, sources, journal, direct registration and 5-GiB virtual transfer"
+      },
+      {
+        "tests": 19,
+        "status": "passed",
+        "includes": "transfer, queue and registration following preload fix"
+      }
+    ],
+    "finalGate": {
+      "status": "partial",
+      "checks": [
+        {
+          "name": "lint",
+          "status": "passed",
+          "durationMs": 34432
+        },
+        {
+          "name": "ui-tokens",
+          "status": "passed",
+          "durationMs": 595
+        },
+        {
+          "name": "server-shared",
+          "status": "not-run",
+          "reason": "Explicitly reused an earlier run. Its evidence must be reviewed separately."
+        },
+        {
+          "name": "production-build",
+          "status": "passed",
+          "durationMs": 44098
+        },
+        {
+          "name": "startup-budget",
+          "status": "passed",
+          "durationMs": 292
+        }
+      ],
+      "report": "output/release-checks/2026-11-13T11-15-39-340Z/report.json",
+      "initialJavaScriptKiB": 595.3,
+      "budgetKiB": 600
+    }
+  },
+  "browsers": {
+    "chromiumExtended": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "ru",
+          "label": "needs-original",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "needs-original",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "needs-original",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "needs-original",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "needs-original",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "offline",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "offline",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "offline",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "offline",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "label": "offline",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "reload-reselect-offline",
+          "accepted": 20971520,
+          "starts": [0, 8388608, 16777216],
+          "probes": 3,
+          "hash": "731d7fdbc7164865ecda27b1f12e386bff18acc65c07d5ab6c7a2b6af3c94d20"
+        },
+        {
+          "lang": "en",
+          "label": "manual-pause",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "manual-pause",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "manual-pause",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "manual-pause",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "manual-pause",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "native-handle-reload-manual-pause",
+          "nativeHandlePersisted": true,
+          "completed": true
+        },
+        {
+          "scenario": "lost-registration-reload",
+          "sourceRequired": false,
+          "catalogEntries": 1,
+          "bytesSent": 20971520
+        },
+        {
+          "lang": "en",
+          "label": "completed",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "completed",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "completed",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "completed",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "label": "completed",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        }
+      ],
+      "issues": []
+    },
+    "webkitProductionMobileEmulation": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "ru",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "ru-webkit-reload-offline",
+          "id": "16",
+          "starts": [0, 8388608, 16777216],
+          "hash": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+          "accepted": 20971520
+        },
+        {
+          "lang": "en",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "en-webkit-reload-offline",
+          "id": "17",
+          "starts": [0, 8388608, 16777216],
+          "hash": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+          "accepted": 20971520
+        }
+      ],
+      "issues": []
+    },
+    "chromiumProductionBlockedSessionFallback": {
+      "completed": true,
+      "rows": [
+        {
+          "lang": "ru",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "ru",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "ru-chromium-prod-reload-offline",
+          "id": "18",
+          "starts": [0, 8388608, 16777216],
+          "hash": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+          "accepted": 20971520
+        },
+        {
+          "lang": "en",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "lang": "en",
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        },
+        {
+          "scenario": "en-chromium-prod-reload-offline",
+          "id": "19",
+          "starts": [0, 8388608, 16777216],
+          "hash": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+          "accepted": 20971520
+        }
+      ],
+      "issues": []
+    }
+  },
+  "viewportScenes": 40,
+  "checksums": [
+    {
+      "scenario": "reload-original",
+      "bytes": 20971520,
+      "sha256": "731d7fdbc7164865ecda27b1f12e386bff18acc65c07d5ab6c7a2b6af3c94d20",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "persisted-native-handle",
+      "bytes": 20971520,
+      "sha256": "e0bf15d991d04805090eb4fc00cfb5bf96e6a9aa27fccb8f634db5f6f268e9c9",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "lost-catalog-response",
+      "bytes": 20971520,
+      "sha256": "1a9607550a9d688313c6335a97ab248748283473fbf0c351f514778c47d51d5f",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "webkit-ru",
+      "bytes": 20971520,
+      "sha256": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "webkit-en",
+      "bytes": 20971520,
+      "sha256": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "chromium-production-ru",
+      "bytes": 20971520,
+      "sha256": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+      "confirmedChunksRepeated": false
+    },
+    {
+      "scenario": "chromium-production-en",
+      "bytes": 20971520,
+      "sha256": "3d310093b93e68bfba4231990729088ccb054ce4b07678ace61781b80c95565e",
+      "confirmedChunksRepeated": false
+    }
+  ],
+  "harness": [
+    "Extended Chromium run uses Playwright routing to an isolated resumable provider and actual catalog endpoints.",
+    "Final production Chromium/WebKit use an XHR destination adapter to localhost. This bypasses WebKit route.fetch losing Blob bodies; actual browser Blob bytes traverse local HTTP.",
+    "Synthetic binary MP4-named payloads test transport, not video decoding.",
+    "OPFS native handles and deterministic picker adapter test IndexedDB structured cloning; OS picker permission UX is not certified.",
+    "Native beforeunload prompts are suppressed while checkpoint handlers still run; reselect file injection retains the original input across rerenders.",
+    "Final Chromium intentionally blocks reads of the same-tab upload fallback; IndexedDB recovery still succeeds.",
+    "Earlier development-mode/harness failures were not accepted as passes. A real lazy-module offline failure found in WebKit was fixed before final production runs."
+  ],
+  "productionGoogleDrive": "not-run",
+  "actualAeza": "not-run",
+  "physicalPhonesAndScreenLock": "not-run"
+}
