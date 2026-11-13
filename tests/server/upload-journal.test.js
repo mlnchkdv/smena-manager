@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createUploadJournal, createUploadOwner, fullUploadFingerprint } from '../../src/shared/upload-journal.js';
+import { createUploadJournal, createUploadOwner, fullUploadFingerprint, readUploadFallback } from '../../src/shared/upload-journal.js';
 
 function storage() {
   const rows = new Map();
@@ -11,6 +11,26 @@ function storage() {
     clear: async () => rows.clear(),
   };
 }
+
+test('blocked or corrupt session fallback does not prevent recovery from the durable journal', async () => {
+  const db = storage(),
+    journal = createUploadJournal({ storage: db });
+  await journal.save('scope', [{ id: 'durable' }]);
+  for (const read of [
+    () => {
+      throw Error('Storage disabled');
+    },
+    () => '{invalid',
+    () => '{}',
+  ]) {
+    assert.deepEqual(readUploadFallback(read), []);
+    assert.deepEqual(await journal.read('scope'), [{ id: 'durable' }]);
+  }
+  assert.deepEqual(
+    readUploadFallback(() => '[{"id":"session"}]'),
+    [{ id: 'session' }],
+  );
+});
 
 test('file handles survive with encrypted checkpoints, remain scoped and clear on signout', async () => {
   const db = storage(),

@@ -9,7 +9,7 @@ import { render } from '../shell/render.js';
 import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/upload-queue.js';
-import { createUploadOwner, fullUploadFingerprint } from '../shared/upload-journal.js';
+import { createUploadOwner, fullUploadFingerprint, readUploadFallback } from '../shared/upload-journal.js';
 import { recoverUploadSource } from '../shared/upload-sources.js';
 import { uploadJournal } from './upload-journal.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
@@ -281,8 +281,8 @@ export function restoreUploadQueue() {
       } catch {
         /* Session-only fallback. */
       }
-      const fallback = JSON.parse(sessionStorage.getItem(prefix + restoredScope) || '[]');
-      const sourceHandles = new Map((Array.isArray(saved) ? saved : []).filter(job => job.sourceHandle).map(job => [job.id, job.sourceHandle]));
+      const fallback = readUploadFallback(() => sessionStorage.getItem(prefix + restoredScope));
+      const sourceHandles = new Map((Array.isArray(saved) ? saved : []).filter(job => job?.sourceHandle).map(job => [job.id, job.sourceHandle]));
       if (!Array.isArray(saved) || !saved.length || (Array.isArray(fallback) && (fallback[0]?.checkpointAt || 0) > (saved[0]?.checkpointAt || 0)))
         saved = Array.isArray(fallback)
           ? fallback.map(job => ({ ...job, ...(sourceHandles.has(job.id) ? { sourceHandle: sourceHandles.get(job.id) } : {}) }))

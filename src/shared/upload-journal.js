@@ -1,6 +1,15 @@
 // No File contents or login token are persisted. Browser-granted read-only file
 // handles are stored separately; provider tickets remain encrypted per scope.
 // This is not protection from XSS. Reopening a source always verifies its hash.
+export function readUploadFallback(read) {
+  try {
+    const entries = JSON.parse(read() || '[]');
+    return Array.isArray(entries) ? entries : [];
+  } catch {
+    return []; // Session storage may be blocked while IndexedDB is still usable.
+  }
+}
+
 export function createUploadJournal({ storage, crypto = globalThis.crypto }) {
   const encode = value => new TextEncoder().encode(value);
   let epoch = 0,
