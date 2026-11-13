@@ -8,7 +8,7 @@ const q = (en, ru) => (isRussian() ? ru : en);
 export function uploadsHtml() {
   const jobs = S.ui.uploads || [];
   if (!jobs.length) return '';
-  const active = jobs.filter(job => ['uploading', 'verifying', 'queued'].includes(job.phase));
+  const active = jobs.filter(job => ['uploading', 'verifying', 'queued', 'waiting-network', 'retrying'].includes(job.phase));
   const waiting = jobs.filter(job => ['paused', 'failed'].includes(job.phase));
   const reselect = jobs.some(job => job.phase === 'needs-file');
   const complete = jobs.filter(job => job.phase === 'done').length;
@@ -20,6 +20,8 @@ export function uploadsHtml() {
     queued: q('Queued', 'В очереди'),
     uploading: q('Uploading', 'Загрузка'),
     verifying: q('Saving to catalog…', 'Сохранение в каталоге…'),
+    'waiting-network': q('Waiting for connection · resumes automatically', 'Ожидаем сеть · продолжим автоматически'),
+    retrying: q('Connection interrupted · retrying automatically', 'Связь прервалась · повторим автоматически'),
     paused: q('Paused', 'Пауза'),
     failed: q('Needs attention', 'Требует внимания'),
     done: q('Uploaded', 'Загружено'),
@@ -31,7 +33,7 @@ export function uploadsHtml() {
     .map(job => {
       const retry = ['paused', 'failed'].includes(job.phase),
         restart = ['UPLOAD_SESSION_EXPIRED', 'UPLOAD_TICKET_EXPIRED'].includes(job.code);
-      return `<article class="file-upload-row"><div class="min0"><strong class="trunc" title="${esc(job.name)}">${esc(job.name)}</strong><small>${esc(proj(job.project)?.name || job.project)} · ${fsize(job.bytes)}</small><div class="row"><span class="hint">${job.sourceChecking ? q('Checking source contents…', 'Проверяем содержимое исходного файла…') : labels[job.phase] || ''}</span><span class="sp"></span><span class="hint num" data-upload-percent="${job.id}">${job.pct || 0}%</span></div>${!['done', 'cancelled'].includes(job.phase) ? `<div class="prog" data-upload-bar="${job.id}" role="progressbar" aria-label="${esc(job.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${job.pct || 0}" style="--p:${(job.pct || 0) / 100}"><i style="--p:inherit"></i></div>` : ''}${job.phase === 'failed' ? `<p class="err">${restart ? q('Session expired. Retrying starts this file again.', 'Сеанс истёк. Повтор начнёт этот файл заново.') : esc(t(job.error || 'Upload failed.'))}</p>` : ''}</div><div class="file-upload-row-actions">${['queued', 'uploading', 'verifying'].includes(job.phase) && S.ui.filePolicy?.directUploadEnabled ? `<button class="ibtn" data-a="pauseUpload" data-id="${job.id}" aria-label="${esc(q('Pause: ', 'Пауза: ') + job.name)}">${ic('pause', 14)}</button>` : ''}${retry && job.file ? `<button class="ibtn" data-a="retryUpload" data-id="${job.id}" aria-label="${esc((restart ? q('Start again: ', 'Начать заново: ') : q('Resume: ', 'Продолжить: ')) + job.name)}">${ic(restart ? 'rotate-cw' : 'play', 14)}</button>` : ''}${!['done', 'cancelled'].includes(job.phase) ? `<button class="ibtn" data-a="cancelUpload" data-id="${job.id}" aria-label="${esc(q('Cancel: ', 'Отменить: ') + job.name)}">${ic('x', 14)}</button>` : ''}</div></article>`;
+      return `<article class="file-upload-row"><div class="min0"><strong class="trunc" title="${esc(job.name)}">${esc(job.name)}</strong><small>${esc(proj(job.project)?.name || job.project)} · ${fsize(job.bytes)}</small><div class="row"><span class="hint">${job.sourceChecking ? q('Checking source contents…', 'Проверяем содержимое исходного файла…') : labels[job.phase] || ''}</span><span class="sp"></span><span class="hint num" data-upload-percent="${job.id}">${job.pct || 0}%</span></div>${!['done', 'cancelled'].includes(job.phase) ? `<div class="prog" data-upload-bar="${job.id}" role="progressbar" aria-label="${esc(job.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${job.pct || 0}" style="--p:${(job.pct || 0) / 100}"><i style="--p:inherit"></i></div>` : ''}${job.phase === 'failed' ? `<p class="err">${restart ? q('Session expired. Retrying starts this file again.', 'Сеанс истёк. Повтор начнёт этот файл заново.') : esc(t(job.error || 'Upload failed.'))}</p>` : ''}</div><div class="file-upload-row-actions">${['queued', 'uploading', 'verifying', 'waiting-network', 'retrying'].includes(job.phase) && S.ui.filePolicy?.directUploadEnabled ? `<button class="ibtn" data-a="pauseUpload" data-id="${job.id}" aria-label="${esc(q('Pause: ', 'Пауза: ') + job.name)}">${ic('pause', 14)}</button>` : ''}${retry && job.file ? `<button class="ibtn" data-a="retryUpload" data-id="${job.id}" aria-label="${esc((restart ? q('Start again: ', 'Начать заново: ') : q('Resume: ', 'Продолжить: ')) + job.name)}">${ic(restart ? 'rotate-cw' : 'play', 14)}</button>` : ''}${!['done', 'cancelled'].includes(job.phase) ? `<button class="ibtn" data-a="cancelUpload" data-id="${job.id}" aria-label="${esc(q('Cancel: ', 'Отменить: ') + job.name)}">${ic('x', 14)}</button>` : ''}</div></article>`;
     })
     .join(
       '',

@@ -1,8 +1,21 @@
 export const unfinishedUpload = item => !['done', 'cancelled'].includes(item.phase);
+export const retryableUploadError = error =>
+  ['NETWORK_ERROR', 'DIRECT_UPLOAD_NETWORK_ERROR', 'UPLOAD_TIMEOUT'].includes(error?.code) ||
+  [408, 429].includes(error?.status) ||
+  (error?.status >= 500 && error.status <= 599);
 
 // File handles stay in memory. Scheduling, cancellation and retry are independent
 // of the current route, and at most two byte transfers run at once.
-export function createUploadQueue({ run, changed = () => {}, concurrency = 2, limit = 500 }) {
+export function createUploadQueue({
+  run,
+  changed = () => {},
+  concurrency = 2,
+  limit = 500,
+  recoverNetwork = false,
+  online = true,
+  setTimer = setTimeout,
+  clearTimer = clearTimeout,
+}) {
   const jobs = [];
   let active = 0,
     scheduled = false,
@@ -24,6 +37,16 @@ export function createUploadQueue({ run, changed = () => {}, concurrency = 2, li
     job.resolve?.(result);
     job.resolve = null;
   };
+  const clearRetry = job => {
+    if (job.retryTimer !== undefined) clearTimer(job.retryTimer);
+    delete job.retryTimer;
+    delete job.retryAt;
+  };
+  const connectionWait = job => {
+    clearRetry(job);
+    job.phase = 'waiting-network';
+    job.pct = job.bytes ? Math.min(99, Math.floor(((job.accepted || 0) / job.bytes) * 100)) : 0;
+  };
   async function start(job) {
     active++;
     job.running = true;
@@ -42,10 +65,25 @@ export function createUploadQueue({ run, changed = () => {}, concurrency = 2, li
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        job.phase = 'failed';
         job.error = error.message;
         job.code = error.code;
-        settle(job, null);
+        if (recoverNetwork && retryableUploadError(error) && !online) connectionWait(job);
+        else if (recoverNetwork && retryableUploadError(error) && (job.retryCount || 0) < 8) {
+          job.retryCount = (job.retryCount || 0) + 1;
+          const delay = Math.min(30000, 1000 * 2 ** (job.retryCount - 1));
+          job.phase = 'retrying';
+          job.retryAt = Date.now() + delay;
+          job.retryTimer = setTimer(() => {
+            clearRetry(job);
+            if (job.phase !== 'retrying') return;
+            job.phase = online ? 'queued' : 'waiting-network';
+            notify();
+            schedule();
+          }, delay);
+        } else {
+          job.phase = 'failed';
+          settle(job, null);
+        }
       }
     } finally {
       job.running = false;
@@ -58,11 +96,34 @@ export function createUploadQueue({ run, changed = () => {}, concurrency = 2, li
   function pump() {
     for (const job of jobs) {
       if (active >= concurrency) break;
-      if (job.phase === 'queued' && !job.running) void start(job);
+      if (job.phase === 'queued' && !job.running) {
+        if (recoverNetwork && !online) {
+          connectionWait(job);
+          notify();
+        } else void start(job);
+      }
     }
   }
   return {
     jobs,
+    setOnline(value) {
+      online = Boolean(value);
+      if (!recoverNetwork) return;
+      this.batch(() =>
+        jobs.forEach(job => {
+          if (!online && ['queued', 'uploading', 'verifying', 'retrying'].includes(job.phase)) {
+            connectionWait(job);
+            job.controller?.abort();
+            notify();
+          } else if (online && job.phase === 'waiting-network') {
+            job.retryCount = 0;
+            job.phase = 'queued';
+            notify();
+          }
+        }),
+      );
+      schedule();
+    },
     batch(action) {
       batching = true;
       try {
@@ -90,19 +151,23 @@ export function createUploadQueue({ run, changed = () => {}, concurrency = 2, li
       return Promise.all(promises);
     },
     pause(job) {
-      if (!['queued', 'uploading', 'verifying'].includes(job.phase)) return;
+      if (!['queued', 'uploading', 'verifying', 'waiting-network', 'retrying'].includes(job.phase)) return;
+      clearRetry(job);
       job.phase = 'paused';
       job.controller?.abort();
       notify();
     },
     resume(job) {
       if (!['paused', 'failed', 'needs-file'].includes(job.phase) || !job.file) return;
+      clearRetry(job);
+      job.retryCount = 0;
       job.error = '';
       job.phase = 'queued';
       notify();
       schedule();
     },
     cancel(job) {
+      clearRetry(job);
       job.phase = 'cancelled';
       job.controller?.abort();
       job.file = null;

@@ -90,7 +90,7 @@ function persist() {
       createdAt: job.createdAt,
       fingerprint: job.fingerprint,
       accepted: job.accepted,
-      pct: job.pct,
+      pct: job.bytes ? Math.min(99, Math.floor(((job.accepted || 0) / job.bytes) * 100)) : 0,
       session: job.session
         ? {
             uploadUrl: job.session.uploadUrl,
@@ -239,7 +239,7 @@ async function run(job, signal) {
     },
     (pct, bytes) => {
       job.pct = pct;
-      job.accepted = bytes || Math.round((job.bytes * pct) / 100);
+      if (!direct) job.accepted = bytes || Math.round((job.bytes * pct) / 100);
       paintProgress(job);
     },
   );
@@ -253,7 +253,13 @@ export function restoreUploadQueue() {
   owner?.close();
   scope = key();
   generation = getSessionGeneration();
-  engine = createUploadQueue({ run, changed, concurrency: S.ui.filePolicy?.directUploadEnabled ? 2 : 1 });
+  engine = createUploadQueue({
+    run,
+    changed,
+    concurrency: S.ui.filePolicy?.directUploadEnabled ? 2 : 1,
+    recoverNetwork: S.ui.filePolicy?.directUploadEnabled === true,
+    online: navigator.onLine !== false,
+  });
   owner = createUploadOwner({ locks: navigator.locks, scope });
   S.ui.uploads = engine.jobs;
   const restoredEngine = engine,
@@ -516,7 +522,10 @@ window.addEventListener('beforeunload', event => {
   }
 });
 window.addEventListener('offline', () => {
-  if (valid()) engine.batch(() => engine.jobs.forEach(job => engine.pause(job)));
+  if (valid()) engine.setOnline(false);
+});
+window.addEventListener('online', () => {
+  if (valid()) engine.setOnline(true);
 });
 function resetUploadScope(signedOut) {
   generation = -1;
