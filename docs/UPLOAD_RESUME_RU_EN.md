@@ -223,14 +223,10 @@ WebKit штатно предложил исходник и продолжил п
 контрольные суммы совпали. Завершённые и отменённые записи больше не удерживают
 дескрипторы в журнале. Подробные результаты: [audit JSON](audits/2026-11-14-automatic-upload-restart.json).
 
-**Ограничение проверки:** OPFS не подтверждает сохранение разрешения к обычному
-файлу Windows. Для этого в отдельном тестовом Chrome запрошен ручной выбор
-`output/playwright/auto-upload-2026-11-14/large-1GiB.mp4`; этот шаг ещё не выполнен.
-Следующий этап — закрыть Chrome, восстановить доступ штатной кнопкой и вручную
-подтвердить разрешение браузера, если оно будет запрошено. При наличии варианта
-«разрешать при каждом посещении» пользователь может выбрать его для последующей
-проверки полностью автоматического продолжения. Приложение не может самостоятельно
-выдать себе такое разрешение. Условия описаны в
+**Граница результатов OPFS:** эти проверки сами по себе не подтверждают
+сохранение разрешения к обычному файлу Windows. Дополнительная нативная проверка
+1 ГиБ завершена ниже. Постоянный доступ подтверждает пользователь в Chrome;
+приложение не может самостоятельно выдать себе такое разрешение. Условия описаны в
 [документации Chrome](https://developer.chrome.com/blog/persistent-permissions-for-the-file-system-access-api).
 
 EN: Real 1/5 GiB payloads resumed automatically after full Chrome process exit
@@ -248,9 +244,9 @@ selection controls are hidden during automatic verification. The 29 targeted
 tests, changed-file lint, production build and startup budget passed. RU/EN
 Chrome/WebKit layouts and source-state checks covered 31 scenes. WebKit's
 unsupported-API fallback resumed a real 40 MiB payload after source reselection.
-Physical phones, live Drive/Aeza, background transfer and native OS permission
-dialogs remain unverified. Native chooser selection still needs the requested
-manual step; this report does not treat that pending check as passed.
+Physical phones, live Drive/Aeza and background transfer remain unverified.
+The subsequent native Windows test below additionally covers the real chooser,
+permission persistence and a full 1 GiB transfer.
 
 ### Нативный выбор Windows: подготовка проверки / Native Windows chooser preparation
 
@@ -261,17 +257,80 @@ manual step; this report does not treat that pending check as passed.
 headed Chrome через обычный Playwright без обработчиков `filechooser`.
 Отключение перехвата во вторичном CDP-сеансе не отключает обработчик CLI.
 
-Системное окно в обычном Chrome подтверждено; полный путь к служебному
-`large-1GiB.mp4` заполнен в нём. Передача этого исходника ещё не началась:
-журнал и HTTP-приёмник проверяются независимо от текстового подтверждения
-пользователя. Пока окно не вернуло именно этот файл и не появилась его
-запись в очереди, перезапуск не считается проверенным. Клик по «Открыть»
-требует ручного шага из-за ограничения управления дочерним окном Windows.
-Текущее состояние зафиксировано в [отдельном отчёте](audits/2026-11-14-native-upload-preparation.json).
+На этапе подготовки системное окно и заполненный путь были подтверждены,
+но передача `large-1GiB.mp4` ещё не началась. Это промежуточное состояние
+сохранено в [архивном отчёте](audits/2026-11-14-native-upload-preparation.json).
+Нативный выбор потребовал ручного шага из-за ограничения управления дочерним
+окном Windows. Успешный итог этой проверки приведён далее; текстовые
+подтверждения пользователя всегда сверялись с реальным состоянием браузера,
+журнала и HTTP-приёмника.
 
 EN: Playwright CLI intercepts the native chooser and causes an explicit
 `AbortError`. Native source testing therefore uses plain headed Playwright
-with no `filechooser` listeners. The Windows chooser and prefilled fixture
-path are confirmed, but the named 1 GiB source has not yet reached the upload
-queue. Manual completion of that native dialog is still needed. Preparation
-and user confirmation alone are not reported as a successful restart test.
+with no `filechooser` listeners. The preparation report is a historical
+snapshot before source selection completed, not the final acceptance result.
+
+## Обычный файл Windows: нативное автовозобновление / Native Windows automatic recovery
+
+**Проверка завершена успешно 14.11.2026.** Настоящий файл Windows
+`large-1GiB.mp4` размером 1 073 741 824 байта выбран штатным системным окном
+Chrome 157.0.8103.78. Выбор и разрешения не подменялись, источник не находился
+в OPFS. Тестовый адаптер перенаправлял только адрес передачи на локальный
+HTTP-приёмник; передавались реальные байты файла.
+
+Перед закрытием сохранены 128 МиБ и файловый дескриптор. После подтверждения
+пользователем постоянного доступа настройка Chrome `FILE_SYSTEM_ACCESS_EXTENDED_PERMISSION`
+имела значение `allow`. Затем закрыта последняя вкладка с обычным подтверждением
+выхода, проверено завершение процесса Chrome и запущен новый процесс с тем же
+профилем. Очередь восстановилась из IndexedDB при пустой резервной записи новой
+вкладки. Приложение заново проверило всё содержимое и продолжило с 128 МиБ.
+
+| Проверка после финального перезапуска              | Результат                           |
+| -------------------------------------------------- | ----------------------------------- |
+| Разрешение чтения                                  | `granted` без действий пользователя |
+| Вызовы выбора файла                                | 0                                   |
+| Запросы разрешения                                 | 0                                   |
+| Полученный файл                                    | 1 073 741 824 байта                 |
+| Полный SHA-256 источника и результата              | Совпал                              |
+| Подтверждённые фрагменты                           | 128 уникальных, до 8 МиБ            |
+| Запись в каталоге                                  | Одна                                |
+| Незавершённые записи и дескрипторы после окончания | 0                                   |
+
+Полный SHA-256: `15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e`.
+Проверено 15 нативных сцен: ожидание разрешения на RU/EN во всех пяти размерах
+320×567, 390×844, 768×1024, 844×390 и 1366×768; дополнительно — автоматическое
+продолжение на русском во всех пяти размерах. Горизонтального переполнения нет.
+
+До подтверждённого постоянного разрешения несколько запусков возвращали
+`prompt`, хотя чтение в текущем сеансе уже разрешалось. Приложение сохраняло
+очередь и предлагало восстановить доступ без нового выбора файла. Разовый
+`granted` и сообщение пользователя сами по себе не считались доказательством
+сохранения разрешения: успешным отмечен только запуск с сохранённой настройкой,
+нулевыми запросами и совпавшим полным результатом.
+
+Код приложения дополнительно менять не потребовалось. Использована проверенная
+сборка `327ba2f`; полный набор тестов и сборка повторно не запускались.
+Новые доказательства — нативный браузер, завершение процессов, передача байтов
+и независимые контрольные суммы. Детали: [нативный отчёт](audits/2026-11-14-native-upload-permissions.json).
+Проверки настоящего Google Drive/Aeza, физических телефонов и блокировки экрана
+этим локальным прогоном не заменяются.
+
+Тестовый Chrome и локальные серверы остановлены, проверенная копия приёмника
+удалена. Автоматическая проверка выполнения отклонила очистку временного профиля
+и удаление служебного исходника с причиной `blocked by policy`; они оставлены
+в незакоммиченном `output/playwright/auto-upload-2026-11-14`.
+
+EN: A genuine 1 GiB Windows file selected through Chrome's native chooser resumed
+automatically from 128 MiB after full process exit and restart. Once the user had
+granted persistent read access and Chrome stored its extended allow setting, the
+next process reported `granted` and invoked neither the source picker nor a
+permission request. Recovery used the app's IndexedDB journal, with no imported
+storage state, injected checkpoint or OPFS source. Full independent source and
+destination SHA-256 values matched; all 128 confirmed chunks were unique, bounded
+to 8 MiB, and produced one catalog entry. The completed journal retained no
+source handles. Fifteen native layout scenes passed; permission recovery covered
+both languages and five sizes. Application code remained unchanged. The browser
+grant was user-controlled; temporary access in earlier sessions was not counted
+as persistent access. Live Drive/Aeza and physical mobile devices remain separate.
+The isolated browser and servers were stopped. Cleanup review blocked removal
+of the temporary profile and source, which remain untracked in `output/`.

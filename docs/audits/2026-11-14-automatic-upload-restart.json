@@ -3,6 +3,8 @@
   "recordedAt": "2026-11-14T14:35:38.362Z",
   "codeFix": "327ba2f",
   "status": "passed_with_native_os_permission_check_pending",
+  "historicalSnapshot": true,
+  "nativeOsFollowUp": "2026-11-14-native-upload-permissions.json",
   "scope": "Local production builds, synthetic files, fake storage provider and real loopback HTTP bodies. No Google credentials, team data or live Drive traffic.",
   "automaticRestart": {
     "source": "Real FileSystemFileHandle objects backed by OPFS; only the initial picker is adapted to return those handles. No checkpoint injection, browser storage-state import or mocked file bytes. App stores source handles, not source contents.",

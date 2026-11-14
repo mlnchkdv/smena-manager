@@ -1,0 +1,336 @@
+{
+  "date": "2026-11-14",
+  "recordedAt": "2026-11-14T15:38:33.178Z",
+  "status": "passed_native_windows_automatic_restart",
+  "applicationCode": "327ba2f",
+  "browserVersion": "157.0.8103.78",
+  "scope": "Local production build, external synthetic Windows file, genuine Chrome File System Access API, isolated resumable HTTP receiver. No production, Google credentials or Drive traffic.",
+  "harness": {
+    "plainHeadedPlaywright": true,
+    "filechooserListeners": 0,
+    "initialPickerAdapted": false,
+    "permissionMethodsAdapted": false,
+    "readOnlyObserversOnly": true,
+    "xhrDestinationAdapter": "Real request bodies sent to loopback instead of Google.",
+    "storageStateImported": false,
+    "checkpointInjected": false,
+    "sourceFileInOpfs": false,
+    "permissionsForcedByTest": false
+  },
+  "source": {
+    "name": "large-1GiB.mp4",
+    "bytes": 1073741824,
+    "independentDiskSha256": "15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e",
+    "fullSourceIdentityStored": true
+  },
+  "transfer": {
+    "bytes": 1073741824,
+    "receivedDiskSize": 1073741824,
+    "receivedSha256": "15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e",
+    "sourceSha256": "15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e",
+    "fullHashMatches": true,
+    "chunks": 128,
+    "maxChunkBytes": 8388608,
+    "uniqueConfirmedChunks": true,
+    "noByteGaps": true,
+    "rejectedRanges": 0,
+    "confirmedBeforeClose": 134217728,
+    "firstUnconfirmedOffset": 134217728,
+    "elapsedAfterGateOpenedMs": 10170,
+    "catalogEntries": 1
+  },
+  "initialCheckpoint": [
+    {
+      "name": "large-1GiB.mp4",
+      "bytes": 1073741824,
+      "accepted": 134217728,
+      "phase": "uploading",
+      "fullFingerprint": true,
+      "hasSession": true,
+      "kind": "file",
+      "permission": "granted",
+      "opfsSameSource": false,
+      "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+    }
+  ],
+  "permissionLifecycle": {
+    "firstRestart": {
+      "process": {
+        "oldPid": 30996,
+        "newPid": 31712,
+        "oldExited": true
+      },
+      "journal": [
+        {
+          "name": "large-1GiB.mp4",
+          "bytes": 1073741824,
+          "accepted": 134217728,
+          "phase": "uploading",
+          "fullFingerprint": true,
+          "hasSession": true,
+          "kind": "file",
+          "permission": "prompt",
+          "opfsSameSource": false,
+          "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+        }
+      ],
+      "counters": {
+        "pickerCalls": 0,
+        "permissionRequests": 0
+      }
+    },
+    "initialUserRenewal": {
+      "journal": [
+        {
+          "name": "large-1GiB.mp4",
+          "bytes": 1073741824,
+          "accepted": 134217728,
+          "phase": "retrying",
+          "fullFingerprint": true,
+          "hasSession": true,
+          "kind": "file",
+          "permission": "granted",
+          "opfsSameSource": false,
+          "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+        }
+      ],
+      "counters": {
+        "pickerCalls": 0,
+        "permissionRequests": 1
+      }
+    },
+    "secondRestart": {
+      "process": {
+        "oldPid": 31712,
+        "oldExited": true,
+        "newPid": 14368
+      },
+      "journal": [
+        {
+          "name": "large-1GiB.mp4",
+          "bytes": 1073741824,
+          "accepted": 134217728,
+          "phase": "retrying",
+          "fullFingerprint": true,
+          "hasSession": true,
+          "kind": "file",
+          "permission": "prompt",
+          "opfsSameSource": false,
+          "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+        }
+      ],
+      "counters": {
+        "pickerCalls": 0,
+        "permissionRequests": 0
+      },
+      "sessionFallbackPresentOnInitialLoad": false
+    },
+    "ordinaryTabCloseAttempt": {
+      "process": {
+        "oldPid": 14368,
+        "newPid": 45620,
+        "method": "last tab close with accepted beforeunload",
+        "oldExited": true
+      },
+      "journal": [
+        {
+          "name": "large-1GiB.mp4",
+          "bytes": 1073741824,
+          "accepted": 134217728,
+          "phase": "failed",
+          "fullFingerprint": true,
+          "hasSession": true,
+          "kind": "file",
+          "permission": "prompt",
+          "opfsSameSource": false,
+          "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+        }
+      ],
+      "counters": {
+        "pickerCalls": 0,
+        "permissionRequests": 0
+      },
+      "initialSessionFallbackPresent": false
+    },
+    "note": "Earlier in-session grants returned granted but did not retain an extended allow setting. A subsequent user action wrote setting=1 for the isolated test origin. Only the following restart is counted as the successful persistent-grant case.",
+    "persistentGrantConfirmed": {
+      "journal": [
+        {
+          "name": "large-1GiB.mp4",
+          "bytes": 1073741824,
+          "accepted": 134217728,
+          "phase": "retrying",
+          "fullFingerprint": true,
+          "hasSession": true,
+          "kind": "file",
+          "permission": "granted",
+          "opfsSameSource": false,
+          "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+        }
+      ],
+      "counters": {
+        "pickerCalls": 0,
+        "permissionRequests": 1
+      },
+      "extendedPermissionSetting": 1
+    }
+  },
+  "successfulRestart": {
+    "process": {
+      "newPid": 29896,
+      "oldPid": 45620,
+      "oldExited": true,
+      "method": "last tab close with accepted beforeunload"
+    },
+    "counters": {
+      "pickerCalls": 0,
+      "permissionRequests": 0
+    },
+    "initialSessionFallbackPresent": false,
+    "journal": [
+      {
+        "name": "large-1GiB.mp4",
+        "bytes": 1073741824,
+        "accepted": 134217728,
+        "phase": "retrying",
+        "fullFingerprint": true,
+        "hasSession": true,
+        "kind": "file",
+        "permission": "granted",
+        "opfsSameSource": false,
+        "receiverId": "d189a237-6362-4f25-b251-ae81fb7744d5"
+      }
+    ],
+    "completedCounters": {
+      "pickerCalls": 0,
+      "permissionRequests": 0
+    }
+  },
+  "layouts": {
+    "permissionRecovery": [
+      {
+        "language": "English (US)",
+        "width": 320,
+        "height": 567,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 390,
+        "height": 844,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 844,
+        "height": 390,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 320,
+        "height": 567,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 390,
+        "height": 844,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 844,
+        "height": 390,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0
+      }
+    ],
+    "automaticTransfer": [
+      {
+        "width": 320,
+        "height": 567,
+        "overflow": 0
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "overflow": 0
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "overflow": 0
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "overflow": 0
+      }
+    ],
+    "totalScenes": 15,
+    "languages": ["Русский", "English (US)"],
+    "note": "Actual native-source permission recovery tested in both languages at five viewports; automatic transfer additionally tested in Russian at all five viewports."
+  },
+  "behavior": {
+    "loginSurvived": true,
+    "queueSurvived": true,
+    "nativeHandleSurvived": true,
+    "automaticResumeFromConfirmedOffset": true,
+    "sourcePickerCallsAfterSuccessfulRestart": 0,
+    "permissionRequestsAfterSuccessfulRestart": 0,
+    "initialSessionFallbackPresent": false,
+    "wholeSourceReverifiedBeforeResume": true
+  },
+  "verification": {
+    "noNewApplicationChanges": true,
+    "fullSuiteRerun": false,
+    "unitTestsAndBuild": "Reuses the previously documented 327ba2f targeted test/build validation. This run adds browser, process-exit and full binary checks."
+  },
+  "limitations": [
+    "Physical iOS/Android, live Drive/Aeza, screen lock, OS power loss and arbitrary multi-GiB internet throughput are separate checks.",
+    "Permanent read permission is a user/browser decision. A prompt or denied result cannot be silently overridden by the app.",
+    "The synthetic MP4 verifies byte transfer, not video playback."
+  ],
+  "relatedReports": ["2026-11-14-native-upload-preparation.json", "2026-11-14-automatic-upload-restart.json"],
+  "finalStorage": {
+    "entries": [],
+    "sourceHandles": 0
+  },
+  "cleanup": {
+    "isolatedChromeClosed": true,
+    "isolatedApiAndPreviewStopped": true,
+    "verifiedReceiverCopyRemoved": true,
+    "sourceRetained": true,
+    "isolatedProfileRetained": true,
+    "reason": "Automatic execution review rejected both the scoped directory cleanup and the single synthetic source deletion: blocked by policy. No alternative deletion mechanism was used."
+  }
+}

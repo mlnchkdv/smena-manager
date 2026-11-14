@@ -1,6 +1,8 @@
 {
   "date": "2026-11-14",
   "status": "waiting_for_native_source_selection",
+  "historicalSnapshot": true,
+  "finalAcceptanceReport": "2026-11-14-native-upload-permissions.json",
   "applicationCode": "327ba2f",
   "scope": "Isolated local workspace and resumable HTTP receiver; no production or Google Drive calls.",
   "source": {
