@@ -2,7 +2,7 @@
   "checkedAt": "2026-11-14T18:56:19.276Z",
   "url": "https://smena.team",
   "release": "a076d85665fadfc4549cf972663f5561039cac21",
-  "status": "published_pending_google_origin",
+  "status": "published_google_login_and_read_checks_confirmed",
   "serverTests": {
     "total": 1018,
     "passed": 1017,
@@ -469,8 +469,8 @@
     }
   ],
   "realDevicesChecked": false,
-  "googleOriginConfirmed": false,
-  "authenticatedWorkflowChecked": false,
+  "googleOriginConfirmed": true,
+  "authenticatedWorkflowChecked": true,
   "previewStopped": true,
   "previewAutostartDisabled": true,
   "cronDisabled": true,
@@ -495,5 +495,9 @@
     "remoteProfiles": 6
   },
   "afterRestartSmokePassed": true,
-  "notificationStartPausedExplicitlyConfigured": true
+  "notificationStartPausedExplicitlyConfigured": true,
+  "authenticatedWorkflowScope": "read_only",
+  "acceptanceReport": "2026-11-14-aeza-authenticated-acceptance.json",
+  "currentRelease": "db2a122db08c9c2074da64ac611642d473237ae8",
+  "postRestartBrowserReloadConfirmed": false
 }

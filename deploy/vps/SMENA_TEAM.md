@@ -2,8 +2,9 @@
 
 Основной адрес: **https://smena.team**. Production установлен и запущен
 14.11.2026. DNS, HTTPS, чтение Google Drive и публичные проверки работают.
-Добавление нового Google OAuth origin и проверка настоящего входа ещё требуют
-завершения в Google Console. См. [отчёт о публикации](../../docs/AEZA_PUBLICATION_2026-11-14.md).
+Google OAuth origin сохранён, настоящий вход и сессия после обновления
+подтверждены. См. [отчёт о публикации](../../docs/AEZA_PUBLICATION_2026-11-14.md)
+и [авторизованную приёмку](../../docs/AEZA_ACCEPTANCE_2026-11-14.md).
 Ниже сохранён порядок установки для [комплекта развёртывания](README.md).
 
 ## Что подготовлено локально
@@ -88,8 +89,9 @@ Drive, Gmail, push и постоянные секреты. Проверка фо
 
 Use **https://smena.team** as the canonical origin and follow the full
 [VPS runbook](README.md). Production was installed on 14 November 2026; DNS, TLS,
-Drive reads and public checks passed. The Google origin and an actual sign-in
-still need confirmation. The ignored transfer bundle was preserved. Inspect server services
+Drive reads and public checks passed. The Google origin, actual sign-in and
+authenticated reload are confirmed; read-only acceptance is linked above.
+The ignored transfer bundle was preserved. Inspect server services
 before changing anything. Keep Drive IDs, profiles and persistent secrets;
 allow only one backend to write to Drive. Add the exact HTTPS JavaScript origin
 to the existing Google Web OAuth client; popup sign-in needs no new callback.

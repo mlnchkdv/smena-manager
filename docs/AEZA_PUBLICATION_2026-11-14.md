@@ -6,9 +6,10 @@ Drive. PostgreSQL, новое пустое хранилище и новые по
 
 ## Подтверждено
 
-- Production release: `a076d85665fadfc4549cf972663f5561039cac21`.
-  SHA frontend и API совпадают. Более новые коммиты с этим отчётом не меняют
-  запущенный код приложения.
+- Первоначальный production release: `a076d85665fadfc4549cf972663f5561039cac21`.
+  После авторизованной приёмки опубликовано исправление мобильной навигации:
+  `db2a122db08c9c2074da64ac611642d473237ae8`. SHA frontend и API совпадают.
+  Более новые коммиты только с отчётами не меняют запущенный код приложения.
 - A-запись основного домена настроена в действующей зоне Aeza. Google и
   Cloudflare DNS вернули адрес VPS.
 - Сертификат Let's Encrypt получен для `smena.team`, действителен до
@@ -37,20 +38,22 @@ Drive. PostgreSQL, новое пустое хранилище и новые по
 - Публичные страницы About, Privacy и Terms проверены на 320, 390 и 1366 px,
   включая раскрытие английского текста: ещё 18 сцен без переполнения.
 
-## Что ещё не подтверждено
+## Приёмка входа и внутренних разделов
 
-Инструмент управления встроенной панелью не инициализируется
-(`failed to write kernel assets`, Windows error 3). В отдельном Comet Google
-потребовал повторную авторизацию. Пользователь вошёл в Google Console в боковой
-панели; ему передан точный шаг добавления `https://smena.team` в
-**Authorized JavaScript origins существующего Web OAuth client**.
-Прежние origins и redirect URI должны сохраниться. Новый callback не нужен.
+В существующем Google Web OAuth client добавлен `https://smena.team` в
+**Authorized JavaScript origins**. Сохранение подтверждено повторным открытием
+клиента в Google Console. Прежние origins, имя клиента и redirect URI сохранены;
+новый callback не добавлялся. Пользователь подтвердил успешный Google-вход.
 
-До подтверждения сохранения origin и настоящего входа нельзя считать Google
-авторизацию и авторизованные рабочие сценарии принятыми. Доступность экрана
-входа и `googleAuthEnabled=true` не доказывают успешную авторизацию пользователя.
-Сохранение после входа, перезапуска и обновления, а также внутренние разделы
-следует проверить после этого. Проверки на физических телефонах не выполнялись.
+Сессия после обновления подтверждена пользователем и дополнительной проверкой
+прямой ссылки на TXT в Chrome. Проверены чтение файлов из Drive, заметки,
+поиск/папки, холсты и граф на RU/EN и узких размерах. Детали и найденное
+исправление мобильного фокуса — в [авторизованной приёмке](AEZA_ACCEPTANCE_2026-11-14.md).
+Это проверка чтения; новые загрузки, редактирование материалов и восстановление
+версий на новом сервере не запускались. Физические телефоны не проверялись.
+Повторное обновление браузера после последнего перезапуска backend и финальный
+возврат графа из узкой компоновки остались неподтверждёнными из-за остановки
+инструмента управления браузером; подробности отмечены в приёмке.
 
 Повторная доставка Gmail/push, включение расписания, восстановление резервной
 копии и изменение материалов команды в рамках публикации не выполнялись.
@@ -73,8 +76,10 @@ TLS, a renewal dry-run and public smoke checks passed. The server ran 1018 tests
 one skipped, none failed. Login layout passed 24 RU/EN Chromium/WebKit scenes,
 plus 18 public disclosure-page scenes. No physical-device acceptance was done.
 
-The Google OAuth origin and an actual Google sign-in still require confirmation
-because the embedded-browser tool failed and the separate browser required
-reauthentication. A reachable login screen is not proof of successful sign-in.
-Authenticated workflows remain pending. Smena cron is disabled and delivery
-starts paused; no notification replay or data restore was performed.
+The Google OAuth origin is saved and persisted after reopening the client.
+The user confirmed real sign-in; an authenticated file deep-link reload also
+preserved the session. Live read-only checks covered files, knowledge, canvases
+and graph on RU/EN and mobile viewports; see the
+[acceptance report](AEZA_ACCEPTANCE_2026-11-14.md). Live content writes and restore
+operations were not tested. Smena cron is disabled and delivery starts paused;
+no notification replay or data restore was performed.

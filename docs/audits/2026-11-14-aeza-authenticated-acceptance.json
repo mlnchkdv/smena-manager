@@ -1,0 +1,310 @@
+{
+  "url": "https://smena.team",
+  "checkedAt": "2026-11-14T20:00:38.698Z",
+  "googleOriginConfirmed": true,
+  "sessionReload": {
+    "source": "user_report",
+    "passed": true
+  },
+  "checks": [
+    {
+      "area": "files",
+      "check": "catalog",
+      "passed": true,
+      "files": 3,
+      "folders": 2
+    },
+    {
+      "area": "files",
+      "check": "txt_preview_from_drive",
+      "passed": true
+    },
+    {
+      "area": "session",
+      "check": "reload_authenticated_file_deep_link",
+      "passed": true,
+      "source": "observed_browser"
+    },
+    {
+      "area": "knowledge",
+      "check": "catalog",
+      "passed": true,
+      "notes": 6
+    },
+    {
+      "area": "knowledge",
+      "check": "read_only_note_preview",
+      "passed": true
+    },
+    {
+      "area": "knowledge",
+      "check": "version_history_empty_state",
+      "passed": true,
+      "note": "Selected note has no prior versions; restore not attempted."
+    },
+    {
+      "area": "knowledge",
+      "check": "cold_search_existing_note",
+      "passed": true,
+      "total": 6,
+      "matches": 1
+    },
+    {
+      "area": "whiteboards",
+      "check": "catalog_and_thumbnails",
+      "passed": true,
+      "total": 2
+    },
+    {
+      "area": "whiteboards",
+      "check": "scene_on_demand_load",
+      "passed": true,
+      "cards": 3,
+      "connections": 2
+    },
+    {
+      "area": "whiteboards",
+      "check": "zoom_controls",
+      "passed": true,
+      "beforePercent": 46,
+      "afterPercent": 57
+    },
+    {
+      "area": "graph",
+      "check": "on_demand_render",
+      "passed": true,
+      "nodes": 28,
+      "connections": 18,
+      "stabilized": true
+    },
+    {
+      "area": "graph",
+      "check": "list_view_and_stability",
+      "passed": true
+    },
+    {
+      "area": "whiteboards",
+      "check": "mobile_catalog_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "method": "Chrome responsive emulation"
+    },
+    {
+      "area": "files",
+      "check": "mobile_catalog_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "area": "files",
+      "check": "mobile_txt_preview_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "area": "knowledge",
+      "check": "mobile_catalog_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    {
+      "area": "knowledge",
+      "check": "mobile_folder_picker_and_descendants_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "matchingNotes": 3
+    },
+    {
+      "area": "graph",
+      "check": "mobile_graph_and_list_en",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "nodes": 28,
+      "connections": 18
+    },
+    {
+      "area": "files",
+      "check": "mobile_catalog_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "area": "knowledge",
+      "check": "mobile_folder_catalog_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "area": "knowledge",
+      "check": "mobile_reader_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "area": "whiteboards",
+      "check": "mobile_catalog_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      }
+    },
+    {
+      "area": "whiteboards",
+      "check": "mobile_scene_fit_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "cards": 3,
+      "connections": 2
+    },
+    {
+      "area": "graph",
+      "check": "mobile_canvas_ru",
+      "passed": true,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "nodes": 28,
+      "connections": 18
+    },
+    {
+      "area": "graph",
+      "check": "final_desktop_return_after_viewport_changes",
+      "passed": null,
+      "note": "A final snapshot showed a blank canvas after returning to the desktop window. Transient rendering versus a persistent issue was not determined; the reload recheck was interrupted by the browser tool."
+    }
+  ],
+  "issues": [
+    {
+      "id": "mobile_navigation_hidden_focus",
+      "area": "navigation",
+      "severity": "medium",
+      "observed": "Chrome reports Blocked aria-hidden after choosing a section from the mobile sidebar; focus remains on its hidden navigation button.",
+      "status": "fixed_and_deployed"
+    }
+  ],
+  "languages": ["Русский", "English (US)"],
+  "viewportCoverage": {
+    "desktop": {
+      "windowWidth": 1039,
+      "windowHeight": 727,
+      "includesBrowserChrome": true
+    },
+    "mobile": [
+      {
+        "width": 390,
+        "height": 844,
+        "language": "English (US)"
+      },
+      {
+        "width": 320,
+        "height": 844,
+        "language": "Русский"
+      }
+    ],
+    "physicalDevices": false
+  },
+  "materialsChanged": false,
+  "languageRestored": "Русский",
+  "fix": {
+    "commit": "db2a122",
+    "pushed": true,
+    "productionDeployed": true,
+    "regression": {
+      "baseline": "failed in Chromium before the fix",
+      "afterFix": {
+        "chromium": "passed",
+        "firefox": "passed",
+        "webkit": "passed"
+      },
+      "languages": ["Русский", "English (US)"],
+      "widths": [320, 390],
+      "checks": [
+        "route navigation into files, knowledge, whiteboards, graph",
+        "focus after closing the sidebar with Escape",
+        "desktop-to-mobile resize with a focused sidebar control",
+        "no Blocked aria-hidden console warnings"
+      ]
+    },
+    "release": "db2a122db08c9c2074da64ac611642d473237ae8",
+    "serverTests": {
+      "total": 1018,
+      "passed": 1017,
+      "failed": 0,
+      "skipped": 1
+    },
+    "publicChecks": [
+      {
+        "path": "/api/health",
+        "status": 200,
+        "cacheControl": "no-store",
+        "data": {
+          "status": "ok",
+          "service": "smena-manager",
+          "release": "db2a122db08c9c2074da64ac611642d473237ae8",
+          "runtime": "node",
+          "timestamp": "2026-11-14T19:57:53.099Z"
+        }
+      },
+      {
+        "path": "/app-version.json",
+        "status": 200,
+        "cacheControl": "no-store",
+        "data": {
+          "version": "db2a122db08c9c2074da64ac611642d473237ae8"
+        }
+      },
+      {
+        "path": "/api/auth/config",
+        "status": 200,
+        "cacheControl": "no-store",
+        "googleAuthEnabled": true,
+        "workspaceStorageAvailable": true,
+        "deploymentReady": true
+      },
+      {
+        "path": "/api/auth/me",
+        "status": 401,
+        "cacheControl": "no-store"
+      }
+    ],
+    "configurationPreserved": {
+      "changedKeys": [],
+      "profilesIdentical": true,
+      "profiles": 6
+    },
+    "finalBrowserReload": "Unconfirmed: Computer Use stopped on browser URL detection during reload after backend restart."
+  },
+  "finalAcceptanceStatus": "read_checks_completed_final_reload_unconfirmed"
+}
