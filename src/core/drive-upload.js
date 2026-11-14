@@ -110,10 +110,13 @@ export async function uploadDriveChunks(uploadUrl, file, chunkSizeBytes, options
         probe = true;
         continue;
       }
+      // A successful status probe is not forward progress. Resetting backoff
+      // on an unchanged probe turns persistent 429/5xx failures into an endless
+      // short retry loop, repeatedly sending the same multi-megabyte chunk.
+      if (next > offset) failures = 0;
       offset = next;
       onAccepted?.(offset);
       onProgress?.(Math.min(99, Math.floor((offset / file.size) * 100)), offset);
-      failures = 0;
       probe = false;
       continue;
     }

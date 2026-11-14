@@ -88,6 +88,34 @@ test('transient HTTP failures use bounded backoff and a status probe', async () 
   assert.deepEqual(waits, [500]);
   assert.equal(f.requests[1].body, null);
 });
+
+test('unchanged successful probes do not reset backoff for a persistently rejected chunk', async () => {
+  const responses = [{ status: 308, range: `bytes=0-${MB - 1}` }];
+  for (let attempt = 0; attempt < 6; attempt++) {
+    responses.push({ status: 503 });
+    if (attempt < 5) responses.push({ status: 308, range: `bytes=0-${MB - 1}` });
+  }
+  const f = fixture(2 * MB, responses),
+    waits = [];
+  await assert.rejects(uploadDriveChunks(url, f.file, MB, { ...f.options, wait: async ms => waits.push(ms) }), { status: 503 });
+  assert.deepEqual(waits, [500, 1000, 2000, 4000, 8000]);
+  assert.equal(f.requests.length, 12);
+});
+
+test('confirmed forward progress resets backoff after a partial network recovery', async () => {
+  const f = fixture(3 * MB, [
+    { status: 503 },
+    { status: 308 },
+    { status: 503 },
+    { status: 308, range: `bytes=0-${MB - 1}` },
+    { status: 503 },
+    { status: 308, range: `bytes=0-${2 * MB - 1}` },
+    { status: 201, response: { id: 'progress' } },
+  ]);
+  const waits = [];
+  await uploadDriveChunks(url, f.file, MB, { ...f.options, wait: async ms => waits.push(ms) });
+  assert.deepEqual(waits, [500, 1000, 500]);
+});
 test('expired sessions and invalid ranges fail without silently restarting', async () => {
   const f = fixture(MB, [{ status: 404 }]);
   await assert.rejects(uploadDriveChunks(url, f.file, MB, f.options), { code: 'UPLOAD_SESSION_EXPIRED' });
