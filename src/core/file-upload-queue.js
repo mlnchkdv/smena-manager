@@ -10,7 +10,7 @@ import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
 import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/upload-queue.js';
 import { createUploadOwner, fullUploadFingerprint, readUploadFallback } from '../shared/upload-journal.js';
-import { recoverUploadSource } from '../shared/upload-sources.js';
+import { recoverUploadSource, uploadSourceActions } from '../shared/upload-sources.js';
 import { uploadDirectFile } from './direct-upload-session.js';
 import { uploadJournal } from './upload-journal.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
@@ -319,7 +319,7 @@ export function restoreUploadQueue() {
         );
         // Ownership is acquired before attaching or persisting restored files;
         // another open tab must never replay this queue concurrently.
-        if (entries.some(job => job.sourceHandle)) void restoreSources(false);
+        if (entries.some(job => job.sourceHandle)) void restoreSources();
       }
     } catch {
       /* An invalid checkpoint never prevents loading the workspace. */
@@ -514,7 +514,13 @@ async function restoreSources() {
     job.sourceChecking = true;
     job.sourceController = new AbortController();
     changed();
-    const recovered = await recoverUploadSource(job, { current: () => current() && job.phase === 'needs-file', signal: job.sourceController.signal });
+    const recovered = await recoverUploadSource(job, {
+      current: () => current() && job.phase === 'needs-file',
+      signal: job.sourceController.signal,
+      onStatus: status => {
+        job.sourceRecovery = status;
+      },
+    });
     job.sourceChecking = false;
     job.sourceController = null;
     if (!current()) return;
@@ -541,7 +547,7 @@ A.restoreUploadSources = async () => {
   // Invoke permission requests in the click's activation, before awaiting a
   // browser lock or I/O. Denial simply keeps the original-file picker available.
   const requests = engine.jobs
-    .filter(job => job.phase === 'needs-file' && job.sourceHandle)
+    .filter(job => uploadSourceActions([job]).access)
     .map(job => {
       try {
         return job.sourceHandle.requestPermission({ mode: 'read' });
