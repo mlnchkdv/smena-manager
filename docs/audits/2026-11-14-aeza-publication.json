@@ -1,0 +1,499 @@
+{
+  "checkedAt": "2026-11-14T18:56:19.276Z",
+  "url": "https://smena.team",
+  "release": "a076d85665fadfc4549cf972663f5561039cac21",
+  "status": "published_pending_google_origin",
+  "serverTests": {
+    "total": 1018,
+    "passed": 1017,
+    "failed": 0,
+    "skipped": 1
+  },
+  "publicChecks": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "expected": 200,
+      "actual": 200,
+      "pass": true,
+      "data": {
+        "status": "ok",
+        "service": "smena-manager",
+        "release": "a076d85665fadfc4549cf972663f5561039cac21",
+        "runtime": "node",
+        "timestamp": "2026-11-14T18:54:52.309Z"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/config",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/app-version.json",
+      "expected": 200,
+      "actual": 200,
+      "pass": true,
+      "data": {
+        "version": "a076d85665fadfc4549cf972663f5561039cac21"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/workspace",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/backups",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/files/policy",
+      "expected": 401,
+      "actual": 401,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/cron/reminders",
+      "expected": 404,
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/monitor/readiness",
+      "expected": 404,
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/validate",
+      "expected": 404,
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/.env",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/access-ids.json",
+      "expected": 404,
+      "actual": 404,
+      "pass": true
+    }
+  ],
+  "loginMatrix": [
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 320,
+      "height": 568,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 768,
+      "height": 1024,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 844,
+      "height": 390,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "Русский",
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 320,
+      "height": 568,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 768,
+      "height": 1024,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 844,
+      "height": 390,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "chromium",
+      "language": "English (US)",
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 320,
+      "height": 568,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 768,
+      "height": 1024,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 844,
+      "height": 390,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "Русский",
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "ru",
+      "heading": "Доступ для команды"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 320,
+      "height": 568,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 768,
+      "height": 1024,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 844,
+      "height": 390,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    },
+    {
+      "browser": "webkit",
+      "language": "English (US)",
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "cardWithinViewport": true,
+      "htmlLang": "en",
+      "heading": "Team access"
+    }
+  ],
+  "disclosures": [
+    {
+      "path": "/about.html",
+      "width": 320,
+      "englishExpanded": false,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 320,
+      "englishExpanded": true,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 390,
+      "englishExpanded": false,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 390,
+      "englishExpanded": true,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 1366,
+      "englishExpanded": false,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 1366,
+      "englishExpanded": true,
+      "heading": "Smena Manager",
+      "overflow": 0
+    },
+    {
+      "path": "privacy.html",
+      "width": 320,
+      "englishExpanded": false,
+      "heading": "Политика конфиденциальности",
+      "overflow": 1
+    },
+    {
+      "path": "privacy.html",
+      "width": 320,
+      "englishExpanded": true,
+      "heading": "Политика конфиденциальности",
+      "overflow": 0
+    },
+    {
+      "path": "privacy.html",
+      "width": 390,
+      "englishExpanded": false,
+      "heading": "Политика конфиденциальности",
+      "overflow": 0
+    },
+    {
+      "path": "privacy.html",
+      "width": 390,
+      "englishExpanded": true,
+      "heading": "Политика конфиденциальности",
+      "overflow": 0
+    },
+    {
+      "path": "privacy.html",
+      "width": 1366,
+      "englishExpanded": false,
+      "heading": "Политика конфиденциальности",
+      "overflow": 0
+    },
+    {
+      "path": "privacy.html",
+      "width": 1366,
+      "englishExpanded": true,
+      "heading": "Политика конфиденциальности",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 320,
+      "englishExpanded": false,
+      "heading": "Условия использования",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 320,
+      "englishExpanded": true,
+      "heading": "Условия использования",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 390,
+      "englishExpanded": false,
+      "heading": "Условия использования",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 390,
+      "englishExpanded": true,
+      "heading": "Условия использования",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 1366,
+      "englishExpanded": false,
+      "heading": "Условия использования",
+      "overflow": 0
+    },
+    {
+      "path": "terms.html",
+      "width": 1366,
+      "englishExpanded": true,
+      "heading": "Условия использования",
+      "overflow": 0
+    }
+  ],
+  "realDevicesChecked": false,
+  "googleOriginConfirmed": false,
+  "authenticatedWorkflowChecked": false,
+  "previewStopped": true,
+  "previewAutostartDisabled": true,
+  "cronDisabled": true,
+  "backupCreated": true,
+  "driveIdsAndProfilesPreserved": true,
+  "renewalDryRun": {
+    "passed": true,
+    "initialAttemptInterruptedDuringRandomDelay": true,
+    "retryUsedNoRandomSleep": true
+  },
+  "tls": {
+    "hostname": "smena.team",
+    "issuer": "Lets Encrypt YE2",
+    "expires": "2027-02-12T17:42:40Z",
+    "autoRenewTimerEnabled": true
+  },
+  "postDeploymentEnvAndProfilesMatch": {
+    "event": "result",
+    "id": 18,
+    "changedKeys": [],
+    "profilesIdentical": true,
+    "remoteProfiles": 6
+  },
+  "afterRestartSmokePassed": true,
+  "notificationStartPausedExplicitlyConfigured": true
+}

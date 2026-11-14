@@ -2,7 +2,7 @@
 
 Готовый комплект для **Ubuntu 24.04, 4 CPU, 8 ГБ RAM, 120 ГБ NVMe**.
 Он сохраняет Express API, Google Drive и вход через Google. PostgreSQL не нужен.
-Файлы подготовлены в репозитории; реальный VPS этими действиями ещё не настроен.
+Само наличие файлов в репозитории не подтверждает установку на конкретном VPS.
 Замените `tasks.example.com` своим доменом во всех командах ниже.
 
 Для выбранного адреса **smena.team** подготовлен отдельный
@@ -150,7 +150,7 @@ push-подписки со старого домена туда автомати
 sudo certbot certonly --webroot -w /var/www/smena-manager-acme \
   --cert-name tasks.example.com -d tasks.example.com --email admin@example.com
 sudo systemctl enable --now certbot.timer
-sudo certbot renew --dry-run
+sudo certbot renew --dry-run --no-random-sleep-on-renew --non-interactive
 ```
 
 Комплект ожидает сертификат в `/etc/letsencrypt/live/tasks.example.com/`.
@@ -158,6 +158,13 @@ sudo certbot renew --dry-run
 конфига. Hook `smena-manager-nginx.sh` после настоящего продления проверит
 Nginx и перезагрузит его, чтобы применился новый сертификат. Dry-run обычно
 проверяет ACME renewal, без исполнения deploy hook.
+
+При ручной проверке через SSH параметр `--no-random-sleep-on-renew` убирает
+внутреннюю случайную паузу Certbot, чтобы проверка не упёрлась в тайм-аут клиента.
+Он применяется только к этой команде; расписание и случайная задержка системного
+таймера не меняются. Параметр поддерживается
+[Certbot 2.9](https://github.com/certbot/certbot/blob/v2.9.0/certbot/certbot/_internal/cli/__init__.py),
+хотя скрыт из его справки.
 
 ## 4. Переключить приложение
 
@@ -212,6 +219,11 @@ node scripts/smoke-deployment.js https://tasks.example.com --allow-custom-origin
 `/opt/smena-node/bin/node scripts/smoke-deployment.js ...`, если системный Node
 не установлен. Smoke — публичные чтения без cookies и секретов. Успешный smoke
 не заменяет авторизованную приёмку сохранения и реальной доставки.
+
+При ручном `systemctl restart smena-manager.service` дождитесь HTTP 200 у
+`/api/health` перед smoke. Статус systemd `active` при `Type=simple` ещё не
+означает, что backend завершил подключение к Drive и начал принимать запросы.
+Штатный `update.sh` сам ожидает готовность и совпадение SHA перед приёмкой.
 
 На новом домене проверьте владельца, обычного участника и viewer; изоляцию
 пространств; reload и вход после перезапуска; задачи, MD/TXT, историю, граф,
