@@ -1,0 +1,267 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Europe/Saratov",
+  "scope": "isolated local actual-byte transfer and persistent-profile Chrome restart",
+  "code": {
+    "baseline": "8f2d43b",
+    "fixed": "09ab6fe",
+    "changed": "Only reset transfer backoff after confirmed forward progress, not unchanged successful probes.",
+    "regression": {
+      "before": "A repeated 503 followed by an unchanged 308 probe reset failure count and retried indefinitely at the shortest delay.",
+      "after": "Bounded increasing backoff survives unchanged probes; only real progress resets it.",
+      "tests": 21,
+      "status": "passed"
+    },
+    "checks": {
+      "eslint": "passed (changed files)",
+      "productionBuild": "passed",
+      "initialJavaScriptKiB": 595.3,
+      "startupBudgetKiB": 600
+    }
+  },
+  "cases": [
+    {
+      "gib": 1,
+      "bytes": 1073741824,
+      "sha256": "15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e",
+      "hashMatches": true,
+      "actualBrowserBytes": true,
+      "sparse": false,
+      "initialTransferAndHashMs": 8905,
+      "resumeAndHashMs": 13403,
+      "restart": {
+        "oldPid": 20516,
+        "newPid": 18204,
+        "loginPreserved": true,
+        "sessionFallback": false,
+        "durableCheckpoint": [
+          {
+            "name": "large-1GiB.mp4",
+            "bytes": 1073741824,
+            "accepted": 134217728,
+            "phase": "uploading",
+            "hasSession": true,
+            "hasFullFingerprint": true
+          }
+        ],
+        "acceptedAtClose": 134217728,
+        "resumedSameProviderSession": true
+      },
+      "transfer": {
+        "chunks": 128,
+        "maxChunk": 8388608,
+        "probeCount": 95,
+        "confirmedChunksRepeated": false,
+        "byteGaps": false
+      },
+      "lang": "ru",
+      "layouts": [
+        {
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        }
+      ],
+      "browserHeapAtGate": 10789177,
+      "browserHeapAfter": 5875017,
+      "completedAt": "2026-11-14T13:20:24.348Z",
+      "testedCode": "baseline 8f2d43b"
+    },
+    {
+      "gib": 3,
+      "bytes": 3221225472,
+      "sha256": "7761e6f8380d34bbe9d6a90e4c3b4c73361635b3424b9e697e8351260d648682",
+      "hashMatches": true,
+      "actualBrowserBytes": true,
+      "sparse": false,
+      "initialTransferAndHashMs": 19782,
+      "resumeAndHashMs": 44987,
+      "restart": {
+        "oldPid": 18204,
+        "newPid": 23620,
+        "loginPreserved": true,
+        "sessionFallback": false,
+        "durableCheckpoint": [
+          {
+            "name": "large-3GiB.mp4",
+            "bytes": 3221225472,
+            "accepted": 1082130432,
+            "phase": "uploading",
+            "hasSession": true,
+            "hasFullFingerprint": true
+          }
+        ],
+        "acceptedAtClose": 1082130432,
+        "resumedSameProviderSession": true
+      },
+      "transfer": {
+        "chunks": 384,
+        "maxChunk": 8388608,
+        "probeCount": 30,
+        "confirmedChunksRepeated": false,
+        "byteGaps": false
+      },
+      "lang": "en",
+      "layouts": [
+        {
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        }
+      ],
+      "browserHeapAtGate": 9097932,
+      "browserHeapAfter": 5911490,
+      "completedAt": "2026-11-14T13:26:26.459Z",
+      "testedCode": "fixed 09ab6fe"
+    },
+    {
+      "gib": 5,
+      "bytes": 5368709120,
+      "sha256": "b84ed4aad2897a38c118d4451a41a28883baeeeb70f323fed170cc46d6a189de",
+      "hashMatches": true,
+      "actualBrowserBytes": true,
+      "sparse": false,
+      "initialTransferAndHashMs": 74440,
+      "resumeAndHashMs": 32680,
+      "restart": {
+        "oldPid": 23620,
+        "newPid": 36708,
+        "loginPreserved": true,
+        "sessionFallback": false,
+        "durableCheckpoint": [
+          {
+            "name": "large-5GiB.mp4",
+            "bytes": 5368709120,
+            "accepted": 4303355904,
+            "phase": "uploading",
+            "hasSession": true,
+            "hasFullFingerprint": true
+          },
+          {
+            "name": "queued-companion.mp4",
+            "bytes": 33554432,
+            "accepted": 8388608,
+            "phase": "paused",
+            "hasSession": true,
+            "hasFullFingerprint": true
+          }
+        ],
+        "acceptedAtClose": 4303355904,
+        "resumedSameProviderSession": true
+      },
+      "transfer": {
+        "chunks": 640,
+        "maxChunk": 8388608,
+        "probeCount": 17,
+        "confirmedChunksRepeated": false,
+        "byteGaps": false
+      },
+      "lang": "ru",
+      "layouts": [
+        {
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "height": 1024,
+          "overflow": 0
+        },
+        {
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "height": 768,
+          "overflow": 0
+        }
+      ],
+      "browserHeapAtGate": 7669528,
+      "browserHeapAfter": 6308997,
+      "completedAt": "2026-11-14T13:34:00.878Z",
+      "companion": {
+        "bytes": 33554432,
+        "sha256": "facb58ac139bf9fc0e1f8b1f147003236b1b69e84f3a4c94166fa66f18f89932",
+        "hashMatches": true,
+        "pausedAtClose": true,
+        "advancedBeforeOriginalSelection": false,
+        "resumed": true
+      },
+      "testedCode": "fixed 09ab6fe"
+    }
+  ],
+  "viewportScenes": 15,
+  "confirmedPayloadBytes": 9697230848,
+  "fixtureReceiverPeakRssKiB": 219200,
+  "procedure": [
+    "Generate and fully write non-sparse 1/3/5 GiB sources to disk; calculate SHA-256 while generating.",
+    "Use the actual Upload files action and native File objects from paths. Retain input identity across rerenders; no source payload is constructed in browser memory.",
+    "The direct-upload URL is supplied by an isolated provider. An XHR destination adapter routes bytes to a loopback HTTP receiver. Google credentials and network are not used.",
+    "Interrupt with a local provider gate at 128 MiB, 1 GiB + 8 MiB, and 4 GiB + 8 MiB respectively. Confirm the encrypted IndexedDB journal before closing.",
+    "Close the entire isolated Chrome browser, wait for its OS process to exit, and open a new process with the same persistent profile.",
+    "No storage-state export/import, cookie injection, checkpoint injection or sessionStorage restoration is used. Fresh tab session fallback is empty.",
+    "The fixture disables File System Access selection, exercising original-file reselection, also used in browsers without persistent source handles.",
+    "Resume from the same provider session after source identity verification. Confirm exact chunk offsets, a single catalog record and complete destination bytes.",
+    "The 5 GiB queue includes a paused 32 MiB companion. Both entries survive restart; the companion does not advance while only the large original is selected, then resumes after its own selection.",
+    "Stream-read completed destination files for independent SHA-256 comparison, then remove only owned verified source/destination fixtures."
+  ],
+  "limitations": [
+    "Google Drive/Aeza transfers, Google OAuth, real internet throughput, OS crashes/power loss and physical phones are not covered.",
+    "The byte payloads are synthetic MP4-named files; video decoding/playback is not tested.",
+    "Chrome on Windows with a persistent ordinary profile is tested. Mobile checks are viewport layouts, not physical iOS/Android acceptance.",
+    "Automatic reuse of native OS file handles after a browser restart is not established by this fallback-path run.",
+    "Durable checkpoints were allowed to settle before browser close. Abrupt termination before the first checkpoint and clearing the browser profile are not certified.",
+    "Timings include hashing, loopback transfer, scripted interruption and catalog registration. They are not production throughput benchmarks.",
+    "HTTP 503 gates intentionally retry unconfirmed data. The no-retransmission result concerns confirmed chunks, not all attempted wire bytes."
+  ],
+  "completedAt": "2026-11-14T13:36:33.666Z",
+  "status": "local-acceptance-passed"
+}

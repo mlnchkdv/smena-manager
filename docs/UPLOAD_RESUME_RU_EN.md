@@ -134,3 +134,57 @@ in [the audit JSON](audits/2026-11-13-upload-recovery.json).
 Protocol semantics follow [Google Drive resumable uploads](https://developers.google.com/workspace/drive/api/guides/manage-uploads).
 Handle persistence and user permission requirements follow the
 [File System Access documentation](https://developer.chrome.com/docs/capabilities/web-apis/file-system-access).
+
+## Большие файлы и перезапуск браузера / Large files and browser restart · 14.11.2026
+
+Проверена настоящая передача полностью записанных на диск синтетических файлов
+в локальный HTTP-приёмник. Размеры не имитировались. Браузер полностью закрывался,
+завершение его процесса проверялось в Windows, затем новый процесс открывал тот
+же обычный профиль Chrome. Состояние браузера тестовым скриптом не переносилось.
+
+| Файл  | Размер в байтах | Подтверждено перед закрытием | Интерфейс | Результат                                                      |
+| ----- | --------------: | ---------------------------- | --------- | -------------------------------------------------------------- |
+| 1 ГиБ |   1 073 741 824 | 128 МиБ                      | RU        | Восстановление, полный SHA-256 совпал                          |
+| 3 ГиБ |   3 221 225 472 | 1 ГиБ + 8 МиБ                | EN        | Восстановление, полный SHA-256 совпал                          |
+| 5 ГиБ |   5 368 709 120 | 4 ГиБ + 8 МиБ                | RU        | Восстановление за границей 32-битного смещения, SHA-256 совпал |
+
+- Вход сохранился во всех трёх новых процессах. `sessionStorage` очереди в новой
+  вкладке был пуст: восстановление использовало IndexedDB.
+- Проверялся путь с повторным выбором исходника. Перед продолжением приложение
+  заново проверяло его содержимое; текущий прогон не подтверждает автоматическое
+  сохранение разрешений к исходникам ОС после закрытия Chrome.
+- В очередь 5 ГиБ добавлен второй файл 32 МиБ на ручной паузе. Восстановились обе
+  записи; пока был выбран только большой исходник, второй файл не продвигался.
+  После отдельного выбора он завершился с верной контрольной суммой.
+- Подтверждённые фрагменты не передавались повторно, пропусков байтов и дубликатов
+  записи в каталоге не было. Максимальный фрагмент — 8 МиБ. Неподтверждённые
+  попытки при намеренных HTTP 503 повторялись по протоколу.
+- RU/EN проверены на 320×567, 390×844, 768×1024, 844×390 и 1366×768: 15 сцен,
+  горизонтального переполнения не было. Это проверка размеров, не физических
+  телефонов. Пик RSS локального приёмника за прогон — около 214 МиБ.
+- При длительном отказе сервера найдена и исправлена ошибка сброса backoff:
+  успешный ответ на проверку без движения позиции больше не обнуляет счётчик.
+  Счётчик сбрасывается только при подтверждённом продвижении. Правка `09ab6fe`
+  проверена 21 целевым тестом, lint и production-сборкой (595,3 / 600 КиБ).
+  Файл 1 ГиБ проверялся до этой правки, файлы 3/5 ГиБ — после.
+- После сверки контрольных сумм удалены только собственные служебные исходники
+  и полученные копии. Полные результаты: [audit JSON](audits/2026-11-14-large-upload-restart.json).
+
+EN: Real, fully written 1/3/5 GiB files were transferred to a local resumable HTTP
+receiver. Chrome was fully closed and its Windows process exit confirmed before
+opening a new process with the same persistent profile. No storage-state import
+or checkpoint injection was used. Login and queues survived all three restarts,
+with an empty new-tab session fallback. Source reselection, full source identity
+checks, independent destination SHA-256, exact offsets and single catalog entries
+passed. The 5 GiB case resumed beyond 4 GiB and included a paused 32 MiB companion;
+both entries recovered and the companion stayed unchanged until its own source
+was selected. All confirmed chunks were unique and at most 8 MiB.
+
+EN: Both languages and five viewport sizes passed 15 layout scenes. A persistent
+503/probe backoff bug was fixed and covered by 21 targeted tests, lint and build.
+The first case is baseline evidence; the 3/5 GiB cases use the fix. Fixtures were
+cleaned after checksum verification. The receiver peaked at about 214 MiB RSS.
+These are synthetic payloads, not video playback tests or internet throughput
+benchmarks. Google Drive/Aeza, physical phones, OS power loss, native source-handle
+permission persistence and termination before the first durable checkpoint remain
+separate acceptance checks.
