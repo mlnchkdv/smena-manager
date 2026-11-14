@@ -5,6 +5,10 @@
 Файлы подготовлены в репозитории; реальный VPS этими действиями ещё не настроен.
 Замените `tasks.example.com` своим доменом во всех командах ниже.
 
+Для выбранного адреса **smena.team** подготовлен отдельный
+[порядок переноса и приёмки](SMENA_TEAM.md). Общие шаблоны остаются пригодными
+для других доменов.
+
 **EN:** This kit installs a single Express process behind Nginx on Ubuntu 24.04,
 keeps Google Drive and Google Sign-In, and provides checked releases and code
 rollback. Configuration and secrets live outside Git. Follow the commands below
