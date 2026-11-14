@@ -53,6 +53,7 @@ export function go(route, params = {}, opt = {}) {
   if (route === 'project' && !params.tab) params.tab = 'board';
   if (!opt.back) S.ui.history.push({ route: S.ui.route, params: S.ui.params });
   const same = S.ui.route === route && JSON.stringify(S.ui.params) === JSON.stringify(params);
+  const fromMobileNav = innerWidth <= 900 && S.ui.mnav;
   S.ui.route = route;
   S.ui.params = params;
   S.ui.mnav = false;
@@ -69,6 +70,7 @@ export function go(route, params = {}, opt = {}) {
   if (!same) fxSet(opt.tab ? { tab: true, tabs: true } : { route: true, tabs: true });
   render();
   const c = $('.content');
+  if (fromMobileNav) c?.focus({ preventScroll: true });
   if (c && !same) c.scrollTop = 0;
 }
 
@@ -405,16 +407,23 @@ export function afterRender() {
   });
   const mobileNav = innerWidth <= 900;
   const navOpen = mobileNav && S.ui.mnav;
+  const main = document.querySelector('.main');
+  if (main) main.inert = !!navOpen;
   const side = document.querySelector('.side');
   if (side) {
-    side.inert = !!mobileFolders || inboxModal || (mobileNav && !navOpen);
+    const inactive = !!mobileFolders || inboxModal || (mobileNav && !navOpen);
+    // Focus restoration can find the same sidebar button after navigation.
+    // Move it out before hiding the menu from assistive technology.
+    if (inactive && side.contains(document.activeElement)) {
+      document.activeElement.blur();
+      if (!shell?.inert && !mobileFolders && !inboxModal) document.getElementById('main-content')?.focus({ preventScroll: true });
+    }
+    side.inert = inactive;
     side.setAttribute('aria-hidden', String(side.inert));
     side.setAttribute('role', navOpen ? 'dialog' : 'navigation');
     if (navOpen) side.setAttribute('aria-modal', 'true');
     else side.removeAttribute('aria-modal');
   }
-  const main = document.querySelector('.main');
-  if (main) main.inert = !!navOpen;
   const bottom = document.querySelector('.bottomnav');
   if (bottom !== bottomNav) {
     bottomNavObserver.disconnect();

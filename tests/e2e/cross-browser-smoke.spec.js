@@ -625,6 +625,41 @@ test('knowledge display menu stays usable and retains layout across languages an
   }
 });
 
+test('mobile navigation keeps focus visible after route changes and resizing in both languages', async ({ page }) => {
+  test.setTimeout(180_000);
+  const hiddenFocusWarnings = [];
+  page.on('console', message => {
+    if (message.text().includes('Blocked aria-hidden')) hiddenFocusWarnings.push(message.text());
+  });
+  await signIn(page);
+  for (const language of ['Русский', 'English (US)']) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const route of ['files', 'knowledge', 'whiteboards', 'graph']) {
+        await page.locator('#mnav-btn').click();
+        await expect(page.locator('.side')).toHaveAttribute('aria-modal', 'true');
+        await page.locator(`.side [data-a="go"][data-r="${route}"]`).click();
+        await expect(page.locator('.side')).toHaveAttribute('aria-hidden', 'true');
+        await expect(page.locator('#main-content')).toBeFocused();
+        await expectNoPageOverflow(page);
+      }
+      await page.locator('#mnav-btn').click();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#mnav-btn')).toBeFocused();
+    }
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await page.locator('.side [data-a="go"][data-r="files"]').focus();
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator('.side')).toHaveAttribute('inert', '');
+    await expect(page.locator('#main-content')).toBeFocused();
+  }
+  expect(hiddenFocusWarnings).toEqual([]);
+});
+
 test('core task flow and responsive shell work across browser engines', async ({ page, browserName }) => {
   await signIn(page);
   // Other suites share the account and can leave its server preference in EN.
