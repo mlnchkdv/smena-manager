@@ -17,6 +17,17 @@ Drive, Gmail, push и постоянные секреты. Проверка фо
 
 ## Порядок запуска
 
+При чтении конфигурации VPS 14.11.2026 обнаружен работающий
+`smena-manager-local-preview.service`: Nginx слушает `127.0.0.1:3000`, backend —
+`127.0.0.1:3001`. Предпросмотр подключён к тому же Google Drive, что и
+подготовленный комплект. Его настройки для localhost не подходят для публичного
+запуска. Проверка не останавливала службу и не меняла конфигурацию сервера.
+
+В момент согласованного переключения нужно остановить и отключить автозапуск
+этого предпросмотра перед запуском production. `update.sh` управляет основной
+службой `smena-manager.service` и не заменяет этот отдельный шаг. Иначе порт
+3001 останется занят, а два backend смогут записывать в одно хранилище.
+
 1. Получить проверенный SSH-доступ. Сначала прочитать конфигурацию сервера:
    работающие сайты, службы, занятые порты, свободные память и диск. Название
    VPS само по себе не доказывает, что он пуст. Не переустанавливать ОС и не
@@ -32,6 +43,13 @@ Drive, Gmail, push и постоянные секреты. Проверка фо
    sudo bash deploy/vps/bootstrap.sh --install-packages-and-node
    sudo bash deploy/vps/install.sh --domain smena.team --source /srv/smena-manager-source
    ```
+
+   На проверенном VPS checkout `/srv/smena-manager-source` уже есть. Перед этими
+   командами проверить `git status`, получить актуальный код и обновить чистый
+   checkout через `git pull --ff-only origin main`. Не клонировать поверх него
+   и не удалять локальные изменения. Node уже установлен отдельно в
+   `/opt/smena-node/`; отсутствие `node` в интерактивном PATH не означает,
+   что runtime отсутствует.
 
 4. Передать секретный комплект по SFTP в домашний каталог SSH-пользователя,
    затем установить файлы с владельцем `root:smena` и правами `0640` в
@@ -74,3 +92,10 @@ allow only one backend to write to Drive. Add the exact HTTPS JavaScript origin
 to the existing Google Web OAuth client; popup sign-in needs no new callback.
 The current Nginx configuration covers the apex domain only. Users must sign in
 again and re-enable push on the new origin.
+
+The read-only VPS audit found an existing localhost preview using the same Drive
+and backend port 3001. Stop it and disable its automatic startup during the
+approved cutover before starting production; the production updater does not
+manage that separate preview service. Reuse and update the existing clean source
+checkout instead of cloning over it. No server configuration was changed by the
+audit.
