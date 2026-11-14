@@ -251,3 +251,27 @@ unsupported-API fallback resumed a real 40 MiB payload after source reselection.
 Physical phones, live Drive/Aeza, background transfer and native OS permission
 dialogs remain unverified. Native chooser selection still needs the requested
 manual step; this report does not treat that pending check as passed.
+
+### Нативный выбор Windows: подготовка проверки / Native Windows chooser preparation
+
+Дополнительная диагностика выявила ограничение стенда: Playwright CLI
+перехватывает выбор файлов, и `showOpenFilePicker()` завершается `AbortError`
+с сообщением `Intercepted by Page.setInterceptFileChooserDialog()`. Это не
+отказ приложения сохранить исходник. Для такого сценария нужен отдельный
+headed Chrome через обычный Playwright без обработчиков `filechooser`.
+Отключение перехвата во вторичном CDP-сеансе не отключает обработчик CLI.
+
+Системное окно в обычном Chrome подтверждено; полный путь к служебному
+`large-1GiB.mp4` заполнен в нём. Передача этого исходника ещё не началась:
+журнал и HTTP-приёмник проверяются независимо от текстового подтверждения
+пользователя. Пока окно не вернуло именно этот файл и не появилась его
+запись в очереди, перезапуск не считается проверенным. Клик по «Открыть»
+требует ручного шага из-за ограничения управления дочерним окном Windows.
+Текущее состояние зафиксировано в [отдельном отчёте](audits/2026-11-14-native-upload-preparation.json).
+
+EN: Playwright CLI intercepts the native chooser and causes an explicit
+`AbortError`. Native source testing therefore uses plain headed Playwright
+with no `filechooser` listeners. The Windows chooser and prefilled fixture
+path are confirmed, but the named 1 GiB source has not yet reached the upload
+queue. Manual completion of that native dialog is still needed. Preparation
+and user confirmation alone are not reported as a successful restart test.

@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-14",
+  "status": "waiting_for_native_source_selection",
+  "applicationCode": "327ba2f",
+  "scope": "Isolated local workspace and resumable HTTP receiver; no production or Google Drive calls.",
+  "source": {
+    "name": "large-1GiB.mp4",
+    "bytes": 1073741824,
+    "sha256": "15b88a9e5f285b14da9b7206621b76bcbc89559a237819b852f52faf04420a1e",
+    "independentDiskHashVerified": true,
+    "uploadStarted": false
+  },
+  "harnessIssue": {
+    "api": "showOpenFilePicker",
+    "error": "AbortError: Intercepted by Page.setInterceptFileChooserDialog()",
+    "secondaryCdpSessionDisableEffective": false,
+    "resolution": "Plain headed Playwright with the existing Chrome executable and zero filechooser listeners.",
+    "nativeChooserObserved": true,
+    "exactFixturePathPrefilled": true,
+    "manualOpenClickStillRequired": true,
+    "windowsInputLimitation": "The helper identifies the native dialog button as a different window from the parent Chrome window and rejects the coordinate click."
+  },
+  "unexpectedSource": {
+    "contentRead": false,
+    "transmittedToLoopbackOnly": true,
+    "temporaryPayloadRemoved": true,
+    "nameAndContentsExcludedFromReport": true,
+    "notCountedAsAcceptanceEvidence": true
+  },
+  "acceptance": {
+    "nativeSourceHandleSaved": false,
+    "chromeRestartPerformed": false,
+    "automaticResumeWithoutReselection": "not_yet_tested_for_native_windows_source",
+    "previousOpfsAcceptanceChanged": false,
+    "applicationChangesRequired": "none_identified_at_this_stage",
+    "fullTestsRerun": false
+  }
+}
