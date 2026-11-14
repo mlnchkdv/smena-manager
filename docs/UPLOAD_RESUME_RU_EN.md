@@ -188,3 +188,66 @@ These are synthetic payloads, not video playback tests or internet throughput
 benchmarks. Google Drive/Aeza, physical phones, OS power loss, native source-handle
 permission persistence and termination before the first durable checkpoint remain
 separate acceptance checks.
+
+## Автоматическое продолжение / Automatic recovery · 14.11.2026
+
+Проверено продолжение **без повторного выбора исходника** после полного
+закрытия и запуска нового процесса Chrome с тем же профилем. Использовались
+настоящие файловые дескрипторы OPFS, сохранённые штатным зашифрованным журналом.
+Тест подменяет только первоначальное окно выбора: возвращает готовые OPFS-дескрипторы.
+Состояние очереди не внедрялось и между процессами не импортировалось.
+OPFS здесь — источник тестовых данных; приложение не копирует туда файлы пользователя.
+
+| Файл  | Подтверждено до закрытия | Результат                                                     |
+| ----- | ------------------------ | ------------------------------------------------------------- |
+| 1 ГиБ | 128 МиБ                  | Автоматическое продолжение, SHA-256 совпал                    |
+| 5 ГиБ | 4 ГиБ + 8 МиБ            | Автоматическое продолжение за границей 32 бит, SHA-256 совпал |
+
+Оба запуска сохранили вход и ручную паузу второго файла 32 МиБ. После запуска
+счётчик вызовов выбора исходников оставался нулевым. Все 128/640 подтверждённых
+фрагментов уникальны, не больше 8 МиБ каждый. В новой вкладке сначала не было
+резервной записи `sessionStorage`: восстановление использовало IndexedDB.
+После начала работы приложение штатно создаёт резервную запись заново.
+
+Правка `327ba2f` разделяет ожидание разрешения, проверку содержимого, изменённый
+и недоступный исходник. Во время проверки лишние кнопки не показываются.
+При ожидаемом разрешении сначала предлагается восстановить доступ без выбора
+файла. Изменённый или удалённый исходник не передаётся. На загрузке страницы
+запрос разрешения не открывается. 29 целевых тестов, lint изменённых файлов,
+сборка и бюджет 595,3 / 600 КиБ прошли; весь набор тестов повторно не запускался.
+
+Проверена 31 сцена: оба языка на размерах 320×567, 390×844, 768×1024, 844×390
+и 1366×768 для ожидания доступа и запасного пути WebKit; дополнительно — большая
+очередь и изменённый/удалённый исходник. Горизонтального переполнения не было.
+WebKit штатно предложил исходник и продолжил передачу 40 МиБ с отметки 8 МиБ;
+контрольные суммы совпали. Завершённые и отменённые записи больше не удерживают
+дескрипторы в журнале. Подробные результаты: [audit JSON](audits/2026-11-14-automatic-upload-restart.json).
+
+**Ограничение проверки:** OPFS не подтверждает сохранение разрешения к обычному
+файлу Windows. Для этого в отдельном тестовом Chrome запрошен ручной выбор
+`output/playwright/auto-upload-2026-11-14/large-1GiB.mp4`; этот шаг ещё не выполнен.
+Следующий этап — закрыть Chrome, восстановить доступ штатной кнопкой и вручную
+подтвердить разрешение браузера, если оно будет запрошено. При наличии варианта
+«разрешать при каждом посещении» пользователь может выбрать его для последующей
+проверки полностью автоматического продолжения. Приложение не может самостоятельно
+выдать себе такое разрешение. Условия описаны в
+[документации Chrome](https://developer.chrome.com/blog/persistent-permissions-for-the-file-system-access-api).
+
+EN: Real 1/5 GiB payloads resumed automatically after full Chrome process exit
+and relaunch, from 128 MiB and 4 GiB + 8 MiB respectively. Both destination
+SHA-256 checks matched; all confirmed chunks were unique and bounded to 8 MiB.
+The paused companion and login survived. Recovery used the app's IndexedDB
+journal, with no storage-state import or checkpoint injection, and invoked the
+source picker zero times. The initial picker adapter returns real OPFS handles;
+these tests establish granted-handle recovery, **not native Windows permission
+persistence**. The app itself does not cache source contents in OPFS.
+
+EN: Recovery now distinguishes permission renewal, content checks, changed files
+and unavailable sources. Browser permission requests remain explicit; source
+selection controls are hidden during automatic verification. The 29 targeted
+tests, changed-file lint, production build and startup budget passed. RU/EN
+Chrome/WebKit layouts and source-state checks covered 31 scenes. WebKit's
+unsupported-API fallback resumed a real 40 MiB payload after source reselection.
+Physical phones, live Drive/Aeza, background transfer and native OS permission
+dialogs remain unverified. Native chooser selection still needs the requested
+manual step; this report does not treat that pending check as passed.

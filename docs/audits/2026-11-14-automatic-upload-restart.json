@@ -1,0 +1,306 @@
+{
+  "date": "2026-11-14",
+  "recordedAt": "2026-11-14T14:35:38.362Z",
+  "codeFix": "327ba2f",
+  "status": "passed_with_native_os_permission_check_pending",
+  "scope": "Local production builds, synthetic files, fake storage provider and real loopback HTTP bodies. No Google credentials, team data or live Drive traffic.",
+  "automaticRestart": {
+    "source": "Real FileSystemFileHandle objects backed by OPFS; only the initial picker is adapted to return those handles. No checkpoint injection, browser storage-state import or mocked file bytes. App stores source handles, not source contents.",
+    "cases": [
+      {
+        "bytes": 1073741824,
+        "acceptedBeforeClose": 134217728,
+        "acceptedAfter": 1073741824,
+        "sha256": "32ae3b120ba8f4e079f5f2d7bcf51c77e0b0b7e101c1393418a718411802515b",
+        "expectedSha256": "32ae3b120ba8f4e079f5f2d7bcf51c77e0b0b7e101c1393418a718411802515b",
+        "chunks": 128,
+        "maxChunk": 8388608,
+        "uniqueConfirmedChunks": true,
+        "rejectedRanges": 0,
+        "sourcePickerCallsAfterRestart": 0,
+        "sessionFallbackPresentOnInitialNavigation": false,
+        "processRestart": {
+          "oldExited": true,
+          "oldPid": 21400,
+          "newPid": 17676
+        }
+      },
+      {
+        "bytes": 5368709120,
+        "acceptedBeforeClose": 4303355904,
+        "acceptedAfter": 5368709120,
+        "sha256": "edf4b485ea7ec219ddb41473ec6fed1d638c23fec1035ff7e707734420163ddb",
+        "expectedSha256": "edf4b485ea7ec219ddb41473ec6fed1d638c23fec1035ff7e707734420163ddb",
+        "chunks": 640,
+        "maxChunk": 8388608,
+        "uniqueConfirmedChunks": true,
+        "rejectedRanges": 0,
+        "sourcePickerCallsAfterRestart": 0,
+        "sessionFallbackPresentOnInitialNavigation": false,
+        "processRestart": {
+          "newPid": 13788,
+          "oldExited": true,
+          "oldPid": 13780
+        }
+      }
+    ],
+    "oneGiBCode": "Baseline 5a9304f; five GiB and UI checks use 327ba2f.",
+    "pausedCompanion": {
+      "bytes": 33554432,
+      "accepted": 8388608,
+      "preservedAcrossBothRestarts": true
+    },
+    "fiveGiBElapsedAfterGateOpenedMs": 71991,
+    "loginSurvived": true,
+    "sessionFallbackNote": "Absent on the initial navigation in each new browser process. The app later regenerates it as it checks sources and persists progress."
+  },
+  "recoveryUi": {
+    "scenes": [
+      {
+        "language": "English (US)",
+        "width": 320,
+        "height": 567,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 390,
+        "height": 844,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 768,
+        "height": 1024,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 844,
+        "height": 390,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 1366,
+        "height": 768,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 320,
+        "height": 567,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 390,
+        "height": 844,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 768,
+        "height": 1024,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 844,
+        "height": 390,
+        "state": "permission",
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 1366,
+        "height": 768,
+        "state": "permission",
+        "overflow": 0
+      }
+    ],
+    "manualPausePreserved": true,
+    "accessActionWithoutPicker": true,
+    "automaticCheckHidesSourceControls": true,
+    "permissionModel": "Prompt/renewal/checking states use a test-only wrapper around already-granted OPFS handles. This does not certify browser permission dialogs.",
+    "negativeSources": {
+      "changedSourceStopped": true,
+      "missingSourceStopped": true,
+      "acceptedBytesUnchanged": 8388608,
+      "scenes": [
+        {
+          "state": "changed",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "state": "changed",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "state": "changed",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        },
+        {
+          "state": "unavailable",
+          "width": 320,
+          "height": 567,
+          "overflow": 0
+        },
+        {
+          "state": "unavailable",
+          "width": 390,
+          "height": 844,
+          "overflow": 0
+        },
+        {
+          "state": "unavailable",
+          "width": 844,
+          "height": 390,
+          "overflow": 0
+        }
+      ]
+    }
+  },
+  "webkit": {
+    "id": "85580fda-2ec1-48eb-99bd-51c7e839d7e2",
+    "bytes": 41943040,
+    "nativePicker": "undefined",
+    "scenes": [
+      {
+        "language": "English (US)",
+        "width": 320,
+        "height": 567,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 390,
+        "height": 844,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 844,
+        "height": 390,
+        "overflow": 0
+      },
+      {
+        "language": "English (US)",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 320,
+        "height": 567,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 390,
+        "height": 844,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 844,
+        "height": 390,
+        "overflow": 0
+      },
+      {
+        "language": "Русский",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0
+      }
+    ],
+    "transferChecks": [
+      {
+        "id": "1fb8127c-8cfe-41c8-9dc0-f04cd14fec5e",
+        "bytes": 41943040,
+        "sha256": "ed703ffc77186b69c2e75f770c226c2da0c8e5345b38237c33fb3169522e7725",
+        "uniqueConfirmedChunks": true
+      },
+      {
+        "id": "85580fda-2ec1-48eb-99bd-51c7e839d7e2",
+        "bytes": 41943040,
+        "sha256": "ed703ffc77186b69c2e75f770c226c2da0c8e5345b38237c33fb3169522e7725",
+        "uniqueConfirmedChunks": true
+      }
+    ],
+    "note": "Windows Playwright WebKit, viewport emulation. The first completed transfer had an incorrect harness visibility assertion because the finished queue collapses; the complete corrected scenario was rerun."
+  },
+  "layoutScenes": 31,
+  "finalJournals": {
+    "chromium": {
+      "pendingEntries": 0,
+      "retainedHandles": 0,
+      "catalogCounts": {
+        "fixture-85580fda-2ec1-48eb-99bd-51c7e839d7e2": 1,
+        "fixture-1fb8127c-8cfe-41c8-9dc0-f04cd14fec5e": 1,
+        "fixture-a7a670c7-06e0-40dd-8bf4-fad739b74acc": 1,
+        "fixture-d6d39cb8-c534-48e8-a4cb-ef61e06bfd9a": 1
+      }
+    },
+    "webkit": {
+      "pendingEntries": 0,
+      "retainedHandles": 0,
+      "catalogCounts": {
+        "fixture-85580fda-2ec1-48eb-99bd-51c7e839d7e2": 1,
+        "fixture-1fb8127c-8cfe-41c8-9dc0-f04cd14fec5e": 1,
+        "fixture-a7a670c7-06e0-40dd-8bf4-fad739b74acc": 1,
+        "fixture-d6d39cb8-c534-48e8-a4cb-ef61e06bfd9a": 1
+      }
+    }
+  },
+  "verification": {
+    "targetedTests": 29,
+    "testsFailed": 0,
+    "eslint": "passed on changed JS files",
+    "build": "passed",
+    "initialJavaScriptKiB": 595.3,
+    "budgetKiB": 600,
+    "fullSuiteRerun": false
+  },
+  "receiverPeakRssMiB": 189,
+  "limitations": [
+    "Native Windows file chooser selection and persistent read permission across Chrome restart still require the user action requested in the test Chrome window.",
+    "OPFS automatic-recovery evidence does not prove automatic access to ordinary disk files when Chrome returns prompt or denied.",
+    "Physical iOS/Android, screen locking, OS power loss, eviction of site storage and real Google Drive/Aeza network throughput were not tested.",
+    "Synthetic MP4 names test transfer integrity, not valid video playback. No background transfer while the browser is closed is claimed."
+  ],
+  "cleanup": {
+    "verifiedReceiverCopiesRemoved": 4,
+    "opfsLargeSourcesRemoved": true,
+    "smallSyntheticFilesRemoved": 2,
+    "nativeWindowsSourceKept": "output/playwright/auto-upload-2026-11-14/large-1GiB.mp4",
+    "testServerAndNativeChromeKeptForRequestedManualStep": true
+  }
+}
