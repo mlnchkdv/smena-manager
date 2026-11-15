@@ -72,6 +72,7 @@ const RU = {
   'Open tasks without overdue deadlines will appear here.': 'Здесь появятся открытые задачи без просроченного срока.',
   'View overdue tasks': 'Показать просроченные',
   'Workspace name, address and appearance are shared with every member.': 'Название, адрес и оформление пространства видны всем его участникам.',
+  'Overdue count': 'Просрочено',
   'In this folder': 'В этой папке',
   'In this project': 'В этом проекте',
   'Project total': 'Всего в проекте',

@@ -60,11 +60,11 @@
   vertical-align: middle;
 }
 .overview-portfolio-table :is(th, td):first-child {
-  width: 27%;
+  width: 24%;
   padding-left: 14px;
 }
 .overview-portfolio-table :is(th, td):nth-child(2) {
-  width: 17%;
+  width: 16%;
 }
 .overview-portfolio-table :is(th, td):nth-child(4) {
   width: 12%;
@@ -221,12 +221,14 @@
 .overview-portfolio-table :is(th, td):nth-child(3) {
   width: 15%;
 }
-.overview-portfolio-table :is(th, td):nth-child(5),
+.overview-portfolio-table :is(th, td):nth-child(5) {
+  width: 10%;
+}
 .overview-portfolio-table :is(th, td):nth-child(6) {
-  width: 9%;
+  width: 11%;
 }
 .overview-portfolio-table :is(th, td):nth-child(7) {
-  width: 11%;
+  width: 12%;
 }
 .portfolio-owner > span:not(.av) {
   overflow: hidden;
