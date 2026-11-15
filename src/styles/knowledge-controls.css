@@ -645,3 +645,22 @@
     margin-block: 8px;
   }
 }
+
+.knowledge-editing-format {
+  min-width: 0;
+  max-width: 140px;
+}
+.knowledge-editing-format .select {
+  width: 100%;
+}
+@media (max-width: 640px) {
+  .knowledge-editor-mode .seg {
+    flex: 0 1 auto;
+  }
+  .knowledge-editing-format {
+    max-width: 110px;
+  }
+  .knowledge-editor-mode {
+    row-gap: 4px;
+  }
+}

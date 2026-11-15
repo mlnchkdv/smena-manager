@@ -1,3 +1,4 @@
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.js';
 import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
 import { createAsyncContextAction } from '../shared/async-context-action.js';
@@ -402,9 +403,11 @@ A.setKnowledgeEditorPane = el => {
   if (!['source', 'preview', 'blocks'].includes(pane)) return;
   captureKnowledgeEditorPosition();
   S.ui.knowledgeEditorPane = pane;
+  if (pane !== 'preview') writeLayoutPreference('knowledge-editing-format', pane);
   render();
   restoreKnowledgeEditorPosition(pane);
 };
+IN.knowledgeEditorFormat = el => A.setKnowledgeEditorPane({ dataset: { pane: el.value } });
 A.toggleKnowledgeEditorPreview = () => {
   if (S.ui.knowledgeEditorPane === 'preview') {
     A.setKnowledgeEditorPane({ dataset: { pane: 'source' } });
