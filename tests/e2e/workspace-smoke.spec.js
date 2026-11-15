@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures.js';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
+import { chooseSelect } from './controls.js';
 
 test('focused whiteboards yield keyboard ownership to readers and command menus in both languages', async ({ page }) => {
   await signIn(page);
@@ -209,6 +210,7 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
     await page.goto('/e2e-team/whiteboards');
+    await expect(page.locator('.whiteboards-search')).toBeVisible();
     for (const [width, height] of [
       [320, 740],
       [390, 845],
@@ -217,12 +219,15 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
       [1366, 768],
     ]) {
       await page.setViewportSize({ width, height });
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       for (const view of ['grid', 'list']) {
-        if (width <= 640) await page.locator('[data-a="whiteboardCatalogFilters"]').click();
-        await page
-          .locator((width <= 640 ? '.modal ' : '.whiteboards-desktop-filters ') + '[data-in="whiteboardsFilter"][data-field="view"]')
-          .selectOption(view);
-        if (width <= 640) await page.locator('.modal [data-a="closeModal"]').last().click();
+        // Short landscape viewports also use the compact filter dialog. Wait
+        // for resize rendering before choosing the currently visible controls.
+        const compact = await page.locator('[data-a="whiteboardCatalogFilters"]').isVisible();
+        if (compact) await page.locator('[data-a="whiteboardCatalogFilters"]').click();
+        const controls = page.locator(compact ? '.modal' : '.whiteboards-desktop-filters');
+        await chooseSelect(page, controls.locator('[data-in="whiteboardsFilter"][data-field="view"]'), view);
+        if (compact) await controls.locator('[data-a="closeModal"]').last().click();
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         await expect(page.locator(`.whiteboard-document-card [data-id="${publicId}"].whiteboard-document-open`)).toBeVisible();
       }
