@@ -56,6 +56,10 @@ const RU = {
   'Version retention depends on the size of the complete text-and-properties snapshot. Up to 5 versions are retained.':
     'История зависит от размера снимка текста и свойств. Хранятся до 5 версий.',
   'Preview alongside': 'Предпросмотр рядом',
+  'In this folder': 'В этой папке',
+  'In this project': 'В этом проекте',
+  'Project total': 'Всего в проекте',
+  'Workspace total': 'Всего в пространстве',
   'Folder path': 'Путь к папке',
   'Unknown status': 'Неизвестный статус',
   'Team tasks': 'Задачи команды',
