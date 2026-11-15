@@ -294,6 +294,14 @@ export function render() {
 }
 let thumbnailModule;
 let knowledgeTableModule;
+// WebKit may blur a focused sidebar control as soon as a media query hides it,
+// before the resize render can inspect activeElement. Remember only the last
+// meaningful focus location; dialogs/editors replace this flag on focusin.
+let sidebarHadFocus = false;
+document.addEventListener('focusin', event => {
+  if (event.target === document.body || event.target === document.documentElement) return;
+  sidebarHadFocus = !!event.target.closest?.('.side');
+});
 let layoutMain;
 let layoutFrame;
 let bottomNav;
@@ -414,9 +422,12 @@ export function afterRender() {
     const inactive = !!mobileFolders || inboxModal || (mobileNav && !navOpen);
     // Focus restoration can find the same sidebar button after navigation.
     // Move it out before hiding the menu from assistive technology.
-    if (inactive && side.contains(document.activeElement)) {
+    if (inactive && (side.contains(document.activeElement) || (sidebarHadFocus && document.activeElement === document.body))) {
       document.activeElement.blur();
-      if (!shell?.inert && !mobileFolders && !inboxModal) document.getElementById('main-content')?.focus({ preventScroll: true });
+      if (!shell?.inert && !mobileFolders && !inboxModal) {
+        document.getElementById('main-content')?.focus({ preventScroll: true });
+        sidebarHadFocus = false;
+      }
     }
     side.inert = inactive;
     side.setAttribute('aria-hidden', String(side.inert));
