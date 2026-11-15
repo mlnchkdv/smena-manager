@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test.setTimeout(240000);
 test.use({ actionTimeout: 15000 });

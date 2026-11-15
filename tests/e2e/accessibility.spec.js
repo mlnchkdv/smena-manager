@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test.setTimeout(180_000);
 test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
@@ -116,7 +116,16 @@ test('settings remain usable at 200% zoom on a narrow viewport in both locales',
       document.documentElement.style.zoom = '2';
     });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow, `${language} settings overflow at 200% zoom`).toBeLessThanOrEqual(2);
+    const overflowDetails =
+      overflow > 2
+        ? await page.evaluate(() =>
+            [...document.querySelectorAll('body *')]
+              .filter(el => el.getClientRects().length && el.getBoundingClientRect().right > innerWidth + 2)
+              .slice(-12)
+              .map(el => ({ tag: el.tagName, class: String(el.className), right: el.getBoundingClientRect().right, width: el.getBoundingClientRect().width })),
+          )
+        : [];
+    expect(overflow, `${language} settings overflow at 200% zoom: ${JSON.stringify(overflowDetails)}`).toBeLessThanOrEqual(2);
     await expect(page.locator('#main-content')).toBeVisible();
     await page.evaluate(() => {
       document.documentElement.style.zoom = '';

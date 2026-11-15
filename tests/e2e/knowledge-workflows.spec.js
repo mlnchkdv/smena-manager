@@ -1,7 +1,7 @@
 import { zipSync, strToU8 } from 'fflate';
 import { readKnowledgeArchive } from '../../src/shared/knowledge-archive.js';
 import fs from 'node:fs/promises';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 test.setTimeout(360000);
 const waitSaved = async page => {
   await page.waitForTimeout(500);

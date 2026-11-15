@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test.setTimeout(360000);
 test.use({ video: 'on-first-retry', trace: 'retain-on-failure', actionTimeout: 15000 });

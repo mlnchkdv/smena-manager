@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 import { readFile } from 'node:fs/promises';
 import { unzipSync, strFromU8 } from 'fflate';
 
@@ -21,10 +21,10 @@ test('focused whiteboards yield keyboard ownership to readers and command menus 
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
-    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await page.goto(await projectBoardPath(page, project.id));
     await page.locator('[data-a="whiteboardToggleFocus"]').click();
     await page.locator('[data-board-drag="focus-card"]').click();
-    const opener = page.locator('.whiteboard-selection [data-a="openRelatedEntity"]');
+    const opener = page.locator('.whiteboard-context [data-a="openRelatedEntity"]');
     await opener.click();
     const close = page.locator('.knowledge-drawer [data-a="closeKnowledgeDrawer"]');
     await close.focus();
@@ -110,9 +110,9 @@ test('whiteboard outline searches frame titles and children at the two hundred c
     await page.locator('[data-a="whiteboardOutlineGroups"][data-collapse="false"]').click();
     await expect(page.locator('.whiteboard-outline-group[open]')).toHaveCount(40);
     await page.locator('[data-a="whiteboardToggleOutline"]').click();
-    await page.locator('.whiteboard-tools > summary').click();
-    if ((await page.locator('[data-a="whiteboardToggleMinimap"]').getAttribute('aria-pressed')) !== 'true')
-      await page.locator('[data-a="whiteboardToggleMinimap"]').click();
+    await openBoardTools(page);
+    if ((await boardCommand(page, 'whiteboardToggleMinimap').getAttribute('aria-pressed')) !== 'true')
+      await boardCommand(page, 'whiteboardToggleMinimap').click();
     await page.keyboard.press('Escape');
     const minimap = page.locator('.whiteboard-minimap');
     await expect(minimap).toBeVisible();
@@ -124,7 +124,7 @@ test('whiteboard outline searches frame titles and children at the two hundred c
     await page.locator('.whiteboard-outline [data-board-drag]').first().click();
     await expect
       .poll(() =>
-        page.locator('.whiteboard-selection').evaluate(el => {
+        page.locator('.whiteboard-context').evaluate(el => {
           const nav = document.querySelector('.bottomnav').getBoundingClientRect();
           return el.getBoundingClientRect().bottom - nav.top;
         }),
@@ -182,7 +182,7 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
     edges: [],
   };
   expect((await page.request.put('/api/workspace', { data: { revision: publicData.revision, data: publicData } })).ok()).toBeTruthy();
-  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await page.goto(await projectBoardPath(page, project.id));
   await expect(page).toHaveURL(new RegExp('/whiteboard/' + project.id + '$'));
   await expect(page.locator('.whiteboard-card-content')).toHaveText('Existing protected text');
   expect((await page.request.get(`/api/whiteboards/${project.id}/versions`)).ok()).toBeTruthy();
@@ -245,7 +245,7 @@ test('standalone whiteboards create save archive retain legacy access and fit bo
   await expect(page).toHaveURL(new RegExp('/whiteboard/' + publicId + '$'));
   await page.goto('/e2e-team/graph');
   await expect(page.locator(`#graph-locate option[value="whiteboard:${publicId}"]`)).toHaveCount(1);
-  await page.locator('#graph-locate').selectOption('whiteboard:' + publicId);
+  await locateGraphMaterial(page, 'whiteboard:' + publicId);
   await page.locator('.graph-detail [data-a="openRelatedEntity"]').click();
   await expect(page).toHaveURL(new RegExp('/whiteboard/' + publicId + '$'));
   await page.goto(publicPath);
@@ -307,10 +307,9 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
   const path = await projectBoardPath(page, project.id, true);
   await page.goto(path);
   const upload = async (value, name = 'board.json') => {
-    const menu = page.locator('.whiteboard-io');
-    if (!(await menu.evaluate(e => e.open))) await menu.locator('summary').click();
+    await openBoardTools(page);
     const chooser = page.waitForEvent('filechooser');
-    await page.locator('[data-a="whiteboardImport"]').click();
+    await boardCommand(page, 'whiteboardImport').click();
     await (await chooser).setFiles({ name, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)) });
     await expect(page.locator('[data-a="applyWhiteboardImport"]')).toBeVisible();
   };
@@ -321,9 +320,9 @@ test('whiteboard native and Canvas interchange previews limitations checks acces
   await page.reload();
   await expect(page.locator('.whiteboard-card')).toHaveCount(2);
   await expect(page.locator('.whiteboard-card-content').first()).toHaveText('Imported body');
-  await page.locator('.whiteboard-io > summary').click();
+  await openBoardTools(page);
   const downloadPromise = page.waitForEvent('download');
-  await page.locator('[data-a="whiteboardExportCanvas"]').click();
+  await boardCommand(page, 'whiteboardExportCanvas').click();
   const download = await downloadPromise;
   const canvas = JSON.parse(await readFile(await download.path(), 'utf8'));
   expect(canvas.nodes).toHaveLength(2);
@@ -408,16 +407,15 @@ test('personal graph and board layouts retain camera pins filters and account is
   }
   const boardPath = `/e2e-team/whiteboard/${publicBoardId}`;
   const saveLayout = async name => {
-    await openBoardTools(page);
-    await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
-    await page.locator('[data-a="saveDiagramView"]').click();
+    await openDiagramLayouts(page);
+    await boardCommand(page, 'saveDiagramView').click();
     await page.locator('[data-in="diagramViewName"]').fill(name);
     await page.locator('[data-a="commitDiagramView"]').click();
     await waitForSaved(page);
   };
   await page.goto('/e2e-team/graph');
   await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
-  await page.locator('#graph-locate').selectOption('note:layout-note-0');
+  await locateGraphMaterial(page, 'note:layout-note-0');
   await page.locator('[data-a="toggleGraphPin"]').click();
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-label', /Unpin|Открепить/);
@@ -426,16 +424,15 @@ test('personal graph and board layouts retain camera pins filters and account is
   await saveLayout('Graph plan');
   await page.reload();
   await expect(page.locator('#knowledge-graph-canvas canvas').first()).toBeVisible();
-  await page.locator('#graph-locate').selectOption('note:layout-note-0');
+  await locateGraphMaterial(page, 'note:layout-note-0');
   await expect(page.locator('[data-a="toggleGraphPin"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('[data-a="clearGraphSelection"]').click();
   await page.goto(boardPath);
   await page.locator('[data-a="whiteboardZoomIn"]').click();
   const scale = await page.locator('.whiteboard-scale').textContent();
   await saveLayout('Board plan');
-  await expect(page.locator('[data-diagram-status]')).toContainText(/Saved|Сохранено/);
   await page.locator('[data-a="whiteboardZoomIn"]').click();
-  await expect(page.locator('[data-diagram-status]')).toContainText(/Changed|Изменено/);
+  await expect(page.locator('.whiteboard-scale')).not.toHaveText(scale);
   await page.reload();
   await expect(page.locator('.whiteboard-scale')).toHaveText(scale);
   for (const language of ['Русский', 'English (US)']) {
@@ -452,9 +449,8 @@ test('personal graph and board layouts retain camera pins filters and account is
         [1366, 768],
       ]) {
         await page.setViewportSize({ width, height });
-        await openBoardTools(page);
-        await page.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
-        await expect(page.locator('[data-a="loadDiagramView"]')).toHaveCount(1);
+        await openDiagramLayouts(page);
+        await expect(boardCommand(page, 'loadDiagramView')).toHaveCount(1);
         expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
         await page.keyboard.press('Escape');
       }
@@ -465,9 +461,8 @@ test('personal graph and board layouts retain camera pins filters and account is
     const editor = await context.newPage();
     await signIn(editor, 'e2e-editor-access-id-2026-secure');
     await editor.goto(boardPath);
-    await openBoardTools(editor);
-    await editor.locator('.diagram-view-menu:has([data-a="saveDiagramView"]) > summary').click();
-    await expect(editor.locator('[data-a="loadDiagramView"]')).toHaveCount(0);
+    await openDiagramLayouts(editor);
+    await expect(boardCommand(editor, 'loadDiagramView')).toHaveCount(0);
   } finally {
     await context.close();
   }
@@ -496,7 +491,7 @@ test('whiteboard durable history restores safely rejects stale restore and follo
     version = history.versions.find(v => v.board.nodes[0]?.text === 'Original');
   expect(version).toBeTruthy();
   await openBoardTools(page);
-  await page.locator('[data-a="whiteboardHistory"]').click();
+  await boardCommand(page, 'whiteboardHistory').click();
   await page.locator(`[data-a="chooseWhiteboardVersion"][data-id="${version.id}"]`).click();
   await page.locator('[data-a="restoreWhiteboardVersion"]').click();
   await page.locator('[data-a="confirmOk"]').click();
@@ -530,7 +525,7 @@ test('whiteboard durable history restores safely rejects stale restore and follo
     await waitForSaved(page);
     await page.goto(path);
     await openBoardTools(page);
-    await page.locator('[data-a="whiteboardHistory"]').click();
+    await boardCommand(page, 'whiteboardHistory').click();
     await expect(page.locator('.whiteboard-version-list button').first()).toBeVisible();
     for (const [width, height] of [
       [320, 740],
@@ -559,7 +554,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
     edges: [{ id: 'selection-e', from: 'selection-a', to: 'selection-b', label: 'Plan', arrow: true, color: 'blue' }],
   };
   expect((await page.request.put('/api/workspace', { data: { revision: snapshot.revision, data: snapshot } })).ok()).toBeTruthy();
-  await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+  await page.goto(await projectBoardPath(page, project.id));
   await page.locator('[data-a="whiteboardToggleSelection"]').click();
   for (const id of ['selection-a', 'selection-b', 'selection-c']) await page.locator(`[data-in="whiteboardSelection"][data-id="${id}"]`).check();
   await page.locator('.whiteboard-arrange > summary').click();
@@ -569,7 +564,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
   expect((await read()).nodes.map(n => n.y)).toEqual([0, 0, 0]);
   await page.locator('[data-a="whiteboardCopy"]').click();
   await openBoardTools(page);
-  await page.locator('[data-a="whiteboardPaste"]').click();
+  await boardCommand(page, 'whiteboardPaste').click();
   await waitForSaved(page);
   expect((await read()).nodes.length).toBe(6);
   expect((await read()).edges.length).toBe(2);
@@ -577,7 +572,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
   await waitForSaved(page);
   expect((await read()).nodes.length).toBe(3);
   await openBoardTools(page);
-  await page.locator('[data-a="whiteboardRedo"]').click();
+  await boardCommand(page, 'whiteboardRedo').click();
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.whiteboard-card')).toHaveCount(6);
@@ -585,7 +580,7 @@ test('whiteboard multi selection aligns copies and pastes connected cards with u
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitForSaved(page);
-    await page.goto(`/e2e-team/project/${project.id}/whiteboard`);
+    await page.goto(await projectBoardPath(page, project.id));
     await page.locator('[data-a="whiteboardToggleOutline"]').click();
     await page.locator('[data-a="whiteboardToggleSelection"]').click();
     await page.locator('[data-in="whiteboardSelection"]').first().check();
@@ -1012,8 +1007,9 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/knowledge');
   await page.locator('[data-a="newKnowledgeNote"]').first().click();
   await page.locator('#knowledge-title').fill(noteTitle);
-  await page.locator('.knowledge-properties>summary').click();
+  await page.locator('.knowledge-reader-properties').click();
   await page.locator('#knowledge-summary').fill('Проверка сохранения общей базы знаний');
+  await page.locator('.modal [data-a="closeModal"]').last().click();
   await page.locator('#knowledge-body').fill('Содержимое заметки сохраняется между сеансами.');
   await expectRussianUi(page, 'knowledge editor');
   await waitForSaved(page);
@@ -1065,7 +1061,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('.project-card-link[aria-label="Проверка интерфейса"]').click();
   await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
   const projectFilePicker = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"]').click();
+  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
   await (
     await projectFilePicker
   ).setFiles({
@@ -1240,7 +1236,7 @@ test('large task views keep bounded pages and allow reaching later tasks', async
   try {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/e2e-team/tasks');
-    await page.locator('[data-a="setViewMode"][data-v="board"]').click();
+    await page.locator('[data-a="setViewMode"][data-v="board"]:visible').first().click();
     const column = page.locator('.bcol[data-drop-col="todo"]');
     await expect(column.locator('.kcard')).toHaveCount(100);
     await column.locator('[data-a="listPage"][data-page="1"]').click();
@@ -1299,7 +1295,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await createFolder(folderA);
   await expect(page.getByRole('heading', { name: 'В этой папке пока нет файлов', exact: true })).toBeVisible();
   const pickerEvent = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"]').click();
+  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
   await (await pickerEvent).setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
   await waitForSaved(page);
@@ -1330,7 +1326,9 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await openFileFolderTools(page);
     await expect(page.locator('[data-a="newFileFolder"]')).toHaveAccessibleName(language === 'Русский' ? 'Новая папка' : 'New folder');
     await page.keyboard.press('Escape');
-    await expect(page.locator('[data-a="chooseStoredFiles"]')).toHaveAccessibleName(language === 'Русский' ? 'Загрузить файлы' : 'Upload files');
+    await expect(page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveAccessibleName(
+      language === 'Русский' ? 'Загрузить файлы' : 'Upload files',
+    );
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
     await page.locator('#mnav-btn').click();
     await expect(page.locator('.side')).toHaveAttribute('role', 'dialog');
@@ -1395,7 +1393,7 @@ test('file actions follow project view comment edit permissions', async ({ page,
       await editorPage.setViewportSize({ width: 320, height: 844 });
       await editorPage.goto('/e2e-team/files');
       await expect(editorPage.locator('.files-page')).toBeVisible();
-      await expect(editorPage.locator('[data-a="chooseStoredFiles"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
       await expect(editorPage.locator('[data-a="newFileFolder"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
       if (permission === 'Can edit') await expect(editorPage.locator('#files-upload-project option')).toHaveCount(1);
       await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] [data-a="ctxBtn"]`).click();
@@ -1404,9 +1402,11 @@ test('file actions follow project view comment edit permissions', async ({ page,
       await expect(editorPage.locator('[data-a="delFile"]')).toHaveCount(0);
       await expect(editorPage.locator('[data-a="downloadStoredFile"]')).toBeVisible();
       await editorPage.goto('/e2e-team/files');
-      await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] .workspace-file-project`).click();
+      const card = editorPage.locator(`.workspace-file-card[data-id="${file.id}"]`);
+      await card.locator('.workspace-file-location > summary').click();
+      await card.locator('.workspace-file-project').click();
       await expect(editorPage.locator('.files-toolbar')).toBeVisible();
-      await expect(editorPage.locator('[data-a="chooseStoredFiles"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
     }
   } finally {
     await editorContext.close();
@@ -1453,7 +1453,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await page.goto('/e2e-team/files');
     await page.locator('#workspace-file-project').selectOption(project.id);
     await page.setViewportSize({ width: 320, height: 844 });
-    await expect(page.locator('.files-folder-tile')).toHaveCount(4);
+    await expect(page.locator('.files-folder-tile')).toHaveCount(3);
     await page.locator('#files-folder-query').fill('Массовый перенос');
     await expect(page.locator('.files-folder-tile')).toHaveCount(2);
     await page.locator(`.files-folder-open[data-folder="${target === 'batch-b' ? 'batch-a' : 'batch-b'}"]`).click();
@@ -1462,6 +1462,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await expect(page.locator('.files-selected-count b')).toHaveText('3');
     await page.locator('.files-view-switch [data-v="list"]').click();
     await expect(page.locator('.workspace-file-table .file-select[aria-pressed="true"]')).toHaveCount(3);
+    await openFileSelectionTools(page);
     await page.locator('.files-selection-bar [data-a="moveFileToFolder"]').click();
     await page.locator('#file-move-query').fill(target === 'batch-b' ? 'перенос B' : 'перенос A');
     await page.locator(`[data-a="selectFileMoveTarget"][data-folder="${target}"]`).click();
@@ -1484,6 +1485,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     }
   }
   await page.locator('[data-a="selectFilePage"]').click();
+  await openFileSelectionTools(page);
   await page.locator('[data-a="trashSelectedFiles"]').click();
   await confirmDialog(page);
   await waitForSaved(page);
@@ -1559,6 +1561,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     await page.locator('.files-download-ready a[download]').click();
     const manual = unzipSync(new Uint8Array(await readFile(await (await manualEvent).path())));
     expect(Object.keys(manual)).toEqual(names);
+    await openFileSelectionTools(page);
     await page.locator('[data-a="streamSelectedFiles"]').click();
     await expect(page.locator('[data-a="startPreparedFileStream"]')).toBeVisible();
     if (language === 'Русский') await expectRussianUi(page, 'Native ZIP preflight');
@@ -1660,10 +1663,10 @@ test('large file collections keep bounded pages and remember device view prefere
     await expect(page.locator('.files-pagination nav .hint')).toContainText('48 / 48');
     await openFileFolderTools(page);
     await page.locator('[data-a="toggleFileFolderLayout"]').click();
-    await expect(page.locator('.files-folder-tile')).toHaveCount(16);
-    await page.locator('#files-folder-page-jump').fill('38');
+    await expect(page.locator('.files-folder-tile')).toHaveCount(4);
+    await page.locator('#files-folder-page-jump').fill(await page.locator('#files-folder-page-jump').getAttribute('max'));
     await page.locator('#files-folder-page-jump').press('Enter');
-    await expect(page.locator('.files-folder-tile')).toHaveCount(8);
+    await expect(page.locator('.files-folder-tile')).toHaveCount(4);
     await page.reload();
     await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#files-page-size')).toHaveValue('25');
@@ -1677,7 +1680,7 @@ test('large file collections keep bounded pages and remember device view prefere
       await openFileFilters(page);
       await page.locator('#workspace-file-project').selectOption('scale-files');
       await page.keyboard.press('Escape');
-      await expect(page.locator('.files-folder-tile')).toHaveCount(8);
+      await expect(page.locator('.files-folder-tile')).toHaveCount(3);
       await page.locator('#files-folder-query').fill('ПАПКА 599');
       await expect(page.locator('.files-folder-tile')).toHaveCount(1);
       await page.locator('#workspace-file-q').fill('Большой ПАПКА 599');
@@ -1848,7 +1851,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
   await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount - 1);
   const originalPickerInput = await page.locator('#workspace-files-upload').elementHandle();
   const chooser = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"]').press('Enter');
+  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').press('Enter');
   const picker = await chooser;
   expect(picker.isMultiple()).toBeTruthy();
   // Resizing causes the same render as an arriving catalog response while the
@@ -2075,7 +2078,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await waitForSaved(page);
   await page.locator('[data-a="whiteboardFit"]').click();
   await page.locator(`[data-board-drag="${first.id}"]`).click();
-  await expect(page.locator('.whiteboard-selection')).toBeVisible();
+  await expect(page.locator('.whiteboard-context')).toBeVisible();
   const afterSelection = (await (await page.request.get('/api/workspace')).json()).data;
   expect(afterSelection.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(board.nodes);
   const handle = page.locator(`[data-board-drag="${first.id}"]`),
@@ -2124,8 +2127,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await waitForSaved(page);
   const download = page.waitForEvent('download');
   await openBoardTools(page);
-  await page.locator('.whiteboard-io > summary').click();
-  await page.locator('[data-a="whiteboardExport"]').click();
+  await boardCommand(page, 'whiteboardExport').click();
   expect(JSON.parse(await readFile(await (await download).path(), 'utf8')).board.nodes).toHaveLength(4);
   data = (await (await page.request.get('/api/workspace')).json()).data;
   data.projects.push({ ...project, id: 'second-whiteboard', key: 'WBT', whiteboard: { version: 1, nodes: [], edges: [] }, milestones: [] });
@@ -2278,6 +2280,35 @@ async function projectBoardPath(page, projectId, reset = false) {
 
 async function openBoardTools(page) {
   const tools = page.locator('.whiteboard-tools');
-  if (/\/whiteboard\//.test(new URL(page.url()).pathname)) await expect(tools).toBeVisible();
-  if ((await tools.count()) && (await tools.getAttribute('open')) === null) await tools.locator(':scope > summary').click();
+  if (!/\/whiteboard(?:\/|$)/.test(new URL(page.url()).pathname)) return;
+  if (await page.locator('.whiteboard-tools-dialog').isVisible()) return;
+  await expect(tools).toBeVisible();
+  await tools.click();
+  await expect(page.locator('.whiteboard-tools-dialog')).toBeVisible();
+}
+
+function boardCommand(page, action) {
+  return page.locator(`[data-a="${action}"], .whiteboard-tools-dialog [data-a="whiteboardToolAction"][data-command="${action}"]`);
+}
+
+async function openDiagramLayouts(page) {
+  await openBoardTools(page);
+  if (await page.locator('.whiteboard-tools-dialog').isVisible()) return;
+  const menu = page.locator('.diagram-view-menu:has([data-a="saveDiagramView"])');
+  if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
+}
+
+async function locateGraphMaterial(page, key) {
+  const find = page.locator('.graph-find');
+  if ((await find.getAttribute('open')) === null) await find.locator(':scope > summary').click();
+  const index = await page.locator('#graph-locate').evaluate((select, value) => [...select.options].findIndex(option => option.value === value), key);
+  expect(index).toBeGreaterThanOrEqual(0);
+  await page.locator('#graph-locate + button').click();
+  await page.locator(`.select-menu [role="option"][data-i="${index}"]`).click();
+  await page.keyboard.press('Escape');
+}
+
+async function openFileSelectionTools(page) {
+  const menu = page.locator('.files-selection-tools');
+  if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
 }

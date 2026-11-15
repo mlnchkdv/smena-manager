@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test('public Google OAuth disclosure pages are accessible and responsive without signing in', async ({ page }) => {
   await page.goto('/');

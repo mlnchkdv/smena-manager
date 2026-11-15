@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test.setTimeout(360000);
 test.use({ actionTimeout: 15000 });
@@ -79,6 +79,7 @@ test('audit eight: authored palette text, select and folder focus, graph context
       } else await route.continue();
     });
     await page.goto('/e2e-team/graph');
+    if ((await page.locator('.graph-find').getAttribute('open')) === null) await page.locator('.graph-find > summary').click();
     await page.locator('#graph-locate + button').click();
     await expect(page.locator('.select-menu input')).toBeFocused();
     const home = page.locator('.select-menu [role="option"]').filter({ hasText: 'Home' });

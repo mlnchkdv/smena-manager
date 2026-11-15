@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test('reaudit reader matches range selection and personal views work in both languages', async ({ page }) => {
   test.setTimeout(240000);
@@ -552,7 +552,9 @@ test('simplified graph preserves materials selection filters and personal prefer
       if ([390, 1366].includes(width))
         await page.screenshot({ path: `output/playwright/graph-simple-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
     }
-    await page.locator('#graph-locate').selectOption('note:simple-graph-42');
+    await page.locator('.graph-find > summary').click();
+    await page.locator('#graph-locate').selectOption('note:simple-graph-42', { force: true });
+    await page.keyboard.press('Escape');
     await expect(page.locator('.graph-detail h2')).toHaveText('Graph material 42');
     await page.locator('[data-a="clearGraphSelection"]').click();
     await page.locator('[data-k="graphView"][data-v="list"]').click();
