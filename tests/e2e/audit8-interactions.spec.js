@@ -88,8 +88,9 @@ test('audit eight: authored palette text, select and folder focus, graph context
     await page.locator('.select-menu input').fill('Home Beta');
     await expect(page.locator('.select-menu [role="option"]')).toHaveCount(1);
     await page.locator('.select-menu [role="option"]').press('Enter');
-    await expect(page.locator('#graph-locate + button')).toBeFocused();
+    await expect(page.locator('.graph-find > summary')).toBeFocused();
     await expect(page.locator('#graph-locate')).toHaveValue('note:audit8-note-1');
+    await page.locator('.graph-find > summary').press('Space');
     await page.locator('#graph-locate + button').press('Space');
     await page.locator('.select-menu input').fill('Frontend');
     await page.locator('.select-menu input').press('ArrowDown');
@@ -326,12 +327,14 @@ test('forty audit: atomic 200-file import retry personal stars focused editor an
   expect(after).toEqual(original);
   await page.locator('.knowledge-preview-open').click();
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('.knowledge-editor-tools > summary').click();
   await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
   for (const width of [390, 1366]) {
     await page.setViewportSize({ width, height: 845 });
     await expect(page.locator('#knowledge-body')).toHaveValue('Queue body 0 / Текст 0');
     expect((await page.locator('#knowledge-body').boundingBox()).height).toBeGreaterThan(180);
   }
+  if (!(await page.locator('[data-a="toggleKnowledgeEditorFocus"]').isVisible())) await page.locator('.knowledge-editor-tools > summary').click();
   await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
   await page.goto('/e2e-team/knowledge');
   await page.locator('#knowledge-import-files').setInputFiles(files.slice(0, 51));

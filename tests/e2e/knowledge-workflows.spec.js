@@ -2,6 +2,7 @@ import { zipSync, strToU8 } from 'fflate';
 import { readKnowledgeArchive } from '../../src/shared/knowledge-archive.js';
 import fs from 'node:fs/promises';
 import { expect, test } from './fixtures.js';
+import { chooseSelect } from './controls.js';
 test.setTimeout(360000);
 const waitSaved = async page => {
   await page.waitForTimeout(500);
@@ -67,7 +68,8 @@ test('quick capture preserves text when its file upload fails', async ({ page })
     await page.locator('[data-in="captureField"][data-field="project"]').selectOption(workspace.projects[0].id);
     await page.locator('[data-in="captureFiles"]').setInputFiles({ name: 'unavailable.txt', mimeType: 'text/plain', buffer: Buffer.from('small test') });
     await page.locator('[data-a="saveQuickCapture"]').click();
-    await expect(page.locator('.toast').filter({ hasText: /Материал сохранён|Capture saved/ })).toBeVisible();
+    await page.locator('[data-a="confirmUploadReview"]').click();
+    await expect(page.locator('.toast').filter({ hasText: /Материал сохранён|Capture saved/ })).toBeVisible({ timeout: 15000 });
     await waitSaved(page);
     await page.reload();
     await expect(page.locator('.shell')).toBeVisible();
@@ -128,17 +130,17 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.goto('/e2e-team/knowledge');
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
   await page.locator('.knowledge-preview-edit').click();
-  if (await page.locator('.knowledge-properties:not([open])').count()) await page.locator('.knowledge-properties>summary').click();
-  if (await page.locator('.knowledge-type-fields:not([open])').count()) await page.locator('.knowledge-type-fields>summary').click();
-  await page.locator('[data-in="noteType"]').selectOption('instruction');
+  await page.locator('.knowledge-note-type').click();
+  await chooseSelect(page, page.getByRole('dialog').locator('[data-in="noteType"]'), 'instruction');
   await page.locator('[data-in="noteProperty"][data-field="review"]').fill('2026-12-01');
+  await page.getByRole('dialog').locator('.modal-f [data-a="closeModal"]').click();
   await waitSaved(page);
   await page.reload();
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
-  if (await page.locator('.knowledge-properties:not([open])').count()) await page.locator('.knowledge-properties>summary').click();
-  if (await page.locator('.knowledge-type-fields:not([open])').count()) await page.locator('.knowledge-type-fields>summary').click();
+  await page.locator('.knowledge-note-type').click();
   await expect(page.locator('[data-in="noteProperty"][data-field="review"]')).toHaveValue('2026-12-01');
-  await page.locator('.knowledge-outline > summary').click();
+  await page.getByRole('dialog').locator('.modal-f [data-a="closeModal"]').click();
+  await page.locator('.knowledge-reader-actions > summary').click();
   await page.locator('.knowledge-reader-tools [data-a="keepKnowledgeOffline"]').click();
   await expect(page.locator('.toast')).toContainText('Доступно в офлайн-библиотеке', { timeout: 20000 });
   const offline = await page.context().newPage();
@@ -225,6 +227,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-frontmatter>summary').click();
   await page.locator('.knowledge-preview-edit').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
+  await page.locator('[data-a="toggleKnowledgeFormatting"]').click();
   await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
   const originalSource = await page.locator('#knowledge-body').inputValue();
   await page.locator('#knowledge-body').fill(originalSource + '\nPreview typing check');
@@ -256,7 +259,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await page.locator('#knowledge-body').fill('Updated knowledge body');
   await waitSaved(page);
-  await expect(page.locator('.knowledge-editor-head [data-knowledge-save-status]')).toHaveText('Сохранено');
+  await expect(page.locator('.knowledge-editor-save')).toHaveText('Сохранено');
   await page.reload();
   await expect(page.locator('.knowledge-preview-open')).toHaveCount(2);
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Alpha' }).click();

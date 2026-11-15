@@ -717,6 +717,13 @@ async function openFileFilters(page) {
   if ((await filters.getAttribute('open')) === null) await filters.locator(':scope > summary').click();
 }
 
+async function setFilesView(page, view) {
+  const control = page.locator(`.files-view-switch [data-v="${view}"]`);
+  if (!(await control.isVisible())) await openFileFilters(page);
+  await control.click();
+  await page.keyboard.press('Escape');
+}
+
 async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
   await outcome.waitFor({ state: 'visible' });
@@ -770,7 +777,7 @@ async function confirmDialog(page) {
 
 async function openTrash(page) {
   await page.goto('/e2e-team/archive');
-  await page.locator('[data-a="set"][data-k="archTab"][data-v="trash"]').click();
+  await page.locator('[role="tab"][data-a="archiveCategory"][data-category="trash"]').click();
 }
 
 async function visibleUntranslatedUi(page) {
@@ -1302,12 +1309,14 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   const pickerEvent = page.waitForEvent('filechooser');
   await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
   await (await pickerEvent).setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
-  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
+  await page.locator('[data-a="confirmUploadReview"]').click();
+  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible({ timeout: 15000 });
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA, { timeout: 15_000 });
   // Reload restores the saved view, not a transient folder filter. Verify the
   // persisted folder membership by entering it before returning via breadcrumbs.
+  await page.locator('.files-folder-crumbs [data-project="all"]').click();
   await page.locator('.files-folder-tile', { hasText: folderA }).locator('.files-folder-open').click();
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible();
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
@@ -1327,6 +1336,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await waitForSaved(page);
     await page.goto('/e2e-team/files');
     await page.setViewportSize({ width: 320, height: 844 });
+    await showFileFolderTiles(page);
     await expect(page.locator('.topsearch')).toHaveAccessibleName(language === 'Русский' ? /Найти или перейти…/ : /Search or jump to…/);
     await openFileFolderTools(page);
     await expect(page.locator('[data-a="newFileFolder"]')).toHaveAccessibleName(language === 'Русский' ? 'Новая папка' : 'New folder');
@@ -1458,6 +1468,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await page.goto('/e2e-team/files');
     await page.locator('#workspace-file-project').selectOption(project.id);
     await page.setViewportSize({ width: 320, height: 844 });
+    await showFileFolderTiles(page);
     await expect(page.locator('.files-folder-tile')).toHaveCount(3);
     await page.locator('#files-folder-query').fill('Массовый перенос');
     await expect(page.locator('.files-folder-tile')).toHaveCount(2);
@@ -1465,7 +1476,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     await page.locator('[data-a="selectFilePage"]').click();
     await expect(page.locator('.files-selected-count b')).toHaveText('3');
-    await page.locator('.files-view-switch [data-v="list"]').click();
+    await setFilesView(page, 'list');
     await expect(page.locator('.workspace-file-table .file-select[aria-pressed="true"]')).toHaveCount(3);
     await openFileSelectionTools(page);
     await page.locator('.files-selection-bar [data-a="moveFileToFolder"]').click();
@@ -1480,7 +1491,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     current = (await (await page.request.get('/api/workspace')).json()).data;
     expect(current.files.filter(file => ids.includes(file.id)).map(file => file.folderId)).toEqual([target, target, target]);
     await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
-    await page.locator('.files-view-switch [data-v="grid"]').click();
+    await setFilesView(page, 'grid');
     await page.locator('#workspace-file-q').fill(`e2e-batch-${browserName}-`);
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     if (language === 'Русский') await expectRussianUi(page, 'Bulk file browser');
@@ -1590,6 +1601,9 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     const persistent = unzipSync(new Uint8Array(await readFile(await (await persistentEvent).path())));
     expect(Object.keys(persistent)).toEqual(names);
     expect(Object.values(persistent).map(bytes => strFromU8(bytes))).toEqual(Object.values(unpacked).map(bytes => strFromU8(bytes)));
+    // A native download can close disclosures; reopen the visible exports UI.
+    if ((await page.locator('.files-details').getAttribute('open')) === null) await page.locator('.files-details > summary').click();
+    if ((await page.locator('.files-exports').getAttribute('open')) === null) await page.locator('.files-exports > summary').click();
     await exportRow.locator('[data-a="cancelFileExport"]').click();
     await page.locator('#workspace-file-q').fill(folderName);
     await page.locator('[data-a="selectFilePage"]').click();
@@ -1660,7 +1674,7 @@ test('large file collections keep bounded pages and remember device view prefere
     await page.locator('#workspace-file-project').selectOption('scale-files');
     await page.locator('#files-page-size').selectOption('25');
     await page.locator('#workspace-file-sort').selectOption('name');
-    await page.locator('.files-view-switch [data-v="list"]').click();
+    await setFilesView(page, 'list');
     await expect(page.locator('.workspace-file-table tbody tr')).toHaveCount(25);
     await page.locator('#files-page-jump').fill('48');
     await page.locator('#files-page-jump').press('Enter');
@@ -1685,6 +1699,7 @@ test('large file collections keep bounded pages and remember device view prefere
       await openFileFilters(page);
       await page.locator('#workspace-file-project').selectOption('scale-files');
       await page.keyboard.press('Escape');
+      await showFileFolderTiles(page);
       await expect(page.locator('.files-folder-tile')).toHaveCount(3);
       await page.locator('#files-folder-query').fill('ПАПКА 599');
       await expect(page.locator('.files-folder-tile')).toHaveCount(1);
@@ -1706,7 +1721,7 @@ test('large file collections keep bounded pages and remember device view prefere
     await openFileFilters(page);
     await page.locator('#files-page-size').selectOption('100');
     await page.locator('#workspace-file-sort').selectOption('date');
-    await page.locator('.files-view-switch [data-v="grid"]').click();
+    await setFilesView(page, 'grid');
     if (await page.locator('.files-folder-grid.compact').count()) {
       await openFileFolderTools(page);
       await page.locator('[data-a="toggleFileFolderLayout"]').click();
@@ -1752,6 +1767,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.goto(`/e2e-team/project/${project.id}/files`);
       await expect(page.locator('#workspace-file-project')).toHaveCount(0);
       await expect(page.locator('.files-context-summary')).toBeVisible();
+      await showFileFolderTiles(page);
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
       await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
       await expect(page.locator('.file-move-row', { hasText: 'E2E Child' })).toHaveCount(0);
@@ -1765,11 +1781,12 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.locator('.files-details > summary').click();
       await page.locator('[data-a="toggleFileRecursive"]').click();
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
+      await openFileDetails(page);
       await page.locator('[data-a="saveFileFilter"]').click();
       await page.locator('#prompt-in').fill('E2E saved tree');
       await page.locator('[data-a="promptSubmit"]').click();
       await page.reload();
-      await page.locator('.files-details > summary').click();
+      await openFileDetails(page);
       await page.locator('[data-in="fileFilterPreset"]').selectOption({ label: 'E2E saved tree' });
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
       await page.locator('.files-selection-tools > summary').click();
@@ -1777,6 +1794,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await expect(page.locator('.files-selected-count b')).toHaveText('2');
       if (language === 'Русский') await expectRussianUi(page, 'Recursive folder filters');
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await openFileDetails(page);
       await page.locator('.files-preset-manage summary').click();
       await page.locator('[data-a="removeFileFilter"]').click();
       // Move A back to the project root through the same picker for the next locale.
@@ -1852,7 +1870,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
   expect(thumbnailUpload.status()).toBe(201);
   const thumbnail = (await thumbnailUpload.json()).file;
   await page.goto('/e2e-team/files');
-  await page.locator('.files-view-switch [data-v="grid"]').click();
+  await setFilesView(page, 'grid');
   await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount - 1);
   const originalPickerInput = await page.locator('#workspace-files-upload').elementHandle();
   const chooser = page.waitForEvent('filechooser');
@@ -1865,7 +1883,8 @@ test('PDF previews render pages locally without document scripts in Russian and 
   await expect.poll(() => originalPickerInput.evaluate(el => el.isConnected)).toBe(false);
   await picker.setFiles({ name: keyboardName, mimeType: 'text/plain', buffer: Buffer.from('Keyboard upload / Загрузка с клавиатуры') });
   await originalPickerInput.dispose();
-  await expect(page.locator('.workspace-file-card', { hasText: keyboardName })).toBeVisible();
+  await page.locator('[data-a="confirmUploadReview"]').click();
+  await expect(page.locator('.workspace-file-card', { hasText: keyboardName })).toBeVisible({ timeout: 15000 });
   await waitForSaved(page);
   await page.reload();
   await expect(page.locator('.workspace-file-card', { hasText: keyboardName })).toBeVisible();
@@ -1875,7 +1894,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await waitForSaved(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/e2e-team/files');
-    await page.locator('.files-view-switch [data-v="grid"]').click();
+    await setFilesView(page, 'grid');
     // Folder pages can place file cards below the fold; thumbnails load on visibility.
     await page.locator(`[data-file-thumb="${thumbnail.id}"]`).scrollIntoViewIfNeeded();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
@@ -1897,7 +1916,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await expect(page.locator('#workspace-file-type')).toHaveValue('all');
     await expect(page.locator('#workspace-file-q')).toBeFocused();
     await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
-    await page.locator('.files-view-switch [data-v="list"]').click();
+    await setFilesView(page, 'list');
     for (const width of [320, 768, 941, 1024, 1366]) {
       await page.setViewportSize({ width, height: 844 });
       const geometry = await page.locator('.files-page').evaluate(el => ({
@@ -2088,11 +2107,11 @@ test('project whiteboards persist cards connections layout and inherited access 
   expect(afterSelection.projects.find(p => p.id === project.id).whiteboard.nodes).toEqual(board.nodes);
   const handle = page.locator(`[data-board-drag="${first.id}"]`),
     box = await handle.boundingBox();
-  const edgeBefore = await page.locator('.whiteboard-edges g path').getAttribute('d');
+  const edgeBefore = await page.locator('.whiteboard-edge-hit').getAttribute('d');
   await page.mouse.move(box.x + 20, box.y + 16);
   await page.mouse.down();
   await page.mouse.move(box.x + 70, box.y + 46, { steps: 5 });
-  await expect(page.locator('.whiteboard-edges g path')).not.toHaveAttribute('d', edgeBefore);
+  await expect(page.locator('.whiteboard-edge-hit')).not.toHaveAttribute('d', edgeBefore);
   await page.mouse.up();
   await waitForSaved(page);
   data = (await (await page.request.get('/api/workspace')).json()).data;
@@ -2123,10 +2142,10 @@ test('project whiteboards persist cards connections layout and inherited access 
   await expect(page.locator('.whiteboard-outline')).not.toContainText('No matching cards.');
   await page.locator('[data-in="whiteboardOutlineQuery"]').fill('');
   await page.locator(`[data-board-drag="${second.id}"]`).click();
-  await page.locator('[data-a="whiteboardDelete"]').click();
+  await page.keyboard.press('Delete');
   await expect(page.locator('.whiteboard-card')).toHaveCount(3);
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(0);
-  await page.locator('[data-a="whiteboardUndo"]').click();
+  await page.keyboard.press('Control+z');
   await expect(page.locator('.whiteboard-card')).toHaveCount(4);
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(1);
   await waitForSaved(page);
@@ -2316,4 +2335,19 @@ async function locateGraphMaterial(page, key) {
 async function openFileSelectionTools(page) {
   const menu = page.locator('.files-selection-tools');
   if ((await menu.getAttribute('open')) === null) await menu.locator(':scope > summary').click();
+}
+
+async function showFileFolderTiles(page) {
+  const toggle = page.locator('[data-a="toggleFileFolders"]');
+  await expect(toggle).toBeVisible();
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+  await openFileFolderTools(page);
+  const layout = page.locator('[data-a="toggleFileFolderLayout"]');
+  if ((await layout.getAttribute('aria-pressed')) === 'true') await layout.click();
+  await page.keyboard.press('Escape');
+}
+
+async function openFileDetails(page) {
+  const details = page.locator('.files-details');
+  if ((await details.getAttribute('open')) === null) await details.locator(':scope > summary').click();
 }

@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures.js';
+import { chooseSelect } from './controls.js';
 
 test('reaudit reader matches range selection and personal views work in both languages', async ({ page }) => {
   test.setTimeout(240000);
@@ -48,12 +49,14 @@ test('reaudit reader matches range selection and personal views work in both lan
     await input.evaluate(el => el.setSelectionRange(12, 24));
     const before = await input.evaluate(el => [el.selectionStart, el.selectionEnd]);
     const wrap = await input.getAttribute('wrap');
+    await page.locator('.knowledge-editor-tools > summary').click();
     await page.locator('[data-a="toggleKnowledgeLineWrap"]').click();
     await expect(input).toHaveAttribute('wrap', wrap === 'off' ? 'soft' : 'off');
     expect(await input.evaluate(el => [el.selectionStart, el.selectionEnd])).toEqual(before);
     await expect(input).toHaveValue(source);
+    if (!(await page.locator('[data-a="toggleKnowledgeEditorFocus"]').isVisible())) await page.locator('.knowledge-editor-tools > summary').click();
     await page.locator('[data-a="toggleKnowledgeEditorFocus"]').click();
-    await expect(page.locator('.knowledge-reader-location')).not.toBeVisible();
+    await expect(page.locator('.knowledge-reader-location:visible')).toHaveCount(0);
     await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
     await page.locator('[data-a="editKnowledgeBlock"]').first().click();
     await expect(page.locator('[data-in="knowledgeBlockText"]')).toHaveAttribute('aria-label', /Block text 1|Текст блока 1/);
@@ -103,7 +106,7 @@ test('focused graph cycles visible controls and lets its modal own Escape in bot
     await first.focus();
     await page.keyboard.press('Shift+Tab');
     expect(await page.evaluate(() => !!document.activeElement.closest('.graph-page.is-focused'))).toBeTruthy();
-    await page.locator('.graph-controls [data-command="fit"]').focus();
+    await page.locator('.graph-controls button:visible').last().focus();
     await page.keyboard.press('Tab');
     await expect(first).toBeFocused();
     await page.locator('[data-a="graphDisplayOptions"]').click();
@@ -177,6 +180,7 @@ test('post audit optional deadlines file preview navigation and collection contr
     await page.locator('[data-in="favoriteQuery"]').fill(prefix);
     await expect(page.locator('.favorite-material')).toHaveCount(1);
     await page.goto('/e2e-team/activity');
+    await page.locator('.activity-date-options > summary').click();
     await page.locator('[data-in="actFrom"]').fill('2099-01-01');
     // WebKit commits a manually entered native date when the field loses focus.
     await page.locator('[data-in="actFrom"]').press('Tab');
@@ -306,8 +310,12 @@ test('knowledge creation menus expose types templates and library tools on mobil
     ]) {
       await page.setViewportSize({ width, height });
       await expectNoPageOverflow(page);
-      await page.locator('.knowledge-create-options > summary').click();
-      const menu = page.locator('.knowledge-create-options > div');
+      const compact = !(await page.locator('.knowledge-create-options > summary').isVisible());
+      if (compact) {
+        await page.locator('[data-a="knowledgeLibraryTools"]').click();
+        await page.locator('.knowledge-library-tools > details > summary').click();
+      } else await page.locator('.knowledge-create-options > summary').click();
+      const menu = page.locator(compact ? '.knowledge-library-tools > details' : '.knowledge-create-options > div');
       await expect(menu).toBeVisible();
       const bounds = await menu.boundingBox();
       expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -319,7 +327,9 @@ test('knowledge creation menus expose types templates and library tools on mobil
     }
     await page.locator('.knowledge-create-options > summary').click();
     await page.locator('.knowledge-create-options [data-type-id="meeting"]').click();
-    await expect(page.locator('.knowledge-drawer [data-in="noteType"]')).toHaveValue('meeting');
+    await page.locator('.knowledge-drawer .knowledge-note-type').click();
+    await expect(page.getByRole('dialog').locator('[data-in="noteType"]')).toHaveValue('meeting');
+    await page.keyboard.press('Escape');
     await page.locator('button[data-a="closeKnowledgeDrawer"]').click();
     await page.waitForTimeout(650);
     await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
@@ -366,13 +376,13 @@ test('knowledge card metadata is configurable and persists across languages and 
       e.scrollTop = 350;
     });
     const beforeScroll = await reader.locator('.knowledge-drawer-body').evaluate(e => e.scrollTop);
-    await reader.locator('[data-a="openNoteProperties"]').click();
+    await reader.locator('.knowledge-reader-properties').click();
     const properties = page.locator('.modal[role="dialog"]');
     await expect(properties.locator('.knowledge-type-fields')).toHaveAttribute('open', '');
     await properties.locator('[data-in="noteProperty"][data-field="date"]').fill('2026-11-01');
     await properties.locator('[data-a="closeModal"]').last().click();
     await expect.poll(() => reader.locator('.knowledge-drawer-body').evaluate(e => e.scrollTop)).toBe(beforeScroll);
-    await reader.locator('[data-a="openNoteProperties"]').click();
+    await reader.locator('.knowledge-reader-properties').click();
     await expect(properties).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(properties).toHaveCount(0);
@@ -433,6 +443,10 @@ async function signIn(page) {
     await page.locator('[data-a="onbFinish"]').click();
   }
   await expect(page.locator('.shell')).toBeVisible();
+  // Finishing onboarding shows the shell while its final write is coalesced.
+  // A full navigation must not abort that initial request.
+  await page.waitForTimeout(650);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
 }
 
 async function expectNoPageOverflow(page) {
@@ -498,6 +512,8 @@ test('simplified graph preserves materials selection filters and personal prefer
     if ((await physics.getAttribute('aria-pressed')) !== 'true') await physics.click();
     await expect(canvas).toHaveAttribute('data-physics', 'on');
     await expect(canvas).toHaveAttribute('data-physics-state', 'settled', { timeout: 10000 });
+    await page.waitForTimeout(650);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
     let revisionRetry = 0;
     const revisionRace = async route => {
       revisionRetry++;
@@ -553,7 +569,7 @@ test('simplified graph preserves materials selection filters and personal prefer
         await page.screenshot({ path: `output/playwright/graph-simple-${language === 'Русский' ? 'ru' : 'en'}-${width}-${browserName}.png` });
     }
     await page.locator('.graph-find > summary').click();
-    await page.locator('#graph-locate').selectOption('note:simple-graph-42', { force: true });
+    await chooseSelect(page, page.locator('#graph-locate'), 'note:simple-graph-42');
     await page.keyboard.press('Escape');
     await expect(page.locator('.graph-detail h2')).toHaveText('Graph material 42');
     await page.locator('[data-a="clearGraphSelection"]').click();
@@ -654,7 +670,9 @@ test('mobile navigation keeps focus visible after route changes and resizing in 
       await expect(page.locator('#mnav-btn')).toBeFocused();
     }
     await page.setViewportSize({ width: 1366, height: 768 });
+    await expect(page.locator('.side')).not.toHaveAttribute('inert', '');
     await page.locator('.side [data-a="go"][data-r="files"]').focus();
+    await expect(page.locator('.side [data-a="go"][data-r="files"]')).toBeFocused();
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
     await expect(page.locator('#main-content')).toBeFocused();

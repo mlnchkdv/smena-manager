@@ -131,7 +131,7 @@ test('audit six: calendar clearance, anchored menus, mobile folders and catalog 
     await page.goto('/e2e-team/bookmarks');
     await expect(page.locator('.bookmark-importance')).toHaveCount(4);
     for (const label of await page.locator('.bookmark-importance span').all()) await expect(label).toBeVisible();
-    await expect(page.locator('.bookmark-importance').first()).toHaveAttribute('aria-label', new RegExp(ru ? 'Важность' : 'Importance'));
+    await expect(page.locator('.bookmark-importance .sr').first()).toHaveText(new RegExp(ru ? 'Важность' : 'Importance'));
     await noOverflow(page);
 
     let release;
