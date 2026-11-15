@@ -75,10 +75,12 @@ A.delView = el => {
 };
 
 A.goTasks = el => {
-  const { f: kind, project, assignee } = el.dataset;
+  const { f: kind, project, assignee, status } = el.dataset;
+  const projects = el.dataset.projects?.split(',').filter(id => visibleProjects().some(p => p.id === id && canSee(p)));
+  if (el.dataset.projects && !projects.length) return;
   if (project && !visibleProjects().some(p => p.id === project && canSee(p))) return;
   if (assignee && !D().members.some(m => m.id === assignee)) return;
-  applyWorkListIntent(viewOf('tasks'), { kind, project, assignee });
+  applyWorkListIntent(viewOf('tasks'), { kind, project, projects, assignee, status });
   for (const map of [S.ui.listPages, S.ui.collapsedGroups]) {
     for (const key of Object.keys(map || {})) if (key.startsWith('tasks:')) delete map[key];
   }

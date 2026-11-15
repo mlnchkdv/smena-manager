@@ -19,6 +19,8 @@ import { render } from '../shell/render.js';
 registerRussianLabels({
   'Projects, workload and upcoming milestones.': 'Проекты, загрузка и ближайшие этапы.',
   'Unnamed milestone': 'Этап без названия',
+  'Project scope': 'Область обзора',
+  'Open tasks by member': 'Открытые задачи по участникам',
   'Milestones to review': 'Этапы к проверке',
   'Needs attention': 'Требует внимания',
   'Search projects, owners and milestones': 'Поиск проектов, ответственных и этапов',
@@ -51,14 +53,21 @@ function nextMilestone(row, today) {
     : '';
 }
 
+IN.portfolioScope = el => {
+  S.ui.portfolioScope = ['all', 'active', 'complete'].includes(el.value) ? el.value : 'active';
+  render();
+};
 export function pageOverview() {
-  const projects = visibleProjects().filter(canSee),
-    all = allTasks(),
+  const view = collectionView('portfolio', { portfolioQuery: '', portfolioAttention: '', portfolioScope: 'active' });
+  const projects = visibleProjects()
+      .filter(canSee)
+      .filter(p => S.ui.portfolioScope === 'all' || (S.ui.portfolioScope === 'complete' ? p.status === 'complete' : p.status !== 'complete')),
+    projectIds = new Set(projects.map(p => p.id)),
+    all = allTasks().filter(task => projectIds.has(task.project)),
     today = iso(TODAY);
   const work = portfolioWork(projects, all, today);
-  const view = collectionView('portfolio', { portfolioQuery: '', portfolioAttention: '' });
   const filtered = findPortfolioRows(work.rows, S.ui.portfolioQuery, S.ui.portfolioAttention === 'yes', id => mem(id)?.name);
-  const pageKey = 'portfolio:' + JSON.stringify([S.ui.portfolioQuery, S.ui.portfolioAttention]);
+  const pageKey = 'portfolio:' + JSON.stringify([S.ui.portfolioScope, S.ui.portfolioQuery, S.ui.portfolioAttention]);
   const window = listWindow(filtered, collectionPage(view, pageKey), 50);
   saveCollectionView(view, window.page);
   const counts = STATUSES.map(s => ({ s, n: all.filter(task => task.status === s.id).length }));
@@ -74,7 +83,15 @@ export function pageOverview() {
     .sort((a, b) => a.next.date.localeCompare(b.next.date))
     .slice(0, 5);
   return `<div class="page overview-page layout-dashboard">
-    <div class="ph compact-page-head"><div><h1>Team overview</h1><p class="page-description">Projects, workload and upcoming milestones.</p></div><div class="acts">${pageIntroduction(`Projects, workload and upcoming milestones.`)}<button class="btn btn-secondary" data-a="go" data-r="timeline" aria-label="Timeline" title="Timeline">${ic('chart-gantt', 14)}<span class="hide-m">Timeline</span></button></div></div>
+    <div class="ph compact-page-head"><div><h1>Team overview</h1><p class="page-description">Projects, workload and upcoming milestones.</p></div><div class="acts"><label class="overview-scope"><span class="sr">Project scope</span><select class="select" data-in="portfolioScope" aria-label="Project scope">${[
+      ['active', 'Active projects'],
+      ['all', 'All projects'],
+      ['complete', 'Completed projects'],
+    ]
+      .map(([key, label]) => `<option value="${key}" ${S.ui.portfolioScope === key ? 'selected' : ''}>${t(label)}</option>`)
+      .join(
+        '',
+      )}</select></label>${pageIntroduction(`Projects, workload and upcoming milestones.`)}<button class="btn btn-secondary" data-a="go" data-r="timeline" aria-label="Timeline" title="Timeline">${ic('chart-gantt', 14)}<span class="hide-m">Timeline</span></button></div></div>
     <div class="work-risk-strip" role="group" aria-label="Tasks">
       ${[
         ['overdue', work.overdue, 'Overdue'],
@@ -83,10 +100,10 @@ export function pageOverview() {
       ]
         .map(
           ([kind, count, label]) =>
-            `<button class="btn btn-sm ${kind === 'overdue' && count ? 'btn-secondary bad' : 'btn-ghost'}" data-a="goTasks" data-f="${kind}">${t(label)} <b class="num">${count}</b></button>`,
+            `<button class="btn btn-sm ${kind === 'overdue' && count ? 'btn-secondary bad' : 'btn-ghost'}" data-a="goTasks" data-projects="${projects.map(p => p.id).join(',')}" data-f="${kind}">${t(label)} <b class="num">${count}</b></button>`,
         )
         .join('')}
-      <details class="portfolio-totals" ${disclosureAttributes('portfolio-totals')}><summary>Workspace totals</summary><div class="row"><span>Projects</span> <b>${projects.length}</b> · <span>Tasks</span> <b>${all.length}</b> · <span>Completed</span> <b>${done}</b> · <span>Members</span> <b>${D().members.length}</b></div></details>
+      <details class="portfolio-totals" ${disclosureAttributes('portfolio-totals')}><summary>Workspace totals</summary><div class="row"><span>Projects</span> <b>${projects.length}</b> · <span>Tasks</span> <b>${all.length}</b> · <span>Completed</span> <b>${done}</b> · <span>Members</span> <b>${D().members.filter(m => m.status === 'active').length}</b></div></details>
     </div>
     <section class="panel overview-portfolio">
       <div class="panel-h portfolio-heading"><h2>Portfolio</h2><span class="faint num">${filtered.length} / ${projects.length}</span><div class="portfolio-controls"><div class="inwrap">${ic('search', 14)}<input class="input search-sm" id="portfolio-search" data-in="portfolioQuery" value="${esc(S.ui.portfolioQuery)}" placeholder="Search projects, owners and milestones" aria-label="Search projects, owners and milestones"></div><button class="btn btn-sm ${S.ui.portfolioAttention === 'yes' ? 'btn-secondary on' : 'btn-ghost'}" data-a="portfolioAttention" aria-pressed="${S.ui.portfolioAttention === 'yes'}" title="Only projects needing attention">${ic('circle-alert', 14)}<span>Needs attention</span></button></div></div>
@@ -100,8 +117,8 @@ export function pageOverview() {
       ${paginationHtml(window, pageKey)}
     </section>
     <div class="portfolio-support">
-      <section class="panel"><div class="panel-h"><h2>Tasks by status</h2></div><div class="panel-b">${counts.map(c => `<div class="row portfolio-status-row">${stIcon(c.s.id)}<span class="grow">${c.s.name}</span><span class="num muted">${c.n}</span></div>`).join('')}</div></section>
-      <section class="panel"><div class="panel-h"><h2>Workload</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="members">All members</button></div></div><div class="panel-b">${load.map(l => `<button class="portfolio-workload" data-a="goTasks" data-f="open" data-assignee="${esc(l.m.id)}" title="${esc(t('Open tasks') + ': ' + l.m.name)}">${av(l.m.id, 'sm', false)}<span class="trunc" translate="no">${esc(l.m.name)}</span><i style="--work:${(l.n / max) * 100}%"></i><b class="num">${l.n}</b></button>`).join('') || '<p class="faint">No open assignments</p>'}</div></section>
+      <section class="panel"><div class="panel-h"><h2>Tasks by status</h2></div><div class="panel-b">${counts.map(c => `<button class="row portfolio-status-row" data-a="goTasks" data-projects="${projects.map(p => p.id).join(',')}" data-status="${c.s.id}" aria-label="${t(c.s.name)}: ${c.n}">${stIcon(c.s.id)}<span class="grow">${c.s.name}</span><span class="num muted">${c.n}</span></button>`).join('')}</div></section>
+      <section class="panel"><div class="panel-h"><h2>Open tasks by member</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="members">All members</button></div></div><div class="panel-b">${load.map(l => `<button class="portfolio-workload" data-a="goTasks" data-projects="${projects.map(p => p.id).join(',')}" data-f="open" data-assignee="${esc(l.m.id)}" title="${esc(t('Open tasks') + ': ' + l.m.name)}">${av(l.m.id, 'sm', false)}<span class="trunc" translate="no">${esc(l.m.name)}</span><i style="--work:${(l.n / max) * 100}%"></i><b class="num">${l.n}</b></button>`).join('') || '<p class="faint">No open assignments</p>'}</div></section>
       ${milestones.length ? `<section class="panel"><div class="panel-h"><h2>Milestones to review</h2></div><div class="panel-b">${milestones.map(row => `<button class="portfolio-milestone" data-a="go" data-r="project" data-id="${esc(row.project.id)}" data-tab="timeline"><span class="pdot" style="--c:${pColor(row.project)}"></span><span class="grow"><b translate="no">${esc(row.next.name || t('Unnamed milestone'))}</b><small translate="no">${esc(row.project.name)}</small></span><span class="num${row.next.date < today ? ' bad' : ''}">${relDate(row.next.date)}</span></button>`).join('')}</div></section>` : ''}
     </div>
   </div>`;

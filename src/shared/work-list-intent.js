@@ -7,7 +7,7 @@ export function completedWithin(task, days, now = Date.now()) {
 }
 
 // A dashboard count opens a new query, while retaining the user's column layout.
-export function applyWorkListIntent(view, { kind = 'all', project, assignee } = {}) {
+export function applyWorkListIntent(view, { kind = 'all', project, projects, assignee, status } = {}) {
   const filters = [];
   if (['open', 'overdue', 'unassigned', 'week'].includes(kind)) filters.push({ f: 'status', op: 'not', v: ['done'] });
   if (kind === 'done') filters.push({ f: 'status', op: 'is', v: ['done'] }, { f: 'completed', op: 'is', v: ['7'] });
@@ -15,6 +15,8 @@ export function applyWorkListIntent(view, { kind = 'all', project, assignee } = 
   if (kind === 'unassigned') filters.push({ f: 'assignee', op: 'is', v: ['none'] });
   else if (assignee) filters.push({ f: 'assignee', op: 'is', v: [assignee] });
   if (project) filters.push({ f: 'project', op: 'is', v: [project] });
+  else if (projects?.length) filters.push({ f: 'project', op: 'is', v: [...new Set(projects)] });
+  if (['backlog', 'todo', 'progress', 'review', 'done'].includes(status)) filters.push({ f: 'status', op: 'is', v: [status] });
   Object.assign(view, { q: '', filters, mode: 'list', showDone: true });
   return view;
 }

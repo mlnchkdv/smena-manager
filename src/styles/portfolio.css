@@ -244,3 +244,34 @@
   align-items: center;
   gap: 4px;
 }
+
+.portfolio-status-row {
+  width: 100%;
+  text-align: left;
+  gap: 8px;
+  border-radius: var(--r-sm);
+  padding-inline: 4px;
+}
+.portfolio-status-row:hover {
+  background: var(--surface-2);
+}
+.overview-scope {
+  width: 180px;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .overview-page .ph {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .overview-page .ph > .acts {
+    width: 100%;
+  }
+  .overview-scope {
+    flex: 1;
+    width: auto;
+  }
+  .portfolio-status-row {
+    min-height: 44px;
+  }
+}

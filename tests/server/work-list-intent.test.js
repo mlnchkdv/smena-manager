@@ -35,3 +35,11 @@ test('unassigned and due-soon intents remain open-only and project scoped', () =
     assert.deepEqual(view.filters.at(-1), { f: 'project', op: 'is', v: ['visible'] });
   }
 });
+
+test('overview status drilldown retains the selected projects without a recent-completion constraint', () => {
+  const view = applyWorkListIntent({}, { projects: ['a', 'b', 'a'], status: 'done' });
+  assert.deepEqual(view.filters, [
+    { f: 'project', op: 'is', v: ['a', 'b'] },
+    { f: 'status', op: 'is', v: ['done'] },
+  ]);
+});
