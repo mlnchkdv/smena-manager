@@ -29,7 +29,7 @@ export function knowledgeCreateMenu() {
     .map(type => `<button data-a="newKnowledgeNote" data-type-id="${esc(type.id)}">${ic('file-plus', 14)}<span>${esc(typeName(type))}</span></button>`)
     .join(
       '',
-    )}<hr><button data-a="noteTemplates">${ic('copy', 14)}<span>${kc('From template…', 'Из шаблона…')}</span></button>${S.ui.currentUser?.role === 'admin' ? `<button data-a="manageNoteTypes">${ic('shapes', 14)}<span>${kc('Manage types', 'Настроить типы')}</span></button>` : ''}</div></details></div>`;
+    )}<hr><button data-a="chooseKnowledgeFiles">${ic('file-up', 14)}<span>${kc('Import TXT / Markdown', 'Импорт TXT / Markdown')}</span></button><button data-a="noteTemplates">${ic('copy', 14)}<span>${kc('From template…', 'Из шаблона…')}</span></button>${S.ui.currentUser?.role === 'admin' ? `<button data-a="manageNoteTypes">${ic('shapes', 14)}<span>${kc('Manage types', 'Настроить типы')}</span></button>` : ''}</div></details></div>`;
 }
 A.newKnowledgeNoteFromTools = el => {
   closeModal();

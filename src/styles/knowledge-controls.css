@@ -620,3 +620,28 @@
     margin-block: 6px;
   }
 }
+
+@media (max-width: 640px) {
+  .knowledge-content > .knowledge-breadcrumbs[data-root='true'],
+  .knowledge-content-actions > .knowledge-library-tools-trigger,
+  .knowledge-import-hint {
+    display: none;
+  }
+  .knowledge-content {
+    padding-block: 12px;
+  }
+  .knowledge-content-head {
+    margin-bottom: 8px;
+  }
+  .knowledge-content-head p {
+    margin: 2px 0 0;
+    line-height: 1.25;
+    font-size: var(--fs-xs);
+  }
+  .knowledge-content-toolbar {
+    margin-block: 8px;
+  }
+  .knowledge-notes-section-head {
+    margin-block: 8px;
+  }
+}
