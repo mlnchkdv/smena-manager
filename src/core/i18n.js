@@ -62,6 +62,10 @@ const RU = {
   'Manual connection': 'Ручная связь',
   'Simple view hides arrows. Dashed lines are automatic connections. Select a material for details.':
     'Упрощённый вид скрывает стрелки. Пунктир — автоматические связи. Выберите материал для подробностей.',
+  'Your tasks and deadlines': 'Ваши задачи и сроки',
+  'Projects, workload and milestones': 'Проекты, загрузка и этапы',
+  'Requests and comment replies': 'Обращения и ответы на комментарии',
+  'Personal event history': 'Личная история событий',
   'In this folder': 'В этой папке',
   'In this project': 'В этом проекте',
   'Project total': 'Всего в проекте',
