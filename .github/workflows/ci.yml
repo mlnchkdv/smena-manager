@@ -4,10 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,16 +24,58 @@ jobs:
       - run: npm run format:check
       - run: npm run test:server
       - run: npm run build
-      - run: npx playwright install --with-deps chromium firefox webkit
+  e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Run isolated end-to-end matrix (RU/EN, Chromium/Firefox/WebKit)
         env:
           E2E_EXTENDED_BROWSERS: true
-        run: npm run test:e2e
+        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-${{ matrix.browser }}-${{ matrix.shard }}
           path: |
             .data/e2e/**/report/
             .data/e2e/**/results/
           if-no-files-found: ignore
+
+  deploy:
+    needs: [build, e2e]
+    if: github.repository == 'mlnchkdv/smena-manager' && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: aeza-production
+      url: https://smena.team
+    concurrency:
+      group: aeza-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Publish the checked commit and verify the public release
+        env:
+          SMENA_VPS_HOST: ${{ vars.SMENA_VPS_HOST }}
+          SMENA_VPS_PORT: ${{ vars.SMENA_VPS_PORT }}
+          SMENA_VPS_KNOWN_HOSTS: ${{ vars.SMENA_VPS_KNOWN_HOSTS }}
+          SMENA_VPS_SSH_KEY: ${{ secrets.SMENA_VPS_SSH_KEY }}
+        run: node deploy/vps/ci-client.mjs

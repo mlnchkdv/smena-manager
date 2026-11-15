@@ -14,6 +14,9 @@ keeps Google Drive and Google Sign-In, and provides checked releases and code
 rollback. Configuration and secrets live outside Git. Follow the commands below
 with your domain. Scheduled delivery is opt-in; rollback never restores data.
 
+Автоматическая публикация из `main` после проверок GitHub Actions описана в
+[CI/CD для smena.team / RU–EN](CI_CD.md).
+
 ## Что входит
 
 | Файл                    | Назначение                                                                         |
