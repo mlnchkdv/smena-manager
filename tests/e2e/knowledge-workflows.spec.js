@@ -82,22 +82,7 @@ test('quick capture preserves text when its file upload fails', async ({ page })
 
 test('knowledge reading editing history search and mobile folders work in Russian and English', async ({ page }) => {
   page.setDefaultTimeout(15000);
-  await page.goto('/');
-  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
-  await page.locator('#login-btn').click();
-  await page.locator('#o-ws:visible,.shell:visible').first().waitFor();
-  if (await page.locator('#o-ws').isVisible()) {
-    await page.locator('#o-ws').fill('E2E Команда');
-    await page.locator('#o-url').fill('e2e-team');
-    await page.locator('#onb-next').click();
-    await page.locator('#onb-next').click();
-    await page.locator('#o-proj').fill('Проверка интерфейса');
-    await page.locator('#onb-next').click();
-    await page.locator('[data-a="onbNext"][data-skip="1"]').click();
-    await page.locator('[data-a="onbFinish"]').click();
-  }
-  await expect(page.locator('.shell')).toBeVisible();
-  await waitSaved(page);
+  await signInKnowledge(page);
   // Other suites share the test account and can leave its persisted locale in
   // English. Establish the locale used by the first editor assertions explicitly.
   await page.goto('/e2e-team/settings/language');
@@ -231,7 +216,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-edit').click();
   await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
-  await page.locator('[data-a="toggleKnowledgeFormatting"]').click();
+  if (await page.locator('[data-a="toggleKnowledgeFormatting"]').isVisible()) await page.locator('[data-a="toggleKnowledgeFormatting"]').click();
   await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
   const originalSource = await page.locator('#knowledge-body').inputValue();
   await page.locator('#knowledge-body').fill(originalSource + '\nPreview typing check');
@@ -316,6 +301,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    const rootCrumb = page.locator('.knowledge-breadcrumbs [data-a="setKnowledgeFolder"][data-folder="all"]');
+    if (await rootCrumb.isVisible()) await rootCrumb.click();
     await page.locator('[data-a="knowledgeLibraryTools"]').click();
     await page.locator('[data-command="noteTemplates"]').click();
     await expect(page.locator('.knowledge-tool-dialog h2')).toHaveText(language === 'Русский' ? 'Шаблоны заметок' : 'Note templates');
@@ -352,7 +339,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('[data-a="focusKnowledgeNotes"]').press('Enter');
     await expect(page.locator('.knowledge-preview-open').first()).toBeFocused();
     await expect(page.locator('.knowledge-content-actions [data-a="chooseKnowledgeFiles"]')).toBeHidden();
-    await expect(page.locator('.knowledge-create-label')).toBeVisible();
+    await expect(page.locator('.knowledge-create > [data-a="newKnowledgeNote"]')).toHaveAccessibleName(language === 'Русский' ? 'Новая заметка' : 'New note');
     expect((await page.locator('.knowledge-create > [data-a="newKnowledgeNote"]').boundingBox()).height).toBeGreaterThanOrEqual(44);
     await page.locator('#knowledge-import-files').setInputFiles(
       Array.from({ length: 4 }, (_, i) => ({
@@ -445,6 +432,8 @@ test('knowledge reading editing history search and mobile folders work in Russia
   }
   await page.setViewportSize({ width: 1366, height: 900 });
   await page.goto('/e2e-team/knowledge');
+  await page.locator('.knowledge-sidebar [data-a="setKnowledgeFolder"][data-folder="all"]').click();
+  await page.locator('[data-in="knowledgeQuery"]').fill('');
   await page.locator('[data-in="knowledgeSelect"][data-id="kb-a"]').check();
   await page.locator('.knowledge-bulk [data-a="moveKnowledgeNote"]').click();
   await expect(page.locator('[data-a="confirmKnowledgeMove"]')).toBeDisabled();
@@ -465,7 +454,11 @@ test('knowledge reading editing history search and mobile folders work in Russia
   const indexed = await page.request.get('/api/knowledge/search?q=original%20knowledge&folder=all&offset=0');
   expect(indexed.ok()).toBeTruthy();
   expect((await indexed.json()).ids).toEqual(['kb-a']);
+});
 
+test('knowledge scale search folder paging and bulk moves work in both languages on mobile', async ({ page }) => {
+  page.setDefaultTimeout(15000);
+  await signInKnowledge(page);
   // Exercise bounded rendering, cross-page selection and path search at scale.
   const scaleSnapshot = await (await page.request.get('/api/workspace-documents/knowledge')).json();
   const scaleFolders = Array.from({ length: 550 }, (_, i) => ({
@@ -475,7 +468,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   }));
   const scaleNotes = Array.from({ length: 3000 }, (_, i) => ({
     id: `scale-note-${i}`,
-    title: `Материал ${i} / Team note — подробный регламент команды с длинным названием / detailed team reference with a long title`,
+    title: `Материал ${String(i).padStart(4, '0')} / Team note — подробный регламент команды с длинным названием / detailed team reference with a long title`,
     formatted_markdown: `Large batch marker. Материал команды. unique-${i}`,
     folderId: `scale-folder-${i % 550}`,
     updatedAt: '2026-10-20T00:00:00.000Z',
@@ -496,6 +489,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto('/e2e-team/knowledge');
+    const rootCrumb = page.locator('.knowledge-breadcrumbs [data-a="setKnowledgeFolder"][data-folder="all"]');
+    if (await rootCrumb.isVisible()) await rootCrumb.click();
+    await page.locator('[data-in="knowledgeQuery"]').fill('');
     await setFolderLayout(page, language === 'Русский' ? 'block' : 'inline');
     const folderPageSize = language === 'Русский' ? 4 : 2;
     // Paging must remain usable when the activated navigation button becomes disabled.
@@ -517,6 +513,9 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await page.locator('[data-a="clearKnowledgeFolderCardQuery"]').click();
     await expect(page.locator('#knowledge-subfolder-search')).toBeFocused();
     await expect(page.locator('.knowledge-folder-card').first()).toHaveAttribute('data-folder', 'scale-folder-0');
+    await page.locator('.knowledge-filter-options > summary').click();
+    await chooseSelect(page, page.locator('[data-in="knowledgeSort"]'), 'title');
+    await page.keyboard.press('Escape');
     await page.locator('[data-in="knowledgeQuery"]').fill('"Large batch marker"');
     await expect(page.locator('.knowledge-preview-card')).toHaveCount(60);
     const title = page.locator('.knowledge-preview-head strong').first();
@@ -584,4 +583,23 @@ async function openHistoryRow(page, position) {
   if ((await row.locator('details').first().getAttribute('open')) === null) await row.locator('details > summary').first().click();
   await expect(row.locator('.knowledge-quick-content')).toBeVisible();
   return row;
+}
+
+async function signInKnowledge(page) {
+  await page.goto('/');
+  await page.locator('#l-access').fill('e2e-access-id-2026-secure');
+  await page.locator('#login-btn').click();
+  await page.locator('#o-ws:visible,.shell:visible').first().waitFor();
+  if (await page.locator('#o-ws').isVisible()) {
+    await page.locator('#o-ws').fill('E2E Команда');
+    await page.locator('#o-url').fill('e2e-team');
+    await page.locator('#onb-next').click();
+    await page.locator('#onb-next').click();
+    await page.locator('#o-proj').fill('Проверка интерфейса');
+    await page.locator('#onb-next').click();
+    await page.locator('[data-a="onbNext"][data-skip="1"]').click();
+    await page.locator('[data-a="onbFinish"]').click();
+  }
+  await expect(page.locator('.shell')).toBeVisible();
+  await waitSaved(page);
 }

@@ -10,12 +10,12 @@ Firefox и WebKit (RU/EN, 320/390/768/1366 px): сохранение сесси�
 PR запускает проверки без доступа к публикации. Повторный запуск доступен через
 GitHub → Actions → CI → Run workflow → `main`.
 
-Полный исторический UI-набор сохранён отдельно в `Extended UI regression`:
-запускается для pull request и вручную. Он пока содержит накопленные ошибки
-устаревших селекторов и отдельные UI-регрессии; его нельзя считать пройденным
-на основании успешной публикации. При подключении CI 15.11.2026 обнаружены,
-в частности, проверки прежних меню/типов заметок, публичных информационных страниц
-и расширенных сценариев импорта. Обязательная приёмка публикации их не заменяет.
+Расширенный UI-набор `Extended UI regression` запускается для pull request и
+вручную. Он проверяет актуальные меню, импорт и историю заметок, массовые операции
+с файлами, PDF, холсты, граф, доступность и большие каталоги. Проверки используют
+видимые элементы соответствующей компоновки и явно задают сохранённый контекст
+папки, сортировки и языка. Его результат проверяют отдельно: успешная публикация
+не заменяет прохождение расширенной регрессии.
 Каждый сценарий использует отдельный API-процесс и каталог данных, без доступа к
 Google и production. Один worker на preview-порт обязателен; CI shards работают
 на разных машинах.
@@ -87,12 +87,13 @@ notes/files/boards, graph rendering and mobile navigation. Only successful
 checks unlock deployment. Pull requests cannot deploy.
 Use Actions → CI → Run workflow → `main` to retry a current release manually.
 
-The complete historical suite remains in `Extended UI regression`, triggered by
-pull requests or manually. It currently has stale-selector failures and additional
-UI regressions; successful deployment does not mean this extended audit passed.
-The 2026-11-15 integration exposed old menu/note-type tests, public disclosure page
-layout and extended import scenarios among the remaining work. Each scenario has
-its own API process and data directory without production/Google credentials.
+The `Extended UI regression` suite runs for pull requests and manually. It covers
+current menus, note import and history, bulk file operations, PDF previews,
+whiteboards, graphs, accessibility and large catalogs. Scenarios use the visible
+controls for each layout and explicitly establish persisted folder, sorting and
+locale context. Inspect its result separately: successful deployment does not
+replace a passing extended regression run. Each scenario has its own API process
+and data directory without production or Google credentials.
 Keep one worker per preview port; CI shards use independent runner machines.
 
 Configure the `aeza-production` environment with the secret and variables in

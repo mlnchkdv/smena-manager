@@ -1154,7 +1154,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.goto('/e2e-team/settings/data-transfer');
   await expect(page.getByRole('heading', { name: 'Backups', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create backup' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'KMS Brain data transfer', exact: true })).toBeVisible();
+  await expect(page.locator('.settings-data-option > summary strong').filter({ hasText: /^KMS Brain data transfer$/ })).toBeVisible();
   await page.goto('/e2e-team/settings/members');
   await page.locator('[data-a="invite"]').first().click();
   await expect(page.getByRole('heading', { name: /Add access to E2E/u })).toBeVisible();
@@ -1162,9 +1162,9 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.goto('/e2e-team/archive');
   await expect(page.getByRole('tab', { name: /Trash/u })).toBeVisible();
-  await page.locator('[data-a="pop"][data-pop="help"]').click();
-  await expect(page.locator('.pop')).toContainText('Keyboard shortcuts');
-  await expect(page.locator('.pop')).toContainText('Command menu');
+  await page.goto('/e2e-team/settings/help');
+  await expect(page.locator('.settings-help-links [data-a="shortcuts"]')).toHaveText('Keyboard shortcuts');
+  await expect(page.locator('.settings-help-links [data-a="openPalette"]')).toContainText('Command menu');
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('English (UK)', { force: true });
   await waitForSaved(page);
@@ -1789,6 +1789,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.goto(`/e2e-team/project/${project.id}/files`);
       await expect(page.locator('#workspace-file-project')).toHaveCount(0);
       await expect(page.locator('.files-context-summary')).toBeVisible();
+      await page.locator(`.files-folder-crumbs [data-project="${project.id}"][data-folder=""]`).click();
       await showFileFolderTiles(page);
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
       await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
@@ -1957,6 +1958,8 @@ test('PDF previews render pages locally without document scripts in Russian and 
       language === 'Русский' ? 'Проект' : 'Project',
     );
     await page.setViewportSize({ width: 320, height: 844 });
+    await page.waitForTimeout(180);
+    await expect(page.locator('.workspace-file-table')).toBeVisible();
     await page.locator('.workspace-file-table').scrollIntoViewIfNeeded();
     const firstRow = page.locator('.workspace-file-table tbody tr').first();
     const nameBox = await firstRow.locator('td').first().boundingBox();

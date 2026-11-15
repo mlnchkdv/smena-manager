@@ -155,6 +155,7 @@ test('audit six: calendar clearance, anchored menus, mobile folders and catalog 
     });
     try {
       await page.goto('/e2e-team/files');
+      await page.locator('#workspace-file-q').fill('');
       await expect(page.locator('.file-page-loading')).toBeVisible();
       await expect.poll(() => intercepted).toBeTruthy();
       await expect(page.locator('.file-skeleton-card')).toHaveCount(3);
