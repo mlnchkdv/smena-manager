@@ -31,23 +31,25 @@ import { actionLabel } from '../ui/action-label.js';
 
 export const SET_NAV = [
   [
-    'General',
+    'Personal settings',
     [
-      ['workspace', 'Workspace', 'building-2'],
+      ['profile', 'Profile', 'user'],
       ['appearance', 'Appearance', 'palette'],
       ['language', 'Language', 'languages'],
       ['datetime', 'Date & time', 'clock'],
-      ['data-transfer', 'Data transfer', 'database-backup'],
-      ['help', 'Help & resources', 'circle-help'],
+      ['preferences', 'Preferences', 'sliders-horizontal'],
+      ['shortcuts', 'Keyboard shortcuts', 'keyboard'],
     ],
   ],
   [
-    'Workspace',
+    'Workspace settings',
     [
+      ['workspace', 'Workspace', 'building-2'],
       ['members', 'Members', 'users'],
       ['teams', 'Teams', 'users-round'],
       ['projects', 'Projects', 'folder-kanban'],
       ['permissions', 'Permissions', 'shield'],
+      ['data-transfer', 'Data transfer', 'database-backup'],
     ],
   ],
   [
@@ -59,15 +61,8 @@ export const SET_NAV = [
       ['notif-push', 'Browser notifications', 'monitor-smartphone'],
     ],
   ],
-  [
-    'Personal',
-    [
-      ['profile', 'Profile', 'user'],
-      ['security', 'Account security', 'shield-check'],
-      ['preferences', 'Preferences', 'sliders-horizontal'],
-      ['shortcuts', 'Keyboard shortcuts', 'keyboard'],
-    ],
-  ],
+  ['Account', [['security', 'Account security', 'shield-check']]],
+  ['Help & resources', [['help', 'Help & resources', 'circle-help']]],
 ];
 const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions']);
 export function srow(t, d, ctl) {
@@ -166,7 +161,7 @@ export function settingsBody(sec, title) {
           ? tr('Personal settings')
           : tr('Workspace settings');
   const H = lead =>
-    `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b></summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
+    `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b>${!personal && sec !== 'security' ? ' · ' + esc(workspaceRoleLabel(String(me().role || S.ui.currentUser?.role || '').toLowerCase())) : ''}</summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
   switch (sec) {
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
@@ -181,7 +176,7 @@ export function settingsBody(sec, title) {
       const w = { ...d.ws, ...draft };
       const feedback = workspaceSettingsFeedback();
       return (
-        H('Your workspace name, address, and identity.') +
+        H('Workspace name, address and appearance are shared with every member.') +
         `
       <form class="workspace-settings-form" data-submit="saveWorkspace">
       ${S.ui.workspaceSettingsConflicts?.length ? `<section class="alert info" style="display:block;overflow-wrap:anywhere" aria-label="${copy('Review changed settings', 'Проверка изменённых настроек')}" translate="no"><h2>${copy('These settings also changed in another session', 'Эти настройки также изменились в другой сессии')}</h2>${S.ui.workspaceSettingsConflicts.map(key => `<div style="margin-block:10px"><b>${tr({ name: 'Workspace name', description: 'Description', url: 'Workspace URL', c: 'Color' }[key])}</b><p style="margin:4px 0">${copy('Current value', 'Актуальное значение')}: ${esc(S.ui.workspaceSettingsConflictLatest?.[key] || '—')}</p><p style="margin:4px 0">${copy('Your change', 'Ваше изменение')}: ${esc(draft[key] || '—')}</p></div>`).join('')}<div class="row" style="flex-wrap:wrap;gap:8px"><button type="button" class="btn btn-secondary" data-a="cancelWorkspaceSettings">${copy('Use current values', 'Использовать актуальные значения')}</button><button type="button" class="btn btn-secondary" data-a="keepWorkspaceSettingsDraft">${copy('Keep my draft for saving', 'Оставить мой черновик для сохранения')}</button></div></section>` : ''}
