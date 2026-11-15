@@ -202,7 +202,12 @@ A.submitProject = () => {
     return;
   S.ui.modals.pop();
   go('project', { id: p.id, tab: f.tmpl === 'blank' ? 'overview' : S.prefs.defaultTab || 'board' });
-  toast(`Created ${p.name}${tasksOf(p.id).length ? ` with ${tasksOf(p.id).length} starter tasks` : ''}`);
+  const count = tasksOf(p.id).length;
+  toast(
+    isRussian()
+      ? `Проект «${p.name}» создан${count ? ` · Задач по шаблону: ${count}` : ''}`
+      : `Project “${p.name}” created${count ? ` · Starter tasks: ${count}` : ''}`,
+  );
 };
 
 document.addEventListener(

@@ -1131,13 +1131,16 @@ A.submitTask = () => {
     Object.assign(f, { title: '', desc: '', subtasks: [], files: [], whiteboardSource: null });
     render();
     setTimeout(() => $('#f-title')?.focus(), 0);
-    toast(`Created ${t.key}`, { ms: 2000 });
+    toast(isRussian() ? `Задача ${t.key} создана` : `Task ${t.key} created`, { ms: 2000 });
     return;
   }
   S.ui.modals.pop();
   fxSet({ added: t.id });
   render();
-  toast(`Created ${t.key} in ${proj(t.project).name}`, { action: 'Open', onAction: () => A.openTask({ dataset: { id: t.id } }) });
+  toast(isRussian() ? `Задача ${t.key} создана · ${proj(t.project).name}` : `Task ${t.key} created · ${proj(t.project).name}`, {
+    action: 'Open',
+    onAction: () => A.openTask({ dataset: { id: t.id } }),
+  });
 };
 
 /* inline composer */

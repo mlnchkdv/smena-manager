@@ -10,6 +10,7 @@ import { openModal } from '../overlays/modals.js';
 import { A, IN, confirmDlg, restore, snapshot } from './actions.js';
 import { assignTeamRelations } from '../shared/team-relations.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
+import { isRussian } from '../core/i18n.js';
 const requireTeamAdmin = () => {
   if (canManageTeams(S.ui.currentUser?.role)) return true;
   toast('Only administrators can manage teams.', { kind: 'info' });
@@ -108,7 +109,7 @@ A.submitTeam = () => {
     toast(`Saved ${t.name}`);
   } else {
     go('team', { id: t.id });
-    toast(`Created ${t.name}`);
+    toast(isRussian() ? `Команда «${t.name}» создана` : `Team “${t.name}” created`);
   }
 };
 A.delTeam = el => {

@@ -2445,7 +2445,7 @@ const ATTRIBUTES = ['aria-label', 'title', 'placeholder', 'data-tip', 'data-msg'
 /** Translate user-interface text in a rendered subtree without changing data values. */
 export function translateElement(root) {
   if (!root || !isRussian()) return root;
-  if (root.nodeType === Node.ELEMENT_NODE && (root.closest('[translate="no"]') || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(root.tagName))) return root;
+  if (root.nodeType === Node.ELEMENT_NODE && (root.closest('[translate="no"]') || ['SCRIPT', 'STYLE'].includes(root.tagName))) return root;
   const attributes = el => {
     for (const attr of ATTRIBUTES) {
       if (el.hasAttribute?.(attr)) {
@@ -2456,14 +2456,19 @@ export function translateElement(root) {
     }
   };
   if (root.nodeType === Node.ELEMENT_NODE) attributes(root);
+  if (root.tagName === 'TEXTAREA') return root;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       // Reject the element, not each descendant text node: user documents can
       // contain thousands of nodes and must never be walked or translated.
-      if (node.nodeType === Node.ELEMENT_NODE)
-        return node.getAttribute('translate') === 'no' || ['SCRIPT', 'STYLE', 'TEXTAREA'].includes(node.tagName)
-          ? NodeFilter.FILTER_REJECT
-          : NodeFilter.FILTER_ACCEPT;
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.getAttribute('translate') === 'no' || ['SCRIPT', 'STYLE'].includes(node.tagName)) return NodeFilter.FILTER_REJECT;
+        if (node.tagName === 'TEXTAREA') {
+          attributes(node);
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
       return node.parentElement ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
     },
   });
