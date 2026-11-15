@@ -1,0 +1,339 @@
+{
+  "date": "2026-11-15",
+  "applicationCommit": "5507749cea5adc550b16781e7e94be207c780ef4",
+  "production": {
+    "origin": "https://smena.team",
+    "releaseAndHealthConfirmed": true,
+    "cspHashPresent": true,
+    "fileMove": {
+      "locale": "en",
+      "viewportWidth": 531,
+      "file": "ТЕСТ ФАЙЛОВ — 3 22.10.txt",
+      "from": "ТЕСТ ФАЙЛОВ — B",
+      "to": "ТЕСТ ФАЙЛОВ — A",
+      "persistedAfterReload": true,
+      "returnToOriginalFolder": "pending computer unlock"
+    },
+    "writeTestWorkspace": "ТЕСТ A/F 05.11",
+    "emptyTestProjectCreated": "ТЕСТ ПЕРЕНОСА И ХОЛСТА 15.11",
+    "remainingAcceptance": ["Russian production return move", "Production whiteboard resize and reload in both languages"],
+    "limitation": "Windows locked during acceptance; user requested a repeat audit instead of confirming unlock. No further native input was sent."
+  },
+  "local": {
+    "fixture": "isolated audit15 workspace; no production documents",
+    "responsive": {
+      "completed": true,
+      "fatal": "",
+      "count": 234,
+      "overflows": [],
+      "errors": [],
+      "missing": []
+    },
+    "settings": {
+      "states": 72,
+      "overflow": []
+    },
+    "accessibility": {
+      "scans": 24,
+      "affectedScans": 4,
+      "findings": [
+        {
+          "locale": "ru",
+          "theme": "light",
+          "route": "whiteboard/audit-board",
+          "violations": [
+            {
+              "id": "target-size",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": ["button[data-board-drag=\"frame\"]"],
+                  "summary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 284.3px by 16.7px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.8px instead of at least 24px."
+                }
+              ],
+              "total": 1
+            }
+          ],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 3
+            }
+          ]
+        },
+        {
+          "locale": "ru",
+          "theme": "dark",
+          "route": "whiteboard/audit-board",
+          "violations": [
+            {
+              "id": "target-size",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": ["button[data-board-drag=\"frame\"]"],
+                  "summary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 284.3px by 16.7px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.8px instead of at least 24px."
+                }
+              ],
+              "total": 1
+            }
+          ],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 3
+            }
+          ]
+        },
+        {
+          "locale": "en",
+          "theme": "light",
+          "route": "whiteboard/audit-board",
+          "violations": [
+            {
+              "id": "target-size",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": ["button[data-board-drag=\"frame\"]"],
+                  "summary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 284.3px by 16.7px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.8px instead of at least 24px."
+                }
+              ],
+              "total": 1
+            }
+          ],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        },
+        {
+          "locale": "en",
+          "theme": "dark",
+          "route": "whiteboard/audit-board",
+          "violations": [
+            {
+              "id": "target-size",
+              "impact": "serious",
+              "nodes": [
+                {
+                  "target": ["button[data-board-drag=\"frame\"]"],
+                  "summary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 284.3px by 16.7px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.8px instead of at least 24px."
+                }
+              ],
+              "total": 1
+            }
+          ],
+          "incomplete": [
+            {
+              "id": "color-contrast",
+              "nodes": 2
+            }
+          ]
+        }
+      ]
+    },
+    "functional": {
+      "completed": true,
+      "fatal": "",
+      "rows": [
+        {
+          "locale": "ru",
+          "kind": "collect-existing",
+          "folderId": "ff-45",
+          "projectId": "pd2eb1eff-3137-476d-9e1d-386bb226dca8",
+          "persisted": true
+        },
+        {
+          "locale": "ru",
+          "kind": "scope-persistence",
+          "scope": "complete"
+        },
+        {
+          "locale": "ru",
+          "kind": "overview-drilldown",
+          "url": "http://127.0.0.1:5215/audit15/tasks",
+          "filters": ""
+        },
+        {
+          "locale": "ru",
+          "kind": "resize",
+          "width": 1366,
+          "before": {
+            "w": 770,
+            "h": 500
+          },
+          "after": {
+            "w": 810,
+            "h": 520
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Изменить размер карточки: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Потяните, чтобы измен"
+        },
+        {
+          "locale": "ru",
+          "kind": "resize",
+          "width": 390,
+          "before": {
+            "w": 810,
+            "h": 520
+          },
+          "after": {
+            "w": 850,
+            "h": 540
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Изменить размер карточки: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Потяните, чтобы измен"
+        },
+        {
+          "locale": "en",
+          "kind": "collect-existing",
+          "folderId": "ff-46",
+          "projectId": "pd2eb1eff-3137-476d-9e1d-386bb226dca8",
+          "persisted": true
+        },
+        {
+          "locale": "en",
+          "kind": "scope-persistence",
+          "scope": "complete"
+        },
+        {
+          "locale": "en",
+          "kind": "overview-drilldown",
+          "url": "http://127.0.0.1:5215/audit15/tasks",
+          "filters": ""
+        },
+        {
+          "locale": "en",
+          "kind": "resize",
+          "width": 1366,
+          "before": {
+            "w": 850,
+            "h": 540
+          },
+          "after": {
+            "w": 890,
+            "h": 570
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Resize card: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Drag to resize\"></button>"
+        },
+        {
+          "locale": "en",
+          "kind": "resize",
+          "width": 390,
+          "before": {
+            "w": 890,
+            "h": 570
+          },
+          "after": {
+            "w": 930,
+            "h": 590
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Resize card: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Drag to resize\"></button>"
+        }
+      ]
+    },
+    "browserCsp": {
+      "styleAllowed": true,
+      "position": "relative",
+      "nodes": 2,
+      "edges": 1,
+      "violations": [],
+      "productionPolicy": true
+    },
+    "focusedUi": [
+      {
+        "locale": "ru",
+        "kind": "project-form",
+        "placeholder": "What is this project about?"
+      },
+      {
+        "locale": "ru",
+        "kind": "empty-folder",
+        "top": 788.265625,
+        "bottom": 832.265625,
+        "viewport": 844,
+        "fold": 788,
+        "scroll": 0
+      },
+      {
+        "locale": "ru",
+        "kind": "quick-preview",
+        "overflow": 0,
+        "title": "Регламент / Reference 010",
+        "buttons": [
+          "Предыдущая заметка",
+          "Следующая заметка",
+          "Свойства заметки",
+          "Редактировать заметку",
+          "К началу заметки",
+          "Свойства заметки",
+          "Командный разбор",
+          "История версий",
+          "Проверка заметки",
+          "Скачать исходник",
+          "Сохранить офлайн",
+          "Добавить в избранное"
+        ]
+      },
+      {
+        "locale": "ru",
+        "kind": "graph-summary",
+        "text": "Показано: 1 узлов · 3 групп\n·\nМатериалы\n: 261\n·\nСвязи\n: 58"
+      },
+      {
+        "locale": "en",
+        "kind": "project-form",
+        "placeholder": "What is this project about?"
+      },
+      {
+        "locale": "en",
+        "kind": "empty-folder",
+        "top": 736.265625,
+        "bottom": 780.265625,
+        "viewport": 844,
+        "fold": 788,
+        "scroll": 0
+      },
+      {
+        "locale": "en",
+        "kind": "quick-preview",
+        "overflow": 0,
+        "title": "Регламент / Reference 010",
+        "buttons": [
+          "Previous note",
+          "Next note",
+          "Note properties",
+          "Edit note",
+          "Back to top",
+          "Note properties",
+          "Team intake",
+          "Version history",
+          "Review note",
+          "Download source",
+          "Keep offline",
+          "Add to favorites"
+        ]
+      },
+      {
+        "locale": "en",
+        "kind": "graph-summary",
+        "text": "Shown: 1 nodes · 3 groups\n·\nMaterials\n: 261\n·\nConnections\n: 58"
+      }
+    ],
+    "serverTests": {
+      "tests": 1027,
+      "passed": 1026,
+      "failed": 0,
+      "skipped": 1
+    }
+  }
+}
