@@ -1,3 +1,6 @@
+import { openModal, closeModal } from '../overlays/modals.js';
+import { recentCollectionLocations, openRecentCollection } from '../core/collection-navigation.js';
+import { D } from '../core/store.js';
 import { A, IN } from '../actions/actions.js';
 import { S } from '../core/store.js';
 import { isRussian } from '../core/i18n.js';
@@ -11,7 +14,7 @@ const active = kind =>
   ['files', 'knowledge', 'bookmarks'].includes(kind) && (kind === S.ui.route || (kind === 'files' && S.ui.route === 'project' && S.ui.params.tab === 'files'));
 export function folderNavigation(kind, parent = null) {
   if (!parent && !canReturnCollection(kind)) return '';
-  return `<span class="folder-navigation" role="group" aria-label="${T('Folder navigation', 'Навигация по папкам')}" translate="no"><button class="ibtn" data-a="collectionFolderBack" data-kind="${kind}" aria-label="${T('Back to previous view', 'Назад к предыдущему просмотру')}" title="${T('Back to previous view', 'Назад к предыдущему просмотру')}" ${canReturnCollection(kind) ? '' : 'disabled'}>${ic('arrow-left', 16)}</button>${parent ? `<button class="ibtn" data-a="collectionFolderUp" data-kind="${kind}" data-folder="${esc(parent?.folder || '')}" data-project="${esc(parent?.project || '')}" aria-label="${T('Parent folder', 'Вверх к родительской папке')}" title="${T('Parent folder', 'Вверх к родительской папке')}" ${parent ? '' : 'disabled'}>${ic('arrow-up', 16)}</button>` : ''}</span>`;
+  return `<span class="folder-navigation" role="group" aria-label="${T('Folder navigation', 'Навигация по папкам')}" translate="no"><button class="ibtn" data-a="collectionFolderBack" data-kind="${kind}" aria-label="${T('Back to previous view', 'Назад к предыдущему просмотру')}" title="${T('Back to previous view', 'Назад к предыдущему просмотру')}" ${canReturnCollection(kind) ? '' : 'disabled'}>${ic('arrow-left', 16)}</button>${recentCollectionLocations(kind).length ? `<button class="ibtn" data-a="collectionFolderRecent" data-kind="${kind}" aria-label="${T('Recent folders', 'Недавние папки')}" title="${T('Recent folders', 'Недавние папки')}">${ic('history', 16)}</button>` : ''}${parent ? `<button class="ibtn" data-a="collectionFolderUp" data-kind="${kind}" data-folder="${esc(parent?.folder || '')}" data-project="${esc(parent?.project || '')}" aria-label="${T('Parent folder', 'Вверх к родительской папке')}" title="${T('Parent folder', 'Вверх к родительской папке')}" ${parent ? '' : 'disabled'}>${ic('arrow-up', 16)}</button>` : ''}</span>`;
 }
 A.collectionFolderBack = el => {
   const kind = el.dataset.kind;
@@ -28,4 +31,30 @@ A.collectionFolderUp = el => {
   if (kind === 'files') A.openFileFolder(el);
   if (kind === 'knowledge') A.setKnowledgeFolder(el);
   if (kind === 'bookmarks') IN.bookmarkFolder({ value: el.dataset.folder });
+};
+
+A.collectionFolderRecent = el => {
+  const kind = el.dataset.kind;
+  if (!active(kind)) return;
+  const label = frame => {
+    const id = frame.values[kind === 'knowledge' ? 'knowledgeFolder' : kind === 'bookmarks' ? 'bookmarkFolder' : 'fileFolder'];
+    const project = D().projects.find(p => p.id === frame.values.fileProject);
+    const folder = (kind === 'files' ? project?.fileFolders : kind === 'knowledge' ? D().knowledgeFolders : D().linkFolders)?.find(f => f.id === id);
+    return folder?.name || project?.name || T('All materials', 'Все материалы');
+  };
+  openModal({
+    type: 'knowledgeTool',
+    render: (_m, H) =>
+      `${H(T('Recent folders', 'Недавние папки'))}<div class="modal-b knowledge-path-list">${recentCollectionLocations(kind)
+        .map(
+          frame =>
+            `<button class="btn btn-ghost" data-a="pickRecentCollection" data-kind="${kind}" data-key="${esc(frame.key)}" translate="no">${esc(label(frame))}</button>`,
+        )
+        .join('')}</div>`,
+  });
+};
+A.pickRecentCollection = el => {
+  if (!active(el.dataset.kind)) return;
+  closeModal();
+  openRecentCollection(el.dataset.kind, el.dataset.key, render);
 };

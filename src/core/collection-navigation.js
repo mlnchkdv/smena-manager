@@ -188,3 +188,17 @@ export function returnCollection(kind, repaint) {
   restorePosition(kind, frame);
   return true;
 }
+
+export function recentCollectionLocations(kind) {
+  return [...trail(kind).locations.values()]
+    .reverse()
+    .filter(frame => frame.key !== collectionLocationKey(kind) && collectionLocationAllowed(kind, frame))
+    .slice(0, 6)
+    .map(frame => structuredClone(frame));
+}
+export function openRecentCollection(kind, key, repaint) {
+  const frame = recentCollectionLocations(kind).find(frame => frame.key === key);
+  if (!frame) return false;
+  navigateCollection(kind, () => apply(kind, frame), repaint);
+  return true;
+}
