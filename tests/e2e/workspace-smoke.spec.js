@@ -1789,7 +1789,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.goto(`/e2e-team/project/${project.id}/files`);
       await expect(page.locator('#workspace-file-project')).toHaveCount(0);
       await expect(page.locator('.files-context-summary')).toBeVisible();
-      await page.locator(`.files-folder-crumbs [data-project="${project.id}"][data-folder=""]`).click();
+      await page.locator(`.files-folder-crumbs [data-a="openFileFolder"][data-project="${project.id}"][data-folder=""]`).click();
       await showFileFolderTiles(page);
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
       await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
@@ -1800,9 +1800,14 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.reload();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('[data-a="openFileFolder"]').click();
+      await openFileDetails(page);
+      const recursive = page.locator('[data-a="toggleFileRecursive"]');
+      // The previous locale deliberately saved recursive browsing. Reset it
+      // through the same control before checking direct versus nested files.
+      if ((await recursive.getAttribute('aria-pressed')) === 'true') await recursive.click();
       await expect(page.locator('.workspace-file-card')).toHaveCount(1);
-      await page.locator('.files-details > summary').click();
-      await page.locator('[data-a="toggleFileRecursive"]').click();
+      await openFileDetails(page);
+      await recursive.click();
       await expect(page.locator('.workspace-file-card')).toHaveCount(2);
       await openFileDetails(page);
       await page.locator('[data-a="saveFileFilter"]').click();
@@ -1822,7 +1827,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.locator('[data-a="removeFileFilter"]').click();
       await page.keyboard.press('Escape');
       // Move A back to the project root through the same picker for the next locale.
-      await page.locator(`.files-folder-crumbs [data-project="${project.id}"][data-folder=""]`).click();
+      await page.locator(`.files-folder-crumbs [data-a="openFileFolder"][data-project="${project.id}"][data-folder=""]`).click();
       await showFileFolderTiles(page);
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
@@ -1920,6 +1925,9 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/e2e-team/files');
     await setFilesView(page, 'grid');
+    // Search is restored across navigation, including the previous locale's
+    // history-eviction query. Start this independent preview check unfiltered.
+    await page.locator('#workspace-file-q').fill('');
     // Folder pages can place file cards below the fold; thumbnails load on visibility.
     await page.locator(`[data-file-thumb="${thumbnail.id}"]`).scrollIntoViewIfNeeded();
     await expect(page.locator(`[data-file-thumb="${thumbnail.id}"] .file-thumbnail`)).toHaveJSProperty('naturalWidth', 1);
