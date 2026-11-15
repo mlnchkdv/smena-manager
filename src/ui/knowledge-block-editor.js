@@ -26,15 +26,31 @@ function update(note, body) {
 export function blockEditor(note, disabled) {
   const blocks = markdownBlocks(note.formatted_markdown);
   const active = S.ui.knowledgeBlockIndex;
-  const selected = markdownBlocks(note.formatted_markdown)[active];
-  S.ui.knowledgeBlockDraft = selected ? { id: note.id, index: active, base: note.formatted_markdown, start: selected.start, end: selected.end } : null;
+  const previous = S.ui.knowledgeBlockDraft;
+  const selected = blocks[active];
+  // Typing blank lines changes the parsed block count. Keep the entire live
+  // range until the user chooses another block instead of truncating the field
+  // to the first newly parsed paragraph on an unrelated shell render.
+  const draft =
+    previous?.id === note.id && previous.index === active && previous.base === note.formatted_markdown
+      ? previous
+      : selected && !selected.metadata
+        ? { id: note.id, index: active, base: note.formatted_markdown, start: selected.start, end: selected.end }
+        : null;
+  S.ui.knowledgeBlockDraft = draft;
+  let items = blocks.map((block, index) => ({ block, index, editing: false }));
+  if (draft) {
+    const before = items.filter(item => item.block.end <= draft.start);
+    const after = items.filter(item => item.block.start >= draft.end && item.block.start >= draft.start);
+    items = [...before, { block: { ...draft, raw: note.formatted_markdown.slice(draft.start, draft.end) }, index: active, editing: true }, ...after];
+  }
   // The shell restores caret and selection by DOM id after background saves.
   // A note can contain several textareas, so data-id alone is not unique.
-  return `<div class="knowledge-block-editor" translate="no">${blocks
-    .map((block, index) =>
+  return `<div class="knowledge-block-editor" translate="no">${items
+    .map(({ block, index, editing }) =>
       block.metadata
         ? `<details><summary>${kc('Import metadata (edit in Markdown)', 'Метаданные импорта (правка в Markdown)')}</summary><pre>${esc(block.raw)}</pre></details>`
-        : `<section class="knowledge-editable-block" data-block="${index}" data-active="${active === index}"><div class="row"><button class="btn btn-ghost btn-sm" data-a="editKnowledgeBlock" data-index="${index}" aria-expanded="${active === index}" aria-label="${kc('Edit block', 'Изменить блок')} ${index + 1}">${kc('Edit block', 'Изменить блок')} ${index + 1}</button>${active === index ? `<div class="knowledge-block-actions" role="group" aria-label="${kc('Block actions', 'Действия блока')} ${index + 1}"><button class="ibtn" data-a="referenceKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" aria-label="${kc('Block reference', 'Ссылка на блок')} ${index + 1}" ${disabled}>↗</button>${[-1, 1].map(dir => `<button class="ibtn" aria-label="${dir < 0 ? kc('Move up', 'Выше') : kc('Move down', 'Ниже')} ${index + 1}" data-a="moveKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" data-direction="${dir}" ${disabled || !blocks[index + dir] || blocks[index + dir].metadata ? 'disabled' : ''}>${dir < 0 ? '↑' : '↓'}</button>`).join('')}</div>` : ''}</div>${active === index ? `<textarea id="knowledge-block-${esc(note.id)}-${index}" class="textarea" rows="${Math.min(12, Math.max(3, block.raw.split('\n').length))}" aria-label="${kc('Block text', 'Текст блока')} ${index + 1}" data-in="knowledgeBlockText" data-id="${esc(note.id)}" data-index="${index}" ${disabled}>${esc(block.raw)}</textarea>` : `<div class="knowledge-quick-content">${renderKnowledgeMarkdown(block.raw, knowledgeMarkdownOptions(note))}</div>`}</section>`,
+        : `<section class="knowledge-editable-block" data-block="${index}" data-active="${editing}"><div class="row"><button class="btn btn-ghost btn-sm" data-a="editKnowledgeBlock" data-index="${index}" aria-expanded="${editing}" aria-label="${kc('Edit block', 'Изменить блок')} ${index + 1}">${kc('Edit block', 'Изменить блок')} ${index + 1}</button>${editing ? `<div class="knowledge-block-actions" role="group" aria-label="${kc('Block actions', 'Действия блока')} ${index + 1}"><button class="ibtn" data-a="referenceKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" aria-label="${kc('Block reference', 'Ссылка на блок')} ${index + 1}" ${disabled}>↗</button>${[-1, 1].map(dir => `<button class="ibtn" aria-label="${dir < 0 ? kc('Move up', 'Выше') : kc('Move down', 'Ниже')} ${index + 1}" data-a="moveKnowledgeBlock" data-id="${esc(note.id)}" data-index="${index}" data-direction="${dir}" ${disabled || !blocks[index + dir] || blocks[index + dir].metadata ? 'disabled' : ''}>${dir < 0 ? '↑' : '↓'}</button>`).join('')}</div>` : ''}</div>${editing ? `<textarea id="knowledge-block-${esc(note.id)}-${index}" class="textarea" rows="${Math.min(12, Math.max(3, block.raw.split('\n').length))}" aria-label="${kc('Block text', 'Текст блока')} ${index + 1}" data-in="knowledgeBlockText" data-id="${esc(note.id)}" data-index="${index}" ${disabled}>${esc(block.raw)}</textarea>` : `<div class="knowledge-quick-content">${renderKnowledgeMarkdown(block.raw, knowledgeMarkdownOptions(note))}</div>`}</section>`,
     )
     .join(
       '',
@@ -42,6 +58,7 @@ export function blockEditor(note, disabled) {
 }
 A.editKnowledgeBlock = el => {
   S.ui.knowledgeBlockIndex = Number(el.dataset.index);
+  S.ui.knowledgeBlockDraft = null;
   render();
   requestAnimationFrame(() => document.querySelector('.knowledge-editable-block textarea')?.focus());
 };
