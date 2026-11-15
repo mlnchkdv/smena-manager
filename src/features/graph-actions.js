@@ -1,3 +1,4 @@
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { esc } from '../core/utils.js';
 import { graphListContext } from '../shared/graph-list-context.js';
@@ -68,6 +69,7 @@ A.toggleGraphFilters = () => {
 };
 A.toggleGraphFocus = () => {
   S.ui.graphFocus = !S.ui.graphFocus;
+  writeLayoutPreference('graph-focus', S.ui.graphFocus);
   syncDiagramWindow();
   render();
   document.querySelector('[data-a="toggleGraphFocus"]')?.focus({ preventScroll: true });

@@ -1090,3 +1090,38 @@
     align-content: center;
   }
 }
+
+.graph-context-fold {
+  margin-top: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.graph-context-fold > summary {
+  min-height: 32px;
+  align-content: center;
+  cursor: pointer;
+}
+.graph-context-fold[open] > summary {
+  margin-bottom: 8px;
+}
+.graph-page.is-focused .graph-context-fold {
+  display: none;
+}
+@media (max-width: 640px) {
+  .graph-page {
+    padding-block: 12px;
+  }
+  .graph-head {
+    margin-bottom: 8px;
+  }
+  .graph-toolbar {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .graph-context-fold > summary {
+    min-height: 44px;
+  }
+  .graph-meta {
+    margin-block: 4px;
+  }
+}
