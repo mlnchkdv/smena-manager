@@ -244,7 +244,7 @@ export function popHtml(p) {
     case 'user':
       inner = `<div class="row" style="padding:8px 8px 10px;gap:10px">${av(D().me, 'lg', false)}<div style="min-width:0"><div style="font-weight:600" translate="no">${esc(S.prefs.name)}</div><div class="faint trunc" style="font-size:12px">${esc(me().email)}</div></div></div><div class="msep"></div>
       <button class="mi" data-a="go" data-r="member" data-id="${D().me}">${ic('user', 15)}View profile</button><button class="mi" data-a="go" data-r="settings" data-sec="profile">${ic('settings', 15)}Account settings</button>
-      <div class="msep"></div>${accountSystemStatusHtml()}
+      ${S.ui.deploymentChanged ? `<button class="mi" data-a="reviewAppUpdate">${ic('refresh-cw', 15)}Review app update</button>` : ''}<div class="msep"></div>${accountSystemStatusHtml()}
       <div class="msep"></div><div class="mh">Theme</div><div style="padding:2px 6px 6px"><div class="seg" style="width:100%">${[
         ['light', 'sun', 'Light'],
         ['dark', 'moon', 'Dark'],

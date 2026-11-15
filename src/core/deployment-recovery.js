@@ -11,7 +11,8 @@ export function installDeploymentRecovery(buildId) {
     failed = false,
     checking = false,
     presentation = '',
-    deferred = false;
+    deferred = false,
+    reviewRequested = false;
   const root = document.createElement('aside');
   root.className = 'deployment-update';
   root.hidden = true;
@@ -33,6 +34,9 @@ export function installDeploymentRecovery(buildId) {
       authBusy: S.ui.authBusy,
     });
   A.reviewAppUpdate = () => {
+    reviewRequested = true;
+    S.ui.pop = null;
+    window.dispatchEvent(new Event('smena:deployment-version'));
     deferred = false;
     paint();
     void check();
@@ -45,7 +49,7 @@ export function installDeploymentRecovery(buildId) {
       S.ui.deploymentChanged = changed;
       window.dispatchEvent(new Event('smena:deployment-version'));
     }
-    if ((!changed && !failed) || (deferred && !failed)) {
+    if ((!changed && !failed) || (!failed && (deferred || (S.ui.currentUser && !reviewRequested)))) {
       root.hidden = true;
       presentation = '';
       return;
@@ -85,7 +89,9 @@ export function installDeploymentRecovery(buildId) {
       later.textContent = t('Later');
       later.addEventListener('click', () => {
         deferred = true;
+        reviewRequested = false;
         paint();
+        [...document.querySelectorAll('.account-menu-trigger,.mobile-sync-entry')].find(el => el.getClientRects().length)?.focus({ preventScroll: true });
       });
       root.append(later);
     }
