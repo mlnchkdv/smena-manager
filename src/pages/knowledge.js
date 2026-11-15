@@ -1,3 +1,4 @@
+import { compactKnowledgePath } from '../ui/knowledge-location.js';
 import '../actions/material-actions.js';
 import { isFavorite } from '../core/favorites.js';
 import { folderNavigation } from '../ui/folder-navigation.js';
@@ -197,19 +198,9 @@ export function pageKnowledge() {
   const active = selected;
   S.ui.knowledgeActive = active?.id || null;
   const currentPath = folderFilter !== 'all' && folderFilter !== 'root' && folderFilter !== 'favorites' ? folderPath(folderFilter, folders) : [];
-  const crumbs = [
-    { label: 'Knowledge base', folder: 'all', translate: true },
-    ...(folderFilter === 'favorites'
-      ? [{ label: 'Favorites', folder: 'favorites', translate: true }]
-      : folderFilter === 'root'
-        ? [{ label: 'No folder', folder: 'root', translate: true }]
-        : currentPath.map(folder => ({ label: folder.name, folder: folder.id, translate: false }))),
-  ]
-    .map(
-      (crumb, index, all) =>
-        `${index === all.length - 1 ? '<span class="knowledge-crumb-current"' : `<button class="knowledge-crumb" data-a="setKnowledgeFolder" data-folder="${crumb.folder}"`} ${crumb.translate ? '' : 'translate="no"'}>${esc(crumb.label)}${index === all.length - 1 ? '</span>' : '</button>'}${index === all.length - 1 ? '' : `<span class="knowledge-crumb-sep">${ic('chevron-right', 13)}</span>`}`,
-    )
-    .join('');
+  const crumbs = compactKnowledgePath(
+    folderFilter === 'favorites' ? [{ id: 'favorites', name: t('Favorites') }] : folderFilter === 'root' ? [{ id: 'root', name: t('No folder') }] : currentPath,
+  );
   const activeFolder = folders.find(folder => folder.id === folderFilter);
   const foldersAvailable = S.ui.knowledgeShowFolders !== false && (folderFilter === 'all' || !!activeFolder);
   const searching = Boolean(String(S.ui.knowledgeQuery || '').trim());

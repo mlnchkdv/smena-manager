@@ -2221,3 +2221,37 @@
     display: none;
   }
 }
+
+.knowledge-reader-location {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.knowledge-reader-location > button,
+.knowledge-breadcrumbs > button {
+  flex-shrink: 0;
+}
+.knowledge-path-current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.knowledge-path-list {
+  display: grid;
+  gap: 4px;
+}
+.knowledge-path-list .btn {
+  justify-content: flex-start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+@media (max-width: 640px) {
+  .knowledge-reader-location > button:first-child {
+    max-width: 105px;
+  }
+  .knowledge-path-list .btn {
+    min-height: 44px;
+  }
+}
