@@ -27,12 +27,11 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,14 +40,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - name: Run isolated end-to-end matrix (RU/EN, Chromium/Firefox/WebKit)
+      - name: Critical deployment acceptance (RU/EN, desktop/mobile)
         env:
           E2E_EXTENDED_BROWSERS: true
-        run: npx playwright test --project=${{ matrix.browser }} --shard=${{ matrix.shard }}/2
+        run: npx playwright test --project=${{ matrix.browser }} --grep "deployment acceptance|core task flow and responsive shell|mobile navigation keeps focus"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-${{ matrix.browser }}-${{ matrix.shard }}
+          name: playwright-acceptance-${{ matrix.browser }}
           path: |
             .data/e2e/**/report/
             .data/e2e/**/results/

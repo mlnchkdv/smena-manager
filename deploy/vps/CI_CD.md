@@ -3,10 +3,22 @@
 ## RU
 
 После push в `main` workflow [CI](../../.github/workflows/ci.yml) проверяет lint,
-форматирование, серверные тесты, сборку и Playwright в Chromium, Firefox и WebKit
-(включая RU/EN и мобильные размеры). Только успешная проверка допускает job `deploy`.
+форматирование, серверные тесты, сборку и критичную приёмку Playwright в Chromium,
+Firefox и WebKit (RU/EN, 320/390/768/1366 px): сохранение сессии и языка после
+обновления, создание задач, сохранение и чтение заметки/файла/холста, открытие графа
+и мобильную навигацию. Только успешная проверка допускает job `deploy`.
 PR запускает проверки без доступа к публикации. Повторный запуск доступен через
 GitHub → Actions → CI → Run workflow → `main`.
+
+Полный исторический UI-набор сохранён отдельно в `Extended UI regression`:
+запускается для pull request и вручную. Он пока содержит накопленные ошибки
+устаревших селекторов и отдельные UI-регрессии; его нельзя считать пройденным
+на основании успешной публикации. При подключении CI 15.11.2026 обнаружены,
+в частности, проверки прежних меню/типов заметок, публичных информационных страниц
+и расширенных сценариев импорта. Обязательная приёмка публикации их не заменяет.
+Каждый сценарий использует отдельный API-процесс и каталог данных, без доступа к
+Google и production. Один worker на preview-порт обязателен; CI shards работают
+на разных машинах.
 
 В GitHub environment `aeza-production` разрешена только ветка `main`:
 
@@ -68,10 +80,20 @@ workflow. Изменения самих установленных CI helpers т
 
 ## EN
 
-Every push to `main` runs lint, formatting, server tests, build and Playwright
-checks in Chromium, Firefox and WebKit, including Russian/English and mobile
-layouts. Only successful checks unlock deployment. Pull requests cannot deploy.
+Every push to `main` runs lint, formatting, server tests, build and critical
+deployment acceptance in Chromium, Firefox and WebKit. It covers RU/EN,
+320/390/768/1366 px, session/locale persistence, task creation, reading persisted
+notes/files/boards, graph rendering and mobile navigation. Only successful
+checks unlock deployment. Pull requests cannot deploy.
 Use Actions → CI → Run workflow → `main` to retry a current release manually.
+
+The complete historical suite remains in `Extended UI regression`, triggered by
+pull requests or manually. It currently has stale-selector failures and additional
+UI regressions; successful deployment does not mean this extended audit passed.
+The 2026-11-15 integration exposed old menu/note-type tests, public disclosure page
+layout and extended import scenarios among the remaining work. Each scenario has
+its own API process and data directory without production/Google credentials.
+Keep one worker per preview port; CI shards use independent runner machines.
 
 Configure the `aeza-production` environment with the secret and variables in
 the table above and a `main` branch deployment policy. Generate a dedicated
