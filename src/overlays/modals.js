@@ -32,7 +32,9 @@ export function openModal(m) {
 }
 export function closeModal() {
   if (S.ui.modals.at(-1)?.beforeClose?.() === false) return;
-  if (S.ui.atomicOperation) {
+  // A nested preflight review must settle while its parent import owns the lock.
+  // The parent remains protected from dismissal until the operation completes.
+  if (S.ui.atomicOperation && !S.ui.modals.at(-1)?.allowAtomicClose) {
     S.ui.modals.at(-1)?.requestClose?.();
     return;
   }

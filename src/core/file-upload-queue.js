@@ -407,6 +407,7 @@ export async function enqueueFiles(files, ctx) {
     const accepted = await new Promise(resolve =>
       openModal({
         type: 'uploadReview',
+        allowAtomicClose: true,
         ctx,
         entries,
         capacity,
