@@ -13,7 +13,8 @@ const T = (en, ru) => (isRussian() ? ru : en);
 const active = kind =>
   ['files', 'knowledge', 'bookmarks'].includes(kind) && (kind === S.ui.route || (kind === 'files' && S.ui.route === 'project' && S.ui.params.tab === 'files'));
 export function folderNavigation(kind, parent = null) {
-  if (!parent && !canReturnCollection(kind)) return '';
+  const recent = recentCollectionLocations(kind);
+  if (!parent && !canReturnCollection(kind) && !recent.length) return '';
   return `<span class="folder-navigation" role="group" aria-label="${T('Folder navigation', 'Навигация по папкам')}" translate="no"><button class="ibtn" data-a="collectionFolderBack" data-kind="${kind}" aria-label="${T('Back to previous view', 'Назад к предыдущему просмотру')}" title="${T('Back to previous view', 'Назад к предыдущему просмотру')}" ${canReturnCollection(kind) ? '' : 'disabled'}>${ic('arrow-left', 16)}</button>${recentCollectionLocations(kind).length ? `<button class="ibtn" data-a="collectionFolderRecent" data-kind="${kind}" aria-label="${T('Recent folders', 'Недавние папки')}" title="${T('Recent folders', 'Недавние папки')}">${ic('history', 16)}</button>` : ''}${parent ? `<button class="ibtn" data-a="collectionFolderUp" data-kind="${kind}" data-folder="${esc(parent?.folder || '')}" data-project="${esc(parent?.project || '')}" aria-label="${T('Parent folder', 'Вверх к родительской папке')}" title="${T('Parent folder', 'Вверх к родительской папке')}" ${parent ? '' : 'disabled'}>${ic('arrow-up', 16)}</button>` : ''}</span>`;
 }
 A.collectionFolderBack = el => {
