@@ -475,6 +475,17 @@
   font-size: var(--fs-sm);
   font-weight: 600;
 }
+.whiteboard-viewport .whiteboard-drag {
+  min-height: calc(28px / var(--whiteboard-zoom, 1));
+}
+.whiteboard-viewport[data-overview='true'] .whiteboard-drag strong {
+  font-size: calc(11px / var(--whiteboard-zoom, 1));
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .whiteboard-viewport .whiteboard-drag {
+    min-height: calc(44px / var(--whiteboard-zoom, 1));
+  }
+}
 .whiteboard-card-content {
   padding: 10px 12px;
   min-height: 0;
