@@ -639,6 +639,9 @@
   font-size: var(--fs-xs);
 }
 .files-collection {
+  position: sticky;
+  top: 8px;
+  z-index: var(--z-selection);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -657,6 +660,34 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+.files-collection-actions .btn {
+  min-height: 32px;
+}
+.files-page:has(.files-collection) .files-selection-bar.active {
+  display: none;
+}
+.content:has(.files-collection) {
+  scroll-padding-block: 160px 280px;
+}
+@media (max-width: 640px) {
+  .files-page > .files-collection {
+    position: fixed;
+    inset: auto 12px
+      max(calc(68px + env(safe-area-inset-bottom, 0px)), calc(100vh - var(--diagram-window-height, 100vh) - var(--diagram-window-top, 0px) + 12px));
+    max-height: min(38dvh, calc(var(--diagram-window-height, 100dvh) - 100px));
+    overflow-y: auto;
+    background: var(--surface);
+    box-shadow: var(--shadow-pop);
+    padding: 10px;
+    gap: 8px;
+  }
+  .files-page:has(.files-collection) {
+    padding-bottom: 280px;
+  }
+  .files-collection-actions .btn {
+    min-height: 44px;
+  }
 }
 .file-preview-tools {
   display: flex;

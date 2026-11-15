@@ -2,6 +2,7 @@ import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { isRussian, uiCount } from '../core/i18n.js';
 import { fileCollectionOwned, fileCollectionTarget } from '../shared/file-collection.js';
+import './diagram-window.js';
 
 export function fileCollectionPanel() {
   const target = S.ui.fileCollectDestination;
