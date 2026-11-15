@@ -971,3 +971,28 @@
     width: 100%;
   }
 }
+
+.activity-context-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-block: 4px 12px;
+}
+.activity-context-bar > p {
+  margin: 0;
+}
+.activity-context-bar .activity-grouping {
+  margin-left: auto;
+}
+.activity-context-bar .activity-date-options[open] {
+  flex-basis: 100%;
+}
+@media (max-width: 640px) {
+  .activity-context-bar {
+    gap: 4px 8px;
+  }
+  .activity-context-bar .activity-grouping {
+    margin-left: 0;
+  }
+}
