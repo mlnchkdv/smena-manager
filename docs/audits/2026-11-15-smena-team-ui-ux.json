@@ -1,0 +1,1112 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Europe/Saratov",
+  "site": "https://smena.team",
+  "auditedApplicationCommit": "9b8fb5e03dadd672faebb7521c3c1799426149d9",
+  "report": "../SMENA_TEAM_FUNCTIONAL_UI_UX_AUDIT_2026-11-15.md",
+  "productChangesMade": false,
+  "scope": {
+    "production": {
+      "health": "status=ok; application revision matched",
+      "publicLoginStates": [
+        {
+          "locale": "ru-RU",
+          "width": 320,
+          "height": 567,
+          "navigator": "ru-RU",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        },
+        {
+          "locale": "ru-RU",
+          "width": 390,
+          "height": 844,
+          "navigator": "ru-RU",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        },
+        {
+          "locale": "ru-RU",
+          "width": 1366,
+          "height": 768,
+          "navigator": "ru-RU",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        },
+        {
+          "locale": "en-US",
+          "width": 320,
+          "height": 567,
+          "navigator": "en-US",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        },
+        {
+          "locale": "en-US",
+          "width": 390,
+          "height": 844,
+          "navigator": "en-US",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        },
+        {
+          "locale": "en-US",
+          "width": 1366,
+          "height": 768,
+          "navigator": "en-US",
+          "lang": "ru",
+          "overflow": 0,
+          "title": "Доступ для команды",
+          "buttons": [
+            {
+              "text": "",
+              "label": "Переключить тему"
+            }
+          ],
+          "frames": 1
+        }
+      ],
+      "authenticatedObservation": "Existing English Files view, 3 files/357 B, empty selected folder, update banner visible. Read-only observation.",
+      "limitation": "User stopped Computer Use with physical Escape. No subsequent interaction with that browser window. Full authenticated production route/write acceptance was not completed.",
+      "teamDataModified": false
+    },
+    "local": {
+      "sameApplicationRevision": true,
+      "isolatedDataAndUsers": true,
+      "cloudCredentialsUsed": false,
+      "initialFixture": {
+        "notes": 180,
+        "knowledgeFolders": 120,
+        "fileFolders": 90,
+        "rootFileFolders": 80,
+        "smallFiles": 20,
+        "tasks": 24,
+        "projects": 2,
+        "whiteboards": 1
+      },
+      "additionalFixture": {
+        "connectedNotes": 8,
+        "smallFiles": 4,
+        "bookmarks": 16
+      }
+    },
+    "notVerified": [
+      "Real iOS/Android hardware, virtual keyboards and screen readers",
+      "Multi-GB and background transfers through Google Drive",
+      "Production member-role acceptance and concurrent team edits",
+      "Fresh Gmail/push delivery, scheduled jobs and production backup restoration"
+    ]
+  },
+  "matrix": {
+    "completed": true,
+    "fatal": "",
+    "states": 234,
+    "routes": [
+      "activity",
+      "archive",
+      "bookmarks",
+      "calendar",
+      "favorites",
+      "files",
+      "graph",
+      "home",
+      "inbox",
+      "knowledge",
+      "member/audit-member-0",
+      "members",
+      "mytasks",
+      "notifications",
+      "overview",
+      "project/pl/activity",
+      "project/pl/board",
+      "project/pl/calendar",
+      "project/pl/files",
+      "project/pl/list",
+      "project/pl/overview",
+      "project/pl/table",
+      "project/pl/timeline",
+      "projects",
+      "search",
+      "tasks",
+      "team/audit-team",
+      "teams",
+      "timeline",
+      "whiteboard/audit-board",
+      "whiteboards"
+    ],
+    "languages": ["en", "ru"],
+    "viewports": [
+      [320, 567],
+      [390, 844],
+      [768, 1024],
+      [844, 390],
+      [1024, 768],
+      [1366, 768],
+      [1920, 1080]
+    ],
+    "rootOverflowStates": 0,
+    "pageErrors": [],
+    "settingsStates": 72,
+    "settingsOverflowStates": 0,
+    "coverageNote": "All 31 routes at 320x567,390x844,1366x768; six focus routes at four additional sizes. Not a full route/size/theme cross-product. Timings include explicit waits and are not performance benchmarks."
+  },
+  "accessibility": {
+    "standardTags": ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"],
+    "scanStates": 26,
+    "statesWithViolations": 4,
+    "statesWithIncompleteChecks": 8,
+    "scans": [
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "files",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "knowledge",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "bookmarks",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "graph",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "whiteboards",
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "whiteboard/audit-board",
+        "violations": [
+          {
+            "id": "target-size",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": ["button[data-board-drag=\"frame\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (303.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"idea-a\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"linked-note\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              }
+            ],
+            "total": 3
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 2
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "files",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "knowledge",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "bookmarks",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "graph",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "whiteboards",
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "theme": "dark",
+        "route": "whiteboard/audit-board",
+        "violations": [
+          {
+            "id": "target-size",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": ["button[data-board-drag=\"frame\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (303.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"idea-a\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"linked-note\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              }
+            ],
+            "total": 3
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 2
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "files",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "knowledge",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "bookmarks",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "graph",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "whiteboards",
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "whiteboard/audit-board",
+        "violations": [
+          {
+            "id": "target-size",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": ["button[data-board-drag=\"frame\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (303.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"idea-a\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"linked-note\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              }
+            ],
+            "total": 3
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 2
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "files",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "knowledge",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "bookmarks",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "graph",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "whiteboards",
+        "violations": [],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 1
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "theme": "dark",
+        "route": "whiteboard/audit-board",
+        "violations": [
+          {
+            "id": "target-size",
+            "impact": "serious",
+            "nodes": [
+              {
+                "target": ["button[data-board-drag=\"frame\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (303.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"idea-a\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              },
+              {
+                "target": ["button[data-board-drag=\"linked-note\"]"],
+                "summary": "Fix any of the following:\n  Target has insufficient size (84.2px by 15.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 20.6px instead of at least 24px."
+              }
+            ],
+            "total": 3
+          }
+        ],
+        "incomplete": [
+          {
+            "id": "color-contrast",
+            "nodes": 2
+          }
+        ]
+      },
+      {
+        "locale": "ru",
+        "theme": "light",
+        "route": "bookmarks-filled",
+        "violations": [],
+        "incomplete": []
+      },
+      {
+        "locale": "en",
+        "theme": "light",
+        "route": "bookmarks-filled",
+        "violations": [],
+        "incomplete": []
+      }
+    ],
+    "caveat": "Automated checks are not conformance certification. SVG/canvas contrast and low-zoom target exceptions need manual review."
+  },
+  "panels": [
+    {
+      "locale": "ru",
+      "width": 320,
+      "kind": "knowledge-view",
+      "x": 8,
+      "y": 50.125,
+      "w": 296,
+      "h": 437,
+      "innerOverflow": 0,
+      "bottom": 79.875
+    },
+    {
+      "locale": "ru",
+      "width": 320,
+      "kind": "file-details",
+      "x": 24,
+      "y": 119,
+      "w": 288,
+      "h": 331.390625,
+      "innerOverflow": 0,
+      "bottom": 116.609375
+    },
+    {
+      "locale": "ru",
+      "width": 1366,
+      "kind": "knowledge-view",
+      "x": 1022,
+      "y": 122.765625,
+      "w": 320,
+      "h": 516.125,
+      "innerOverflow": 0,
+      "bottom": 129.109375
+    },
+    {
+      "locale": "ru",
+      "width": 1366,
+      "kind": "file-details",
+      "x": 838,
+      "y": 114,
+      "w": 520,
+      "h": 242.28125,
+      "innerOverflow": 0,
+      "bottom": 411.71875
+    },
+    {
+      "locale": "ru",
+      "kind": "mobile-deep-folder",
+      "scroll": 1720,
+      "focus": "knowledge-view-title"
+    },
+    {
+      "locale": "ru",
+      "kind": "note-preview",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "innerOverflow": 0,
+      "bottom": 0
+    },
+    {
+      "locale": "ru",
+      "kind": "note-editor",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "innerOverflow": 0,
+      "bottom": 0
+    },
+    {
+      "locale": "en",
+      "width": 320,
+      "kind": "knowledge-view",
+      "x": 8,
+      "y": 65,
+      "w": 296,
+      "h": 437,
+      "innerOverflow": 0,
+      "bottom": 65
+    },
+    {
+      "locale": "en",
+      "width": 320,
+      "kind": "file-details",
+      "x": 24,
+      "y": 119,
+      "w": 288,
+      "h": 279.390625,
+      "innerOverflow": 0,
+      "bottom": 168.609375
+    },
+    {
+      "locale": "en",
+      "width": 1366,
+      "kind": "knowledge-view",
+      "x": 1022,
+      "y": 122.765625,
+      "w": 320,
+      "h": 516.125,
+      "innerOverflow": 0,
+      "bottom": 129.109375
+    },
+    {
+      "locale": "en",
+      "width": 1366,
+      "kind": "file-details",
+      "x": 838,
+      "y": 114,
+      "w": 520,
+      "h": 242.28125,
+      "innerOverflow": 0,
+      "bottom": 411.71875
+    },
+    {
+      "locale": "en",
+      "kind": "mobile-deep-folder",
+      "scroll": 1740,
+      "focus": "knowledge-view-title"
+    },
+    {
+      "locale": "en",
+      "kind": "note-preview",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "innerOverflow": 0,
+      "bottom": 0
+    },
+    {
+      "locale": "en",
+      "kind": "note-editor",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "innerOverflow": 0,
+      "bottom": 0
+    }
+  ],
+  "functional": {
+    "noteSaveRestore": [
+      {
+        "locale": "ru",
+        "kind": "note-save-restore",
+        "frontmatterHidden": true,
+        "persisted": true,
+        "restored": true
+      },
+      {
+        "locale": "en",
+        "kind": "note-save-restore",
+        "frontmatterHidden": true,
+        "persisted": true,
+        "restored": true
+      }
+    ],
+    "uploadPersistence": [
+      {
+        "locale": "ru",
+        "persisted": true
+      },
+      {
+        "locale": "en",
+        "persisted": true
+      }
+    ],
+    "settledPreviewAndDownload": [
+      {
+        "locale": "ru",
+        "kind": "settled-file-preview",
+        "preview": true,
+        "http": 200,
+        "bytesCorrect": true
+      },
+      {
+        "locale": "en",
+        "kind": "settled-file-preview",
+        "preview": true,
+        "http": 200,
+        "bytesCorrect": true
+      }
+    ],
+    "graphDragPhysics": [
+      {
+        "lang": "ru",
+        "nodes": 8,
+        "edges": 8,
+        "physicsOn": {
+          "targetMoved": 59.65758776365148,
+          "othersMoved": 7
+        },
+        "physicsOff": {
+          "targetMoved": 59.65758776365148,
+          "othersMoved": 0
+        },
+        "mobile": {
+          "overflow": 0,
+          "detail": true
+        }
+      },
+      {
+        "lang": "en",
+        "nodes": 8,
+        "edges": 8,
+        "physicsOn": {
+          "targetMoved": 59.65758776365147,
+          "othersMoved": 7
+        },
+        "physicsOff": {
+          "targetMoved": 59.65758776365147,
+          "othersMoved": 0
+        },
+        "mobile": {
+          "overflow": 0,
+          "detail": true
+        }
+      }
+    ],
+    "graphSettledPolling": [
+      {
+        "locale": "ru",
+        "kind": "graph-settled-poll",
+        "differences": [
+          {
+            "renderer": ["4", "4"],
+            "pan": [
+              {
+                "x": 253.9625432803627,
+                "y": -1.6842915075104656
+              },
+              {
+                "x": 253.9625432803627,
+                "y": -1.6842915075104656
+              }
+            ],
+            "zoom": [1.2, 1.2],
+            "maxMovement": 0
+          },
+          {
+            "renderer": ["4", "4"],
+            "pan": [
+              {
+                "x": 253.9625432803627,
+                "y": -1.6842915075104656
+              },
+              {
+                "x": 253.9625432803627,
+                "y": -1.6842915075104656
+              }
+            ],
+            "zoom": [1.2, 1.2],
+            "maxMovement": 0
+          }
+        ]
+      },
+      {
+        "locale": "en",
+        "kind": "graph-settled-poll",
+        "differences": [
+          {
+            "renderer": ["4", "4"],
+            "pan": [
+              {
+                "x": 253.9625432803627,
+                "y": 6.315708492489534
+              },
+              {
+                "x": 253.9625432803627,
+                "y": 6.315708492489534
+              }
+            ],
+            "zoom": [1.2, 1.2],
+            "maxMovement": 0
+          },
+          {
+            "renderer": ["4", "4"],
+            "pan": [
+              {
+                "x": 253.9625432803627,
+                "y": 6.315708492489534
+              },
+              {
+                "x": 253.9625432803627,
+                "y": 6.315708492489534
+              }
+            ],
+            "zoom": [1.2, 1.2],
+            "maxMovement": 0
+          }
+        ]
+      }
+    ],
+    "whiteboardResizeReload": {
+      "completed": true,
+      "fatal": "",
+      "rows": [
+        {
+          "locale": "ru",
+          "width": 1366,
+          "before": {
+            "w": 260,
+            "h": 180
+          },
+          "after": {
+            "w": 310,
+            "h": 210
+          },
+          "reloaded": {
+            "w": 310,
+            "h": 210
+          },
+          "resized": true,
+          "persisted": true
+        },
+        {
+          "locale": "ru",
+          "width": 390,
+          "before": {
+            "w": 310,
+            "h": 210
+          },
+          "after": {
+            "w": 350,
+            "h": 240
+          },
+          "reloaded": {
+            "w": 350,
+            "h": 240
+          },
+          "resized": true,
+          "persisted": true
+        },
+        {
+          "locale": "en",
+          "width": 1366,
+          "before": {
+            "w": 350,
+            "h": 240
+          },
+          "after": {
+            "w": 400,
+            "h": 270
+          },
+          "reloaded": {
+            "w": 400,
+            "h": 270
+          },
+          "resized": true,
+          "persisted": true
+        },
+        {
+          "locale": "en",
+          "width": 390,
+          "before": {
+            "w": 400,
+            "h": 270
+          },
+          "after": {
+            "w": 440,
+            "h": 300
+          },
+          "reloaded": {
+            "w": 440,
+            "h": 300
+          },
+          "resized": true,
+          "persisted": true
+        }
+      ]
+    },
+    "populatedBookmarks": [
+      {
+        "locale": "ru",
+        "kind": "bookmarks-filled",
+        "width": 320,
+        "cards": 16,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "kind": "bookmarks-filled",
+        "width": 390,
+        "cards": 16,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "kind": "bookmarks-filled",
+        "width": 1366,
+        "cards": 16,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "kind": "bookmarks-filled",
+        "width": 320,
+        "cards": 16,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "kind": "bookmarks-filled",
+        "width": 390,
+        "cards": 16,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "kind": "bookmarks-filled",
+        "width": 1366,
+        "cards": 16,
+        "overflow": 0
+      }
+    ],
+    "negativeStatusAndUpdateLayers": {
+      "rows": [
+        {
+          "kind": "unknown-project-status",
+          "http": 200,
+          "shell": 0,
+          "errors": ["Cannot read properties of undefined (reading 'c')"],
+          "text": "Smena Manager\nSmena Manager\nRestoring your session…\n\nChecking your secure workspace connection.\n\nConnecting…\n© 2026 Smena Manager · About · Terms · Privacy"
+        },
+        {
+          "locale": "ru",
+          "kind": "update-over-editor",
+          "banner": {
+            "top": 671.21875,
+            "bottom": 768,
+            "height": 96.78125,
+            "z": "1100"
+          },
+          "editor": {
+            "top": 296.953125,
+            "bottom": 596.953125
+          },
+          "overlap": 0,
+          "text": "Доступна новая версия приложения.\nПеред обновлением сохраните изменения, закройте формы и завершите передачи файлов.\nОбновить приложение\nПозже"
+        },
+        {
+          "locale": "en",
+          "kind": "update-over-editor",
+          "banner": {
+            "top": 710,
+            "bottom": 768,
+            "height": 58,
+            "z": "1100"
+          },
+          "editor": {
+            "top": 297.953125,
+            "bottom": 597.953125
+          },
+          "overlap": 0,
+          "text": "A new app version is available.\nYour saved data and current address will be kept.\nUpdate app\nLater"
+        }
+      ]
+    },
+    "probeCorrections": [
+      "The first preview probe sampled Loading preview before content resolved. Settled recheck passed; no preview defect claimed.",
+      "An immediate post-drag graph snapshot differed during completion of saving/physics. After saved state and quiescence, two 6.5 s intervals per language were stable; no steady-state refresh defect claimed.",
+      "Initial route fixture used an invalid project status, then was corrected before the matrix. A separate deliberate negative API test reproduced acceptance/crash; not an ordinary UI path or production team-data defect.",
+      "Bookmarks were empty in the initial matrix. Populated bookmarks were tested separately after seeding their correct separate document.",
+      "Desktop Zoom to resize is hidden at a usable zoom; the resize probe was adjusted to use it only when visible. All four final resize/reload checks passed."
+    ]
+  },
+  "calculatedContrast": {
+    "lightMainTextOnWhite": 17.03,
+    "lightSecondaryTextOnWhite": 7.54,
+    "whiteOnAccent": 5.58,
+    "lightStrongBorderOnWhite": 1.44,
+    "darkStrongBorderOnSurface": 1.46,
+    "graphEdgeNormalOnWhite": 2.73,
+    "graphEdgeAutomaticOnWhite": 2.49,
+    "graphEdgeDenseOnWhite": 1.52,
+    "method": "sRGB relative luminance; graph edge opacity composited over white. Code/token calculation, not a claim that every border/edge is a WCAG violation."
+  },
+  "backlog": [
+    {
+      "id": "R01",
+      "priority": "P1",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R02",
+      "priority": "P1",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R03",
+      "priority": "P1",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R04",
+      "priority": "P1",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R05",
+      "priority": "P1",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R06",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R07",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R08",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R09",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R10",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R11",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R12",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R13",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R14",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R15",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R16",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R17",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R18",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R19",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R20",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R21",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R22",
+      "priority": "P3",
+      "implementation": "not started in this audit"
+    },
+    {
+      "id": "R23",
+      "priority": "P2",
+      "implementation": "not started in this audit"
+    }
+  ],
+  "artifacts": {
+    "localScreenshots": "output/playwright/audit-2026-11-15/",
+    "privateProbeDirectory": ".data/audit15/",
+    "screenshotsCommitted": false,
+    "previousNotRerunUiBaseline": "https://github.com/mlnchkdv/smena-manager/actions/runs/43732862884"
+  },
+  "standards": [
+    "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+    "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html",
+    "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+    "https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html"
+  ]
+}
