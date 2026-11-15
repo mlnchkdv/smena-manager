@@ -59,6 +59,9 @@ const RU = {
   'Upload here': 'Загрузить сюда',
   'Choose existing files': 'Выбрать существующие файлы',
   'Choose files, then move them to the destination folder.': 'Выберите файлы и перенесите их в папку назначения.',
+  'Manual connection': 'Ручная связь',
+  'Simple view hides arrows. Dashed lines are automatic connections. Select a material for details.':
+    'Упрощённый вид скрывает стрелки. Пунктир — автоматические связи. Выберите материал для подробностей.',
   'In this folder': 'В этой папке',
   'In this project': 'В этом проекте',
   'Project total': 'Всего в проекте',

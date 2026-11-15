@@ -290,7 +290,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             'overlay-opacity': 0,
           },
         },
-        { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', 'line-style': 'solid', width: 1, opacity: 0.9 } },
+        { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', width: 1, opacity: 0.9 } },
         { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
         { selector: 'node.aggregate', style: { width: 46, height: 46, 'border-style': 'dashed', 'border-width': 2, 'background-opacity': 0.06 } },
         { selector: 'node.aggregate.simple', style: { width: 18, height: 18, shape: 'round-rectangle', 'background-opacity': 0.15 } },
