@@ -30,14 +30,22 @@ export function openUploadQueue() {
   restoreUploadQueue();
   if (!S.ui.modals.some(modal => modal.type === 'uploadQueue')) openModal({ type: 'uploadQueue' });
 }
-fileModalRenderers.uploadReview = (m, H) =>
-  H(text('Review upload', 'Проверка загрузки')) +
-  `<div class="modal-b" translate="no"><p>${esc([proj(m.ctx.project)?.name || '', ...fileFolderPath(proj(m.ctx.project), m.ctx.folderId).map(folder => folder.name)].join(' / '))} · ${countLabel(m.entries.length, 'file', locale())} · ${fsize(m.capacity.bytes)}</p><p class="${m.capacity.sufficient === false ? 'err' : 'hint'}">${m.capacity.availableBytes === null ? text('Drive free space is unavailable. The upload may fail if storage is full.', 'Свободное место Drive недоступно. При заполнении хранилища загрузка завершится ошибкой.') : `${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}`}</p><p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p>${m.capacity.sufficient === false ? `<p role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : ''}<p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p>${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}<p class="hint">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${m.entries.length - new Set(m.entries.map(job => (m.preserve ? job.relativePath : job.name).toLocaleLowerCase())).size}</p><details><summary>${text('Files and paths', 'Файлы и пути')}</summary><ul>${m.entries
-    .slice(0, 50)
-    .map(job => `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)}</li>`)
-    .join(
-      '',
-    )}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`;
+fileModalRenderers.uploadReview = (m, H) => {
+  const path = [proj(m.ctx.project)?.name || '', ...fileFolderPath(proj(m.ctx.project), m.ctx.folderId).map(folder => folder.name)].join(' / ');
+  const duplicates = m.entries.length - new Set(m.entries.map(job => (m.preserve ? job.relativePath : job.name).toLocaleLowerCase())).size;
+  return (
+    H(text('Review upload', 'Проверка загрузки')) +
+    `<div class="modal-b" translate="no"><p><strong>${countLabel(m.entries.length, 'file', locale())} · ${fsize(m.capacity.bytes)}</strong></p><p class="hint">${text('Destination', 'Назначение')}: <span>${esc(path)}</span></p>
+ ${m.capacity.sufficient === false ? `<p class="alert danger" role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : m.capacity.availableBytes === null ? `<p class="alert info" role="status">${text('Free space could not be checked. Uploading may fail if storage is full.', 'Не удалось проверить свободное место. Загрузка может прерваться при заполнении хранилища.')}</p>` : ''}
+ ${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}
+ ${duplicates ? `<p class="alert info">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${duplicates}. ${text('Each file will be kept separately.', 'Каждый файл будет сохранён отдельно.')}</p>` : ''}
+ <details><summary>${text('Files and paths', 'Файлы и пути')}</summary><ul>${m.entries
+   .slice(0, 50)
+   .map(job => `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)}</li>`)
+   .join('')}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details>
+ <details><summary>${text('Storage and matching names', 'Хранилище и совпадение имён')}</summary>${m.capacity.availableBytes !== null ? `<p>${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}</p>` : ''}<p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p><p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p></details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`
+  );
+};
 A.confirmUploadReview = () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'uploadReview' || m.capacity.sufficient === false) return;
