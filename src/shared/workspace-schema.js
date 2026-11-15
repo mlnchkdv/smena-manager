@@ -10,6 +10,7 @@ import { validWhiteboardDocument } from './whiteboards.js';
 import { validKnowledgeGovernance } from './knowledge-governance.js';
 import { validKnowledgeIntake } from './knowledge-intake.js';
 import { validProjectWorkflow } from './project-workflow.js';
+import { validProjectStatus } from './project-status.js';
 const OBJECT_ARRAY_FIELDS = [
   'workspaces',
   'members',
@@ -153,6 +154,7 @@ export function validateWorkspaceData(value) {
     )
       invalid.push('projects.workflowUpdatedAt');
     if (!isObject(project)) continue;
+    if (project.status != null && !validProjectStatus(project.status)) invalid.push('projects.status');
     if (project.whiteboard != null && !validWhiteboard(project.whiteboard)) invalid.push('projects.whiteboard');
     if (project.iconImage != null && project.iconImage !== '' && !projectImageData(project.iconImage)) invalid.push('projects.iconImage');
     try {

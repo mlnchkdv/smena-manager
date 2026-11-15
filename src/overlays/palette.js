@@ -6,7 +6,7 @@ import { folderTrail } from '../shared/knowledge-tools.js';
 /* ---------------- COMMAND PALETTE ---------------- */
 import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
-import { PSTAT } from '../core/constants.js';
+import { projectStatus } from '../core/constants.js';
 import { D, S, allTasks, canSee, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { recentSearches, rememberSearch } from '../core/search-history.js';
 import { FT, av, hl, stIcon } from '../ui/helpers.js';
@@ -185,7 +185,7 @@ export function paletteItems() {
         html: `<span class="pdot" style="--c:${pColor(p)}"></span>`,
         name: p.name,
         authoredName: true,
-        sub: PSTAT[p.status].name,
+        sub: projectStatus(p.status).name,
         run: () => go('project', { id: p.id }),
       })),
     });

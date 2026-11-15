@@ -3,7 +3,7 @@ import { isFavorite } from '../core/favorites.js';
 /* ---------- shell ---------- */
 import { MOD, TODAY, diffD, esc, fmtTimestamp, parse } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
-import { PSTAT } from '../core/constants.js';
+import { projectStatus } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, myNotifications, pColor, proj, systemConnectionState, team, teamsList, visibleProjects } from '../core/store.js';
 import { av, projectIconContent } from '../ui/helpers.js';
 import { ROUTE_NAMES } from './render.js';
@@ -206,7 +206,7 @@ export function renderSidebar() {
               <span class="pico" style="--c:${pColor(p)}">${projectIconContent(p, 12)}</span><span class="trunc sproject-name" translate="no">${esc(p.name)}</span>
               ${isFavorite('project', p) ? `<span class="fav">${ic('star', 11)}</span>` : ''}
               ${p.private ? `<span class="faint" style="margin-left:4px">${ic('lock', 11)}</span>` : ''}
-              <span class="sdot" style="background:${PSTAT[p.status].c}" title="${PSTAT[p.status].name}"></span>
+              <span class="sdot" style="background:${projectStatus(p.status).c}" title="${projectStatus(p.status).name}"></span>
               </a><button class="ibtn ibtn-xs sproject-options" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="${esc(tr('Project options'))}: ${esc(p.name)}">${ic('ellipsis', 14)}</button>
             </div>
             <div id="project-sections-${esc(p.id)}" class="sub ${open && !compact ? 'open' : ''}">

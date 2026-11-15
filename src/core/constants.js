@@ -33,6 +33,7 @@ export const PSTAT = {
   hold: { name: 'On Hold', c: 'var(--amber)' },
   complete: { name: 'Completed', c: 'var(--green)' },
 };
+export const projectStatus = status => (Object.hasOwn(PSTAT, status) ? PSTAT[status] : { name: 'Unknown status', c: 'var(--gray)' });
 export const PCOLORS = {
   indigo: '#5A67D8',
   blue: '#3B82C4',

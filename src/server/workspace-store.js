@@ -23,6 +23,7 @@ import { migrateMilestoneIds } from '../shared/milestone-identity.js';
 import { enqueueNotificationEvents } from './notification-outbox.js';
 import { indexStoredFiles, physicalFileKey } from './file-registry.js';
 import { applyEntityDefaults } from '../shared/workspace-defaults.js';
+import { migrateProjectStatuses } from '../shared/project-status.js';
 import { retainDetachedFile } from './file-retention.js';
 import { assignCanonicalTaskKeys, validateTaskTransitions } from './task-integrity.js';
 import { validateStoredProjectAutomations } from './project-automations-policy.js';
@@ -90,6 +91,7 @@ function normalizeDatabase(value) {
   const normalized = { ...createEmptyDatabase(), ...migrated, schemaVersion: CURRENT_SCHEMA_VERSION };
   const data = migrateNotificationRecipients(migrateLegacyWorkspaceBrand(normalized));
   applyEntityDefaults(data);
+  migrateProjectStatuses(data);
   migrateMilestoneIds(data);
   validateWorkspaceData(data);
   validateStoredProjectAutomations(data);

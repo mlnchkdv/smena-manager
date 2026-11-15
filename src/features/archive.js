@@ -14,7 +14,7 @@ A.archiveCategory = el => {
 /* ---------- archive ---------- */
 import { ago, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { PSTAT } from '../core/constants.js';
+import { projectStatus } from '../core/constants.js';
 import { D, S, canSee, proj } from '../core/store.js';
 import { empty, pIcon, stIcon } from '../ui/helpers.js';
 import { actionLabel } from '../ui/action-label.js';
@@ -78,7 +78,7 @@ export function pageArchive() {
                 .join('')}</div>`
             : `<div class="panel">${empty('archive', 'No archived tasks', 'Archive finished or abandoned tasks to keep boards focused. They wait here until you restore them.', '')}</div>`
           : ps.length
-            ? `<div class="panel" style="overflow:hidden">${ps.map(p => row(pIcon(p, '', 14), p.name, `${D().tasks.filter(t => t.project === p.id).length} tasks · ${PSTAT[p.status].name}`, p.archivedAt ? 'Archived ' + ago(p.archivedAt) : 'Archived', 'restoreProject', 'delProject', p.id)).join('')}</div>`
+            ? `<div class="panel" style="overflow:hidden">${ps.map(p => row(pIcon(p, '', 14), p.name, `${D().tasks.filter(t => t.project === p.id).length} tasks · ${projectStatus(p.status).name}`, p.archivedAt ? 'Archived ' + ago(p.archivedAt) : 'Archived', 'restoreProject', 'delProject', p.id)).join('')}</div>`
             : `<div class="panel">${empty('archive', 'No archived projects', 'Archived projects disappear from the sidebar and project lists but keep every task, file, and comment.', '')}</div>`;
   return `<div class="page" style="max-width:900px">
     <div class="ph"><div><h1>Archive</h1><p>Archived work is hidden everywhere else. Restore it any time, or delete it for good.</p></div></div>

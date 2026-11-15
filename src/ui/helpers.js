@@ -1,7 +1,7 @@
 /* ---------- small render helpers ---------- */
 import { TODAY, diffD, esc, parse, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { LB, PR, PSTAT, ST } from '../core/constants.js';
+import { LB, PR, projectStatus, ST } from '../core/constants.js';
 import { D, mem, pColor } from '../core/store.js';
 import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { t } from '../core/i18n.js';
@@ -52,7 +52,7 @@ export function projectIconContent(project, size = 15) {
   return image ? `<img class="project-logo" src="${esc(image)}" alt="" decoding="async">` : ic(project?.icon, size);
 }
 export const pIcon = (p, cls = '', s = 15) => `<span class="picon ${cls}" style="--c:${pColor(p)}">${projectIconContent(p, s)}</span>`;
-export const pStatus = s => `<span class="pstatus" style="--c:${PSTAT[s].c}"><i></i>${PSTAT[s].name}</span>`;
+export const pStatus = s => `<span class="pstatus" style="--c:${projectStatus(s).c}"><i></i>${projectStatus(s).name}</span>`;
 export function dueHtml(t, withIcon = true) {
   if (!t.due) return '';
   const n = diffD(parse(t.due), TODAY);
