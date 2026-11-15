@@ -249,11 +249,11 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             'target-arrow-shape': 'triangle',
             'arrow-scale': 0.7,
             'curve-style': 'bezier',
-            opacity: 0.65,
+            opacity: 0.9,
           },
         },
-        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.6 } },
-        { selector: 'edge.dense', style: { opacity: 0.3, width: 1 } },
+        { selector: 'edge[automatic = 1]', style: { 'line-style': 'dashed', opacity: 0.9 } },
+        { selector: 'edge.dense', style: { opacity: 0.9, width: 1 } },
         {
           selector: 'edge.highlight',
           style: {
@@ -290,7 +290,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
             'overlay-opacity': 0,
           },
         },
-        { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', 'line-style': 'solid', width: 1, opacity: 0.3 } },
+        { selector: 'edge.simple', style: { 'target-arrow-shape': 'none', 'line-style': 'solid', width: 1, opacity: 0.9 } },
         { selector: 'edge.simple.highlight', style: { width: 1.7, opacity: 0.85 } },
         { selector: 'node.aggregate', style: { width: 46, height: 46, 'border-style': 'dashed', 'border-width': 2, 'background-opacity': 0.06 } },
         { selector: 'node.aggregate.simple', style: { width: 18, height: 18, shape: 'round-rectangle', 'background-opacity': 0.15 } },
@@ -309,7 +309,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
           const highlighted = edge.hasClass('highlight');
           edge.style({
             width: (highlighted ? 1.8 : denseGraph ? 0.8 : 1) / Math.max(zoom, 0.01),
-            opacity: highlighted ? 0.95 : !simple && semantic.overview ? 0.22 : denseGraph ? 0.5 : !simple && edge.data('automatic') ? 0.7 : 0.78,
+            opacity: highlighted ? 1 : 0.9,
           });
         }),
       );
