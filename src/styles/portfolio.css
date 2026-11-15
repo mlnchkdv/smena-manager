@@ -52,7 +52,7 @@
 }
 .overview-portfolio-table {
   table-layout: fixed;
-  min-width: 740px;
+  min-width: 920px;
 }
 .overview-portfolio-table :is(th, td) {
   text-align: left;
@@ -60,14 +60,14 @@
   vertical-align: middle;
 }
 .overview-portfolio-table :is(th, td):first-child {
-  width: 30%;
+  width: 27%;
   padding-left: 14px;
 }
 .overview-portfolio-table :is(th, td):nth-child(2) {
-  width: 16%;
+  width: 17%;
 }
 .overview-portfolio-table :is(th, td):nth-child(4) {
-  width: 14%;
+  width: 12%;
 }
 .portfolio-project-name {
   min-width: 0;
@@ -169,7 +169,7 @@
   color: var(--text-2);
   font-weight: 400;
 }
-@container portfolio (max-width:740px) {
+@container portfolio (max-width:960px) {
   .portfolio-table-wrap {
     display: none;
   }
@@ -216,4 +216,31 @@
   .portfolio-totals {
     margin-left: 0;
   }
+}
+
+.overview-portfolio-table :is(th, td):nth-child(3) {
+  width: 15%;
+}
+.overview-portfolio-table :is(th, td):nth-child(5),
+.overview-portfolio-table :is(th, td):nth-child(6) {
+  width: 9%;
+}
+.overview-portfolio-table :is(th, td):nth-child(7) {
+  width: 11%;
+}
+.portfolio-owner > span:not(.av) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.portfolio-mobile-card > .row:first-child {
+  flex-wrap: wrap;
+}
+.portfolio-mobile-card .portfolio-project-name {
+  flex: 1 1 150px;
+}
+.portfolio-card-counts > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

@@ -17,6 +17,8 @@ import { A, IN } from '../actions/actions.js';
 import { render } from '../shell/render.js';
 
 registerRussianLabels({
+  'Projects, workload and upcoming milestones.': 'Проекты, загрузка и ближайшие этапы.',
+  'Unnamed milestone': 'Этап без названия',
   'Milestones to review': 'Этапы к проверке',
   'Needs attention': 'Требует внимания',
   'Search projects, owners and milestones': 'Поиск проектов, ответственных и этапов',
@@ -45,7 +47,7 @@ function taskCount(row, kind, count, label) {
 }
 function nextMilestone(row, today) {
   return row.next
-    ? `<small class="portfolio-next${row.next.date < today ? ' bad' : ''}"><span>${t('Next milestone')}:</span> <span translate="no">${esc(row.next.name)}</span> · ${fmtDate(row.next.date)}</small>`
+    ? `<small class="portfolio-next${row.next.date < today ? ' bad' : ''}"><span>${t('Next milestone')}:</span> <span translate="no">${esc(row.next.name || t('Unnamed milestone'))}</span> · ${fmtDate(row.next.date)}</small>`
     : '';
 }
 
@@ -72,7 +74,7 @@ export function pageOverview() {
     .sort((a, b) => a.next.date.localeCompare(b.next.date))
     .slice(0, 5);
   return `<div class="page overview-page layout-dashboard">
-    <div class="ph compact-page-head"><div><h1>Workspace overview</h1><p class="page-description">Health of every project in ${esc(D().ws.name)}.</p></div><div class="acts">${pageIntroduction(`Health of every project in ${esc(D().ws.name)}.`)}<button class="btn btn-secondary" data-a="go" data-r="timeline" aria-label="Timeline" title="Timeline">${ic('chart-gantt', 14)}<span class="hide-m">Timeline</span></button></div></div>
+    <div class="ph compact-page-head"><div><h1>Team overview</h1><p class="page-description">Projects, workload and upcoming milestones.</p></div><div class="acts">${pageIntroduction(`Projects, workload and upcoming milestones.`)}<button class="btn btn-secondary" data-a="go" data-r="timeline" aria-label="Timeline" title="Timeline">${ic('chart-gantt', 14)}<span class="hide-m">Timeline</span></button></div></div>
     <div class="work-risk-strip" role="group" aria-label="Tasks">
       ${[
         ['overdue', work.overdue, 'Overdue'],
@@ -92,7 +94,7 @@ export function pageOverview() {
         !window.total
           ? empty('folder', 'No matching projects', 'Try another search or show all projects.')
           : `
-      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num">${row.progress}%</b></div>${nextMilestone(row, today)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue')} ${taskCount(row, 'overdue', row.overdue, 'Overdue')}</span><span>${row.project.due ? fmtDate(row.project.due) : ''}</span></div></article>`).join('')}</div>
+      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num">${row.progress}%</b></div>${nextMilestone(row, today)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue')} ${taskCount(row, 'overdue', row.overdue, 'Overdue')}</span><span>${row.project.due ? `${ic('calendar', 12)}<span class="sr">${t('Due')}: </span>${fmtDate(row.project.due)}` : ''}</span></div></article>`).join('')}</div>
       <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>Overdue</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${progBar(row.progress)}<span class="num">${row.progress}%</span></span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue')}</td><td>${row.project.due ? fmtDate(row.project.due) : '—'}</td></tr>`).join('')}</tbody></table></div>`
       }
       ${paginationHtml(window, pageKey)}
@@ -100,7 +102,7 @@ export function pageOverview() {
     <div class="portfolio-support">
       <section class="panel"><div class="panel-h"><h2>Tasks by status</h2></div><div class="panel-b">${counts.map(c => `<div class="row portfolio-status-row">${stIcon(c.s.id)}<span class="grow">${c.s.name}</span><span class="num muted">${c.n}</span></div>`).join('')}</div></section>
       <section class="panel"><div class="panel-h"><h2>Workload</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="members">All members</button></div></div><div class="panel-b">${load.map(l => `<button class="portfolio-workload" data-a="goTasks" data-f="open" data-assignee="${esc(l.m.id)}" title="${esc(t('Open tasks') + ': ' + l.m.name)}">${av(l.m.id, 'sm', false)}<span class="trunc" translate="no">${esc(l.m.name)}</span><i style="--work:${(l.n / max) * 100}%"></i><b class="num">${l.n}</b></button>`).join('') || '<p class="faint">No open assignments</p>'}</div></section>
-      ${milestones.length ? `<section class="panel"><div class="panel-h"><h2>Milestones to review</h2></div><div class="panel-b">${milestones.map(row => `<button class="portfolio-milestone" data-a="go" data-r="project" data-id="${esc(row.project.id)}" data-tab="timeline"><span class="pdot" style="--c:${pColor(row.project)}"></span><span class="grow"><b translate="no">${esc(row.next.name)}</b><small translate="no">${esc(row.project.name)}</small></span><span class="num${row.next.date < today ? ' bad' : ''}">${relDate(row.next.date)}</span></button>`).join('')}</div></section>` : ''}
+      ${milestones.length ? `<section class="panel"><div class="panel-h"><h2>Milestones to review</h2></div><div class="panel-b">${milestones.map(row => `<button class="portfolio-milestone" data-a="go" data-r="project" data-id="${esc(row.project.id)}" data-tab="timeline"><span class="pdot" style="--c:${pColor(row.project)}"></span><span class="grow"><b translate="no">${esc(row.next.name || t('Unnamed milestone'))}</b><small translate="no">${esc(row.project.name)}</small></span><span class="num${row.next.date < today ? ' bad' : ''}">${relDate(row.next.date)}</span></button>`).join('')}</div></section>` : ''}
     </div>
   </div>`;
 }
