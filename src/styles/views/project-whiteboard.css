@@ -246,6 +246,9 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+.whiteboard-card.selected:not([data-kind='group']) {
+  z-index: 3;
+}
 .whiteboard-material-kind {
   font-size: var(--fs-xs);
   color: var(--text-3);
