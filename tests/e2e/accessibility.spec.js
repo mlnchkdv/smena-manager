@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './fixtures.js';
 
 test.setTimeout(180_000);
-test.use({ trace: 'on-first-retry', video: 'on-first-retry' });
+test.use({ trace: 'on-first-retry', video: 'on-first-retry', actionTimeout: 15000 });
 
 async function signIn(page) {
   await page.goto('/');
@@ -25,6 +25,8 @@ async function signIn(page) {
     await page.locator('[data-a="onbFinish"]').click();
   }
   await expect(page.locator('.shell')).toBeVisible();
+  await page.waitForTimeout(650);
+  await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved', { timeout: 15000 });
 }
 
 async function expectNoWcagViolations(page, context) {

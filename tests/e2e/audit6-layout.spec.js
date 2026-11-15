@@ -39,8 +39,17 @@ test('audit six: calendar clearance, anchored menus, mobile folders and catalog 
   ).toBeTruthy();
   const core = (await (await page.request.get('/api/workspace')).json()).data;
   const project = core.projects[0];
-  core.files.push({ id: 'audit6-file', name: 'audit6.txt', type: 'doc', project: project.id, bytes: 10, by: core.me, at: Date.now() });
-  expect((await page.request.put('/api/workspace', { data: { revision: core.revision, data: core } })).ok()).toBeTruthy();
+  expect(
+    (
+      await page.request.post('/api/files/upload', {
+        multipart: {
+          file: { name: 'audit6.txt', mimeType: 'text/plain', buffer: Buffer.from('Audit file') },
+          project: project.id,
+          revision: String(core.revision),
+        },
+      })
+    ).status(),
+  ).toBe(201);
   const bookmarks = (await (await page.request.get('/api/workspace-documents/bookmarks')).json()).data;
   const links = ['low', 'medium', 'high', 'critical'].map(importance => ({
     id: `audit6-${importance}`,

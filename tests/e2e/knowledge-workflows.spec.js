@@ -130,6 +130,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.goto('/e2e-team/knowledge');
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Beta' }).click();
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await page.locator('.knowledge-note-type').click();
   await chooseSelect(page, page.getByRole('dialog').locator('[data-in="noteType"]'), 'instruction');
   await page.locator('[data-in="noteProperty"][data-field="review"]').fill('2026-12-01');
@@ -152,6 +153,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.context().setOffline(false);
   await offline.close();
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click({ timeout: 15000 });
   await page.locator('[data-a="editKnowledgeBlock"]').first().click();
   const blockInput = page.locator('[data-in="knowledgeBlockText"]');
@@ -227,6 +229,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-frontmatter pre')).toContainText('metadata-only-marker');
   await page.locator('.knowledge-frontmatter>summary').click();
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await expect(page.locator('#knowledge-body')).toHaveValue(/internal_key: metadata-only-marker/);
   await page.locator('[data-a="toggleKnowledgeFormatting"]').click();
   await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
@@ -238,10 +241,11 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-live-preview .knowledge-quick-content')).toHaveAttribute('translate', 'no');
   await page.locator('#knowledge-body').fill(originalSource);
   await page.locator('[data-a="toggleKnowledgeEditorPreview"]').click();
-  await page.locator('.knowledge-properties>summary').click();
   await page.locator('#knowledge-title').fill('Renamed legacy Alpha');
+  await page.locator('[data-a="openNoteProperties"]').last().click();
   await page.locator('#knowledge-summary').fill('Edited legacy summary');
   await page.locator('#knowledge-summary').press('Tab');
+  await page.getByRole('dialog').locator('.modal-f [data-a="closeModal"]').click();
   await waitSaved(page);
   const renamedDocument = await (await page.request.get('/api/workspace-documents/knowledge')).json();
   expect(renamedDocument.data.knowledgeNotes.find(note => note.id === 'kb-a').sourceFormat).toBe('markdown');
@@ -250,12 +254,14 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await expect(page.locator('.knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
   await expect(page.locator('.knowledge-frontmatter').first()).not.toHaveAttribute('open');
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await page.locator('.knowledge-history>summary').click();
+  await openHistoryRow(page, 'first');
   await page.locator('[data-a="restoreKnowledgeVersion"]').first().click();
   await page.locator('[data-a="confirmOk"]').click();
   await waitSaved(page);
   await expect(page.locator('#knowledge-title')).toHaveValue('Knowledge Alpha');
-  await page.locator('.knowledge-history-row details>summary').first().click();
+  await openHistoryRow(page, 'first');
   await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
   await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await page.locator('#knowledge-body').fill('Updated knowledge body');
@@ -266,14 +272,17 @@ test('knowledge reading editing history search and mobile folders work in Russia
   await page.locator('.knowledge-preview-open').filter({ hasText: 'Knowledge Alpha' }).click();
   await expect(page.locator('.knowledge-quick-content').first()).toContainText('Updated knowledge body');
   await page.locator('.knowledge-preview-edit').click();
+  await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
   await page.locator('.knowledge-history>summary').click();
-  await page.locator('.knowledge-history-row details>summary').first().click();
+  await openHistoryRow(page, 'first');
+  await openHistoryRow(page, 'first');
   await expect(page.locator('.knowledge-history-row .knowledge-quick-content').first()).not.toContainText('metadata-only-marker');
   await expect(page.locator('.knowledge-history-row .knowledge-frontmatter pre').first()).toContainText('metadata-only-marker');
   await expect(page.locator('[data-a="restoreKnowledgeVersion"]').first()).toBeVisible();
   // The rename/restore check adds a newer renamed snapshot; restore the
   // original import explicitly rather than assuming the newest is original.
-  await page.locator('[data-a="restoreKnowledgeVersion"]').last().click();
+  const originalVersion = await openHistoryRow(page, 'last');
+  await originalVersion.locator('[data-a="restoreKnowledgeVersion"]').click();
   await page.locator('[data-a="confirmOk"]').click();
   await waitSaved(page);
   await page.reload();
@@ -564,3 +573,15 @@ test('knowledge reading editing history search and mobile folders work in Russia
     await expect(page.locator('.knowledge-preview-card')).toHaveAttribute('data-id', 'scale-note-2999');
   }
 });
+
+async function openHistoryRow(page, position) {
+  const rows = page.locator('.knowledge-history-row');
+  const row = position === 'last' ? rows.last() : rows.first();
+  await expect(row).toBeVisible();
+  const load = row.locator('[data-a="loadKnowledgeVersion"]');
+  if (await load.count()) await load.click();
+  await expect(row.locator('details').first()).toBeVisible();
+  if ((await row.locator('details').first().getAttribute('open')) === null) await row.locator('details > summary').first().click();
+  await expect(row.locator('.knowledge-quick-content')).toBeVisible();
+  return row;
+}

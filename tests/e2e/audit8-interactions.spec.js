@@ -152,7 +152,7 @@ test('audit eight: authored palette text, select and folder focus, graph context
       if (width === 320) {
         await page.locator('#pal-in').fill('Home');
         await expect(page.locator('.pi .pi-name').filter({ hasText: /^Home$/ })).toHaveCount(3);
-        await expect(page.locator('.pi .sub').filter({ hasText: ru ? /(?:^| · )Общие$/ : /(?:^| · )General$/ })).toHaveCount(1);
+        await expect(page.locator('.pi .sub').filter({ hasText: /Folder 0 · Test$/ })).toHaveCount(1);
       }
       await page.locator('#pal-in').press('Escape');
       await page.locator('.topbar [data-a="openPalette"]').click();

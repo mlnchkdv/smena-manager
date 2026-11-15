@@ -178,6 +178,7 @@ test('two users exchange assignment and mention notifications in Russian and Eng
 
   await admin.setViewportSize({ width: 1440, height: 900 });
   await admin.goto('/e2e-team/settings/notif-push');
+  await admin.locator('.notification-workspace-diagnostics > summary').click();
   await expect(admin.getByRole('heading', { name: 'Диагностика доставки' })).toBeVisible();
   const deliveryRefresh = admin.locator('[data-a="refreshNotificationDelivery"]');
   await deliveryRefresh.click();

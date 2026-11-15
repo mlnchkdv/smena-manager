@@ -18,21 +18,35 @@ test('block editor keeps focus and caret through autosave on desktop and mobile 
       await page.goto('/e2e-team/knowledge');
       await page.locator('.knowledge-preview-open').filter({ hasText: 'Caret regression' }).click();
       await page.locator('.knowledge-preview-edit').click();
+      await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
+      await page.locator('#knowledge-body').fill('Original text');
+      await page.waitForTimeout(1000);
+      await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
       await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
       await page.locator('[data-a="editKnowledgeBlock"]').first().click();
       const input = page.locator('[data-in="knowledgeBlockText"]');
-      const text = `${language === 'Русский' ? 'Сохранить позицию курсора' : 'Keep the caret position'} ${width}`;
+      const text = `${language === 'Русский' ? 'Сохранить позицию курсора' : 'Keep the caret position'} ${width}\n\n${language === 'Русский' ? 'Второй абзац' : 'Second paragraph'}`;
       await input.fill(text);
       await input.press('End');
       await page.waitForTimeout(1000);
       await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
       await expect(input).toBeFocused();
+      await expect(input).toHaveValue(text);
       expect(await input.evaluate(el => [el.selectionStart, el.selectionEnd])).toEqual([text.length, text.length]);
       await input.pressSequentially(' + saved');
       await page.waitForTimeout(1000);
       await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
       await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
       await expect(page.locator('#knowledge-body')).toHaveValue(`${text} + saved`);
+      // Clearing a block must leave an editable field through the next render.
+      await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
+      await input.fill('');
+      await page.setViewportSize({ width: width - 1, height: 844 });
+      await expect(input).toBeFocused();
+      await expect(input).toHaveValue('');
+      await input.fill(`${text} + saved`);
+      await page.waitForTimeout(1000);
+      await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
       await page.reload();
       const saved = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
       expect(saved.knowledgeNotes.find(note => note.id === 'caret-regression').formatted_markdown).toBe(`${text} + saved`);
@@ -566,7 +580,9 @@ test('simplified graph preserves materials selection filters and personal prefer
       return route.continue();
     };
     await page.route('**/api/graph/query', revisionRace);
+    const queryReady = page.waitForResponse(response => response.url().endsWith('/api/graph/query') && response.status() === 200);
     await physics.click();
+    await (await queryReady).finished();
     await expect(canvas).toHaveAttribute('data-physics', 'off');
     await expect.poll(() => revisionRetry).toBeGreaterThanOrEqual(2);
     await page.unroute('**/api/graph/query', revisionRace);
@@ -580,6 +596,8 @@ test('simplified graph preserves materials selection filters and personal prefer
     // Compare the renderer's node bitmap. Element screenshots may scroll a
     // fractional WebKit viewport and change rasterization without graph motion.
     const nodeBitmap = () => canvas.locator('canvas[data-id="layer2-node"]').evaluate(el => el.toDataURL());
+    await page.mouse.move(0, 0);
+    await page.evaluate(() => document.fonts.ready);
     const frozen = await nodeBitmap();
     await page.waitForTimeout(400);
     expect(await nodeBitmap()).toBe(frozen);

@@ -97,7 +97,10 @@ test('whiteboard outline searches frame titles and children at the two hundred c
       await page.setViewportSize({ width, height });
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
-    await search.fill('Idea-39-3');
+    await search.fill('');
+    await search.pressSequentially('Idea-39-3');
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue('Idea-39-3');
     await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(2);
     await search.fill('absent-card-title');
     await expect(page.locator('.whiteboard-outline .whiteboard-card')).toHaveCount(0);
@@ -1083,6 +1086,7 @@ test('shared content, files, settings, and backups persist through core workflow
     mimeType: 'text/plain',
     buffer: Buffer.from('Файл для сквозной проверки общего хранилища.', 'utf8'),
   });
+  await page.locator('[data-a="confirmUploadReview"]').click();
   await expect(page.getByText(fileName, { exact: true })).toBeVisible({ timeout: 15_000 });
   await waitForSaved(page);
   await page.reload();
@@ -1278,6 +1282,9 @@ test('large task views keep bounded pages and allow reaching later tasks', async
         expect(parseFloat(hint.top) + parseFloat(hint.height)).toBeLessThan(0);
         expect(hint.cardLayer).toBe('1');
         await assignee.focus();
+        await assignee.press('Shift+Tab');
+        await page.keyboard.press('Tab');
+        await expect(assignee).toBeFocused();
         await page.mouse.move(0, 0);
         expect(await assignee.evaluate(el => getComputedStyle(el, '::after').content)).not.toBe('none');
       }
@@ -1814,7 +1821,8 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await page.locator('[data-a="removeFileFilter"]').click();
       await page.keyboard.press('Escape');
       // Move A back to the project root through the same picker for the next locale.
-      await page.locator('.files-folder-crumbs [data-project="all"]').click();
+      await page.locator(`.files-folder-crumbs [data-project="${project.id}"][data-folder=""]`).click();
+      await showFileFolderTiles(page);
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree A' }).locator('summary').click();
       await page.locator('[data-a="moveFileFolder"][data-folder="tree-a"]').click();
@@ -1958,7 +1966,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.locator('.workspace-file-table tbody tr').filter({ hasText: keyboardName }).locator('[data-a="ctxBtn"]').click();
     await page.locator('[data-a="renameFile"]').click();
     await expect(page.locator('#mt-prompt')).toHaveText(language === 'Русский' ? 'Переименовать файл' : 'Rename file');
-    await page.locator('.modal-f [data-a="closeModal"]').click();
+    await page.locator('.modal [data-a="closeModal"]').first().click();
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator(`[data-a="previewFile"][data-id="${file.id}"]`).first().click();
     const image = page.locator('.modal .file-preview-image');
@@ -1969,7 +1977,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     expect(await page.evaluate(() => globalThis.__pdfPreviewExecuted)).toBeUndefined();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: `output/playwright/pdf-preview-${language === 'Русский' ? 'ru' : 'en'}.png` });
-    await page.locator('.modal-f [data-a="closeModal"]').click();
+    await page.locator('.modal [data-a="closeModal"]').first().click();
     await page.locator('#workspace-file-q').fill('no-file-matches-history-eviction');
     await expect(page.locator('.workspace-file-card,.workspace-file-table tbody tr')).toHaveCount(0);
     await page.evaluate(id => {
@@ -1978,7 +1986,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
     }, file.id);
     await expect(page.locator('.modal .file-preview-image')).toBeVisible({ timeout: 30000 });
     await expect(page).toHaveURL(new RegExp(`/file/${file.id}$`));
-    await page.locator('.modal-f [data-a="closeModal"]').click();
+    await page.locator('.modal [data-a="closeModal"]').first().click();
     await page.setViewportSize({ width: 320, height: 844 });
     let failedContextCalls = 0;
     await page.route('**/api/files/catalog/query', route => {
@@ -2164,7 +2172,7 @@ test('project whiteboards persist cards connections layout and inherited access 
   await page.locator('[data-a="whiteboardRemoveInModal"]').click();
   await expect(page.locator('.whiteboard-card')).toHaveCount(3);
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(0);
-  await page.keyboard.press('Control+z');
+  await page.locator('[data-a="whiteboardUndo"]').click();
   await expect(page.locator('.whiteboard-card')).toHaveCount(4);
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(1);
   await waitForSaved(page);
@@ -2357,6 +2365,9 @@ async function openFileSelectionTools(page) {
 }
 
 async function showFileFolderTiles(page) {
+  // File folder pagination rerenders 150 ms after an orientation change.
+  await page.waitForTimeout(180);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const toggle = page.locator('[data-a="toggleFileFolders"]');
   await expect(toggle).toBeVisible();
   if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
