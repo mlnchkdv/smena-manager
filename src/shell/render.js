@@ -91,6 +91,8 @@ export const fxc = (kind, id) => (S.ui.fx && S.ui.fx[kind] === id ? ' fx-' + kin
 /* Focus survives full re-renders: every control is addressable by its data-* identity. */
 export const FKEYS = [
   'focusSelect',
+  'in',
+  'index',
   'a',
   'id',
   'r',
@@ -268,7 +270,13 @@ export function render() {
   if (prevOv.knowledgeDrawer && !ov.knowledgeDrawer && lost()) tryFocus(S.ui.knowledgeDrawerOpener);
   if (prevOv.pal && !ov.pal && lost()) tryFocus(S.ui.palOpener);
   if (prevOv.sub && !ov.sub && lost()) tryFocus('.drawer .subt [data-sid="' + (S.ui.lastSub || '') + '"]');
-  if (lost() && fkey) tryFocus(fkey);
+  if (lost() && fkey && tryFocus(fkey)) {
+    try {
+      if (s0 != null) document.activeElement.setSelectionRange(s0, s1);
+    } catch {
+      /* Non-text controls and collapsed disclosure summaries have no caret. */
+    }
+  }
   render._ov = ov;
   const played = S.ui.fx;
   S.ui.fx = {};
