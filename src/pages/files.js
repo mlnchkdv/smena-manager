@@ -297,7 +297,7 @@ export function pageFiles(projectId = null) {
                   ? readOnly
                     ? 'Editors can upload the first shared file.'
                     : currentFolder
-                      ? 'Upload files here or move existing project files into this folder.'
+                      ? 'Upload files or choose existing ones.'
                       : 'Upload the first document, design, or team asset.'
                   : 'Files are organized by project, so create one before uploading.',
               !searched && !projectId && S.ui.currentUser?.role !== 'viewer' && !projects.length
@@ -305,7 +305,7 @@ export function pageFiles(projectId = null) {
                 : currentFolder && !readOnly && !searched
                   ? `<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}${tr('Upload here')}</button><button class="btn btn-secondary" data-a="collectExistingFolderFiles">${tr('Choose existing files')}</button>`
                   : '',
-              '',
+              currentFolder && !searched ? 'files-empty-folder' : '',
               1,
             )
     }

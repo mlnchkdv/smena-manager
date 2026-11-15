@@ -664,6 +664,26 @@
 .files-collection-actions .btn {
   min-height: 32px;
 }
+.files-empty-folder {
+  padding: 20px 16px;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: left;
+}
+.files-empty-folder p {
+  max-width: none;
+  margin-bottom: 4px;
+}
+.files-page:has(.files-empty-folder) > .files-pagination {
+  display: none;
+}
+@media (max-width: 640px) {
+  .files-empty-folder .btn {
+    min-height: 44px;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
 .files-page:has(.files-collection) .files-selection-bar.active {
   display: none;
 }
