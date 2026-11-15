@@ -270,10 +270,7 @@
       "checkpointPreserved": true,
       "paused": true
     },
-    "sanitizedDownloads": [
-      "ru",
-      "en"
-    ],
+    "sanitizedDownloads": ["ru", "en"],
     "limits": {
       "objects": 10000,
       "snapshots": 2000,
@@ -322,21 +319,6 @@
     "language": "ru",
     "liveWrites": false
   },
-  "acceptedLocally": [
-    "R02",
-    "R03",
-    "R04",
-    "R05",
-    "R06",
-    "R07",
-    "R08",
-    "R09",
-    "R10",
-    "R11",
-    "R12"
-  ],
-  "externallyBlocked": [
-    "R01",
-    "R13 live/physical acceptance"
-  ]
+  "acceptedLocally": ["R02", "R03", "R04", "R05", "R06", "R07", "R08", "R09", "R10", "R11", "R12"],
+  "externallyBlocked": ["R01", "R13 live/physical acceptance"]
 }

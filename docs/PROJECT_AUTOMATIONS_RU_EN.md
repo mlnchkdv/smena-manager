@@ -11,13 +11,15 @@
 ```json
 {
   "version": 1,
-  "rules": [{
-    "id": "assign-on-progress",
-    "name": "При начале работы",
-    "enabled": true,
-    "trigger": {"from": ["todo"], "to": "progress"},
-    "actions": [{"field": "priority", "value": "high"}]
-  }]
+  "rules": [
+    {
+      "id": "assign-on-progress",
+      "name": "При начале работы",
+      "enabled": true,
+      "trigger": { "from": ["todo"], "to": "progress" },
+      "actions": [{ "field": "priority", "value": "high" }]
+    }
+  ]
 }
 ```
 

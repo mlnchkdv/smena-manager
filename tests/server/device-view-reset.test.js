@@ -106,7 +106,8 @@ test('rollback does not overwrite a value another tab replaced after the reset b
 });
 
 test('a named search added while preparing a reset is retained instead of being replaced by the earlier JSON', () => {
-  const keys = knowledgeViewKeys('owner', 'space'), source = storage([[keys[0], '{"paneWidth":410,"views":[]}']]);
+  const keys = knowledgeViewKeys('owner', 'space'),
+    source = storage([[keys[0], '{"paneWidth":410,"views":[]}']]);
   let reads = 0;
   source.getItem = key => {
     if (key === keys[0] && ++reads === 2) source.data.set(key, '{"paneWidth":410,"views":[{"id":"late-search"}]}');
