@@ -219,6 +219,7 @@ export function pageFiles(projectId = null) {
 
 
 
+    ${S.ui.fileCollectDestination?.owner === S.ui.currentUser?.id && S.ui.fileCollectDestination?.workspace === (D().ws?.id || D().ws?.url) ? `<div class="alert info row wrap" role="status"><span>Choose files, then move them to the destination folder.</span><button class="btn btn-secondary btn-sm" data-a="moveCollectedFolderFiles" ${(S.ui.fileSelection || []).length ? '' : 'disabled'}>Move selected here</button><button class="btn btn-ghost btn-sm" data-a="cancelFileCollection">Cancel</button></div>` : ''}
     ${uploadsHtml()}
     ${collectionToolbar(
       `
@@ -300,7 +301,9 @@ export function pageFiles(projectId = null) {
                   : 'Files are organized by project, so create one before uploading.',
               !searched && !projectId && S.ui.currentUser?.role !== 'viewer' && !projects.length
                 ? `<button class="btn btn-primary" data-a="newProject">${ic('plus', 14)}Create project</button>`
-                : '',
+                : currentFolder && !readOnly && !searched
+                  ? `<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload">${ic('upload', 14)}${tr('Upload here')}</button><button class="btn btn-secondary" data-a="collectExistingFolderFiles">${tr('Choose existing files')}</button>`
+                  : '',
               '',
               1,
             )

@@ -346,3 +346,38 @@ A.clearFileCriterion = el => {
   const item = fields[el.dataset.field];
   if (item) IN[item[0]]({ value: item[1] });
 };
+
+const collectTarget = () => {
+  const target = S.ui.fileCollectDestination;
+  return target &&
+    target.owner === S.ui.currentUser?.id &&
+    target.workspace === (D().ws?.id || D().ws?.url) &&
+    canEditProject(proj(target.project), D().me, S.ui.currentUser?.role) &&
+    activeFileFolder(proj(target.project), target.folder)
+    ? target
+    : null;
+};
+A.collectExistingFolderFiles = () => {
+  const project = proj(S.ui.fileProject),
+    folder = activeFileFolder(project, S.ui.fileFolder);
+  if (!folder || !canEditProject(project, D().me, S.ui.currentUser?.role)) return;
+  S.ui.fileCollectDestination = { ...owner(), project: project.id, folder: folder.id };
+  S.ui.fileSelection = [];
+  A.openFileFolder({ dataset: { project: project.id, folder: '' } });
+};
+A.moveCollectedFolderFiles = () => {
+  const target = collectTarget(),
+    ids = [...(S.ui.fileSelection || [])];
+  if (!target || !ids.length) return;
+  if (!change(() => moveFilesToFolder(D(), ids, target.project, target.folder, S.ui.currentUser?.role))) return;
+  S.ui.fileCollectDestination = null;
+  S.ui.fileSelection = [];
+  A.openFileFolder({ dataset: target });
+};
+A.cancelFileCollection = () => {
+  const target = collectTarget();
+  S.ui.fileCollectDestination = null;
+  S.ui.fileSelection = [];
+  if (target) A.openFileFolder({ dataset: target });
+  else render();
+};

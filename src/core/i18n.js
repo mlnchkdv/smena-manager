@@ -56,6 +56,9 @@ const RU = {
   'Version retention depends on the size of the complete text-and-properties snapshot. Up to 5 versions are retained.':
     'История зависит от размера снимка текста и свойств. Хранятся до 5 версий.',
   'Preview alongside': 'Предпросмотр рядом',
+  'Upload here': 'Загрузить сюда',
+  'Choose existing files': 'Выбрать существующие файлы',
+  'Choose files, then move them to the destination folder.': 'Выберите файлы и перенесите их в папку назначения.',
   'In this folder': 'В этой папке',
   'In this project': 'В этом проекте',
   'Project total': 'Всего в проекте',
