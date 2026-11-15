@@ -1,4 +1,8 @@
 const NOUNS = {
+  node: { en: ['node', 'nodes'], ru: ['узел', 'узла', 'узлов'] },
+  group: { en: ['group', 'groups'], ru: ['группа', 'группы', 'групп'] },
+  line: { en: ['line', 'lines'], ru: ['линия', 'линии', 'линий'] },
+  material: { en: ['material', 'materials'], ru: ['материал', 'материала', 'материалов'] },
   result: { en: ['result', 'results'], ru: ['результат', 'результата', 'результатов'] },
   attachment: { en: ['attachment', 'attachments'], ru: ['вложение', 'вложения', 'вложений'] },
   comment: { en: ['comment', 'comments'], ru: ['комментарий', 'комментария', 'комментариев'] },
