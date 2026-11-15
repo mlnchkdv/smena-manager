@@ -47,3 +47,16 @@ test('large portfolio sorts actionable rows first without losing zero-task proje
   assert.equal(work.open, 10001);
   assert.equal(findPortfolioRows(work.rows, '', true).length, 1);
 });
+
+test('an overdue project deadline needs attention even when task dates are missing', () => {
+  const rows = portfolioWork(
+    [
+      { id: 'p', status: 'active', due: '2026-11-01' },
+      { id: 'done', status: 'complete', due: '2026-11-01' },
+    ],
+    [],
+    '2026-11-15',
+  ).rows;
+  assert.equal(rows.find(r => r.project.id === 'p').attention, true);
+  assert.equal(rows.find(r => r.project.id === 'done').attention, false);
+});

@@ -275,3 +275,42 @@
     min-height: 44px;
   }
 }
+
+.portfolio-signal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.portfolio-count:focus-visible,
+.portfolio-status-row:focus-visible,
+.portfolio-workload:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .work-risk-strip > .btn {
+    flex: 1 1 95px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px;
+  }
+  .work-risk-strip > .btn b {
+    font-size: 20px;
+  }
+  .portfolio-heading {
+    padding: 10px 12px;
+  }
+  .portfolio-controls {
+    gap: 4px 8px;
+  }
+  .portfolio-totals {
+    width: 100%;
+  }
+  .portfolio-totals > summary {
+    min-height: 32px;
+  }
+}

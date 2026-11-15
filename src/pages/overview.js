@@ -19,6 +19,8 @@ import { render } from '../shell/render.js';
 registerRussianLabels({
   'Projects, workload and upcoming milestones.': 'Проекты, загрузка и ближайшие этапы.',
   'Unnamed milestone': 'Этап без названия',
+  'No projects in this scope': 'В этой области пока нет проектов',
+  'No tasks yet': 'Пока нет задач',
   'Project scope': 'Область обзора',
   'Open tasks by member': 'Открытые задачи по участникам',
   'Milestones to review': 'Этапы к проверке',
@@ -41,6 +43,11 @@ A.portfolioAttention = () => {
   render();
 };
 
+A.resetPortfolioFilters = () => {
+  S.ui.portfolioQuery = '';
+  S.ui.portfolioAttention = '';
+  render();
+};
 function projectLink(project, content, className = '') {
   return `<a class="${className}" href="${esc(appLocationPath(D(), { route: 'project', params: { id: project.id, tab: 'overview' } }))}" data-a="go" data-r="project" data-id="${esc(project.id)}" data-tab="overview" translate="no">${content}</a>`;
 }
@@ -106,13 +113,18 @@ export function pageOverview() {
       <details class="portfolio-totals" ${disclosureAttributes('portfolio-totals')}><summary>Workspace totals</summary><div class="row"><span>Projects</span> <b>${projects.length}</b> · <span>Tasks</span> <b>${all.length}</b> · <span>Completed</span> <b>${done}</b> · <span>Members</span> <b>${D().members.filter(m => m.status === 'active').length}</b></div></details>
     </div>
     <section class="panel overview-portfolio">
-      <div class="panel-h portfolio-heading"><h2>Portfolio</h2><span class="faint num">${filtered.length} / ${projects.length}</span><div class="portfolio-controls"><div class="inwrap">${ic('search', 14)}<input class="input search-sm" id="portfolio-search" data-in="portfolioQuery" value="${esc(S.ui.portfolioQuery)}" placeholder="Search projects, owners and milestones" aria-label="Search projects, owners and milestones"></div><button class="btn btn-sm ${S.ui.portfolioAttention === 'yes' ? 'btn-secondary on' : 'btn-ghost'}" data-a="portfolioAttention" aria-pressed="${S.ui.portfolioAttention === 'yes'}" title="Only projects needing attention">${ic('circle-alert', 14)}<span>Needs attention</span></button></div></div>
+      <div class="panel-h portfolio-heading"><h2>Portfolio</h2><span class="faint num">${filtered.length} / ${projects.length}</span><div class="portfolio-controls"><div class="inwrap">${ic('search', 14)}<input class="input search-sm" id="portfolio-search" data-in="portfolioQuery" value="${esc(S.ui.portfolioQuery)}" placeholder="Search projects" aria-label="Search projects, owners and milestones"></div><button class="btn btn-sm ${S.ui.portfolioAttention === 'yes' ? 'btn-secondary on' : 'btn-ghost'}" data-a="portfolioAttention" aria-pressed="${S.ui.portfolioAttention === 'yes'}" title="Only projects needing attention">${ic('circle-alert', 14)}<span>Needs attention</span></button>${S.ui.portfolioQuery || S.ui.portfolioAttention ? '<button class="btn btn-ghost btn-sm" data-a="resetPortfolioFilters">Clear filters</button>' : ''}</div></div>
       ${
         !window.total
-          ? empty('folder', 'No matching projects', 'Try another search or show all projects.')
+          ? empty(
+              'folder',
+              projects.length ? 'No matching projects' : 'No projects in this scope',
+              'Try another search or show all projects.',
+              '<button class="btn btn-secondary" data-a="go" data-r="projects">All projects</button>',
+            )
           : `
-      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num">${row.progress}%</b></div>${nextMilestone(row, today)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue')} ${taskCount(row, 'overdue', row.overdue, 'Overdue')}</span><span>${row.project.due ? `${ic('calendar', 12)}<span class="sr">${t('Due')}: </span>${fmtDate(row.project.due)}` : ''}</span></div></article>`).join('')}</div>
-      <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>Overdue</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${progBar(row.progress)}<span class="num">${row.progress}%</span></span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue')}</td><td>${row.project.due ? fmtDate(row.project.due) : '—'}</td></tr>`).join('')}</tbody></table></div>`
+      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num" title="${row.total ? t('Progress') : t('No tasks yet')}">${row.total ? row.progress + '%' : '—'}</b></div>${nextMilestone(row, today)}${row.unassigned ? `<span class="portfolio-signal">${t('Unassigned')}: ${taskCount(row, 'unassigned', row.unassigned, 'Unassigned')}</span>` : ''}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue')} ${taskCount(row, 'overdue', row.overdue, 'Overdue')}</span><span>${row.project.due ? `${ic('calendar', 12)}<span class="sr">${t('Due')}: </span>${fmtDate(row.project.due)}` : ''}</span></div></article>`).join('')}</div>
+      <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>Overdue</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}${row.unassigned ? `<small class="portfolio-signal">${t('Unassigned')}: ${taskCount(row, 'unassigned', row.unassigned, 'Unassigned')}</small>` : ''}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${row.total ? `${progBar(row.progress)}<span class="num">${row.progress}%</span>` : `<span class="hint">${t('No tasks yet')}</span>`}</span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue')}</td><td>${row.project.due ? fmtDate(row.project.due) : '—'}</td></tr>`).join('')}</tbody></table></div>`
       }
       ${paginationHtml(window, pageKey)}
     </section>

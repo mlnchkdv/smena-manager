@@ -19,7 +19,12 @@ export function portfolioWork(projects, tasks, today) {
     row.next = (row.project.milestones || [])
       .filter(m => !m.completed && /^\d{4}-\d{2}-\d{2}$/.test(m.date || ''))
       .reduce((earliest, m) => (!earliest || m.date < earliest.date ? m : earliest), null);
-    row.attention = row.overdue > 0 || row.unassigned > 0 || row.project.status === 'risk' || Boolean(row.next && row.next.date < today);
+    row.attention =
+      row.overdue > 0 ||
+      row.unassigned > 0 ||
+      row.project.status === 'risk' ||
+      Boolean(row.next && row.next.date < today) ||
+      Boolean(row.project.status !== 'complete' && row.project.due && row.project.due < today);
   }
   const ordered = [...rows.values()].sort(
     (a, b) =>
