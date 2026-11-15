@@ -102,6 +102,7 @@
   border-color: var(--accent-line);
 }
 .kcard {
+  --board-actions-size: 22px;
   background: var(--surface);
   border-radius: var(--r);
   box-shadow: var(--shadow-card);
@@ -151,6 +152,14 @@
   display: flex;
   align-items: flex-start;
   gap: 0;
+  /* Reserve the quick-action height even for a one-line title, so touch
+     controls cannot cover the assignee in the metadata row. */
+  min-height: calc(var(--board-actions-size) + 2px);
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .kcard {
+    --board-actions-size: 44px;
+  }
 }
 .kcard .title {
   font-size: var(--fs);

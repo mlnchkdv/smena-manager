@@ -1271,7 +1271,7 @@ test('large task views keep bounded pages and allow reaching later tasks', async
       }
     }
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.locator('[data-a="setViewMode"][data-v="table"]').click();
+    await page.locator('[data-a="setViewMode"][data-v="table"]:visible').first().click();
     expect(await page.locator('table tr [data-a="openTask"]').count()).toBeLessThanOrEqual(100);
     await expect(page.locator('[data-a="listPage"][data-page="1"]').first()).toBeVisible();
   } finally {
