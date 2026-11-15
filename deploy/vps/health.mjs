@@ -2,6 +2,22 @@ import https from 'node:https';
 import { Readable } from 'node:stream';
 import { gunzipSync } from 'node:zlib';
 import { smokeDeployment } from '../../scripts/smoke-deployment.js';
+import { setTimeout as delay } from 'node:timers/promises';
+
+export async function waitForVhost(domain, commit, { verify = verifyVhost, timeoutMs = 180000, intervalMs = 2000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let lastError;
+  do {
+    try {
+      await verify(domain, commit);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+    if (Date.now() < deadline) await delay(intervalMs);
+  } while (Date.now() < deadline);
+  throw new Error('TLS application readiness timeout.', { cause: lastError });
+}
 
 // Check this machine's actual TLS vhost, with normal certificate verification
 // and SNI. Never turn off TLS validation or probe an old DNS destination.

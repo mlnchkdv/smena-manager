@@ -19,7 +19,7 @@ import {
   renderTemplates,
 } from './lib.mjs';
 import { activateRelease } from './transaction.mjs';
-import { verifyBackend, verifyVhost } from './health.mjs';
+import { verifyBackend, verifyVhost, waitForVhost } from './health.mjs';
 import { assertBuildDisk, buildInvocation } from './build-resources.mjs';
 
 const CONFIG = '/etc/smena-manager/deploy.json';
@@ -398,7 +398,7 @@ async function switchRelease(config, target, previous) {
     startApp: async () => systemctl('start', APP),
     backendHealthy: () => waitForBackend(targetMeta.commit),
     reloadNginx: async () => systemctl(active('nginx.service') ? 'reload' : 'start', 'nginx.service'),
-    vhostHealthy: () => verifyVhost(config.domain, targetMeta.commit),
+    vhostHealthy: () => waitForVhost(config.domain, targetMeta.commit),
     commit: async () => {
       if (target !== previous) await setReleaseLink('previous', previous);
       systemctl('enable', APP);
@@ -416,7 +416,7 @@ async function switchRelease(config, target, previous) {
       } else systemctl('disable', APP);
     },
     recoveredHealthy: async () => {
-      if (previous) await verifyVhost(config.domain, previousMeta.commit);
+      if (previous) await waitForVhost(config.domain, previousMeta.commit);
     },
   });
   console.log(`Active release: ${targetMeta.commit}. Google Drive data was not restored or replaced.`);
@@ -512,5 +512,8 @@ async function main() {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
   main().catch(error => {
     console.error(error.message);
+    // Only deployment checks supply causes here; never log response bodies or environment.
+    if (error.cause) console.error(`Readiness/activation cause: ${error.cause.message}`);
+    if (error.cause?.cause) console.error(`Last readiness check: ${error.cause.cause.message}`);
     process.exitCode = 1;
   });

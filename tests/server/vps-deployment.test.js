@@ -6,11 +6,35 @@ import path from 'node:path';
 import { activateRelease } from '../../deploy/vps/transaction.mjs';
 import { parseOptions, publishAssets, extractCommit } from '../../deploy/vps/manage.mjs';
 import { execFileSync } from 'node:child_process';
-import { verifyVhost, verifyBackend, verifyStaticCompression } from '../../deploy/vps/health.mjs';
+import { verifyVhost, verifyBackend, verifyStaticCompression, waitForVhost } from '../../deploy/vps/health.mjs';
 import { domainInNginxDump } from '../../deploy/vps/lib.mjs';
 import { createGracefulShutdown } from '../../src/server/graceful-shutdown.js';
 import http from 'node:http';
 import { gzipSync } from 'node:zlib';
+
+test('TLS readiness retries cold starts but still requires a fully verified release', async () => {
+  let calls = 0;
+  await waitForVhost('example.test', 'release', {
+    intervalMs: 1,
+    timeoutMs: 1000,
+    verify: async (domain, commit) => {
+      assert.equal(domain, 'example.test');
+      assert.equal(commit, 'release');
+      if (++calls < 3) throw new Error('Frontend/backend release mismatch.');
+    },
+  });
+  assert.equal(calls, 3);
+  const failure = new Error('Sign-in configuration is not ready.');
+  await assert.rejects(
+    waitForVhost('example.test', 'release', {
+      timeoutMs: 0,
+      verify: async () => {
+        throw failure;
+      },
+    }),
+    error => error.message === 'TLS application readiness timeout.' && error.cause === failure,
+  );
+});
 
 test('release extraction drains Git archive padding and preserves large committed files', { skip: process.platform !== 'linux' }, async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-extract-'));
