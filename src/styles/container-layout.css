@@ -1,4 +1,16 @@
 /* Available content width, including browser/text scaling, owns column reflow. */
+@container workspace (max-width: 280px) {
+  .topbar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-inline: 8px;
+  }
+  .topbar .workspace-context {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+}
 @container workspace (max-width: 850px) {
   .set {
     grid-template-columns: minmax(0, 1fr);

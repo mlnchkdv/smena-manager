@@ -80,7 +80,7 @@ export function srow(t, d, ctl) {
 export const tog = (k, on, src = 'pref') =>
   `<span class="toggle-target"><input id="setting-toggle-${src}-${esc(k)}" type="checkbox" class="toggle" data-in="${src}Toggle" data-k="${k}" ${on ? 'checked' : ''} data-setting-control aria-label="${k}"></span>`;
 export const sel = (k, opts, v) =>
-  `<select class="select" style="width:auto;min-width:180px" data-in="prefSel" data-k="${k}" data-setting-control aria-label="${k}">${opts
+  `<select class="select settings-preference-select" data-in="prefSel" data-k="${k}" data-setting-control aria-label="${k}">${opts
     .map(o => {
       const [val, n] = Array.isArray(o) ? o : [o, o];
       return `<option value="${val}" ${String(v) === String(val) ? 'selected' : ''}>${n}</option>`;

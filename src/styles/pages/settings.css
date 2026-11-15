@@ -22,6 +22,11 @@
   width: 100%;
   margin-bottom: 8px;
 }
+.settings-preference-select {
+  width: auto;
+  min-width: min(180px, 100%);
+  max-width: 100%;
+}
 .settings-search input {
   width: 100%;
 }
