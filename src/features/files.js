@@ -1,4 +1,5 @@
 import { A, IN, KEY } from '../actions/actions.js';
+import { fileCollectionTarget } from '../shared/file-collection.js';
 import { D, S, proj, visibleProjects } from '../core/store.js';
 import { uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
@@ -349,13 +350,12 @@ A.clearFileCriterion = el => {
 
 const collectTarget = () => {
   const target = S.ui.fileCollectDestination;
-  return target &&
-    target.owner === S.ui.currentUser?.id &&
-    target.workspace === (D().ws?.id || D().ws?.url) &&
-    canEditProject(proj(target.project), D().me, S.ui.currentUser?.role) &&
-    activeFileFolder(proj(target.project), target.folder)
-    ? target
-    : null;
+  return fileCollectionTarget(D(), S.ui.currentUser, target) ? target : null;
+};
+A.changeFileCollectionDestination = () => {
+  S.ui.fileCollectDestination = null;
+  if (S.ui.fileSelection?.length) A.moveFileToFolder({ dataset: {} });
+  else A.browseFileFolders();
 };
 A.collectExistingFolderFiles = () => {
   const project = proj(S.ui.fileProject),

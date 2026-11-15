@@ -1,4 +1,5 @@
 import { materialLocationLabel } from '../shared/material-location-label.js';
+import { fileCollectionPanel } from '../ui/file-collection.js';
 import { materialFavorite } from '../ui/material-favorite.js';
 import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
@@ -219,7 +220,7 @@ export function pageFiles(projectId = null) {
 
 
 
-    ${S.ui.fileCollectDestination?.owner === S.ui.currentUser?.id && S.ui.fileCollectDestination?.workspace === (D().ws?.id || D().ws?.url) ? `<div class="alert info row wrap" role="status"><span>Choose files, then move them to the destination folder.</span><button class="btn btn-secondary btn-sm" data-a="moveCollectedFolderFiles" ${(S.ui.fileSelection || []).length ? '' : 'disabled'}>Move selected here</button><button class="btn btn-ghost btn-sm" data-a="cancelFileCollection">Cancel</button></div>` : ''}
+    ${fileCollectionPanel()}
     ${uploadsHtml()}
     ${collectionToolbar(
       `

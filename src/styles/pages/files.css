@@ -638,6 +638,26 @@
   margin: 0 0 12px;
   font-size: var(--fs-xs);
 }
+.files-collection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.files-collection-copy {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.files-collection-path {
+  overflow-wrap: anywhere;
+}
+.files-collection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .file-preview-tools {
   display: flex;
   align-items: center;
