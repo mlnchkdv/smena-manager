@@ -259,12 +259,15 @@ async function prepareInstall(options) {
   console.log('Fill /etc/smena-manager/smena.env and access-ids.json; obtain TLS with the documented Certbot webroot command; then run update.sh.');
 }
 
-async function extractCommit(config, commit, directory) {
+export async function extractCommit(config, commit, directory, { buildUser = 'smena-build' } = {}) {
   const archive = spawn('git', ['-c', `safe.directory=${config.source}`, '-C', config.source, 'archive', '--format=tar', commit], {
     env: cleanEnv(),
     stdio: ['ignore', 'pipe', 'inherit'],
   });
-  const unpack = spawn('runuser', ['-u', 'smena-build', '--', 'tar', '-xf', '-', '--no-same-owner', '--no-same-permissions', '-C', directory], {
+  // Read through Git's trailing zero records to EOF. Otherwise tar may exit
+  // successfully before pipeline finishes writing, causing ERR_STREAM_PREMATURE_CLOSE.
+  const args = ['--ignore-zeros', '-xf', '-', '--no-same-owner', '--no-same-permissions', '-C', directory];
+  const unpack = spawn(buildUser ? 'runuser' : 'tar', buildUser ? ['-u', buildUser, '--', 'tar', ...args] : args, {
     env: cleanEnv(),
     stdio: ['pipe', 'inherit', 'inherit'],
   });

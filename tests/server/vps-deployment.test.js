@@ -4,12 +4,55 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { activateRelease } from '../../deploy/vps/transaction.mjs';
-import { parseOptions, publishAssets } from '../../deploy/vps/manage.mjs';
+import { parseOptions, publishAssets, extractCommit } from '../../deploy/vps/manage.mjs';
+import { execFileSync } from 'node:child_process';
 import { verifyVhost, verifyBackend, verifyStaticCompression } from '../../deploy/vps/health.mjs';
 import { domainInNginxDump } from '../../deploy/vps/lib.mjs';
 import { createGracefulShutdown } from '../../src/server/graceful-shutdown.js';
 import http from 'node:http';
 import { gzipSync } from 'node:zlib';
+
+test('release extraction drains Git archive padding and preserves large committed files', { skip: process.platform !== 'linux' }, async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-extract-'));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const source = path.join(root, 'source');
+  await fs.mkdir(source);
+  const git = (...args) =>
+    execFileSync(
+      'git',
+      [
+        '-c',
+        'core.hooksPath=/dev/null',
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=Release test',
+        '-c',
+        'user.email=release@example.test',
+        '-C',
+        source,
+        ...args,
+      ],
+      { encoding: 'utf8' },
+    ).trim();
+  git('init', '-q');
+  await fs.mkdir(path.join(source, 'nested'));
+  await fs.writeFile(path.join(source, 'nested', 'описание.md'), '# Release / Выпуск\n');
+  // Different final record lengths exercise pipe backpressure and tar padding.
+  for (const size of [128 * 1024 + 511, 1024 * 1024 + 123, 5 * 1024 * 1024 + 37]) {
+    const payload = Buffer.alloc(size, 0x37);
+    await fs.writeFile(path.join(source, 'payload.bin'), payload);
+    git('add', '.');
+    git('commit', '-qm', `Payload ${size}`);
+    const target = path.join(root, `release-${size}`);
+    await fs.mkdir(target);
+    // CI has no production build account. The deployment caller keeps the
+    // default runuser boundary; this fixture extracts only its own temporary repo.
+    await extractCommit({ source }, git('rev-parse', 'HEAD'), target, { buildUser: null });
+    assert.deepEqual(await fs.readFile(path.join(target, 'payload.bin')), payload);
+    assert.equal(await fs.readFile(path.join(target, 'nested', 'описание.md'), 'utf8'), '# Release / Выпуск\n');
+  }
+});
 
 function fixture(failAt, recoveryFails = false) {
   const state = { selected: 'old', backend: 'old', config: 'old', timer: true, status: '', calls: [] };
