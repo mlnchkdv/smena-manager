@@ -21,6 +21,24 @@ function preview(b) {
   const board = whiteboardCatalogInfo(b.id)?.thumbnail || b.whiteboard,
     box = whiteboardBounds(board),
     scale = Math.min(244 / Math.max(1, box.width), 84 / Math.max(1, box.height));
+  const labels = new Map(),
+    occupied = [];
+  for (const node of [...board.nodes].sort((a, b) => Number(a.type === 'group') - Number(b.type === 'group'))) {
+    if (labels.size >= 6 || node.width * scale < 50 || node.height * scale < 20) continue;
+    const rect = { x: node.x * scale + 6, y: node.y * scale + 3, w: Math.max(0, node.width * scale - 12), h: 13 };
+    if (occupied.some(other => rect.x < other.x + other.w && rect.x + rect.w > other.x && rect.y < other.y + other.h && rect.y + rect.h > other.y)) continue;
+    occupied.push(rect);
+    labels.set(
+      node.id,
+      (
+        node.title ||
+        T(
+          node.type === 'group' ? 'Frame' : node.type === 'material' ? 'Material' : 'Text',
+          node.type === 'group' ? 'Рамка' : node.type === 'material' ? 'Материал' : 'Текст',
+        )
+      ).slice(0, Math.max(3, Math.floor(rect.w / 6) - 1)),
+    );
+  }
   return `<svg class="whiteboard-thumbnail" viewBox="0 0 260 100" aria-hidden="true"><g transform="translate(${(260 - box.width * scale) / 2},${(100 - box.height * scale) / 2}) scale(${scale}) translate(${-box.x},${-box.y})">${board.edges
     .slice(0, 60)
     .map(e => {
@@ -34,7 +52,7 @@ function preview(b) {
     .slice(0, 40)
     .map(
       n =>
-        `<rect x="${n.x}" y="${n.y}" width="${n.width}" height="${n.height}" rx="8" fill="${colors[n.color]}" fill-opacity="${n.type === 'group' ? '.12' : '.4'}" stroke="${colors[n.color]}" stroke-width="${Math.max(1, 1 / scale)}"/>${n.width * scale >= 40 ? `<text x="${n.x + 6 / scale}" y="${n.y + 14 / scale}" fill="var(--text)" font-size="${10 / scale}">${esc((n.title || T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Material' : 'Text', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Материал' : 'Текст')).slice(0, Math.max(3, Math.floor((n.width * scale) / 6) - 2)))}</text>` : ''}`,
+        `<rect x="${n.x}" y="${n.y}" width="${n.width}" height="${n.height}" rx="8" fill="${colors[n.color]}" fill-opacity="${n.type === 'group' ? '.12' : '.4'}" stroke="${colors[n.color]}" stroke-width="${Math.max(1, 1 / scale)}"/>${labels.has(n.id) ? `<text x="${n.x + 6 / scale}" y="${n.y + 14 / scale}" fill="var(--text)" font-size="${10 / scale}">${esc(labels.get(n.id))}</text>` : ''}`,
     )
     .join(
       '',
