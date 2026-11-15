@@ -11,7 +11,17 @@ import { templateText, t } from '../core/i18n.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 
 export function authShell(inner, topRight = '') {
-  return `<div class="auth"><div class="auth-top"><span class="brand">${LOGO(22)}</span><div class="row">${topRight}<button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
+  return `<div class="auth"><div class="auth-top"><span class="brand">${LOGO(22)}</span><div class="row">${topRight}<div class="seg auth-language" role="group" aria-label="${t('Language')}" translate="no">${[
+    ['Русский', 'RU'],
+    ['English (US)', 'EN'],
+  ]
+    .map(
+      ([value, label]) =>
+        `<button type="button" class="${S.prefs.lang === value ? 'on' : ''}" aria-pressed="${S.prefs.lang === value}" data-a="setPref" data-k="lang" data-v="${value}">${label}</button>`,
+    )
+    .join(
+      '',
+    )}</div><button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
     <div class="auth-c">${inner}</div>
     <div class="auth-foot" style="padding:18px;font-size:12px"><span class="faint">© 2026 ${PRODUCT_NAME} · <a href="/about.html">About</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></span></div></div>`;
 }

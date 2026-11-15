@@ -54,10 +54,20 @@ export function load() {
   }
   return null;
 }
+function initialLanguage() {
+  try {
+    const explicit = localStorage.getItem('smena.language');
+    if (['Русский', 'English (US)'].includes(explicit)) return explicit;
+    if (typeof window !== 'undefined') return /^ru(?:-|$)/i.test(navigator.language) ? 'Русский' : 'English (US)';
+  } catch {
+    /* blocked storage: retain the default */
+  }
+  return DEFAULT_PREFS.lang;
+}
 export const saved = load();
 export const S = {
   data: saved?.data || migrateNotificationRecipients(seed()),
-  prefs: Object.assign({}, DEFAULT_PREFS, saved?.prefs || {}),
+  prefs: Object.assign({}, DEFAULT_PREFS, { lang: initialLanguage() }, saved?.prefs || {}),
   views: saved?.views || {},
   ui: {
     fx: {},

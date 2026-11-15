@@ -607,6 +607,13 @@ A.toggleDark = () => {
   toast(effectiveDark() ? 'Dark mode on' : 'Light mode on', { kind: 'info', ms: 1800 });
 };
 A.setPref = el => {
+  if (el.dataset.k === 'lang') {
+    try {
+      localStorage.setItem('smena.language', el.dataset.v);
+    } catch {
+      /* storage unavailable */
+    }
+  }
   S.prefs[el.dataset.k] = el.dataset.v;
   save();
   render();

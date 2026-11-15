@@ -309,3 +309,16 @@
   gap: 6px;
   background: var(--sunken);
 }
+
+.auth-language button {
+  min-width: 36px;
+}
+@media (max-width: 640px) {
+  .auth-top {
+    padding: 12px 16px;
+  }
+  .auth-language button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
