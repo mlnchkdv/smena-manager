@@ -28,9 +28,9 @@ export function whiteboardContext(board, state, editable) {
 
 export function whiteboardNavigation(state, editable) {
   return `<label class="whiteboard-gesture"><span class="sr">${T('Interaction mode', 'Режим управления')}</span><select class="select" data-in="whiteboardNavigation" aria-label="${T('Interaction mode', 'Режим управления')}">${[
-    ['scroll', T('Page scroll', 'Прокрутка')],
-    ['pan', T('Pan canvas', 'Панорама')],
-    ['move', editable ? T('Move cards', 'Карточки') : T('Select cards', 'Выбор')],
+    ['scroll', T('Scroll page', 'Прокручивать страницу')],
+    ['pan', T('Move canvas', 'Перемещать холст')],
+    ['move', editable ? T('Move cards', 'Перемещать карточки') : T('Select cards', 'Выбирать карточки')],
   ]
     .map(([mode, label]) => `<option value="${mode}" ${state.navigationMode === mode ? 'selected' : ''}>${label}</option>`)
     .join('')}</select></label>`;
