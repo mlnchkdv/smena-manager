@@ -485,6 +485,10 @@ test('knowledge scale search folder paging and bulk moves work in both languages
     ['English (US)', 548, '048'],
   ]) {
     await page.goto('/e2e-team/settings/language');
+    // A cold bootstrap reads 3000 isolated document files. Windows filesystem
+    // scanning can exceed the normal 15s action budget; wait for readiness
+    // explicitly while keeping all subsequent interactions at that budget.
+    await expect(page.locator('select[data-k="lang"]')).toBeAttached({ timeout: 45000 });
     await page.locator('select[data-k="lang"]').selectOption(language);
     await waitSaved(page);
     await page.setViewportSize({ width: 320, height: 740 });
@@ -522,6 +526,8 @@ test('knowledge scale search folder paging and bulk moves work in both languages
     await expect(title).toHaveAttribute('title', scaleNotes[0].title);
     // Indexed search can replace the local result while offscreen cards are skipped.
     await expect(async () => {
+      const folders = page.locator('.knowledge-folder-disclosure');
+      if ((await folders.count()) && (await folders.getAttribute('open')) === null) await folders.locator(':scope > summary').click();
       await page.locator('[data-a="focusKnowledgeNotes"]').click();
       const titleBox = await title.boundingBox();
       const timeBox = await page.locator('.knowledge-note-time').first().boundingBox();
@@ -537,6 +543,8 @@ test('knowledge scale search folder paging and bulk moves work in both languages
     }).toPass({ timeout: 10000 });
     await page.locator('[data-a="selectKnowledgePage"]').click();
     await page.locator('.knowledge-pagination [data-offset="60"]').click();
+    // Once selection starts, page selection moves into the bulk actions menu.
+    await page.locator('.knowledge-bulk-options > summary').click();
     await page.locator('[data-a="selectKnowledgePage"]').click();
     await expect(page.locator('.knowledge-selection-count b')).toHaveText('120');
     await page.locator('[data-a="clearKnowledgeQuery"]').click();
