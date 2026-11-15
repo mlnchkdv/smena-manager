@@ -17,6 +17,7 @@
   /* lines */
   --border: #e9e7e2;
   --border-strong: #dad7d0;
+  --control-border: #858179;
   --divider: #f0eeea;
   /* text */
   --text: #1d1c1a;
@@ -125,6 +126,7 @@
     --overlay: rgba(0, 0, 0, 0.55);
     --border: #2c2b29;
     --border-strong: #3a3936;
+    --control-border: #79766f;
     --divider: #252523;
     --text: #eceae5;
     --text-2: #b5b2ab;
@@ -165,6 +167,7 @@
   --overlay: rgba(0, 0, 0, 0.55);
   --border: #2c2b29;
   --border-strong: #3a3936;
+  --control-border: #79766f;
   --divider: #252523;
   --text: #eceae5;
   --text-2: #b5b2ab;
