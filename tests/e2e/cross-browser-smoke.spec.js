@@ -1,6 +1,45 @@
 import { expect, test } from './fixtures.js';
 import { chooseSelect } from './controls.js';
 
+test('block editor keeps focus and caret through autosave on desktop and mobile in both languages', async ({ page }) => {
+  test.setTimeout(180000);
+  page.setDefaultTimeout(15000);
+  await signIn(page);
+  const data = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+  data.knowledgeNotes.push({ id: 'caret-regression', title: 'Caret regression', formatted_markdown: 'Original text', tags: [] });
+  expect((await page.request.put('/api/workspace-documents/knowledge', { data: { revision: data.revision, data } })).ok()).toBeTruthy();
+  for (const language of ['Русский', 'English (US)']) {
+    for (const width of [1366, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption(language);
+      await page.waitForTimeout(650);
+      await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+      await page.goto('/e2e-team/knowledge');
+      await page.locator('.knowledge-preview-open').filter({ hasText: 'Caret regression' }).click();
+      await page.locator('.knowledge-preview-edit').click();
+      await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="blocks"]').click();
+      await page.locator('[data-a="editKnowledgeBlock"]').first().click();
+      const input = page.locator('[data-in="knowledgeBlockText"]');
+      const text = `${language === 'Русский' ? 'Сохранить позицию курсора' : 'Keep the caret position'} ${width}`;
+      await input.fill(text);
+      await input.press('End');
+      await page.waitForTimeout(1000);
+      await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+      await expect(input).toBeFocused();
+      expect(await input.evaluate(el => [el.selectionStart, el.selectionEnd])).toEqual([text.length, text.length]);
+      await input.pressSequentially(' + saved');
+      await page.waitForTimeout(1000);
+      await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+      await page.locator('[data-a="setKnowledgeEditorPane"][data-pane="source"]').click();
+      await expect(page.locator('#knowledge-body')).toHaveValue(`${text} + saved`);
+      await page.reload();
+      const saved = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+      expect(saved.knowledgeNotes.find(note => note.id === 'caret-regression').formatted_markdown).toBe(`${text} + saved`);
+    }
+  }
+});
+
 test('reaudit reader matches range selection and personal views work in both languages', async ({ page }) => {
   test.setTimeout(240000);
   await signIn(page);
@@ -321,7 +360,8 @@ test('knowledge creation menus expose types templates and library tools on mobil
       expect(bounds.x).toBeGreaterThanOrEqual(0);
       expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
       await expect(menu.locator('[data-type-id="meeting"]')).toHaveText(language === 'Русский' ? 'Встреча' : 'Meeting');
-      expect(await menu.locator('[data-type-id="meeting"]').evaluate(e => getComputedStyle(e).display)).toBe('flex');
+      await expect(menu.locator('[data-type-id="meeting"]')).toBeVisible();
+      await expect(menu.locator('[data-type-id="meeting"]')).toBeEnabled();
       if (width <= 640) expect((await page.locator('.knowledge-folder-title-button').boundingBox()).height).toBeLessThanOrEqual(45);
       await page.keyboard.press('Escape');
     }
