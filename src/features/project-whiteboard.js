@@ -869,11 +869,13 @@ A.whiteboardGroupContents = () => {
 A.whiteboardFit = () => {
   const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   if (!box) return;
-  const b = whiteboardBounds(whiteboardOf(current())),
+  const board = whiteboardOf(current()),
+    b = whiteboardBounds(board),
+    header = board.nodes.some(n => n.type === 'group') ? (innerWidth <= 900 ? 56 : 40) : 0,
     s = whiteboardState();
-  s.zoom = Math.max(0.2, Math.min(1, (box.width - 64) / b.width, (box.height - 64) / b.height));
+  s.zoom = Math.max(0.2, Math.min(1, (box.width - 64) / b.width, (box.height - 64 - header) / b.height));
   s.x = (box.width - b.width * s.zoom) / 2 - b.x * s.zoom;
-  s.y = (box.height - b.height * s.zoom) / 2 - b.y * s.zoom;
+  s.y = header + (box.height - header - b.height * s.zoom) / 2 - b.y * s.zoom;
   s.fit = false;
   s.autoFit = true;
   paintView();
