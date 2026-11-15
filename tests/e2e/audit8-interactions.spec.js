@@ -105,7 +105,7 @@ test('audit eight: authored palette text, select and folder focus, graph context
     await expect(page.locator('.select-menu [role="option"]')).toBeFocused();
     await page.unroute('**/api/graph/query');
     await page.locator('.select-menu input').press('Escape');
-    await expect(page.locator('#graph-locate + button')).toBeFocused();
+    await expect(page.locator('.graph-find > summary')).toBeFocused();
 
     for (const [width, height] of [
       [320, 676],

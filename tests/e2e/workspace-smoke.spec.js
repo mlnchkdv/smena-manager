@@ -1039,6 +1039,7 @@ test('shared content, files, settings, and backups persist through core workflow
   const noteTrashRow = page.locator('.mini', { hasText: noteTitle });
   await expect(noteTrashRow).toBeVisible();
   await noteTrashRow.locator('[data-a="restoreTrash"]').click();
+  await confirmDialog(page);
   await waitForSaved(page);
   await page.goto('/e2e-team/knowledge');
   await expect(page.getByText(noteTitle, { exact: true }).first()).toBeVisible();
@@ -1064,6 +1065,7 @@ test('shared content, files, settings, and backups persist through core workflow
   const bookmarkTrashRow = page.locator('.mini', { hasText: bookmarkTitle });
   await expect(bookmarkTrashRow).toBeVisible();
   await bookmarkTrashRow.locator('[data-a="restoreTrash"]').click();
+  await confirmDialog(page);
   await waitForSaved(page);
   await page.goto('/e2e-team/bookmarks');
   await expect(page.getByText(bookmarkTitle, { exact: true })).toBeVisible();
@@ -1102,6 +1104,7 @@ test('shared content, files, settings, and backups persist through core workflow
   const fileTrashRow = page.locator('.mini', { hasText: fileName });
   await expect(fileTrashRow).toBeVisible();
   await fileTrashRow.locator('[data-a="restoreTrash"]').click();
+  await confirmDialog(page);
   await waitForSaved(page);
 
   await page.goto('/e2e-team/settings/workspace');
@@ -1258,6 +1261,8 @@ test('large task views keep bounded pages and allow reaching later tasks', async
       await page.locator('select[data-k="lang"]').selectOption(language);
       await waitForSaved(page);
       await page.goto('/e2e-team/tasks');
+      await page.locator('[data-a="setViewMode"][data-v="board"]:visible').first().click();
+      await expect(page.locator('.board')).toBeVisible();
       for (const width of [1440, 390, 320]) {
         await page.setViewportSize({ width, height: 900 });
         const assignee = page.locator(`.kcard[data-drag-card^="${prefix}"] .board-assignee`).first();
@@ -1466,7 +1471,11 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
     await page.goto('/e2e-team/files');
+    if (await page.locator('.files-folder-crumbs [data-project="all"]').isVisible()) await page.locator('.files-folder-crumbs [data-project="all"]').click();
+    await openFileFilters(page);
     await page.locator('#workspace-file-project').selectOption(project.id);
+    await page.keyboard.press('Escape');
+    await page.locator('#workspace-file-q').fill('');
     await page.setViewportSize({ width: 320, height: 844 });
     await showFileFolderTiles(page);
     await expect(page.locator('.files-folder-tile')).toHaveCount(3);
@@ -1492,6 +1501,11 @@ test('bulk files move atomically across searchable folder pages and go to recove
     expect(current.files.filter(file => ids.includes(file.id)).map(file => file.folderId)).toEqual([target, target, target]);
     await expect(page.locator('.files-view-switch [data-v="list"]')).toHaveAttribute('aria-pressed', 'true');
     await setFilesView(page, 'grid');
+    // The source folder remains selected after reload; open the destination.
+    await page.locator('.files-folder-crumbs [data-project="all"]').click();
+    await showFileFolderTiles(page);
+    await page.locator('#files-folder-query').fill('Массовый перенос');
+    await page.locator(`.files-folder-open[data-folder="${target}"]`).click();
     await page.locator('#workspace-file-q').fill(`e2e-batch-${browserName}-`);
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
     if (language === 'Русский') await expectRussianUi(page, 'Bulk file browser');
@@ -1514,6 +1528,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     .locator('.mini', { hasText: fileName(1) })
     .locator('[data-a="restoreTrash"]')
     .click();
+  await confirmDialog(page);
   await waitForSaved(page);
   await page.goto('/e2e-team/files');
   await expect(page.locator('.workspace-file-card', { hasText: fileName(1) })).toContainText('Массовый перенос A');
@@ -1797,6 +1812,7 @@ test('folder trees move safely and saved recursive filters survive reload in bot
       await openFileDetails(page);
       await page.locator('.files-preset-manage summary').click();
       await page.locator('[data-a="removeFileFilter"]').click();
+      await page.keyboard.press('Escape');
       // Move A back to the project root through the same picker for the next locale.
       await page.locator('.files-folder-crumbs [data-project="all"]').click();
       await page.locator('.files-folder-tile', { hasText: 'E2E Tree B' }).locator('[data-a="openFileFolder"]').click();
@@ -1907,7 +1923,9 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.locator('[data-a="clearFileQuery"]').click();
     await expect(page.locator('#workspace-file-q')).toBeFocused();
     await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount);
+    await openFileFilters(page);
     await page.locator('#workspace-file-type').selectOption('pdf');
+    await page.keyboard.press('Escape');
     await expect(page.locator('.workspace-file-card')).toHaveCount(previousPdfs.length + 1);
     expect(await page.locator('.workspace-file-card').evaluateAll(cards => cards.map(card => card.dataset.id).sort())).toEqual(
       [...previousPdfs, file.id].sort(),
@@ -2142,7 +2160,8 @@ test('project whiteboards persist cards connections layout and inherited access 
   await expect(page.locator('.whiteboard-outline')).not.toContainText('No matching cards.');
   await page.locator('[data-in="whiteboardOutlineQuery"]').fill('');
   await page.locator(`[data-board-drag="${second.id}"]`).click();
-  await page.keyboard.press('Delete');
+  await page.locator(`[data-board-id="${second.id}"] [data-a="whiteboardEdit"]`).click();
+  await page.locator('[data-a="whiteboardRemoveInModal"]').click();
   await expect(page.locator('.whiteboard-card')).toHaveCount(3);
   await expect(page.locator('.whiteboard-edge-row')).toHaveCount(0);
   await page.keyboard.press('Control+z');

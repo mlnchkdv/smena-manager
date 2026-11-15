@@ -1,6 +1,14 @@
 import { expect, test } from './fixtures.js';
+import { chooseSelect } from './controls.js';
 
 test.setTimeout(120_000);
+test.use({ actionTimeout: 15000 });
+
+async function chooseInboxCategory(page, category) {
+  const tab = page.locator(`.inbox-tabs [data-v="${category}"]`);
+  if (await tab.isVisible()) await tab.click();
+  else await chooseSelect(page, page.locator('.inbox-category-picker select'), category);
+}
 
 async function finishOnboarding(page) {
   const outcome = page.locator('#o-ws:visible, .shell:visible, [role="alert"]:visible').first();
@@ -95,7 +103,7 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await editor.locator('.inbox-prev [data-a="postComment"]').click();
   await waitForSaved(editor);
   await editor.goto('/e2e-team/inbox');
-  await editor.locator('.inbox-tabs [data-v="mention"]').click();
+  await chooseInboxCategory(editor, 'mention');
   const selfMention = editor.locator('.inbox-list [data-a="selNotif"]', { hasText: taskTitle });
   await expect(selfMention).toContainText('mentioned you', { timeout: 8_000 });
   await expect(selfMention).toContainText('Проверить собственное упоминание.');
@@ -107,7 +115,7 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await expect(inboxRead).toHaveAccessibleName('Mark as unread');
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
   await waitForSaved(editor);
-  await editor.locator('.inbox-tabs [data-v="assign"]').click();
+  await chooseInboxCategory(editor, 'assign');
   await expect(editor.locator('.inbox-prev h2')).toHaveText('Select a notification');
 
   await admin.goto('/e2e-team/notifications');

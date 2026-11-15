@@ -185,6 +185,7 @@ test('knowledge reading editing history search and mobile folders work in Russia
   const core = await (await page.request.get('/api/workspace')).json();
   await page.locator('[data-in="archiveOption"][data-field="project"]').selectOption(core.data.projects[0].id);
   await page.locator('[data-a="importKnowledgeArchive"]').click();
+  await page.locator('[data-a="confirmUploadReview"]').click();
   await expect(page.locator('.knowledge-tool-dialog')).toHaveCount(0, { timeout: 20000 });
   await waitSaved(page);
   await page.reload();

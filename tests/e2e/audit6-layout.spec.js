@@ -150,7 +150,8 @@ test('audit six: calendar clearance, anchored menus, mobile folders and catalog 
       await expect.poll(() => intercepted).toBeTruthy();
       await expect(page.locator('.file-skeleton-card')).toHaveCount(3);
       await expect(page.locator('.files-upload-target')).toContainText(ru ? 'Загрузить в:' : 'Upload to:');
-      await expect(page.locator('.files-upload-target > span')).toBeVisible();
+      await expect(page.locator('.files-upload-target .select-btn')).toBeVisible();
+      await expect(page.locator('.files-upload-target .select-btn')).toHaveAccessibleName(ru ? /Загрузить в проект/ : /Upload to project/);
       await noOverflow(page);
       await page.locator('.files-filter-options > summary').click();
       await page.locator('.files-view-switch [data-v="list"]').click();
