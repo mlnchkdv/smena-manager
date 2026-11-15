@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures.js';
 
 test('public Google OAuth disclosure pages are accessible and responsive without signing in', async ({ page }) => {
+  test.setTimeout(60000);
   await page.goto('/');
   await expect(page.locator('.auth-foot a[href="/about.html"]')).toHaveText('О продукте');
   await expect(page.locator('.auth-foot a[href="/privacy.html"]')).toHaveText('Конфиденциальность');
@@ -22,6 +23,16 @@ test('public Google OAuth disclosure pages are accessible and responsive without
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       await page.locator('details[lang="en"] summary').click();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const boxes = await page.locator('.top nav a:visible, .foot a').evaluateAll(links =>
+        links.map(link => {
+          const { x, width } = link.getBoundingClientRect();
+          return { x, width };
+        }),
+      );
+      for (const box of boxes) {
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+      }
     }
   }
 

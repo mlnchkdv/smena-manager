@@ -134,6 +134,18 @@ details.translation summary {
   font-size: 13px;
 }
 @media (max-width: 680px) {
+  .top-inner {
+    flex-wrap: wrap;
+    padding-block: 12px;
+  }
+  .top nav {
+    margin-left: 0;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+  .foot {
+    flex-wrap: wrap;
+  }
   .cards {
     grid-template-columns: 1fr;
   }
