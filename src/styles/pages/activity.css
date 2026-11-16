@@ -1,0 +1,26 @@
+.activity-type-wide {
+  grid-column: 1 / -1;
+  justify-self: start;
+  max-width: 100%;
+}
+.activity-type-wide > .seg {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.activity-type-narrow {
+  display: none;
+}
+@media (max-width: 640px) {
+  .activity-type-wide {
+    display: none;
+  }
+  .activity-type-narrow {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .activity-page .activity-filters > input {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}

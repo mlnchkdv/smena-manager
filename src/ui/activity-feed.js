@@ -13,8 +13,9 @@ IN.activityGrouping = el => {
   writeLayoutPreference('activityGrouping', el.checked);
   render();
 };
-export function activityGroupingControl(id) {
-  return `<label class="activity-grouping" for="${id}" translate="no"><input id="${id}" type="checkbox" data-in="activityGrouping" ${readLayoutPreference('activityGrouping', false) ? 'checked' : ''}>${copy('Group similar events', 'Группировать похожие события')}</label>`;
+export function activityGroupingControl(id, compact = false) {
+  const label = copy('Group similar events', 'Группировать похожие события');
+  return `<label class="activity-grouping" for="${id}" translate="no" title="${label}"><input id="${id}" type="checkbox" data-in="activityGrouping" aria-label="${label}" ${readLayoutPreference('activityGrouping', false) ? 'checked' : ''}><span${compact ? ' class="hide-m"' : ''}>${label}</span>${compact ? `<span class="only-m">${copy('Group similar', 'Группировать')}</span>` : ''}</label>`;
 }
 export function activityFeed(events, opt = {}) {
   return activityGroups(events, { enabled: readLayoutPreference('activityGrouping', false), day: event => calendarDate(new Date(event.at), S.prefs.tz) })

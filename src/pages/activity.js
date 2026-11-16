@@ -32,6 +32,10 @@ IN.actProject = el => {
   S.ui.actProject = el.value;
   render();
 };
+IN.actType = el => {
+  S.ui.actFilter = el.value;
+  render();
+};
 A.activityPeriod = el => {
   const today = calendarDate(new Date(), S.prefs.tz),
     start = new Date(today + 'T00:00:00Z');
@@ -81,7 +85,7 @@ export function pageActivity() {
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
     <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div></div>
-    <div class="activity-filters">${segmentedControl({
+    <div class="activity-filters"><div class="activity-type-wide">${segmentedControl({
       label: 'Activity filters',
       key: 'actFilter',
       value: f,
@@ -91,7 +95,14 @@ export function pageActivity() {
         ['comments', 'Comments'],
         ['projects', 'Projects'],
       ],
-    })}
+    })}</div><label class="activity-type-narrow"><span class="sr">${T('Event type', 'Тип событий')}</span><select class="select" data-in="actType" aria-label="${T('Event type', 'Тип событий')}">${[
+      ['all', 'All'],
+      ['status', 'Status changes'],
+      ['comments', 'Comments'],
+      ['projects', 'Projects'],
+    ]
+      .map(([value, name]) => `<option value="${value}" ${f === value ? 'selected' : ''}>${name}</option>`)
+      .join('')}</select></label>
     <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Object or project', 'Объект или проект')}" value="${esc(query)}"><label class="activity-project"><span class="sr">${T('Project', 'Проект')}</span><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All projects', 'Все проекты')}</option>${D()
       .projects.filter(canSee)
       .map(p => `<option value="${esc(p.id)}" ${project === p.id ? 'selected' : ''} translate="no">${esc(p.name)}</option>`)
@@ -102,7 +113,7 @@ export function pageActivity() {
       .join(
         '',
       )}</select></label></div><div class="activity-context-bar"><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="activity-date-fields"><div class="activity-date-presets"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button></div><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details>${f !== 'all' || who !== 'all' || from || to || query || project !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>' : ''}${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
-    ${activityGroupingControl('activity-grouping')}</div>
+    ${activityGroupingControl('activity-grouping', true)}</div>
     ${
       invalidRange
         ? `<p id="activity-date-error" class="alert warn" role="alert" translate="no">${T('The start date must be on or before the end date. Correct the dates or clear the period.', 'Начальная дата должна быть не позже конечной. Исправьте даты или очистите период.')}</p>`

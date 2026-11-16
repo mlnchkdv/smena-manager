@@ -49,5 +49,6 @@
 @import './help-guides.css';
 
 @import './pages/whiteboards.css';
+@import './pages/activity.css';
 @import './file-folder-viewport.css';
 @import './knowledge-mobile-cards.css';
