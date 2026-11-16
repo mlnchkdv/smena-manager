@@ -4,9 +4,9 @@ import '../features/knowledge-capture.js';
 import { knowledgeContext } from './knowledge-context.js';
 import '../features/knowledge-inline.js';
 import { kc } from './knowledge-types.js';
-import { ago, esc } from '../core/utils.js';
+import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { D, mem } from '../core/store.js';
+import { D } from '../core/store.js';
 import { knowledgeSaveLabel, knowledgeEditBlocked } from './knowledge-save-status.js';
 import { S } from '../core/store.js';
 import { knowledgeHistory } from './knowledge-history.js';
@@ -16,6 +16,7 @@ import { render } from '../shell/render.js';
 import { captureKnowledgeEditorPosition, restoreKnowledgeEditorPosition } from './knowledge-editor-position.js';
 import { knowledgeVersionFits } from '../shared/knowledge-history.js';
 import { noteTypeBadge } from './knowledge-type-badge.js';
+import { knowledgeByline } from './knowledge-byline.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { openModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
@@ -95,7 +96,7 @@ export function noteEditor(note, folders, readOnly) {
         <label class="sr" for="knowledge-title">Note title</label>
         <textarea rows="1" class="knowledge-title" id="knowledge-title" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="title" placeholder="Untitled note" ${disabled}>${esc(note.title)}</textarea>
       </div>
-      <div class="knowledge-editor-meta-row"><div class="knowledge-meta">${noteTypeBadge(note)}${ic('clock-3', 12)}<span>Updated ${ago(noteTime(note.updatedAt))}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<details class="ui-menu knowledge-note-actions"><summary class="ibtn" aria-label="More actions">${ic('ellipsis', 16)}</summary><div>${noteUtilities(note)}<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost" data-a="showKnowledgeProperties">Note properties</button><button class="btn btn-danger-ghost" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button></div></details>`}</div>
+      <div class="knowledge-editor-meta-row"><div class="knowledge-meta">${noteTypeBadge(note)}${knowledgeByline(note)}</div>${readOnly ? `<span class="badge">${ic('eye', 12)}View only</span>` : `<details class="ui-menu knowledge-note-actions"><summary class="ibtn" aria-label="More actions">${ic('ellipsis', 16)}</summary><div>${noteUtilities(note)}<button class="btn btn-ghost" data-a="keepKnowledgeOffline" data-id="${esc(note.id)}" translate="no">${kc('Keep offline', 'Сохранить офлайн')}</button><button class="btn btn-ghost" data-a="showKnowledgeProperties">Note properties</button><button class="btn btn-danger-ghost" data-a="deleteKnowledgeNote" data-id="${note.id}">${ic('trash-2', 13)}Delete</button></div></details>`}</div>
     </div>
     ${conflict ? `<div class="alert danger" role="alert"><span>Resolve the saved conflict before editing this note.</span><button class="btn btn-secondary btn-sm" data-a="reviewSyncConflict">Review conflict</button><button class="btn btn-ghost btn-sm" data-a="downloadUnsyncedCopy">Export recovery copy</button></div>` : ''}
     <div class="alert info knowledge-version-coverage" data-knowledge-version-coverage data-id="${esc(note.id)}" role="status" ${knowledgeVersionFits(note) ? 'hidden' : ''}><span>The snapshot exceeds the 8 MiB version budget. Download the source and shorten the note before editing.</span><button class="btn btn-secondary btn-sm" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">Download source</button></div>
@@ -121,8 +122,3 @@ export function noteEditor(note, folders, readOnly) {
     ${knowledgeContext(note)}${knowledgeHistory(note, readOnly || conflict)}
   </section>`;
 }
-
-const noteTime = value => {
-  const parsed = typeof value === 'number' ? value : Date.parse(value || '');
-  return Number.isFinite(parsed) ? parsed : Date.now();
-};

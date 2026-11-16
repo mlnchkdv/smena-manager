@@ -685,6 +685,27 @@
   font-size: var(--fs-xs);
   margin-bottom: 16px;
 }
+.knowledge-byline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+.knowledge-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.knowledge-updated svg {
+  flex-shrink: 0;
+}
+.knowledge-author {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 @media (max-width: 640px) {
   .knowledge-drawer-brand > span {
     display: none;

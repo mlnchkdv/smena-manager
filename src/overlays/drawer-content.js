@@ -2,6 +2,7 @@ import { canEditProject, canCommentProject } from '../shared/project-access.js';
 import { isFavorite } from '../core/favorites.js';
 import { activityVerbForm } from '../shared/activity-copy.js';
 import { noteTypeBadge } from '../ui/knowledge-type-badge.js';
+import { knowledgeByline } from '../ui/knowledge-byline.js';
 /* =====================================================================
    OVERLAYS: drawer, modals, popovers, context menus, command palette
    ===================================================================== */
@@ -60,7 +61,6 @@ export function knowledgeDrawerHtml(note) {
   const readingMarkup = preview ? knowledgeReadingHtml(note, previewSource) : '';
   const found = preview ? knowledgeFind(readingMarkup, note.id) : null;
   const previewMarkup = found?.markup ?? readingMarkup;
-  const updated = typeof note.updatedAt === 'number' ? note.updatedAt : Date.parse(note.updatedAt || '');
   const navigation = preview
     ? knowledgePreviewNavigation(S.ui.knowledgePreviewContext, {
         owner: S.ui.currentUser?.id,
@@ -76,7 +76,7 @@ export function knowledgeDrawerHtml(note) {
     (navigation?.total > 1
       ? `<div class="knowledge-preview-pager" role="group" aria-label="Notes on this page"><button id="knowledge-preview-previous" class="ibtn ibtn-sm" data-a="stepKnowledgePreview" data-direction="previous" aria-label="Previous note" title="Previous note" ${navigation.previous ? '' : 'disabled'}>${ic('chevron-left', 16)}</button><span id="knowledge-preview-position" class="knowledge-preview-position num" tabindex="-1" aria-live="polite" aria-atomic="true"><span class="sr">Notes on this page</span> ${navigation.index + 1} / ${navigation.total}</span><button id="knowledge-preview-next" class="ibtn ibtn-sm" data-a="stepKnowledgePreview" data-direction="next" aria-label="Next note" title="Next note" ${navigation.next ? '' : 'disabled'}>${ic('chevron-right', 16)}</button></div>`
       : '');
-  const previewBody = `<section class="knowledge-quick-preview"><h1 class="knowledge-reader-title" translate="no">${esc(note.title || tr('Untitled note'))}</h1><div class="knowledge-quick-preview-meta">${noteTypeBadge(note)}${ic('clock-3', 13)}<span>Updated ${ago(Number.isFinite(updated) ? updated : Date.now())}</span>${note.updatedBy && mem(note.updatedBy) ? `<span translate="no">· ${esc(mem(note.updatedBy).name)}</span>` : ''}</div>${note.summary && !(note.sourceFormat === 'text' ? previewSource.includes(note.summary) : redundantMarkdownSummary(note.summary, previewSource)) ? `<p class="knowledge-quick-summary" translate="no">${esc(note.summary)}</p>` : ''}<div class="knowledge-quick-content" translate="no">${previewMarkup || `<p class="faint">${esc(tr('No content yet.'))}</p>`}</div>${knowledgeMetadata(note)}</section>`;
+  const previewBody = `<section class="knowledge-quick-preview"><h1 class="knowledge-reader-title" translate="no">${esc(note.title || tr('Untitled note'))}</h1><div class="knowledge-quick-preview-meta">${noteTypeBadge(note)}${knowledgeByline(note)}</div>${note.summary && !(note.sourceFormat === 'text' ? previewSource.includes(note.summary) : redundantMarkdownSummary(note.summary, previewSource)) ? `<p class="knowledge-quick-summary" translate="no">${esc(note.summary)}</p>` : ''}<div class="knowledge-quick-content" translate="no">${previewMarkup || `<p class="faint">${esc(tr('No content yet.'))}</p>`}</div>${knowledgeMetadata(note)}</section>`;
   const editAction =
     preview && !readOnly
       ? `<button class="ibtn ibtn-sm knowledge-preview-edit" data-a="editKnowledgeNote" aria-label="Edit note" title="Edit note">${ic('pencil', 15)}</button>`
