@@ -211,7 +211,7 @@ export function viewToolbar(key, opt = {}) {
     estimate: 'Estimate',
     project: 'Project',
   }[v.sort.f];
-  const compact = opt.compact && (document.querySelector('.main')?.clientWidth || innerWidth) <= 640;
+  const compact = opt.compact && (document.querySelector('.main')?.clientWidth || innerWidth) <= 1000;
   const secondary = `${opt.sort === false ? '' : `<button class="btn btn-ghost" data-a="pop" data-pop="sort" data-key="${key}">${ic('arrow-up-down', 14)}<span class="hide-m">Sort:</span> ${sortName}</button>`}
     ${opt.group !== false ? `<button class="btn btn-ghost" data-a="pop" data-pop="group" data-key="${key}">${ic('rows-3', 14)}<span class="hide-m">Group:</span> ${{ status: 'Status', priority: 'Priority', assignee: 'Assignee', project: 'Project', due: 'Due date', none: 'None' }[v.group]}</button>` : ''}
     ${opt.cols ? `<button class="btn btn-ghost" data-a="pop" data-pop="cols" data-key="${key}">${ic('columns-3', 14)}Columns</button>` : ''}`;

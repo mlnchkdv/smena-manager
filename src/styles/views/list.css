@@ -54,6 +54,55 @@
   flex: 1;
   min-height: var(--row-h);
 }
+.task-row-status {
+  flex: 0 0 auto;
+  color: var(--text-2);
+}
+/* Match the real workspace width, including an expanded navigation rail. */
+@container workspace (min-width: 641px) and (max-width: 1050px) {
+  .tlist {
+    --task-title-min: 240px;
+    --task-assignee-width: 112px;
+    --task-project-width: 116px;
+    --task-priority-width: 120px;
+  }
+}
+/* A narrow desktop workspace keeps the title above metadata instead of
+   retaining a wide grid behind an internal horizontal scrollbar. */
+@container workspace (min-width: 641px) and (max-width: 900px) {
+  .tlist .thead,
+  .tlist .trow .handle {
+    display: none;
+  }
+  .tlist .trow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding: 6px 8px;
+  }
+  .tlist .trow > div {
+    padding: 0;
+  }
+  .tlist .trow .c-check,
+  .tlist .trow .c-more {
+    flex: 0 0 32px;
+  }
+  .tlist .trow .ttl {
+    flex: 1 1 calc(100% - 80px);
+  }
+  .tlist .trow .c-meta {
+    order: 1;
+    flex: 0 1 auto;
+    max-width: 100%;
+  }
+  .tlist .trow .ttl .tt {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
 .trow {
   border-bottom: 1px solid var(--divider);
   position: relative;

@@ -601,6 +601,7 @@ handlers.A.submitTask = () => {
 };
 handlers.A.startComposer = el => {
   S.ui.composer = { ctx: el.dataset.ctx, group: el.dataset.group, gb: JSON.parse(el.dataset.gb || '{}'), title: '' };
+  S.ui.collapsedGroups[`${el.dataset.ctx}:${el.dataset.group}`] = false;
   S.ui.pop = null;
   render();
   setTimeout(() => $('#composer-in')?.focus(), 0);

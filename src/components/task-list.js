@@ -17,11 +17,11 @@ import { taskCycleProject } from '../shared/task-cycles.js';
 /* ---------- shared list renderer ---------- */
 export const LCOLS = {
   status: ['Status', '140px'],
-  assignee: ['Assignee', '150px'],
-  priority: ['Priority', '108px'],
+  assignee: ['Assignee', 'var(--task-assignee-width, 140px)'],
+  priority: ['Priority', 'var(--task-priority-width, 128px)'],
   due: ['Due date', '148px'],
   labels: ['Labels', '168px'],
-  project: ['Project', '160px'],
+  project: ['Project', 'var(--task-project-width, 140px)'],
 };
 const taskDisabled = t => (canEditProject(proj(t.project), D().me, S.ui.currentUser?.role || 'viewer') ? '' : 'disabled');
 export function cellStatus(t) {
@@ -62,8 +62,9 @@ export function taskRow(t, cols, tpl, opt = {}) {
         : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
     }</label></div>
     <div class="ttl" role="cell" data-id="${t.id}" ${editable ? 'data-dbl="editTitle"' : ''}>
-      ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
-      ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}">`}<span class="key" translate="no">${t.key}</span>
+      ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : opt.inlineStatus ? '' : '<span style="width:18px;flex-shrink:0"></span>'}
+      ${opt.inlineStatus ? `<button ${taskDisabled(t)} class="ibtn task-row-status" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="${esc(tr('Status'))}: ${esc(tr(ST[t.status].name))}" title="${esc(tr(ST[t.status].name))}">${stIcon(t.status)}</button>` : ''}
+      ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}" title="${esc(t.title)}">`}<span class="key" translate="no">${t.key}</span>
       ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt" translate="no">${esc(t.title)}</span>`}
       ${t.recur ? `<span class="meta-mini" data-tip="Repeats ${t.recur.toLowerCase()}">${ic('repeat', 11)}</span>` : ''}
       ${t.subtasks.length ? `<span class="meta-mini">${ic('list-checks', 11)}${sd}/${t.subtasks.length}</span>` : ''}
@@ -75,15 +76,19 @@ export function taskRow(t, cols, tpl, opt = {}) {
   ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><label class="task-check-target"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"></label><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
 }
 export function listHtml(groups, key, opt = {}) {
-  const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
-  const tpl = `18px 48px minmax(220px,1fr) ${cols.map(c => LCOLS[c][1]).join(' ')} 40px`;
+  const inlineStatus = groups.length > 0 && groups.every(group => group.set?.status === group.key);
+  const cols = (opt.cols || ['status', 'assignee', 'priority', 'due', 'labels']).filter(column => !inlineStatus || column !== 'status');
+  const tpl = `18px 48px minmax(var(--task-title-min, 260px),1fr) ${cols.map(c => LCOLS[c][1]).join(' ')} 40px`;
   const all = groups.flatMap(g => g.tasks.map(t => t.id));
   const commentCounts = new Map();
   for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
   const windows = new Map(
     groups.map(group => {
       const groupKey = `${key}:${group.key}`;
-      return [group.key, { ...listWindow(group.tasks, S.ui.listPages?.[groupKey]), collapsed: S.ui.collapsedGroups[groupKey] ?? (group.collapsed || false) }];
+      return [
+        group.key,
+        { ...listWindow(group.tasks, S.ui.listPages?.[groupKey]), collapsed: S.ui.collapsedGroups[groupKey] ?? (group.collapsed || !group.tasks.length) },
+      ];
     }),
   );
   const visibleIds = groups.flatMap(group => (windows.get(group.key).collapsed ? [] : windows.get(group.key).items.map(task => task.id)));
@@ -115,7 +120,7 @@ export function listHtml(groups, key, opt = {}) {
       .map(g => {
         const gk = key + ':' + g.key;
         const window = windows.get(g.key);
-        const coll = S.ui.collapsedGroups[gk] ?? (g.collapsed || false);
+        const coll = window.collapsed;
         const comp = S.ui.composer && S.ui.composer.ctx === key && S.ui.composer.group === g.key;
         return `${
           groups.length > 1 || g.key !== 'all'
@@ -126,7 +131,7 @@ export function listHtml(groups, key, opt = {}) {
         </div></div>`
             : ''
         }
-        ${coll ? '' : window.items.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key, commentCounts })).join('')}
+        ${coll ? '' : window.items.map(t => taskRow(t, cols, tpl, { group: g.key, drag: opt.drag, complete: opt.complete, key, commentCounts, inlineStatus })).join('')}
         ${!coll && window.pages > 1 ? `<div role="row"><div class="row" role="cell" aria-colspan="${columnCount}" style="justify-content:center;gap:12px;padding:10px;flex-wrap:wrap"><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page - 1}" ${window.page === 0 ? 'disabled' : ''}>Previous</button><span class="hint"><span>Page</span> ${window.page + 1} / ${window.pages}</span><button class="btn btn-sm btn-secondary" data-a="listPage" data-key="${esc(gk)}" data-page="${window.page + 1}" ${window.page + 1 === window.pages ? 'disabled' : ''}>Next</button></div></div>` : ''}
         ${coll || opt.noAdd ? '' : `<div role="row"><div role="cell" aria-colspan="${columnCount}">${comp ? `<div class="addrow" style="background:var(--surface-2)">${ic('plus', 14)}<input class="inline-in" id="composer-in" data-in="composer" value="${esc(S.ui.composer.title || '')}" data-key-enter="commitComposer" placeholder="Task name — press Enter to add, Esc to cancel" aria-label="New task name"></div>` : `<button class="addrow" data-a="startComposer" data-ctx="${key}" data-group="${g.key}" data-gb="${esc(JSON.stringify(g.set || {}))}">${ic('plus', 14)}Add task</button>`}</div></div>`}`;
       })
