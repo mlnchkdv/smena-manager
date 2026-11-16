@@ -1,0 +1,885 @@
+{
+  "date": "2026-11-16",
+  "sourceCommit": "0fe749c8ef0c2dbdf36a02094ca1ae13ed60e6c3",
+  "scope": "Read-only production audit plus fresh local synthetic workspace probes. No new uploads, file moves, board geometry writes or notification delivery.",
+  "local": {
+    "matrix": {
+      "completed": true,
+      "fatal": "",
+      "count": 242,
+      "overflows": [],
+      "errors": [],
+      "missing": []
+    },
+    "routes": [
+      "home",
+      "inbox",
+      "mytasks",
+      "favorites",
+      "notifications",
+      "search",
+      "overview",
+      "projects",
+      "files",
+      "tasks",
+      "calendar",
+      "timeline",
+      "knowledge",
+      "bookmarks",
+      "whiteboards",
+      "graph",
+      "members",
+      "teams",
+      "activity",
+      "archive",
+      "member/audit-member-0",
+      "team/audit-team",
+      "whiteboard/audit-board",
+      "project/pl/overview",
+      "project/pl/board",
+      "project/pl/list",
+      "project/pl/table",
+      "project/pl/calendar",
+      "project/pl/timeline",
+      "project/pl/files",
+      "project/pl/activity"
+    ],
+    "locales": ["ru", "en"],
+    "allRouteSizes": [
+      [320, 567],
+      [390, 844],
+      [1366, 768]
+    ],
+    "extendedRoutes": ["files", "knowledge", "whiteboard/audit-board", "graph", "bookmarks", "whiteboards", "overview"],
+    "additionalSizes": [
+      [768, 1024],
+      [844, 390],
+      [1024, 768],
+      [1920, 1080]
+    ],
+    "translationHeuristicSuspects": [],
+    "translationHeuristicScope": "Narrow control-label heuristic, not a complete proof of localization.",
+    "interactions": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "height": 567,
+        "kind": "knowledge-view",
+        "top": 50.125,
+        "bottom": 487.125,
+        "left": 8,
+        "right": 304,
+        "viewport": 567,
+        "scroll": 59
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Вид",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "kind": "canvas-space",
+        "top": 245.3125,
+        "bottom": 525.3125,
+        "mode": "Прокручивать страницу",
+        "modeWidth": 96,
+        "viewportHeight": 567,
+        "canvasHeight": 280
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "height": 844,
+        "kind": "knowledge-view",
+        "top": 136.5,
+        "bottom": 632.0625,
+        "left": 54,
+        "right": 374,
+        "viewport": 844,
+        "scroll": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Вид",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "kind": "canvas-space",
+        "top": 220.671875,
+        "bottom": 744.671875,
+        "mode": "Прокручивать страницу",
+        "modeWidth": 158,
+        "viewportHeight": 844,
+        "canvasHeight": 524
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "height": 390,
+        "kind": "knowledge-view",
+        "top": 112,
+        "bottom": 372,
+        "left": 508,
+        "right": 828,
+        "viewport": 390,
+        "scroll": 212
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Вид",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "kind": "canvas-space",
+        "top": 163.5625,
+        "bottom": 383.5625,
+        "mode": "Перемещать карточки",
+        "modeWidth": 142,
+        "viewportHeight": 390,
+        "canvasHeight": 220
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "height": 768,
+        "kind": "knowledge-view",
+        "top": 122.765625,
+        "bottom": 676.890625,
+        "left": 1022,
+        "right": 1342,
+        "viewport": 768,
+        "scroll": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Вид",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "kind": "canvas-space",
+        "top": 198.640625,
+        "bottom": 746.640625,
+        "mode": "Перемещать карточки",
+        "modeWidth": 142,
+        "viewportHeight": 768,
+        "canvasHeight": 548
+      },
+      {
+        "locale": "ru",
+        "kind": "graph-keyboard-expand",
+        "group": "Запуск продукта / Product launch · 42\nГруппа · 42 · Файл · внутренних связей: 41 · внешних связей: 0",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Развернуть группу",
+          "focusVisible": true
+        },
+        "pickerOpen": null
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "height": 567,
+        "kind": "knowledge-view",
+        "top": 65,
+        "bottom": 502,
+        "left": 8,
+        "right": 304,
+        "viewport": 567,
+        "scroll": 59
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Display",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "kind": "canvas-space",
+        "top": 262.703125,
+        "bottom": 542.703125,
+        "mode": "Scroll page",
+        "modeWidth": 96,
+        "viewportHeight": 567,
+        "canvasHeight": 280
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "height": 844,
+        "kind": "knowledge-view",
+        "top": 136.5,
+        "bottom": 632.0625,
+        "left": 54,
+        "right": 374,
+        "viewport": 844,
+        "scroll": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Display",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "kind": "canvas-space",
+        "top": 245.3125,
+        "bottom": 769.3125,
+        "mode": "Scroll page",
+        "modeWidth": 158,
+        "viewportHeight": 844,
+        "canvasHeight": 524
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "height": 390,
+        "kind": "knowledge-view",
+        "top": 112,
+        "bottom": 372,
+        "left": 508,
+        "right": 828,
+        "viewport": 390,
+        "scroll": 212
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Display",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "kind": "canvas-space",
+        "top": 163.5625,
+        "bottom": 383.5625,
+        "mode": "Move cards",
+        "modeWidth": 142,
+        "viewportHeight": 390,
+        "canvasHeight": 220
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "height": 768,
+        "kind": "knowledge-view",
+        "top": 122.765625,
+        "bottom": 676.890625,
+        "left": 1022,
+        "right": 1342,
+        "viewport": 768,
+        "scroll": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "kind": "knowledge-view-escape",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Display",
+          "focusVisible": true
+        }
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "kind": "canvas-space",
+        "top": 198.640625,
+        "bottom": 746.640625,
+        "mode": "Move cards",
+        "modeWidth": 142,
+        "viewportHeight": 768,
+        "canvasHeight": 548
+      },
+      {
+        "locale": "en",
+        "kind": "graph-keyboard-expand",
+        "group": "Запуск продукта / Product launch · 42\nGroup · 42 · File · internal links: 41 · external links: 0",
+        "active": {
+          "tag": "SUMMARY",
+          "id": "",
+          "text": "Expand group",
+          "focusVisible": true
+        },
+        "pickerOpen": null
+      }
+    ],
+    "taskHitAreas": [
+      {
+        "route": "tasks",
+        "controls": [
+          {
+            "a": "selAll",
+            "id": "",
+            "aria": "Select visible tasks",
+            "input": {
+              "tag": "INPUT",
+              "c": "check",
+              "w": 0,
+              "h": 0,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "",
+              "w": 0,
+              "h": 0,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "a": "selRow",
+            "id": "",
+            "aria": "Select Подготовить материалы запуска / Prepare launch materials 0",
+            "input": {
+              "tag": "INPUT",
+              "c": "check",
+              "w": 15,
+              "h": 15,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "c-check",
+              "w": 15,
+              "h": 15,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "a": "selRow",
+            "id": "",
+            "aria": "Select Проверить адаптивную версию / Review mobile layouts 4",
+            "input": {
+              "tag": "INPUT",
+              "c": "check",
+              "w": 15,
+              "h": 15,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "c-check",
+              "w": 15,
+              "h": 15,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          }
+        ]
+      },
+      {
+        "route": "mytasks",
+        "controls": [
+          {
+            "a": "toggleDone",
+            "id": "",
+            "aria": "Mark Подготовить материалы запуска / Prepare launch materials 0 complete",
+            "input": {
+              "tag": "INPUT",
+              "c": "check round",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "c-check",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "a": "toggleDone",
+            "id": "",
+            "aria": "Mark Подготовить материалы запуска / Prepare launch materials 9 complete",
+            "input": {
+              "tag": "INPUT",
+              "c": "check round",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "c-check",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "a": "toggleDone",
+            "id": "",
+            "aria": "Mark Подготовить материалы запуска / Prepare launch materials 18 complete",
+            "input": {
+              "tag": "INPUT",
+              "c": "check round",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "label": null,
+            "parent": {
+              "tag": "DIV",
+              "c": "c-check",
+              "w": 16,
+              "h": 16,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          }
+        ]
+      },
+      {
+        "route": "knowledge",
+        "controls": []
+      },
+      {
+        "route": "inbox",
+        "controls": [
+          {
+            "a": "toggleUnreadOnly",
+            "id": "",
+            "aria": null,
+            "input": {
+              "tag": "INPUT",
+              "c": "toggle",
+              "w": 30,
+              "h": 18,
+              "text": ""
+            },
+            "label": {
+              "tag": "LABEL",
+              "c": "row",
+              "w": 77.1875,
+              "h": 44,
+              "text": "Unread"
+            },
+            "parent": {
+              "tag": "LABEL",
+              "c": "row",
+              "w": 77.1875,
+              "h": 44,
+              "text": "Unread"
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "\"\""
+            }
+          }
+        ]
+      },
+      {
+        "route": "bookmarks",
+        "controls": [
+          {
+            "id": "",
+            "aria": null,
+            "input": {
+              "tag": "INPUT",
+              "c": "",
+              "w": 13,
+              "h": 13,
+              "text": ""
+            },
+            "label": {
+              "tag": "LABEL",
+              "c": "row",
+              "w": 101.84375,
+              "h": 44,
+              "text": "Select page"
+            },
+            "parent": {
+              "tag": "LABEL",
+              "c": "row",
+              "w": 101.84375,
+              "h": 44,
+              "text": "Select page"
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "id": "",
+            "aria": "Select bookmark: Справочник / Reference 0",
+            "input": {
+              "tag": "INPUT",
+              "c": "",
+              "w": 13,
+              "h": 13,
+              "text": ""
+            },
+            "label": {
+              "tag": "LABEL",
+              "c": "bookmark-select",
+              "w": 44,
+              "h": 44,
+              "text": ""
+            },
+            "parent": {
+              "tag": "LABEL",
+              "c": "bookmark-select",
+              "w": 44,
+              "h": 44,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          },
+          {
+            "id": "",
+            "aria": "Select bookmark: Справочник / Reference 1",
+            "input": {
+              "tag": "INPUT",
+              "c": "",
+              "w": 13,
+              "h": 13,
+              "text": ""
+            },
+            "label": {
+              "tag": "LABEL",
+              "c": "bookmark-select",
+              "w": 44,
+              "h": 44,
+              "text": ""
+            },
+            "parent": {
+              "tag": "LABEL",
+              "c": "bookmark-select",
+              "w": 44,
+              "h": 44,
+              "text": ""
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          }
+        ]
+      },
+      {
+        "route": "activity",
+        "controls": [
+          {
+            "id": "activity-grouping",
+            "aria": null,
+            "input": {
+              "tag": "INPUT",
+              "c": "",
+              "w": 13,
+              "h": 13,
+              "text": ""
+            },
+            "label": {
+              "tag": "LABEL",
+              "c": "activity-grouping",
+              "w": 140.375,
+              "h": 44,
+              "text": "Group similar events"
+            },
+            "parent": {
+              "tag": "LABEL",
+              "c": "activity-grouping",
+              "w": 140.375,
+              "h": 44,
+              "text": "Group similar events"
+            },
+            "pseudo": {
+              "before": "none",
+              "after": "none"
+            }
+          }
+        ]
+      }
+    ],
+    "uploadDestination": [
+      {
+        "locale": "ru",
+        "rows": ["video.mp4pl · 1.0 GBПауза50%", "video.mp4pl · 1.0 GBПауза50%"],
+        "destinationPresent": false
+      },
+      {
+        "locale": "en",
+        "rows": ["video.mp4pl · 1.0 GBPaused50%", "video.mp4pl · 1.0 GBPaused50%"],
+        "destinationPresent": false
+      }
+    ],
+    "uploadFixture": {
+      "name": "video.mp4",
+      "project": "pl",
+      "bytes": 1073741824,
+      "phase": "paused",
+      "pct": 50,
+      "folderIds": ["audit-folder-a", "audit-folder-b"],
+      "relativePaths": ["Event A/video.mp4", "Event B/video.mp4"],
+      "networkTransfersStarted": 0
+    },
+    "graphSummary": {
+      "viewport": 390,
+      "left": 16,
+      "right": 452.046875,
+      "width": 436.046875,
+      "scrollWidth": 436,
+      "clientWidth": 436,
+      "whiteSpace": "nowrap",
+      "parent": "graph-meta",
+      "parentWidth": 358,
+      "rootOverflow": 0,
+      "text": "На схеме: 4 узла · 3 группы · 0 линийЗагружено: 250 из 264 материала · 55 связей"
+    },
+    "knowledgeQuery": {
+      "note": {
+        "updatedAt": "2026-11-16T10:00:00.000Z",
+        "tags": ["art direction"]
+      },
+      "results": [
+        {
+          "query": "tag:\"art direction\"",
+          "parsed": {
+            "rules": [
+              {
+                "field": "tag",
+                "value": "\"art",
+                "op": "="
+              }
+            ],
+            "terms": ["direction"]
+          },
+          "match": false
+        },
+        {
+          "query": "updated=2026-11-16",
+          "parsed": {
+            "rules": [
+              {
+                "field": "updated",
+                "op": "=",
+                "value": "2026-11-16"
+              }
+            ],
+            "terms": []
+          },
+          "match": false
+        },
+        {
+          "query": "updated>=2026-11-01",
+          "parsed": {
+            "rules": [
+              {
+                "field": "updated",
+                "op": ">=",
+                "value": "2026-11-01"
+              }
+            ],
+            "terms": []
+          },
+          "match": true
+        },
+        {
+          "query": "updated>=2026-11-01",
+          "timestampForm": "milliseconds",
+          "match": false
+        }
+      ],
+      "qualification": "Quoted tag mismatch confirmed at shared parser; numeric timestamps and calendar-day equality are consistency cases, not observed corrupt production records."
+    }
+  },
+  "production": {
+    "origin": "https://smena.team",
+    "health": {
+      "status": "ok",
+      "release": "0fe749c8ef0c2dbdf36a02094ca1ae13ed60e6c3"
+    },
+    "desktopWindowSizes": [
+      [1100, 729],
+      [1280, 752]
+    ],
+    "mobileEmulation": {
+      "states": [
+        {
+          "width": 390,
+          "height": 844,
+          "locale": "en",
+          "pages": ["files", "knowledge", "whiteboards", "whiteboard/phkbu52", "graph"]
+        },
+        {
+          "width": 390,
+          "height": 844,
+          "locale": "ru",
+          "pages": ["settings/language", "files", "knowledge", "graph"]
+        },
+        {
+          "width": 320,
+          "height": 567,
+          "locale": "ru",
+          "pages": ["graph"]
+        }
+      ],
+      "note": "Window resizes also produced height 811; no physical phone."
+    },
+    "finalUi": {
+      "locale": "ru",
+      "languageSaved": true,
+      "deviceEmulation": false,
+      "devtoolsClosed": true,
+      "page": "graph",
+      "session": "signed in"
+    },
+    "notificationSnapshot": {
+      "observedAround": "2026-11-16T16:02:00+04:00",
+      "queuePaused": true,
+      "pendingChannelDeliveries": 13,
+      "channels": {
+        "email": 6,
+        "push": 7
+      },
+      "retrying": 1,
+      "reasons": {
+        "provider_error": 1,
+        "unknown": 12,
+        "channel_unavailable": 0
+      },
+      "oldestPendingLocal": "2026-11-14 22:35",
+      "lastCronLocal": "2026-11-05 08:45",
+      "lastDeliveryLocal": "2026-11-14 22:35",
+      "webPushConfigured": true,
+      "activePushDevices": 0,
+      "deliveryWasTriggered": false,
+      "qualification": "Counts are channel deliveries, not distinct recipients. Paused queue and disabled cron may be intentional; Gmail cause not established."
+    },
+    "verified": [
+      "Signed-in workspace restored after full navigation",
+      "Three existing service TXT remain in folder B",
+      "TXT3 preview displays content and full project/folder path",
+      "EN overview shows 3 projects, 11 open tasks, 2 overdue and 4 unassigned",
+      "EN mobile catalogs and board opened",
+      "EN graph contains 30 loaded materials and 20 connections; physics initially off"
+    ],
+    "notRepeated": [
+      "Full local matrix with production data",
+      "Large transfers and browser restart recovery",
+      "Production graph physics drag",
+      "Production board geometry writes",
+      "Ordinary-member production access mutation"
+    ]
+  },
+  "previousSameCodeChecks": {
+    "source": "docs/audits/2026-11-16-a11-delivery.json",
+    "rerunThisAudit": false,
+    "server": {
+      "tests": 1029,
+      "pass": 1028,
+      "skip": 1,
+      "fail": 0
+    },
+    "axe": {
+      "states": 24,
+      "automatedViolations": 0
+    },
+    "settings": {
+      "states": 72,
+      "rootOverflow": 0
+    },
+    "build": {
+      "initialStaticJavaScriptKiB": 599.6,
+      "budgetKiB": 600
+    }
+  },
+  "excludedSignals": [
+    "Perplexity and browser extension font CSP messages are not graph application style failures",
+    "Small input rectangles with associated 44px labels are not treated as small effective hit areas",
+    "Zero root overflow does not prove absence of internal clipping"
+  ],
+  "limitations": [
+    "No physical iOS/Android",
+    "No VoiceOver/TalkBack session",
+    "No measured Core Web Vitals or exact production cold-start latency",
+    "No end-to-end notification send"
+  ]
+}
