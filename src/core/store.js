@@ -2,7 +2,8 @@
 import { TODAY, diffD, iso, parse, uid } from './utils.js';
 import { PCOLORS, TEAMS_SEED } from './constants.js';
 import { normalizeProjectColor } from '../shared/project-appearance.js';
-import { seed } from '../data/seed.js';
+import { emptyWorkspace } from '../shared/empty-workspace.js';
+import { PRODUCT_NAME } from '../shared/product.js';
 import { queueWorkspaceSync } from './workspace-sync.js';
 import { workspaceDocumentData } from '../shared/workspace-documents.js';
 import { restoreUnauthorizedChanges } from '../shared/workspace-permissions.js';
@@ -66,7 +67,9 @@ function initialLanguage() {
 }
 export const saved = load();
 export const S = {
-  data: saved?.data || migrateNotificationRecipients(seed()),
+  // A signed-out boot needs no demo tasks, files or sample identities. The
+  // authenticated snapshot is loaded before the workspace shell is shown.
+  data: saved?.data || { ...emptyWorkspace(), ws: { name: PRODUCT_NAME, url: 'smena-manager', c: '#1D1C1A', brand: true } },
   prefs: Object.assign({}, DEFAULT_PREFS, { lang: initialLanguage() }, saved?.prefs || {}),
   views: saved?.views || {},
   ui: {

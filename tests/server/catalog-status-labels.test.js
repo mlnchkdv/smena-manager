@@ -6,7 +6,8 @@ test('connection loading is localized before the lazy file/graph modules load', 
   const document = globalThis.document;
   globalThis.document ||= { querySelectorAll: () => [] };
   const { S } = await import('../../src/core/store.js');
-  const { t } = await import('../../src/core/i18n.js');
+  const { t, loadRussianLabels } = await import('../../src/core/i18n.js');
+  await loadRussianLabels();
   const previous = S.prefs.lang;
   try {
     for (const lang of ['Русский', 'English (US)', 'English (UK)']) {

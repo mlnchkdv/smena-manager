@@ -11,8 +11,8 @@ import { PROJECT_TABS } from '../shared/project-tabs.js';
 import { revealProjectView } from '../ui/project-view-picker.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
-import { renderAuth } from '../pages/auth.js';
-import { isRussian, t as tr, translateApp } from '../core/i18n.js';
+import { renderAuth, authShell } from '../pages/auth.js';
+import { isRussian, t as tr, translateApp, loadRussianLabels, russianLabelsState } from '../core/i18n.js';
 import { normalizeTablists } from '../ui/tabs.js';
 import { resizeKnowledgeTitle } from '../ui/knowledge-title.js';
 import { captureKnowledgeDisclosures } from '../ui/knowledge-disclosure.js';
@@ -171,6 +171,32 @@ export function registerKnowledgeReadingRestorer(restorer) {
   knowledgeReadingRestorer = restorer;
 }
 export function render() {
+  if (isRussian() && russianLabelsState() !== 'ready') {
+    applyPrefs();
+    document.documentElement.lang = 'ru';
+    const root = $('#app'),
+      failed = russianLabelsState() === 'failed';
+    // Keep an existing form/draft in place until its locale is ready. A cold
+    // boot can fetch the language pack while session/storage reads run.
+    if (!root.childElementCount || failed)
+      root.innerHTML = authShell(
+        `<section class="auth-card" role="status"><h1>${failed ? 'Не удалось загрузить интерфейс' : 'Загружаем интерфейс…'}</h1>${failed ? '<p>Проверьте соединение и обновите страницу. Сохранённые данные остаются на устройстве.</p><button class="btn btn-primary" data-a="reloadLanguage">Обновить страницу</button>' : ''}</section>`,
+      );
+    if (!failed && !render._localePending) {
+      render._localePending = true;
+      void loadRussianLabels().then(
+        () => {
+          render._localePending = false;
+          render();
+        },
+        () => {
+          render._localePending = false;
+          render();
+        },
+      );
+    }
+    return;
+  }
   if (S.ui.currentUser && !S.ui.auth && needsTaskWorkflowCommands(D())) prepareTaskWorkflowCommands(render);
   captureGraphQueryPosition();
   captureReaderPosition();

@@ -75,7 +75,8 @@ test('reminder dates use the configured workspace time zone', () => {
 test('due reminder messages remain English keys and render in Russian', async () => {
   globalThis.document ||= { querySelectorAll: () => [] };
   globalThis.navigator ||= { platform: 'test', userAgent: 'test' };
-  const { t } = await import('../../src/core/i18n.js');
+  const { t, loadRussianLabels } = await import('../../src/core/i18n.js');
+  await loadRussianLabels();
   const { S } = await import('../../src/core/store.js');
   const previousLanguage = S.prefs.lang;
   S.prefs.lang = 'English (US)';
