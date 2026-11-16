@@ -14,7 +14,7 @@ import {
 } from '../../src/server/workspace-store.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from '../../src/server/workspace-document-store.js';
 import { stageKnowledgeBodyWindow, loadKnowledgeBody } from '../../src/server/knowledge-body-store.js';
-import { readKnowledgeNote, patchKnowledgeNote } from '../../src/server/knowledge-note-store.js';
+import { readKnowledgeNote, patchKnowledgeNote, createKnowledgeNote } from '../../src/server/knowledge-note-store.js';
 import { getKnowledgeVersion } from '../../src/server/knowledge-versions.js';
 import { bindWikiReferences } from '../../src/shared/knowledge-links.js';
 import { app } from '../../src/server/app.js';
@@ -27,6 +27,24 @@ import { queryKnowledgeIndex } from '../../src/server/knowledge-search-query.js'
 import { resetKnowledgeSearchCache } from '../../src/server/knowledge-search-cache.js';
 
 let directory, source, storage;
+
+test('single-note creation is actor-owned and versioned; canonical edits and restore fence prior ETags', async () => {
+  const created = await createKnowledgeNote({ title: 'Новая заметка', formatted_markdown: 'Hello [[Other]]' }, profile('editor'));
+  assert.equal(created.note.createdBy, 'editor');
+  assert.equal(created.version, 1);
+  const again = await readKnowledgeNote(created.note.id, profile('viewer'));
+  assert.equal(again.etag, created.etag);
+  const edited = await patchKnowledgeNote(created.note.id, { title: 'Updated' }, created.noteHash, profile('editor'));
+  assert.equal(edited.version, 2);
+  assert.notEqual(edited.etag, created.etag);
+  await assert.rejects(createKnowledgeNote({ title: 'Blocked', formatted_markdown: 'x' }, profile('viewer')), { statusCode: 403 });
+  const backup = await createWorkspaceBackup('version-fence');
+  const revision = (await getWorkspaceDatabase()).revision;
+  await restoreWorkspaceBackup(backup.id, revision);
+  const restored = await readKnowledgeNote(created.note.id, profile('editor'));
+  assert.notEqual(restored.etag, edited.etag);
+  assert.ok(restored.version > edited.version);
+});
 const oldPath = process.env.DATABASE_PATH;
 const oldGate = process.env.KNOWLEDGE_CATALOG_ENABLED;
 const profile = id => ({ id, email: `${id}@example.test`, role: 'editor' });

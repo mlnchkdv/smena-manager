@@ -1,4 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
+import { randomUUID } from 'node:crypto';
+import { knowledgeEntityEtag, knowledgeEntityVersion } from './knowledge-entity-version.js';
 import { getWorkspaceDatabase, mutateWorkspaceMetadata } from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
 import { knowledgeActor } from './knowledge-access.js';
@@ -41,6 +43,8 @@ export async function readKnowledgeNote(noteId, profile, profiles = []) {
   if (Array.isArray(record.history)) note.history = knowledgeCatalogNote(record).history;
   return {
     note,
+    etag: knowledgeEntityEtag(record),
+    version: knowledgeEntityVersion(record).number,
     bodyToken: knowledgeBodyToken(record),
     noteHash: knowledgeSnapshotHash(note),
     revision: Number(data._documentRevisions?.knowledge?.revision || 0),
@@ -104,10 +108,74 @@ export async function patchKnowledgeNote(noteId, patch, expectedHash, profile, p
         baseline.revision,
         { role: 'admin', scope: 'knowledge' },
       );
-      return { note: selected, noteHash: knowledgeSnapshotHash(selected), revision: Number(saved._documentRevisions?.knowledge?.revision || 0) };
+      const record = saved.knowledgeNotes.find(note => note.id === noteId);
+      return {
+        note: { ...selected, _apiVersion: record._apiVersion },
+        etag: knowledgeEntityEtag(record),
+        version: knowledgeEntityVersion(record).number,
+        noteHash: knowledgeSnapshotHash(selected),
+        revision: Number(saved._documentRevisions?.knowledge?.revision || 0),
+      };
     } catch (error) {
       if (error.code === 'KNOWLEDGE_NOTE_UNCHANGED') return error.result;
       if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
     }
   }
+}
+
+// A single-note create command. External clients never submit a complete catalog
+// or choose identities, actor fields, history or storage pointers.
+export async function createKnowledgeNote(values, profile, profiles = []) {
+  if (!values || typeof values !== 'object' || Array.isArray(values) || Object.keys(values).some(key => !EDITABLE.has(key)))
+    throw Object.assign(new TypeError('Invalid note fields.'), { code: 'INVALID_NOTE_PATCH', statusCode: 422 });
+  const id = 'kn' + randomUUID();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const baseline = await getWorkspaceDatabase({ fields: ['revision'] });
+    try {
+      const saved = await mutateWorkspaceMetadata(
+        async data => {
+          const actor = knowledgeActor(data, profile, profiles, { write: true });
+          await applyKnowledgeNoteCreate(data, { id, ...structuredClone(values) }, actor);
+          return data;
+        },
+        baseline.revision,
+        { role: 'admin', scope: 'knowledge' },
+      );
+      return readKnowledgeNote(saved.knowledgeNotes.find(note => note.id === id).id, profile, profiles);
+    } catch (error) {
+      if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
+    }
+  }
+}
+
+export async function applyKnowledgeNoteCreate(data, values, actor) {
+  if (data.knowledgeNotes.some(note => note.id === values.id))
+    throw Object.assign(new Error('Note identity already exists.'), { code: 'NOTE_EXISTS', statusCode: 409 });
+  const now = new Date().toISOString();
+  const note = {
+    title: '',
+    summary: '',
+    formatted_markdown: '',
+    folderId: null,
+    tags: [],
+    aliases: [],
+    typeId: 'note',
+    properties: {},
+    ...values,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: actor.id,
+    updatedBy: actor.id,
+    history: [],
+  };
+  validateDocumentInput('knowledge', { knowledgeNotes: [note], knowledgeFolders: data.knowledgeFolders });
+  note.wikilinks = extractWikiLinks(note.formatted_markdown);
+  bindWikiReferences([note, ...data.knowledgeNotes]);
+  data.knowledgeNotes.push(await storeKnowledgeBody(getStorageProvider(), note));
+  const previous = data._documentRevisions?.knowledge || {};
+  data._documentRevisions = {
+    ...data._documentRevisions,
+    knowledge: { revision: Number(previous.revision || 0) + 1, createdAt: previous.createdAt || data.createdAt, updatedAt: now },
+  };
+  return note;
 }

@@ -42,6 +42,7 @@ import { fileExportReadIds } from './file-export-read.js';
 import { isDeepStrictEqual } from 'node:util';
 import { filePatchIds, fileMetadataChanges } from './storage/catalog-file-write.js';
 import { planFileMetadataPatch } from './file-metadata-patch.js';
+import { stampKnowledgeEntityVersions } from './knowledge-entity-version.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 
@@ -539,6 +540,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
+  stampKnowledgeEntityVersions(current, nextData, { reset: !!options.replaceDocuments });
   if (options.replaceDocuments) {
     nextData = await externalizeKnowledgeVersions(nextData, getStorageProvider());
     if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true') nextData = await externalizeKnowledgeBodies(nextData, getStorageProvider());
@@ -688,6 +690,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
     if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
     const changed = await mutator(clone(current));
     if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('Workspace mutation must return a JSON object.');
+    stampKnowledgeEntityVersions(current, changed);
     const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
     if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true' && options.scope.startsWith('knowledge')) await stageKnowledgeSearch(next, current, storage);
     validateMembershipTransition(current, next);
