@@ -1,4 +1,5 @@
 import { requestSignal } from './request-signal.js';
+import { integrationRouter } from './integration-routes.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 import { queryKnowledgeIndex } from './knowledge-search-query.js';
 import { whiteboardCatalogProjection, restoreWhiteboardBodies } from './whiteboard-catalog.js';
@@ -206,6 +207,7 @@ app.post('/api/workspaces/:id/archive', async (request, response, next) => {
   }
 });
 app.use('/api', requireWorkspace);
+app.use('/api/integrations', integrationRouter);
 app.post('/api/workspaces', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.status(201).json({ workspace: await createWorkspace(request.user, request.body, request.configuredProfiles) });

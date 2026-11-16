@@ -1,4 +1,5 @@
 import { settingsSearch } from '../ui/settings-search.js';
+import { integrationsPanel } from '../ui/integrations.js';
 import { notificationOverview } from '../ui/notification-overview.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { deliveryStatusPanel } from '../ui/notification-delivery-loader.js';
@@ -49,6 +50,7 @@ export const SET_NAV = [
       ['teams', 'Teams', 'users-round'],
       ['projects', 'Projects', 'folder-kanban'],
       ['permissions', 'Permissions', 'shield'],
+      ['integrations', 'Integrations', 'plug'],
       ['data-transfer', 'Data transfer', 'database-backup'],
     ],
   ],
@@ -136,7 +138,7 @@ export function settingsBody(sec, title) {
   const P = S.prefs;
   const d = D();
   const np = myNotificationPreferences();
-  const personal = !['workspace', 'data-transfer', 'members', 'teams', 'projects', 'permissions', 'security', 'notif-delivery'].includes(sec);
+  const personal = !['workspace', 'data-transfer', 'members', 'teams', 'projects', 'permissions', 'integrations', 'security', 'notif-delivery'].includes(sec);
   const diagnosticsLink = () =>
     S.ui.currentUser?.role === 'admin'
       ? `<p><button class="btn btn-secondary btn-sm" data-a="go" data-r="settings" data-sec="notif-delivery">Delivery diagnostics</button></p>`
@@ -168,6 +170,8 @@ export function settingsBody(sec, title) {
   const H = lead =>
     `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b>${!personal && sec !== 'security' ? ' · ' + esc(workspaceRoleLabel(String(me().role || S.ui.currentUser?.role || '').toLowerCase())) : ''}</summary><p>${scope}</p></details>${sec.startsWith('notif-') && sec !== 'notif-delivery' ? notificationOverview(np) : ''}`;
   switch (sec) {
+    case 'integrations':
+      return integrationsPanel();
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
     case 'workspace': {

@@ -49,6 +49,7 @@ export const A = {},
   DBL = {},
   BLUR = {};
 A.reloadLanguage = () => location.reload();
+A.integrationAction = el => import('../ui/integrations.js').then(module => module.integrationAction(el));
 registerManagementActions(
   { A, IN, KEY, DBL, BLUR },
   {
