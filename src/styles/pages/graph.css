@@ -551,9 +551,25 @@
 }
 .graph-summary {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  white-space: nowrap;
+  gap: 4px 12px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.graph-summary > span {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .graph-summary {
+    flex-basis: 100%;
+  }
+  .graph-summary > span {
+    flex-basis: 100%;
+  }
 }
 .graph-meta-dot {
   margin: 0 3px;
