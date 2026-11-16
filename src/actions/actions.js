@@ -1333,6 +1333,11 @@ export function enterApp(msg) {
   const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');
   S.ui.locationReady = true;
   go(target.route, target.params, { fromPopstate: true });
+  if (target.note) {
+    S.ui.knowledgeDrawer = target.note;
+    S.ui.knowledgeDrawerView = 'preview';
+    render();
+  }
   if (target.drawer) {
     S.ui.drawer = target.drawer;
     render();

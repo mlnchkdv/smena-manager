@@ -11,6 +11,12 @@ const data = {
   teams: [{ id: 'tm1' }],
 };
 
+test('note URLs restore the reader without depending on the currently loaded catalog page', () => {
+  assert.deepEqual(resolveAppLocation('/smena/note/kn-one', '', data), { route: 'knowledge', params: {}, note: 'kn-one' });
+  assert.equal(appLocationPath(data, { route: 'knowledge', params: {}, knowledgeDrawer: 'kn-one' }), '/smena/note/kn-one');
+  assert.equal(appLocationPath(data, { route: 'knowledge', params: {}, knowledgeDrawer: null }), '/smena/knowledge');
+});
+
 test('ambiguous legacy display keys cannot open the wrong entity and canonical URLs fall back to IDs', () => {
   const duplicate = structuredClone(data);
   duplicate.tasks.push({ id: 't2', key: 'WEB-12', project: 'p1' });

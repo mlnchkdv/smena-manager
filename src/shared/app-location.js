@@ -60,6 +60,7 @@ export function entityRouteKey(items, entity) {
 export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') {
   const parsed = parseAppLocation(pathname, hash);
   const route = parsed.kind === 'home' && !parsed.slug ? defaultRoute : parsed.kind;
+  if (route === 'note' && parsed.key) return { route: 'knowledge', params: {}, note: parsed.key };
   if (route === 'settings') return { route, params: parsed.key ? { sec: parsed.key } : {} };
   if (route === 'graph') return { route, params: parsed.key ? { center: parsed.key } : {} };
   if (route === 'whiteboard')
@@ -94,6 +95,7 @@ export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') 
 
 export function appLocationPath(data, ui) {
   const slug = encode(data?.ws?.url || 'workspace');
+  if (ui.route === 'knowledge' && ui.knowledgeDrawer) return `/${slug}/note/${encode(ui.knowledgeDrawer)}`;
   const modal = ui.modals?.at?.(-1);
   const fileId = modal?.type === 'filePreview' ? modal.file?.id : '';
   if (fileId) return `/${slug}/file/${encode(fileId)}`;

@@ -338,6 +338,8 @@ function applyBrowserLocation() {
   S.ui.route = target.route;
   S.ui.params = target.params;
   S.ui.drawer = target.drawer || null;
+  S.ui.knowledgeDrawer = target.note || null;
+  if (target.note) S.ui.knowledgeDrawerView = 'preview';
   S.ui.modals = [];
   if (target.file) {
     const file = D().files.find(item => item.id === target.file);
