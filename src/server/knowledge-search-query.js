@@ -3,7 +3,7 @@ import { getStorageProvider } from './storage/index.js';
 import { knowledgeSearchParts, loadSearchPart, knowledgeSearchError } from './knowledge-search-store.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { createKnowledgeMatcher, searchableNote, knowledgeSearchContext } from '../shared/knowledge-search.js';
-import { parseKnowledgeQuery, matchesKnowledgeRules } from '../shared/knowledge-query.js';
+import { parseKnowledgeQuery, matchesKnowledgeRules, knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
 import { textMatcher, searchTerms } from '../shared/search-query.js';
 import { readKnowledgeDirectory, directoryMayMatch } from './knowledge-search-directory.js';
 
@@ -13,7 +13,8 @@ export async function queryKnowledgeIndex(database, profile, profiles = [], opti
   options.signal?.throwIfAborted();
   const actor = knowledgeActor(database, profile, profiles);
   const favorites = database._userPrefs?.[actor.id]?.favorites || '[]';
-  const { terms, rules } = options.mode === 'workspace' ? { terms: searchTerms(options.query), rules: [] } : parseKnowledgeQuery(options.query);
+  const { terms, rules, error } = options.mode === 'workspace' ? { terms: searchTerms(options.query), rules: [] } : parseKnowledgeQuery(options.query);
+  if (error) throw Object.assign(new Error(knowledgeQueryErrorMessage(error)), { statusCode: 400, code: 'KNOWLEDGE_QUERY_INVALID' });
   const eligible = knowledgeView(database.knowledgeNotes || [], {
     ...options,
     query: '',

@@ -7,7 +7,7 @@ import { noteTypes } from '../shared/knowledge-types.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 import { mutate } from './toast.js';
-import { validKnowledgeQueries } from '../shared/knowledge-query.js';
+import { validKnowledgeQueries, parseKnowledgeQuery, knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
 const personal = () => {
   try {
     const items = JSON.parse(S.prefs.knowledgeQueries || '[]');
@@ -59,6 +59,11 @@ IN.knowledgeQueryScope = el => {
 };
 function persist(m, remove = false) {
   if ((m.shared || m.originalShared) && S.ui.currentUser?.role !== 'admin') return;
+  const syntax = !remove && parseKnowledgeQuery(m.item.query).error;
+  if (syntax) {
+    m.error = knowledgeQueryErrorMessage(syntax, kc('en', 'ru'));
+    return render();
+  }
   const own = personal().filter(q => q.id !== m.item.id),
     shared = (D().ws.knowledgeQueries || []).filter(q => q.id !== m.item.id);
   if (!remove) (m.shared ? shared : own).push(m.item);

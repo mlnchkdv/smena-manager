@@ -39,6 +39,7 @@ import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
 import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
+import { knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
 import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
@@ -173,16 +174,21 @@ export function pageKnowledge() {
   const effectiveIndexed = indexed?.localOnly || Array.isArray(indexed?.matches) ? null : indexed;
   const { total, hasMore, start } = effectiveIndexed || view;
   const visible = effectiveIndexed ? effectiveIndexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
-  const searchStatus = indexed?.pending
-    ? 'Searching knowledge…'
-    : indexed?.error
-      ? 'Knowledge search is unavailable.'
-      : indexed?.localOnly
-        ? 'Search covers downloaded notes only.'
-        : '';
+  const searchStatus = indexed?.syntaxError
+    ? knowledgeQueryErrorMessage(indexed.syntaxError, isRussian() ? 'ru' : 'en')
+    : indexed?.pending
+      ? 'Searching knowledge…'
+      : indexed?.error
+        ? 'Knowledge search is unavailable.'
+        : indexed?.localOnly
+          ? 'Search covers downloaded notes only.'
+          : '';
   const scoped = folderFilter !== 'all' || String(S.ui.knowledgeQuery || '').trim() || S.ui.knowledgeTag;
-  const resultSummary =
-    indexed?.pending || indexed?.error
+  const resultSummary = indexed?.syntaxError
+    ? isRussian()
+      ? 'Проверьте запрос'
+      : 'Check query'
+    : indexed?.pending || indexed?.error
       ? t(searchStatus)
       : scoped
         ? isRussian()
@@ -282,7 +288,7 @@ export function pageKnowledge() {
         }
         ${
           indexed?.pending || indexed?.error
-            ? `<p class="hint" role="status">${t(searchStatus)}${indexed?.error ? '<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeSearch">Try again</button>' : ''}</p>`
+            ? `<p class="${indexed?.syntaxError ? 'err' : 'hint'}" role="${indexed?.syntaxError ? 'alert' : 'status'}">${t(searchStatus)}${indexed?.error && !indexed?.syntaxError ? '<button class="btn btn-secondary btn-sm" data-a="retryKnowledgeSearch">Try again</button>' : ''}</p>`
             : visible.length
               ? ''
               : S.ui.knowledgeQuery || S.ui.knowledgeTag

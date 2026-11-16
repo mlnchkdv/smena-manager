@@ -2,6 +2,7 @@ import { S } from './store.js';
 import { searchKnowledgePage, getSessionGeneration, knowledgeCatalogMode } from './api.js';
 import { workspaceDocumentSyncIsClean } from './workspace-sync.js';
 import { render } from '../shell/render.js';
+import { parseKnowledgeQuery } from '../shared/knowledge-query.js';
 const states = new Map();
 export function clearKnowledgeSearch(mode = 'knowledge') {
   for (const key of [...states.keys()].filter(key => key === mode || key.startsWith(mode + ':'))) {
@@ -12,6 +13,11 @@ export function clearKnowledgeSearch(mode = 'knowledge') {
 }
 export function knowledgeServerPage(options) {
   const mode = options.channel || options.mode || 'knowledge';
+  const syntaxError = options.mode !== 'workspace' && parseKnowledgeQuery(options.query).error;
+  if (syntaxError) {
+    clearKnowledgeSearch(mode);
+    return { syntaxError, error: true, ids: [], total: 0, start: 0, hasMore: false };
+  }
   if (!options.query?.trim()) {
     clearKnowledgeSearch(mode);
     return null;

@@ -18,12 +18,15 @@ export const searchableNote = note =>
     .join(' ')
     .toLocaleLowerCase();
 export function createKnowledgeMatcher(query) {
-  const { terms, rules } = parseKnowledgeQuery(query);
+  const { terms, rules, error } = parseKnowledgeQuery(query);
+  if (error) return () => false;
   // A blank search must not read/lowercase the full text of every stored note.
   if (!terms.length && !rules.length) return () => true;
+  if (!terms.length) return note => matchesKnowledgeRules(note, rules);
   return note => {
+    if (!matchesKnowledgeRules(note, rules)) return false;
     const text = searchableNote(note);
-    return matchesKnowledgeRules(note, rules) && terms.every(term => text.includes(term));
+    return terms.every(term => text.includes(term));
   };
 }
 export const matchesKnowledgeSearch = (note, query) => createKnowledgeMatcher(query)(note);

@@ -7,4 +7,6 @@ test('removing one query condition preserves quoted phrases and remaining compar
   assert.equal(removeKnowledgeQueryToken(q, 0), '"Quarterly Review" field:date>=2026-10-31 tag:team');
   assert.equal(removeKnowledgeQueryToken(q, 2), 'type:meeting "Quarterly Review" tag:team');
   assert.equal(removeKnowledgeQueryToken(q, -1), q);
+  assert.equal(removeKnowledgeQueryToken('tag:"art direction" "Quarterly Review"', 0), '"Quarterly Review"');
+  assert.equal(knowledgeQueryTokens('tag:"Команда \\"A\\""')[0].rule.value, 'команда "a"');
 });

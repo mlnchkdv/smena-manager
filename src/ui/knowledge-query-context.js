@@ -17,6 +17,7 @@ export function knowledgeQueryContext(folder, label) {
     if (!r) return token.raw;
     if (r.field === 'type') return `${kc('Type', 'Тип')}: ${typeName(noteTypes(D().ws).find(t => t.id === r.value) || { name: r.value })}`;
     if (r.field === 'tag') return `${kc('Tag', 'Тег')}: ${r.value}`;
+    if (r.field === 'updated') return `${kc('Updated (UTC)', 'Обновлено (UTC)')} ${r.op} ${r.value}`;
     const id = r.field.replace('field:', ''),
       field = noteTypes(D().ws)
         .flatMap(t => t.fields)

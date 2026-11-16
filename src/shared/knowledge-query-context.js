@@ -1,6 +1,6 @@
-import { parseKnowledgeQuery } from './knowledge-query.js';
+import { parseKnowledgeQuery, tokenizeKnowledgeQuery } from './knowledge-query.js';
 export const knowledgeQueryTokens = query =>
-  (String(query || '').match(/"[^"]+"|\S+/g) || []).map((raw, index) => ({ raw, index, rule: parseKnowledgeQuery(raw).rules[0] }));
+  tokenizeKnowledgeQuery(query).tokens.map(({ raw }, index) => ({ raw, index, rule: parseKnowledgeQuery(raw).rules[0] }));
 export const removeKnowledgeQueryToken = (query, index) =>
   knowledgeQueryTokens(query)
     .filter(token => token.index !== index)
