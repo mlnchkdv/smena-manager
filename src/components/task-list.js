@@ -56,11 +56,11 @@ export function taskRow(t, cols, tpl, opt = {}) {
   const sd = t.subtasks.filter(s => s.done).length;
   return `<div class="trow ${t.status === 'done' ? 'done' : ''} ${sel ? 'sel' : ''}${fxc('done', t.id)}${fxc('added', t.id)}" role="row" style="--cols:${tpl}" data-task-row="${t.id}" data-group="${opt.group || ''}" data-lkey="${opt.key || ''}" data-ctx="task" data-id="${t.id}">
     <div class="handle" role="cell" draggable="${editable && opt.drag !== false}" data-drag-row="${t.id}" aria-hidden="true">${editable && opt.drag !== false ? ic('grip-vertical', 14) : ''}</div>
-    <div class="c-check" role="cell">${
+    <div class="c-check" role="cell"><label class="task-check-target">${
       opt.complete
         ? `<input type="checkbox" class="check round" ${t.status === 'done' ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleDone" data-id="${t.id}" aria-label="Mark ${esc(t.title)} complete">`
         : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
-    }</div>
+    }</label></div>
     <div class="ttl" role="cell" data-id="${t.id}" ${editable ? 'data-dbl="editTitle"' : ''}>
       ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : '<span style="width:18px;flex-shrink:0"></span>'}
       ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}">`}<span class="key" translate="no">${t.key}</span>
@@ -72,11 +72,11 @@ export function taskRow(t, cols, tpl, opt = {}) {
     ${cols.map(c => `<div class="c-meta c-${c === 'labels' ? 'lbl' : c}" role="cell">${CELL[c](t)}</div>`).join('')}
     <div class="c-more" role="cell"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="task" data-id="${t.id}" aria-label="More actions">${ic('ellipsis', 15)}</button></div>
   </div>
-  ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
+  ${open ? `<div class="subrows" role="rowgroup">${t.subtasks.map(s => `<div role="row"><div class="subrow ${s.done ? 'done' : ''}" role="cell" aria-colspan="${cols.length + 4}"><label class="task-check-target"><input type="checkbox" class="check" ${s.done ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${esc(tr('Complete subtask'))}: ${esc(s.title)}"></label><span translate="no">${esc(s.title)}</span></div></div>`).join('')}</div>` : ''}`;
 }
 export function listHtml(groups, key, opt = {}) {
   const cols = opt.cols || ['status', 'assignee', 'priority', 'due', 'labels'];
-  const tpl = `18px 30px minmax(220px,1fr) ${cols.map(c => LCOLS[c][1]).join(' ')} 40px`;
+  const tpl = `18px 48px minmax(220px,1fr) ${cols.map(c => LCOLS[c][1]).join(' ')} 40px`;
   const all = groups.flatMap(g => g.tasks.map(t => t.id));
   const commentCounts = new Map();
   for (const comment of D().comments) commentCounts.set(comment.task, (commentCounts.get(comment.task) || 0) + 1);
@@ -106,7 +106,7 @@ export function listHtml(groups, key, opt = {}) {
   return `<div class="tlist" role="table" aria-label="Tasks">
     <div class="thead" style="--cols:${tpl}" role="row">
       <div role="columnheader" aria-hidden="true"></div>
-      <div role="columnheader">${opt.complete ? '' : `<input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === visibleIds.length ? 'checked' : ''} ${nSel && nSel < visibleIds.length ? 'data-indet="1"' : ''} aria-label="Select visible tasks">`}</div>
+      <div role="columnheader">${opt.complete ? '' : `<label class="task-check-target"><input type="checkbox" class="check" data-a="selAll" data-key="${key}" ${nSel && nSel === visibleIds.length ? 'checked' : ''} ${nSel && nSel < visibleIds.length ? 'data-indet="1"' : ''} aria-label="Select visible tasks"></label>`}</div>
       ${sortHeader('title', 'Task')}
       ${cols.map(c => sortHeader(c === 'labels' ? 'manual' : c, LCOLS[c][0])).join('')}
       <div role="columnheader"><span class="sr">More actions</span></div>

@@ -308,11 +308,21 @@
     display: none;
   }
   .tlist .trow .ttl {
-    flex: 1 1 calc(100% - 30px);
+    flex: 1 1 calc(100% - 50px);
     order: 1;
   }
   .tlist .trow .c-check {
     order: 0;
+    flex: 0 0 44px;
+  }
+  .task-check-target {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+  .subrow:has(.task-check-target) {
+    min-height: 44px;
+    height: auto;
   }
   .tlist .trow .c-meta {
     order: 2;
