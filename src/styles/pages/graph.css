@@ -43,7 +43,7 @@
   }
 }
 .graph-page {
-  padding: 24px clamp(16px, 3vw, 40px) 12px;
+  padding: var(--page-top) var(--gutter) 12px;
   min-width: 0;
 }
 
@@ -143,7 +143,7 @@
   flex: 0 0 auto;
   margin: 0;
 }
-.graph-page.is-focused :is(.graph-head p, .graph-meta, .graph-help, .graph-export) {
+.graph-page.is-focused :is(.graph-meta, .graph-help, .graph-export) {
   display: none;
 }
 .graph-page.is-focused .graph-filter-panel {
@@ -224,17 +224,30 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: var(--page-head-gap);
 }
 .graph-head h1 {
   margin: 0;
   font-size: var(--fs-2xl);
 }
-.graph-head p {
-  margin: 6px 0 0;
-  color: var(--text-3);
-  font-size: var(--fs-sm);
+.graph-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+}
+.graph-title .page-introduction {
+  position: static;
+  display: block;
+  z-index: var(--z-selection);
+}
+.graph-title .page-introduction > div {
+  left: 0;
+  right: auto;
+  max-height: min(70dvh, 420px);
+  overflow-y: auto;
 }
 .graph-head .row {
   flex-wrap: wrap;
@@ -453,9 +466,6 @@
     gap: 10px;
     margin-bottom: 16px;
   }
-  .graph-head p {
-    display: none;
-  }
   .graph-page {
     padding-top: 18px;
   }
@@ -524,7 +534,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 16px;
-  margin: 14px 0 12px;
+  margin: 8px 0;
   font-size: var(--fs-2xs);
   color: var(--text-3);
 }
@@ -969,9 +979,6 @@
   .graph-page:not(.is-focused) .graph-head {
     margin-bottom: 6px;
     gap: 8px;
-  }
-  .graph-page:not(.is-focused) .graph-head p {
-    display: none;
   }
   .graph-page:not(.is-focused) .graph-toolbar {
     gap: 6px;
