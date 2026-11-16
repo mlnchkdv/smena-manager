@@ -92,7 +92,7 @@ function accountSystemStatusHtml() {
       </dl>
       ${S.ui.systemStatusError ? `<div class="account-system-error" role="alert">${ic('triangle-alert', 14)}<span>${esc(S.ui.systemStatusError)}</span></div>` : ''}
       <p class="hint">${isRussian() ? 'Этот статус относится к данным. Доставка писем и push проверяется отдельно.' : 'This status covers data. Email and push delivery are checked separately.'}</p>
-      <button class="btn btn-ghost btn-sm" data-a="go" data-r="settings" data-sec="notif-push">${isRussian() ? 'Проверить доставку уведомлений' : 'Check notification delivery'}</button>
+      <button class="btn btn-ghost btn-sm" data-a="go" data-r="settings" data-sec="${S.ui.currentUser?.role === 'admin' ? 'notif-delivery' : 'notif-push'}">${isRussian() ? 'Проверить доставку уведомлений' : 'Check notification delivery'}</button>
       <button class="btn btn-secondary btn-sm account-system-sync${S.ui.systemSyncing ? ' is-loading' : ''}" data-a="syncSystemNow" ${S.ui.systemSyncing ? 'disabled' : ''}>${ic('refresh-cw', 13)}<span>Synchronize now</span></button>
     </div>`
         : ''

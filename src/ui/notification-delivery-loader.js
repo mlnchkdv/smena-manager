@@ -4,9 +4,9 @@ import { isRussian } from '../core/i18n.js';
 let loaded,
   pending,
   failed = false;
-export function deliveryStatusPanel() {
+export function deliveryStatusPanel(options) {
   if (S.ui.currentUser?.role !== 'admin') return '';
-  if (loaded) return loaded.deliveryStatusPanel();
+  if (loaded) return loaded.deliveryStatusPanel(options);
   if (!pending && !failed)
     pending = import('./notification-delivery-panel.js')
       .then(module => {

@@ -59,12 +59,13 @@ export const SET_NAV = [
       ['notif-assign', 'Task assignments', 'user-check'],
       ['notif-email', 'Email', 'mail'],
       ['notif-push', 'Browser notifications', 'monitor-smartphone'],
+      ['notif-delivery', 'Delivery diagnostics', 'activity'],
     ],
   ],
   ['Account', [['security', 'Account security', 'shield-check']]],
   ['Help & resources', [['help', 'Help & resources', 'circle-help']]],
 ];
-const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions']);
+const ADMIN_SETTINGS = new Set(['workspace', 'data-transfer', 'members', 'teams', 'permissions', 'notif-delivery']);
 export function srow(t, d, ctl) {
   ctl = ctl.replace(/data-setting-control aria-label="[^"]*"/gu, () => `aria-label="${esc(t)}"`);
   const toggleId = ctl.match(/id="(setting-toggle-[^"]+)"/)?.[1];
@@ -135,7 +136,11 @@ export function settingsBody(sec, title) {
   const P = S.prefs;
   const d = D();
   const np = myNotificationPreferences();
-  const personal = !['workspace', 'data-transfer', 'members', 'teams', 'projects', 'permissions', 'security'].includes(sec);
+  const personal = !['workspace', 'data-transfer', 'members', 'teams', 'projects', 'permissions', 'security', 'notif-delivery'].includes(sec);
+  const diagnosticsLink = () =>
+    S.ui.currentUser?.role === 'admin'
+      ? `<p><button class="btn btn-secondary btn-sm" data-a="go" data-r="settings" data-sec="notif-delivery">Delivery diagnostics</button></p>`
+      : '';
   const scope =
     sec === 'projects'
       ? isRussian()
@@ -161,7 +166,7 @@ export function settingsBody(sec, title) {
           ? tr('Personal settings')
           : tr('Workspace settings');
   const H = lead =>
-    `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b>${!personal && sec !== 'security' ? ' · ' + esc(workspaceRoleLabel(String(me().role || S.ui.currentUser?.role || '').toLowerCase())) : ''}</summary><p>${scope}</p></details>${sec.startsWith('notif-') ? notificationOverview(np) : ''}`;
+    `<h1 tabindex="-1">${title}</h1><p class="lead">${lead}</p><details class="hint settings-scope" translate="no"><summary>${scopeLabel} · <b>${esc(d.ws.name)}</b>${!personal && sec !== 'security' ? ' · ' + esc(workspaceRoleLabel(String(me().role || S.ui.currentUser?.role || '').toLowerCase())) : ''}</summary><p>${scope}</p></details>${sec.startsWith('notif-') && sec !== 'notif-delivery' ? notificationOverview(np) : ''}`;
   switch (sec) {
     case 'help':
       return `<h1>Help & resources</h1><p class="lead" translate="no">${isRussian() ? 'Короткие инструкции для повседневной работы.' : 'Short guides for everyday work.'}</p><div class="settings-help-links"><button class="btn btn-secondary" data-a="shortcuts">${ic('keyboard', 15)}Keyboard shortcuts</button><button class="btn btn-secondary" data-a="openPalette">${ic('command', 15)}Command menu ${shortcut([MOD, 'K'])}</button></div>${helpGuides()}<div class="sblock"><h2>Access</h2><p>Sign in with an approved Google Account. Contact a workspace administrator if you need access.</p><b translate="no">${esc(D().ws.name)}</b></div><div class="settings-help-links"><a class="btn btn-secondary" href="/about.html">About product</a><a class="btn btn-secondary" href="/privacy.html">Privacy policy</a><a class="btn btn-secondary" href="/terms.html">Terms of service</a></div>`;
@@ -402,7 +407,8 @@ export function settingsBody(sec, title) {
           'Daily digest',
           'A summary of your open tasks after the daily scheduled run, on weekdays in your time zone.',
           tog('email_digest', np.email_digest, 'np'),
-        )
+        ) +
+        diagnosticsLink()
       );
     case 'notif-push': {
       const permission = browserNotificationState();
@@ -430,11 +436,17 @@ export function settingsBody(sec, title) {
         srow('Task status changes', '', tog('push_update', np.push_update, 'np')) +
         srow('Due date reminders', 'One day before a task is due and when it becomes overdue.', tog('push_due', np.push_due, 'np')) +
         srow('Security alerts', 'When a new device signs in to your account.', tog('push_security', np.push_security !== false, 'np')) +
-        (S.ui.currentUser?.role === 'admin'
-          ? `<details class="notification-workspace-diagnostics" ${disclosureAttributes('notification-workspace-diagnostics')}><summary translate="no">${isRussian() ? 'Диагностика пространства' : 'Workspace diagnostics'}</summary><p class="hint settings-scope" translate="no">${isRussian() ? 'Диагностика и операции доставки ниже относятся ко всему пространству, а не только к вашему устройству.' : 'Diagnostics and delivery operations below apply to the workspace, not only this device.'} <b>${esc(d.ws.name)}</b></p>${deliveryStatusPanel()}</details>`
-          : '')
+        diagnosticsLink()
       );
     }
+    case 'notif-delivery':
+      return (
+        H(
+          isRussian()
+            ? 'Проверка доставки для всего пространства. Настройки вашего устройства находятся в разделе уведомлений браузера.'
+            : 'Delivery checks for the workspace. Your device settings are under Browser notifications.',
+        ) + deliveryStatusPanel({ standalone: true })
+      );
     case 'notif-mentions':
       return (
         H('Decide which mentions reach you.') +

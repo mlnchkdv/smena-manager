@@ -162,19 +162,25 @@ export function notificationQueueStatus(data, now = Date.now()) {
   let nextAttemptAt = null;
   const channels = {};
   const reasons = {};
+  const phases = { notAttempted: 0, retryWaiting: 0, ready: 0, sending: 0 };
   for (const job of data._notificationOutbox || [])
     for (const [channel, state] of Object.entries(job.channels || {})) {
       if (['sent', 'skipped'].includes(state.status)) continue;
       pending += 1;
       channels[channel] = (channels[channel] || 0) + 1;
-      const reason = ['provider_error', 'channel_unavailable'].includes(state.reason) ? state.reason : 'unknown';
-      reasons[reason] = (reasons[reason] || 0) + 1;
+      const attempted = Number(state.attempts || 0) > 0;
+      const inflight = state.leaseUntil > now;
+      const reason = ['provider_error', 'channel_unavailable'].includes(state.reason) ? state.reason : attempted && !inflight ? 'unknown' : null;
+      if (reason) reasons[reason] = (reasons[reason] || 0) + 1;
+      const phase = state.leaseUntil > now ? 'sending' : !attempted && !reason ? 'notAttempted' : state.nextAt > now ? 'retryWaiting' : 'ready';
+      phases[phase]++;
       if (state.nextAt && (!nextAttemptAt || state.nextAt < nextAttemptAt)) nextAttemptAt = state.nextAt;
       if ((state.leaseUntil || 0) > now) sending += 1;
       if (state.attempts > 0) retrying += 1;
-      if (!oldestPendingAt || job.createdAt < oldestPendingAt) oldestPendingAt = job.createdAt;
+      const time = value => (typeof value === 'number' ? value : Date.parse(value));
+      if (!oldestPendingAt || time(job.createdAt) < time(oldestPendingAt)) oldestPendingAt = job.createdAt;
     }
-  return { pending, sending, retrying, oldestPendingAt, nextAttemptAt, channels, reasons };
+  return { pending, sending, retrying, oldestPendingAt, nextAttemptAt, channels, reasons, phases, paused: notificationDeliveryPaused(data) };
 }
 
 export function resetNotificationDeliveryForTests() {

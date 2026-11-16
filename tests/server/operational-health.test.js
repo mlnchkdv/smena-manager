@@ -26,6 +26,22 @@ test('operational health reports a healthy production pipeline', () => {
   assert.deepEqual(result.schedule, { timezone: 'UTC', dailyAt: '04:00', nextRunAt: '2026-10-19T04:00:00.000Z' });
 });
 
+test('deliberately paused delivery and disabled timer are informational, not stale-cron failures', () => {
+  const result = evaluateOperationalHealth(
+    { ...healthyInput, delivery: {}, review: { paused: true }, scheduler: { mode: 'disabled' }, outbox: { pending: 13, oldestPendingAt: 0 } },
+    { now: '2026-11-16T12:00:00Z' },
+  );
+  assert.equal(result.status, 'healthy');
+  assert.deepEqual(
+    result.issues.map(x => x.code),
+    ['cron_disabled', 'delivery_paused'],
+  );
+  assert.equal(result.schedule.nextRunAt, null);
+  const unknown = evaluateOperationalHealth({ ...healthyInput, scheduler: { mode: 'unknown' } }, { now: '2026-11-16T12:00:00Z' });
+  assert.equal(unknown.status, 'warning');
+  assert.equal(unknown.issues[0].code, 'cron_unknown');
+});
+
 test('next scheduled cron is deterministic around the daily boundary', () => {
   assert.equal(nextScheduledCronAt('2026-10-18T03:59:59.000Z'), '2026-10-18T04:00:00.000Z');
   assert.equal(nextScheduledCronAt('2026-10-18T04:00:00.000Z'), '2026-10-19T04:00:00.000Z');

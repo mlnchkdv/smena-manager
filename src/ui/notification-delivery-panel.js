@@ -46,11 +46,11 @@ export async function reviewQueue(el) {
   }
 }
 const settingsTimestamp = value => (value && Number.isFinite(new Date(value).getTime()) ? fmtTimestamp(new Date(value)) : '—');
-export function deliveryStatusPanel() {
+export function deliveryStatusPanel({ standalone = false } = {}) {
   if (S.ui.currentUser?.role !== 'admin') return '';
   const status = S.ui.notificationDeliveryStatus;
   if (!status) {
-    return `<div class="sblock notification-delivery-card"><div class="row between"><div><h2>Delivery diagnostics</h2><p class="muted">Check server-side email and Web Push delivery.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery">${ic('refresh-cw', 13)}Check status</button></div></div>`;
+    return `<div class="sblock notification-delivery-card"><div class="row between"><div>${standalone ? '' : '<h2>Delivery diagnostics</h2>'}<p class="muted">Check server-side email and Web Push delivery.</p></div><button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery">${ic('refresh-cw', 13)}Check status</button></div></div>`;
   }
   const emailReady = status.channels?.email?.configured && status.channels?.email?.authorized;
   const pushReady = status.channels?.push?.configured;
@@ -83,6 +83,9 @@ export function deliveryStatusPanel() {
           ? 'Version and ETag checks'
           : status.workspace?.coordination?.mode || '—';
   const issueMessages = {
+    cron_disabled: copy('Automatic runs are disabled on the server.', 'Автоматические запуски отключены на сервере.'),
+    cron_unknown: copy('The server schedule could not be checked.', 'Не удалось проверить планировщик сервера.'),
+    delivery_paused: copy('Delivery is paused. No new attempts start.', 'Доставка на паузе. Новые попытки не начинаются.'),
     storage: 'Workspace storage needs attention.',
     coordination: 'Write coordination needs attention.',
     email: 'Email authorization needs attention.',
@@ -106,7 +109,7 @@ export function deliveryStatusPanel() {
   const state = (ready, label) => `<span class="badge ${ready ? 'green' : 'amber'}"><span class="dot"></span>${esc(tr(label))}</span>`;
   const nextChecks = deliveryTriage(operational?.issues, isRussian() ? 'ru' : 'en');
   return `<div class="sblock notification-delivery-card">
-    <div class="row between notification-delivery-head"><div><h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p></div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
+    <div class="row between notification-delivery-head"><div>${standalone ? '' : '<h2>Delivery diagnostics</h2><p class="muted">Server-side channel health and recent delivery results.</p>'}</div><div class="row">${state(operational?.status === 'healthy', healthLabel)}<button class="btn btn-secondary btn-sm" data-a="refreshNotificationDelivery" ${S.ui.notificationDeliveryLoading ? 'disabled' : ''}>${ic('refresh-cw', 13)}${S.ui.notificationDeliveryLoading ? 'Checking…' : 'Refresh'}</button></div></div>
     ${
       operational?.issues?.length
         ? `<ul class="notification-delivery-issues">${operational.issues
@@ -125,14 +128,14 @@ export function deliveryStatusPanel() {
       )
       .join('')}
     <p class="hint" translate="no">${copy('Workspace', 'Пространство')}: ${esc(D().ws.name)} · ${copy('Data synchronization and notification delivery are independent.', 'Синхронизация данных и доставка уведомлений проверяются отдельно.')}</p>
-    ${queue.pending ? `<div class="alert warn"><div><b>${copy('Delivery queue needs attention', 'Очередь доставки требует внимания')}</b><p>${copy('Email', 'Почта')}: ${Number(queue.channels?.email || 0)} · Push: ${Number(queue.channels?.push || 0)}</p><p>${copy('Oldest pending item', 'Самое старое ожидание')}: ${settingsTimestamp(queue.oldestPendingAt)}</p><p>${copy('Channel unavailable', 'Канал недоступен')}: ${Number(queue.reasons?.channel_unavailable || 0)} · ${copy('Provider error', 'Ошибка провайдера')}: ${Number(queue.reasons?.provider_error || 0)} · ${copy('Cause not recorded', 'Причина не записана')}: ${Number(queue.reasons?.unknown || 0)}</p><p>${copy('Check channel authorization and device subscriptions before retrying. A successful latest attempt does not clear the remaining queue.', 'Проверьте авторизацию канала и подписки устройств перед повтором. Успешная последняя попытка не означает разбор оставшейся очереди.')}</p></div></div>` : ''}
+    ${queue.pending ? `<div class="alert ${status.review?.paused ? '' : 'warn'}" translate="no"><div><b>${status.review?.paused ? copy('Delivery paused', 'Доставка на паузе') : copy('Pending deliveries', 'Ожидают доставки')}</b><p>${copy('Email', 'Почта')}: ${Number(queue.channels?.email || 0)} · Push: ${Number(queue.channels?.push || 0)}</p><p>${copy('Not attempted yet', 'Ещё не отправляли')}: ${Number(queue.phases?.notAttempted || 0)} · ${copy('Waiting to retry', 'Ожидаем повтор')}: ${Number(queue.phases?.retryWaiting || 0)} · ${copy('Sending now', 'Отправляем сейчас')}: ${Number(queue.phases?.sending || 0)}</p><details><summary>${copy('Previous attempts', 'Предыдущие попытки')}</summary><p>${copy('Oldest pending item', 'Самое старое ожидание')}: ${settingsTimestamp(queue.oldestPendingAt)}</p><p>${copy('Channel unavailable', 'Канал недоступен')}: ${Number(queue.reasons?.channel_unavailable || 0)} · ${copy('Provider error', 'Ошибка провайдера')}: ${Number(queue.reasons?.provider_error || 0)} · ${copy('Attempt without a recorded cause', 'Попытка без уточнения причины')}: ${Number(queue.reasons?.unknown || 0)}</p></details><p>${copy('Review channel access and device subscriptions before retrying. A successful latest attempt does not clear the remaining queue.', 'Проверьте доступ канала и подписки устройств перед повтором. Успешная последняя попытка не означает разбор оставшейся очереди.')}</p></div></div>` : ''}
     ${queueReviewPanel(status)}
     <div class="alert" translate="no"><div><b>${copy('Automatic runs', 'Автоматические запуски')}: ${scheduleLabel}</b><p>${copy(status.review?.paused ? 'Delivery is paused separately. Enabling the server schedule does not approve the pending recipients.' : 'The queue is enabled. Review pending recipients before changing the server schedule.', status.review?.paused ? 'Доставка отдельно приостановлена. Включение планировщика не означает согласование получателей очереди.' : 'Очередь включена. Проверьте ожидающих получателей перед изменением планировщика.')}</p><p class="hint">${copy('Server schedule changes are made by the owner on the server. This check does not send notifications or enable automation.', 'Режим планировщика меняет владелец на сервере. Эта проверка не отправляет уведомления и не включает автоматизацию.')}</p></div></div>
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>
       <div><span class="label">Email</span>${state(emailReady && (emailTestAccepted || !recentEmailFailure), emailLabel)}<p class="hint">Gmail API</p>${emailReady && !emailTestAccepted && !Number(lastRun?.email?.delivered || 0) ? `<p class="hint">${tr('OAuth access is verified; successful email delivery is not confirmed yet.')}</p>` : ''}</div>
-      <div><span class="label">Pending deliveries</span><b>${Number(status.outbox?.pending || 0)}</b><p class="hint">${tr('Retrying')}: ${Number(status.outbox?.retrying || 0)}</p>${status.outbox?.pending ? `<button class="btn btn-secondary btn-sm" data-a="retryNotificationDelivery" ${S.ui.notificationDeliveryLoading || status.review?.paused ? 'disabled' : ''}>${ic('refresh-cw', 13)}Send pending</button>` : ''}</div>
+      <div><span class="label">Pending deliveries</span><b>${Number(status.outbox?.pending || 0)}</b><p class="hint" translate="no">${copy('Previously attempted', 'Уже пробовали')}: ${Number(status.outbox?.retrying || 0)}</p>${status.outbox?.pending ? `<button class="btn btn-secondary btn-sm" data-a="retryNotificationDelivery" ${S.ui.notificationDeliveryLoading || status.review?.paused ? 'disabled' : ''}>${ic('refresh-cw', 13)}Send pending</button>` : ''}</div>
       <div><span class="label">Web Push</span>${state(pushReady, pushReady ? 'Configured' : 'Needs attention')}<p class="hint">${Number(status.channels?.push?.subscriptions || 0)} active devices</p></div>
       <div><span class="label">Last automatic run</span><b>${settingsTimestamp(lastCron?.at)}</b><p class="hint">${cronLabel}</p></div>
       <div><span class="label">Latest delivery</span><b>${settingsTimestamp(lastRun?.at)}</b><p class="hint">${Number(lastRun?.push?.delivered || 0)} push · ${Number(lastRun?.email?.delivered || 0)} email · ${Number(lastRun?.push?.failed || 0) + Number(lastRun?.email?.failed || 0)} failed</p></div>

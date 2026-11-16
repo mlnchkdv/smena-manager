@@ -21,7 +21,7 @@ export function evaluateAutomationRun({ digest, backup, fileCleanup, abandonedUp
   return { status: issues.length ? 'degraded' : 'ok', issues };
 }
 
-export function evaluateOperationalHealth({ delivery, channels, workspace, outbox }, options = {}) {
+export function evaluateOperationalHealth({ delivery, channels, workspace, outbox, review, scheduler }, options = {}) {
   const now = new Date(options.now || Date.now()).getTime();
   const issues = [];
   if (!workspace?.storage?.connected || !workspace?.storage?.persistent) issues.push({ code: 'storage', severity: 'critical' });
@@ -29,19 +29,23 @@ export function evaluateOperationalHealth({ delivery, channels, workspace, outbo
   if (!channels?.email?.configured || !channels?.email?.authorized) issues.push({ code: 'email', severity: 'warning' });
   if (!channels?.push?.configured) issues.push({ code: 'push', severity: 'warning' });
   const cronAt = new Date(delivery?.lastCron?.at || 0).getTime();
-  if (!cronAt || now - cronAt > CRON_STALE_AFTER_MS) issues.push({ code: 'cron_stale', severity: 'critical' });
+  if (scheduler?.mode === 'disabled') issues.push({ code: 'cron_disabled', severity: 'info' });
+  else if (scheduler?.mode === 'unknown') issues.push({ code: 'cron_unknown', severity: 'warning' });
+  else if (!cronAt || now - cronAt > CRON_STALE_AFTER_MS) issues.push({ code: 'cron_stale', severity: 'critical' });
   else if (delivery?.lastCron?.status !== 'ok') issues.push({ code: 'cron_degraded', severity: 'warning' });
   const deliveryFailures = Number(delivery?.lastRun?.push?.failed || 0) + Number(delivery?.lastRun?.email?.failed || 0);
   if (deliveryFailures) issues.push({ code: 'delivery', severity: 'warning', count: deliveryFailures });
-  if (outbox?.pending && now - Number(outbox.oldestPendingAt || now) > 60 * 60 * 1000)
-    issues.push({ code: 'outbox_stale', severity: 'warning', count: outbox.pending });
+  const paused = review?.paused || outbox?.paused;
+  if (paused) issues.push({ code: 'delivery_paused', severity: 'info' });
+  const oldest = typeof outbox?.oldestPendingAt === 'number' ? outbox.oldestPendingAt : Date.parse(outbox?.oldestPendingAt);
+  if (!paused && outbox?.pending && now - oldest > 60 * 60 * 1000) issues.push({ code: 'outbox_stale', severity: 'warning', count: outbox.pending });
   return {
-    status: issues.some(issue => issue.severity === 'critical') ? 'critical' : issues.length ? 'warning' : 'healthy',
+    status: issues.some(issue => issue.severity === 'critical') ? 'critical' : issues.some(issue => issue.severity === 'warning') ? 'warning' : 'healthy',
     checkedAt: new Date(now).toISOString(),
     schedule: {
       timezone: 'UTC',
       dailyAt: '04:00',
-      nextRunAt: nextScheduledCronAt(now),
+      nextRunAt: scheduler?.mode === 'disabled' || scheduler?.mode === 'unknown' ? null : nextScheduledCronAt(now),
     },
     issues,
   };

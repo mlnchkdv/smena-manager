@@ -1,4 +1,16 @@
 const CHECKS = {
+  cron_disabled: {
+    en: 'Automatic runs are intentionally disabled. Review the queue before asking the owner to enable the server timer.',
+    ru: 'Автоматические запуски отключены. Проверьте очередь перед обращением к владельцу для включения планировщика.',
+  },
+  cron_unknown: {
+    en: 'The schedule could not be read. Ask the owner to inspect the timer without running delivery.',
+    ru: 'Не удалось прочитать расписание. Попросите владельца проверить таймер, не запуская доставку.',
+  },
+  delivery_paused: {
+    en: 'No new attempts start while paused. Review the recipients before resuming; an active attempt may finish.',
+    ru: 'На паузе новые попытки не начинаются. Проверьте получателей перед продолжением; начатая попытка может завершиться.',
+  },
   storage: {
     en: 'Ask the workspace owner to check Google Drive access and free space. Keep unsynced changes on this device, then refresh status.',
     ru: 'Попросите владельца проверить доступ к Google Диску и свободное место. Сохраните несинхронизированные изменения на этом устройстве, затем обновите статус.',

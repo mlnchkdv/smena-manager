@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {
   notificationDeliveryStatus,
+  notificationQueueStatus,
   claimNotificationTestCooldown,
   recordNotificationCronRun,
   recordNotificationDelivery,
@@ -11,6 +12,29 @@ import {
 } from '../../src/server/notification-delivery.js';
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { resetWorkspaceStore } from '../../src/server/workspace-store.js';
+
+test('queue distinguishes unattempted channels, retry waits, active leases and recorded failures', () => {
+  const now = Date.now();
+  const data = {
+    _notificationOutbox: [
+      {
+        createdAt: now - 1000,
+        channels: {
+          email: { status: 'pending', attempts: 0 },
+          push: { status: 'pending', attempts: 1, nextAt: now + 1000, reason: 'provider_error' },
+          other: { status: 'sending', attempts: 1, leaseUntil: now + 1000 },
+          legacy: { status: 'pending', attempts: 2 },
+          sent: { status: 'sent', attempts: 1 },
+        },
+      },
+    ],
+  };
+  const result = notificationQueueStatus(data, now);
+  assert.equal(result.pending, 4);
+  assert.deepEqual(result.phases, { notAttempted: 1, retryWaiting: 1, ready: 1, sending: 1 });
+  assert.equal(result.reasons.provider_error, 1);
+  assert.equal(result.reasons.unknown, 1);
+});
 
 test('outbox diagnostics require metadata only, not full catalog parts', async t => {
   resetStorageProvider();
