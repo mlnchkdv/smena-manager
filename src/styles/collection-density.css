@@ -103,7 +103,7 @@
 }
 :root[data-density='compact'] .knowledge-preview-excerpt {
   margin-block: 8px;
-  min-height: 32px;
+  min-height: 0;
   -webkit-line-clamp: 2;
 }
 :root[data-density='compact'] .bookmark-card {

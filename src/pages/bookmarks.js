@@ -174,12 +174,15 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
       'Bookmark filters and view',
       'bookmark-toolbar',
     )}
+    <div class="collection-results-row bookmark-results-row">
     <nav class="bookmark-location" aria-label="${kc('Bookmark location', 'Расположение закладок')}" translate="no">${folderNavigation('bookmarks', folderFilter === 'all' ? null : { folder: folderIndex.get(folderFilter)?.parentId || 'all' })}${folderFilter === 'all' ? `<strong>${kc('All bookmarks', 'Все закладки')}</strong>` : `<button class="btn btn-ghost btn-sm" data-a="collectionFolderUp" data-kind="bookmarks" data-folder="all">${kc('All bookmarks', 'Все закладки')}</button><span aria-hidden="true">/</span>${bookmarkCrumbs}`}</nav>
     ${!readOnly && filtered.length ? `<div class="bookmark-bulk row" style="flex-wrap:wrap;gap:8px"><label class="row"><input type="checkbox" data-in="bookmarkSelectPage" ${filtered.every(item => S.ui.bookmarkSelection?.includes(item.id)) ? 'checked' : ''}>${kc('Select page', 'Выбрать страницу')}</label><span role="status">${kc('Selected: ', 'Выбрано: ')}${S.ui.bookmarkSelection?.length || 0}</span>${S.ui.bookmarkSelection?.length ? `<button class="btn btn-secondary" data-a="bookmarkBatch">${kc('Actions', 'Действия')}</button><button class="btn btn-ghost" data-a="clearBookmarkSelection">${kc('Clear selection', 'Снять выбор')}</button>` : ''}</div>` : ''}
+    ${filtered.length ? `<span class="hint num bookmark-result-count" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</span>` : ''}
+    </div>
     ${S.ui.bookmarkSelectionNotice ? `<p class="hint" role="status">${kc('Selection cleared because the view changed.', 'Выбор снят после изменения представления.')}</p>` : ''}
     ${
       filtered.length
-        ? `<p class="hint num" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</p><div class="bookmark-grid ${layout === 'list' ? 'is-list' : ''}">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
+        ? `<div class="bookmark-grid ${layout === 'list' ? 'is-list' : ''}">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
         : empty(
             'bookmark-x',
             scope === 'archived' ? 'No archived bookmarks' : 'No bookmarks found',

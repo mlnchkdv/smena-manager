@@ -406,6 +406,23 @@
 .bookmark-bulk > label {
   min-height: 44px;
 }
+.bookmark-results-row > .bookmark-location {
+  margin: 0;
+  min-width: 0;
+}
+.bookmark-results-row > .bookmark-bulk {
+  margin: 0 0 0 auto;
+  min-height: var(--control-target);
+}
+.bookmark-result-count {
+  margin: 0;
+  white-space: nowrap;
+}
+@media (min-width: 901px) and (pointer: fine) {
+  .bookmark-results-row .bookmark-bulk > label {
+    min-height: 32px;
+  }
+}
 .bookmark-grid.is-list .bookmark-card-actions > [data-a='copyBookmark'] {
   display: none;
 }

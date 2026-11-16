@@ -1,6 +1,7 @@
 import { D, S } from './store.js';
 import { knowledgeViewKeys, readScopedLayout } from '../shared/layout-preference-storage.js';
 import { localViewResetApplies } from './view-layout-preferences.js';
+import { DEFAULT_KNOWLEDGE_PANE_WIDTH } from '../shared/knowledge-layout.js';
 let loadedKey;
 window.addEventListener('smena:device-view-reset', event => {
   if (localViewResetApplies(event, 'knowledge')) loadedKey = undefined;
@@ -27,7 +28,7 @@ export function knowledgePreferences() {
     S.ui.knowledgeColumns = Array.isArray(value.columns) ? value.columns.filter(key => typeof key === 'string').slice(0, 6) : null;
     S.ui.knowledgeTableSort = value.tableSort && typeof value.tableSort.key === 'string' ? { key: value.tableSort.key, desc: !!value.tableSort.desc } : null;
     S.ui.knowledgePaneHidden = value.paneHidden === true;
-    S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(value.paneWidth) || 300));
+    S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(value.paneWidth) || DEFAULT_KNOWLEDGE_PANE_WIDTH));
     S.ui.knowledgeShowFolders = value.showFolders !== false;
     S.ui.knowledgeFolderLayout = value.folderLayout === 'inline' ? 'inline' : 'block';
     S.ui.knowledgeCardDensity = ['comfortable', 'compact'].includes(value.cardDensity) ? value.cardDensity : '';
@@ -51,7 +52,7 @@ export function saveKnowledgePreferences() {
       JSON.stringify({
         views: S.ui.knowledgeSavedViews || [],
         paneHidden: !!S.ui.knowledgePaneHidden,
-        paneWidth: S.ui.knowledgePaneWidth || 300,
+        paneWidth: S.ui.knowledgePaneWidth || DEFAULT_KNOWLEDGE_PANE_WIDTH,
         recent: S.ui.knowledgeRecent || [],
         folderRecent: S.ui.knowledgeFolderRecent || [],
         showFolders: S.ui.knowledgeShowFolders !== false,

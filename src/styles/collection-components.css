@@ -17,6 +17,14 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.collection-results-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 4px 12px;
+  margin-block: 8px 12px;
+}
 :is(.files-folder-tile, .knowledge-folder-tile) {
   position: relative;
   min-width: 0;

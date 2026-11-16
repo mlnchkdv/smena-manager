@@ -40,7 +40,7 @@ import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowl
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
 import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
 import { knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
-import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
+import { DEFAULT_KNOWLEDGE_PANE_WIDTH, knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
 const noteTime = value => {
@@ -233,7 +233,7 @@ export function pageKnowledge() {
       : '';
 
   S.ui.knowledgeFolderOverlay = knowledgeFolderOverlay(window.innerWidth, S.ui.collapsed, document.querySelector('.main')?.clientWidth || undefined);
-  return `<div data-folder-overlay="${S.ui.knowledgeFolderOverlay}" data-pane-hidden="${!!S.ui.knowledgePaneHidden}" style="--knowledge-pane-width:${S.ui.knowledgePaneWidth || 300}px" class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
+  return `<div data-folder-overlay="${S.ui.knowledgeFolderOverlay}" data-pane-hidden="${!!S.ui.knowledgePaneHidden}" style="--knowledge-pane-width:${S.ui.knowledgePaneWidth || DEFAULT_KNOWLEDGE_PANE_WIDTH}px" class="knowledge-shell${S.ui.knowledgeMobileFolders ? ' folders-open' : ''}${S.ui.knowledgeOrganize ? ' organizing-folders' : ''}">
     ${S.ui.knowledgeMobileFolders ? '<button class="knowledge-folder-scrim" data-a="toggleKnowledgeMobileFolders" aria-label="Close folders"></button>' : ''}
     <aside class="knowledge-sidebar">
       <div class="knowledge-sidebar-head">

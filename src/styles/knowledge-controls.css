@@ -329,6 +329,14 @@
 .knowledge-content {
   display: flow-root;
 }
+/* The page title and folder tree already name the root collection. Keep
+   actual nested paths, and retain the browser when the folder pane is hidden. */
+.knowledge-shell[data-pane-hidden='false'] .knowledge-breadcrumbs[data-root='true'] {
+  display: none;
+}
+.knowledge-content:has(> .knowledge-breadcrumbs[data-root='true']):not(:has(> .knowledge-folder-disclosure[open])) > .knowledge-notes-section-head {
+  display: none;
+}
 .knowledge-view-options {
   float: right;
   position: relative;

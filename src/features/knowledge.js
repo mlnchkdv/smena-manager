@@ -27,7 +27,7 @@ import { uid, esc } from '../core/utils.js';
 import { saveKnowledgePreferences } from '../core/knowledge-preferences.js';
 import { knowledgeSnapshot, historyContent, knowledgeVersionChanges, KNOWLEDGE_VERSION_FIELDS } from '../shared/knowledge-history.js';
 import { workspaceSyncIsClean } from '../core/workspace-sync.js';
-import { knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
+import { DEFAULT_KNOWLEDGE_PANE_WIDTH, knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { knowledgePreviewNavigation } from '../shared/knowledge-preview-navigation.js';
 import { knowledgeHeadingSlug } from '../shared/knowledge-markdown.js';
 import { readerToStart } from '../ui/knowledge-reader-position.js';
@@ -504,12 +504,12 @@ A.toggleKnowledgePane = () => {
 };
 A.resetKnowledgePane = () => {
   S.ui.knowledgePaneHidden = false;
-  S.ui.knowledgePaneWidth = 300;
+  S.ui.knowledgePaneWidth = DEFAULT_KNOWLEDGE_PANE_WIDTH;
   saveKnowledgePreferences();
   render();
 };
 IN.knowledgePaneWidth = el => {
-  S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(el.value) || 300));
+  S.ui.knowledgePaneWidth = Math.max(220, Math.min(420, Number(el.value) || DEFAULT_KNOWLEDGE_PANE_WIDTH));
   document.querySelector('.knowledge-shell')?.style.setProperty('--knowledge-pane-width', S.ui.knowledgePaneWidth + 'px');
   saveKnowledgePreferences();
 };
