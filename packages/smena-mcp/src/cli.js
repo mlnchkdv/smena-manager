@@ -50,12 +50,17 @@ async function main() {
     command = args.shift() || 'serve';
   let origin = 'https://smena.team',
     profile = 'default';
-  let clipboardLogin = false;
+  let clipboardLogin = false,
+    browserLogin = false;
   const uploadOptions = {};
   while (args.length) {
     const key = args.shift();
     if (key === '--clipboard') {
       clipboardLogin = true;
+      continue;
+    }
+    if (key === '--browser') {
+      browserLogin = true;
       continue;
     }
     const value = args.shift();
@@ -70,6 +75,19 @@ async function main() {
     return;
   }
   if (command === 'auth-login') {
+    if (browserLogin) {
+      const { startBrowserLogin } = await import('./browser-login.js');
+      const setup = await startBrowserLogin({
+        save: async token => {
+          await new SmenaApiClient({ origin, token }).call('GET', '/me');
+          credentialOperation('write', profile, token);
+        },
+      });
+      process.stderr.write('Open this one-time local setup page (expires in 5 minutes):\n' + setup.url + '\n');
+      await setup.done;
+      process.stderr.write('Credential saved in the system secret store.\n');
+      return;
+    }
     const token = clipboardLogin ? readClipboardToken() : await secretInput();
     await new SmenaApiClient({ origin, token }).call('GET', '/me');
     credentialOperation('write', profile, token);

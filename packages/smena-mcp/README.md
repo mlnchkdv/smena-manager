@@ -22,6 +22,12 @@ Service (`secret-tool` must be installed and unlocked). No plaintext credential
 file is created. For an explicitly temporary setup, the process can read
 `SMENA_INTEGRATION_TOKEN` from its environment instead.
 
+If the terminal cannot receive the browser clipboard, run `auth-login --profile
+codex --browser`. Open the printed one-time **127.0.0.1** URL and paste the token
+into the masked field. The form expires after five minutes, checks its own origin,
+and closes its local listener after saving. The token never appears in a URL or
+response. Do not paste it into a chat.
+
 Add a local stdio server to Codex with the absolute paths to Node and this file:
 
 ```toml
