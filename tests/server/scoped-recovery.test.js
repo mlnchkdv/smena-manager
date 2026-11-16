@@ -11,7 +11,7 @@ test('recovering a core conflict preserves an active knowledge write and its loc
     await import('../../src/core/workspace-sync.js');
   const { workspaceCoreData } = await import('../../src/shared/workspace-documents.js');
   const originalFetch = globalThis.fetch;
-  const base = structuredClone(S.data);
+  const base = (await import('../../src/data/seed.js')).seed();
   S.ui.currentUser = { id: 'test-owner', role: 'admin' };
   S.ui.workspaceRevision = 1;
   S.ui.workspaceBaseline = structuredClone(base);
@@ -78,7 +78,8 @@ test('accepting one server scope preserves other local documents and retains the
   const stored = new Map();
   globalThis.localStorage = { setItem: (key, value) => stored.set(key, value), getItem: key => stored.get(key), removeItem: key => stored.delete(key) };
   S.ui.currentUser = { id: 'test-owner', role: 'admin' };
-  const base = structuredClone(S.data);
+  const base = (await import('../../src/data/seed.js')).seed();
+  S.data = structuredClone(base);
   configureWorkspaceSync(1, 'admin', base);
   const localDraft = workspaceCoreData(structuredClone(base));
   localDraft.tasks[0].title = 'Original offline copy';
