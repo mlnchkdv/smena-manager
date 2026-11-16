@@ -495,6 +495,26 @@
 .whiteboard-viewport[data-overview='true'] .whiteboard-drag strong {
   font-size: calc(11px / var(--whiteboard-zoom, 1));
 }
+.whiteboard-viewport[data-overview='true'] .whiteboard-card-content {
+  visibility: hidden;
+}
+.whiteboard-viewport[data-overview='true'] [data-overview-label='false'] .whiteboard-drag strong {
+  visibility: hidden;
+}
+.whiteboard-overview-selection {
+  display: none;
+}
+.project-whiteboard:has(.whiteboard-viewport[data-overview='true']) .whiteboard-overview-selection {
+  display: block;
+  flex: 1 1 calc(100% - 30px);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+.project-whiteboard:has(.whiteboard-viewport[data-overview='true']) :is(.whiteboard-context-title, .whiteboard-context > strong) {
+  display: none;
+}
 @media (max-width: 900px), (pointer: coarse) {
   .whiteboard-viewport .whiteboard-drag {
     min-height: calc(44px / var(--whiteboard-zoom, 1));

@@ -44,6 +44,7 @@ import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
 import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
 import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
 import { whiteboardNavigationHint } from '../ui/whiteboard-context.js';
+import { refreshWhiteboardOverview } from '../ui/whiteboard-overview.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -815,6 +816,7 @@ function paintView() {
     world.style.transform = `translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
     world.style.setProperty('--whiteboard-zoom', String(s.zoom));
     world.closest('.whiteboard-viewport').dataset.overview = String(s.zoom < 0.65);
+    refreshWhiteboardOverview(s);
   }
   const scale = document.querySelector('.whiteboard-scale');
   if (scale) scale.textContent = Math.round(s.zoom * 100) + '%';
@@ -1413,6 +1415,7 @@ export function mountProjectWhiteboard() {
     );
   }
   if (next && whiteboardState().fit) A.whiteboardFit();
+  if (next) refreshWhiteboardOverview(whiteboardState());
   const p = current();
   if (!p) return;
   const ids = whiteboardOf(p)
