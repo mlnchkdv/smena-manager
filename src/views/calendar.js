@@ -89,11 +89,14 @@ export function calendarHtml(ts, opt = {}) {
       .join('')}</div>`;
   }
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
+  const layerCount = [1, 2, 4, 8].filter(bit => (S.prefs.calendarLayers ?? 3) & bit).length;
   return `<div class="cal">
     <div class="toolbar cal-toolbar" style="gap:8px">
+      <div class="cal-navigation">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
       <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2>
+      </div>
       <span class="sp"></span>
       ${
         !opt.project && projs.length > 1
@@ -114,8 +117,7 @@ export function calendarHtml(ts, opt = {}) {
           ['agenda', 'Agenda'],
         ],
       })}
-    </div>
-    <details class="calendar-layers ui-menu" ${disclosureAttributes('calendar-layers')}><summary class="btn btn-ghost btn-sm">${ic('layers', 14)}Calendar layers</summary><div>${[
+    <details class="calendar-layers ui-menu" ${disclosureAttributes('calendar-layers')}><summary class="btn btn-ghost btn-sm" aria-label="${esc(t('Calendar layers'))}: ${layerCount} / 4" title="${esc(t('Calendar layers'))}">${ic('layers', 14)}<span class="hide-m">Calendar layers</span><span class="badge" aria-hidden="true">${layerCount}/4</span></summary><div>${[
       [1, 'Tasks'],
       [2, 'Events'],
       [4, 'Milestones'],
@@ -127,7 +129,7 @@ export function calendarHtml(ts, opt = {}) {
       )
       .join(
         '',
-      )}<p class="hint">Task filters apply to tasks. The project filter applies to every layer. Dates without a time stay on their original day.</p></div></details><div class="cal-type-legend hint" role="status">${
+      )}<p class="hint">Task filters apply to tasks. The project filter applies to every layer. Dates without a time stay on their original day.</p></div></details></div><div class="cal-type-legend hint${layerCount ? ' has-layers' : ''}" role="status">${
       [
         [1, 'circle-check', 'Tasks'],
         [2, 'clock', 'Events'],

@@ -83,6 +83,12 @@
 .cal-toolbar {
   flex: 0 0 auto;
 }
+.cal-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
 .cal-toolbar h2 {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -330,15 +336,27 @@
   .cal-toolbar > .sp {
     display: none;
   }
-  .cal-toolbar > h2 {
+  .cal-navigation {
+    flex: 1 1 100%;
+  }
+  .cal-navigation h2 {
     flex: 1;
     min-width: 0;
   }
   .cal-toolbar .cal-views {
-    flex: 1 1 100%;
+    flex: 1;
+    min-width: 0;
   }
   .cal-toolbar .cal-views button {
     flex: 1;
+    padding-inline: 8px;
+  }
+  .cal-toolbar .calendar-layers > summary {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .cal-type-legend.has-layers {
+    display: none;
   }
 }
 
@@ -356,9 +374,13 @@
 }
 
 .calendar-layers {
-  align-self: flex-start;
+  align-self: center;
+  flex-shrink: 0;
   position: relative;
-  margin: 0 12px 4px;
+  margin: 0;
+}
+.calendar-layers > summary {
+  list-style: none;
 }
 .calendar-layers > div {
   padding: 12px;
@@ -395,7 +417,8 @@
 .calendar-layers > div {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
+  right: 0;
+  left: auto;
   z-index: 20;
   max-height: min(420px, 65dvh);
   overflow: auto;
@@ -406,4 +429,9 @@
 }
 .calendar-layers:not([open]) > div {
   display: none;
+}
+@container workspace (max-width: 1050px) {
+  .cal-toolbar .cal-legend {
+    display: none;
+  }
 }
