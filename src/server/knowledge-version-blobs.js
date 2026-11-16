@@ -32,6 +32,7 @@ export async function persistKnowledgeVersion(storage, noteId, version) {
     by: version.by || '',
     editedBy: version.editedBy || '',
     savedAt: version.savedAt || 0,
+    ...(version.integrationName ? { integrationName: version.integrationName } : {}),
   };
   const text = JSON.stringify({ format: 'smena-knowledge-version-v1', noteId, version: content });
   const bytes = Buffer.byteLength(text);
@@ -45,6 +46,7 @@ export async function persistKnowledgeVersion(storage, noteId, version) {
     by: content.by,
     editedBy: content.editedBy,
     savedAt: content.savedAt,
+    ...(content.integrationName ? { integrationName: content.integrationName } : {}),
     contentRef: { kind: 'knowledge-version-v1', sha256, bytes },
   };
 }
@@ -65,12 +67,17 @@ export async function readKnowledgeVersion(storage, noteId, version) {
   return body.version;
 }
 
-export async function storedNoteHistory(storage, previous, next, now = Date.now()) {
+export async function storedNoteHistory(storage, previous, next, now = Date.now(), options = {}) {
   if (!previous) return [];
   const prior = Array.isArray(previous.history) ? previous.history.slice(0, KNOWLEDGE_HISTORY_LIMIT) : [];
   const changed = JSON.stringify(knowledgeSnapshot(previous)) !== JSON.stringify(knowledgeSnapshot(next));
   if (!changed) return prior;
-  const grouped = !next.restoreFromVersion && prior[0]?.editedBy === next.updatedBy && now - Number(prior[0]?.savedAt || 0) < 120000;
+  const grouped =
+    !options.force &&
+    !next.restoreFromVersion &&
+    (previous.updatedVia?.id || '') === (next.updatedVia?.id || '') &&
+    prior[0]?.editedBy === next.updatedBy &&
+    now - Number(prior[0]?.savedAt || 0) < 120000;
   const history = [];
   if (!grouped)
     history.push(
@@ -81,6 +88,7 @@ export async function storedNoteHistory(storage, previous, next, now = Date.now(
         by: previous.updatedBy || '',
         editedBy: next.updatedBy || '',
         savedAt: now,
+        ...(options.integrationName ? { integrationName: options.integrationName } : {}),
       }),
     );
   // Legacy inline snapshots remain available and are migrated before their

@@ -7,6 +7,7 @@ import { PROJECT_AUTOMATION_FIELDS, validateStoredProjectAutomations } from '../
 
 const SCOPES = {
   knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch'],
+  knowledgeApi: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch', '_integrationOperations', '_integrationAudit'],
   knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeSearch'],
   knowledgeMigration: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeMigration', '_knowledgeStorageVersion', '_knowledgeSearch'],
   knowledgeImport: ['knowledgeNotes', '_documentRevisions', '_knowledgeImports', '_knowledgeSearch'],
@@ -69,7 +70,7 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
     for (let index = 0; index < current.projects.length; index++)
       if (!same(omit(current.projects[index], fields), omit(next.projects[index], fields))) throw forbidden();
   } else if (!['directory', 'mediaCopies'].includes(scope)) {
-    const document = ['knowledgeTrash', 'knowledgeMigration', 'knowledgeImport'].includes(scope) ? 'knowledge' : scope;
+    const document = ['knowledgeTrash', 'knowledgeMigration', 'knowledgeImport', 'knowledgeApi'].includes(scope) ? 'knowledge' : scope;
     if (
       document !== scope &&
       !same(
@@ -82,7 +83,9 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
     const before = current._documentRevisions?.[document] || {};
     const after = next._documentRevisions?.[document];
     const controlOnly =
-      ['knowledgeMigration', 'knowledgeImport'].includes(scope) && same(current.knowledgeNotes, next.knowledgeNotes) && same(current.trash, next.trash);
+      ['knowledgeMigration', 'knowledgeImport', 'knowledgeApi'].includes(scope) &&
+      same(current.knowledgeNotes, next.knowledgeNotes) &&
+      same(current.trash, next.trash);
     if (controlOnly) {
       if (!same(before, after)) throw forbidden();
     } else if (after?.revision !== Number(before.revision || 0) + 1 || after.createdAt !== (before.createdAt || current.createdAt)) throw forbidden();

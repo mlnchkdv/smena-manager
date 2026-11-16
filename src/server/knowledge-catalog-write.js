@@ -78,6 +78,7 @@ export async function replaceKnowledgeCatalog(input, expectedRevision, profile, 
             next.createdBy = loaded?.createdBy || actor.id;
             next.createdAt = loaded?.createdAt || new Date().toISOString();
             next.updatedBy = actor.id;
+            delete next.updatedVia;
             next.updatedAt = new Date().toISOString();
             next.wikilinks = extractWikiLinks(next.formatted_markdown);
             next.history = await storedNoteHistory(storage, loaded, next);

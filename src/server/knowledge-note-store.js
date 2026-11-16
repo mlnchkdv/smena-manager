@@ -72,37 +72,19 @@ export async function patchKnowledgeNote(noteId, patch, expectedHash, profile, p
       const saved = await mutateWorkspaceMetadata(
         async data => {
           const actor = knowledgeActor(data, profile, profiles, { write: true });
-          const index = data.knowledgeNotes?.findIndex(note => note.id === noteId);
-          if (!(index >= 0)) throw missing();
-          const record = data.knowledgeNotes[index];
-          const previous = await loadKnowledgeBody(getStorageProvider(), record);
-          if (knowledgeSnapshotHash(previous) !== expectedHash)
-            throw Object.assign(new Error('The note changed. Review its version again.'), { code: 'KNOWLEDGE_VERSION_STALE', statusCode: 409 });
-          const next = { ...previous, ...structuredClone(patch) };
-          validateDocumentInput('knowledge', { knowledgeNotes: [next], knowledgeFolders: data.knowledgeFolders });
-          if (isDeepStrictEqual(previous, next))
+          const changed = await applyKnowledgeNotePatch(data, noteId, patch, actor, { hash: expectedHash });
+          if (changed.unchanged)
             throw Object.assign(new Error('Note unchanged.'), {
               code: 'KNOWLEDGE_NOTE_UNCHANGED',
-              result: { note: previous, noteHash: expectedHash, revision: Number(data._documentRevisions?.knowledge?.revision || 0) },
+              result: {
+                note: changed.note,
+                noteHash: expectedHash,
+                etag: knowledgeEntityEtag(changed.note),
+                version: knowledgeEntityVersion(changed.note).number,
+                revision: Number(data._documentRevisions?.knowledge?.revision || 0),
+              },
             });
-          next.updatedBy = actor.id;
-          next.updatedAt = new Date().toISOString();
-          if (Object.hasOwn(patch, 'formatted_markdown')) next.wikilinks = extractWikiLinks(next.formatted_markdown);
-          // Preserve resolved identities through title changes and bind new links
-          // against metadata for all other notes, without reading their bodies.
-          bindWikiReferences([next, ...data.knowledgeNotes.filter(note => note.id !== noteId)]);
-          next.history = await storedNoteHistory(getStorageProvider(), previous, next);
-          data.knowledgeNotes[index] = externalKnowledgeBody(record) ? await storeKnowledgeBody(getStorageProvider(), next) : next;
-          const metadata = data._documentRevisions?.knowledge || {};
-          data._documentRevisions = {
-            ...data._documentRevisions,
-            knowledge: {
-              revision: Number(metadata.revision || 0) + 1,
-              createdAt: metadata.createdAt || data.createdAt,
-              updatedAt: next.updatedAt,
-            },
-          };
-          selected = next;
+          selected = changed.note;
           return data;
         },
         baseline.revision,
@@ -178,4 +160,40 @@ export async function applyKnowledgeNoteCreate(data, values, actor) {
     knowledge: { revision: Number(previous.revision || 0) + 1, createdAt: previous.createdAt || data.createdAt, updatedAt: now },
   };
   return note;
+}
+
+// Shared by the browser patch endpoint and the external API, inside its caller's
+// canonical mutation. Authorization is performed against that locked database.
+export async function applyKnowledgeNotePatch(data, noteId, patch, actor, guard = {}) {
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some(field => !EDITABLE.has(field)))
+    throw Object.assign(new Error('Invalid note patch.'), { code: 'INVALID_NOTE_PATCH', statusCode: 422 });
+  const index = data.knowledgeNotes.findIndex(note => note.id === noteId);
+  if (index < 0) throw missing();
+  const record = data.knowledgeNotes[index];
+  if (!guard.etag && !guard.hash) throw Object.assign(new Error('A note version is required.'), { code: 'PRECONDITION_REQUIRED', statusCode: 428 });
+  if (guard.etag && guard.etag !== knowledgeEntityEtag(record))
+    throw Object.assign(new Error('Note changed.'), { code: 'NOTE_VERSION_CONFLICT', statusCode: 412 });
+  const previous = await loadKnowledgeBody(getStorageProvider(), record);
+  if (guard.hash && knowledgeSnapshotHash(previous) !== guard.hash)
+    throw Object.assign(new Error('Note changed.'), { code: 'KNOWLEDGE_VERSION_STALE', statusCode: 409 });
+  const next = { ...previous, ...structuredClone(patch) };
+  validateDocumentInput('knowledge', { knowledgeNotes: [next], knowledgeFolders: data.knowledgeFolders });
+  if (isDeepStrictEqual(previous, next)) return { note: previous, unchanged: true };
+  next.updatedBy = actor.id;
+  next.updatedAt = new Date().toISOString();
+  if (guard.integration) next.updatedVia = { id: guard.integration.id, name: guard.integration.name };
+  else delete next.updatedVia;
+  if (Object.hasOwn(patch, 'formatted_markdown')) next.wikilinks = extractWikiLinks(next.formatted_markdown);
+  bindWikiReferences([next, ...data.knowledgeNotes.filter(note => note.id !== noteId)]);
+  next.history = await storedNoteHistory(getStorageProvider(), previous, next, Date.now(), {
+    force: !!guard.integration,
+    integrationName: guard.integration?.name,
+  });
+  data.knowledgeNotes[index] = externalKnowledgeBody(record) ? await storeKnowledgeBody(getStorageProvider(), next) : next;
+  const metadata = data._documentRevisions?.knowledge || {};
+  data._documentRevisions = {
+    ...data._documentRevisions,
+    knowledge: { revision: Number(metadata.revision || 0) + 1, createdAt: metadata.createdAt || data.createdAt, updatedAt: next.updatedAt },
+  };
+  return { note: next, unchanged: false };
 }

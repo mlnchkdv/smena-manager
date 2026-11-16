@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { readCredential, credentialOperation } from './credentials.js';
 import { SmenaApiClient } from './client.js';
 import { createMcpServer } from './server.js';
+import { OperationJournal } from './operations.js';
 
 async function secretInput() {
   if (!process.stdin.isTTY) {
@@ -75,7 +76,7 @@ async function main() {
     return;
   }
   if (command !== 'serve') throw new Error('Unknown command.');
-  const server = createMcpServer(client);
+  const server = createMcpServer(client, new OperationJournal({ profile }));
   await server.connect(new StdioServerTransport());
   for (const signal of ['SIGINT', 'SIGTERM'])
     process.on(signal, () => {

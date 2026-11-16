@@ -540,7 +540,6 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
     if (result.denied) throw new WorkspacePermissionError(result.fields);
     nextData = result.data;
   }
-  stampKnowledgeEntityVersions(current, nextData, { reset: !!options.replaceDocuments });
   if (options.replaceDocuments) {
     nextData = await externalizeKnowledgeVersions(nextData, getStorageProvider());
     if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true') nextData = await externalizeKnowledgeBodies(nextData, getStorageProvider());
@@ -578,6 +577,14 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
       ]),
     );
   } else nextData._notificationOutbox = options.outboxWorker ? nextData._notificationOutbox : enqueueNotificationEvents(current, nextData);
+  if (options.scope !== 'knowledgeApi') {
+    for (const field of ['_integrationOperations', '_integrationAudit']) {
+      if (Object.hasOwn(current, field)) nextData[field] = current[field];
+      else delete nextData[field];
+    }
+  }
+  stampKnowledgeEntityVersions(current, nextData, { reset: !!options.replaceDocuments });
+  await options.finalize?.(nextData, current);
   const next = normalizeDatabase({
     ...nextData,
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -668,6 +675,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
       'knowledgeTrash',
       'knowledgeMigration',
       'knowledgeImport',
+      'knowledgeApi',
     ].includes(options.scope) ||
     options.backupLabel ||
     options.replaceDocuments ||
@@ -691,6 +699,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
     const changed = await mutator(clone(current));
     if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('Workspace mutation must return a JSON object.');
     stampKnowledgeEntityVersions(current, changed);
+    await options.finalize?.(changed, current);
     const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
     if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true' && options.scope.startsWith('knowledge')) await stageKnowledgeSearch(next, current, storage);
     validateMembershipTransition(current, next);
