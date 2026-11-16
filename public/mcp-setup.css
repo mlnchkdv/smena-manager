@@ -1,6 +1,9 @@
 .setup main {
   max-width: 960px;
 }
+.setup .foot {
+  color: #5f5e58;
+}
 .setup .top-inner {
   max-width: 960px;
   flex-wrap: wrap;
