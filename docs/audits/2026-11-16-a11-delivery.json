@@ -1,0 +1,879 @@
+{
+  "date": "2026-11-16",
+  "sourceCommit": "da948a30404b72ae71908ecc6cd6455a780b25bd",
+  "scope": "A01–A11; local isolated synthetic workspace. Frame and localization include per-item checks; matrix and final probes use final source.",
+  "server": {
+    "tests": 1029,
+    "pass": 1028,
+    "fail": 0,
+    "skipped": 1
+  },
+  "build": {
+    "initialJavaScriptKiB": 599.6,
+    "budgetKiB": 600
+  },
+  "checks": {
+    "frame2": [
+      {
+        "locale": "ru",
+        "width": 390,
+        "height": 43.999267578125,
+        "hit": true,
+        "violations": []
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "height": 27.9931640625,
+        "hit": true,
+        "violations": []
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "height": 43.999267578125,
+        "hit": true,
+        "violations": []
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "height": 27.9931640625,
+        "hit": true,
+        "violations": []
+      }
+    ],
+    "localization": [
+      {
+        "locale": "ru",
+        "placeholder": "О чём этот проект?",
+        "protected": true,
+        "toast": "Проект «A11 ru Save changes» создан"
+      },
+      {
+        "locale": "en",
+        "placeholder": "What is this project about?",
+        "protected": true,
+        "toast": "Project “A11 en Save changes” created"
+      }
+    ],
+    "toolbar": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "height": 57,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "height": 57,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "height": 53,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "height": 51,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "height": 57,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "height": 57,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "height": 53,
+        "overflow": 0,
+        "mode": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "height": 51,
+        "overflow": 0,
+        "mode": true
+      }
+    ],
+    "byline": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "kind": "reader",
+        "text": "Обновлено 16 ч назад\nАвтор:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "kind": "editor",
+        "text": "Обновлено 16 ч назадАвтор: Тестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "kind": "reader",
+        "text": "Обновлено 16 ч назад\nАвтор:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "kind": "editor",
+        "text": "Обновлено 16 ч назадАвтор: Тестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "kind": "reader",
+        "text": "Обновлено 16 ч назад\nАвтор:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "kind": "editor",
+        "text": "Обновлено 16 ч назад\nАвтор:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "kind": "reader",
+        "text": "Updated 16h ago\nAuthor:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "kind": "editor",
+        "text": "Updated 16h agoAuthor: Тестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "kind": "reader",
+        "text": "Updated 16h ago\nAuthor:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "kind": "editor",
+        "text": "Updated 16h agoAuthor: Тестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "kind": "reader",
+        "text": "Updated 16h ago\nAuthor:\nТестовый администратор",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "kind": "long-author",
+        "overflow": 0,
+        "dot": false
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "kind": "editor",
+        "text": "Updated 16h ago\nAuthor:\nТестовый администратор",
+        "overflow": 0
+      }
+    ],
+    "tables": [
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 2,
+        "shown": false,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 2,
+        "wideEnabled": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 8,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 8,
+        "focusReturned": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 30,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "columns": 30,
+        "focusReturned": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 2,
+        "shown": false,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 2,
+        "wideEnabled": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 8,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 8,
+        "focusReturned": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 30,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "columns": 30,
+        "focusReturned": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 2,
+        "shown": false,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 2,
+        "wideEnabled": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 8,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 8,
+        "focusReturned": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 30,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "columns": 30,
+        "focusReturned": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 2,
+        "shown": false,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 2,
+        "wideEnabled": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 8,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 8,
+        "focusReturned": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 30,
+        "shown": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "columns": 30,
+        "focusReturned": true
+      }
+    ],
+    "overview": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "risk": "Просроченные задачи\n6\nБез исполнителя\n0\nОткрытые задачи\n18\nИтоги пространства",
+        "criteria": "Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "risk": "Просроченные задачи\n6\nБез исполнителя\n0\nОткрытые задачи\n18\nИтоги пространства",
+        "criteria": "Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "risk": "Просроченные задачи\n6\nБез исполнителя\n0\nОткрытые задачи\n18\nИтоги пространства",
+        "criteria": "Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1024,
+        "risk": "Просроченные задачи\n6\nБез исполнителя\n0\nОткрытые задачи\n18\nИтоги пространства",
+        "criteria": "Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "risk": "Просроченные задачи\n6\nБез исполнителя\n0\nОткрытые задачи\n18\nИтоги пространства",
+        "criteria": "Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "filterPersisted": "true"
+      },
+      {
+        "locale": "ru",
+        "drilldown": "http://127.0.0.1:5215/audit15/overview"
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "risk": "Overdue tasks\n6\nWithout assignee\n0\nOpen tasks\n18\nWorkspace totals",
+        "criteria": "Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "risk": "Overdue tasks\n6\nWithout assignee\n0\nOpen tasks\n18\nWorkspace totals",
+        "criteria": "Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "risk": "Overdue tasks\n6\nWithout assignee\n0\nOpen tasks\n18\nWorkspace totals",
+        "criteria": "Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1024,
+        "risk": "Overdue tasks\n6\nWithout assignee\n0\nOpen tasks\n18\nWorkspace totals",
+        "criteria": "Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "risk": "Overdue tasks\n6\nWithout assignee\n0\nOpen tasks\n18\nWorkspace totals",
+        "criteria": "Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.",
+        "signals": [],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "filterPersisted": "true"
+      },
+      {
+        "locale": "en",
+        "drilldown": "http://127.0.0.1:5215/audit15/overview"
+      }
+    ],
+    "deadline": {
+      "signals": ["Project deadline overdue"],
+      "drilldown": "http://127.0.0.1:5215/audit15/tasks"
+    },
+    "matrix": {
+      "completed": true,
+      "fatal": "",
+      "count": 234,
+      "overflows": [],
+      "errors": [],
+      "missing": []
+    },
+    "accessibility": {
+      "completed": true,
+      "fatal": "",
+      "settings": 72,
+      "scans": 24,
+      "overflow": [],
+      "violations": []
+    },
+    "functional": {
+      "completed": true,
+      "fatal": "",
+      "rows": [
+        {
+          "locale": "ru",
+          "kind": "collect-existing",
+          "folderId": "ff-51",
+          "projectId": "pd2eb1eff-3137-476d-9e1d-386bb226dca8",
+          "persisted": true
+        },
+        {
+          "locale": "ru",
+          "kind": "scope-persistence",
+          "scope": "complete"
+        },
+        {
+          "locale": "ru",
+          "kind": "overview-drilldown",
+          "url": "http://127.0.0.1:5215/audit15/tasks",
+          "filters": ""
+        },
+        {
+          "locale": "ru",
+          "kind": "resize",
+          "width": 1366,
+          "before": {
+            "w": 930,
+            "h": 590
+          },
+          "after": {
+            "w": 970,
+            "h": 610
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Изменить размер карточки: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Потяните, чтобы измен"
+        },
+        {
+          "locale": "ru",
+          "kind": "resize",
+          "width": 390,
+          "before": {
+            "w": 970,
+            "h": 610
+          },
+          "after": {
+            "w": 1010,
+            "h": 630
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Изменить размер карточки: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Потяните, чтобы измен"
+        },
+        {
+          "locale": "en",
+          "kind": "collect-existing",
+          "folderId": "ff-52",
+          "projectId": "pd2eb1eff-3137-476d-9e1d-386bb226dca8",
+          "persisted": true
+        },
+        {
+          "locale": "en",
+          "kind": "scope-persistence",
+          "scope": "complete"
+        },
+        {
+          "locale": "en",
+          "kind": "overview-drilldown",
+          "url": "http://127.0.0.1:5215/audit15/tasks",
+          "filters": ""
+        },
+        {
+          "locale": "en",
+          "kind": "resize",
+          "width": 1366,
+          "before": {
+            "w": 1010,
+            "h": 630
+          },
+          "after": {
+            "w": 1050,
+            "h": 650
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Resize card: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Drag to resize\"></button>"
+        },
+        {
+          "locale": "en",
+          "kind": "resize",
+          "width": 390,
+          "before": {
+            "w": 1050,
+            "h": 650
+          },
+          "after": {
+            "w": 1090,
+            "h": 670
+          },
+          "resized": true,
+          "persisted": true,
+          "hit": "<button class=\"whiteboard-resize\" data-board-resize=\"se\" tabindex=\"0\" aria-label=\"Resize card: Идея A / Idea A (SE)\" aria-describedby=\"whiteboard-resize-help\" title=\"Drag to resize\"></button>"
+        }
+      ]
+    },
+    "graph-ux": [
+      {
+        "locale": "ru",
+        "expanded": true,
+        "before": "На схеме: 4 узла · 3 группы · 0 линий\nЗагружено: 250 из 264 материала · 55 связей",
+        "after": "На схеме: 46 узлов · 2 группы · 41 линия\nЗагружено: 250 из 264 материала · 55 связей"
+      },
+      {
+        "locale": "ru",
+        "filtersOpen": true,
+        "filterFocused": true
+      },
+      {
+        "locale": "ru",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "expanded": true,
+        "before": "In diagram: 4 nodes · 3 groups · 0 lines\nLoaded: 250 of 264 materials · 55 connections",
+        "after": "In diagram: 46 nodes · 2 groups · 41 lines\nLoaded: 250 of 264 materials · 55 connections"
+      },
+      {
+        "locale": "en",
+        "filtersOpen": true,
+        "filterFocused": true
+      },
+      {
+        "locale": "en",
+        "overflow": 0
+      }
+    ],
+    "graph-physics": {
+      "completed": true,
+      "fatal": "",
+      "prefix": "audit15-connected",
+      "rows": [
+        {
+          "lang": "ru",
+          "nodes": 8,
+          "edges": 8,
+          "physicsOn": {
+            "targetMoved": 59.65758776365148,
+            "othersMoved": 7
+          },
+          "physicsOff": {
+            "targetMoved": 59.65758776365148,
+            "othersMoved": 0
+          },
+          "stableAfterPolling": true,
+          "mobile": {
+            "overflow": 0,
+            "detail": true
+          }
+        },
+        {
+          "lang": "en",
+          "nodes": 8,
+          "edges": 8,
+          "physicsOn": {
+            "targetMoved": 59.65758776365147,
+            "othersMoved": 7
+          },
+          "physicsOff": {
+            "targetMoved": 59.65758776365147,
+            "othersMoved": 0
+          },
+          "stableAfterPolling": true,
+          "mobile": {
+            "overflow": 0,
+            "detail": true
+          }
+        }
+      ]
+    },
+    "transfer-final": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 721,
+        "bottom": 765,
+        "height": 44,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 721,
+        "bottom": 765,
+        "height": 44,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 79.1875,
+        "bottom": 111.1875,
+        "height": 32,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 721,
+        "bottom": 765,
+        "height": 44,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 685.625,
+        "bottom": 729.625,
+        "height": 44,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "enabled": true,
+        "path": "Запуск продукта / Product launch / Подробная документация продукта / Product documentation 049",
+        "top": 79.1875,
+        "bottom": 111.1875,
+        "height": 32,
+        "viewport": 844,
+        "overflow": 0,
+        "cancelled": true
+      }
+    ],
+    "focus-final": [
+      {
+        "locale": "ru",
+        "kind": "project-form",
+        "placeholder": "О чём этот проект?"
+      },
+      {
+        "locale": "ru",
+        "kind": "empty-folder",
+        "top": 736.140625,
+        "bottom": 780.140625,
+        "viewport": 844,
+        "fold": 788,
+        "scroll": 0
+      },
+      {
+        "locale": "ru",
+        "kind": "quick-preview",
+        "overflow": 0,
+        "title": "Регламент / Reference 010",
+        "buttons": [
+          "Предыдущая заметка",
+          "Следующая заметка",
+          "Свойства заметки",
+          "Редактировать заметку",
+          "К началу заметки",
+          "Свойства заметки",
+          "Командный разбор",
+          "История версий",
+          "Проверка заметки",
+          "Скачать исходник",
+          "Сохранить офлайн",
+          "Добавить в избранное"
+        ]
+      },
+      {
+        "locale": "ru",
+        "kind": "graph-summary",
+        "text": "На схеме: 4 узла · 3 группы · 0 линий\nЗагружено: 250 из 264 материала · 55 связей"
+      },
+      {
+        "locale": "en",
+        "kind": "project-form",
+        "placeholder": "What is this project about?"
+      },
+      {
+        "locale": "en",
+        "kind": "empty-folder",
+        "top": 684.140625,
+        "bottom": 728.140625,
+        "viewport": 844,
+        "fold": 788,
+        "scroll": 0
+      },
+      {
+        "locale": "en",
+        "kind": "quick-preview",
+        "overflow": 0,
+        "title": "Регламент / Reference 010",
+        "buttons": [
+          "Previous note",
+          "Next note",
+          "Note properties",
+          "Edit note",
+          "Back to top",
+          "Note properties",
+          "Team intake",
+          "Version history",
+          "Review note",
+          "Download source",
+          "Keep offline",
+          "Add to favorites"
+        ]
+      },
+      {
+        "locale": "en",
+        "kind": "graph-summary",
+        "text": "In diagram: 4 nodes · 3 groups · 0 lines\nLoaded: 250 of 264 materials · 55 connections"
+      }
+    ]
+  },
+  "production": {
+    "host": "https://smena.team",
+    "release": "da948a30404b72ae71908ecc6cd6455a780b25bd",
+    "health": "ok",
+    "ci": "success",
+    "method": "Native Comet UI; responsive DevTools, not real mobile devices",
+    "verified": [
+      "Service TXT 3 returned from folder A to folder B; reloaded and saved; other TXT files and favorites preserved",
+      "RU 390x844: created a service whiteboard and card in the authorized isolated test workspace; mouse corner resize from 260x180 to 310x210; reloaded and read exact dimensions 310x210",
+      "Restored service card to 260x180; reopened in EN at 1366x768 and confirmed exact dimensions and position 180,120",
+      "EN 1366x768 overview: task units, attention criteria and zero-task project display",
+      "Session remained available after file and whiteboard reloads"
+    ],
+    "serviceWhiteboard": "test-a-f-05-11-4606af13/whiteboard/wbeae2d196-cfb8-499c-9f5a-e382fa20c2e7",
+    "limitations": [
+      "Production MD table, long-author and full graph gesture matrices are covered locally; not every local case was repeated on production",
+      "During CI deployments API 502 responses occurred; the queued service card write recovered and persisted after reload",
+      "Browser extension font/CORS console messages were observed separately from app errors",
+      "Real iOS/Android, physical touch/keyboard and background transfers unavailable"
+    ]
+  }
+}
