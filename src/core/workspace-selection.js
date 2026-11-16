@@ -2,8 +2,8 @@ import { S } from './store.js';
 import { setActiveWorkspace, workspaceDirectoryRequest } from './api.js';
 import { parseAppLocation } from '../shared/app-location.js';
 
-export async function selectInitialWorkspace(user) {
-  const { workspaces: directory } = await workspaceDirectoryRequest();
+export async function selectInitialWorkspace(user, { read = fn => fn() } = {}) {
+  const { workspaces: directory } = await read(signal => workspaceDirectoryRequest({ signal }));
   const workspaces = (directory || []).filter(item => !item.archived);
   S.ui.availableWorkspaces = directory || [];
   if (!workspaces?.length) throw Object.assign(new Error('No available workspaces'), { code: 'NO_WORKSPACES' });

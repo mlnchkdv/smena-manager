@@ -35,6 +35,7 @@ import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { loadWorkspaceResources } from '../shared/workspace-load.js';
+import { bootstrapRead } from '../shared/bootstrap-read.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
 
@@ -77,14 +78,22 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments, draftContext(S.ui.currentUser, data));
 }
 
-async function loadWorkspaceFor(user) {
-  await (await import('./workspace-selection.js')).selectInitialWorkspace(user);
+async function loadWorkspaceFor(user, phase = () => {}) {
+  phase('directory');
+  await (await import('./workspace-selection.js')).selectInitialWorkspace(user, { read: bootstrapRead });
   const generation = getSessionGeneration();
-  user = await getCurrentUser();
-  const resources = await loadWorkspaceResources({ getWorkspace, getWorkspaceDocument, getPersonalPreferences, getFileUploadPolicy });
+  phase('workspace');
+  user = await bootstrapRead(signal => getCurrentUser({ signal }));
+  const resources = await loadWorkspaceResources({
+    getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal })),
+    getWorkspaceDocument: name => bootstrapRead(signal => getWorkspaceDocument(name, { signal })),
+    getPersonalPreferences: () => bootstrapRead(signal => getPersonalPreferences({ signal })),
+    getFileUploadPolicy: () => bootstrapRead(signal => getFileUploadPolicy({ signal })),
+  });
   if (generation !== getSessionGeneration())
     throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
   let { snapshot } = resources;
+  phase('drafts');
   const { documentSnapshots, personal, filePolicy } = resources;
   if (isEmptyWorkspace(snapshot)) {
     if (user.role !== 'admin') throw new Error('The workspace has not been initialized yet.');
@@ -154,16 +163,31 @@ async function loadWorkspaceFor(user) {
   return user;
 }
 
-export async function restoreSessionAndWorkspace() {
-  S.ui.authConfig = await getAuthConfig();
+export async function restoreSessionAndWorkspace({ onStage = () => {} } = {}) {
+  let stage = 'config';
+  const phase = value => {
+    stage = value;
+    onStage(value);
+  };
+  try {
+    return await restoreSession(phase);
+  } catch (error) {
+    error.bootstrapStage = stage;
+    throw error;
+  }
+}
+async function restoreSession(phase) {
+  phase('config');
+  S.ui.authConfig = await bootstrapRead(signal => getAuthConfig({ signal }));
+  phase('session');
   if (!getSessionToken()) {
     // The local marker may be unavailable in private/in-app browser contexts,
     // while the HttpOnly session cookie is still valid. Ask the server before
     // showing the login screen so a reload does not sign the user out.
     try {
-      const user = await getCurrentUser({ allowCookieOnly: true });
+      const user = await bootstrapRead(signal => getCurrentUser({ allowCookieOnly: true, signal }));
       setSessionToken('cookie');
-      return await loadWorkspaceFor(user);
+      return await loadWorkspaceFor(user, phase);
     } catch (error) {
       if (error.status === 401) return null;
       throw error;
@@ -171,8 +195,8 @@ export async function restoreSessionAndWorkspace() {
   }
   try {
     await migrateLegacySessionCookie();
-    const user = await getCurrentUser();
-    return await loadWorkspaceFor(user);
+    const user = await bootstrapRead(signal => getCurrentUser({ signal }));
+    return await loadWorkspaceFor(user, phase);
   } catch (error) {
     if (error.status === 401) clearSession();
     throw error;

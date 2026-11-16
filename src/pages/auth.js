@@ -7,7 +7,8 @@ import { TEMPLATES } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
 let legacyRender;
 let legacyPromise;
-import { templateText, t } from '../core/i18n.js';
+import { templateText, t, isRussian } from '../core/i18n.js';
+import { bootstrapCopy } from '../shared/bootstrap-read.js';
 import { PRODUCT_NAME, productHost } from '../shared/product.js';
 
 export function authShell(inner, topRight = '') {
@@ -36,11 +37,11 @@ export function renderAuth() {
     return authShell(
       `<div class="auth-card auth-card-loading" role="status" aria-live="polite">
         <div style="display:flex;justify-content:center">${LOGO(30)}</div>
-        <h1>${t('Restoring your session…')}</h1>
-        <p class="sub">${t('Checking your secure workspace connection.')}</p>
+        <h1>${esc(bootstrapCopy(S.ui.bootstrapStage, isRussian() ? 'ru' : 'en'))}</h1>
+        <p class="sub">${isRussian() ? 'Оставьте страницу открытой. Сохранённые черновики останутся на этом устройстве.' : 'Keep this page open. Saved drafts stay on this device.'}</p>
         <div class="panel" style="padding:14px;display:flex;align-items:center;justify-content:center;gap:10px">
           <span class="sk" style="width:8px;height:8px;border-radius:50%;animation-duration:1.1s"></span>
-          <span class="muted">${t('Connecting…')}</span>
+          <span class="muted">${isRussian() ? 'Подождите…' : 'Please wait…'}</span>
         </div>
       </div>`,
     );

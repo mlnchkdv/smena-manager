@@ -134,6 +134,7 @@ async function request(path, options = {}, authenticated = false) {
 
   const notModified = response.status === 304;
   const body = notModified ? {} : await response.json().catch(() => ({}));
+  fetchOptions.signal?.throwIfAborted();
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
   if (!response.ok && !notModified) {
@@ -159,7 +160,7 @@ async function request(path, options = {}, authenticated = false) {
       if (target.kind === 'whiteboard' && target.key) wantWhiteboard(target.key, generation);
       if (target.kind === 'file' && target.key) requestFileIdentities([target.key], generation);
     }
-    body.data = await readCatalogSnapshot(body, generation);
+    body.data = await readCatalogSnapshot(body, generation, fetchOptions.signal);
     delete body.fileCatalog;
     delete body.whiteboardCatalog;
     if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
@@ -167,8 +168,8 @@ async function request(path, options = {}, authenticated = false) {
   return returnMeta ? { body, headers: response.headers, notModified } : body;
 }
 
-export const getAuthConfig = async () => {
-  const result = await request('/api/auth/config');
+export const getAuthConfig = async (options = {}) => {
+  const result = await request('/api/auth/config', options);
   knowledgeDemandEnabled = result.knowledgeCatalogEnabled === true;
   return result;
 };
@@ -176,7 +177,7 @@ export const searchWhiteboards = (query, limit, offset, signal) =>
   request(`/api/whiteboards/search?${new URLSearchParams({ q: query, limit: String(limit), offset: String(offset) })}`, { signal }, true);
 export const searchWorkspaceFiles = (options, signal) => request('/api/files/catalog/search', { method: 'POST', body: JSON.stringify(options), signal }, true);
 export const getWhiteboardVersions = id => request(`/api/whiteboards/${encodeURIComponent(id)}/versions`, {}, true);
-export const getPersonalPreferences = () => request('/api/preferences', {}, true);
+export const getPersonalPreferences = (options = {}) => request('/api/preferences', options, true);
 export const listFileExports = () => request('/api/files/exports', {}, true);
 export const mediaBackupRequest = (path = '', body) =>
   request('/api/files/media-backups' + path, body ? { method: 'POST', body: JSON.stringify(body) } : {}, true);
@@ -243,19 +244,20 @@ export async function revokeCurrentAuthSession() {
   return request('/api/auth/session', { method: 'DELETE' }, true);
 }
 
-export async function getWorkspace() {
-  return (await request('/api/workspace', {}, true)).data;
+export async function getWorkspace(options = {}) {
+  return (await request('/api/workspace', options, true)).data;
 }
 
-async function readCatalogSnapshot(result, generation = sessionGeneration) {
+async function readCatalogSnapshot(result, generation = sessionGeneration, signal) {
   const { hydrateFileCatalog, requestFileIdentities } = await import('./file-catalog-transport.js');
   assertSessionGeneration(generation);
   if (result?.file?.id) requestFileIdentities([result.file.id], generation);
   for (let attempt = 0; attempt < 3; attempt += 1) {
     if (generation !== sessionGeneration) throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });
     try {
-      const snapshot = result || (await request('/api/workspace', { catalogHydration: false }, true));
-      const send = (path, options = {}) => request(path, options, true);
+      signal?.throwIfAborted();
+      const snapshot = result || (await request('/api/workspace', { catalogHydration: false, signal }, true));
+      const send = (path, options = {}) => request(path, { ...options, signal: signal || options.signal }, true);
       const data = await hydrateWhiteboards(snapshot, send, generation);
       return await hydrateFileCatalog({ ...snapshot, data }, send, generation);
     } catch (error) {
@@ -306,16 +308,20 @@ export async function getWorkspaceRevision() {
   return value;
 }
 
-export async function getWorkspaceDocument(name) {
+export async function getWorkspaceDocument(name, options = {}) {
   if (name === 'knowledge' && knowledgeDemandEnabled) {
     const session = sessionGeneration;
     const { readKnowledgePages } = await import('./knowledge-catalog-transport.js');
     assertSessionGeneration(session);
-    return readKnowledgePages(request, session, assertSessionGeneration);
+    return readKnowledgePages(
+      (path, requestOptions, auth) => request(path, { ...requestOptions, signal: options.signal || requestOptions?.signal }, auth),
+      session,
+      assertSessionGeneration,
+    );
   }
   const result = await request(
     name === 'knowledge' && knowledgeDemandEnabled ? '/api/knowledge/catalog' : `/api/workspace-documents/${encodeURIComponent(name)}`,
-    {},
+    options,
     true,
   );
   return result.data;
@@ -455,8 +461,8 @@ export async function deleteAllWorkspaces(revision) {
   return result.data;
 }
 
-export async function getFileUploadPolicy() {
-  return request('/api/files/policy', {}, true);
+export async function getFileUploadPolicy(options = {}) {
+  return request('/api/files/policy', options, true);
 }
 
 function uploadWorkspaceFileThroughApi(file, metadata, onProgress) {

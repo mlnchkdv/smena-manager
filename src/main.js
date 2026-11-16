@@ -392,7 +392,12 @@ window.addEventListener('popstate', () => {
   render();
   let user = null;
   try {
-    user = await restoreSessionAndWorkspace();
+    user = await restoreSessionAndWorkspace({
+      onStage: stage => {
+        S.ui.bootstrapStage = stage;
+        if (S.ui.auth === 'restoring') render();
+      },
+    });
     S.ui.authBusy = false;
     S.ui.auth = user ? (S.ui.needsOnboarding ? 'onboarding' : null) : 'login';
     if (S.ui.needsOnboarding) S.ui.onb = 1;
