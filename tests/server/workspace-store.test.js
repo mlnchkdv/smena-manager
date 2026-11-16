@@ -109,7 +109,9 @@ test('workspace snapshots increment their revision and persist', async () => {
   assert.equal(restored.revision, 1);
   assert.deepEqual(restored.tasks, [canonicalTask('task-1')]);
   assert.deepEqual(restored.knowledgeFolders, [{ id: 'kf1', name: 'Регламенты' }]);
-  assert.deepEqual(restored.knowledgeNotes, [{ id: 'kn1', title: 'Онбординг', folderId: 'kf1' }]);
+  assert.deepEqual(restored.knowledgeNotes, updated.knowledgeNotes);
+  assert.equal(restored.knowledgeNotes[0]._apiVersion.number, 1);
+  assert.match(restored.knowledgeNotes[0]._apiVersion.generation, /^[a-f0-9-]{36}$/);
   assert.deepEqual(restored.linkFolders, [{ id: 'lf1', name: 'Инструменты' }]);
   assert.deepEqual(restored.links, [{ id: 'ln1', title: 'Smena', url: 'https://example.com', folder: 'lf1' }]);
 });
