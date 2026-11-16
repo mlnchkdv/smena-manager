@@ -2,12 +2,14 @@
 [Unit]
 Description=Smena Manager API (single writer, Google Drive)
 Wants=network-online.target
-After=network-online.target
+Requires=smena-manager.socket
+After=network-online.target smena-manager.socket
 StartLimitIntervalSec=300
 StartLimitBurst=5
 
 [Service]
 Type=simple
+Sockets=smena-manager.socket
 User=smena
 Group=smena
 WorkingDirectory=/srv/smena-manager/current

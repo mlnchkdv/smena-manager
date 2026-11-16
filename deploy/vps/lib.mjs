@@ -147,6 +147,7 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     '/etc/nginx/snippets/smena-manager-proxy.conf': 'nginx-proxy.conf.in',
     '/etc/nginx/snippets/smena-manager-static-gzip.conf': 'nginx-static-gzip.conf.in',
     '/etc/systemd/system/smena-manager.service': 'smena-manager.service.in',
+    '/etc/systemd/system/smena-manager.socket': 'smena-manager.socket.in',
     '/etc/systemd/system/smena-manager-cron.service': 'smena-manager-cron.service.in',
     '/etc/systemd/system/smena-manager-cron.timer': 'smena-manager-cron.timer.in',
     '/etc/systemd/system/smena-manager-monitor.service': 'smena-manager-monitor.service.in',

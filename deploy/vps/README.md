@@ -466,3 +466,20 @@ Public static locations explicitly enable built-in Nginx gzip (level 4, minimum 
 Сжатие включено для публичной статики; ответы API с пользовательскими данными остаются без него. Проверяется не только заголовок, но и совпадение распакованных байтов. Фактическая проверка через HTTPS-Nginx ожидает VPS.
 
 Queue enable decisions are bound to APP_ORIGIN: a decision from another host is not reused. The compact preview summarizes **all** pending recipients, rather than only the first events. More than 100 recipients requires deliberate backlog reduction before enabling; message bodies remain excluded.
+
+# Buffered single writer updates
+
+The managed `smena-manager.socket` owns loopback port 3001. Node consumes its
+named descriptor only after storage initialization. Subsequent updates validate
+configuration and run the candidate preflight before a single `systemctl restart`
+operation. Connections arriving during the restart wait in the socket backlog;
+the old writer drains before the new writer starts. Cron remains suspended until
+both backend and TLS checks pass. No parallel Drive writer or Redis migration is
+introduced. Long requests still have the configured stop/proxy timeouts; this is
+bounded buffering, not unlimited background execution.
+
+The first adoption from an older direct-port service, or explicit rollback to
+such a release, requires one legacy stop/start. Later updates retain the socket.
+Do not restart/stop the socket during routine updates. Validate a controlled
+read/write cutover before claiming uninterrupted availability under production
+load. Reference: [systemd socket activation](https://www.freedesktop.org/software/systemd/man/latest/systemd.socket.html).

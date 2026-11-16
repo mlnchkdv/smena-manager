@@ -26,6 +26,7 @@ const CONFIG = '/etc/smena-manager/deploy.json';
 const SITE = '/etc/nginx/sites-available/smena-manager.conf';
 const ENABLED = '/etc/nginx/sites-enabled/smena-manager.conf';
 const APP = 'smena-manager.service';
+const SOCKET = 'smena-manager.socket';
 const TIMER = 'smena-manager-cron.timer';
 const CRON = 'smena-manager-cron.service';
 const kit = path.dirname(fileURLToPath(import.meta.url));
@@ -364,10 +365,18 @@ async function buildRelease(config, ref, fetchSource) {
 }
 
 async function switchRelease(config, target, previous) {
-  if ((await portOpen()) && !busy(APP)) throw new Error('Port 3001 belongs to an unmanaged process. It was not stopped.');
+  if ((await portOpen()) && !busy(APP) && !active(SOCKET)) throw new Error('Port 3001 belongs to an unmanaged process. It was not stopped.');
   const oldPrevious = await releaseLink('previous');
   const targetMeta = await validateRelease(target);
   const previousMeta = previous && (await validateRelease(previous));
+  const socketCapable = directory =>
+    directory &&
+    fs.access(path.join(directory, 'src/server/socket-listener.js')).then(
+      () => true,
+      () => false,
+    );
+  const targetSocket = await socketCapable(target);
+  const previousSocket = await socketCapable(previous);
   const files = await renderTemplates(config.domain, config.node, { templateDir: pathToFileURL(path.join(target, 'deploy/vps/templates/')) });
   const snapshot = await configSnapshot(files);
   const journal = async status =>
@@ -385,30 +394,57 @@ async function switchRelease(config, target, previous) {
     },
     journal,
     stopApp: async () => systemctl('stop', APP),
+    restartApp: async () => {
+      if (targetSocket && active(SOCKET)) systemctl('restart', APP);
+      else {
+        // One-time adoption / explicit rollback to an older release. Never run
+        // two Drive writers and never start a socket while the legacy API binds it.
+        systemctl('stop', APP);
+        if (active(SOCKET)) systemctl('stop', SOCKET);
+        systemctl('start', APP);
+      }
+    },
     selectTarget: () => setReleaseLink('current', target),
     installConfig: () => writeManaged(files),
     validateConfig: async () => {
       command('nginx', ['-t']);
-      command('systemd-analyze', [
-        'verify',
-        ...[APP, CRON, TIMER, 'smena-manager-monitor.service', 'smena-manager-monitor.timer'].map(unit => '/etc/systemd/system/' + unit),
-      ]);
+      const units = [];
+      for (const unit of [APP, SOCKET, CRON, TIMER, 'smena-manager-monitor.service', 'smena-manager-monitor.timer']) {
+        const file = '/etc/systemd/system/' + unit;
+        if (
+          await fs.access(file).then(
+            () => true,
+            () => false,
+          )
+        )
+          units.push(file);
+      }
+      command('systemd-analyze', ['verify', ...units]);
       systemctl('daemon-reload');
     },
     startApp: async () => systemctl('start', APP),
+    preflight: async () => {
+      const { env } = await loadProtectedEnvironment(config.domain);
+      command('runuser', ['-u', 'smena', '--', config.node, path.join(target, 'deploy/vps/preflight.mjs')], { env: { ...cleanEnv(), ...env } });
+    },
     backendHealthy: () => waitForBackend(targetMeta.commit),
     reloadNginx: async () => systemctl(active('nginx.service') ? 'reload' : 'start', 'nginx.service'),
     vhostHealthy: () => waitForVhost(config.domain, targetMeta.commit),
     commit: async () => {
       if (target !== previous) await setReleaseLink('previous', previous);
       systemctl('enable', APP);
+      if (targetSocket) systemctl('enable', SOCKET);
+      else command('systemctl', ['disable', SOCKET], { allowed: true });
       systemctl('enable', 'nginx.service');
     },
     restorePrevious: async () => {
       await setReleaseLink('current', previous);
       await setReleaseLink('previous', oldPrevious);
     },
-    restoreConfig: () => restoreSnapshot(snapshot),
+    restoreConfig: async () => {
+      if (!previousSocket && active(SOCKET)) systemctl('stop', SOCKET);
+      await restoreSnapshot(snapshot);
+    },
     recoverApp: async () => {
       if (previous) {
         systemctl('start', APP);

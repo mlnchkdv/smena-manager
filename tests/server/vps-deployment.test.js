@@ -141,12 +141,30 @@ function fixture(failAt, recoveryFails = false) {
   return { state, ops };
 }
 
-test('release cutover stops cron and the old writer before selecting code; accepts only verified backend and frontend', async () => {
+test('release cutover validates configuration before stopping the single writer and verifies both releases', async () => {
   const { state, ops } = fixture();
   await activateRelease(ops);
   assert.deepEqual([state.selected, state.backend, state.config, state.timer, state.status], ['new', 'new', 'new', true, 'ready']);
-  assert.ok(state.calls.indexOf('stopApp') < state.calls.indexOf('selectTarget'));
+  assert.ok(state.calls.indexOf('validateConfig') < state.calls.indexOf('stopApp'));
+  assert.ok(state.calls.indexOf('selectTarget') < state.calls.indexOf('startApp'));
   assert.ok(state.calls.indexOf('vhostHealthy') < state.calls.indexOf('startTimer'));
+});
+
+test('socket restart is one service-manager operation and invalid candidate never stops the running API', async () => {
+  const { state, ops } = fixture();
+  ops.restartApp = async () => {
+    state.calls.push('restartApp');
+    state.backend = state.selected;
+  };
+  await activateRelease(ops);
+  assert.equal(state.calls.includes('stopApp'), false);
+  assert.equal(state.calls.includes('startApp'), false);
+  assert.equal(state.calls.filter(name => name === 'restartApp').length, 1);
+  const invalid = fixture('validateConfig');
+  await assert.rejects(activateRelease(invalid.ops));
+  assert.equal(invalid.state.calls.includes('stopApp'), false);
+  assert.equal(invalid.state.calls.includes('recoverApp'), false);
+  assert.equal(invalid.state.backend, 'old');
 });
 
 test('failures at every activation boundary restore previous code/config, never data, before resuming cron', async () => {

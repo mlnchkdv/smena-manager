@@ -1,0 +1,14 @@
+# Managed by Smena Manager VPS kit
+[Unit]
+Description=Smena Manager buffered API listener
+
+[Socket]
+ListenStream=127.0.0.1:3001
+FileDescriptorName=smena-http
+Service=smena-manager.service
+Accept=no
+Backlog=4096
+NoDelay=true
+
+[Install]
+WantedBy=sockets.target
