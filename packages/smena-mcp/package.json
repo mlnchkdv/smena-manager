@@ -1,0 +1,17 @@
+{
+  "name": "@smena/mcp",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Local MCP adapter for the Smena workspace API",
+  "bin": {
+    "smena-mcp": "src/cli.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "3.25.76"
+  }
+}

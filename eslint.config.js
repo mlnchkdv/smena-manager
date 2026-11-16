@@ -16,6 +16,7 @@ export default [
       'api/**/*.js',
       'scripts/**/*.js',
       'src/server/**/*.js',
+      'packages/smena-mcp/**/*.js',
       'tests/**/*.js',
       'deploy/vps/**/*.mjs',
     ],
