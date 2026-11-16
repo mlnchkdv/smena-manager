@@ -1206,3 +1206,36 @@
     min-height: 140px;
   }
 }
+.whiteboard-context [data-a='whiteboardResizeFocus'] {
+  display: inline-flex;
+}
+@media (max-width: 640px) {
+  .whiteboard-toolbar {
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding: 6px;
+    min-height: 56px;
+  }
+  .whiteboard-toolbar > :is([data-a='whiteboardUndo'], [data-a='whiteboardToggleSelection'], .whiteboard-count, .sp) {
+    display: none;
+  }
+  .whiteboard-toolbar > .whiteboard-gesture {
+    order: 0;
+    flex: 1 1 60px;
+    min-width: 0;
+    padding: 0;
+  }
+  .whiteboard-gesture .select-btn {
+    min-width: 0;
+    width: 100%;
+  }
+  .whiteboard-toolbar :is(.whiteboard-view-toggle, .whiteboard-focus-toggle) {
+    flex: 0 0 44px;
+    width: 44px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+  .whiteboard-toolbar :is(.whiteboard-view-toggle, .whiteboard-focus-toggle) > span {
+    display: none;
+  }
+}
