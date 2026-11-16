@@ -1,0 +1,21 @@
+{
+  "origin": "https://smena.team",
+  "page": "settings/integrations",
+  "browser": "Chrome",
+  "method": "viewport override and DOM geometry; no physical-device test",
+  "measurements": [
+    { "language": "ru", "width": 320, "scrollWidth": 320 },
+    { "language": "ru", "width": 390, "scrollWidth": 390 },
+    { "language": "ru", "width": 768, "scrollWidth": 768 },
+    { "language": "ru", "width": 1366, "scrollWidth": 1366 },
+    { "language": "ru", "width": 1920, "scrollWidth": 1920 },
+    { "language": "en", "width": 320, "scrollWidth": 320 },
+    { "language": "en", "width": 390, "scrollWidth": 390, "minIntegrationButtonHeight": 44 },
+    { "language": "en", "width": 768, "scrollWidth": 768 },
+    { "language": "en", "width": 1366, "scrollWidth": 1366 },
+    { "language": "en", "width": 1920, "scrollWidth": 1920 }
+  ],
+  "tokenField": "password; secret cleared after secure setup",
+  "temporaryTokenRevocation": "HTTP 401 INTEGRATION_REVOKED_OR_EXPIRED",
+  "permanentProfile": { "name": "codex", "workspace": "СМΞНА", "scopes": ["knowledge:read"] }
+}

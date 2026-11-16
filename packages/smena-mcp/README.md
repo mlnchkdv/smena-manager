@@ -91,6 +91,11 @@ file scopes. File creation also requires current write access to its project.
 The explicit command below reads only the file you pass; MCP tools do not take
 arbitrary local paths.
 
+`attach_file` associates a verified file with the note and returns its new ETag.
+To display a link in the note body, include `[Material](smena-file:<file_id>)`
+in a content update using that ETag and a new operation UUID. The attachment
+operation itself preserves the existing Markdown.
+
 ```powershell
 node packages/smena-mcp/src/cli.js upload-local --profile codex --file "C:/media/video.mp4" --workspace "<workspace-id>" --project "<project-id>" --operation-id "<new-uuid>" --mime-type "video/mp4"
 ```

@@ -22,3 +22,8 @@ uploads; file data and upload credentials never belong in tool results.
 Public API, write operations and uploads have independent server switches and
 are disabled until their acceptance checks pass. Unsupported operations return
 an explicit error rather than falling through to browser authentication.
+
+Setup instructions: [local MCP package](../../packages/smena-mcp/README.md).
+Release controls and recovery: [operations guide](OPERATIONS.md).
+Implemented stages, production acceptance and limits of testing:
+[16 November 2026 report](ACCEPTANCE_2026-11-16.md).
