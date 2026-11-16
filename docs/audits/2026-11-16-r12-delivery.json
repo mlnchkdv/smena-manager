@@ -1485,7 +1485,17 @@
       "budgetKiB": 600
     },
     "lint": "npx eslint . --ignore-pattern output/** (generated preexisting output is excluded, source unchanged)",
-    "format": "npm run format:check"
+    "format": "npm run format:check",
+    "additionalFileWorkflow": {
+      "test": "file folders preserve uploads and moves through reload and archive on mobile in both languages",
+      "passed": true,
+      "browser": "chromium",
+      "mobileWidth": 320,
+      "locales": ["ru", "en"],
+      "seconds": 56.3,
+      "coverage": "UI file chooser, upload to folder A, reload, move to B, reload, folder archive/restore",
+      "testMaintenance": "Scope upload control to the page header; verify the accessible destination path when redundant visible folder text is suppressed."
+    }
   },
   "production": {
     "url": "https://smena.team",

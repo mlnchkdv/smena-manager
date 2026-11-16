@@ -1078,7 +1078,7 @@ test('shared content, files, settings, and backups persist through core workflow
   await page.locator('.project-card-link[aria-label="Проверка интерфейса"]').click();
   await page.locator('.proj-h [data-a="go"][data-r="project"][data-tab="files"]').click();
   const projectFilePicker = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
+  await page.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
   await (
     await projectFilePicker
   ).setFiles({
@@ -1319,13 +1319,15 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await createFolder(folderA);
   await expect(page.getByRole('heading', { name: 'В этой папке пока нет файлов', exact: true })).toBeVisible();
   const pickerEvent = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
+  await page.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').click();
   await (await pickerEvent).setFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Folder upload / Загрузка в папку') });
   await page.locator('[data-a="confirmUploadReview"]').click();
   await expect(page.locator('.workspace-file-card', { hasText: fileName })).toBeVisible({ timeout: 15000 });
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderA, { timeout: 15_000 });
+  await expect(page.locator('.workspace-file-card', { hasText: fileName }).locator('[data-a="ctxBtn"]')).toHaveAccessibleName(new RegExp(folderA), {
+    timeout: 15_000,
+  });
   // Reload restores the saved view, not a transient folder filter. Verify the
   // persisted folder membership by entering it before returning via breadcrumbs.
   await page.locator('.files-folder-crumbs [data-project="all"]').click();
@@ -1341,7 +1343,9 @@ test('file folders preserve uploads and moves through reload and archive on mobi
   await page.locator('[data-a="confirmFileMove"]').click();
   await waitForSaved(page);
   await page.reload();
-  await expect(page.locator('.workspace-file-card', { hasText: fileName })).toContainText(folderB, { timeout: 15_000 });
+  await expect(page.locator('.workspace-file-card', { hasText: fileName }).locator('[data-a="ctxBtn"]')).toHaveAccessibleName(new RegExp(folderB), {
+    timeout: 15_000,
+  });
   for (const language of ['English (US)', 'Русский']) {
     await page.goto('/e2e-team/settings/language');
     await page.locator('select[data-k="lang"]').selectOption(language);
@@ -1353,7 +1357,7 @@ test('file folders preserve uploads and moves through reload and archive on mobi
     await openFileFolderTools(page);
     await expect(page.locator('[data-a="newFileFolder"]')).toHaveAccessibleName(language === 'Русский' ? 'Новая папка' : 'New folder');
     await page.keyboard.press('Escape');
-    await expect(page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveAccessibleName(
+    await expect(page.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveAccessibleName(
       language === 'Русский' ? 'Загрузить файлы' : 'Upload files',
     );
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
@@ -1420,7 +1424,9 @@ test('file actions follow project view comment edit permissions', async ({ page,
       await editorPage.setViewportSize({ width: 320, height: 844 });
       await editorPage.goto('/e2e-team/files');
       await expect(editorPage.locator('.files-page')).toBeVisible();
-      await expect(editorPage.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(
+        permission === 'Can edit' ? 1 : 0,
+      );
       await expect(editorPage.locator('[data-a="newFileFolder"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
       if (permission === 'Can edit') await expect(editorPage.locator('#files-upload-project option')).toHaveCount(1);
       await editorPage.locator(`.workspace-file-card[data-id="${file.id}"] [data-a="ctxBtn"]`).click();
@@ -1433,7 +1439,9 @@ test('file actions follow project view comment edit permissions', async ({ page,
       await card.locator('.workspace-file-location > summary').click();
       await card.locator('.workspace-file-project').click();
       await expect(editorPage.locator('.files-toolbar')).toBeVisible();
-      await expect(editorPage.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(permission === 'Can edit' ? 1 : 0);
+      await expect(editorPage.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]')).toHaveCount(
+        permission === 'Can edit' ? 1 : 0,
+      );
     }
   } finally {
     await editorContext.close();
@@ -1904,7 +1912,7 @@ test('PDF previews render pages locally without document scripts in Russian and 
   await expect(page.locator('.workspace-file-card')).toHaveCount(expectedFileCount - 1);
   const originalPickerInput = await page.locator('#workspace-files-upload').elementHandle();
   const chooser = page.waitForEvent('filechooser');
-  await page.locator('[data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').press('Enter');
+  await page.locator('.files-page-head [data-a="chooseStoredFiles"][data-picker="workspace-files-upload"]').press('Enter');
   const picker = await chooser;
   expect(picker.isMultiple()).toBeTruthy();
   // Resizing causes the same render as an arriving catalog response while the
