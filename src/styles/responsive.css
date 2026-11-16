@@ -295,7 +295,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 4px 6px;
-    padding: 10px 6px;
+    padding: 6px;
     min-height: 0;
     border: 1px solid var(--border);
     border-radius: var(--r);
@@ -308,7 +308,7 @@
     display: none;
   }
   .tlist .trow .ttl {
-    flex: 1 1 calc(100% - 50px);
+    flex: 1 1 calc(100% - 100px);
     order: 1;
   }
   .tlist .trow .c-check {
@@ -320,12 +320,42 @@
     width: 44px;
     height: 44px;
   }
+  .tlist .trow .c-more {
+    order: 1;
+    flex: 0 0 44px;
+  }
+  .tlist .task-title-open {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+    gap: 2px 6px;
+    padding-block: 4px;
+  }
+  .tlist .task-title-open .key {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .tlist .trow .ttl .tt {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .tlist .task-title-open .meta-mini {
+    grid-row: 1;
+  }
+  .tlist .task-row-spacer {
+    display: none;
+  }
   .subrow:has(.task-check-target) {
     min-height: 44px;
     height: auto;
   }
   .tlist .trow .c-meta {
     order: 2;
+    max-width: 100%;
   }
   .tlist .trow > div.c-lbl:empty {
     display: none;

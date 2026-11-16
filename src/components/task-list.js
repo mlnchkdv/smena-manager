@@ -62,7 +62,7 @@ export function taskRow(t, cols, tpl, opt = {}) {
         : `<input type="checkbox" class="check" ${sel ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="selRow" data-id="${t.id}" aria-label="Select ${esc(t.title)}">`
     }</label></div>
     <div class="ttl" role="cell" data-id="${t.id}" ${editable ? 'data-dbl="editTitle"' : ''}>
-      ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : opt.inlineStatus ? '' : '<span style="width:18px;flex-shrink:0"></span>'}
+      ${t.subtasks.length ? `<span class="ibtn ibtn-xs" data-a="expandRow" data-id="${t.id}" aria-label="${open ? 'Hide' : 'Show'} subtasks" aria-expanded="${!!open}" style="margin-left:-4px">${ic(open ? 'chevron-down' : 'chevron-right', 13)}</span>` : opt.inlineStatus ? '' : '<span class="task-row-spacer" style="width:18px;flex-shrink:0"></span>'}
       ${opt.inlineStatus ? `<button ${taskDisabled(t)} class="ibtn task-row-status" data-a="pop" data-pop="status" data-id="${t.id}" aria-label="${esc(tr('Status'))}: ${esc(tr(ST[t.status].name))}" title="${esc(tr(ST[t.status].name))}">${stIcon(t.status)}</button>` : ''}
       ${editing ? '' : `<button class="task-title-open" data-a="openTask" data-id="${t.id}" title="${esc(t.title)}">`}<span class="key" translate="no">${t.key}</span>
       ${editing ? `<input class="inline-in" id="edit-title" data-in="noop" data-blur="commitTitle" data-key-enter="commitTitle" data-id="${t.id}" value="${esc(t.title)}" aria-label="Task title">` : `<span class="tt" translate="no">${esc(t.title)}</span>`}
