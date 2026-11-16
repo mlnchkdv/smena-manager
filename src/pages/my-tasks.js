@@ -38,16 +38,19 @@ export function pageMyTasks() {
     },
   ];
   const mode = S.ui.myView;
-  return `<div class="page flush">
+  const views = `<div class="seg" role="group" aria-label="Task view">${[
+    ['list', 'List', 'list'],
+    ['calendar', 'Calendar', 'calendar'],
+  ]
+    .map(
+      ([k, n, i]) =>
+        `<button class="${mode === k ? 'on' : ''}" data-a="set" data-k="myView" data-v="${k}" aria-label="${n}" title="${n}" aria-pressed="${mode === k}">${ic(i, 13)}<span class="hide-m">${n}</span></button>`,
+    )
+    .join('')}</div>`;
+  return `<div class="page flush mytasks-page">
     <div class="ph"><div><h1>My Tasks</h1><p>${groups[1].tasks.length} due today · ${groups[0].tasks.length} overdue · ${groups[2].tasks.length} upcoming</p></div>
-      <div class="acts"><div class="seg" role="tablist" aria-label="View">${[
-        ['list', 'List', 'list'],
-        ['calendar', 'Calendar', 'calendar'],
-      ]
-        .map(([k, n, i]) => `<button class="${mode === k ? 'on' : ''}" data-a="set" data-k="myView" data-v="${k}">${ic(i, 13)}${n}</button>`)
-        .join('')}</div>
-      <button class="btn btn-primary" data-a="newTask" data-assignee="${D().me}">${ic('plus', 14)}New task</button></div></div>
-    ${viewToolbar(key, { group: false })}
+      <div class="acts"><button class="btn btn-primary" data-a="newTask" data-assignee="${D().me}" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button><div class="task-mobile-view">${views}</div></div></div>
+    ${viewToolbar(key, { group: false, compact: true, right: `<div class="task-wide-view">${views}</div>` })}
     ${mode === 'calendar' ? calendarHtml(mine, { key: 'my' }) : !mine.length ? `<div class="personal-work-empty">${empty('list-checks', assigned.length ? 'No results found' : 'No tasks here', assigned.length ? 'Change the search or filters.' : 'Your list is empty. Explore workspace tasks or switch to Team overview.', '<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>', 'sm')}</div>` : `<div class="list-wrap">${listHtml(groups, key, { cols: ['project', 'status', 'priority', 'due'], complete: true, drag: false, keepEmpty: true })}</div>`}
   </div>`;
 }

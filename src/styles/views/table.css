@@ -219,7 +219,7 @@ table.tbl {
   display: none;
 }
 @media (max-width: 640px) {
-  .page.tasks-page .ph {
+  .page:is(.tasks-page, .mytasks-page) .ph {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -229,13 +229,29 @@ table.tbl {
   .page.tasks-page .ph p {
     display: none;
   }
-  .page.tasks-page .ph .acts {
+  .page:is(.tasks-page, .mytasks-page) .ph .acts {
     width: auto;
     margin: 0;
     flex-wrap: nowrap;
     gap: 4px;
   }
-  .tasks-page .task-controls-toolbar {
+  .mytasks-page .ph > div:first-child {
+    display: contents;
+  }
+  .mytasks-page .ph h1 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .mytasks-page .ph .acts {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .mytasks-page .ph p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: var(--fs-xs);
+  }
+  :is(.tasks-page, .mytasks-page) .task-controls-toolbar {
     padding: 8px 16px;
   }
 }
