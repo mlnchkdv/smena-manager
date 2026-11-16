@@ -140,6 +140,7 @@ publicApiRouter.get(
 );
 publicApiRouter.use((_request, _response, next) => next(integrationError('API_NOT_FOUND', 404)));
 publicApiRouter.use((error, request, response, _next) => {
+  void _next; // Express identifies error middleware by its four arguments.
   const status = Number(error.statusCode || 500);
   const safeStatus = status >= 400 && status <= 599 ? status : 500;
   if (safeStatus === 429) response.setHeader('Retry-After', '60');
