@@ -5,6 +5,32 @@ import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout
 
 let active;
 const widthControls = new WeakMap();
+const observed = new Map();
+let measureFrame = 0;
+function measureTableTools() {
+  measureFrame = 0;
+  for (const [wrapper, { table, tools, columns }] of observed) {
+    if (!wrapper.isConnected) {
+      observer?.unobserve(wrapper);
+      observer?.unobserve(table);
+      observed.delete(wrapper);
+      continue;
+    }
+    // Hide decorative controls on ordinary tables that fit the reader.
+    tools.hidden = columns < 6 && table.scrollWidth <= wrapper.clientWidth + 2;
+  }
+}
+function scheduleTableMeasurement() {
+  if (!measureFrame) measureFrame = requestAnimationFrame(measureTableTools);
+}
+const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(scheduleTableMeasurement) : null;
+window.addEventListener('resize', scheduleTableMeasurement, { passive: true });
+function toggleTableWidth() {
+  const wide = !readLayoutPreference('knowledge-table-wide', false);
+  writeLayoutPreference('knowledge-table-wide', wide);
+  document.querySelectorAll('.knowledge-table-wrap[data-reading-columns]').forEach(item => setTableWidth(item, wide));
+  document.querySelectorAll('[data-knowledge-table-width]').forEach(button => button.setAttribute('aria-pressed', String(wide)));
+}
 function setTableWidth(wrapper, wide = readLayoutPreference('knowledge-table-wide', false)) {
   wrapper.classList.toggle('is-wide-table', wide);
   wrapper.dataset.readingColumns = 'true';
@@ -14,6 +40,7 @@ function setTableWidth(wrapper, wide = readLayoutPreference('knowledge-table-wid
     controls.button.setAttribute('aria-pressed', String(wide));
     controls.hint.hidden = !wide;
   }
+  scheduleTableMeasurement();
 }
 function tableWidthTools(wrapper) {
   const tools = document.createElement('div');
@@ -25,11 +52,7 @@ function tableWidthTools(wrapper) {
   hint.className = 'hint knowledge-table-scroll-hint';
   hint.textContent = t('Scroll sideways to read all columns.');
   widthControls.set(wrapper, { button, hint });
-  button.addEventListener('click', () => {
-    const wide = !wrapper.classList.contains('is-wide-table');
-    writeLayoutPreference('knowledge-table-wide', wide);
-    document.querySelectorAll('.knowledge-table-wrap[data-reading-columns]').forEach(item => setTableWidth(item, wide));
-  });
+  button.addEventListener('click', toggleTableWidth);
   tools.append(button, hint);
   setTableWidth(wrapper);
   return tools;
@@ -108,5 +131,19 @@ export function refreshKnowledgeTables() {
     button.addEventListener('click', () => expandTable(wrapper, button));
     tools.append(button);
     wrapper.before(tools);
+    observed.set(wrapper, { table, tools, columns });
+    observer?.observe(wrapper);
+    observer?.observe(table);
   });
+  const menu = document.querySelector('.knowledge-reader-actions > div');
+  if (menu && document.querySelector('.knowledge-quick-content .knowledge-table-wrap') && !menu.querySelector('[data-knowledge-table-width]')) {
+    const button = document.createElement('button');
+    button.className = 'btn btn-ghost';
+    button.dataset.knowledgeTableWidth = 'true';
+    button.textContent = t('Wide columns');
+    button.setAttribute('aria-pressed', String(readLayoutPreference('knowledge-table-wide', false)));
+    button.addEventListener('click', toggleTableWidth);
+    menu.append(button);
+  }
+  scheduleTableMeasurement();
 }

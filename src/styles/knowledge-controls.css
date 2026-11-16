@@ -53,6 +53,9 @@
   gap: 4px 8px;
   margin-top: 12px;
 }
+.knowledge-table-tools[hidden] {
+  display: none;
+}
 .knowledge-table-width-tools {
   display: flex;
   align-items: center;
@@ -86,7 +89,7 @@
 .knowledge-table-expanded:not(.is-wide-table) table {
   width: 100%;
 }
-.knowledge-table-tools + .knowledge-table-wrap {
+.knowledge-table-tools:not([hidden]) + .knowledge-table-wrap {
   margin-top: 4px;
 }
 .knowledge-table-dialog {
