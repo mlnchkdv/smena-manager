@@ -1,0 +1,3079 @@
+{
+  "date": "2026-11-17",
+  "production": "https://smena.team",
+  "baseline": {
+    "version": "32331b5696348dbadfd75479e2e1ca1237a000df",
+    "method": "Signed-in read-only Chrome inspection at 1366x768 and 390x844; isolated preview for comparative metrics."
+  },
+  "stages": [
+    {
+      "commit": "498f8b81",
+      "area": "My Tasks controls",
+      "mobile390": {
+        "before": {
+          "header": 138,
+          "toolbar": 109
+        },
+        "after": {
+          "header": 91,
+          "toolbar": 61
+        }
+      },
+      "mobile320": {
+        "before": {
+          "header": 208,
+          "toolbar": 109
+        },
+        "after": {
+          "header": 91,
+          "toolbar": 61
+        }
+      },
+      "widths": [320, 390, 640, 768, 1024, 1366, 1440],
+      "functionalChecks": ["list/calendar switch", "selected state", "sort menu", "empty search result", "new task retains current assignee"]
+    },
+    {
+      "commit": "3e064541",
+      "area": "Mobile task cards",
+      "widths": [320, 360, 390, 430, 640, 641, 768, 1024, 1280, 1366, 1440],
+      "routes": ["tasks", "mytasks", "project/prj/list"],
+      "states": 33,
+      "mobile390": {
+        "shortCardBefore": 210,
+        "shortCardAfter": 156,
+        "longPersonalCardAfter": 175,
+        "touchTarget": 44
+      },
+      "functionalChecks": [
+        "expand/collapse subtasks",
+        "context menu",
+        "status menu",
+        "bulk selection",
+        "bulk bar above bottom navigation",
+        "open full task title"
+      ]
+    },
+    {
+      "area": "Project controls and heading",
+      "before": [
+        {
+          "width": 320,
+          "view": "list",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 320
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 157,
+            "w": 320
+          },
+          "overflow": 0
+        },
+        {
+          "width": 320,
+          "view": "board",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 320
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 109,
+            "w": 320
+          },
+          "overflow": 0
+        },
+        {
+          "width": 320,
+          "view": "table",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 320
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 157,
+            "w": 320
+          },
+          "overflow": 0
+        },
+        {
+          "width": 320,
+          "view": "calendar",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 320
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 109,
+            "w": 320
+          },
+          "overflow": 0
+        },
+        {
+          "width": 320,
+          "view": "timeline",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 320
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 165,
+            "w": 320
+          },
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "view": "list",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 390
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 109,
+            "w": 390
+          },
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "view": "board",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 390
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 109,
+            "w": 390
+          },
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "view": "table",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 390
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 157,
+            "w": 390
+          },
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "view": "calendar",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 390
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 109,
+            "w": 390
+          },
+          "overflow": 0
+        },
+        {
+          "width": 390,
+          "view": "timeline",
+          "header": {
+            "y": 53,
+            "h": 104,
+            "w": 390
+          },
+          "toolbar": {
+            "y": 157,
+            "h": 113,
+            "w": 390
+          },
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "view": "list",
+          "header": {
+            "y": 46,
+            "h": 104,
+            "w": 768
+          },
+          "toolbar": {
+            "y": 150,
+            "h": 44,
+            "w": 768
+          },
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "view": "board",
+          "header": {
+            "y": 46,
+            "h": 104,
+            "w": 768
+          },
+          "toolbar": {
+            "y": 150,
+            "h": 44,
+            "w": 768
+          },
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "view": "table",
+          "header": {
+            "y": 46,
+            "h": 104,
+            "w": 768
+          },
+          "toolbar": {
+            "y": 150,
+            "h": 73,
+            "w": 768
+          },
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "view": "calendar",
+          "header": {
+            "y": 46,
+            "h": 104,
+            "w": 768
+          },
+          "toolbar": {
+            "y": 150,
+            "h": 44,
+            "w": 768
+          },
+          "overflow": 0
+        },
+        {
+          "width": 768,
+          "view": "timeline",
+          "header": {
+            "y": 46,
+            "h": 104,
+            "w": 768
+          },
+          "toolbar": {
+            "y": 150,
+            "h": 81,
+            "w": 768
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1024,
+          "view": "list",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 800
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 800
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1024,
+          "view": "board",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 800
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 800
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1024,
+          "view": "table",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 800
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 73,
+            "w": 800
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1024,
+          "view": "calendar",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 800
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 800
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1024,
+          "view": "timeline",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 800
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 81,
+            "w": 800
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1280,
+          "view": "list",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1056
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1056
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1280,
+          "view": "board",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1056
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1056
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1280,
+          "view": "table",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1056
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1056
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1280,
+          "view": "calendar",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1056
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1056
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1280,
+          "view": "timeline",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1056
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 47,
+            "w": 1056
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "view": "list",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1142
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1142
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "view": "board",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1142
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1142
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "view": "table",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1142
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1142
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "view": "calendar",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1142
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 44,
+            "w": 1142
+          },
+          "overflow": 0
+        },
+        {
+          "width": 1366,
+          "view": "timeline",
+          "header": {
+            "y": 46,
+            "h": 105,
+            "w": 1142
+          },
+          "toolbar": {
+            "y": 151,
+            "h": 47,
+            "w": 1142
+          },
+          "overflow": 0
+        }
+      ],
+      "after": {
+        "passed": 30,
+        "rows": [
+          {
+            "width": 320,
+            "view": "list",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 320
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 320
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 320,
+            "view": "board",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 320
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 320
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 320,
+            "view": "table",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 320
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 320
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 320,
+            "view": "calendar",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 320
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 320
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 320,
+            "view": "timeline",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 320
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 165,
+              "w": 320
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 390,
+            "view": "list",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 390
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 390
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 390,
+            "view": "board",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 390
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 390
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 390,
+            "view": "table",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 390
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 390
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 390,
+            "view": "calendar",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 390
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 61,
+              "w": 390
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 390,
+            "view": "timeline",
+            "header": {
+              "y": 53,
+              "h": 104,
+              "w": 390
+            },
+            "toolbar": {
+              "y": 157,
+              "h": 113,
+              "w": 390
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 768,
+            "view": "list",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 768
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 768
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 768,
+            "view": "board",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 768
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 768
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 768,
+            "view": "table",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 768
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 768
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 768,
+            "view": "calendar",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 768
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 768
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 768,
+            "view": "timeline",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 768
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 81,
+              "w": 768
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1024,
+            "view": "list",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 800
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 800
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1024,
+            "view": "board",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 800
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 800
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1024,
+            "view": "table",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 800
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 800
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1024,
+            "view": "calendar",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 800
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 47,
+              "w": 800
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1024,
+            "view": "timeline",
+            "header": {
+              "y": 46,
+              "h": 104,
+              "w": 800
+            },
+            "toolbar": {
+              "y": 150,
+              "h": 81,
+              "w": 800
+            },
+            "overflow": 0,
+            "picker": true,
+            "escapes": false
+          },
+          {
+            "width": 1280,
+            "view": "list",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1056
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1056
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1280,
+            "view": "board",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1056
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1056
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1280,
+            "view": "table",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1056
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1056
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1280,
+            "view": "calendar",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1056
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1056
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1280,
+            "view": "timeline",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1056
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 47,
+              "w": 1056
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1366,
+            "view": "list",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1142
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1142
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1366,
+            "view": "board",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1142
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1142
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1366,
+            "view": "table",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1142
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1142
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1366,
+            "view": "calendar",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1142
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 44,
+              "w": 1142
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          },
+          {
+            "width": 1366,
+            "view": "timeline",
+            "header": {
+              "y": 46,
+              "h": 105,
+              "w": 1142
+            },
+            "toolbar": {
+              "y": 151,
+              "h": 47,
+              "w": 1142
+            },
+            "overflow": 0,
+            "picker": false,
+            "escapes": false
+          }
+        ],
+        "groupMenu": true,
+        "columnsMenu": true,
+        "newTaskProject": true,
+        "picker": true,
+        "pageErrors": []
+      },
+      "longHeading": {
+        "passed": 8,
+        "rows": [
+          {
+            "width": 320,
+            "headerHeight": 106,
+            "titleHeight": 46,
+            "titleWidth": 112,
+            "overflow": 0,
+            "escaping": false,
+            "picker": true
+          },
+          {
+            "width": 390,
+            "headerHeight": 106,
+            "titleHeight": 46,
+            "titleWidth": 182,
+            "overflow": 0,
+            "escaping": false,
+            "picker": true
+          },
+          {
+            "width": 768,
+            "headerHeight": 106,
+            "titleHeight": 46,
+            "titleWidth": 560,
+            "overflow": 0,
+            "escaping": false,
+            "picker": true
+          },
+          {
+            "width": 1024,
+            "headerHeight": 106,
+            "titleHeight": 46,
+            "titleWidth": 584,
+            "overflow": 0,
+            "escaping": false,
+            "picker": true
+          },
+          {
+            "width": 1280,
+            "headerHeight": 124,
+            "titleHeight": 55,
+            "titleWidth": 538,
+            "overflow": 0,
+            "escaping": false,
+            "picker": false
+          },
+          {
+            "width": 1366,
+            "headerHeight": 124,
+            "titleHeight": 55,
+            "titleWidth": 624,
+            "overflow": 0,
+            "escaping": false,
+            "picker": false
+          },
+          {
+            "width": 1440,
+            "headerHeight": 124,
+            "titleHeight": 55,
+            "titleWidth": 698,
+            "overflow": 0,
+            "escaping": false,
+            "picker": false
+          },
+          {
+            "width": 1920,
+            "headerHeight": 105,
+            "titleHeight": 28,
+            "titleWidth": 908,
+            "overflow": 0,
+            "escaping": false,
+            "picker": false
+          }
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "productionStage1CI": "https://github.com/mlnchkdv/smena-manager/actions/runs/43942191821",
+    "productionStage2CI": "https://github.com/mlnchkdv/smena-manager/actions/runs/43943924770",
+    "localCoreE2E": {
+      "chromium": "passed",
+      "firefox": "passed",
+      "webkit": "Two local Windows attempts hit the test's 120-second timeout (team-dialog cancellation, then task submission). Linux CI passed Chromium, Firefox and WebKit for stage 2."
+    },
+    "build": true,
+    "eslint": true,
+    "prettier": true,
+    "cssTokens": true,
+    "initialJavaScriptKiB": 396.7,
+    "budgetKiB": 600
+  },
+  "evidenceDirectory": "output/playwright/ui-followup16/",
+  "limits": [
+    "Emulated viewport sizes; physical devices and screen reader not tested.",
+    "Production records were not edited during audit.",
+    "npm run check:ergonomics was attempted without its required fixture on port 5194 and failed to connect; dedicated guarded local-preview checks are recorded above."
+  ],
+  "finalMatrix": {
+    "passed": 176,
+    "rows": [
+      {
+        "route": "home",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "home",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "overview",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "projects",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "mytasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/list",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj/table",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboards",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/appearance",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "project/prj",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "tasks",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "files",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "knowledge",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "bookmarks",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "whiteboard/ui-layout-canvas",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "graph",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      }
+    ],
+    "collapsedSidebar": true,
+    "zoom": ["knowledge", "tasks", "settings/appearance"],
+    "pageErrors": []
+  },
+  "delivery": {
+    "commits": ["498f8b81", "3e064541"],
+    "thirdStage": "Included in the commit containing this report.",
+    "productionChecks": "The final CI run and deployed app-version.json are verified after push; release confirmation is reported in the final response."
+  }
+}

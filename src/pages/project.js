@@ -77,7 +77,7 @@ export function pageProject() {
 }
 export function taskViewBody(type, ts, key, p) {
   const v = viewOf(key);
-  const addBtn = `<button class="btn btn-primary btn-sm" data-a="newTask" data-project="${p.id}">${ic('plus', 13)}New task</button>`;
+  const addBtn = `<button class="btn btn-primary btn-sm" data-a="newTask" data-project="${p.id}" aria-label="New task">${ic('plus', 13)}<span class="hide-m">New task</span></button>`;
   const noTasks = !tasksOf(p.id).length;
   const emptyAll = empty(
     'list-checks',
@@ -91,14 +91,14 @@ export function taskViewBody(type, ts, key, p) {
     'No tasks match these filters.',
     `<button class="btn btn-secondary btn-sm" data-a="clearFilters" data-key="${key}">Clear filters</button>`,
   );
-  if (type === 'board') return viewToolbar(key, { group: false, right: addBtn }) + (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }));
+  if (type === 'board') return viewToolbar(key, { group: false, compact: true, right: addBtn }) + (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }));
   if (type === 'list')
     return (
-      viewToolbar(key, { right: addBtn }) +
+      viewToolbar(key, { compact: true, right: addBtn }) +
       `<div class="list-wrap">${noTasks ? emptyAll : !ts.length ? emptyFilter : listHtml(groupTasks(ts, v.group), key, { project: p.id })}</div>`
     );
-  if (type === 'table') return viewToolbar(key, { cols: true, right: addBtn }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
-  if (type === 'calendar') return viewToolbar(key, { group: false, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
+  if (type === 'table') return viewToolbar(key, { cols: true, compact: true, right: addBtn }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
+  if (type === 'calendar') return viewToolbar(key, { group: false, compact: true, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
   if (type === 'timeline') return viewToolbar(key, { group: false, sort: false, right: addBtn, extra: tlControls(key) }) + timelineHtml(ts, key, p);
   return page404();
 }

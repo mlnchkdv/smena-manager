@@ -10,7 +10,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-@media (max-width: 900px) {
+.proj-h h1 {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+@container workspace (min-width: 901px) {
+  .proj-h .t {
+    flex-wrap: nowrap;
+  }
+  .proj-h .t > :not(h1):not(.sp) {
+    flex-shrink: 0;
+  }
+}
+@container workspace (max-width: 900px) {
   .proj-h {
     padding-top: 6px;
     gap: 4px;
@@ -25,9 +41,7 @@
   }
   .proj-h h1 {
     flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
+    white-space: normal;
     text-overflow: ellipsis;
     font-size: var(--fs-lg);
   }
