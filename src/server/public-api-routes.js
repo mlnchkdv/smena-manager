@@ -144,11 +144,9 @@ publicApiRouter.use((error, request, response, _next) => {
   const status = Number(error.statusCode || 500);
   const safeStatus = status >= 400 && status <= 599 ? status : 500;
   if (safeStatus === 429) response.setHeader('Retry-After', '60');
-  response
-    .status(safeStatus)
-    .json({
-      code: /^[A-Z0-9_]{1,80}$/.test(error.code || '') ? error.code : 'API_UNAVAILABLE',
-      message: safeStatus === 500 ? 'The operation could not be completed.' : 'The request cannot be completed with the current access, parameters or version.',
-      request_id: request.requestId,
-    });
+  response.status(safeStatus).json({
+    code: /^[A-Z0-9_]{1,80}$/.test(error.code || '') ? error.code : 'API_UNAVAILABLE',
+    message: safeStatus === 500 ? 'The operation could not be completed.' : 'The request cannot be completed with the current access, parameters or version.',
+    request_id: request.requestId,
+  });
 });
