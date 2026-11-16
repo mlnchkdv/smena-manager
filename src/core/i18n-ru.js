@@ -77,6 +77,7 @@ export const RU = {
   'Go to Tasks': 'Перейти к задачам',
   'Go to Archive': 'Перейти в архив',
   'completed subtask on': 'завершил(а) подзадачу в',
+  'added subtask to': 'добавил(а) подзадачу в',
   'reopened subtask on': 'возобновил(а) подзадачу в',
   Field: 'Поле',
   Operator: 'Условие',
