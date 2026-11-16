@@ -66,7 +66,7 @@ function memberIdFor(database, user) {
   return memberForProfile(database, user)?.id || user.id;
 }
 
-function assertFileTarget(database, user, projectId, taskId, folderId = null) {
+export function assertFileTarget(database, user, projectId, taskId, folderId = null) {
   const project = database.projects?.find(item => item.id === projectId);
   if (!project) throw new TypeError('Unknown project.');
   const memberId = memberIdFor(database, user);
@@ -93,6 +93,7 @@ function appendFileRecord(database, user, metadata, stored, projectId, taskId, f
     bytes: metadata.size,
     mimeType: metadata.mimeType,
     storageName: stored.filename,
+    ...(stored.sha256 ? { sha256: stored.sha256 } : {}),
     storageFileId: stored.fileId,
     ownerId: user.id,
     by: memberIdFor(database, user),
@@ -356,79 +357,87 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
   }
 });
 
+export async function startResumableFileUpload(request) {
+  const metadata = validateFileUpload({
+    originalname: request.body?.name,
+    mimetype: request.body?.mimeType,
+    size: request.body?.size,
+  });
+  const projectId = String(request.body?.project || '').trim();
+  const taskId = String(request.body?.task || '').trim() || null;
+  const folderId = request.body?.folderId || null;
+  assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, projectId, taskId, folderId);
+  const storage = getStorageProvider();
+  if (typeof storage.createResumableUpload !== 'function') {
+    throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
+      statusCode: 409,
+      code: 'DIRECT_UPLOAD_UNAVAILABLE',
+    });
+  }
+  const filename = request.uploadIdentity?.filename || storageFilename(metadata.name);
+  const marker = request.uploadIdentity?.marker || crypto.randomUUID();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const current = await getWorkspaceDatabase({ fields: ['revision', 'projects', 'tasks', 'members'] });
+    try {
+      await mutateWorkspaceCatalogCommand(
+        (database, actor = request.user) => {
+          assertFileTarget(database, actor, projectId, taskId, folderId);
+          const pending = database._pendingUploads || [];
+          const prior = pending.find(item => item.filename === filename);
+          if (prior) {
+            if (prior.marker !== marker || prior.ownerId !== request.user.id || prior.projectId !== projectId || prior.size !== metadata.size)
+              throw Object.assign(new Error('Upload reservation mismatch.'), { code: 'UPLOAD_IDENTITY_CONFLICT', statusCode: 409 });
+            return database;
+          }
+          if (pending.length >= 500)
+            throw Object.assign(new Error('Too many pending uploads. Try again later.'), { statusCode: 429, code: 'UPLOAD_QUEUE_FULL' });
+          database._pendingUploads = [
+            ...pending,
+            {
+              filename,
+              marker,
+              size: metadata.size,
+              mimeType: metadata.mimeType,
+              ownerId: request.user.id,
+              projectId,
+              taskId,
+              folderId,
+              createdAt: Date.now(),
+            },
+          ];
+          return database;
+        },
+        current.revision,
+        { role: 'admin', user: request.user, demand: request.get('x-smena-file-catalog') === 'demand', project: projectId },
+      );
+      break;
+    } catch (error) {
+      if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
+    }
+  }
+  const session = await storage.createResumableUpload(
+    filename,
+    metadata.size,
+    metadata.mimeType,
+    marker,
+    request.get('origin') || process.env.APP_ORIGIN || '',
+  );
+  const ticket = createUploadTicket({
+    profileId: request.user.id,
+    projectId,
+    taskId,
+    folderId,
+    name: metadata.name,
+    size: metadata.size,
+    mimeType: metadata.mimeType,
+    filename,
+    marker,
+  });
+  return { uploadUrl: session.uploadUrl, ticket, chunkSizeBytes: DIRECT_UPLOAD_CHUNK_BYTES };
+}
 fileRouter.post('/upload-session', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
-    const metadata = validateFileUpload({
-      originalname: request.body?.name,
-      mimetype: request.body?.mimeType,
-      size: request.body?.size,
-    });
-    const projectId = String(request.body?.project || '').trim();
-    const taskId = String(request.body?.task || '').trim() || null;
-    const folderId = request.body?.folderId || null;
-    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, projectId, taskId, folderId);
-    const storage = getStorageProvider();
-    if (typeof storage.createResumableUpload !== 'function') {
-      throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
-        statusCode: 409,
-        code: 'DIRECT_UPLOAD_UNAVAILABLE',
-      });
-    }
-    const filename = storageFilename(metadata.name);
-    const marker = crypto.randomUUID();
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const current = await getWorkspaceDatabase({ fields: ['revision', 'projects', 'tasks', 'members'] });
-      try {
-        await mutateWorkspaceCatalogCommand(
-          (database, actor = request.user) => {
-            assertFileTarget(database, actor, projectId, taskId, folderId);
-            const pending = database._pendingUploads || [];
-            if (pending.length >= 500)
-              throw Object.assign(new Error('Too many pending uploads. Try again later.'), { statusCode: 429, code: 'UPLOAD_QUEUE_FULL' });
-            database._pendingUploads = [
-              ...pending,
-              {
-                filename,
-                marker,
-                size: metadata.size,
-                mimeType: metadata.mimeType,
-                ownerId: request.user.id,
-                projectId,
-                taskId,
-                folderId,
-                createdAt: Date.now(),
-              },
-            ];
-            return database;
-          },
-          current.revision,
-          { role: 'admin', user: request.user, demand: request.get('x-smena-file-catalog') === 'demand', project: projectId },
-        );
-        break;
-      } catch (error) {
-        if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
-      }
-    }
-    const session = await storage.createResumableUpload(
-      filename,
-      metadata.size,
-      metadata.mimeType,
-      marker,
-      request.get('origin') || process.env.APP_ORIGIN || '',
-    );
-    const ticket = createUploadTicket({
-      profileId: request.user.id,
-      projectId,
-      taskId,
-      folderId,
-      name: metadata.name,
-      size: metadata.size,
-      mimeType: metadata.mimeType,
-      filename,
-      marker,
-    });
-    response.setHeader('Cache-Control', 'no-store');
-    response.status(201).json({ uploadUrl: session.uploadUrl, ticket, chunkSizeBytes: DIRECT_UPLOAD_CHUNK_BYTES });
+    response.status(201).json(await startResumableFileUpload(request));
   } catch (error) {
     next(error);
   }
@@ -447,66 +456,70 @@ fileRouter.post('/upload-check', requireRole('admin', 'editor'), async (request,
   }
 });
 
+export async function completeResumableFileUpload(request) {
+  const ticket = verifyUploadTicket(request.body?.ticket);
+  if (ticket.profileId !== request.user.id) {
+    throw Object.assign(new Error('This upload belongs to another account.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
+  }
+  const storage = getStorageProvider();
+  if (typeof storage.verifyResumableUpload !== 'function') {
+    throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
+      statusCode: 409,
+      code: 'DIRECT_UPLOAD_UNAVAILABLE',
+    });
+  }
+  const stored = await storage.verifyResumableUpload(ticket.filename, ticket.size, ticket.marker, String(request.body?.fileId || '').trim());
+  if (!stored) {
+    throw Object.assign(new Error('The uploaded Google Drive file could not be verified.'), {
+      statusCode: 400,
+      code: 'UPLOAD_VERIFICATION_FAILED',
+    });
+  }
+  if (request.expectedSha256 && stored.sha256 !== request.expectedSha256)
+    throw Object.assign(new Error('Upload checksum mismatch.'), { statusCode: 409, code: 'UPLOAD_CHECKSUM_MISMATCH' });
+  const metadata = { name: ticket.name, size: ticket.size, mimeType: ticket.mimeType };
+  let fileRecord;
+  let data;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const current = await getWorkspaceUploadSnapshot(`id:${stored.fileId}`);
+    assertFileTarget(current, request.user, ticket.projectId, ticket.taskId, ticket.folderId);
+    const existing = current.files?.find(item => item.storageFileId === stored.fileId);
+    if (existing) {
+      fileRecord = existing;
+      data = current;
+      break;
+    }
+    try {
+      data = await mutateWorkspaceCatalogCommand(
+        (database, actor = request.user) => {
+          fileRecord = appendFileRecord(database, actor, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
+          return database;
+        },
+        current.revision,
+        {
+          role: request.user.role,
+          user: request.user,
+          demand: request.get('x-smena-file-catalog') === 'demand',
+          project: ticket.projectId,
+          physicalKey: `id:${stored.fileId}`,
+        },
+      );
+      break;
+    } catch (error) {
+      if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
+    }
+  }
+  return { file: fileRecord, data };
+}
 fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (request, response, next) => {
-  let stored = null;
   try {
-    const ticket = verifyUploadTicket(request.body?.ticket);
-    if (ticket.profileId !== request.user.id) {
-      throw Object.assign(new Error('This upload belongs to another account.'), { statusCode: 403, code: 'FILE_FORBIDDEN' });
-    }
-    const storage = getStorageProvider();
-    if (typeof storage.verifyResumableUpload !== 'function') {
-      throw Object.assign(new Error('Direct uploads are unavailable for this storage provider.'), {
-        statusCode: 409,
-        code: 'DIRECT_UPLOAD_UNAVAILABLE',
-      });
-    }
-    stored = await storage.verifyResumableUpload(ticket.filename, ticket.size, ticket.marker, String(request.body?.fileId || '').trim());
-    if (!stored) {
-      throw Object.assign(new Error('The uploaded Google Drive file could not be verified.'), {
-        statusCode: 400,
-        code: 'UPLOAD_VERIFICATION_FAILED',
-      });
-    }
-    const metadata = { name: ticket.name, size: ticket.size, mimeType: ticket.mimeType };
-    let fileRecord;
-    let data;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const current = await getWorkspaceUploadSnapshot(`id:${stored.fileId}`);
-      assertFileTarget(current, request.user, ticket.projectId, ticket.taskId, ticket.folderId);
-      const existing = current.files?.find(item => item.storageFileId === stored.fileId);
-      if (existing) {
-        fileRecord = existing;
-        data = current;
-        break;
-      }
-      try {
-        data = await mutateWorkspaceCatalogCommand(
-          (database, actor = request.user) => {
-            fileRecord = appendFileRecord(database, actor, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
-            return database;
-          },
-          current.revision,
-          {
-            role: request.user.role,
-            user: request.user,
-            demand: request.get('x-smena-file-catalog') === 'demand',
-            project: ticket.projectId,
-            physicalKey: `id:${stored.fileId}`,
-          },
-        );
-        break;
-      } catch (error) {
-        if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
-      }
-    }
-    response.status(201).json({ file: fileRecord, data });
+    response.status(201).json(await completeResumableFileUpload(request));
   } catch (error) {
     next(error);
   }
 });
 
-fileRouter.get('/:id/content', async (request, response, next) => {
+export async function streamFileContent(request, response, next) {
   try {
     const database = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = database.files?.find(item => item.id === request.params.id);
@@ -553,7 +566,8 @@ fileRouter.get('/:id/content', async (request, response, next) => {
   } catch (error) {
     next(error);
   }
-});
+}
+fileRouter.get('/:id/content', streamFileContent);
 
 fileRouter.delete('/:id', requireRole('admin', 'editor'), async (request, response, next) => {
   try {

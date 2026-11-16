@@ -1338,14 +1338,14 @@ export class GoogleDriveStorageProvider {
     if (fileId) {
       const result = await this.client.files.get({
         fileId,
-        fields: 'id,name,size,mimeType,parents,trashed,appProperties',
+        fields: 'id,name,size,mimeType,parents,trashed,appProperties,sha256Checksum',
         supportsAllDrives: true,
       });
       metadata = result.data;
     } else {
       const result = await this.client.files.list({
         q: `name = '${escapeDriveQuery(filename)}' and '${escapeDriveQuery(folderId)}' in parents and trashed = false and appProperties has { key='smenaUpload' and value='${escapeDriveQuery(marker)}' }`,
-        fields: 'files(id,name,size,mimeType,parents,trashed,appProperties)',
+        fields: 'files(id,name,size,mimeType,parents,trashed,appProperties,sha256Checksum)',
         spaces: 'drive',
         pageSize: 1,
         includeItemsFromAllDrives: true,
@@ -1368,6 +1368,7 @@ export class GoogleDriveStorageProvider {
       filename: metadata.name,
       size: Number(metadata.size),
       mimeType: metadata.mimeType || 'application/octet-stream',
+      ...(metadata.sha256Checksum ? { sha256: metadata.sha256Checksum } : {}),
     };
   }
 

@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { getWorkspaceDatabase, mutateWorkspaceMetadata } from './workspace-store.js';
+import { withIntegrationOperation } from './integration-operation-lock.js';
+import { getWorkspaceDatabase, mutateWorkspaceMetadata, getWorkspaceFileSnapshot } from './workspace-store.js';
+import { memberForProfile } from '../shared/member-identity.js';
+import { canReadProject } from '../shared/project-access.js';
+import { currentCatalogUser } from './file-catalog-query.js';
 import { integrationRegistry, integrationError } from './integration-registry.js';
 import { requireIntegrationScope } from './public-api-auth.js';
 import { knowledgeActor } from './knowledge-access.js';
@@ -93,6 +97,9 @@ function receiptResult(data, noteId, text, workspaceId) {
 }
 export async function performIntegrationNoteWrite(request, kind, patch) {
   const key = integrationOperationKey(request.integration, request.get('Idempotency-Key'));
+  return withIntegrationOperation(key, () => performNoteWrite(request, kind, patch, key));
+}
+async function performNoteWrite(request, kind, patch, key) {
   const etag = request.get('If-Match');
   if (kind !== 'create' && !etag) throw integrationError('PRECONDITION_REQUIRED', 428);
   const digest = apiDigest([kind, request.params.id || null, patch, etag || null]);
@@ -105,6 +112,7 @@ export async function performIntegrationNoteWrite(request, kind, patch) {
       await mutateWorkspaceMetadata(
         async data => {
           const integration = await integrationRegistry.verify(request.integrationToken);
+          if (integration.fileOperationKeys.includes(key)) throw integrationError('IDEMPOTENCY_KEY_REUSED', 409);
           if (
             !integration.scopes.includes('knowledge:read') ||
             !integration.scopes.includes('knowledge:write') ||
@@ -129,8 +137,27 @@ export async function performIntegrationNoteWrite(request, kind, patch) {
           } else {
             const before = data.knowledgeNotes.find(note => note.id === noteId);
             if (!before) throw integrationError('API_NOT_FOUND', 404);
-            validateType(data, { ...before, ...patch });
-            changed = await applyKnowledgeNotePatch(data, noteId, patch, actor, { etag, integration });
+            let effectivePatch = patch;
+            if (kind === 'attachment') {
+              if (!integration.scopes.includes('files:read') || !integration.policy.uploadsEnabled) throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
+              const snapshot = await getWorkspaceFileSnapshot(request.user, patch.attachmentFileId);
+              const user = currentCatalogUser(snapshot, request.user),
+                member = memberForProfile(snapshot, user);
+              const file = snapshot.files?.find(item => item.id === patch.attachmentFileId);
+              if (
+                !member ||
+                !file ||
+                !canReadProject(
+                  snapshot.projects.find(project => project.id === file.project),
+                  member.id,
+                  user.role,
+                )
+              )
+                throw integrationError('API_NOT_FOUND', 404);
+              effectivePatch = { assets: { ...(before.assets || {}), ['attachment/' + file.id]: file.id } };
+            }
+            validateType(data, { ...before, ...effectivePatch });
+            changed = await applyKnowledgeNotePatch(data, noteId, effectivePatch, actor, { etag, integration });
           }
           request.integrationWriteText = changed.note.formatted_markdown || '';
           request.integrationWriteActor = actor.id;
@@ -203,7 +230,14 @@ export function registerPublicApiWrites(router) {
       knowledgeActor(data, req.user);
       const key = integrationOperationKey(req.integration, req.params.operation_id);
       const receipt = (data._integrationOperations || []).find(item => item.key === key && item.expiresAt > Date.now());
-      if (!receipt) throw integrationError('OPERATION_NOT_FOUND', 404);
+      if (!receipt) {
+        const fileReceipt = await integrationRegistry.fileReceipt(req.integration, key);
+        if (!fileReceipt) throw integrationError('OPERATION_NOT_FOUND', 404);
+        const result = Object.fromEntries(
+          ['id', 'upload_id', 'state'].filter(key => fileReceipt.result?.[key] !== undefined).map(key => [key, fileReceipt.result[key]]),
+        );
+        return res.json({ state: fileReceipt.result ? 'completed' : 'pending', result, expires_at: new Date(fileReceipt.expiresAt).toISOString() });
+      }
       res.json({ state: 'completed', result: receipt.result, status: receipt.status, expires_at: new Date(receipt.expiresAt).toISOString() });
     } catch (error) {
       next(error);

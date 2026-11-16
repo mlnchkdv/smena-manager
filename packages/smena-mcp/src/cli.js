@@ -50,11 +50,13 @@ async function main() {
     command = args.shift() || 'serve';
   let origin = 'https://smena.team',
     profile = 'default';
+  const uploadOptions = {};
   while (args.length) {
     const key = args.shift(),
       value = args.shift();
     if (key === '--origin') origin = value;
     else if (key === '--profile') profile = value;
+    else if (['--file', '--workspace', '--project', '--folder', '--operation-id', '--mime-type'].includes(key)) uploadOptions[key] = value;
     else throw new Error('Unknown option. Use serve, auth-login, auth-logout or doctor with --origin and --profile.');
   }
   if (command === 'auth-logout') {
@@ -70,6 +72,22 @@ async function main() {
     return;
   }
   const client = new SmenaApiClient({ origin, token: readCredential(profile) });
+  if (command === 'upload-local') {
+    const { uploadLocalFile } = await import('./upload.js');
+    const result = await uploadLocalFile({
+      client,
+      journal: new OperationJournal({ profile }),
+      file: uploadOptions['--file'],
+      workspaceId: uploadOptions['--workspace'],
+      projectId: uploadOptions['--project'],
+      folderId: uploadOptions['--folder'] || null,
+      operationId: uploadOptions['--operation-id'],
+      mimeType: uploadOptions['--mime-type'] || 'application/octet-stream',
+      onProgress: (done, total) => process.stderr.write(`Upload ${Math.floor((done / total) * 100)}%\n`),
+    });
+    process.stderr.write(JSON.stringify(result) + '\n');
+    return;
+  }
   if (command === 'doctor') {
     const context = await client.call('GET', '/me');
     process.stderr.write(JSON.stringify({ workspace: context.workspace, scopes: context.scopes }) + '\n');

@@ -61,6 +61,47 @@ export function createMcpServer(client, journal = new OperationJournal()) {
   };
   tools.push(
     [
+      'read_file_metadata',
+      'Read file metadata only when current project access and files:read allow it.',
+      { workspace_id: id, file_id: id },
+      a => `/workspaces/${encodeURIComponent(a.workspace_id)}/files/${encodeURIComponent(a.file_id)}`,
+    ],
+    [
+      'begin_upload',
+      'Reserve a separate upload for an explicitly requested local file. SHA-256 must be computed by the local upload command. Returns an upload ID, never a transport credential.',
+      {
+        ...write,
+        name: z.string().min(1).max(500),
+        size: z.number().int().positive(),
+        project_id: id,
+        folder_id: id.nullable().optional(),
+        mime_type: z.string().max(180).optional(),
+        sha256: z.string().regex(/^[a-f0-9]{64}$/),
+      },
+      a => `/workspaces/${encodeURIComponent(a.workspace_id)}/uploads`,
+      'POST',
+    ],
+    [
+      'get_upload_status',
+      'Read upload state without exposing upload credentials.',
+      { workspace_id: id, upload_id: id },
+      a => `/workspaces/${encodeURIComponent(a.workspace_id)}/uploads/${encodeURIComponent(a.upload_id)}`,
+    ],
+    [
+      'complete_upload',
+      'Verify a previously transferred file and register it once. Does not send local file bytes.',
+      { ...write, upload_id: id, file_id: id.optional() },
+      a => `/workspaces/${encodeURIComponent(a.workspace_id)}/uploads/${encodeURIComponent(a.upload_id)}/complete`,
+      'POST',
+    ],
+    [
+      'attach_file',
+      'Attach an existing accessible file to a note using its exact current ETag. Requires notes write and files read access.',
+      { ...write, note_id: id, file_id: id, etag: z.string().min(3).max(180) },
+      a => `/workspaces/${encodeURIComponent(a.workspace_id)}/notes/${encodeURIComponent(a.note_id)}/attachments`,
+      'POST',
+    ],
+    [
       'create_note',
       'Create a note only when the user requested it. Preserve operation_id across uncertain retries; read the result back. Never overwrite a similar title.',
       { ...write, ...metadata, title: z.string().min(1).max(500), content_markdown: z.string().max(3 * 1024 * 1024), folder_id: id.nullable().optional() },
@@ -113,7 +154,7 @@ export function createMcpServer(client, journal = new OperationJournal()) {
       async (args, extra) => {
         try {
           const payload = Object.fromEntries(
-            Object.entries(args).filter(([key]) => !['workspace_id', 'note_id', 'revision_id', 'operation_id', 'etag'].includes(key)),
+            Object.entries(args).filter(([key]) => !['workspace_id', 'note_id', 'revision_id', 'upload_id', 'operation_id', 'etag'].includes(key)),
           );
           if (method !== 'GET') await journal.reserve(args.operation_id, client.origin, method, path(args), payload, args.etag);
           let result;

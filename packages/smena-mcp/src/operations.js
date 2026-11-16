@@ -69,7 +69,9 @@ export class OperationJournal {
       row.state = state;
       if (result)
         row.result = Object.fromEntries(
-          ['id', 'workspace_id', 'version', 'etag', 'url', 'content_sha256'].filter(key => result[key] !== undefined).map(key => [key, result[key]]),
+          ['id', 'workspace_id', 'version', 'etag', 'url', 'content_sha256', 'upload_id', 'state']
+            .filter(key => result[key] !== undefined)
+            .map(key => [key, result[key]]),
         );
     });
   }

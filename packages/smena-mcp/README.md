@@ -64,3 +64,42 @@ does not revoke a token copied elsewhere. Notes and history remain after revoke.
 
 The server writes protocol messages to stdout and diagnostics to stderr. It has
 no arbitrary shell, filesystem search, URL fetching or direct Google Drive tool.
+
+## Write notes and recover interrupted operations
+
+Enable note writes in the workspace settings and issue a token with both
+`knowledge:read` and `knowledge:write`. Keep the client’s normal approval policy.
+Every intended change has an `operation_id` UUID. Preserve it, the payload and
+the ETag across a retry after a network failure. For a version conflict, read
+the current note and review the change before starting a new operation.
+
+`list_recent_operations` reads a private local journal containing only operation
+IDs, hashes and result identities. It contains no note text or token. After a
+restart, use `get_operation_status` to resolve an uncertain result. A retry
+window lasts 24 hours. Do not start a new create merely because an answer was lost.
+
+## Upload a large local file
+
+Enable file access and note writes in the workspace policy. Issue the needed
+file scopes. File creation also requires current write access to its project.
+The explicit command below reads only the file you pass; MCP tools do not take
+arbitrary local paths.
+
+```powershell
+node packages/smena-mcp/src/cli.js upload-local --profile codex --file "C:/media/video.mp4" --workspace "<workspace-id>" --project "<project-id>" --operation-id "<new-uuid>" --mime-type "video/mp4"
+```
+
+The command computes SHA-256 with a stream, reserves an upload, sends bounded
+8 MiB chunks and verifies the finished file on the server. Progress goes to
+stderr. The upload capability and signed ticket are never printed or stored in
+the local operation journal. The server keeps them in its private registry.
+
+After interruption, run the exact command with the same operation UUID and
+unchanged file. Progress is queried from Drive before more bytes are sent. A
+completed transfer is not uploaded again. If Drive cannot provide SHA-256 yet,
+completion stays pending; a mismatched checksum cannot register a file.
+
+Use `attach_file` with the returned file ID, a newly read note ETag and a separate
+operation UUID to link the file to a note. This additionally requires note write
+and file read scopes. Downloading uses the authenticated file content API; binary
+bytes are never returned as MCP text.

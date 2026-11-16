@@ -1,5 +1,6 @@
 import express from 'express';
 import { registerPublicApiWrites } from './public-api-write.js';
+import { registerPublicApiFiles } from './public-api-files.js';
 import { requireIntegration, requireIntegrationScope } from './public-api-auth.js';
 import { integrationError } from './integration-registry.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
@@ -140,9 +141,10 @@ publicApiRouter.get(
   }),
 );
 registerPublicApiWrites(publicApiRouter);
+registerPublicApiFiles(publicApiRouter);
 publicApiRouter.use((_request, _response, next) => next(integrationError('API_NOT_FOUND', 404)));
 publicApiRouter.use((error, request, response, _next) => {
-  void _next; // Express identifies error middleware by its four arguments.
+  if (response.headersSent) return _next(error);
   const status = Number(error.statusCode || 500);
   const safeStatus = status >= 400 && status <= 599 ? status : 500;
   if (safeStatus === 429) response.setHeader('Retry-After', '60');

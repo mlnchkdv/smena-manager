@@ -45,6 +45,13 @@ export class IntegrationRegistry {
     };
   }
   policy(workspaceId, input) {
+    return this.updatePolicy(workspaceId, input);
+  }
+  async fileReceipt(integration, key) {
+    const data = await readIntegrationRegistry(this.provider());
+    return (data.fileOperations || []).find(item => item.key === key && item.integrationId === integration.id && item.expiresAt > this.now()) || null;
+  }
+  updatePolicy(workspaceId, input) {
     if (
       !input ||
       Object.keys(input).some(key => !['enabled', 'writeEnabled', 'uploadsEnabled'].includes(key)) ||
@@ -128,7 +135,11 @@ export class IntegrationRegistry {
         if (record.rateCount > 60) throw integrationError('INTEGRATION_RATE_LIMIT', 429);
         record.lastUsedAt = new Date(this.now()).toISOString();
       }
-      return { ...record, policy };
+      return {
+        ...record,
+        policy,
+        fileOperationKeys: (data.fileOperations || []).filter(item => item.expiresAt > this.now() && item.integrationId === record.id).map(item => item.key),
+      };
     };
     return touch ? this.mutate(check) : check(await readIntegrationRegistry(this.provider()));
   }

@@ -13,7 +13,7 @@ import { preserveProjectWorkflows } from './project-workflow-policy.js';
 import { preserveProjectAutomations } from './project-automations-policy.js';
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const FILE_FIELDS = ['storageFileId', 'storageName', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
+const FILE_FIELDS = ['storageFileId', 'storageName', 'sha256', 'bytes', 'size', 'mimeType', 'ownerId', 'by', 'at', 'type'];
 const SCOPED = ['tasks', 'comments', 'files', 'events', 'savedViews', 'activity'];
 
 export function permissionError(field = 'project') {
