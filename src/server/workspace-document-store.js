@@ -87,6 +87,7 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
               if (actor && (!before || knowledgeSnapshotHash(before) !== knowledgeSnapshotHash(note))) {
                 note.updatedBy = actor.id;
                 note.updatedAt = new Date().toISOString();
+                delete note.updatedVia;
               }
               note.history = await storedNoteHistory(getStorageProvider(), before, note);
               delete note.restoreFromVersion;

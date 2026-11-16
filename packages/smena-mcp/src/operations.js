@@ -55,6 +55,7 @@ export class OperationJournal {
           code: 'OPERATION_EXPIRED',
         });
       if (before) return before;
+      data.operations = data.operations.filter(row => row.state !== 'completed' || Date.now() - row.createdAt < 24 * 60 * 60 * 1000);
       if (data.operations.length >= 500)
         throw Object.assign(new Error('Operation journal is full. Resolve uncertain operations before starting more.'), { code: 'OPERATION_JOURNAL_FULL' });
       const row = { id: operationId, digest, method, path: apiPath, origin, createdAt: Date.now(), state: 'pending' };

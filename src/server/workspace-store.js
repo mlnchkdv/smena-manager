@@ -583,7 +583,7 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
       else delete nextData[field];
     }
   }
-  stampKnowledgeEntityVersions(current, nextData, { reset: !!options.replaceDocuments });
+  stampKnowledgeEntityVersions(current, nextData, { reset: !!options.replaceDocuments, apiSource: options.scope === 'knowledgeApi' });
   await options.finalize?.(nextData, current);
   const next = normalizeDatabase({
     ...nextData,
@@ -698,7 +698,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
     if (current.revision !== expectedRevision) throw new RevisionConflictError(current.revision);
     const changed = await mutator(clone(current));
     if (!changed || typeof changed !== 'object' || Array.isArray(changed)) throw new TypeError('Workspace mutation must return a JSON object.');
-    stampKnowledgeEntityVersions(current, changed);
+    stampKnowledgeEntityVersions(current, changed, { apiSource: options.scope === 'knowledgeApi' });
     await options.finalize?.(changed, current);
     const next = normalizeDatabase({ ...changed, revision: current.revision + 1, createdAt: current.createdAt, updatedAt: new Date().toISOString() });
     if (process.env.KNOWLEDGE_CATALOG_ENABLED === 'true' && options.scope.startsWith('knowledge')) await stageKnowledgeSearch(next, current, storage);

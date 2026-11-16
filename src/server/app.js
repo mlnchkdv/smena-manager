@@ -1,6 +1,6 @@
 import { requestSignal } from './request-signal.js';
 import { integrationRouter } from './integration-routes.js';
-import { publicApiRouter } from './public-api-routes.js';
+import { publicApiRouter, publicApiError } from './public-api-routes.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 import { queryKnowledgeIndex } from './knowledge-search-query.js';
 import { whiteboardCatalogProjection, restoreWhiteboardBodies } from './whiteboard-catalog.js';
@@ -192,6 +192,7 @@ app.get('/api/monitor/readiness', async (request, response, next) => {
   }
 });
 app.use('/api/v1', publicApiRouter);
+app.use('/api/v1', publicApiError);
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {

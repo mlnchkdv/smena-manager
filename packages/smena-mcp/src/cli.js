@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { readCredential, credentialOperation } from './credentials.js';
+import { readCredential, credentialOperation, readClipboardToken } from './credentials.js';
 import { SmenaApiClient } from './client.js';
 import { createMcpServer } from './server.js';
 import { OperationJournal } from './operations.js';
@@ -50,10 +50,15 @@ async function main() {
     command = args.shift() || 'serve';
   let origin = 'https://smena.team',
     profile = 'default';
+  let clipboardLogin = false;
   const uploadOptions = {};
   while (args.length) {
-    const key = args.shift(),
-      value = args.shift();
+    const key = args.shift();
+    if (key === '--clipboard') {
+      clipboardLogin = true;
+      continue;
+    }
+    const value = args.shift();
     if (key === '--origin') origin = value;
     else if (key === '--profile') profile = value;
     else if (['--file', '--workspace', '--project', '--folder', '--operation-id', '--mime-type'].includes(key)) uploadOptions[key] = value;
@@ -65,7 +70,7 @@ async function main() {
     return;
   }
   if (command === 'auth-login') {
-    const token = await secretInput();
+    const token = clipboardLogin ? readClipboardToken() : await secretInput();
     await new SmenaApiClient({ origin, token }).call('GET', '/me');
     credentialOperation('write', profile, token);
     process.stderr.write('Credential saved in the system secret store.\n');

@@ -30,7 +30,7 @@ async function load(target) {
     const data = await integrationRequest();
     if (target.scope === scope()) target.data = data;
   } catch (error) {
-    target.error = errorText(error);
+    target.error = error;
   } finally {
     target.loading = false;
     if (target.scope === scope()) render();
@@ -56,7 +56,7 @@ export function integrationsPanel() {
   const data = s.data;
   return `<section class="integration-settings" translate="no"><div class="row between wrap"><h1>${copy('Integrations', 'Интеграции')}</h1>${button('refresh', copy('Refresh', 'Обновить'))}</div>
     <p class="lead">${copy('Connect Codex or another MCP client to notes in this workspace. Each app receives its own access token.', 'Подключите Codex или другой MCP-клиент к заметкам этого пространства. Каждое приложение получает отдельный токен.')}</p>
-    ${s.error ? `<p class="alert warn" role="alert">${esc(s.error)}</p>` : ''}${s.message ? `<p role="status" class="alert">${esc(s.message)}</p>` : ''}
+    ${s.error ? `<p class="alert warn" role="alert">${esc(errorText(s.error))}</p>` : ''}${s.message ? `<p role="status" class="alert">${esc(s.message)}</p>` : ''}
     ${
       data?.canManage
         ? `<div class="sblock"><h2>${copy('Workspace access', 'Доступ пространства')}</h2>${[
@@ -66,14 +66,14 @@ export function integrationsPanel() {
           ]
             .map(
               ([key, en, ru]) =>
-                `<div class="srow"><span>${copy(en, ru)}</span>${button('policy', data.policy[key] ? copy('Enabled', 'Включено') : copy('Disabled', 'Отключено'), `data-key="${key}" aria-pressed="${data.policy[key] ? 'true' : 'false'}"`)}</div>`,
+                `<div class="srow"><span>${copy(en, ru)}</span>${button('policy', data.policy[key] ? copy('Enabled', 'Включено') : copy('Disabled', 'Отключено'), `data-key="${key}" aria-label="${copy(en, ru)}" aria-pressed="${data.policy[key] ? 'true' : 'false'}"`)}</div>`,
             )
             .join('')}</div>`
         : ''
     }
-    ${s.secret ? `<div class="sblock integration-secret"><h2>${copy('Save your token', 'Сохраните токен')}</h2><p>${copy('Copy it now. It cannot be shown again. Keep it out of chats and Git.', 'Скопируйте его сейчас. Повторно показать его нельзя. Не отправляйте токен в чат и Git.')}</p><label for="integration-secret">${copy('Access token', 'Токен доступа')}</label><textarea id="integration-secret" class="input" readonly rows="3" spellcheck="false" autocomplete="off">${esc(s.secret)}</textarea><div class="row wrap">${button('copy', copy('Copy token', 'Скопировать токен'))}${button('test', copy('Test connection', 'Проверить подключение'))}${button('hide', copy('Hide token', 'Скрыть токен'))}</div></div>` : ''}
+    ${s.secret ? `<div class="sblock integration-secret"><h2>${copy('Save your token', 'Сохраните токен')}</h2><p>${copy('Copy it now. It cannot be shown again. Keep it out of chats and Git.', 'Скопируйте его сейчас. Повторно показать его нельзя. Не отправляйте токен в чат и Git.')}</p><label for="integration-secret">${copy('Access token', 'Токен доступа')}</label><input id="integration-secret" class="input" type="password" readonly spellcheck="false" autocomplete="off" value="${esc(s.secret)}"><div class="row wrap">${button('copy', copy('Copy token', 'Скопировать токен'))}${button('test', copy('Test connection', 'Проверить подключение'))}${button('hide', copy('Hide token', 'Скрыть токен'))}</div></div>` : ''}
     ${data?.policy.enabled ? `<div class="sblock"><h2>${copy('Connect an app', 'Подключить приложение')}</h2><p>${copy('Access applies to all notes in this workspace. Folder filters do not restrict access.', 'Доступ распространяется на все заметки этого пространства. Фильтр папки не ограничивает права.')}</p><div class="integration-form"><label for="integration-name">${copy('App name', 'Название приложения')}</label><input id="integration-name" class="input" maxlength="80" placeholder="Codex" autocomplete="off"><fieldset><legend>${copy('Access rights', 'Права доступа')}</legend><label><input id="integration-read" type="checkbox" checked disabled> ${copy('Read notes', 'Чтение заметок')}</label>${data.canWrite && data.policy.writeEnabled ? `<label><input id="integration-write" type="checkbox"> ${copy('Create and edit notes', 'Создание и изменение заметок')}</label>` : ''}${data.policy.uploadsEnabled ? `<label><input id="integration-files-read" type="checkbox"> ${copy('Read files', 'Чтение файлов')}</label>${data.canWrite && data.policy.writeEnabled ? `<label><input id="integration-files-write" type="checkbox"> ${copy('Upload files', 'Загрузка файлов')}</label>` : ''}` : ''}</fieldset><label for="integration-days">${copy('Expires in', 'Срок действия')}</label><select id="integration-days" class="select"><option value="30">${copy('30 days', '30 дней')}</option><option value="90">${copy('90 days', '90 дней')}</option><option value="1">${copy('1 day', '1 день')}</option></select>${button('create', copy('Create token', 'Создать токен'))}</div></div>` : data ? `<p class="hint">${copy('A workspace administrator can enable integrations here.', 'Администратор пространства может включить интеграции в этом разделе.')}</p>` : `<p role="status">${copy('Loading integrations…', 'Загрузка интеграций…')}</p>`}
-    <div class="sblock"><h2>${copy('Connected apps', 'Подключённые приложения')}</h2>${data?.integrations.length ? data.integrations.map(record => `<div class="integration-row"><div class="grow"><b>${esc(record.name)}</b><div class="muted">${esc(rights(record.scopes))}</div><small>${copy('Expires', 'Действует до')}: ${esc(fmtTimestamp(record.expiresAt))}${record.lastUsedAt ? ` · ${copy('Last used', 'Последнее использование')}: ${esc(fmtTimestamp(record.lastUsedAt))}` : ''}</small>${data.canManage ? `<small>${copy('Owner', 'Владелец')}: ${esc(record.userId)}</small>` : ''}</div>${record.revokedAt ? `<span class="badge">${copy('Disconnected', 'Отключено')}</span>` : button('revoke', copy('Disconnect', 'Отключить'), `data-id="${esc(record.id)}"`)}</div>`).join('') : `<p class="muted">${copy('No connected apps yet.', 'Подключённых приложений пока нет.')}</p>`}</div>
+    <div class="sblock"><h2>${copy('Connected apps', 'Подключённые приложения')}</h2>${data?.integrations.length ? data.integrations.map(record => `<div class="integration-row"><div class="grow"><b>${esc(record.name)}</b><div class="muted">${esc(rights(record.scopes))}</div><small>${copy('Expires', 'Действует до')}: ${esc(fmtTimestamp(record.expiresAt))}${record.lastUsedAt ? ` · ${copy('Last used', 'Последнее использование')}: ${esc(fmtTimestamp(record.lastUsedAt))}` : ''}</small>${data.canManage ? `<small>${copy('Owner', 'Владелец')}: ${esc(record.ownerName || record.userId)}</small>` : ''}</div>${record.revokedAt ? `<span class="badge">${copy('Disconnected', 'Отключено')}</span>` : button('revoke', copy('Disconnect', 'Отключить'), `data-id="${esc(record.id)}"`)}</div>`).join('') : `<p class="muted">${copy('No connected apps yet.', 'Подключённых приложений пока нет.')}</p>`}</div>
     <p class="hint">${ic('shield-check', 15)} ${copy('Google sign-in and Google Drive credentials stay on the server. Disconnecting an app does not delete its notes.', 'Данные входа Google и Google Drive остаются на сервере. Отключение приложения не удаляет созданные им заметки.')}</p></section>`;
 }
 export async function integrationAction(el) {
@@ -100,6 +100,7 @@ export async function integrationAction(el) {
   s.loading = true;
   s.error = '';
   s.message = '';
+  render();
   try {
     if (operation === 'policy')
       await integrationRequest('/policy', { method: 'PATCH', body: JSON.stringify({ [el.dataset.key]: !s.data.policy[el.dataset.key] }) });
@@ -126,7 +127,7 @@ export async function integrationAction(el) {
     }
     if (['policy', 'create', 'revoke', 'refresh'].includes(operation)) s.data = await integrationRequest();
   } catch (error) {
-    s.error = errorText(error);
+    s.error = error;
   } finally {
     s.loading = false;
     if (s.scope === scope()) render();

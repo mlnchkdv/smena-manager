@@ -2,13 +2,15 @@ import express from 'express';
 import { integrationRegistry } from './integration-registry.js';
 import { workspaceScope } from './workspace-context.js';
 import { knowledgeActor } from './knowledge-access.js';
+import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 
 export const integrationRouter = express.Router();
 integrationRouter.use(async (request, _response, next) => {
   try {
     const data = await getWorkspaceDatabase({ fields: ['members'] });
-    knowledgeActor(data, request.user, request.configuredProfiles);
+    const member = knowledgeActor(data, request.user, request.configuredProfiles);
+    request.user = { ...request.user, role: workspaceMemberRole(member) };
     next();
   } catch (error) {
     next(error);

@@ -14,6 +14,19 @@ import { INTEGRATION_LIMITS } from '../shared/integration-contract.js';
 import { apiNoteDto, apiTextPage, apiDigest, apiInteger, apiText, encodeApiCursor, decodeApiCursor } from './public-api-utils.js';
 
 export const publicApiRouter = express.Router();
+publicApiRouter.use((request, response, next) => {
+  const started = Date.now();
+  response.once('finish', () =>
+    console.info('[Integration API]', {
+      requestId: request.requestId,
+      method: request.method,
+      route: request.route?.path || 'authentication',
+      status: response.statusCode,
+      durationMs: Date.now() - started,
+    }),
+  );
+  next();
+});
 publicApiRouter.use(requireIntegration);
 const read = requireIntegrationScope('knowledge:read');
 const route = fn => async (request, response, next) => {
@@ -143,14 +156,22 @@ publicApiRouter.get(
 registerPublicApiWrites(publicApiRouter);
 registerPublicApiFiles(publicApiRouter);
 publicApiRouter.use((_request, _response, next) => next(integrationError('API_NOT_FOUND', 404)));
-publicApiRouter.use((error, request, response, _next) => {
+export function publicApiError(error, request, response, _next) {
   if (response.headersSent) return _next(error);
   const status = Number(error.statusCode || 500);
   const safeStatus = status >= 400 && status <= 599 ? status : 500;
   if (safeStatus === 429) response.setHeader('Retry-After', '60');
   response.status(safeStatus).json({
-    code: /^[A-Z0-9_]{1,80}$/.test(error.code || '') ? error.code : 'API_UNAVAILABLE',
+    code:
+      error.type === 'entity.parse.failed'
+        ? 'INVALID_JSON'
+        : error.type === 'entity.too.large'
+          ? 'REQUEST_TOO_LARGE'
+          : /^[A-Z0-9_]{1,80}$/.test(error.code || '')
+            ? error.code
+            : 'API_UNAVAILABLE',
     message: safeStatus === 500 ? 'The operation could not be completed.' : 'The request cannot be completed with the current access, parameters or version.',
     request_id: request.requestId,
   });
-});
+}
+publicApiRouter.use(publicApiError);

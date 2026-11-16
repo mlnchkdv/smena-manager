@@ -32,7 +32,13 @@ const uploadDto = upload => ({
 });
 async function target(request, upload) {
   const data = await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] });
-  assertFileTarget(data, request.user, upload.metadata.project_id, null, upload.metadata.folder_id || null);
+  if (!data.projects.some(project => project.id === upload.metadata.project_id)) throw integrationError('API_NOT_FOUND', 404);
+  try {
+    assertFileTarget(data, request.user, upload.metadata.project_id, null, upload.metadata.folder_id || null);
+  } catch (error) {
+    if (error.statusCode) throw error;
+    throw integrationError('INVALID_UPLOAD_TARGET');
+  }
 }
 async function uploadFor(request, id) {
   return integrationRegistry.mutate(data => {
@@ -129,10 +135,23 @@ export function registerPublicApiFiles(router) {
         !input ||
         Object.keys(input).some(key => !['name', 'size', 'mime_type', 'project_id', 'folder_id', 'sha256'].includes(key)) ||
         typeof input.project_id !== 'string' ||
+        !input.project_id ||
+        input.project_id.length > 180 ||
+        !Number.isSafeInteger(input.size) ||
+        input.size < 1 ||
+        (input.mime_type !== undefined && (typeof input.mime_type !== 'string' || input.mime_type.length > 180)) ||
+        (input.folder_id !== undefined &&
+          input.folder_id !== null &&
+          (typeof input.folder_id !== 'string' || !input.folder_id || input.folder_id.length > 180)) ||
         !/^[a-f0-9]{64}$/.test(input.sha256 || '')
       )
         throw integrationError('INVALID_UPLOAD_FIELDS');
-      validateFileUpload({ originalname: input.name, size: input.size, mimetype: input.mime_type || 'application/octet-stream' });
+      if (Number(input.size) > getFileUploadPolicy().maxFileSizeBytes) throw integrationError('UPLOAD_TOO_LARGE', 413);
+      try {
+        validateFileUpload({ originalname: input.name, size: input.size, mimetype: input.mime_type || 'application/octet-stream' });
+      } catch {
+        throw integrationError('INVALID_UPLOAD_FIELDS');
+      }
       await target(req, { metadata: input });
       const result = await privateFileOperation(req, 'begin_upload', input, async key => {
         let upload = await integrationRegistry.mutate(data => {

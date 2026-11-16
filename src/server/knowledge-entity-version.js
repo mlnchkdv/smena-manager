@@ -24,11 +24,15 @@ export function knowledgeEntityEtag(note) {
 
 // Runs inside the canonical write boundary, after the mutator, for browser,
 // import, restore and API writes alike. Client-supplied version fields are ignored.
-export function stampKnowledgeEntityVersions(current, next, { reset = false } = {}) {
+export function stampKnowledgeEntityVersions(current, next, { reset = false, apiSource = false } = {}) {
   if (!Array.isArray(next.knowledgeNotes)) return;
   const before = new Map((current.knowledgeNotes || []).map(note => [note.id, note]));
   for (const note of next.knowledgeNotes) {
     const previous = before.get(note.id);
+    if (!apiSource) {
+      if (!reset && previous && fingerprint(previous) === fingerprint(note) && previous.updatedVia) note.updatedVia = structuredClone(previous.updatedVia);
+      else delete note.updatedVia;
+    }
     if (!previous) note._apiVersion = { number: 1, generation: randomUUID() };
     else {
       const version = knowledgeEntityVersion(previous);

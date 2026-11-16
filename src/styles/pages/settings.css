@@ -44,7 +44,8 @@
 .integration-row small {
   display: block;
 }
-.integration-secret textarea {
+.integration-secret textarea,
+.integration-secret input {
   width: 100%;
   max-width: 100%;
   overflow-wrap: anywhere;

@@ -5,8 +5,14 @@ import { INTEGRATION_LIMITS, INTEGRATION_SCOPES } from '../shared/integration-co
 
 export const integrationError = (code, statusCode = 422, message = code) => Object.assign(new Error(message), { code, statusCode });
 const digest = secret => createHash('sha256').update(secret).digest('hex');
-const publicRecord = record =>
-  Object.fromEntries(Object.entries(record).filter(([key]) => !['secretHash', 'profile', 'rateMinute', 'rateCount'].includes(key)));
+const publicRecord = record => ({
+  ...Object.fromEntries(
+    ['id', 'name', 'userId', 'workspaceId', 'scopes', 'createdAt', 'expiresAt', 'lastUsedAt', 'revokedAt']
+      .filter(key => record[key] !== undefined)
+      .map(key => [key, record[key]]),
+  ),
+  ownerName: record.profile?.name || record.userId,
+});
 export const publicApiPolicy = policy => ({
   enabled: policy?.enabled === true,
   writeEnabled: policy?.writeEnabled === true,
@@ -44,14 +50,11 @@ export class IntegrationRegistry {
       integrations: data.records.filter(r => r.workspaceId === workspaceId && (r.userId === profile.id || profile.role === 'admin')).map(publicRecord),
     };
   }
-  policy(workspaceId, input) {
-    return this.updatePolicy(workspaceId, input);
-  }
   async fileReceipt(integration, key) {
     const data = await readIntegrationRegistry(this.provider());
     return (data.fileOperations || []).find(item => item.key === key && item.integrationId === integration.id && item.expiresAt > this.now()) || null;
   }
-  updatePolicy(workspaceId, input) {
+  policy(workspaceId, input) {
     if (
       !input ||
       Object.keys(input).some(key => !['enabled', 'writeEnabled', 'uploadsEnabled'].includes(key)) ||

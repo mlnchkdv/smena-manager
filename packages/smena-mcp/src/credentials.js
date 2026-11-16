@@ -2,6 +2,18 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const tokenPattern = /^smena_int_[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}$/;
+export function readClipboardToken() {
+  if (process.platform !== 'win32') throw new Error('Clipboard login is supported on Windows; use the hidden prompt on other platforms.');
+  const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '[Console]::Out.Write((Get-Clipboard -Raw))'], {
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout: 10000,
+    maxBuffer: 4096,
+  });
+  const value = String(result.stdout || '').trim();
+  if (result.error || result.status !== 0 || !tokenPattern.test(value)) throw new Error('The clipboard does not contain a Smena integration token.');
+  return value;
+}
 export function credentialOperation(operation, profile, token = '', platform = process.platform) {
   if (!/^[A-Za-z0-9_.-]{1,80}$/.test(profile)) throw new Error('Invalid credential profile.');
   if (operation === 'write' && !tokenPattern.test(token)) throw new Error('Invalid integration token.');
