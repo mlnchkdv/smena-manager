@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-16",
+  "baselineCommit": "3a1267a",
+  "publishedUiCommit": "32331b5696348dbadfd75479e2e1ca1237a000df",
+  "uiCommits": [
+    "5a23a44f1c4d814ca1a21c6a151feb8c5a0cc04a",
+    "b2ec537ca1a53fbddfcb78d7af1d4656924ef128",
+    "e6e147239e0895fcb6d2d277d7e06ed2e7913806",
+    "32331b5696348dbadfd75479e2e1ca1237a000df"
+  ],
+  "environment": "Isolated local Layout QA; cloud credentials disabled; production team materials unchanged",
+  "laptopMetrics": {
+    "viewport": [1366, 768],
+    "mainWidth": {
+      "before": 1114,
+      "after": 1142
+    },
+    "knowledgeCatalogWidth": {
+      "before": 766,
+      "after": 862
+    },
+    "firstNoteY": {
+      "before": 243,
+      "after": 190
+    },
+    "firstBookmarkY": {
+      "before": 310,
+      "after": 241
+    },
+    "firstPortfolioRowY": {
+      "before": 273,
+      "after": 253
+    },
+    "graphHeight": {
+      "before": 529,
+      "after": 587
+    },
+    "groupedTaskTitleWidth": {
+      "after": 460
+    }
+  },
+  "finalMatrix": {
+    "passed": 280,
+    "routes": [
+      "home",
+      "overview",
+      "projects",
+      "tasks",
+      "files",
+      "knowledge",
+      "bookmarks",
+      "whiteboards",
+      "whiteboard/ui-layout-canvas",
+      "graph",
+      "calendar",
+      "timeline",
+      "inbox",
+      "notifications",
+      "settings/appearance",
+      "project/prj"
+    ],
+    "viewports": ["320x567", "390x844", "768x1024", "844x390", "1024x768", "1366x768", "1440x900", "1920x1080"],
+    "cases": ["ru/light/comfortable", "en/dark/compact", "ru/dark/compact", "en/light/comfortable"],
+    "pageErrors": [],
+    "checks": ["root and task-list overflow", "toolbar containment", "collapsed sidebar", "200% CSS zoom on knowledge, tasks and settings"]
+  },
+  "additionalAcceptance": {
+    "catalogStates": 32,
+    "spatialStates": 10,
+    "largeKnowledgeFixture": {
+      "notes": 62,
+      "folders": 82,
+      "viewports": 6,
+      "wideMarkdownReader": true
+    },
+    "auxiliaryStates": 40,
+    "chromiumFlows": ["core task flow and responsive shell", "nested keyboard ownership in whiteboards", "standalone whiteboard create/save/archive"]
+  },
+  "validation": {
+    "sourceEslint": "passed",
+    "format": "passed",
+    "uiTokens": "passed",
+    "productionBuild": "passed",
+    "initialJavaScriptKiB": 396.7,
+    "initialJavaScriptBudgetKiB": 600,
+    "linuxCI": "passed: build, server tests, Chromium, Firefox, WebKit, deploy",
+    "ciUrl": "https://github.com/mlnchkdv/smena-manager/actions/runs/43938318392"
+  },
+  "windowsServerTests": {
+    "fullRun": "two failing inventory tests; not a successful full Windows gate",
+    "targetedRepeat": {
+      "passed": 7,
+      "failed": 2,
+      "total": 9
+    },
+    "failureCode": "KNOWLEDGE_INVENTORY_INTEGRITY",
+    "cause": "fs.lstat.dev=0 and fs.fstat.dev=744535111 for the same opened file; inode and size match",
+    "sourceUnchangedSinceBaseline": true,
+    "files": ["src/server/storage/knowledge-object-inventory.js", "tests/server/knowledge-object-inventory.test.js"]
+  },
+  "production": {
+    "appVersionConfirmed": "32331b5696348dbadfd75479e2e1ca1237a000df",
+    "authenticatedBaseline": "overview, files, knowledge, tasks, graph read in existing Comet session",
+    "finalNativeVisualInspection": "stopped by user physical Escape; no further UI input"
+  },
+  "screenshots": "output/playwright/ui-layout16 (local generated artifacts, not committed)",
+  "limitations": [
+    "No physical iOS/Android acceptance",
+    "CSS zoom is an emulated layout check, not a physical-device or screen-reader certification",
+    "Final authenticated visual inspection of the published UI was interrupted"
+  ]
+}
