@@ -43,6 +43,7 @@ import { whiteboardConnection, reconnectWhiteboardEdge } from '../shared/whitebo
 import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
 import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
 import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
+import { whiteboardNavigationHint } from '../ui/whiteboard-context.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const colors = () => [
   T('Neutral', 'Нейтральный'),
@@ -522,6 +523,8 @@ IN.whiteboardNavigation = el => {
   whiteboardState().navigationMode = el.value;
   render();
   document.querySelector('[data-in="whiteboardNavigation"] + .select-btn')?.focus({ preventScroll: true });
+  const live = document.getElementById('sr-live');
+  if (live) live.textContent = whiteboardNavigationHint(el.value, editable(current()));
 };
 IN.whiteboardOutlineQuery = el => {
   whiteboardState().outlineQuery = el.value;

@@ -35,6 +35,7 @@ export function enhanceSelects(root = document) {
     btn.setAttribute('style', sel.getAttribute('style') || '');
     btn.setAttribute('aria-haspopup', 'listbox');
     btn.setAttribute('aria-expanded', 'false');
+    for (const attribute of ['aria-describedby', 'title']) if (sel.hasAttribute(attribute)) btn.setAttribute(attribute, sel.getAttribute(attribute));
     // Rebuilt triggers need an identity independent of the selected value/locale.
     const scope = sel.closest('.modal,.drawer') || root;
     const scopeName = scope.getAttribute?.('aria-labelledby') || (scope.matches?.('.drawer') ? 'drawer' : 'page');

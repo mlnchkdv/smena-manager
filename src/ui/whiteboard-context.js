@@ -26,12 +26,22 @@ export function whiteboardContext(board, state, editable) {
   return `<aside class="whiteboard-context" aria-label="${T('Selection tools', 'Инструменты выделения')}" translate="no"><span class="whiteboard-context-kind" title="${esc(name)}">${ic(edge ? 'move-right' : node.type === 'material' ? 'file-text' : node.type === 'group' ? 'square-dashed' : 'sticky-note', 16)}</span>${title}<div class="whiteboard-context-actions">${editable ? `<select class="select" data-in="whiteboardContextField" aria-label="${T('Color', 'Цвет')}" ${attrs('color')}>${BOARD_COLORS.map((color, i) => `<option value="${color}" ${item.color === color ? 'selected' : ''}>${colors[i]}</option>`).join('')}</select>${edge ? `<button class="ibtn" data-a="whiteboardContextArrow" aria-pressed="${edge.arrow}" aria-label="${T('Arrow', 'Стрелка')}" ${attrs('arrow')}>${ic('move-right', 16)}</button>${action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'))}` : `${action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'))}${action('whiteboardConnectStart', 'plus', T('Connect card', 'Связать карточку'))}${action('whiteboardEdit', 'pencil', T('Edit text and settings', 'Изменить текст и настройки'))}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки')) : ''}`}` : ''}${node?.type === 'material' ? `<button class="ibtn" data-a="openRelatedEntity" data-key="${esc(node.target)}" aria-label="${T('Open material', 'Открыть материал')}">${ic('arrow-up-right', 16)}</button>` : ''}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div></aside>`;
 }
 
+export function whiteboardNavigationHint(mode, editable) {
+  return mode === 'pan'
+    ? T('Pan: drag to move the canvas without moving cards.', 'Холст: перетаскивайте поле, не перемещая карточки.')
+    : mode === 'move'
+      ? editable
+        ? T('Cards: drag a card title to move it.', 'Карточки: перемещайте карточку за заголовок.')
+        : T('Select: choose cards to read them. This board is read-only.', 'Выбор: выбирайте карточки для чтения. Холст доступен только для просмотра.')
+      : T('Scroll: swipe to scroll the page. Cards stay in place.', 'Прокрутка: листайте страницу. Карточки остаются на месте.');
+}
 export function whiteboardNavigation(state, editable) {
-  return `<label class="whiteboard-gesture"><span class="sr">${T('Interaction mode', 'Режим управления')}</span><select class="select" data-in="whiteboardNavigation" aria-label="${T('Interaction mode', 'Режим управления')}">${[
-    ['scroll', T('Scroll page', 'Прокручивать страницу')],
-    ['pan', T('Move canvas', 'Перемещать холст')],
-    ['move', editable ? T('Move cards', 'Перемещать карточки') : T('Select cards', 'Выбирать карточки')],
+  const hint = whiteboardNavigationHint(state.navigationMode, editable);
+  return `<label class="whiteboard-gesture" title="${esc(hint)}"><span class="sr">${T('Interaction mode', 'Режим управления')}</span><select class="select" data-in="whiteboardNavigation" aria-label="${T('Interaction mode', 'Режим управления')}" aria-describedby="whiteboard-mode-hint" title="${esc(hint)}">${[
+    ['scroll', T('Scroll', 'Прокрутка')],
+    ['pan', T('Pan', 'Холст')],
+    ['move', editable ? T('Cards', 'Карточки') : T('Select', 'Выбор')],
   ]
     .map(([mode, label]) => `<option value="${mode}" ${state.navigationMode === mode ? 'selected' : ''}>${label}</option>`)
-    .join('')}</select></label>`;
+    .join('')}</select><span class="sr" id="whiteboard-mode-hint">${esc(hint)}</span></label>`;
 }
