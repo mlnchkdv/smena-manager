@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { knowledgeExcerpt, noteCardExcerpt, createKnowledgeMatcher, knowledgeSearchContext } from '../../src/shared/knowledge-search.js';
+import { noteCardPreview } from '../../src/shared/knowledge-search.js';
+
+test('catalogue distinguishes known empty text from a body without a preview', () => {
+  assert.deepEqual(noteCardPreview({ formatted_markdown: '' }, ''), { excerpt: '', state: 'empty' });
+  assert.deepEqual(noteCardPreview({ bodyPending: true, bodyRef: {} }, ''), { excerpt: '', state: 'unavailable' });
+  assert.equal(noteCardPreview({ bodyPending: true, summary: 'Available summary' }, '').state, 'text');
+  assert.equal(noteCardPreview({ formatted_markdown: '# Title\n\nUseful text' }, '').state, 'text');
+  const template = { formatted_markdown: '# New note\n\nAdd team knowledge, guidelines, or working agreements here.' };
+  assert.equal(noteCardPreview(template, '').state, 'empty');
+  assert.match(template.formatted_markdown, /Add team knowledge/);
+});
 
 test('blank card excerpts are bounded while searches retain distant matches and exact source', () => {
   const source = '# Opening\n\n' + 'Readable text '.repeat(150000) + '\n\nDISTANT_UNIQUE_TERM';

@@ -1438,6 +1438,26 @@
 .knowledge-preview-excerpt[hidden] {
   display: none;
 }
+.knowledge-preview-grid:not(.knowledge-note-list) .knowledge-preview-card.no-preview {
+  align-self: start;
+  contain-intrinsic-size: auto 110px;
+}
+.knowledge-preview-card.no-preview .knowledge-preview-open {
+  flex: 0 0 auto;
+}
+.knowledge-preview-status {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.knowledge-preview-card.duplicate-title .knowledge-note-time {
+  color: var(--text-2);
+}
+.knowledge-preview-card.duplicate-title .knowledge-preview-location {
+  color: var(--text-2);
+  font-weight: 500;
+}
 .knowledge-main[data-density='compact'] .knowledge-preview-open {
   padding: 12px 48px 8px 12px;
 }

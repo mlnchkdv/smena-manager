@@ -14,7 +14,7 @@ import { smartCollections } from '../ui/knowledge-queries.js';
 import '../ui/knowledge-templates.js';
 import { actionLabel } from '../ui/action-label.js';
 import { filterCriteria, filterSummaryLabel } from '../ui/filter-criteria.js';
-import { ago, esc } from '../core/utils.js';
+import { ago, esc, fmtTimestamp } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { D, S, visibleProjects } from '../core/store.js';
 import { A } from '../actions/actions.js';
@@ -23,7 +23,7 @@ import { empty } from '../ui/helpers.js';
 import { knowledgeView } from '../shared/knowledge-view.js';
 import { folderTrail, folderDescendants } from '../shared/knowledge-tools.js';
 import { knowledgePreferences } from '../core/knowledge-preferences.js';
-import { noteCardExcerpt, knowledgeSearchContext } from '../shared/knowledge-search.js';
+import { noteCardPreview, knowledgeSearchContext } from '../shared/knowledge-search.js';
 import { highlightKnowledge } from '../ui/knowledge-highlight.js';
 import { knowledgeBulkToolbar, knowledgeFolderBulk, knowledgeSelectionStart } from '../ui/knowledge-bulk.js';
 import { materialLocation } from '../ui/material-location.js';
@@ -84,22 +84,24 @@ function folderTree(index, activeId, readOnly, collapsed = {}, query = '') {
   );
 }
 
-function notePreviewCard(note, folder, readOnly, folderIndex, serverContext) {
+function notePreviewCard(note, folder, readOnly, folderIndex, serverContext, duplicate) {
   const location = folder
     ? folderTrail(folder.id, folderIndex.byId)
         .map(item => item.name)
         .join(' / ')
     : '';
-  const actionLabel = action => esc(`${t(action)}: ${note.title || t('Untitled note')} · ${location || t('No folder')}`);
+  const timestamp = fmtTimestamp(noteTime(note.updatedAt));
+  const actionLabel = action => esc(`${t(action)}: ${note.title || t('Untitled note')} · ${location || t('No folder')}${duplicate ? ' · ' + timestamp : ''}`);
   const titleId = `knowledge-note-title-${esc(note.id)}`;
   const tags = (note.tags || []).filter(Boolean).slice(0, 3);
   const context = serverContext || knowledgeSearchContext(note, S.ui.knowledgeQuery);
-  const excerpt = context ? '' : noteCardExcerpt(note, S.ui.knowledgeQuery);
-  return `<article class="knowledge-preview-card${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
-    <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time">${ago(noteTime(note.updatedAt))}</span></div>
+  const preview = context ? { excerpt: '', state: 'text' } : noteCardPreview(note, S.ui.knowledgeQuery);
+  const excerpt = context ? '' : preview.excerpt;
+  return `<article class="knowledge-preview-card${!context && preview.state !== 'text' ? ' no-preview' : ''}${duplicate ? ' duplicate-title' : ''}${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-preview-state="${preview.state}" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
+    <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time" title="${esc(timestamp)}">${duplicate ? esc(timestamp) : ago(noteTime(note.updatedAt))}</span></div>
     ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${!context && !excerpt ? 'hidden' : ''} ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
-    ${noteCardMeta(note)}${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
-  </button><div class="knowledge-preview-location">${!String(S.ui.knowledgeQuery || '').trim() && S.ui.knowledgeFolder === (note.folderId || 'root') ? '' : folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="${actionLabel('Move note')}" title="${actionLabel('Move note')}">${ic('folder-input', 15)}</button>`}<button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${actionLabel(isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites')}" aria-pressed="${!!isFavorite('note', note)}" style="${isFavorite('note', note) ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button></article>`;
+    ${!context && preview.state !== 'text' ? `<small class="knowledge-preview-status" translate="no">${preview.state === 'unavailable' ? (isRussian() ? 'Предпросмотр при открытии' : 'Preview on opening') : isRussian() ? 'Нет текста' : 'No text yet'}</small>` : ''}${noteCardMeta(note)}${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
+  </button><div class="knowledge-preview-location">${!duplicate && !String(S.ui.knowledgeQuery || '').trim() && S.ui.knowledgeFolder === (note.folderId || 'root') ? '' : folder ? materialLocation(location, `note:${note.id}`) : `<span class="row">${ic('folder-open', 12)}<span>No folder</span></span>`}</div>${readOnly ? '' : `<button class="ibtn ibtn-xs knowledge-preview-move" data-a="moveKnowledgeNote" data-id="${note.id}" aria-label="${actionLabel('Move note')}" title="${actionLabel('Move note')}">${ic('folder-input', 15)}</button>`}<button class="ibtn ibtn-xs knowledge-preview-star" data-a="toggleKnowledgeFavorite" data-id="${note.id}" aria-label="${actionLabel(isFavorite('note', note) ? 'Remove from favorites' : 'Add to favorites')}" aria-pressed="${!!isFavorite('note', note)}" style="${isFavorite('note', note) ? 'color:var(--amber)' : ''}">${ic('star', 13)}</button></article>`;
 }
 
 function folderPath(folderId, folders) {
@@ -174,6 +176,8 @@ export function pageKnowledge() {
   const effectiveIndexed = indexed?.localOnly || Array.isArray(indexed?.matches) ? null : indexed;
   const { total, hasMore, start } = effectiveIndexed || view;
   const visible = effectiveIndexed ? effectiveIndexed.ids.map(id => byId.get(id)).filter(Boolean) : view.visible;
+  const titleCounts = new Map();
+  for (const note of notes) titleCounts.set(note.title, (titleCounts.get(note.title) || 0) + 1);
   const searchStatus = indexed?.syntaxError
     ? knowledgeQueryErrorMessage(indexed.syntaxError, isRussian() ? 'ru' : 'en')
     : indexed?.pending
@@ -281,6 +285,7 @@ export function pageKnowledge() {
                       readOnly,
                       folderIndex,
                       indexed?.snippets?.[note.id],
+                      titleCounts.get(note.title) > 1,
                     ),
                   )
                   .join('')}</div>`

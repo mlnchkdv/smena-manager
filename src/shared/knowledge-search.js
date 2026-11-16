@@ -98,3 +98,8 @@ export function noteCardExcerpt(note, query) {
   );
   return knowledgeExcerpt({ ...note, formatted_markdown: body }, query);
 }
+export function noteCardPreview(note, query) {
+  const excerpt = noteCardExcerpt(note, query);
+  const unavailable = typeof note.formatted_markdown !== 'string' && !!(note.bodyPending || note.bodyRef || note.bodyToken);
+  return { excerpt, state: excerpt ? 'text' : unavailable ? 'unavailable' : 'empty' };
+}
