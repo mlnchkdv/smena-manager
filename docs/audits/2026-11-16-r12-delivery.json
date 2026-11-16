@@ -1,0 +1,1616 @@
+{
+  "date": "2026-11-16",
+  "sourceCommit": "6f95dac20f3535afcb1a978b2aed62ee2881b699",
+  "status": "implemented; production acceptance recorded separately from local checks",
+  "commits": [
+    "6f95dac fix: localize subtask creation in Russian activity feed",
+    "10c4513 feat: explain bootstrap stages and bound workspace reads (R11)",
+    "948c7b4 fix: compact note cards and distinguish unavailable previews (R10)",
+    "3913835 feat: prioritize readable whiteboard overview labels (R09)",
+    "fcda6db fix: clarify compact whiteboard interaction modes (R08)",
+    "3853f5c fix: wrap graph counters within mobile bounds (R07)",
+    "b310c4d fix: enlarge independent task checkbox targets (R06)",
+    "cc18a27 feat: show upload destinations and explicit folder recovery (R05)",
+    "35da64d fix: parse quoted knowledge queries and UTC dates consistently (R04)",
+    "372cf03 test: seed conflict recovery fixtures explicitly after lean boot",
+    "cb6517e perf: defer management actions and locale payload (R12)",
+    "e89e738 fix: distinguish paused and unattempted delivery states (R03)",
+    "c637045 feat: expose read-only scheduler and paused delivery mode (R02)",
+    "81c0595 fix: buffer API requests across single-writer deployments (R01)"
+  ],
+  "local": {
+    "matrix": {
+      "completed": true,
+      "fatal": "",
+      "count": 242,
+      "overflows": [],
+      "errors": [],
+      "missing": []
+    },
+    "query": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "syntaxMessage": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "syntaxMessage": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "syntaxMessage": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "syntaxMessage": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "syntaxMessage": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "syntaxMessage": true,
+        "overflow": 0
+      }
+    ],
+    "uploadDestinations": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "paths": ["В папку: Project / Event A", "В папку: Project / Event B"],
+        "source": "Путь исходника\nEvent A/video.mp4",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "paths": ["В папку: Project / Event A", "В папку: Project / Event B"],
+        "source": "Путь исходника\nEvent A/video.mp4",
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "paths": ["В папку: Project / Event A", "В папку: Project / Event B"],
+        "source": "Путь исходника\nEvent A/video.mp4",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "paths": ["Upload to: Project / Event A", "Upload to: Project / Event B"],
+        "source": "Source path\nEvent A/video.mp4",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "paths": ["Upload to: Project / Event A", "Upload to: Project / Event B"],
+        "source": "Source path\nEvent A/video.mp4",
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "paths": ["Upload to: Project / Event A", "Upload to: Project / Event B"],
+        "source": "Source path\nEvent A/video.mp4",
+        "overflow": 0
+      }
+    ],
+    "taskTargets": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "route": "tasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "route": "mytasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "route": "project/pl/list",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "route": "team/audit-team",
+        "empty": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "route": "tasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "route": "mytasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "route": "project/pl/list",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "route": "team/audit-team",
+        "empty": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "route": "tasks",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "route": "mytasks",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "route": "project/pl/list",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "route": "team/audit-team",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "route": "tasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "route": "mytasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "route": "project/pl/list",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "route": "team/audit-team",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "route": "tasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "route": "mytasks",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "route": "project/pl/list",
+        "target": {
+          "w": 44,
+          "h": 44
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "route": "team/audit-team",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "route": "tasks",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "route": "mytasks",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "route": "project/pl/list",
+        "target": {
+          "w": 32,
+          "h": 32
+        },
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "route": "member/audit-member-0",
+        "empty": true
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "route": "team/audit-team",
+        "empty": true
+      }
+    ],
+    "graphSummary": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "scale": 1,
+        "right": 304,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "scale": 2,
+        "right": 304,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "scale": 1,
+        "right": 374,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "scale": 2,
+        "right": 374,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "scale": 1,
+        "right": 832,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "scale": 2,
+        "right": 832,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "scale": 1,
+        "right": 1326,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "scale": 2,
+        "right": 1326,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "scale": 1,
+        "right": 304,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "scale": 2,
+        "right": 304,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "scale": 1,
+        "right": 374,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "scale": 2,
+        "right": 374,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "scale": 1,
+        "right": 832,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "scale": 2,
+        "right": 832,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "scale": 1,
+        "right": 1326,
+        "overflow": 0,
+        "spans": [true, true]
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "scale": 2,
+        "right": 1326,
+        "overflow": 0,
+        "spans": [true, true]
+      }
+    ],
+    "whiteboardModes": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "mode": "scroll",
+        "text": "Прокрутка",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Прокрутка: листайте страницу. Карточки остаются на месте."
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "mode": "pan",
+        "text": "Холст",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Холст: перетаскивайте поле, не перемещая карточки."
+      },
+      {
+        "locale": "ru",
+        "width": 320,
+        "mode": "move",
+        "text": "Карточки",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Карточки: перемещайте карточку за заголовок."
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "mode": "scroll",
+        "text": "Прокрутка",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Прокрутка: листайте страницу. Карточки остаются на месте."
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "mode": "pan",
+        "text": "Холст",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Холст: перетаскивайте поле, не перемещая карточки."
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "mode": "move",
+        "text": "Карточки",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Карточки: перемещайте карточку за заголовок."
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "mode": "scroll",
+        "text": "Прокрутка",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Прокрутка: листайте страницу. Карточки остаются на месте."
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "mode": "pan",
+        "text": "Холст",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Холст: перетаскивайте поле, не перемещая карточки."
+      },
+      {
+        "locale": "ru",
+        "width": 844,
+        "mode": "move",
+        "text": "Карточки",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Карточки: перемещайте карточку за заголовок."
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "mode": "scroll",
+        "text": "Прокрутка",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Прокрутка: листайте страницу. Карточки остаются на месте."
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "mode": "pan",
+        "text": "Холст",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Холст: перетаскивайте поле, не перемещая карточки."
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "mode": "move",
+        "text": "Карточки",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Карточки: перемещайте карточку за заголовок."
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "mode": "scroll",
+        "text": "Scroll",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Scroll: swipe to scroll the page. Cards stay in place."
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "mode": "pan",
+        "text": "Pan",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Pan: drag to move the canvas without moving cards."
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "mode": "move",
+        "text": "Cards",
+        "w": 98,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Cards: drag a card title to move it."
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "mode": "scroll",
+        "text": "Scroll",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Scroll: swipe to scroll the page. Cards stay in place."
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "mode": "pan",
+        "text": "Pan",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Pan: drag to move the canvas without moving cards."
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "mode": "move",
+        "text": "Cards",
+        "w": 160,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Cards: drag a card title to move it."
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "mode": "scroll",
+        "text": "Scroll",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Scroll: swipe to scroll the page. Cards stay in place."
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "mode": "pan",
+        "text": "Pan",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Pan: drag to move the canvas without moving cards."
+      },
+      {
+        "locale": "en",
+        "width": 844,
+        "mode": "move",
+        "text": "Cards",
+        "w": 144,
+        "h": 44,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Cards: drag a card title to move it."
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "mode": "scroll",
+        "text": "Scroll",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Scroll: swipe to scroll the page. Cards stay in place."
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "mode": "pan",
+        "text": "Pan",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Pan: drag to move the canvas without moving cards."
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "mode": "move",
+        "text": "Cards",
+        "w": 144,
+        "h": 34,
+        "truncated": false,
+        "described": "whiteboard-mode-hint",
+        "hint": "Cards: drag a card title to move it."
+      }
+    ],
+    "whiteboardOverview": [
+      {
+        "locale": "ru",
+        "width": 390,
+        "zoom": 0.2,
+        "overview": "true",
+        "visible": 3,
+        "hidden": 1,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "zoom": 0.35,
+        "overview": "true",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "zoom": 0.65,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "zoom": 1,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "zoom": 0.2,
+        "overview": "true",
+        "visible": 3,
+        "hidden": 1,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "zoom": 0.35,
+        "overview": "true",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "zoom": 0.65,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "zoom": 1,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "zoom": 0.2,
+        "overview": "true",
+        "visible": 3,
+        "hidden": 1,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "zoom": 0.35,
+        "overview": "true",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "zoom": 0.65,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "zoom": 1,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "zoom": 0.2,
+        "overview": "true",
+        "visible": 3,
+        "hidden": 1,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "zoom": 0.35,
+        "overview": "true",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "zoom": 0.65,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "zoom": 1,
+        "overview": "false",
+        "visible": 4,
+        "hidden": 0,
+        "fullTitle": "Идея A / Idea A",
+        "selectedLabel": "true",
+        "geometry": [
+          ["frame", "-30px", "-50px", "900px", "600px"],
+          ["idea-a", "0px", "0px", "1090px", "670px"],
+          ["idea-b", "550px", "340px", "260px", "180px"],
+          ["linked-note", "400px", "0px", "260px", "180px"]
+        ],
+        "overflow": 0
+      }
+    ],
+    "notePreviews": [
+      {
+        "locale": "ru",
+        "width": 320,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Предпросмотр при открытии",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Нет текста",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 390,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Предпросмотр при открытии",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Нет текста",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1366,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Предпросмотр при открытии",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 155.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Нет текста",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "width": 1920,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Предпросмотр при открытии",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Нет текста",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "16 нояб. 2026 г., 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 320,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Preview on opening",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "No text yet",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 390,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "Preview on opening",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 146.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 174.828125,
+            "caption": "No text yet",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1366,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Preview on opening",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 155.4375,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "No text yet",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          }
+        ],
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "width": 1920,
+        "cards": [
+          {
+            "id": "r10-unavailable",
+            "state": "unavailable",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "Preview on opening",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-long",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-short",
+            "state": "text",
+            "blank": false,
+            "height": 167.21875,
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          },
+          {
+            "id": "r10-empty",
+            "state": "empty",
+            "blank": true,
+            "height": 118.828125,
+            "caption": "No text yet",
+            "path": "R10 previewsR10 previews",
+            "star": true,
+            "time": "Nov 16, 2026, 17:47"
+          }
+        ],
+        "overflow": 0
+      }
+    ],
+    "bootstrapFailures": [
+      {
+        "locale": "ru",
+        "stage": "config",
+        "loading": "Подключаемся к серверу…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "stage": "session",
+        "loading": "Проверяем вход…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "stage": "workspace",
+        "loading": "Вход подтверждён. Открываем пространство…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "ru",
+        "stage": "workspace",
+        "loading": "Вход подтверждён. Открываем пространство…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "stage": "config",
+        "loading": "Connecting securely…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "stage": "session",
+        "loading": "Checking your sign-in…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "stage": "workspace",
+        "loading": "Signed in. Opening your workspace…",
+        "recovered": true,
+        "overflow": 0
+      },
+      {
+        "locale": "en",
+        "stage": "workspace",
+        "loading": "Signed in. Opening your workspace…",
+        "recovered": true,
+        "overflow": 0
+      }
+    ],
+    "bootstrapTimeouts": [
+      {
+        "locale": "ru",
+        "elapsed": 53566,
+        "recovered": true,
+        "timeoutExplained": true
+      },
+      {
+        "locale": "en",
+        "elapsed": 59734,
+        "recovered": true,
+        "timeoutExplained": true
+      }
+    ],
+    "server": {
+      "total": 1046,
+      "passed": 1044,
+      "failed": 0,
+      "skipped": 2,
+      "seconds": 247.736
+    },
+    "accessibility": {
+      "command": "npx playwright test tests/e2e/accessibility.spec.js --project=chromium",
+      "testsPassed": 2,
+      "seconds": 186,
+      "includes": "Automated WCAG scans of RU/EN routes and light/dark mobile states; 200% settings zoom"
+    },
+    "build": {
+      "initialJavaScriptKiB": 396,
+      "budgetKiB": 600
+    },
+    "lint": "npx eslint . --ignore-pattern output/** (generated preexisting output is excluded, source unchanged)",
+    "format": "npm run format:check"
+  },
+  "production": {
+    "url": "https://smena.team",
+    "verifiedFunctionalRelease": "6f95dac20f3535afcb1a978b2aed62ee2881b699",
+    "ci": {
+      "R11": 43882033898,
+      "extraLocale": 43904130699,
+      "browsers": ["chromium", "firefox", "webkit"],
+      "build": "success",
+      "deployment": "success"
+    },
+    "nativeObservations": [
+      {
+        "section": "notifications",
+        "locales": ["ru", "en"],
+        "mode": "delivery paused; scheduler disabled",
+        "queue": {
+          "email": 7,
+          "push": 8,
+          "notAttempted": 14,
+          "providerErrors": 1,
+          "unknownReasons": 0
+        },
+        "actions": "Read-only status check; no retry or test message was sent."
+      },
+      {
+        "section": "files",
+        "locale": "en",
+        "viewport": "320x567",
+        "observed": "Three TXT remain in folder B; service TXT opens with expected text."
+      },
+      {
+        "section": "knowledge",
+        "locale": "en",
+        "viewport": "320x567",
+        "observed": "Duplicate titles distinguish dates and paths; malformed quoted query shows a syntax message."
+      },
+      {
+        "section": "graph",
+        "locale": "en",
+        "viewport": "320x567",
+        "observed": "Both counters fully visible: 31 nodes, 20 lines; loaded 31 of 31 materials and 20 connections."
+      },
+      {
+        "section": "whiteboard",
+        "locale": "ru",
+        "viewport": "390x844 and desktop",
+        "observed": "Short mode label and full accessible hint; service card retains x180 y120 width260 height180."
+      },
+      {
+        "section": "bootstrap",
+        "locale": "ru",
+        "observed": "Sign-in confirmed and workspace stage visible on full navigation; session restored."
+      },
+      {
+        "section": "service write",
+        "workspace": "test-a-f-05-11-4606af13",
+        "board": "wbeae2d196-cfb8-499c-9f5a-e382fa20c2e7",
+        "observed": "One temporary card-title write during deploy job confirmed Saved and persisted through reload. Original title restored after release change; no geometry edits."
+      },
+      {
+        "section": "final restoration",
+        "locale": "ru",
+        "observed": "Original service card title persisted through another full reload. Main Smena workspace restored in normal desktop view with Russian activity phrase displayed; session retained."
+      }
+    ],
+    "health": [
+      {
+        "start": "2026-11-16T12:35:50.124Z",
+        "end": "2026-11-16T13:09:35.935Z",
+        "count": 1800,
+        "statuses": {
+          "200": 1800
+        },
+        "errors": [],
+        "releases": [
+          "95167c60e01c22aa809c0902c510f2901cde1f37",
+          "81c0595967fe009ccf9edefad9e6f4468d547f78",
+          "c6370452e0c4354487339cf9df4669c0e4d8e17f",
+          "e89e7381a9bc59f0c0b1eeb0d4ab9437509e6bac"
+        ],
+        "maxMs": 2585
+      },
+      {
+        "start": "2026-11-16T14:05:42.721Z",
+        "end": "2026-11-16T14:12:43.459Z",
+        "count": 362,
+        "statuses": {
+          "200": 362
+        },
+        "errors": [],
+        "releases": ["948c7b4e6f3ac663a3722f949d21d30334565e70", "10c45130ae04c287ac30cf214aea3c5b3170686a"],
+        "maxMs": 5556
+      },
+      {
+        "start": "2026-11-16T14:12:59.493Z",
+        "end": "2026-11-16T14:14:02.822Z",
+        "count": 58,
+        "statuses": {
+          "200": 57,
+          "error": 1
+        },
+        "errors": ["TimeoutError"],
+        "releases": ["10c45130ae04c287ac30cf214aea3c5b3170686a"],
+        "maxMs": 15019
+      },
+      {
+        "start": "2026-11-16T16:11:40.692Z",
+        "end": "2026-11-16T16:16:22.886Z",
+        "count": 243,
+        "statuses": {
+          "200": 243
+        },
+        "errors": [],
+        "releases": ["10c45130ae04c287ac30cf214aea3c5b3170686a", "6f95dac20f3535afcb1a978b2aed62ee2881b699"],
+        "maxMs": 3353
+      }
+    ]
+  },
+  "limitations": [
+    "Mobile browser emulation is not a physical iOS/Android or screen-reader test.",
+    "The R05 destination restart was verified by unit tests and controlled rendering; a Drive-backed full restart scenario was not executed.",
+    "No new 1–5 GiB production transfer, background phone upload or live notification delivery was run.",
+    "Buffered restart has bounded proxy/shutdown limits; successful probes and a service write do not establish unlimited zero downtime.",
+    "Provider error remains historical; its underlying Gmail cause was not established."
+  ],
+  "generatedAt": "2026-11-16T16:19:45.447Z"
+}
