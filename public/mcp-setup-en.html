@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Employee guide: connect Smena knowledge to Codex through MCP with a personal token, then verify note search and reading."
+    />
+    <title>Connect Smena to Codex — employee guide</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/legal.css" />
+    <link rel="stylesheet" href="/mcp-setup.css" />
+    <link rel="alternate" hreflang="ru" href="/mcp-setup.html" />
+  </head>
+  <body class="setup">
+    <a class="skip-link" href="#content">Skip to guide</a>
+    <header class="top">
+      <div class="top-inner">
+        <a class="brand" href="/">Smena Manager</a>
+        <nav aria-label="Navigation"><a href="/">Open Smena</a><a href="/mcp-setup.html" lang="ru" hreflang="ru">Русский</a></nav>
+      </div>
+    </header>
+    <main id="content">
+      <p class="meta">Employee guide · <time datetime="2026-11-17">17 November 2026</time></p>
+      <h1>Connect Smena to Codex</h1>
+      <p class="lead">Find and read workspace notes directly in Codex. The MCP connection runs on your own computer.</p>
+      <div class="notice">
+        <strong>Each employee needs their own token.</strong> Sign in to Smena with your own account and start with “Read notes”. You do not need a manager’s
+        token, a Google password or server access.
+      </div>
+      <nav class="quick-links" aria-label="Guide sections">
+        <a href="#install">Install</a><a href="#token">Personal token</a><a href="#codex">Configure Codex</a><a href="#check">Verify</a
+        ><a href="#help">Troubleshoot</a>
+      </nav>
+
+      <section id="install" aria-labelledby="install-title">
+        <h2 id="install-title">1. Prepare your computer</h2>
+        <p>
+          Install Codex, <a href="https://nodejs.org/en/download">Node.js 22</a> with npm, and <a href="https://git-scm.com/downloads">Git</a>. Use the Node 22
+          release line for this repository. Check the versions in PowerShell or a terminal:
+        </p>
+        <pre><code>node --version
+npm --version
+git --version</code></pre>
+        <p>Open a permanent tools directory and run these commands. Avoid temporary directories: Codex will launch the adapter from this location.</p>
+        <pre><code>git clone https://github.com/mlnchkdv/smena-manager.git
+cd smena-manager
+npm ci</code></pre>
+        <p>If the repository is already installed, open its directory. Run the following commands from the <code>smena-manager</code> root.</p>
+      </section>
+
+      <section id="token" aria-labelledby="token-title">
+        <h2 id="token-title">2. Create your personal Smena token</h2>
+        <ol>
+          <li>Open <a href="/" target="_blank" rel="noopener">smena.team</a> and sign in with your own work Google account.</li>
+          <li>Select the workspace at the top of the navigation menu. The main team workspace is <strong>“СМΞНА”</strong>.</li>
+          <li>Open <strong>Settings → Integrations</strong>. If integrations are disabled, ask the workspace administrator to enable them.</li>
+          <li>Name the connection, for example <strong>Codex — my name</strong>, select only <strong>“Read notes”</strong>, and choose an expiration.</li>
+          <li>Select <strong>“Create token” → “Copy token”</strong>. The value is shown only once.</li>
+        </ol>
+        <p>
+          The token belongs to your account and the selected workspace. Read access covers that workspace’s notes; a folder search filter does not restrict
+          token permissions. Never put the token in a chat, Git, or a message to a colleague.
+        </p>
+      </section>
+
+      <section aria-labelledby="save-title">
+        <h2 id="save-title">3. Save the token on your computer</h2>
+        <pre><code>node packages/smena-mcp/src/cli.js auth-login --profile codex --browser</code></pre>
+        <p>
+          The command prints a one-time <code>http://127.0.0.1:…</code> address. Open it in your browser, paste the token into the masked field, and select
+          <strong>Connect / Подключить</strong>. Close the tab after it confirms the connection. This local form expires after five minutes.
+        </p>
+        <p>The secret is saved in Windows Credential Manager, macOS Keychain or Linux Secret Service. Do not put it in the Codex configuration file.</p>
+        <details>
+          <summary>Linux: system secret store is unavailable</summary>
+          <p>
+            On Ubuntu, install <code>libsecret-tools</code> with <code>sudo apt install libsecret-tools</code>. Run setup in your regular user session with its
+            keyring unlocked.
+          </p>
+        </details>
+      </section>
+
+      <section id="codex" aria-labelledby="codex-title">
+        <h2 id="codex-title">4. Add the local server to Codex</h2>
+        <p>First obtain two absolute paths on your computer.</p>
+        <details open>
+          <summary>Windows · PowerShell</summary>
+          <pre><code>(Get-Command node).Source
+(Resolve-Path packages/smena-mcp/src/cli.js).Path</code></pre>
+        </details>
+        <details>
+          <summary>macOS and Linux · terminal</summary>
+          <pre><code>command -v node
+node -p "require('node:path').resolve('packages/smena-mcp/src/cli.js')"</code></pre>
+        </details>
+        <p>
+          In Codex MCP settings, add a server named <strong>smena</strong> using <strong>STDIO</strong>. Set the command to the first path. Its arguments are
+          the second path, followed by <code>serve</code>, <code>--profile</code>, and <code>codex</code>.
+        </p>
+        <p>
+          Alternatively, add a separate block to your user <code>config.toml</code>: Windows — <code>%USERPROFILE%\.codex\config.toml</code>; macOS/Linux —
+          <code>~/.codex/config.toml</code>. If <code>CODEX_HOME</code> is set, use that directory. Preserve the other settings.
+        </p>
+        <pre><code>[mcp_servers.smena]
+command = "C:/Program Files/nodejs/node.exe"
+args = ["C:/Users/YOUR_NAME/smena-manager/packages/smena-mcp/src/cli.js", "serve", "--profile", "codex"]
+startup_timeout_sec = 30
+tool_timeout_sec = 60</code></pre>
+        <p>
+          <strong>This Windows example needs both paths replaced with your command results.</strong> Forward slashes <code>/</code> are convenient in TOML. On
+          macOS/Linux, supply your own absolute paths too. If <code>mcp_servers.smena</code> already exists, edit that block instead of adding a duplicate.
+        </p>
+        <p>This is a local STDIO server. Do not configure <code>https://smena.team</code> as an HTTP MCP endpoint.</p>
+      </section>
+
+      <section id="check" aria-labelledby="check-title">
+        <h2 id="check-title">5. Verify the connection</h2>
+        <pre><code>node packages/smena-mcp/src/cli.js doctor --profile codex</code></pre>
+        <p>The response should identify the intended workspace and <code>knowledge:read</code>. The command does not print your token.</p>
+        <p>Reconnect the MCP server in Codex or fully restart the application, then open a new chat and send:</p>
+        <pre><code>Call Smena’s get_context tool and confirm the connected workspace is “СМΞНА”. Then find the note “TITLE OF A NOTE YOU KNOW” using search_notes and read it with read_note. Do not change anything.</code></pre>
+        <p>
+          Replace the title with a note you know. Codex may request permission for its first tool call. Long notes are read in bounded fragments; ask it to
+          continue if you need the complete text.
+        </p>
+        <p>
+          Seeing write tools in the list does not grant write access. The token, your role, and workspace settings determine access. Writing is not needed for
+          this initial connection.
+        </p>
+      </section>
+
+      <section id="help" aria-labelledby="help-title">
+        <h2 id="help-title">Troubleshooting</h2>
+        <details>
+          <summary>Smena tools do not appear in Codex</summary>
+          <p>
+            Check both absolute paths, save <code>config.toml</code>, and remove any duplicate server block. Restart Codex and open a new chat. Run
+            <code>doctor</code> to distinguish a credential problem from a client setup problem. Do not put the token in launch arguments.
+          </p>
+        </details>
+        <details>
+          <summary>Token expired or connection disabled · 401</summary>
+          <p>
+            Create a new personal token in the correct workspace and run <code>auth-login --profile codex --browser</code> again. This replaces the local secret
+            without changing the Codex server block.
+          </p>
+        </details>
+        <details>
+          <summary>Insufficient access · 403</summary>
+          <p>Check your workspace membership, token permissions, and whether an administrator enabled integrations. A token never expands the user’s access.</p>
+        </details>
+        <details>
+          <summary>Wrong workspace or no matching note</summary>
+          <p>
+            Check <code>get_context</code>. To connect another workspace, select it in Smena before creating a separate token. Use a known note title; search
+            does not cross workspace boundaries.
+          </p>
+        </details>
+        <details>
+          <summary>The local setup form does not open</summary>
+          <p>
+            Run the command again: the previous address expires after five minutes. Alternatively, run
+            <code>node packages/smena-mcp/src/cli.js auth-login --profile codex</code> and paste the token at its hidden terminal prompt.
+          </p>
+        </details>
+        <details>
+          <summary>Codex CLI rejects an existing service_tier setting</summary>
+          <p>
+            Update the outdated Codex CLI. This client configuration error is unrelated to your Smena token; connecting Smena does not require changing
+            application model or speed preferences.
+          </p>
+        </details>
+      </section>
+
+      <section aria-labelledby="manage-title">
+        <h2 id="manage-title">Update or disconnect</h2>
+        <p>
+          To update, stop the MCP connection, open the repository directory, and run <code>git pull --ff-only</code>, then <code>npm ci</code>. Reconnect MCP
+          afterwards.
+        </p>
+        <p>
+          To revoke access, open <strong>Settings → Integrations → your connection → Disconnect</strong> in Smena. Notes remain in place. You can then remove
+          the local secret:
+        </p>
+        <pre><code>node packages/smena-mcp/src/cli.js auth-logout --profile codex</code></pre>
+        <p>Removing the local secret alone does not revoke the server token. You can share this guide; never share employee tokens.</p>
+      </section>
+      <p class="meta">
+        More: <a href="https://github.com/mlnchkdv/smena-manager/tree/main/packages/smena-mcp">adapter instructions and other MCP clients</a> ·
+        <a href="https://learn.chatgpt.com/docs/extend/mcp?surface=cli">official Codex MCP documentation</a>.
+      </p>
+    </main>
+    <footer class="foot"><span>© 2026 Smena Manager</span><a href="/privacy.html">Privacy</a></footer>
+  </body>
+</html>

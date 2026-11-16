@@ -3,6 +3,10 @@
 Local MCP server for Codex and other clients supporting stdio. Requires Node.js
 22 or later. Install the repository dependencies with `npm ci` from its root.
 
+Shareable employee setup guide: [Русский](https://smena.team/mcp-setup.html) ·
+[English](https://smena.team/mcp-setup-en.html). Each employee creates their own
+workspace-bound token; the guide contains no credentials.
+
 ## Connect Codex
 
 In Smena, open **Settings → Integrations** in the desired workspace. A workspace

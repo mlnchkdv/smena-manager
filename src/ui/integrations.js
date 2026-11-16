@@ -56,6 +56,7 @@ export function integrationsPanel() {
   const data = s.data;
   return `<section class="integration-settings" translate="no"><div class="row between wrap"><h1>${copy('Integrations', 'Интеграции')}</h1>${button('refresh', copy('Refresh', 'Обновить'))}</div>
     <p class="lead">${copy('Connect Codex or another MCP client to notes in this workspace. Each app receives its own access token.', 'Подключите Codex или другой MCP-клиент к заметкам этого пространства. Каждое приложение получает отдельный токен.')}</p>
+    <p><a href="${isRussian() ? '/mcp-setup.html' : '/mcp-setup-en.html'}" target="_blank" rel="noopener">${copy('Employee connection guide', 'Инструкция подключения для сотрудников')}</a></p>
     ${s.error ? `<p class="alert warn" role="alert">${esc(errorText(s.error))}</p>` : ''}${s.message ? `<p role="status" class="alert">${esc(s.message)}</p>` : ''}
     ${
       data?.canManage

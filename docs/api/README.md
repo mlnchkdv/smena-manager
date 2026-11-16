@@ -24,6 +24,9 @@ are disabled until their acceptance checks pass. Unsupported operations return
 an explicit error rather than falling through to browser authentication.
 
 Setup instructions: [local MCP package](../../packages/smena-mcp/README.md).
+Shareable employee guide: [Русский](https://smena.team/mcp-setup.html) ·
+[English](https://smena.team/mcp-setup-en.html).
 Release controls and recovery: [operations guide](OPERATIONS.md).
 Implemented stages, production acceptance and limits of testing:
 [16 November 2026 report](ACCEPTANCE_2026-11-16.md).
+Connection verification: [17 November 2026](CONNECTION_CHECK_2026-11-17.md).
