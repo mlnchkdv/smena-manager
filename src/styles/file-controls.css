@@ -80,6 +80,24 @@
   display: flex;
   align-items: center;
 }
+.file-upload-destination {
+  padding: 10px 0 6px;
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+  color: var(--text-2);
+}
+.file-upload-destination small {
+  display: block;
+}
+.file-upload-source {
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+  color: var(--text-2);
+}
+.file-upload-source > summary {
+  cursor: pointer;
+  padding-block: 6px;
+}
 @media (max-width: 640px) {
   .file-upload-queue {
     padding: 8px;

@@ -5,13 +5,16 @@ import { isRussian } from '../core/i18n.js';
 import { createFileIndex, normalizeFileSearch } from '../shared/file-index.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
+import { canEditProject } from '../shared/project-access.js';
 const T = (en, ru) => (isRussian() ? ru : en);
 const current = () => {
   const m = S.ui.modals.at(-1);
   return m?.fileFolderBrowser && m.owner === S.ui.currentUser?.id && m.workspace === (D().ws?.id || D().ws?.url) ? m : null;
 };
 function form(m, H) {
-  const projects = visibleProjects().filter(p => !p.archived && (!m.scope || p.id === m.scope)),
+  const projects = visibleProjects().filter(
+      p => !p.archived && (!m.scope || p.id === m.scope) && (!m.onPick || canEditProject(p, D().me, S.ui.currentUser?.role)),
+    ),
     index = createFileIndex({ files: [] }, projects);
   const terms = normalizeFileSearch(m.query).trim().split(/\s+/).filter(Boolean);
   const entries = projects
@@ -30,13 +33,14 @@ function form(m, H) {
  <div class="file-folder-browser-rows" aria-label="${T('Folders', 'Папки')}">${page.map(e => `<button class="btn btn-ghost" data-a="pickFileBrowserFolder" data-project="${esc(e.project.id)}" data-folder="${esc(e.folder?.id || '')}" title="${esc(e.path)}"><span translate="no">${esc(e.path)}</span></button>`).join('') || `<p class="hint">${T('No matching folders.', 'Подходящих папок нет.')}</p>`}</div>
  <div class="row wrap"><span class="hint" role="status">${entries.length ? offset + 1 : 0}–${offset + page.length} / ${entries.length}</span><span class="sp"></span><button class="btn btn-secondary btn-sm" data-a="fileFolderBrowserPage" data-offset="${Math.max(0, offset - 25)}" ${!offset ? 'disabled' : ''}>${T('Previous', 'Назад')}</button><button class="btn btn-secondary btn-sm" data-a="fileFolderBrowserPage" data-offset="${offset + 25}" ${offset + 25 >= entries.length ? 'disabled' : ''}>${T('Next', 'Далее')}</button></div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button></div>`;
 }
-export function openFileFolderBrowser(scope) {
+export function openFileFolderBrowser(scope, onPick) {
   openModal({
     type: 'knowledgeTool',
     fileFolderBrowser: true,
     owner: S.ui.currentUser?.id,
     workspace: D().ws?.id || D().ws?.url,
     scope,
+    onPick,
     query: '',
     offset: 0,
     render: form,
@@ -63,6 +67,8 @@ A.pickFileBrowserFolder = el => {
   const project = visibleProjects().find(p => p.id === el.dataset.project && !p.archived && (!m.scope || p.id === m.scope));
   if (el.dataset.project !== 'all' && !project) return;
   if (el.dataset.folder && !project?.fileFolders?.some(f => f.id === el.dataset.folder && !f.archived)) return;
+  if (m.onPick && (!project || !canEditProject(project, D().me, S.ui.currentUser?.role))) return;
   closeModal();
-  A.openFileFolder(el);
+  if (m.onPick) m.onPick(el.dataset.folder || null);
+  else A.openFileFolder(el);
 };

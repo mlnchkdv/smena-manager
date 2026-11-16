@@ -5,6 +5,8 @@ import { fileType } from '../ui/helpers.js';
 import { isRussian, locale } from './i18n.js';
 import { countLabel } from '../shared/count-label.js';
 import { fileFolderPath } from '../shared/file-organization.js';
+import { assertFileFolder } from '../shared/file-organization.js';
+import { uploadDestination, restartUploadDestination } from '../shared/upload-destination.js';
 import { render } from '../shell/render.js';
 import { toast } from '../ui/toast.js';
 import { canEditProject } from '../shared/project-access.js';
@@ -97,6 +99,8 @@ function persist() {
       project: job.project,
       task: job.task,
       folderId: job.folderId,
+      batchId: job.batchId,
+      destinationPath: job.destinationPath,
       createdAt: job.createdAt,
       checkpointAt: Date.now(),
       restorePhase: job.phase === 'needs-file' ? job.restorePhase : job.phase,
@@ -223,6 +227,8 @@ async function run(job, signal) {
   if (!current() || signal.aborted) throw new Error('Upload cancelled.');
   await retryWorkspaceSync();
   if (!current() || signal.aborted) throw new Error('Upload cancelled.');
+  // Revalidate after synchronization, before creating/sending a provider session.
+  assertFileFolder(proj(job.project), job.folderId);
   const base = structuredClone(S.data);
   const direct = S.ui.filePolicy?.directUploadEnabled === true;
   const apply = result => {
@@ -351,6 +357,7 @@ export async function enqueueFiles(files, ctx) {
     );
     return [];
   }
+  const batchId = uid('batch');
   const entries = [],
     existing = new Set(
       engine.jobs
@@ -391,6 +398,7 @@ export async function enqueueFiles(files, ctx) {
       project: ctx.project,
       task: ctx.task || null,
       folderId: ctx.folderId || null,
+      batchId,
       createdAt: Date.now(),
     });
   }
@@ -436,6 +444,7 @@ export async function enqueueFiles(files, ctx) {
     }
     entries.forEach((job, index) => {
       job.folderId = plan.paths[index];
+      job.destinationPath = uploadDestination(job, project).path;
     });
   } catch (error) {
     toast(error.message, { kind: 'err' });
@@ -469,6 +478,54 @@ A.retryUpload = el => {
     job.pct = 0;
   }
   engine.resume(job);
+};
+A.chooseUploadDestination = async el => {
+  const job = itemFor(el);
+  if (!job || job.running || !['paused', 'failed', 'needs-file'].includes(job.phase)) return;
+  const targetEngine = engine,
+    targetOwner = owner,
+    before = generation;
+  if (!(await targetOwner.acquire()) || !valid() || targetEngine !== engine || before !== generation) return;
+  if (!job.file) {
+    job.phase = 'needs-file';
+    job.restorePhase = 'paused';
+    changed();
+    toast(text('Choose the original file first, then choose a destination.', 'Сначала выберите исходный файл, затем папку назначения.'), { kind: 'info' });
+    return;
+  }
+  const { openFileFolderBrowser } = await import('../features/file-folder-browser.js');
+  if (!valid() || targetEngine !== engine || before !== generation) return;
+  openFileFolderBrowser(job.project, folderId => {
+    if (!valid() || targetEngine !== engine || before !== generation) return;
+    openModal({
+      type: 'confirm',
+      title: text('Restart in another folder?', 'Начать заново в другой папке?'),
+      body: esc(
+        text(
+          'This file will transfer from the beginning to the chosen folder. The previous upload session will not be reused. Other files stay unchanged.',
+          'Этот файл будет передан заново в выбранную папку. Прежний сеанс передачи использоваться не будет. Остальные файлы не изменятся.',
+        ),
+      ),
+      ok: text('Restart upload', 'Начать заново'),
+      icon: 'folder-input',
+      awaitRun: true,
+      busyLabel: text('Preparing upload…', 'Подготовка загрузки…'),
+      failureMessage: text(
+        'Could not change destination. Check file access and permissions, then try again.',
+        'Не удалось сменить папку. Проверьте доступ к файлу и проекту и повторите.',
+      ),
+      run: async () => {
+        if (!valid() || targetEngine !== engine || targetOwner !== owner || before !== generation) return;
+        await retryWorkspaceSync();
+        if (!valid() || targetEngine !== engine || before !== generation) return;
+        if (!canEditProject(proj(job.project), D().me, S.ui.currentUser?.role))
+          throw new Error(text('You do not have access to this project.', 'Нет доступа к этому проекту.'));
+        restartUploadDestination(job, folderId, proj(job.project));
+        await persist();
+        if (valid() && targetEngine === engine && before === generation) engine.resume(job);
+      },
+    });
+  });
 };
 A.cancelUpload = async el => {
   const job = itemFor(el);
