@@ -7,7 +7,7 @@ import { storedNoteHistory, readKnowledgeVersion } from './knowledge-version-blo
 import { knowledgeSnapshotHash } from './knowledge-versions.js';
 import { getStorageProvider } from './storage/index.js';
 import { knowledgeActor } from './knowledge-access.js';
-import { expandKnowledgeBodies } from './knowledge-body-store.js';
+import { expandKnowledgeBodies, loadKnowledgeBody, storeKnowledgeBody } from './knowledge-body-store.js';
 import { externalKnowledgeBody } from '../shared/knowledge-body.js';
 import { preserveKnowledgeGovernance } from '../shared/knowledge-governance.js';
 import { preserveKnowledgeIntake } from '../shared/knowledge-intake.js';
@@ -65,16 +65,25 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
             incoming = preserveKnowledgeGovernance(database, incoming);
             incoming = preserveKnowledgeIntake(database, incoming);
             const actor = options.profile && knowledgeActor(database, options.profile, options.profiles, { write: true });
-            // Until the demand-aware client is enabled, legacy collection PUTs
-            // must not turn an unloaded body into an empty snapshot. Per-note
-            // writes use the explicit conflict-checked endpoint instead.
-            if (database.knowledgeNotes.some(externalKnowledgeBody) || incoming.knowledgeNotes.some(note => Object.hasOwn(note, 'bodyRef')))
+            // Legacy GETs return complete text even when an API-created note is
+            // stored separately. Accept those revision-checked snapshots, but
+            // never accept catalog-only records or client storage pointers.
+            const externalIds = new Set(database.knowledgeNotes.filter(externalKnowledgeBody).map(note => note.id));
+            if (
+              incoming.knowledgeNotes.some(note => (externalIds.has(note.id) && typeof note.formatted_markdown !== 'string') || Object.hasOwn(note, 'bodyRef'))
+            )
               throw Object.assign(new Error('Refresh the application before changing migrated notes.'), {
                 statusCode: 409,
                 code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED',
               });
             bindWikiReferences(database.knowledgeNotes);
-            const previous = new Map(database.knowledgeNotes.map(note => [note.id, note]));
+            const storage = getStorageProvider();
+            const records = new Map(database.knowledgeNotes.map(note => [note.id, note]));
+            const previous = new Map();
+            for (const note of incoming.knowledgeNotes) {
+              const before = records.get(note.id);
+              if (before) previous.set(note.id, await loadKnowledgeBody(storage, before));
+            }
             for (const note of incoming.knowledgeNotes) {
               const before = previous.get(note.id);
               if (note.restoreFromVersion) {
@@ -96,6 +105,12 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
               if (!Object.hasOwn(note, 'wikiRefs') && references) note.wikiRefs = structuredClone(references);
             }
             bindWikiReferences(incoming.knowledgeNotes);
+            // Keep migrated/API bodies outside root metadata after legacy edits.
+            // Comparisons/history above use complete text, so a no-op does not
+            // incorrectly change attribution or the per-note ETag.
+            for (let index = 0; index < incoming.knowledgeNotes.length; index++)
+              if (externalKnowledgeBody(records.get(incoming.knowledgeNotes[index].id)))
+                incoming.knowledgeNotes[index] = await storeKnowledgeBody(storage, incoming.knowledgeNotes[index]);
           }
           Object.assign(database, incoming);
           database._documentRevisions = {
@@ -111,7 +126,7 @@ export async function replaceWorkspaceDocument(name, nextData, expectedRevision,
         current.revision,
         { role: 'admin', scope: name },
       );
-      return structuredClone(projectDocument(name, saved));
+      return getWorkspaceDocument(name, saved);
     } catch (error) {
       if (error instanceof WorkspaceDocumentConflictError || error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
     }

@@ -115,7 +115,12 @@ test('selected note reads/writes retain every other body pointer and wiki bindin
   const legacy = await getWorkspaceDocument('knowledge');
   assert.equal(legacy.knowledgeNotes[1].formatted_markdown, source.knowledgeNotes[1].formatted_markdown);
   assert.equal(legacy.knowledgeNotes[1].bodyRef, undefined);
-  await assert.rejects(replaceWorkspaceDocument('knowledge', legacy, legacy.revision), { code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED' });
+  const replaced = await replaceWorkspaceDocument('knowledge', legacy, legacy.revision);
+  assert.equal(replaced.knowledgeNotes[1].formatted_markdown, source.knowledgeNotes[1].formatted_markdown);
+  assert.ok((await getWorkspaceDatabase()).knowledgeNotes.every(note => note.bodyRef));
+  const unloaded = structuredClone(replaced);
+  delete unloaded.knowledgeNotes[1].formatted_markdown;
+  await assert.rejects(replaceWorkspaceDocument('knowledge', unloaded, replaced.revision), { code: 'KNOWLEDGE_NOTE_WRITE_REQUIRED' });
 });
 
 test('disabled rollout rejects demand writes and trash without changing canonical data', async () => {
