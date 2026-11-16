@@ -61,14 +61,20 @@ export async function uploadLocalFile({
     uploadedId = '',
     registeredResult = null,
     failures = 0;
-  const send = (content, range) =>
-    fetch(destination, {
+  const send = async (content, range) => {
+    const response = await fetch(destination, {
       method: 'PUT',
       headers: { 'Content-Type': mimeType, 'Content-Range': range },
       body: content,
-      redirect: 'error',
+      // Drive uses 308 without Location as a resumable checkpoint. Fetch's
+      // "error" mode rejects that status too; manual mode never follows it.
+      redirect: 'manual',
       signal: AbortSignal.timeout(60000),
     });
+    if (response.status >= 300 && response.status < 400 && (response.status !== 308 || response.headers.get('location')))
+      throw Object.assign(new Error('Upload redirects are not allowed.'), { code: 'UPLOAD_REDIRECT_REFUSED' });
+    return response;
+  };
   async function probe() {
     const response = await send(Buffer.alloc(0), `bytes */${before.size}`);
     if (response.status === 308) {

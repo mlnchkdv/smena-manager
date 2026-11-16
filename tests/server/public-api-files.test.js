@@ -84,7 +84,7 @@ test('MCP uploads resume at provider offsets, verify SHA-256, register once and 
       mimeType: 'video/mp4',
       fetch: async (_url, options) => {
         assert.ok(!options.headers.Authorization);
-        assert.equal(options.redirect, 'error');
+        assert.equal(options.redirect, 'manual');
         const range = options.headers['Content-Range'];
         if (range.startsWith('bytes */'))
           return accepted === bytes.length
