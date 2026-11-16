@@ -8,6 +8,7 @@ import { drainNotificationOutbox } from './notification-outbox.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from './workspace-store.js';
 import { reportProviderError } from './provider-safety.js';
 import { notificationDeliveryPaused, notificationReviewStatus } from './notification-review.js';
+import { notificationSchedule } from './notification-schedule.js';
 
 const EMPTY_CHANNEL = Object.freeze({ attempted: 0, delivered: 0, failed: 0, retried: 0, removed: 0 });
 
@@ -142,14 +143,15 @@ export async function retryNotificationOutbox() {
 }
 
 export async function notificationDeliveryStatus() {
-  const [delivery, email, push, data] = await Promise.all([
+  const [delivery, email, push, data, scheduler] = await Promise.all([
     loadStatus(),
     emailAuthorizationStatus(),
     pushDeliveryStatus(),
     getWorkspaceDatabase({ fields: ['_notificationOutbox', '_notificationDeliveryReview', 'revision', 'members'] }),
+    notificationSchedule(),
   ]);
   const outbox = notificationQueueStatus(data);
-  return { delivery, channels: { email, push }, outbox, review: notificationReviewStatus(data) };
+  return { delivery, channels: { email, push }, outbox, review: notificationReviewStatus(data), scheduler };
 }
 
 export function notificationQueueStatus(data, now = Date.now()) {

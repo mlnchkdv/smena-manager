@@ -56,6 +56,12 @@ export function deliveryStatusPanel() {
   const pushReady = status.channels?.push?.configured;
   const copy = (en, ru) => (isRussian() ? ru : en);
   const queue = status.outbox || {};
+  const scheduleLabel = {
+    enabled: copy('Enabled on server', 'Включён на сервере'),
+    disabled: copy('Disabled on server', 'Отключён на сервере'),
+    unknown: copy('Could not check server schedule', 'Не удалось проверить планировщик'),
+    external: copy('Managed by your hosting provider', 'Управляется вашим хостингом'),
+  }[status.scheduler?.mode || 'external'];
   const lastCron = status.delivery?.lastCron;
   const lastRun = status.delivery?.lastRun;
   const recentEmailFailure = Number(lastRun?.email?.failed || 0) > 0;
@@ -121,6 +127,7 @@ export function deliveryStatusPanel() {
     <p class="hint" translate="no">${copy('Workspace', 'Пространство')}: ${esc(D().ws.name)} · ${copy('Data synchronization and notification delivery are independent.', 'Синхронизация данных и доставка уведомлений проверяются отдельно.')}</p>
     ${queue.pending ? `<div class="alert warn"><div><b>${copy('Delivery queue needs attention', 'Очередь доставки требует внимания')}</b><p>${copy('Email', 'Почта')}: ${Number(queue.channels?.email || 0)} · Push: ${Number(queue.channels?.push || 0)}</p><p>${copy('Oldest pending item', 'Самое старое ожидание')}: ${settingsTimestamp(queue.oldestPendingAt)}</p><p>${copy('Channel unavailable', 'Канал недоступен')}: ${Number(queue.reasons?.channel_unavailable || 0)} · ${copy('Provider error', 'Ошибка провайдера')}: ${Number(queue.reasons?.provider_error || 0)} · ${copy('Cause not recorded', 'Причина не записана')}: ${Number(queue.reasons?.unknown || 0)}</p><p>${copy('Check channel authorization and device subscriptions before retrying. A successful latest attempt does not clear the remaining queue.', 'Проверьте авторизацию канала и подписки устройств перед повтором. Успешная последняя попытка не означает разбор оставшейся очереди.')}</p></div></div>` : ''}
     ${queueReviewPanel(status)}
+    <div class="alert" translate="no"><div><b>${copy('Automatic runs', 'Автоматические запуски')}: ${scheduleLabel}</b><p>${copy(status.review?.paused ? 'Delivery is paused separately. Enabling the server schedule does not approve the pending recipients.' : 'The queue is enabled. Review pending recipients before changing the server schedule.', status.review?.paused ? 'Доставка отдельно приостановлена. Включение планировщика не означает согласование получателей очереди.' : 'Очередь включена. Проверьте ожидающих получателей перед изменением планировщика.')}</p><p class="hint">${copy('Server schedule changes are made by the owner on the server. This check does not send notifications or enable automation.', 'Режим планировщика меняет владелец на сервере. Эта проверка не отправляет уведомления и не включает автоматизацию.')}</p></div></div>
     <div class="notification-delivery-grid">
       <div><span class="label">Google Drive</span>${state(status.workspace?.storage?.connected && status.workspace?.storage?.persistent, status.workspace?.storage?.connected ? 'Connected' : 'Needs attention')}<p class="hint">Workspace storage</p></div>
       <div><span class="label">Coordination</span>${state(status.workspace?.coordination?.healthy, status.workspace?.coordination?.healthy ? 'Ready' : 'Critical')}<p class="hint">${esc(tr(coordinationMode))}</p></div>
