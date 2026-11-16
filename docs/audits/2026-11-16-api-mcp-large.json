@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "gib": 1,
+      "bytes": 1073741824,
+      "maxChunkBytes": 8388608,
+      "peakRssMiB": 107,
+      "requests": 114,
+      "durationMs": 8438,
+      "resumedFromBytes": 134217728,
+      "lostResponseRecovered": true,
+      "provider": "offline acknowledgement fixture"
+    },
+    {
+      "gib": 5,
+      "bytes": 5368709120,
+      "maxChunkBytes": 8388608,
+      "peakRssMiB": 115,
+      "requests": 626,
+      "durationMs": 52607,
+      "resumedFromBytes": 134217728,
+      "lostResponseRecovered": true,
+      "provider": "offline acknowledgement fixture"
+    }
+  ],
+  "date": "2026-11-16",
+  "scope": "Local CLI transfer with real-sized fixture files and simulated provider acknowledgements; no Google Drive quota used",
+  "source_revision": "b2ec537ca1a53fbddfcb78d7af1d4656924ef128"
+}
