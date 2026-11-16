@@ -98,6 +98,9 @@
   --topbar-h: 46px;
   /* one horizontal content edge shared by breadcrumb, page headers, toolbars, lists, tables and boards */
   --gutter: 24px;
+  --page-top: 20px;
+  --page-bottom: 48px;
+  --page-head-gap: 12px;
   --modal-width: 560px;
   --modal-small: 420px;
   --modal-large: 720px;
@@ -108,6 +111,14 @@
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --dur: 140ms;
   color-scheme: light;
+}
+/* Keep a labelled navigation rail without spending a quarter of a laptop. */
+@media (min-width: 901px) and (max-width: 1440px) {
+  :root {
+    --side-w: 224px;
+    --gutter: 20px;
+    --page-top: 16px;
+  }
 }
 @media (max-width: 900px) {
   :root {

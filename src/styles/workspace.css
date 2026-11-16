@@ -365,7 +365,7 @@
 /* Keep desktop collection chrome compact without shrinking touch controls. */
 @media (min-width: 901px) {
   .files-page {
-    padding-top: 18px;
+    padding-top: var(--page-top);
   }
   .files-page-head > div:first-child:not(.files-context-summary) {
     display: flex;

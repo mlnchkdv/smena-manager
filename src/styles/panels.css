@@ -95,7 +95,7 @@
 }
 @media (min-width: 901px) {
   :is(.home-page, .notifications-page) {
-    padding-top: 18px;
+    padding-top: var(--page-top);
   }
   .home-page .ph {
     margin-bottom: 12px;

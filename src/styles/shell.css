@@ -465,10 +465,10 @@ svg.logo {
 .page {
   max-width: 1160px;
   margin: 0 auto;
-  padding: 28px var(--gutter) 72px;
+  padding: var(--page-top) var(--gutter) var(--page-bottom);
 }
 .page.flush > .ph {
-  padding: 24px var(--gutter) 12px;
+  padding: var(--page-top) var(--gutter) var(--page-head-gap);
   margin: 0;
 }
 .page.wide {
@@ -485,7 +485,7 @@ svg.logo {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: var(--page-head-gap);
   flex-wrap: wrap;
 }
 .ph h1 {

@@ -1,5 +1,5 @@
 .whiteboards-page {
-  padding: 20px 24px;
+  padding: var(--page-top) var(--gutter) var(--page-bottom);
   max-width: var(--layout-catalog);
   margin: auto;
 }
