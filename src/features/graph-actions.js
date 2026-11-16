@@ -67,6 +67,14 @@ A.toggleGraphFilters = () => {
   S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
   render();
 };
+A.refineGraphSelection = () => {
+  S.ui.graphFiltersOpen = true;
+  render();
+  requestAnimationFrame(() => {
+    document.querySelector('#graph-filters')?.scrollIntoView({ block: 'nearest' });
+    document.querySelector('#graph-filters .select-btn')?.focus({ preventScroll: true });
+  });
+};
 A.toggleGraphFocus = () => {
   S.ui.graphFocus = !S.ui.graphFocus;
   writeLayoutPreference('graph-focus', S.ui.graphFocus);

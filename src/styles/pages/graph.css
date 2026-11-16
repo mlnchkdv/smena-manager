@@ -1125,3 +1125,26 @@
     margin-block: 4px;
   }
 }
+.graph-cluster-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.graph-cluster-picker > div {
+  display: grid;
+  gap: 6px;
+  max-height: min(300px, 48dvh);
+  overflow-y: auto;
+}
+.graph-cluster-picker .graph-list-copy {
+  min-width: 0;
+  white-space: normal;
+  text-align: left;
+}
+.graph-cluster-picker small {
+  display: block;
+}
