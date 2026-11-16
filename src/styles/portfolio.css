@@ -278,12 +278,22 @@
   }
 }
 
-.portfolio-signal {
+.portfolio-signals {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 5px;
   font-size: var(--fs-xs);
   color: var(--text-2);
+}
+.portfolio-signals > span {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .portfolio-count:focus-visible,
 .portfolio-status-row:focus-visible,
