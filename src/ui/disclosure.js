@@ -23,7 +23,10 @@ export function positionActionMenus() {
   document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
     if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
     const menu = panel.parentElement;
-    if (menu.matches('.knowledge-folder-menu') && !matchMedia('(max-width: 900px), (pointer: coarse)').matches) {
+    if (menu.hasAttribute('data-anchor-end')) {
+      const anchor = menu.querySelector(':scope > summary').getBoundingClientRect();
+      panel.style.inset = `${anchor.bottom + 6}px auto auto ${anchor.right - panel.offsetWidth}px`;
+    } else if (menu.matches('.knowledge-folder-menu') && !matchMedia('(max-width: 900px), (pointer: coarse)').matches) {
       const anchor = menu.querySelector(':scope > summary').getBoundingClientRect();
       panel.style.inset = `${anchor.bottom + 4}px auto auto ${anchor.right - panel.offsetWidth}px`;
     } else if (menu.matches('.knowledge-folder-menu')) panel.style.removeProperty('inset');

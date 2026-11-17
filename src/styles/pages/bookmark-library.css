@@ -17,7 +17,7 @@
   justify-self: end;
 }
 .bookmark-library .bookmark-view-menu > div {
-  position: absolute;
+  position: fixed;
   inset: calc(100% + 6px) 0 auto auto;
   z-index: 70;
   display: grid;
