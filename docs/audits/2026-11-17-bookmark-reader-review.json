@@ -1,0 +1,1434 @@
+{
+  "date": "2026-11-17",
+  "baselineVersion": "3d9eb8113d5649599ffb16f25add794fadaca21b",
+  "productionInitial": [
+    {
+      "dialog": {
+        "bottom": 691.1953125,
+        "height": 614.3984375,
+        "width": 720,
+        "x": 323,
+        "y": 76.796875
+      },
+      "error": false,
+      "hasReader": true,
+      "height": 768,
+      "loading": false,
+      "name": "bookmark-viewer",
+      "overflow": 0,
+      "readerTop": 313.4609375,
+      "tables": 2,
+      "toolbarHeight": 55.5703125,
+      "width": 1366
+    },
+    {
+      "bodyBottom": 498,
+      "dialog": {
+        "bottom": 567,
+        "height": 521.6328125,
+        "width": 320,
+        "x": 0,
+        "y": 45.3671875
+      },
+      "footerTop": 498,
+      "height": 567,
+      "name": "bookmark-viewer",
+      "overflow": 0,
+      "readerTop": 443.4296875,
+      "readerWidth": 278,
+      "tables": [
+        {
+          "overflow": 0,
+          "tabIndex": null,
+          "width": 252
+        },
+        {
+          "overflow": 0,
+          "tabIndex": null,
+          "width": 252
+        }
+      ],
+      "toolbarHeight": 181.5703125,
+      "width": 320
+    },
+    {
+      "dialog": {
+        "bottom": 567,
+        "width": 320
+      },
+      "height": 567,
+      "name": "bookmark-connections",
+      "overflow": 0,
+      "width": 320
+    },
+    {
+      "buttons": [
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 158
+        },
+        {
+          "height": 44,
+          "width": 157.8125
+        }
+      ],
+      "dialog": {
+        "bottom": 567,
+        "width": 296
+      },
+      "height": 567,
+      "name": "project-workflow",
+      "overflow": 0,
+      "width": 320
+    },
+    {
+      "dialog": {
+        "bottom": 567,
+        "width": 296
+      },
+      "height": 567,
+      "name": "project-rules-empty",
+      "overflow": 0,
+      "width": 320
+    },
+    {
+      "controls": [
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 123
+        },
+        {
+          "height": 44,
+          "width": 123
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 15,
+          "width": 15
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 254
+        },
+        {
+          "height": 44,
+          "width": 158.3359375
+        }
+      ],
+      "dialog": {
+        "bottom": 567,
+        "width": 296
+      },
+      "height": 567,
+      "name": "project-rules-draft",
+      "overflow": 0,
+      "width": 320
+    }
+  ],
+  "localBaseline": {
+    "states": 4,
+    "rows": [
+      {
+        "kind": "normal",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 181.5625,
+        "readerTop": 443.390625,
+        "bodyBottom": 498,
+        "initialReaderSpace": 54.609375,
+        "tables": [
+          {
+            "width": 262,
+            "overflow": 86,
+            "tabIndex": null
+          }
+        ],
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": ["table"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "normal",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 313.421875,
+        "bodyBottom": 636.1875,
+        "initialReaderSpace": 322.765625,
+        "tables": [
+          {
+            "width": 630,
+            "overflow": 0,
+            "tabIndex": null
+          }
+        ],
+        "violations": []
+      },
+      {
+        "kind": "long",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 181.5625,
+        "readerTop": 951.4375,
+        "bodyBottom": 498,
+        "initialReaderSpace": 0,
+        "tables": [
+          {
+            "width": 262,
+            "overflow": 86,
+            "tabIndex": null
+          }
+        ],
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": ["table"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "long",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 498.328125,
+        "bodyBottom": 636.1875,
+        "initialReaderSpace": 137.859375,
+        "tables": [
+          {
+            "width": 630,
+            "overflow": 0,
+            "tabIndex": null
+          }
+        ],
+        "violations": []
+      }
+    ]
+  },
+  "localAcceptance": {
+    "states": 27,
+    "rows": [
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 450.28125,
+        "bodyBottom": 567,
+        "initialReaderSpace": 116.71875,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 198.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1205
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 455.046875,
+        "bodyBottom": 844,
+        "initialReaderSpace": 388.953125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 268.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 413.125,
+        "bodyBottom": 320,
+        "initialReaderSpace": 0,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 268.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 480,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 480,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 448.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 319.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 358.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1050
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 481,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 481,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 125.5625,
+        "readerTop": 452.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 315.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 128.921875
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1049
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 640,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 69.5625,
+        "readerTop": 396.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 371.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 128.921875
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 899
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 16,
+          "y": 76.796875,
+          "width": 609,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 128.921875
+          },
+          {
+            "height": 30,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 930
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 62,
+          "y": 39,
+          "width": 720,
+          "height": 312,
+          "bottom": 351
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 315.90625,
+        "bodyBottom": 351,
+        "initialReaderSpace": 35.09375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 128.921875
+          },
+          {
+            "height": 30,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 832
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 152,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 128.921875
+          },
+          {
+            "height": 30,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 128.921875
+          },
+          {
+            "height": 30,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 432.890625,
+        "bodyBottom": 567,
+        "initialReaderSpace": 134.109375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 210.765625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1205
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 455.046875,
+        "bodyBottom": 844,
+        "initialReaderSpace": 388.953125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 280.765625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 413.125,
+        "bodyBottom": 320,
+        "initialReaderSpace": 0,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 280.765625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 480,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 480,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 448.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 319.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 370.765625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1050
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 481,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 481,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 69.5625,
+        "readerTop": 396.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 371.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 80.890625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1049
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 61.453125,
+          "width": 640,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 69.5625,
+        "readerTop": 396.96875,
+        "bodyBottom": 768,
+        "initialReaderSpace": 371.03125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 80.890625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 899
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 16,
+          "y": 76.796875,
+          "width": 609,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 80.890625
+          },
+          {
+            "height": 30,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 930
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 62,
+          "y": 39,
+          "width": 720,
+          "height": 312,
+          "bottom": 351
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 315.90625,
+        "bodyBottom": 351,
+        "initialReaderSpace": 35.09375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 80.890625
+          },
+          {
+            "height": 30,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 832
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 152,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 80.890625
+          },
+          {
+            "height": 30,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 80.890625
+          },
+          {
+            "height": 30,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 455.046875,
+        "bodyBottom": 844,
+        "initialReaderSpace": 388.953125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 268.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 128.921875
+          },
+          {
+            "height": 30,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 455.046875,
+        "bodyBottom": 844,
+        "initialReaderSpace": 388.953125,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 280.765625
+          },
+          {
+            "height": 44,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1135
+      },
+      {
+        "name": "long-reader",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 30,
+            "width": 80.890625
+          },
+          {
+            "height": 30,
+            "width": 69.234375
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 837
+      },
+      {
+        "name": "normal-reader",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 410,
+        "bodyBottom": 567,
+        "initialReaderSpace": 157,
+        "controlsOverlap": false,
+        "buttons": [
+          {
+            "height": 44,
+            "width": 198.078125
+          },
+          {
+            "height": 44,
+            "width": 81.921875
+          }
+        ],
+        "titleClamp": "2",
+        "urlClamp": "2",
+        "closeButtons": 1,
+        "tableRegions": 1,
+        "tableRows": 9,
+        "tableOverflow": 1205
+      },
+      {
+        "name": "reader-error",
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 104.09375,
+          "width": 320,
+          "height": 462.90625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0
+      },
+      {
+        "name": "reader-error",
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 104.09375,
+          "width": 320,
+          "height": 462.90625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0
+      }
+    ],
+    "axeScans": 11,
+    "keyboardTableScroll": true,
+    "savingCloseGuard": true,
+    "twoImmutableCopies": true,
+    "reloadLatestCopy": true,
+    "metadataPreservesAuthorTitle": true,
+    "viewerReadOnly": true,
+    "pageErrors": []
+  },
+  "typography": {
+    "states": 4,
+    "rows": [
+      {
+        "kind": "normal",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 410,
+        "bodyBottom": 567,
+        "initialReaderSpace": 157,
+        "tables": [
+          {
+            "width": 1466.875,
+            "overflow": -1,
+            "tabIndex": null
+          }
+        ],
+        "h1Size": "20px",
+        "firstParagraphTop": 489,
+        "violations": []
+      },
+      {
+        "kind": "normal",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 313.421875,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 377.765625,
+        "tables": [
+          {
+            "width": 1466.875,
+            "overflow": -1,
+            "tabIndex": null
+          }
+        ],
+        "h1Size": "24px",
+        "firstParagraphTop": 386.8125,
+        "violations": []
+      },
+      {
+        "kind": "long",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 121.5625,
+        "readerTop": 450.28125,
+        "bodyBottom": 567,
+        "initialReaderSpace": 116.71875,
+        "tables": [
+          {
+            "width": 1466.875,
+            "overflow": -1,
+            "tabIndex": null
+          }
+        ],
+        "h1Size": "20px",
+        "firstParagraphTop": 529.28125,
+        "violations": []
+      },
+      {
+        "kind": "long",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "toolbarHeight": 55.5625,
+        "readerTop": 353.703125,
+        "bodyBottom": 691.1875,
+        "initialReaderSpace": 337.484375,
+        "tables": [
+          {
+            "width": 1466.875,
+            "overflow": -1,
+            "tabIndex": null
+          }
+        ],
+        "h1Size": "24px",
+        "firstParagraphTop": 427.09375,
+        "violations": []
+      }
+    ]
+  },
+  "method": {
+    "browser": "Chromium via Playwright CLI",
+    "source": "Synthetic public-page fetch fixture; real auth, bookmark document, capture, storage and snapshot routes",
+    "externalNetwork": false,
+    "productionChanges": "Read only; rule draft discarded",
+    "viewportOnly": true
+  },
+  "checks": {
+    "axeScans": 15,
+    "serverTests": 11
+  }
+}

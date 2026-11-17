@@ -485,10 +485,15 @@
 }
 .bookmark-viewer-toolbar .field {
   flex: 1 1 240px;
+  min-width: 0;
   margin: 0;
 }
 .bookmark-viewer-title,
 .bookmark-viewer-url {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 .bookmark-viewer-dialog .modal-b {
@@ -526,9 +531,31 @@
 .bookmark-page-reader pre {
   white-space: pre-wrap;
 }
-.bookmark-page-reader table {
-  display: block;
+.bookmark-page-reader :is(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.35;
+  margin-block: 20px 10px;
+}
+.bookmark-page-reader h1 {
+  font-size: clamp(20px, 2vw, 24px);
+}
+.bookmark-page-reader h2 {
+  font-size: clamp(18px, 1.7vw, 21px);
+}
+.bookmark-page-reader > :first-child,
+.bookmark-page-reader :is(article, section) > :first-child {
+  margin-top: 0;
+}
+.bookmark-reader-table {
+  max-width: 100%;
   overflow: auto;
+}
+.bookmark-reader-table > table {
+  min-width: 100%;
+  border-collapse: collapse;
+  overflow-wrap: normal;
+}
+.bookmark-reader-table caption {
+  text-align: left;
 }
 .bookmark-page-reader th,
 .bookmark-page-reader td {
@@ -541,7 +568,21 @@
   margin-block: 12px;
 }
 @media (max-width: 480px) {
-  .bookmark-viewer-toolbar > .btn {
-    flex: 1 1 100%;
+  .bookmark-viewer-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .bookmark-viewer-toolbar > .field {
+    grid-column: 1 / -1;
+  }
+  .bookmark-viewer-toolbar > a {
+    grid-column: 2;
+  }
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .bookmark-page-notice > summary {
+    min-height: 44px;
+    padding-block: 12px;
   }
 }
