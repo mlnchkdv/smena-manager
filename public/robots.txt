@@ -4,6 +4,8 @@ Allow: /product.html
 Allow: /product-en.html
 Allow: /product.css
 Allow: /product.js
+Allow: /product-theme.js
+Allow: /product-system.css
 Allow: /product-share.png
 Allow: /favicon.svg
 Allow: /about.html

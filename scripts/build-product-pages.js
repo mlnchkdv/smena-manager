@@ -1,17 +1,19 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import postcss from 'postcss';
+import { productDemo as demo } from './product-demo.js';
 
 // Public copy is deliberately independent of workspace data and credentials.
 const copy = {
   ru: {
-    title: 'Smena — проекты, знания и материалы команды в одном пространстве',
+    title: 'smena.team — проекты, знания и материалы команды в одном пространстве',
     description:
-      'Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает Smena.',
+      'Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает smena.team.',
     skip: 'К содержимому',
     nav: ['Возможности', 'Как это работает', 'Начать работу'],
     login: 'Войти',
     eyebrow: 'РАБОЧЕЕ ПРОСТРАНСТВО КОМАНДЫ',
     headline: 'От первой идеи<br>до общего результата.',
-    lead: 'Проекты, знания и материалы рядом. Smena помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.',
+    lead: 'Проекты, знания и материалы рядом. smena.team помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.',
     enter: 'Войти в пространство',
     discuss: 'Обсудить запуск команды',
     access: 'Для сотрудников — вход через Google после добавления администратором. Для новых команд — знакомство и обсуждение настройки.',
@@ -110,7 +112,7 @@ const copy = {
         'Закладки и источники',
         'Полезная страница не теряется среди сообщений.',
         [
-          ['Быстрое сохранение', 'Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.'],
+          ['Быстрое сохранение', 'Вставьте URL: smena.team попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.'],
           [
             'HTML-архив страницы',
             'Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и скачивание HTML. До 10 активных копий; прежние версии можно убрать из активных и вернуть. Недоступные ресурсы отмечаются; содержимое, добавляемое JavaScript или требующее входа, может отсутствовать.',
@@ -154,14 +156,14 @@ const copy = {
           ],
           [
             'Развёртывание для команды',
-            'Smena можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют настройки. Встроенный платный ИИ-провайдер не включён по умолчанию.',
+            'smena.team можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют настройки. Встроенный платный ИИ-провайдер не включён по умолчанию.',
           ],
         ],
       ],
     ],
     startTitle: 'Как начать работу',
     employee: 'Я сотрудник',
-    employeeText: 'Если команда уже работает в Smena, отдельная регистрация не нужна.',
+    employeeText: 'Если команда уже работает в smena.team, отдельная регистрация не нужна.',
     employeeSteps: [
       'Попросите администратора добавить ваш Google-аккаунт в команду.',
       'Войдите и выберите доступное рабочее пространство.',
@@ -182,7 +184,7 @@ const copy = {
       ],
       [
         'Это замена сразу всем инструментам?',
-        'Smena объединяет основные рабочие сценарии. Сложный монтаж, полноценные дизайн-макеты и специализированные инструменты остаются во внешних приложениях; результаты можно хранить и связывать здесь.',
+        'smena.team объединяет основные рабочие сценарии. Сложный монтаж, полноценные дизайн-макеты и специализированные инструменты остаются во внешних приложениях; результаты можно хранить и связывать здесь.',
       ],
       [
         'Где хранятся файлы и кто управляет доступом?',
@@ -206,17 +208,18 @@ const copy = {
     guide: 'Подключение MCP',
     language: 'English',
     other: '/product-en.html',
-    mailSubject: 'Smena — запуск пространства для команды',
+    mailSubject: 'smena.team — запуск пространства для команды',
   },
   en: {
-    title: 'Smena — team projects, knowledge and materials in one workspace',
-    description: 'Plan projects, keep knowledge and files, save web pages, map ideas on whiteboards and explore connections in a graph. See how Smena works.',
+    title: 'smena.team — team projects, knowledge and materials in one workspace',
+    description:
+      'Plan projects, keep knowledge and files, save web pages, map ideas on whiteboards and explore connections in a graph. See how smena.team works.',
     skip: 'Skip to content',
     nav: ['Features', 'How it works', 'Get started'],
     login: 'Sign in',
     eyebrow: 'A WORKSPACE FOR YOUR TEAM',
     headline: 'From the first idea<br>to a shared result.',
-    lead: 'Keep projects, knowledge and materials together. Smena helps your team plan work, preserve context and turn ideas into clear next steps.',
+    lead: 'Keep projects, knowledge and materials together. smena.team helps your team plan work, preserve context and turn ideas into clear next steps.',
     enter: 'Open your workspace',
     discuss: 'Discuss your team setup',
     access: 'Employees sign in with Google after an administrator adds them. New teams can get in touch to discuss their setup.',
@@ -257,7 +260,7 @@ const copy = {
       ['Keep the learning', 'Return to versions and sources for your next project.'],
     ],
     featureTitle: 'Tools that work together.',
-    featureLead: 'From daily tasks to team memory. Expand the details that matter to you.',
+    featureLead: 'From daily tasks to team memory. See how each tool supports your shared work.',
     features: [
       [
         '01',
@@ -309,7 +312,7 @@ const copy = {
         'Bookmarks and sources',
         'Useful pages stay within reach.',
         [
-          ['Quick capture', 'Paste a URL: Smena will try to fill in its title and description. Edit the details, add tags and choose a folder.'],
+          ['Quick capture', 'Paste a URL: smena.team will try to fill in its title and description. Edit the details, add tags and choose a folder.'],
           [
             'HTML page archives',
             'Save public HTML with CSS, images and fonts. Open it independently of the original, switch to text or download the HTML. Keep up to 10 active copies; store and restore older versions. Unavailable resources are reported; content added by JavaScript or requiring sign-in may be absent.',
@@ -347,14 +350,14 @@ const copy = {
           ],
           [
             'Team deployment',
-            'Smena can run on your team’s server with Google sign-in and Google Drive. Domain, storage, backups and integrations require setup. A paid hosted AI provider is not included by default.',
+            'smena.team can run on your team’s server with Google sign-in and Google Drive. Domain, storage, backups and integrations require setup. A paid hosted AI provider is not included by default.',
           ],
         ],
       ],
     ],
     startTitle: 'Start with your team',
     employee: 'I am a team member',
-    employeeText: 'If your team already uses Smena, you do not need a separate registration.',
+    employeeText: 'If your team already uses smena.team, you do not need a separate registration.',
     employeeSteps: [
       'Ask your administrator to add your Google account to the team.',
       'Sign in and choose an available workspace.',
@@ -375,7 +378,7 @@ const copy = {
       ],
       [
         'Does this replace every specialized tool?',
-        'Smena brings core work together. Advanced editing, full design files and specialized workflows remain in external apps; you can keep and link their results here.',
+        'smena.team brings core work together. Advanced editing, full design files and specialized workflows remain in external apps; you can keep and link their results here.',
       ],
       [
         'Where are files stored and who controls access?',
@@ -399,37 +402,11 @@ const copy = {
     guide: 'Connect MCP',
     language: 'Русский',
     other: '/product.html',
-    mailSubject: 'Smena — team workspace setup',
+    mailSubject: 'smena.team — team workspace setup',
   },
 };
 const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const ids = ['projects', 'files', 'knowledge', 'bookmarks', 'whiteboards', 'graph'];
-function demo(c, index) {
-  if (index === 0)
-    return `<div class="demo-board">${[c.plan, c.work, c.done].map((s, i) => `<div class="demo-column"><span>${s}</span><div class="demo-task"><span class="task-dot dot-${i}"></span><strong>${c.tasks[i]}</strong><small>${c.project}</small></div></div>`).join('')}</div>`;
-  if (index === 1)
-    return `<div class="demo-files"><strong>${c.fileTitle}</strong>${c.fileNames.map((n, i) => `<div class="demo-file"><span class="file-glyph" aria-hidden="true">${['MP4', 'ZIP', 'MD'][i]}</span><strong>${n}</strong><span>${c.fileStatus[i]}</span></div>`).join('')}</div>`;
-  if (index === 2)
-    return `<article class="demo-note"><span class="type-pill">${c.noteType}</span><h3>${c.noteTitle}</h3><p>${c.noteBody}</p><small>${c.noteLinks}</small></article>`;
-  if (index === 3)
-    return `<article class="demo-bookmark"><div class="demo-web-image" aria-hidden="true"><span></span><span></span><span></span></div><div><small>example.org / research</small><h3>${c.bookmarkTitle}</h3><p>${c.bookmarkBody}</p><span class="saved-state">✓ ${c.bookmarkState}</span></div></article>`;
-  if (index === 4) {
-    const ru = c.other === '/product-en.html';
-    return `<div class="canvas-trial" data-product-canvas><div class="canvas-trial-tools"><span>${ru ? 'Демо: изменения не сохраняются' : 'Demo: changes are not saved'}</span><button type="button" data-demo-connections aria-pressed="true">${ru ? 'Связи' : 'Connections'}</button><button type="button" data-demo-reset>${ru ? 'Сбросить' : 'Reset'}</button></div><div class="canvas-trial-stage"><svg aria-hidden="true"><path/></svg>${c.canvasNodes.map((n, i) => `<div class="trial-node trial-node-${i}" data-demo-node="${i}"><button class="trial-node-title" type="button" aria-label="${esc((ru ? 'Переместить: ' : 'Move: ') + n)}"><small>0${i + 1}</small><strong>${n}</strong></button><span>${[c.demoTabs[3], c.noteType, c.demoTabs[0]][i]}</span><button class="trial-node-resize" type="button" aria-label="${esc((ru ? 'Изменить размер: ' : 'Resize: ') + n)}">↘</button></div>`).join('')}</div><p class="canvas-trial-hint">${ru ? 'Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.' : 'Drag a title or a card corner. With a keyboard, use arrow keys on the focused control.'}</p></div>`;
-  }
-  return `<div class="demo-graph"><svg viewBox="0 0 700 260" role="img" aria-label="${esc(c.demoText[5])}"><g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205"/></g>${[
-    [350, 120],
-    [160, 55],
-    [150, 205],
-    [555, 55],
-    [555, 205],
-  ]
-    .map(
-      ([x, y], i) =>
-        `<g><circle cx="${x}" cy="${y}" r="${i === 0 ? 22 : 12}" class="graph-color-${i}"/><text x="${x}" y="${y + 37}" text-anchor="middle">${c.graphNames[i]}</text></g>`,
-    )
-    .join('')}</svg></div>`;
-}
 function stories(c, lang) {
   const ru = lang === 'ru';
   const rows = [
@@ -460,7 +437,7 @@ function stories(c, lang) {
   return rows
     .map(
       ([[number, title, lead, details], index]) =>
-        `<section class="feature-story" id="feature-${index === 6 ? 'spaces' : ids[index]}"><div class="story-copy"><p class="eyebrow">${number} / ${title}</p><h3>${lead}</h3><dl>${details.map(([h, p]) => `<div><dt>${h}</dt><dd>${p}</dd></div>`).join('')}</dl>${index === 6 ? `<a class="text-link" href="${ru ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide} ↗</a>` : ''}</div><div class="story-scene"><div class="scene-chrome"><span aria-hidden="true">S</span><strong>${c.project}</strong><small>${title}</small></div>${index < 6 ? demo(c, index) : `<div class="demo-access"><span class="type-pill">SMENA / ${ru ? 'КОМАНДА' : 'TEAM'}</span><h4>${ru ? 'Общая работа. Ваши настройки.' : 'Shared work. Your own setup.'}</h4><div><b>${ru ? 'Пространства' : 'Workspaces'}</b><span>${ru ? 'Команда · Личное' : 'Team · Personal'}</span></div><div><b>${ru ? 'Доступ' : 'Access'}</b><span>${ru ? 'Роли · Срок ссылки · Отзыв' : 'Roles · Link expiry · Revoke'}</span></div><div><b>API / MCP</b><span>Codex ↔ ${ru ? 'Заметки и файлы' : 'Notes and files'}</span></div></div>`}</div></section>`,
+        `<section class="feature-story" id="feature-${index === 6 ? 'spaces' : ids[index]}"><div class="story-copy"><p class="eyebrow">${number} / ${title}</p><h3>${lead}</h3><dl>${details.map(([h, p]) => `<div><dt>${h}</dt><dd>${p}</dd></div>`).join('')}</dl>${index === 6 ? `<a class="text-link" href="${ru ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide} ↗</a>` : ''}</div><div class="story-scene"><div class="scene-chrome"><span aria-hidden="true">S</span><strong>${c.project}</strong><small>${title}</small></div>${index < 6 ? demo(c, index) : `<div class="demo-access"><span class="type-pill">smena.team / ${ru ? 'КОМАНДА' : 'TEAM'}</span><h4>${ru ? 'Общая работа. Ваши настройки.' : 'Shared work. Your own setup.'}</h4><div><b>${ru ? 'Пространства' : 'Workspaces'}</b><span>${ru ? 'Команда · Личное' : 'Team · Personal'}</span></div><div><b>${ru ? 'Доступ' : 'Access'}</b><span>${ru ? 'Роли · Срок ссылки · Отзыв' : 'Roles · Link expiry · Revoke'}</span></div><div><b>API / MCP</b><span>Codex ↔ ${ru ? 'Заметки и файлы' : 'Notes and files'}</span></div></div>`}</div></section>`,
     )
     .join('');
 }
@@ -469,14 +446,39 @@ function page(lang, c) {
   const mail = `mailto:hello@smena.agency?subject=${encodeURIComponent(c.mailSubject)}`;
   const ctas = `<a class="button primary" href="#demo">${lang === 'ru' ? 'Посмотреть демо' : 'Explore demo'}<span aria-hidden="true">↗</span></a><a class="button secondary" href="${mail}">${c.discuss}</a>`;
   return `<!doctype html>
-<html lang="${lang}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${c.title}</title><meta name="description" content="${esc(c.description)}"><meta name="theme-color" content="#f8f7f3"><meta property="og:type" content="website"><meta property="og:title" content="${esc(c.title)}"><meta property="og:description" content="${esc(c.description)}"><meta property="og:url" content="https://smena.team${route}"><meta property="og:image" content="https://smena.team/product-share.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><link rel="canonical" href="https://smena.team${route}"><link rel="alternate" hreflang="ru" href="https://smena.team/product.html"><link rel="alternate" hreflang="en" href="https://smena.team/product-en.html"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/product.css"><script src="/product.js" defer></script></head>
-<body><a class="skip-link" href="#main">${c.skip}</a><header class="site-header"><a class="brand" href="${route}" aria-label="Smena"><img src="/favicon.svg" width="36" height="36" alt=""><span>SMENA<span class="brand-period">.</span></span></a><nav aria-label="${lang === 'ru' ? 'Навигация по странице' : 'Page navigation'}"><a href="#features">${c.nav[0]}</a><a href="#workflow">${c.nav[1]}</a><a href="#start">${c.nav[2]}</a></nav><div class="header-actions"><a class="language" href="${c.other}" lang="${lang === 'ru' ? 'en' : 'ru'}" hreflang="${lang === 'ru' ? 'en' : 'ru'}">${c.language}</a><a class="button small secondary" href="/">${c.login} <span aria-hidden="true">↗</span></a></div></header>
-<main id="main"><section class="hero wrap"><p class="eyebrow">SMENA.TEAM <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">${lang === 'ru' ? 'Продукт smena.agency' : 'A product by smena.agency'}</a></p><h1>${c.headline}</h1><p class="hero-lead">${c.lead}</p><div class="cta-row">${ctas}</div><p class="access-note">${c.access}</p></section>
+<html lang="${lang}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${c.title}</title><meta name="description" content="${esc(c.description)}"><meta name="theme-color" content="#fbfaf8"><meta property="og:type" content="website"><meta property="og:title" content="${esc(c.title)}"><meta property="og:description" content="${esc(c.description)}"><meta property="og:url" content="https://smena.team${route}"><meta property="og:image" content="https://smena.team/product-share.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><link rel="canonical" href="https://smena.team${route}"><link rel="alternate" hreflang="ru" href="https://smena.team/product.html"><link rel="alternate" hreflang="en" href="https://smena.team/product-en.html"><link rel="icon" href="/favicon.svg"><script src="/product-theme.js"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet"><link rel="stylesheet" href="/product-system.css"><link rel="stylesheet" href="/product.css"><script src="/product.js" defer></script></head>
+<body><a class="skip-link" href="#main">${c.skip}</a><header class="site-header"><a class="brand" href="${route}" aria-label="smena.team"><img src="/favicon.svg" width="36" height="36" alt=""><span>smena.team</span></a><nav aria-label="${lang === 'ru' ? 'Навигация по странице' : 'Page navigation'}"><a href="#features">${c.nav[0]}</a><a href="#workflow">${c.nav[1]}</a><a href="#start">${c.nav[2]}</a></nav><div class="header-actions"><button class="theme-toggle" type="button" data-product-theme aria-label="${lang === 'ru' ? '\u0422\u0451\u043c\u043d\u0430\u044f \u0442\u0435\u043c\u0430' : 'Dark theme'}" aria-pressed="false"><span aria-hidden="true">\u25d0</span></button><a class="language" href="${c.other}" lang="${lang === 'ru' ? 'en' : 'ru'}" hreflang="${lang === 'ru' ? 'en' : 'ru'}" aria-label="${c.language}">${lang === 'ru' ? 'EN' : 'RU'}</a><a class="button small secondary" href="/">${c.login} <span aria-hidden="true">↗</span></a></div></header>
+<main id="main"><section class="hero wrap"><p class="eyebrow">smena.team <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">${lang === 'ru' ? 'Продукт smena.agency' : 'A product by smena.agency'}</a></p><h1>${c.headline}</h1><p class="hero-lead">${c.lead}</p><div class="cta-row">${ctas}</div><p class="access-note">${c.access}</p></section>
 <section class="demo-section wrap" id="demo" aria-labelledby="demo-heading"><div class="section-caption"><h2 id="demo-heading">${c.demo}</h2><p>${c.demoNote}</p></div><div class="workbench"><div class="workbench-bar"><span class="workbench-brand" aria-hidden="true">S</span><strong>${c.project}</strong><span class="workbench-status" aria-hidden="true">●</span></div><div class="demo-tabs" aria-label="${lang === 'ru' ? 'Раздел демонстрации' : 'Demo section'}">${c.demoTabs.map((t, i) => `<a id="tab-${ids[i]}" href="#panel-${ids[i]}">${t}</a>`).join('')}</div><div class="demo-panels">${ids.map((id, i) => `<section id="panel-${id}" class="demo-panel" aria-labelledby="tab-${id}">${demo(c, i)}<p class="demo-description">${c.demoText[i]}</p></section>`).join('')}</div></div></section>
 <section class="workflow wrap" id="workflow"><div class="section-intro"><p class="eyebrow">${lang === 'ru' ? 'ОДИН РАБОЧИЙ ПРОЦЕСС' : 'ONE CONNECTED WORKFLOW'}</p><h2>${c.workflowTitle}</h2><p>${c.workflowLead}</p></div><ol class="workflow-steps">${c.steps.map(([h, p], i) => `<li><span>0${i + 1}</span><h3>${h}</h3><p>${p}</p></li>`).join('')}</ol></section>
 <section class="features wrap" id="features"><div class="section-intro"><p class="eyebrow">${lang === 'ru' ? 'ВОЗМОЖНОСТИ' : 'CAPABILITIES'}</p><h2>${c.featureTitle}</h2><p>${c.featureLead}</p></div>${stories(c, lang)}</section>
 <section class="start-section" id="start"><div class="wrap"><p class="eyebrow">${lang === 'ru' ? 'ПЕРВЫЙ ШАГ' : 'YOUR FIRST STEP'}</p><h2>${c.startTitle}</h2><div class="start-paths"><article><span class="path-label">01</span><h3>${c.employee}</h3><p>${c.employeeText}</p><ol>${c.employeeSteps.map(s => `<li>${s}</li>`).join('')}</ol><a class="button primary" href="/">${c.enter} <span aria-hidden="true">↗</span></a></article><article><span class="path-label">02</span><h3>${c.team}</h3><p>${c.teamText}</p><ol>${c.teamSteps.map(s => `<li>${s}</li>`).join('')}</ol><a class="button secondary" href="${mail}">${c.discuss}</a><a class="contact-link" href="mailto:hello@smena.agency">hello@smena.agency</a></article></div></div></section>
-<section class="faq wrap"><h2>${c.faqTitle}</h2><div>${c.faq.map(([q, a]) => `<details><summary>${q}<span aria-hidden="true">+</span></summary><p>${a}</p></details>`).join('')}</div></section><section class="final-cta wrap"><p class="eyebrow">SMENA.TEAM</p><h2>${c.finalTitle}</h2><p>${c.finalText}</p><div class="cta-row">${ctas}</div></section></main><footer class="site-footer wrap"><div><a class="brand" href="${route}">SMENA.</a><p>${c.footer}</p><p class="agency-credit">${lang === 'ru' ? 'Создано агентством' : 'Created by'} <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p></div><nav aria-label="${lang === 'ru' ? 'Справочные ссылки' : 'Reference links'}"><a href="/about.html">${c.about}</a><a href="${lang === 'ru' ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide}</a><a href="/privacy.html">${c.privacy}</a><a href="/terms.html">${c.terms}</a><a href="mailto:hello@smena.agency">hello@smena.agency</a></nav><small>© 2026 Smena Manager</small></footer></body></html>`;
+<section class="faq wrap"><h2>${c.faqTitle}</h2><div>${c.faq.map(([q, a]) => `<details><summary>${q}<span aria-hidden="true">+</span></summary><p>${a}</p></details>`).join('')}</div></section><section class="final-cta wrap"><p class="eyebrow">smena.team</p><h2>${c.finalTitle}</h2><p>${c.finalText}</p><div class="cta-row">${ctas}</div></section></main><footer class="site-footer wrap"><div><a class="brand" href="${route}">smena.team</a><p>${c.footer}</p><p class="agency-credit">${lang === 'ru' ? 'Создано агентством' : 'Created by'} <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p></div><nav aria-label="${lang === 'ru' ? 'Справочные ссылки' : 'Reference links'}"><a href="/about.html">${c.about}</a><a href="${lang === 'ru' ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide}</a><a href="/privacy.html">${c.privacy}</a><a href="/terms.html">${c.terms}</a><a href="mailto:hello@smena.agency">hello@smena.agency</a></nav><small>© 2026 smena.team</small></footer></body></html>`;
 }
 for (const [lang, c] of Object.entries(copy))
   await writeFile(new URL(`../public/product${lang === 'en' ? '-en' : ''}.html`, import.meta.url), page(lang, c), 'utf8');
+
+// Build from the very same token and component sources as the signed-in UI.
+const componentFiles = [
+  'components.css',
+  'views/board.css',
+  'views/projects-files.css',
+  'pages/bookmarks.css',
+  'pages/bookmark-thumbnails.css',
+  'pages/bookmark-library.css',
+];
+let systemCss =
+  '/* Generated by scripts/build-product-pages.js. Do not edit. */\n' + (await readFile(new URL('../src/styles/tokens.css', import.meta.url), 'utf8'));
+for (const file of componentFiles) {
+  const tree = postcss.parse(await readFile(new URL('../src/styles/' + file, import.meta.url), 'utf8'));
+  tree.walkRules(rule => {
+    let parent = rule.parent;
+    while (parent) {
+      if (parent.type === 'atrule' && /keyframes$/i.test(parent.name)) return;
+      parent = parent.parent;
+    }
+    rule.selectors = rule.selectors.map(selector => '.product-demo ' + selector);
+  });
+  systemCss += '\n' + tree.toString();
+}
+await writeFile(new URL('../public/product-system.css', import.meta.url), systemCss);

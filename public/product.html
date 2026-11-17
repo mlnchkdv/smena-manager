@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Smena — проекты, знания и материалы команды в одном пространстве</title>
+    <title>smena.team — проекты, знания и материалы команды в одном пространстве</title>
     <meta
       name="description"
-      content="Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает Smena."
+      content="Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает smena.team."
     />
-    <meta name="theme-color" content="#f8f7f3" />
+    <meta name="theme-color" content="#fbfaf8" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Smena — проекты, знания и материалы команды в одном пространстве" />
+    <meta property="og:title" content="smena.team — проекты, знания и материалы команды в одном пространстве" />
     <meta
       property="og:description"
-      content="Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает Smena."
+      content="Планируйте проекты, храните знания и файлы, сохраняйте страницы, собирайте идеи на холстах и находите связи в графе. Узнайте, как работает smena.team."
     />
     <meta property="og:url" content="https://smena.team/product.html" />
     <meta property="og:image" content="https://smena.team/product-share.png" />
@@ -23,37 +23,41 @@
     <link rel="alternate" hreflang="ru" href="https://smena.team/product.html" />
     <link rel="alternate" hreflang="en" href="https://smena.team/product-en.html" />
     <link rel="icon" href="/favicon.svg" />
+    <script src="/product-theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/product-system.css" />
     <link rel="stylesheet" href="/product.css" />
     <script src="/product.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">К содержимому</a>
     <header class="site-header">
-      <a class="brand" href="/product.html" aria-label="Smena"
-        ><img src="/favicon.svg" width="36" height="36" alt="" /><span>SMENA<span class="brand-period">.</span></span></a
-      >
+      <a class="brand" href="/product.html" aria-label="smena.team"><img src="/favicon.svg" width="36" height="36" alt="" /><span>smena.team</span></a>
       <nav aria-label="Навигация по странице">
         <a href="#features">Возможности</a><a href="#workflow">Как это работает</a><a href="#start">Начать работу</a>
       </nav>
       <div class="header-actions">
-        <a class="language" href="/product-en.html" lang="en" hreflang="en">English</a
+        <button class="theme-toggle" type="button" data-product-theme aria-label="Тёмная тема" aria-pressed="false"><span aria-hidden="true">◐</span></button
+        ><a class="language" href="/product-en.html" lang="en" hreflang="en" aria-label="English">EN</a
         ><a class="button small secondary" href="/">Войти <span aria-hidden="true">↗</span></a>
       </div>
     </header>
     <main id="main">
       <section class="hero wrap">
         <p class="eyebrow">
-          SMENA.TEAM <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">Продукт smena.agency</a>
+          smena.team <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">Продукт smena.agency</a>
         </p>
         <h1>От первой идеи<br />до общего результата.</h1>
         <p class="hero-lead">
-          Проекты, знания и материалы рядом. Smena помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.
+          Проекты, знания и материалы рядом. smena.team помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.
         </p>
         <div class="cta-row">
           <a class="button primary" href="#demo">Посмотреть демо<span aria-hidden="true">↗</span></a
           ><a
             class="button secondary"
-            href="mailto:hello@smena.agency?subject=Smena%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
+            href="mailto:hello@smena.agency?subject=smena.team%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
             >Обсудить запуск команды</a
           >
         </div>
@@ -75,104 +79,830 @@
           </div>
           <div class="demo-panels">
             <section id="panel-projects" class="demo-panel" aria-labelledby="tab-projects">
-              <div class="demo-board">
-                <div class="demo-column">
-                  <span>К выполнению</span>
-                  <div class="demo-task"><span class="task-dot dot-0"></span><strong>Собрать вопросы команды</strong><small>Запуск продукта</small></div>
+              <div class="product-demo" data-product-example="0">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                      <path d="M8 10v4" />
+                      <path d="M12 10v2" />
+                      <path d="M16 10v6" /></svg></span
+                  ><strong>Запуск продукта</strong>
                 </div>
-                <div class="demo-column">
-                  <span>В работе</span>
-                  <div class="demo-task"><span class="task-dot dot-1"></span><strong>Подготовить первый сценарий</strong><small>Запуск продукта</small></div>
+                <div class="example-toolbar">
+                  <span class="hint">Нажмите задачу, чтобы сменить статус.</span
+                  ><button type="button" class="btn btn-secondary" data-demo-action="board-layout">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 12h.01" />
+                      <path d="M3 18h.01" />
+                      <path d="M3 6h.01" />
+                      <path d="M8 12h13" />
+                      <path d="M8 18h13" />
+                      <path d="M8 6h13" /></svg
+                    >Список
+                  </button>
                 </div>
-                <div class="demo-column">
-                  <span>Готово</span>
-                  <div class="demo-task"><span class="task-dot dot-2"></span><strong>Согласовать решение</strong><small>Запуск продукта</small></div>
+                <div class="board" data-demo-board>
+                  <section class="bcol">
+                    <div class="bcol-h"><span class="status-dot status-0"></span><span>К выполнению</span><span class="cnt">1</span></div>
+                    <div class="bcol-b">
+                      <button class="kcard" data-demo-action="task" data-task="0">
+                        <span class="kcard-title">Собрать вопросы команды</span
+                        ><span class="example-card-meta"
+                          ><span
+                            ><svg
+                              class="i"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                            1</span
+                          ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                        >
+                      </button>
+                    </div>
+                  </section>
+                  <section class="bcol">
+                    <div class="bcol-h"><span class="status-dot status-1"></span><span>В работе</span><span class="cnt">1</span></div>
+                    <div class="bcol-b">
+                      <button class="kcard" data-demo-action="task" data-task="1">
+                        <span class="kcard-title">Подготовить первый сценарий</span
+                        ><span class="example-card-meta"
+                          ><span
+                            ><svg
+                              class="i"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                            2</span
+                          ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                        >
+                      </button>
+                    </div>
+                  </section>
+                  <section class="bcol">
+                    <div class="bcol-h"><span class="status-dot status-2"></span><span>Готово</span><span class="cnt">1</span></div>
+                    <div class="bcol-b">
+                      <button class="kcard" data-demo-action="task" data-task="2">
+                        <span class="kcard-title">Согласовать решение</span
+                        ><span class="example-card-meta"
+                          ><span
+                            ><svg
+                              class="i"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                            3</span
+                          ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                        >
+                      </button>
+                    </div>
+                  </section>
                 </div>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
               </div>
               <p class="demo-description">Одна задача — разные представления. Доска помогает видеть поток работы, список — быстро разбирать детали.</p>
             </section>
             <section id="panel-files" class="demo-panel" aria-labelledby="tab-files">
-              <div class="demo-files">
-                <strong>Материалы проекта</strong>
-                <div class="demo-file"><span class="file-glyph" aria-hidden="true">MP4</span><strong>Интервью.mp4</strong><span>Загружено</span></div>
-                <div class="demo-file"><span class="file-glyph" aria-hidden="true">ZIP</span><strong>Фотографии.zip</strong><span>В очереди</span></div>
-                <div class="demo-file"><span class="file-glyph" aria-hidden="true">MD</span><strong>Описание.md</strong><span>Загружено</span></div>
+              <div class="product-demo" data-product-example="1">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20 7h-3a2 2 0 0 1-2-2V2" />
+                      <path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z" />
+                      <path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8" /></svg></span
+                  ><strong>Материалы проекта</strong>
+                </div>
+                <div class="example-toolbar">
+                  <label
+                    >Тип файлов<select class="select" data-demo-filter>
+                      <option value="all">Все типы</option>
+                      <option value="MP4">Видео</option>
+                      <option value="MD">Документы</option>
+                    </select></label
+                  ><span class="hint">Откройте пример просмотра.</span>
+                </div>
+                <div class="example-file-list">
+                  <button class="example-file" data-demo-action="file" data-kind="MP4">
+                    <span class="ftype" style="--c: var(--accent)"
+                      ><svg
+                        class="i"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect width="18" height="18" x="3" y="3" rx="2" />
+                        <path d="M7 3v18" />
+                        <path d="M3 7.5h4" />
+                        <path d="M3 12h18" />
+                        <path d="M3 16.5h4" />
+                        <path d="M17 3v18" />
+                        <path d="M17 7.5h4" />
+                        <path d="M17 16.5h4" /></svg
+                      ><small>MP4</small></span
+                    ><span><strong>Интервью.mp4</strong><small>24.8 MB · Запуск продукта</small></span
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg></button
+                  ><button class="example-file" data-demo-action="file" data-kind="ZIP">
+                    <span class="ftype" style="--c: var(--accent)"
+                      ><svg
+                        class="i"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M10 12v-1" />
+                        <path d="M10 18v-2" />
+                        <path d="M10 7V6" />
+                        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                        <path d="M15.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v16a2 2 0 0 0 .274 1.01" />
+                        <circle cx="10" cy="20" r="2" /></svg
+                      ><small>ZIP</small></span
+                    ><span><strong>Фотографии.zip</strong><small>148 MB · Запуск продукта</small></span
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg></button
+                  ><button class="example-file" data-demo-action="file" data-kind="MD">
+                    <span class="ftype" style="--c: var(--accent)"
+                      ><svg
+                        class="i"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                        <path d="M10 9H8" />
+                        <path d="M16 13H8" />
+                        <path d="M16 17H8" /></svg
+                      ><small>MD</small></span
+                    ><span><strong>Описание.md</strong><small>2.4 KB · Запуск продукта</small></span
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-upload">
+                  <span
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" x2="12" y1="3" y2="15" />
+                    </svg>
+                    Демонстрация очереди</span
+                  ><span class="prog" role="progressbar" aria-label="Прогресс демо" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"
+                    ><i style="--p: 0.64"></i></span
+                  ><b>64%</b><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false">Пауза</button>
+                </div>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
               </div>
               <p class="demo-description">Фотографии, видео и документы — в папках проекта. Очередь показывает ход загрузки и доступные действия.</p>
             </section>
             <section id="panel-knowledge" class="demo-panel" aria-labelledby="tab-knowledge">
-              <article class="demo-note">
-                <span class="type-pill">Решение</span>
-                <h3>Почему мы выбрали этот сценарий</h3>
-                <p>Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости.</p>
-                <small>Связано: исследование · прототип · план запуска</small>
-              </article>
+              <div class="product-demo" data-product-example="2">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m16 6 4 14" />
+                      <path d="M12 6v14" />
+                      <path d="M8 8v12" />
+                      <path d="M4 4v16" /></svg></span
+                  ><strong>База знаний</strong>
+                </div>
+                <div class="example-toolbar">
+                  <label
+                    >Тип заметки<select class="select knowledge-note-type" data-demo-type>
+                      <option>Решение</option>
+                      <option>Встреча</option>
+                      <option>Исследование</option>
+                    </select></label
+                  ><button type="button" class="btn btn-secondary" data-demo-action="note-version">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M12 7v5l4 2" /></svg
+                    >Прежняя версия
+                  </button>
+                </div>
+                <article class="example-note">
+                  <h3>Почему мы выбрали этот сценарий</h3>
+                  <p
+                    data-demo-note-body
+                    data-current="Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости."
+                    data-previous="Первый черновик: уточнить основной сценарий перед добавлением настроек."
+                  >
+                    Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости.
+                  </p>
+                  <div class="example-links">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="16" y="16" width="6" height="6" rx="1" />
+                      <rect x="2" y="16" width="6" height="6" rx="1" />
+                      <rect x="9" y="2" width="6" height="6" rx="1" />
+                      <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                      <path d="M12 12V8" />
+                    </svg>
+                    Связано: исследование · прототип · план запуска
+                  </div>
+                </article>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
+              </div>
               <p class="demo-description">Заметка хранит решение, его причины и ссылки на материалы. Версии помогают вернуться к прежнему тексту.</p>
             </section>
             <section id="panel-bookmarks" class="demo-panel" aria-labelledby="tab-bookmarks">
-              <article class="demo-bookmark">
-                <div class="demo-web-image" aria-hidden="true"><span></span><span></span><span></span></div>
-                <div>
-                  <small>example.org / research</small>
-                  <h3>Исследование: удобные рабочие процессы</h3>
-                  <p>Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
-                  <span class="saved-state">✓ Копия страницы сохранена</span>
+              <div class="product-demo" data-product-example="3">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg></span
+                  ><strong>Закладки</strong>
                 </div>
-              </article>
+                <div class="example-toolbar">
+                  <label class="example-search"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" /></svg
+                    ><input class="input" type="search" data-demo-search placeholder="Поиск закладок" aria-label="Поиск закладок в демо" /></label
+                  ><button type="button" class="btn btn-secondary" data-demo-action="bookmark-layout">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 12h.01" />
+                      <path d="M3 18h.01" />
+                      <path d="M3 6h.01" />
+                      <path d="M8 12h13" />
+                      <path d="M8 18h13" />
+                      <path d="M8 6h13" /></svg
+                    >Список
+                  </button>
+                </div>
+                <div class="bookmark-library">
+                  <div class="bookmark-grid">
+                    <article class="bookmark-card">
+                      <button class="bookmark-thumbnail" data-demo-action="archive" aria-label="Открыть сохранённую страницу">
+                        <span class="example-page-cover"><small>RESEARCH / 01</small><strong>Работайте с контекстом.</strong><span>example.org</span></span>
+                      </button>
+                      <div class="bookmark-card-top">
+                        <div class="bookmark-card-heading">
+                          <button class="bookmark-title" data-demo-action="archive">Исследование: удобные рабочие процессы</button
+                          ><span class="bookmark-host">example.org</span>
+                        </div>
+                      </div>
+                      <p class="bookmark-description">Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
+                      <div class="bookmark-preview-row">
+                        <span class="bookmark-save-state"
+                          ><svg
+                            class="i"
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <rect width="20" height="5" x="2" y="3" rx="1" />
+                            <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+                            <path d="M10 12h4" />
+                          </svg>
+                          HTML сохранён</span
+                        ><button class="btn btn-ghost btn-sm" data-demo-action="archive">Открыть архив</button>
+                      </div>
+                      <div class="bookmark-card-foot">
+                        <span class="bookmark-read-state">Прочитать</span
+                        ><button class="ibtn" data-demo-action="favorite" aria-label="Избранное для закладки демо" aria-pressed="false">
+                          <svg
+                            class="i"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <p class="example-empty" hidden>Ничего не найдено. Измените запрос.</p>
+                <template data-demo-archive
+                  ><article class="example-saved-page">
+                    <small>Пример сохранённого HTML · 17 ноября 2026</small>
+                    <h3>Работайте с контекстом.</h3>
+                    <p>Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
+                    <div class="example-saved-columns"><span>Знания</span><span>Проекты</span><span>Файлы</span></div>
+                    <p>Настоящий архив сохраняет загруженные стили, изображения и шрифты страницы. Скрипты и встроенные страницы отключены.</p>
+                  </article></template
+                >
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
+              </div>
               <p class="demo-description">Сохраните источник и читаемую копию страницы: контекст останется, даже если оригинал изменится.</p>
             </section>
             <section id="panel-whiteboards" class="demo-panel" aria-labelledby="tab-whiteboards">
-              <div class="canvas-trial" data-product-canvas>
-                <div class="canvas-trial-tools">
-                  <span>Демо: изменения не сохраняются</span><button type="button" data-demo-connections aria-pressed="true">Связи</button
-                  ><button type="button" data-demo-reset>Сбросить</button>
+              <div class="product-demo" data-product-example="4">
+                <div class="canvas-trial" data-product-canvas>
+                  <div class="canvas-trial-tools">
+                    <button type="button" class="btn btn-secondary" data-demo-action="canvas-add">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" /></svg
+                      >Добавить карточку</button
+                    ><button class="btn btn-secondary" type="button" data-demo-connections aria-pressed="true">Связи</button
+                    ><button class="btn btn-ghost" type="button" data-demo-reset>Сбросить</button>
+                  </div>
+                  <div class="canvas-trial-stage">
+                    <svg aria-hidden="true"><path /></svg>
+                    <div class="trial-node trial-node-0" data-demo-node="0">
+                      <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды"><strong>Вопрос команды</strong></button
+                      ><span>Закладки</span
+                      ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">
+                        <svg
+                          class="i"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M19 13v6h-6" />
+                          <path d="M5 11V5h6" />
+                          <path d="m5 5 14 14" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="trial-node trial-node-1" data-demo-node="1">
+                      <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><strong>Решение</strong></button><span>Решение</span
+                      ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">
+                        <svg
+                          class="i"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M19 13v6h-6" />
+                          <path d="M5 11V5h6" />
+                          <path d="m5 5 14 14" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="trial-node trial-node-2" data-demo-node="2">
+                      <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг"><strong>Следующий шаг</strong></button
+                      ><span>Проекты</span
+                      ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">
+                        <svg
+                          class="i"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="M19 13v6h-6" />
+                          <path d="M5 11V5h6" />
+                          <path d="m5 5 14 14" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <p class="canvas-trial-hint">Тяните за заголовок или угол. Клавиатура: стрелки, Shift — больший шаг.</p>
                 </div>
-                <div class="canvas-trial-stage">
-                  <svg aria-hidden="true"><path /></svg>
-                  <div class="trial-node trial-node-0" data-demo-node="0">
-                    <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды">
-                      <small>01</small><strong>Вопрос команды</strong></button
-                    ><span>Закладки</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">↘</button>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  <div class="trial-node trial-node-1" data-demo-node="1">
-                    <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><small>02</small><strong>Решение</strong></button
-                    ><span>Решение</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">↘</button>
-                  </div>
-                  <div class="trial-node trial-node-2" data-demo-node="2">
-                    <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг">
-                      <small>03</small><strong>Следующий шаг</strong></button
-                    ><span>Проекты</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">↘</button>
-                  </div>
-                </div>
-                <p class="canvas-trial-hint">Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.</p>
+                  <div class="example-dialog-body"></div>
+                </dialog>
               </div>
               <p class="demo-description">Разложите материалы на холсте, измените размеры карточек и соедините идеи с задачами.</p>
             </section>
             <section id="panel-graph" class="demo-panel" aria-labelledby="tab-graph">
-              <div class="demo-graph">
-                <svg viewBox="0 0 700 260" role="img" aria-label="Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.">
-                  <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
-                  <g>
-                    <circle cx="350" cy="120" r="22" class="graph-color-0" />
-                    <text x="350" y="157" text-anchor="middle">Проект</text>
-                  </g>
-                  <g>
-                    <circle cx="160" cy="55" r="12" class="graph-color-1" />
-                    <text x="160" y="92" text-anchor="middle">Заметка</text>
-                  </g>
-                  <g>
-                    <circle cx="150" cy="205" r="12" class="graph-color-2" />
-                    <text x="150" y="242" text-anchor="middle">Файл</text>
-                  </g>
-                  <g>
-                    <circle cx="555" cy="55" r="12" class="graph-color-3" />
-                    <text x="555" y="92" text-anchor="middle">Задача</text>
-                  </g>
-                  <g>
-                    <circle cx="555" cy="205" r="12" class="graph-color-4" />
-                    <text x="555" y="242" text-anchor="middle">Источник</text>
-                  </g>
-                </svg>
+              <div class="product-demo" data-product-example="5">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="16" y="16" width="6" height="6" rx="1" />
+                      <rect x="2" y="16" width="6" height="6" rx="1" />
+                      <rect x="9" y="2" width="6" height="6" rx="1" />
+                      <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                      <path d="M12 12V8" /></svg></span
+                  ><strong>Граф</strong>
+                </div>
+                <div class="example-toolbar">
+                  <button type="button" class="btn btn-secondary" data-demo-action="graph-simple">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="1" /></svg
+                    >Упрощённый вид</button
+                  ><span class="hint">Выберите узел, чтобы увидеть его связи.</span>
+                </div>
+                <div class="demo-graph">
+                  <svg viewBox="0 0 700 260" aria-hidden="true">
+                    <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
+                    <g>
+                      <circle cx="350" cy="120" r="22" class="graph-color-0" />
+                      <text x="350" y="157" text-anchor="middle">Проект</text>
+                    </g>
+                    <g>
+                      <circle cx="160" cy="55" r="12" class="graph-color-1" />
+                      <text x="160" y="92" text-anchor="middle">Заметка</text>
+                    </g>
+                    <g>
+                      <circle cx="150" cy="205" r="12" class="graph-color-2" />
+                      <text x="150" y="242" text-anchor="middle">Файл</text>
+                    </g>
+                    <g>
+                      <circle cx="555" cy="55" r="12" class="graph-color-3" />
+                      <text x="555" y="92" text-anchor="middle">Задача</text>
+                    </g>
+                    <g>
+                      <circle cx="555" cy="205" r="12" class="graph-color-4" />
+                      <text x="555" y="242" text-anchor="middle">Источник</text>
+                    </g>
+                  </svg>
+                </div>
+                <div class="example-graph-nodes" aria-label="Выбрать узел графа">
+                  <button class="btn btn-secondary" data-demo-action="graph-node" data-node="0" aria-pressed="false">Проект</button
+                  ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="1" aria-pressed="false">Заметка</button
+                  ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="2" aria-pressed="false">Файл</button
+                  ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="3" aria-pressed="false">Задача</button
+                  ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="4" aria-pressed="false">Источник</button>
+                </div>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
               </div>
               <p class="demo-description">Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.</p>
             </section>
@@ -239,19 +969,158 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Проекты и задачи</small></div>
-            <div class="demo-board">
-              <div class="demo-column">
-                <span>К выполнению</span>
-                <div class="demo-task"><span class="task-dot dot-0"></span><strong>Собрать вопросы команды</strong><small>Запуск продукта</small></div>
+            <div class="product-demo" data-product-example="0">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                    <path d="M8 10v4" />
+                    <path d="M12 10v2" />
+                    <path d="M16 10v6" /></svg></span
+                ><strong>Запуск продукта</strong>
               </div>
-              <div class="demo-column">
-                <span>В работе</span>
-                <div class="demo-task"><span class="task-dot dot-1"></span><strong>Подготовить первый сценарий</strong><small>Запуск продукта</small></div>
+              <div class="example-toolbar">
+                <span class="hint">Нажмите задачу, чтобы сменить статус.</span
+                ><button type="button" class="btn btn-secondary" data-demo-action="board-layout">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12h.01" />
+                    <path d="M3 18h.01" />
+                    <path d="M3 6h.01" />
+                    <path d="M8 12h13" />
+                    <path d="M8 18h13" />
+                    <path d="M8 6h13" /></svg
+                  >Список
+                </button>
               </div>
-              <div class="demo-column">
-                <span>Готово</span>
-                <div class="demo-task"><span class="task-dot dot-2"></span><strong>Согласовать решение</strong><small>Запуск продукта</small></div>
+              <div class="board" data-demo-board>
+                <section class="bcol">
+                  <div class="bcol-h"><span class="status-dot status-0"></span><span>К выполнению</span><span class="cnt">1</span></div>
+                  <div class="bcol-b">
+                    <button class="kcard" data-demo-action="task" data-task="0">
+                      <span class="kcard-title">Собрать вопросы команды</span
+                      ><span class="example-card-meta"
+                        ><span
+                          ><svg
+                            class="i"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          1</span
+                        ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                      >
+                    </button>
+                  </div>
+                </section>
+                <section class="bcol">
+                  <div class="bcol-h"><span class="status-dot status-1"></span><span>В работе</span><span class="cnt">1</span></div>
+                  <div class="bcol-b">
+                    <button class="kcard" data-demo-action="task" data-task="1">
+                      <span class="kcard-title">Подготовить первый сценарий</span
+                      ><span class="example-card-meta"
+                        ><span
+                          ><svg
+                            class="i"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          2</span
+                        ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                      >
+                    </button>
+                  </div>
+                </section>
+                <section class="bcol">
+                  <div class="bcol-h"><span class="status-dot status-2"></span><span>Готово</span><span class="cnt">1</span></div>
+                  <div class="bcol-b">
+                    <button class="kcard" data-demo-action="task" data-task="2">
+                      <span class="kcard-title">Согласовать решение</span
+                      ><span class="example-card-meta"
+                        ><span
+                          ><svg
+                            class="i"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          3</span
+                        ><span class="av sm" style="--c: var(--accent)" aria-label="Участник демо">A</span></span
+                      >
+                    </button>
+                  </div>
+                </section>
               </div>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
             </div>
           </div>
         </section>
@@ -289,11 +1158,194 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Файлы и медиа</small></div>
-            <div class="demo-files">
-              <strong>Материалы проекта</strong>
-              <div class="demo-file"><span class="file-glyph" aria-hidden="true">MP4</span><strong>Интервью.mp4</strong><span>Загружено</span></div>
-              <div class="demo-file"><span class="file-glyph" aria-hidden="true">ZIP</span><strong>Фотографии.zip</strong><span>В очереди</span></div>
-              <div class="demo-file"><span class="file-glyph" aria-hidden="true">MD</span><strong>Описание.md</strong><span>Загружено</span></div>
+            <div class="product-demo" data-product-example="1">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20 7h-3a2 2 0 0 1-2-2V2" />
+                    <path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z" />
+                    <path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8" /></svg></span
+                ><strong>Материалы проекта</strong>
+              </div>
+              <div class="example-toolbar">
+                <label
+                  >Тип файлов<select class="select" data-demo-filter>
+                    <option value="all">Все типы</option>
+                    <option value="MP4">Видео</option>
+                    <option value="MD">Документы</option>
+                  </select></label
+                ><span class="hint">Откройте пример просмотра.</span>
+              </div>
+              <div class="example-file-list">
+                <button class="example-file" data-demo-action="file" data-kind="MP4">
+                  <span class="ftype" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect width="18" height="18" x="3" y="3" rx="2" />
+                      <path d="M7 3v18" />
+                      <path d="M3 7.5h4" />
+                      <path d="M3 12h18" />
+                      <path d="M3 16.5h4" />
+                      <path d="M17 3v18" />
+                      <path d="M17 7.5h4" />
+                      <path d="M17 16.5h4" /></svg
+                    ><small>MP4</small></span
+                  ><span><strong>Интервью.mp4</strong><small>24.8 MB · Запуск продукта</small></span
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg></button
+                ><button class="example-file" data-demo-action="file" data-kind="ZIP">
+                  <span class="ftype" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 12v-1" />
+                      <path d="M10 18v-2" />
+                      <path d="M10 7V6" />
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                      <path d="M15.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v16a2 2 0 0 0 .274 1.01" />
+                      <circle cx="10" cy="20" r="2" /></svg
+                    ><small>ZIP</small></span
+                  ><span><strong>Фотографии.zip</strong><small>148 MB · Запуск продукта</small></span
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg></button
+                ><button class="example-file" data-demo-action="file" data-kind="MD">
+                  <span class="ftype" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                      <path d="M10 9H8" />
+                      <path d="M16 13H8" />
+                      <path d="M16 17H8" /></svg
+                    ><small>MD</small></span
+                  ><span><strong>Описание.md</strong><small>2.4 KB · Запуск продукта</small></span
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+              <div class="example-upload">
+                <span
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" x2="12" y1="3" y2="15" />
+                  </svg>
+                  Демонстрация очереди</span
+                ><span class="prog" role="progressbar" aria-label="Прогресс демо" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"
+                  ><i style="--p: 0.64"></i></span
+                ><b>64%</b><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false">Пауза</button>
+              </div>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
             </div>
           </div>
         </section>
@@ -325,12 +1377,109 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>База знаний</small></div>
-            <article class="demo-note">
-              <span class="type-pill">Решение</span>
-              <h3>Почему мы выбрали этот сценарий</h3>
-              <p>Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости.</p>
-              <small>Связано: исследование · прототип · план запуска</small>
-            </article>
+            <div class="product-demo" data-product-example="2">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m16 6 4 14" />
+                    <path d="M12 6v14" />
+                    <path d="M8 8v12" />
+                    <path d="M4 4v16" /></svg></span
+                ><strong>База знаний</strong>
+              </div>
+              <div class="example-toolbar">
+                <label
+                  >Тип заметки<select class="select knowledge-note-type" data-demo-type>
+                    <option>Решение</option>
+                    <option>Встреча</option>
+                    <option>Исследование</option>
+                  </select></label
+                ><button type="button" class="btn btn-secondary" data-demo-action="note-version">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                    <path d="M12 7v5l4 2" /></svg
+                  >Прежняя версия
+                </button>
+              </div>
+              <article class="example-note">
+                <h3>Почему мы выбрали этот сценарий</h3>
+                <p
+                  data-demo-note-body
+                  data-current="Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости."
+                  data-previous="Первый черновик: уточнить основной сценарий перед добавлением настроек."
+                >
+                  Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости.
+                </p>
+                <div class="example-links">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="16" y="16" width="6" height="6" rx="1" />
+                    <rect x="2" y="16" width="6" height="6" rx="1" />
+                    <rect x="9" y="2" width="6" height="6" rx="1" />
+                    <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                    <path d="M12 12V8" />
+                  </svg>
+                  Связано: исследование · прототип · план запуска
+                </div>
+              </article>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
+            </div>
           </div>
         </section>
         <section class="feature-story" id="feature-bookmarks">
@@ -340,7 +1489,7 @@
             <dl>
               <div>
                 <dt>Быстрое сохранение</dt>
-                <dd>Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.</dd>
+                <dd>Вставьте URL: smena.team попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.</dd>
               </div>
               <div>
                 <dt>HTML-архив страницы</dt>
@@ -358,15 +1507,156 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Закладки и источники</small></div>
-            <article class="demo-bookmark">
-              <div class="demo-web-image" aria-hidden="true"><span></span><span></span><span></span></div>
-              <div>
-                <small>example.org / research</small>
-                <h3>Исследование: удобные рабочие процессы</h3>
-                <p>Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
-                <span class="saved-state">✓ Копия страницы сохранена</span>
+            <div class="product-demo" data-product-example="3">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" /></svg></span
+                ><strong>Закладки</strong>
               </div>
-            </article>
+              <div class="example-toolbar">
+                <label class="example-search"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" /></svg
+                  ><input class="input" type="search" data-demo-search placeholder="Поиск закладок" aria-label="Поиск закладок в демо" /></label
+                ><button type="button" class="btn btn-secondary" data-demo-action="bookmark-layout">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12h.01" />
+                    <path d="M3 18h.01" />
+                    <path d="M3 6h.01" />
+                    <path d="M8 12h13" />
+                    <path d="M8 18h13" />
+                    <path d="M8 6h13" /></svg
+                  >Список
+                </button>
+              </div>
+              <div class="bookmark-library">
+                <div class="bookmark-grid">
+                  <article class="bookmark-card">
+                    <button class="bookmark-thumbnail" data-demo-action="archive" aria-label="Открыть сохранённую страницу">
+                      <span class="example-page-cover"><small>RESEARCH / 01</small><strong>Работайте с контекстом.</strong><span>example.org</span></span>
+                    </button>
+                    <div class="bookmark-card-top">
+                      <div class="bookmark-card-heading">
+                        <button class="bookmark-title" data-demo-action="archive">Исследование: удобные рабочие процессы</button
+                        ><span class="bookmark-host">example.org</span>
+                      </div>
+                    </div>
+                    <p class="bookmark-description">Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
+                    <div class="bookmark-preview-row">
+                      <span class="bookmark-save-state"
+                        ><svg
+                          class="i"
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <rect width="20" height="5" x="2" y="3" rx="1" />
+                          <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+                          <path d="M10 12h4" />
+                        </svg>
+                        HTML сохранён</span
+                      ><button class="btn btn-ghost btn-sm" data-demo-action="archive">Открыть архив</button>
+                    </div>
+                    <div class="bookmark-card-foot">
+                      <span class="bookmark-read-state">Прочитать</span
+                      ><button class="ibtn" data-demo-action="favorite" aria-label="Избранное для закладки демо" aria-pressed="false">
+                        <svg
+                          class="i"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </article>
+                </div>
+              </div>
+              <p class="example-empty" hidden>Ничего не найдено. Измените запрос.</p>
+              <template data-demo-archive
+                ><article class="example-saved-page">
+                  <small>Пример сохранённого HTML · 17 ноября 2026</small>
+                  <h3>Работайте с контекстом.</h3>
+                  <p>Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
+                  <div class="example-saved-columns"><span>Знания</span><span>Проекты</span><span>Файлы</span></div>
+                  <p>Настоящий архив сохраняет загруженные стили, изображения и шрифты страницы. Скрипты и встроенные страницы отключены.</p>
+                </article></template
+              >
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
+            </div>
           </div>
         </section>
         <section class="feature-story" id="feature-whiteboards">
@@ -388,28 +1678,122 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Холсты</small></div>
-            <div class="canvas-trial" data-product-canvas>
-              <div class="canvas-trial-tools">
-                <span>Демо: изменения не сохраняются</span><button type="button" data-demo-connections aria-pressed="true">Связи</button
-                ><button type="button" data-demo-reset>Сбросить</button>
+            <div class="product-demo" data-product-example="4">
+              <div class="canvas-trial" data-product-canvas>
+                <div class="canvas-trial-tools">
+                  <button type="button" class="btn btn-secondary" data-demo-action="canvas-add">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="M12 5v14" /></svg
+                    >Добавить карточку</button
+                  ><button class="btn btn-secondary" type="button" data-demo-connections aria-pressed="true">Связи</button
+                  ><button class="btn btn-ghost" type="button" data-demo-reset>Сбросить</button>
+                </div>
+                <div class="canvas-trial-stage">
+                  <svg aria-hidden="true"><path /></svg>
+                  <div class="trial-node trial-node-0" data-demo-node="0">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды"><strong>Вопрос команды</strong></button
+                    ><span>Закладки</span
+                    ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M19 13v6h-6" />
+                        <path d="M5 11V5h6" />
+                        <path d="m5 5 14 14" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="trial-node trial-node-1" data-demo-node="1">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><strong>Решение</strong></button><span>Решение</span
+                    ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M19 13v6h-6" />
+                        <path d="M5 11V5h6" />
+                        <path d="m5 5 14 14" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="trial-node trial-node-2" data-demo-node="2">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг"><strong>Следующий шаг</strong></button
+                    ><span>Проекты</span
+                    ><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M19 13v6h-6" />
+                        <path d="M5 11V5h6" />
+                        <path d="m5 5 14 14" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <p class="canvas-trial-hint">Тяните за заголовок или угол. Клавиатура: стрелки, Shift — больший шаг.</p>
               </div>
-              <div class="canvas-trial-stage">
-                <svg aria-hidden="true"><path /></svg>
-                <div class="trial-node trial-node-0" data-demo-node="0">
-                  <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды">
-                    <small>01</small><strong>Вопрос команды</strong></button
-                  ><span>Закладки</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">↘</button>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
                 </div>
-                <div class="trial-node trial-node-1" data-demo-node="1">
-                  <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><small>02</small><strong>Решение</strong></button
-                  ><span>Решение</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">↘</button>
-                </div>
-                <div class="trial-node trial-node-2" data-demo-node="2">
-                  <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг"><small>03</small><strong>Следующий шаг</strong></button
-                  ><span>Проекты</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">↘</button>
-                </div>
-              </div>
-              <p class="canvas-trial-hint">Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.</p>
+                <div class="example-dialog-body"></div>
+              </dialog>
             </div>
           </div>
         </section>
@@ -433,30 +1817,103 @@
           </div>
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Граф связей</small></div>
-            <div class="demo-graph">
-              <svg viewBox="0 0 700 260" role="img" aria-label="Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.">
-                <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
-                <g>
-                  <circle cx="350" cy="120" r="22" class="graph-color-0" />
-                  <text x="350" y="157" text-anchor="middle">Проект</text>
-                </g>
-                <g>
-                  <circle cx="160" cy="55" r="12" class="graph-color-1" />
-                  <text x="160" y="92" text-anchor="middle">Заметка</text>
-                </g>
-                <g>
-                  <circle cx="150" cy="205" r="12" class="graph-color-2" />
-                  <text x="150" y="242" text-anchor="middle">Файл</text>
-                </g>
-                <g>
-                  <circle cx="555" cy="55" r="12" class="graph-color-3" />
-                  <text x="555" y="92" text-anchor="middle">Задача</text>
-                </g>
-                <g>
-                  <circle cx="555" cy="205" r="12" class="graph-color-4" />
-                  <text x="555" y="242" text-anchor="middle">Источник</text>
-                </g>
-              </svg>
+            <div class="product-demo" data-product-example="5">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <rect x="16" y="16" width="6" height="6" rx="1" />
+                    <rect x="2" y="16" width="6" height="6" rx="1" />
+                    <rect x="9" y="2" width="6" height="6" rx="1" />
+                    <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                    <path d="M12 12V8" /></svg></span
+                ><strong>Граф</strong>
+              </div>
+              <div class="example-toolbar">
+                <button type="button" class="btn btn-secondary" data-demo-action="graph-simple">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="1" /></svg
+                  >Упрощённый вид</button
+                ><span class="hint">Выберите узел, чтобы увидеть его связи.</span>
+              </div>
+              <div class="demo-graph">
+                <svg viewBox="0 0 700 260" aria-hidden="true">
+                  <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
+                  <g>
+                    <circle cx="350" cy="120" r="22" class="graph-color-0" />
+                    <text x="350" y="157" text-anchor="middle">Проект</text>
+                  </g>
+                  <g>
+                    <circle cx="160" cy="55" r="12" class="graph-color-1" />
+                    <text x="160" y="92" text-anchor="middle">Заметка</text>
+                  </g>
+                  <g>
+                    <circle cx="150" cy="205" r="12" class="graph-color-2" />
+                    <text x="150" y="242" text-anchor="middle">Файл</text>
+                  </g>
+                  <g>
+                    <circle cx="555" cy="55" r="12" class="graph-color-3" />
+                    <text x="555" y="92" text-anchor="middle">Задача</text>
+                  </g>
+                  <g>
+                    <circle cx="555" cy="205" r="12" class="graph-color-4" />
+                    <text x="555" y="242" text-anchor="middle">Источник</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="example-graph-nodes" aria-label="Выбрать узел графа">
+                <button class="btn btn-secondary" data-demo-action="graph-node" data-node="0" aria-pressed="false">Проект</button
+                ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="1" aria-pressed="false">Заметка</button
+                ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="2" aria-pressed="false">Файл</button
+                ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="3" aria-pressed="false">Задача</button
+                ><button class="btn btn-secondary" data-demo-action="graph-node" data-node="4" aria-pressed="false">Источник</button>
+              </div>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
             </div>
           </div>
         </section>
@@ -486,8 +1943,8 @@
               <div>
                 <dt>Развёртывание для команды</dt>
                 <dd>
-                  Smena можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют настройки.
-                  Встроенный платный ИИ-провайдер не включён по умолчанию.
+                  smena.team можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют
+                  настройки. Встроенный платный ИИ-провайдер не включён по умолчанию.
                 </dd>
               </div>
             </dl>
@@ -496,7 +1953,7 @@
           <div class="story-scene">
             <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Пространства, доступ и интеграции</small></div>
             <div class="demo-access">
-              <span class="type-pill">SMENA / КОМАНДА</span>
+              <span class="type-pill">smena.team / КОМАНДА</span>
               <h4>Общая работа. Ваши настройки.</h4>
               <div><b>Пространства</b><span>Команда · Личное</span></div>
               <div><b>Доступ</b><span>Роли · Срок ссылки · Отзыв</span></div>
@@ -513,7 +1970,7 @@
             <article>
               <span class="path-label">01</span>
               <h3>Я сотрудник</h3>
-              <p>Если команда уже работает в Smena, отдельная регистрация не нужна.</p>
+              <p>Если команда уже работает в smena.team, отдельная регистрация не нужна.</p>
               <ol>
                 <li>Попросите администратора добавить ваш Google-аккаунт в команду.</li>
                 <li>Войдите и выберите доступное рабочее пространство.</li>
@@ -532,7 +1989,7 @@
               </ol>
               <a
                 class="button secondary"
-                href="mailto:hello@smena.agency?subject=Smena%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
+                href="mailto:hello@smena.agency?subject=smena.team%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
                 >Обсудить запуск команды</a
               ><a class="contact-link" href="mailto:hello@smena.agency">hello@smena.agency</a>
             </article>
@@ -552,7 +2009,7 @@
           <details>
             <summary>Это замена сразу всем инструментам?<span aria-hidden="true">+</span></summary>
             <p>
-              Smena объединяет основные рабочие сценарии. Сложный монтаж, полноценные дизайн-макеты и специализированные инструменты остаются во внешних
+              smena.team объединяет основные рабочие сценарии. Сложный монтаж, полноценные дизайн-макеты и специализированные инструменты остаются во внешних
               приложениях; результаты можно хранить и связывать здесь.
             </p>
           </details>
@@ -580,14 +2037,14 @@
         </div>
       </section>
       <section class="final-cta wrap">
-        <p class="eyebrow">SMENA.TEAM</p>
+        <p class="eyebrow">smena.team</p>
         <h2>Меньше поиска контекста.<br />Больше совместной работы.</h2>
         <p>Начните с одного проекта и соберите рядом всё, что помогает его сделать.</p>
         <div class="cta-row">
           <a class="button primary" href="#demo">Посмотреть демо<span aria-hidden="true">↗</span></a
           ><a
             class="button secondary"
-            href="mailto:hello@smena.agency?subject=Smena%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
+            href="mailto:hello@smena.agency?subject=smena.team%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
             >Обсудить запуск команды</a
           >
         </div>
@@ -595,7 +2052,7 @@
     </main>
     <footer class="site-footer wrap">
       <div>
-        <a class="brand" href="/product.html">SMENA.</a>
+        <a class="brand" href="/product.html">smena.team</a>
         <p>Проекты · знания · материалы</p>
         <p class="agency-credit">Создано агентством <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p>
       </div>
@@ -603,7 +2060,7 @@
         <a href="/about.html">О сервисе и Google</a><a href="/mcp-setup.html">Подключение MCP</a><a href="/privacy.html">Конфиденциальность</a
         ><a href="/terms.html">Условия</a><a href="mailto:hello@smena.agency">hello@smena.agency</a>
       </nav>
-      <small>© 2026 Smena Manager</small>
+      <small>© 2026 smena.team</small>
     </footer>
   </body>
 </html>
