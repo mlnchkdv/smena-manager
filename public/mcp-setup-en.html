@@ -60,6 +60,26 @@ npm ci</code></pre>
           <li>Select <strong>“Create token” → “Copy token”</strong>. The value is shown only once.</li>
         </ol>
         <p>
+          If “Read notes” is unavailable or Smena says MCP access is disabled for your account, contact your administrator. This is a personal restriction: a
+          member cannot remove it themselves, even when workspace integrations are enabled.
+        </p>
+        <details id="admin-access">
+          <summary>For administrators: prepare employee access</summary>
+          <ol>
+            <li>Open <strong>Settings → Integrations</strong> in the intended workspace and enable integrations.</li>
+            <li>
+              Under <strong>Member access</strong>, expand the employee, enable “Allow MCP access”, select the required permissions, and choose
+              <strong>“Save permissions”</strong>. “Read notes” is sufficient for note search and reading. Writes and files also require the matching workspace
+              permissions.
+            </li>
+            <li>
+              Share this guide with the employee. They sign in with their own Google account, create their own token, and save it on their own computer. A token
+              created in an administrator’s account belongs to that administrator.
+            </li>
+          </ol>
+          <p>Disabling personal access revokes the employee’s existing tokens. Enabling access again does not restore those old tokens.</p>
+        </details>
+        <p>
           The token belongs to your account and the selected workspace. Read access covers that workspace’s notes; a folder search filter does not restrict
           token permissions. Never put the token in a chat, Git, or a message to a colleague.
         </p>
@@ -129,6 +149,19 @@ tool_timeout_sec = 60</code></pre>
           Seeing write tools in the list does not grant write access. The token, your role, and workspace settings determine access. Writing is not needed for
           this initial connection.
         </p>
+        <details id="participant-check">
+          <summary>Verify an ordinary member’s connection</summary>
+          <ul>
+            <li><code>get_context</code> identifies the employee and intended workspace. A Member role is returned as <code>user.role: editor</code>.</li>
+            <li><code>scopes</code> includes <code>knowledge:read</code>, and searching for and reading a known note both succeed.</li>
+            <li>The employee sees their own connections in Smena and cannot see administrator controls for other members’ personal permissions.</li>
+            <li>After refreshing Smena and reconnecting MCP, the same account, workspace and restrictions remain in effect.</li>
+          </ul>
+          <p>
+            If <code>get_context</code> identifies a manager with the <code>admin</code> role, it is the manager’s connection. The employee needs their own
+            token.
+          </p>
+        </details>
       </section>
 
       <section id="help" aria-labelledby="help-title">
