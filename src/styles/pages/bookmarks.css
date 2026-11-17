@@ -491,6 +491,27 @@
 .bookmark-viewer-url {
   overflow-wrap: anywhere;
 }
+.bookmark-viewer-dialog .modal-b {
+  gap: 12px;
+}
+.bookmark-viewer-dialog .modal-b > p,
+.bookmark-viewer-heading > * {
+  margin: 0;
+}
+.bookmark-viewer-heading {
+  display: grid;
+  gap: 4px;
+}
+.bookmark-page-notice {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.bookmark-page-notice > summary {
+  cursor: pointer;
+}
+.bookmark-viewer-dialog .bookmark-page-reader {
+  margin-block: 0;
+}
 .bookmark-page-reader {
   margin-block: 16px;
   border: 1px solid var(--border);

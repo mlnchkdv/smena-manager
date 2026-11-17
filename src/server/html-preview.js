@@ -4,6 +4,16 @@ export const HTML_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
 export const HTML_PREVIEW_CSP =
   "sandbox; default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
 
+export function decodeHtml(buffer, mimeType = '') {
+  const declared = /charset\s*=\s*["']?([^\s;"'/>]+)/i.exec(mimeType + ' ' + buffer.subarray(0, 4096).toString('latin1'))?.[1];
+  const charset = buffer[0] === 255 && buffer[1] === 254 ? 'utf-16le' : buffer[0] === 254 && buffer[1] === 255 ? 'utf-16be' : declared || 'utf-8';
+  try {
+    return new TextDecoder(charset).decode(buffer);
+  } catch {
+    return buffer.toString('utf8');
+  }
+}
+
 // This document is served only inside an opaque-origin, scriptless sandbox.
 // Original CSS is useful for exported reports; external resources, forms,
 // frames, links and active markup cannot reach the network or the parent app.

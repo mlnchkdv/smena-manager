@@ -45,7 +45,7 @@ export function bookmarkReaderPage(page) {
       'a',
     ],
     allowedAttributes: { td: ['colspan', 'rowspan'], th: ['colspan', 'rowspan'] },
-    nonTextTags: ['script', 'style', 'textarea', 'option', 'noscript', 'iframe', 'object', 'svg', 'math', 'template', 'nav', 'footer', 'form'],
+    nonTextTags: ['head', 'title', 'script', 'style', 'textarea', 'option', 'noscript', 'iframe', 'object', 'svg', 'math', 'template', 'nav', 'footer', 'form'],
   });
   if (!sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).trim()) throw pageError('PAGE_EMPTY');
   return { ...pageMetadata(page.html, page.url), html, capturedAt: new Date().toISOString() };

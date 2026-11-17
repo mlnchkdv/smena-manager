@@ -3,6 +3,7 @@ import https from 'node:https';
 import { lookup } from 'node:dns/promises';
 import { BlockList, isIP } from 'node:net';
 import sanitizeHtml from '../../.generated/sanitizer.mjs';
+import { decodeHtml } from './html-preview.js';
 
 const blocked = new BlockList();
 for (const [address, prefix] of [
@@ -91,13 +92,7 @@ export async function fetchPublicPage(value, { resolve = lookup, transport, sign
               if (bytes > 2 * 1024 * 1024) throw pageError('PAGE_TOO_LARGE', 413);
               chunks.push(chunk);
             }
-            const charset = /charset\s*=\s*["']?([^\s;"']+)/i.exec(response.headers['content-type'])?.[1] || 'utf-8';
-            let html;
-            try {
-              html = new TextDecoder(charset).decode(Buffer.concat(chunks));
-            } catch {
-              html = Buffer.concat(chunks).toString('utf8');
-            }
+            const html = decodeHtml(Buffer.concat(chunks), response.headers['content-type']);
             resolveResult({ html, url: url.href });
           } catch (error) {
             response.destroy();

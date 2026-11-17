@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { htmlPreviewDocument, HTML_PREVIEW_CSP } from '../../src/server/html-preview.js';
+import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP } from '../../src/server/html-preview.js';
 import { app } from '../../src/server/app.js';
 import { memberSharingFixture } from '../fixtures/member-sharing.js';
 
@@ -13,6 +13,12 @@ test('HTML exports preserve formatting inside a scriptless network-isolated docu
   assert.match(html, /<h1>Report<\/h1>/);
   assert.doesNotMatch(html, /onclick|<script|<iframe|<form|<input|https:\/\/evil|javascript:/);
   assert.match(HTML_PREVIEW_CSP, /sandbox; default-src 'none'; script-src 'none'/);
+});
+
+test('HTML decoding respects exported Cyrillic encodings and UTF-16 BOM', () => {
+  const bytes = Buffer.concat([Buffer.from('<meta charset="windows-1251"><p>'), Buffer.from([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]), Buffer.from('</p>')]);
+  assert.match(decodeHtml(bytes), /Привет/);
+  assert.match(decodeHtml(Buffer.from('\ufeff<h1>Привет</h1>', 'utf16le')), /Привет/);
 });
 
 test('HTML preview requires the current account, project access and bounded stored bytes', async () => {

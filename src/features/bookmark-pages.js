@@ -64,9 +64,9 @@ function pageFailure(error) {
 function viewer(m, H) {
   const stamp = value => new Date(value).toLocaleString(isRussian() ? 'ru-RU' : 'en-US');
   return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" translate="no">
-    <h3 class="bookmark-viewer-title">${esc(m.title)}</h3><p class="hint bookmark-viewer-url">${esc(m.url)}</p>
+    <div class="bookmark-viewer-heading"><h3 class="bookmark-viewer-title">${esc(m.title)}</h3><p class="hint bookmark-viewer-url">${esc(m.url)}</p></div>
     <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${m.snapshots.map(ref => `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${words('Saved', 'Копия от')} ${esc(stamp(ref.capturedAt))}</option>`).join('')}</select></label>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.busy || m.snapshots.length >= 10 ? 'disabled' : ''}>${words('Save a new page copy', 'Сохранить новую копию')}</button>` : ''}<a class="btn btn-ghost" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">${words('Open original', 'Открыть оригинал')}</a></div>
-    <p class="hint">${words('A readable copy of public page text and tables. Scripts, images and interactive elements are excluded. Sign-in pages and content loaded by JavaScript may be incomplete.', 'Читаемая копия текста и таблиц публичной страницы. Скрипты, изображения и интерактивные элементы исключены. Страницы со входом и содержимое, загружаемое JavaScript, могут быть неполными.')}</p>
+    <details class="bookmark-page-notice"><summary>${words('About saved copies', 'О копиях страниц')}</summary><p class="hint">${words('A readable copy of public page text and tables. Scripts, images and interactive elements are excluded. Sign-in pages and content loaded by JavaScript may be incomplete. Up to 10 copies per bookmark; older copies are retained.', 'Читаемая копия текста и таблиц публичной страницы. Скрипты, изображения и интерактивные элементы исключены. Страницы со входом и содержимое, загружаемое JavaScript, могут быть неполными. До 10 копий на закладку; прежние копии сохраняются.')}</p></details>
     ${m.busy ? `<p role="status">${words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Retry', 'Повторить')}</button>` : ''}
     ${m.page && !m.busy ? `<p class="hint" role="status">${m.selected === 'live' ? words('Preview only — not saved.', 'Предпросмотр — копия ещё не сохранена.') : words('Saved copy. Available even if the original changes or disappears.', 'Сохранённая копия. Доступна, даже если оригинал изменится или исчезнет.')} · ${esc(stamp(m.page.capturedAt))}</p><article class="bookmark-page-reader">${m.page.html}</article>` : ''}
     </div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${words('Close', 'Закрыть')}</button></div>`;
@@ -138,7 +138,9 @@ A.saveBookmarkPage = async () => {
     m.snapshots.unshift(result.snapshot);
     m.selected = result.snapshot.id;
     m.page = result.page;
-    await refreshWorkspaceFromServer();
+    // The durable save already succeeded. A failed refresh must not tell the
+    // user the copy was lost or cause a duplicate save on retry.
+    await refreshWorkspaceFromServer().catch(() => {});
     if (currentViewer(m)) toast(words('Page copy saved. Previous copies are retained.', 'Копия страницы сохранена. Предыдущие копии не изменены.'));
   } catch (error) {
     if (currentViewer(m)) m.error = pageFailure(error);

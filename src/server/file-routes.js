@@ -1,4 +1,4 @@
-import { htmlPreviewDocument, HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
+import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -545,7 +545,7 @@ export async function renderHtmlFilePreview(request, response, next) {
     response
       .set({ 'Content-Security-Policy': HTML_PREVIEW_CSP, 'Referrer-Policy': 'no-referrer' })
       .type('html')
-      .send(htmlPreviewDocument(Buffer.concat(chunks).toString('utf8')));
+      .send(htmlPreviewDocument(decodeHtml(Buffer.concat(chunks), file.mimeType)));
   } catch (error) {
     next(error);
   }

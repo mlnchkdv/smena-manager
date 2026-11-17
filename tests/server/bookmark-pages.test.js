@@ -77,4 +77,8 @@ test('autofill does not overwrite manual edits, populated drafts or stale URLs',
   assert.deepEqual(applyBookmarkMetadata(existing, { title: 'New', description: 'New' }, existing), []);
   assert.equal(normalizedPageUrl('example.com/path'), 'https://example.com/path');
   assert.equal(normalizedPageUrl('https://user:pass@example.com'), null);
+  const automatic = { title: '', description: '' };
+  applyBookmarkMetadata(automatic, { title: 'First page' }, { ...automatic });
+  applyBookmarkMetadata(automatic, { title: 'Second page' }, { ...automatic });
+  assert.equal(automatic.title, 'Second page', 'changing the URL replaces only untouched automatic values');
 });
