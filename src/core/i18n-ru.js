@@ -1170,6 +1170,7 @@ export const RU = {
   About: 'О продукте',
   'Coming up': 'Ближайшие задачи',
   'View list': 'Открыть список',
+  Milestone: 'Этап',
   Milestones: 'Этапы',
   'Project milestones': 'Этапы проекта',
   Manage: 'Управлять',
