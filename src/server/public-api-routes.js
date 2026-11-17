@@ -52,7 +52,8 @@ const page = (rows, request, context) => {
 };
 publicApiRouter.get(
   '/me',
-  read,
+  // Authentication already checks the live member and personal grant. Context
+  // describes this token only; file-only clients need it without note access.
   route(async (req, res) => {
     res.json({
       user: { id: req.user.id, name: req.user.name || '', role: req.user.role },
@@ -68,7 +69,6 @@ publicApiRouter.get(
 );
 publicApiRouter.get(
   '/workspaces',
-  read,
   route(async (req, res) =>
     res.json({ items: [{ id: req.integration.workspaceId, name: req.integrationWorkspace.name || '', slug: req.integrationWorkspace.url || '' }] }),
   ),

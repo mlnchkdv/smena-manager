@@ -20,7 +20,6 @@
             "integrationToken": []
           }
         ],
-        "x-required-scope": "knowledge:read",
         "parameters": [],
         "responses": {
           "200": {
@@ -133,7 +132,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Requires a valid integration token and active workspace membership. Returns only the current connection context and effective permissions; no note or file content is read."
       }
     },
     "/workspaces": {
@@ -145,7 +145,6 @@
             "integrationToken": []
           }
         ],
-        "x-required-scope": "knowledge:read",
         "parameters": [],
         "responses": {
           "200": {
@@ -258,7 +257,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Returns only the workspace bound to this valid integration token, including for file-only connections. Does not grant content access."
       }
     },
     "/workspaces/{w}/folders": {
