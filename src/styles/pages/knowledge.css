@@ -2296,3 +2296,7 @@
     min-height: 44px;
   }
 }
+
+.knowledge-preview-excerpt[hidden] {
+  display: none;
+}
