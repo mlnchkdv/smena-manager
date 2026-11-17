@@ -49,6 +49,16 @@ test('ordinary members cannot widen MCP grants or manage another member token or
     assert.equal((await tokenCall(owned.token, '/me')).status, 200);
     assert.equal((await tokenCall(owned.token, '/workspaces/default/notes/note')).status, 200);
     assert.equal((await tokenCall(owned.token, '/workspaces/default/files/file')).status, 200);
+    const filesOnlyResponse = await call(1, 'POST', '/api/integrations', { name: 'Files only', scopes: ['files:read'], expiresInDays: 1 });
+    assert.equal(filesOnlyResponse.status, 201);
+    const filesOnly = await filesOnlyResponse.json();
+    const filesOnlyContext = await (await tokenCall(filesOnly.token, '/me')).json();
+    assert.equal(filesOnlyContext.user.role, 'editor');
+    assert.deepEqual(filesOnlyContext.scopes, ['files:read']);
+    assert.equal((await tokenCall(filesOnly.token, '/workspaces')).status, 200);
+    assert.equal((await tokenCall(filesOnly.token, '/workspaces/default/files/file')).status, 200);
+    assert.equal((await tokenCall(filesOnly.token, '/workspaces/default/notes/note')).status, 403);
+    assert.equal((await call(1, 'DELETE', '/api/integrations/' + filesOnly.integration.id)).status, 200);
     const blocked = {
       'knowledge:read': ['/workspaces/default/notes/note'],
       'knowledge:write': ['/workspaces/default/notes', 'POST', { title: 'Denied', content_markdown: 'must not be written' }],

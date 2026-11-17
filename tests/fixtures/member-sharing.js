@@ -31,6 +31,7 @@ export async function memberSharingFixture() {
     ...createEmptyDatabase(),
     me: 'owner',
     ws: { name: 'Member access QA', url: 'member-qa' },
+    projOrder: ['shared', 'private'],
     members: profiles.map((profile, index) => ({
       id: ['owner', 'member', 'other'][index],
       authProfileId: profile.id,
@@ -58,8 +59,27 @@ export async function memberSharingFixture() {
       },
     ],
     files: [
-      { id: 'file', project: 'shared', folderId: 'file-folder', name: 'member.txt', storageName: 'member.txt', mimeType: 'text/plain', bytes: 16 },
-      { id: 'private-file', project: 'private', name: 'private.txt', storageName: 'private.txt', mimeType: 'text/plain', bytes: 6 },
+      {
+        id: 'file',
+        project: 'shared',
+        folderId: 'file-folder',
+        name: 'member.txt',
+        storageName: 'member.txt',
+        mimeType: 'text/plain',
+        bytes: 16,
+        by: 'member',
+        at: new Date().toISOString(),
+      },
+      {
+        id: 'private-file',
+        project: 'private',
+        name: 'private.txt',
+        storageName: 'private.txt',
+        mimeType: 'text/plain',
+        bytes: 6,
+        by: 'owner',
+        at: new Date().toISOString(),
+      },
     ],
   };
   const provider = getStorageProvider();
