@@ -50,6 +50,8 @@ export const A = {},
   BLUR = {};
 A.reloadLanguage = () => location.reload();
 A.integrationAction = el => import('../ui/integrations.js').then(module => module.integrationAction(el));
+IN.integrationMemberField = el => import('../ui/integrations.js').then(module => module.captureIntegrationMemberDraft(el));
+IN.publicLinkDays = el => import('../ui/public-links.js').then(module => module.capturePublicLinkDays(el));
 A.publicFileLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('file', el.dataset.id));
 A.publicNoteLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('note', el.dataset.id));
 A.publicFileFolderLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('file-folder', el.dataset.folder, el.dataset.project));

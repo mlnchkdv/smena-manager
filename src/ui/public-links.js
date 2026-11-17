@@ -70,7 +70,7 @@ function publicLinkDialog(m, H) {
     ${m.loading ? `<p role="status">${copy('Loading links…', 'Загружаем ссылки…')}</p>` : active.length ? `<div class="public-link-list">${active.map(link => `<section class="public-link-row" aria-label="${copy('Active link', 'Действующая ссылка')}"><label for="public-link-${esc(link.id)}">${link.expiresAt ? `${copy('Available until', 'Доступна до')} ${esc(fmtTimestamp(link.expiresAt))}` : copy('No expiry', 'Без срока действия')}</label><input id="public-link-${esc(link.id)}" class="input" readonly value="${esc(absolute(link.path))}" aria-label="${copy('Public URL', 'Публичный адрес')}" spellcheck="false"><div class="row wrap"><button class="btn btn-secondary" data-a="publicLinkAction" data-op="copy" data-id="${esc(link.id)}" ${busy ? 'disabled' : ''}>${ic('copy', 15)}${copy('Copy link', 'Скопировать ссылку')}</button><a class="btn btn-ghost" href="${esc(absolute(link.path))}" target="_blank" rel="noopener noreferrer">${ic('external-link', 15)}${copy('Open', 'Открыть')}</a><button class="btn btn-danger-ghost" data-a="publicLinkAction" data-op="revoke" data-id="${esc(link.id)}" ${busy ? 'disabled' : ''}>${copy('Revoke access', 'Отозвать доступ')}</button></div></section>`).join('')}</div>` : `<p class="hint">${copy('No active public links. This material is private.', 'Действующих публичных ссылок нет. Материал закрыт.')}</p>`}
     ${
       !m.loading && !m.error
-        ? `<div class="public-link-create"><label for="public-link-days">${copy('Link lifetime', 'Срок действия ссылки')}</label><select id="public-link-days" class="select" ${busy ? 'disabled' : ''}>${[
+        ? `<div class="public-link-create"><label for="public-link-days">${copy('Link lifetime', 'Срок действия ссылки')}</label><select id="public-link-days" class="select" data-in="publicLinkDays" ${busy ? 'disabled' : ''}>${[
             [1, '1 day', '1 день'],
             [7, '7 days', '7 дней'],
             [30, '30 days', '30 дней'],
@@ -116,4 +116,9 @@ export async function publicLinkAction(el) {
     m.busy = false;
     if (m.scope === scope() && S.ui.modals.includes(m)) render();
   }
+}
+
+export function capturePublicLinkDays(el) {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'publicLink' && m.scope === scope()) m.days = Number(el.value);
 }
