@@ -3,7 +3,7 @@ const tablist = document.querySelector('.demo-tabs');
 const tabs = [...(tablist?.querySelectorAll('a') || [])];
 if (tabs.length) {
   tablist.setAttribute('role', 'tablist');
-  function select(tab, focus = false) {
+  function select(tab, focus = false, updateUrl = false) {
     for (const item of tabs) {
       const selected = item === tab;
       item.setAttribute('aria-selected', String(selected));
@@ -11,6 +11,7 @@ if (tabs.length) {
       document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
     }
     if (focus) tab.focus();
+    if (updateUrl) history.replaceState(null, '', tab.hash);
   }
   for (const tab of tabs) {
     const id = tab.hash.slice(1);
@@ -21,7 +22,7 @@ if (tabs.length) {
     panel.tabIndex = 0;
     tab.addEventListener('click', event => {
       event.preventDefault();
-      select(tab);
+      select(tab, false, true);
     });
     tab.addEventListener('keydown', event => {
       let index = tabs.indexOf(tab);
@@ -31,7 +32,7 @@ if (tabs.length) {
       else if (event.key === 'End') index = tabs.length - 1;
       else return;
       event.preventDefault();
-      select(tabs[index], true);
+      select(tabs[index], true, true);
     });
   }
   select(tabs.find(tab => tab.hash === location.hash) || tabs[0]);
@@ -205,10 +206,13 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
   });
   example.querySelector('[data-demo-type]')?.addEventListener('change', event => status(words('Type: ', '\u0422\u0438\u043f: ') + event.target.value));
   example.querySelector('[data-demo-search]')?.addEventListener('input', event => {
-    const card = example.querySelector('.bookmark-card');
-    const found = card.textContent.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase().trim());
-    card.hidden = !found;
-    example.querySelector('.example-empty').hidden = found;
+    let matches = 0;
+    for (const card of example.querySelectorAll('.bookmark-card')) {
+      const found = card.textContent.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase().trim());
+      card.hidden = !found;
+      if (found) matches++;
+    }
+    example.querySelector('.example-empty').hidden = matches > 0;
   });
 }
 

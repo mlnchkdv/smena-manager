@@ -299,6 +299,7 @@ p {
   box-shadow: inset 0 -2px var(--accent);
 }
 .demo-panel {
+  scroll-margin-top: 160px;
   padding: 24px;
   min-width: 0;
 }
@@ -730,6 +731,12 @@ dd {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
+}
+.story-scene .product-demo .bookmark-library .bookmark-grid {
+  grid-template-columns: 1fr;
+}
+.demo-panel .product-demo .bookmark-library .bookmark-grid:not(.is-list) {
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
 .example-page-cover {
   display: flex;
