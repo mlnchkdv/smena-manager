@@ -86,6 +86,18 @@ test('shared material counts agree in Russian and English, including 21', () => 
   );
 });
 
+test('personal home empty state supports task counts in Russian and English', () => {
+  const counts = [0, 1, 2, 5, 11, 21, 22];
+  assert.deepEqual(
+    counts.map(n => countLabel(n, 'task', 'ru-RU')),
+    ['0 задач', '1 задача', '2 задачи', '5 задач', '11 задач', '21 задача', '22 задачи'],
+  );
+  assert.deepEqual(
+    counts.map(n => countLabel(n, 'task', 'en-US')),
+    ['0 tasks', '1 task', '2 tasks', '5 tasks', '11 tasks', '21 tasks', '22 tasks'],
+  );
+});
+
 test('cycle activity retains the recorded name verbatim across languages and later configuration changes', () => {
   const activity = { verb: 'changed cycle of', change: { field: 'cycleId', value: 'c', valueLabel: 'Done / План' } };
   const before = structuredClone(activity);

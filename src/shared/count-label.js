@@ -1,4 +1,5 @@
 const NOUNS = {
+  task: { en: ['task', 'tasks'], ru: ['задача', 'задачи', 'задач'] },
   node: { en: ['node', 'nodes'], ru: ['узел', 'узла', 'узлов'] },
   group: { en: ['group', 'groups'], ru: ['группа', 'группы', 'групп'] },
   line: { en: ['line', 'lines'], ru: ['линия', 'линии', 'линий'] },
