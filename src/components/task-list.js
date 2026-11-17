@@ -32,7 +32,7 @@ export function cellAssignee(t) {
   return `<button ${taskDisabled(t)} class="pillbtn ${m ? '' : 'empty'}" data-a="pop" data-pop="assignee" data-id="${t.id}" aria-label="${esc(tr('Assignee'))}: ${esc(m?.name || tr('Unassigned'))}">${av(t.assignee, 'sm', false)}<span class="trunc" ${m ? 'translate="no"' : ''}>${m ? esc(m.name) : 'Unassigned'}</span></button>`;
 }
 export function cellPrio(t) {
-  return `<button ${taskDisabled(t)} class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}">${prPill(t.priority)}</button>`;
+  return `<button ${taskDisabled(t)} class="pillbtn ${t.priority === 'none' ? 'empty' : ''}" data-a="pop" data-pop="priority" data-id="${t.id}" aria-label="${esc(tr('Priority'))}: ${esc(tr(PR[t.priority]?.name || t.priority))}" title="${esc(tr(PR[t.priority]?.name || t.priority))}">${t.priority === 'none' ? '<span aria-hidden="true">—</span>' : prPill(t.priority)}</button>`;
 }
 export function cellDue(t) {
   return `<button ${taskDisabled(t)} class="pillbtn ${t.due ? (isOver(t) ? 'over' : '') : 'empty'}" data-a="pop" data-pop="date" data-field="due" data-id="${t.id}"><span class="sr">${esc(tr('Due date'))}: </span>${t.due ? `${ic('calendar', 13)}<span class="num">${relDate(t.due)}</span>` : `${ic('calendar', 13)}<span>Set date</span>`}</button>`;
