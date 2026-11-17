@@ -15,6 +15,7 @@ import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
 import { isRussian, t as tr, uiCount } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
+import { pageIntroduction } from '../ui/page-introduction.js';
 
 const teamDescription = value => (!value || value === 'No description yet.' ? tr('No description yet.') : value);
 const recordedMemberLabel = (member, times) =>
@@ -127,7 +128,7 @@ export function teamsGrid() {
 }
 export function pageTeams() {
   const canManage = canManageTeams(S.ui.currentUser?.role);
-  return `<div class="page"><div class="ph"><div><h1>Teams</h1><p>Groups of people who work on projects together.</p></div>${canManage ? `<div class="acts"><button class="btn btn-primary" data-a="newTeam">${ic('plus', 14)}New team</button></div>` : ''}</div>${teamsList().length ? teamsGrid() : `<div class="panel">${empty('users', 'No teams yet', 'An administrator can create a team to group people and projects.', canManage ? `<button class="btn btn-primary btn-sm" data-a="newTeam">${ic('plus', 14)}New team</button>` : '')}</div>`}</div>`;
+  return `<div class="page teams-page"><div class="ph compact-page-head"><div><div class="row" style="gap:8px"><h1>Teams</h1>${pageIntroduction('Groups of people who work on projects together.')}</div><p class="page-description">Groups of people who work on projects together.</p></div>${canManage ? `<div class="acts"><button class="btn btn-primary" data-a="newTeam" aria-label="New team">${ic('plus', 14)}<span class="hide-m">New team</span></button></div>` : ''}</div>${teamsList().length ? teamsGrid() : `<div class="panel">${empty('users', 'No teams yet', 'An administrator can create a team to group people and projects.', canManage ? `<button class="btn btn-primary btn-sm" data-a="newTeam">${ic('plus', 14)}New team</button>` : '')}</div>`}</div>`;
 }
 export function pageTeam() {
   const t = team(S.ui.params.id);

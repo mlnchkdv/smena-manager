@@ -1,0 +1,1737 @@
+{
+  "date": "2026-11-17",
+  "production": "https://smena.team",
+  "baselineVersion": "7db28a594b6f8da1574bc8d5aea7ebde5a2205d1",
+  "coverage": {
+    "baselineStates": 24,
+    "baselineWidths": [390, 1366],
+    "routes": [
+      "calendar",
+      "timeline",
+      "activity",
+      "notifications",
+      "inbox",
+      "members",
+      "teams",
+      "archive",
+      "search",
+      "favorites",
+      "settings/profile",
+      "settings/preferences"
+    ]
+  },
+  "stages": [
+    {
+      "commit": "bc4a1bb6",
+      "area": "Calendar",
+      "states": 63,
+      "widths": [320, 390, 640, 768, 1024, 1366, 1440],
+      "routes": ["calendar", "mytasks", "project/prj/calendar"],
+      "modes": ["month", "week", "agenda"],
+      "mobileAgendaFirstTop": {
+        "before": 380,
+        "after": 295
+      },
+      "checks": ["all calendar layers", "all-hidden warning", "previous/next/today", "day list", "no root overflow"],
+      "existingE2E": "Chromium audit six: calendar clearance, anchored menus, mobile folders and catalog states in both languages — passed",
+      "ci": "https://github.com/mlnchkdv/smena-manager/actions/runs/43951636688"
+    },
+    {
+      "commit": "fd99dc17",
+      "area": "Activity",
+      "states": 8,
+      "widths": [320, 390, 640, 641, 768, 1024, 1366, 1440],
+      "mobileFirstTop": {
+        "before": 429,
+        "after": 325
+      },
+      "checks": ["event type retained after reload", "search and reset", "period presets", "grouping", "person filter"],
+      "ci": "https://github.com/mlnchkdv/smena-manager/actions/runs/43952656105"
+    },
+    {
+      "commit": "757e0e84",
+      "area": "Archive and trash",
+      "states": 7,
+      "sizes": [
+        [320, 567],
+        [390, 844],
+        [640, 768],
+        [768, 1024],
+        [844, 390],
+        [1024, 768],
+        [1366, 768]
+      ],
+      "titleWidth": {
+        "320": {
+          "before": 49,
+          "after": 230
+        },
+        "390": {
+          "before": 119,
+          "after": 300
+        }
+      },
+      "firstTop390": {
+        "before": 400,
+        "after": 296
+      },
+      "desktopFirstTop1366": {
+        "before": 249,
+        "after": 249
+      },
+      "checks": [
+        "type filter",
+        "location filter",
+        "date filter",
+        "search",
+        "restore persisted on isolated server",
+        "permanent-delete confirmation cancelled",
+        "fixture restored"
+      ],
+      "existingE2E": "Chromium bulk files move atomically across searchable folder pages and go to recoverable trash in both languages — passed",
+      "ci": "https://github.com/mlnchkdv/smena-manager/actions/runs/43954430713"
+    },
+    {
+      "area": "Favorites and teams",
+      "result": {
+        "passed": 14,
+        "rows": [
+          {
+            "width": 320,
+            "route": "favorites",
+            "height": 96,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 320,
+            "route": "teams",
+            "height": 44,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 390,
+            "route": "favorites",
+            "height": 96,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 390,
+            "route": "teams",
+            "height": 44,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 640,
+            "route": "favorites",
+            "height": 96,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 640,
+            "route": "teams",
+            "height": 44,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 768,
+            "route": "favorites",
+            "height": 68,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 768,
+            "route": "teams",
+            "height": 51,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1024,
+            "route": "favorites",
+            "height": 68,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1024,
+            "route": "teams",
+            "height": 51,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1366,
+            "route": "favorites",
+            "height": 30,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1366,
+            "route": "teams",
+            "height": 51,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1440,
+            "route": "favorites",
+            "height": 30,
+            "overflow": 0,
+            "escape": false
+          },
+          {
+            "width": 1440,
+            "route": "teams",
+            "height": 51,
+            "overflow": 0,
+            "escape": false
+          }
+        ],
+        "searchSortTypeReset": true,
+        "teamDescription": true,
+        "newTeamDialog": true
+      },
+      "favoritesToolbar": {
+        "390": {
+          "before": 148,
+          "after": 96
+        },
+        "1366": {
+          "before": 102,
+          "after": 30
+        }
+      },
+      "teamsHeader390": {
+        "before": 122,
+        "after": 44
+      }
+    }
+  ],
+  "finalMatrix": {
+    "passed": 136,
+    "rows": [
+      {
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 320,
+        "height": 567,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 844,
+        "height": 390,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 1024,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 320,
+        "height": 567,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 844,
+        "height": 390,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 1024,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "timeline",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "notifications",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "inbox",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "members",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "teams",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "search",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/profile",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "settings/preferences",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 390,
+        "height": 844,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "calendar",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "activity",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "archive",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      },
+      {
+        "route": "favorites",
+        "width": 1366,
+        "height": 768,
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "rootOverflow": 0,
+        "listOverflow": 0,
+        "toolbarEscape": false
+      }
+    ],
+    "collapsedSidebar": true,
+    "zoom": ["knowledge", "tasks", "settings/appearance"],
+    "pageErrors": []
+  },
+  "validation": {
+    "build": true,
+    "eslint": true,
+    "prettier": true,
+    "cssTokens": true,
+    "initialJavaScriptKiB": 396.7,
+    "budgetKiB": 600
+  },
+  "evidenceDirectory": "output/playwright/sections17/",
+  "limits": [
+    "Emulated viewports; physical devices and screen reader not tested.",
+    "Initial authenticated production inspection completed for the listed sections; final authenticated inspection could not be completed because browser connection stopped responding and fallback Clicker tunnel was unavailable.",
+    "Production records were not restored or deleted. Functional writes were confined to the synthetic local fixture.",
+    "Final publication is verified after push through CI, app-version.json and HTTP smoke, and reported in the final response."
+  ]
+}

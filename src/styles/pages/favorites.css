@@ -1,0 +1,22 @@
+.favorites-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 180px) minmax(180px, 220px) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.favorites-toolbar > :is(input, label),
+.favorites-toolbar label > :is(select, button) {
+  min-width: 0;
+  width: 100%;
+}
+@container workspace (max-width: 850px) {
+  .favorites-toolbar {
+    grid-template-columns: minmax(0, 1fr) 140px;
+  }
+}
+@media (max-width: 640px) {
+  .favorites-toolbar {
+    grid-template-columns: minmax(0, 1fr) 112px;
+  }
+}
