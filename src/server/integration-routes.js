@@ -11,9 +11,12 @@ export const integrationRouter = express.Router();
 integrationRouter.use(async (request, _response, next) => {
   try {
     const data = await getWorkspaceDatabase({ fields: ['members'] });
-    const member = knowledgeActor(data, request.user, request.configuredProfiles);
+    // Configured login profiles belong to the original workspace's legacy
+    // bootstrap. Never synthesize those members in an independent workspace.
+    const profiles = workspaceScope() === 'default' ? request.configuredProfiles : [];
+    const member = knowledgeActor(data, request.user, profiles);
     request.integrationMember = member;
-    request.integrationMembers = bindAccessProfiles(data, request.configuredProfiles).members;
+    request.integrationMembers = bindAccessProfiles(data, profiles).members;
     request.user = { ...request.user, role: workspaceMemberRole(member) };
     next();
   } catch (error) {
