@@ -394,5 +394,43 @@
   "serverTests": {
     "passed": 19,
     "failed": 0
+  },
+  "productionAfterConversation": {
+    "commit": "ef627010819791c75dddd86c16455676bde70aa1",
+    "viewports": [
+      [1366, 768],
+      [320, 567],
+      [390, 844]
+    ],
+    "maxHorizontalOverflowPx": 0,
+    "mobileButtonSizePx": 44,
+    "mobileBodyPaddingPx": 16
+  },
+  "viewer": {
+    "states": 3,
+    "viewports": [
+      [320, 567],
+      [390, 844],
+      [1366, 768]
+    ],
+    "maxHorizontalOverflowPx": 0,
+    "taskFieldsRemainDisabled": true
+  },
+  "closeTooltip": {
+    "productionBaselineOverflowPx": 8,
+    "states": 16,
+    "configurations": [
+      ["ru", "light"],
+      ["en", "dark"]
+    ],
+    "viewports": [
+      [320, 567],
+      [390, 844],
+      [844, 390],
+      [1366, 768]
+    ],
+    "interactions": ["hover", "keyboard focus-visible"],
+    "maxHorizontalOverflowPx": 0,
+    "tooltipAlignedToButtonRight": true
   }
 }

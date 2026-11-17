@@ -261,6 +261,11 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+.drawer-h [data-a='closeDrawer']:is(:hover, :focus-visible)::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
 .drawer-b {
   flex: 1;
   overflow-y: auto;
