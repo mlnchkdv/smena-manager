@@ -1155,6 +1155,7 @@
 }
 .public-link-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -1167,6 +1168,7 @@
 .public-link-row,
 .public-link-create {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
 }
@@ -1183,6 +1185,8 @@
 }
 .public-link-row .row {
   gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .public-link-row .btn,
 .public-link-create .btn {
