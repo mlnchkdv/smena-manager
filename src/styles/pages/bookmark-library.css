@@ -12,6 +12,39 @@
 .bookmark-library .bookmark-folder-control .select-btn {
   width: 100%;
 }
+.bookmark-library .bookmark-view-menu {
+  position: relative;
+  justify-self: end;
+}
+.bookmark-library .bookmark-view-menu > div {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto auto;
+  z-index: 70;
+  display: grid;
+  gap: 4px;
+  width: 250px;
+  max-width: calc(100vw - 24px);
+  max-height: 50dvh;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.bookmark-library .bookmark-view-menu > div > button {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 44px;
+}
+.bookmark-library .bookmark-view-menu > div > button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bookmark-library .bookmark-view-menu .hint {
+  margin: 0;
+  padding: 4px 6px 8px;
+}
 .bookmark-library .bookmark-grid {
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
