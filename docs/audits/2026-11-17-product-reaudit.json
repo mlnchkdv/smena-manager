@@ -1,0 +1,1194 @@
+{
+  "date": "2026-11-17",
+  "site": "https://smena.team",
+  "identity": "owner",
+  "method": "read-only DOM and visual inspection; no production data writes",
+  "checks": [
+    {
+      "section": "overview",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboard-editor",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboard-editor",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboard-editor",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboard-editor",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "ru",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "ru",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "ru",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "ru",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "home",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "inbox",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "my-tasks",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "notifications",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "overview",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "projects",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "files",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "tasks",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "calendar",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "timeline",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "knowledge",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "bookmarks",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "whiteboards",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "graph",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "members",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "activity",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "archive",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "en",
+      "w": 1440,
+      "h": 900,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "en",
+      "w": 768,
+      "h": 1024,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "en",
+      "w": 390,
+      "h": 844,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    },
+    {
+      "section": "settings",
+      "language": "en",
+      "w": 320,
+      "h": 640,
+      "outerOverflow": 0,
+      "contentOverflow": 0
+    }
+  ],
+  "publicLocalDemoChecks": 48,
+  "pendingChanges": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12"]
+}

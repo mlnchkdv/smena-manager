@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /
+Allow: /product.html
+Allow: /product-en.html
+Allow: /product.css
+Allow: /product.js
+Allow: /product-share.png
+Allow: /favicon.svg
+Allow: /about.html
+Allow: /terms.html
+Allow: /privacy.html
+Allow: /legal.css
+Allow: /mcp-setup.html
+Allow: /mcp-setup-en.html
+Sitemap: https://smena.team/sitemap.xml
