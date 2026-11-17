@@ -1190,5 +1190,72 @@
     }
   ],
   "publicLocalDemoChecks": 48,
-  "pendingChanges": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12"]
+  "pendingChanges": ["A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12"],
+  "completedInThisTask": ["A01", "public product RU/EN", "bookmark page images", "two language options", "self-contained HTML archives"],
+  "archiveLocalChecks": [
+    {
+      "lang": "ru",
+      "dialogLeft": 0,
+      "dialogWidth": 320,
+      "h": 640,
+      "overflow": 0,
+      "w": 320
+    },
+    {
+      "lang": "ru",
+      "dialogLeft": 0,
+      "dialogWidth": 390,
+      "h": 844,
+      "overflow": 0,
+      "w": 390
+    },
+    {
+      "lang": "ru",
+      "dialogLeft": 24,
+      "dialogWidth": 720,
+      "h": 1024,
+      "overflow": 0,
+      "w": 768
+    },
+    {
+      "lang": "ru",
+      "dialogLeft": 360,
+      "dialogWidth": 720,
+      "h": 900,
+      "overflow": 0,
+      "w": 1440
+    },
+    {
+      "lang": "en",
+      "dialogLeft": 0,
+      "dialogWidth": 320,
+      "h": 640,
+      "overflow": 0,
+      "w": 320
+    },
+    {
+      "lang": "en",
+      "dialogLeft": 0,
+      "dialogWidth": 390,
+      "h": 844,
+      "overflow": 0,
+      "w": 390
+    },
+    {
+      "lang": "en",
+      "dialogLeft": 24,
+      "dialogWidth": 720,
+      "h": 1024,
+      "overflow": 0,
+      "w": 768
+    },
+    {
+      "lang": "en",
+      "dialogLeft": 360,
+      "dialogWidth": 720,
+      "h": 900,
+      "overflow": 0,
+      "w": 1440
+    }
+  ]
 }
