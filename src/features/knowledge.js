@@ -248,6 +248,7 @@ IN.knowledgeBulkFolderMove = el => {
   });
 };
 A.selectKnowledgePage = el => {
+  S.ui.knowledgeSelecting = true;
   const known = new Set(D().knowledgeNotes.map(note => note.id));
   S.ui.knowledgeSelection = toggleKnowledgePageSelection(
     (S.ui.knowledgeSelection || []).filter(id => known.has(id)),
@@ -260,8 +261,14 @@ A.selectKnowledgePage = el => {
 };
 A.clearKnowledgeSelection = () => {
   S.ui.knowledgeSelection = [];
+  S.ui.knowledgeSelecting = false;
   render();
   document.getElementById('knowledge-selection-start')?.focus({ preventScroll: true });
+};
+A.startKnowledgeSelection = () => {
+  S.ui.knowledgeSelecting = true;
+  render();
+  document.querySelector('[data-in="knowledgeSelect"]')?.focus({ preventScroll: true });
 };
 IN.knowledgeBulkMove = el => {
   if (knowledgeEditBlocked()) return;

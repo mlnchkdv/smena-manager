@@ -7,8 +7,8 @@ import { ic } from '../core/icons.js';
 import { disclosureAttributes } from './disclosure.js';
 export function knowledgeSelectionStart(visible) {
   const known = new Set(D().knowledgeNotes.map(note => note.id));
-  if (S.ui.currentUser?.role === 'viewer' || !visible.length || (S.ui.knowledgeSelection || []).some(id => known.has(id))) return '';
-  return `<button id="knowledge-selection-start" class="ibtn knowledge-selection-start" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-label="Select page" title="Select page">${ic('list-checks', 17)}</button>`;
+  if (S.ui.currentUser?.role === 'viewer' || !visible.length || S.ui.knowledgeSelecting || (S.ui.knowledgeSelection || []).some(id => known.has(id))) return '';
+  return `<button id="knowledge-selection-start" class="btn btn-secondary btn-sm knowledge-selection-start" data-a="startKnowledgeSelection" translate="no">${ic('list-checks', 17)}${kc('Select', 'Выбрать')}</button>`;
 }
 export function knowledgeBulkToolbar(visible) {
   if (S.ui.currentUser?.role === 'viewer') return '';
@@ -18,15 +18,15 @@ export function knowledgeBulkToolbar(visible) {
   const pageSelected = visible.length > 0 && visible.every(note => selected.has(note.id));
   const hiddenCount = [...selected].filter(id => !visibleIds.has(id)).length;
   const loading = !!S.ui.knowledgeToolLoading;
-  if (!selected.size) return '';
+  if (!S.ui.knowledgeSelecting && !selected.size) return '';
   return collectionSelection(
     `<details class="ui-menu knowledge-bulk-options" ${disclosureAttributes('knowledge:bulk')}><summary class="ibtn" aria-label="${kc('Selection options', 'Параметры выделения')}">${ic('ellipsis', 16)}</summary><div><button class="btn btn-ghost btn-sm" data-a="selectKnowledgePage" data-ids="${esc(visible.map(note => note.id).join(','))}" aria-pressed="${pageSelected}" ${!visible.length ? 'disabled' : ''}>${pageSelected ? 'Deselect page' : 'Select page'}</button><button class="btn btn-ghost btn-sm" data-a="editKnowledgeSelection" translate="no" aria-busy="${loading}" ${loading ? 'disabled' : ''}>${loading ? kc('Loading…', 'Загрузка…') : kc('Edit properties', 'Изменить свойства')}</button><button class="btn btn-danger-ghost btn-sm" data-a="trashKnowledgeSelection">Move to trash</button></div></details>${
-      selected.size
-        ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b><span class="hint knowledge-range-hint"> · ${kc('Shift selects a range on this page', 'Shift выбирает диапазон на этой странице')}</span>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-secondary btn-sm knowledge-bulk-move" data-a="moveKnowledgeNote" aria-label="${kc('Move selected notes', 'Переместить выбранные заметки')}">${ic('folder-input', 15)}${kc('Move', 'Переместить')}</button><button class="ibtn" data-a="clearKnowledgeSelection" aria-label="Clear selection" title="Clear selection">${ic('x', 16)}</button>`
+      S.ui.knowledgeSelecting || selected.size
+        ? `<span class="knowledge-selection-count" role="status"><span>Selected notes</span>: <b>${selected.size}</b><span class="hint knowledge-range-hint"> · ${kc('Shift selects a range on this page', 'Shift выбирает диапазон на этой странице')}</span>${hiddenCount ? `<span class="hint"> · ${hiddenCount} <span>outside this page</span></span>` : ''}</span><button class="btn btn-secondary btn-sm knowledge-bulk-move" data-a="moveKnowledgeNote" aria-label="${kc('Move selected notes', 'Переместить выбранные заметки')}">${ic('folder-input', 15)}${kc('Move', 'Переместить')}</button><button class="btn btn-ghost btn-sm" data-a="clearKnowledgeSelection" translate="no">${kc('Done', 'Готово')}</button>`
         : ''
     }`,
     'Note selection',
-    !!selected.size,
+    true,
     'knowledge-bulk',
   );
 }

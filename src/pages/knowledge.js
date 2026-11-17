@@ -97,7 +97,7 @@ function notePreviewCard(note, folder, readOnly, folderIndex, serverContext, dup
   const context = serverContext || knowledgeSearchContext(note, S.ui.knowledgeQuery);
   const preview = context ? { excerpt: '', state: 'text' } : noteCardPreview(note, S.ui.knowledgeQuery);
   const excerpt = context ? '' : preview.excerpt;
-  return `<article class="knowledge-preview-card${!context && preview.state !== 'text' ? ' no-preview' : ''}${duplicate ? ' duplicate-title' : ''}${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-preview-state="${preview.state}" data-id="${note.id}">${readOnly ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
+  return `<article class="knowledge-preview-card${!context && preview.state !== 'text' ? ' no-preview' : ''}${duplicate ? ' duplicate-title' : ''}${context ? ' has-search-context' : ''}" aria-labelledby="${titleId}" draggable="${!readOnly}" data-knowledge-drag="note" data-preview-state="${preview.state}" data-id="${note.id}">${readOnly || !S.ui.knowledgeSelecting ? '' : `<label class="knowledge-note-select"><input type="checkbox" data-in="knowledgeSelect" data-id="${note.id}" aria-label="${actionLabel('Select note')}" ${(S.ui.knowledgeSelection || []).includes(note.id) ? 'checked' : ''}></label>`}<button class="knowledge-preview-open" data-a="openKnowledgeNote" data-id="${note.id}">
     <div class="knowledge-preview-head"><span class="knowledge-note-icon">${ic('file-text', 16)}</span><strong id="${titleId}" class="trunc" translate="no" title="${esc(note.title || 'Untitled note')}">${highlightKnowledge(note.title || 'Untitled note', S.ui.knowledgeQuery)}</strong><span class="knowledge-note-time" title="${esc(timestamp)}">${duplicate ? esc(timestamp) : ago(noteTime(note.updatedAt))}</span></div>
     ${context ? `<span class="knowledge-match-source">${t(context.label)}</span>` : ''}<p class="knowledge-preview-excerpt" ${!context && !excerpt ? 'hidden' : ''} ${context?.text || (!context && excerpt) ? 'translate="no"' : ''}>${context ? (context.message ? t(context.message) : highlightKnowledge(context.text, S.ui.knowledgeQuery)) : highlightKnowledge(excerpt || 'No summary', S.ui.knowledgeQuery)}</p>
     ${!context && preview.state !== 'text' ? `<small class="knowledge-preview-status" translate="no">${preview.state === 'unavailable' ? (isRussian() ? 'Предпросмотр при открытии' : 'Preview on opening') : isRussian() ? 'Пустая заметка' : 'Empty note'}</small>` : ''}${noteCardMeta(note)}${tags.length ? `<div class="knowledge-preview-meta"><span class="knowledge-preview-tags">${tags.map(tag => `<span class="knowledge-tag" translate="no">${esc(tag)}</span>`).join('')}</span></div>` : ''}
@@ -171,6 +171,20 @@ export function pageKnowledge() {
       notes.filter(note => ids.has(note.id)),
       { ...viewOptions, query: '' },
     );
+  }
+  const selectionScope = JSON.stringify([
+    S.ui.currentUser?.id,
+    D().ws.id || D().ws.url,
+    folderFilter,
+    S.ui.knowledgeQuery,
+    S.ui.knowledgeTag,
+    S.ui.knowledgeSort,
+    S.ui.knowledgeOffset,
+  ]);
+  if (S.ui.knowledgeSelectionScope !== selectionScope) {
+    S.ui.knowledgeSelectionScope = selectionScope;
+    S.ui.knowledgeSelection = [];
+    S.ui.knowledgeSelecting = false;
   }
   const { active: selected } = view;
   const byId = new Map(notes.map(note => [note.id, note]));

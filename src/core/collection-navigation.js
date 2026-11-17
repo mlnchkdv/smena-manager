@@ -50,7 +50,7 @@ export function collectionLocationAllowed(kind, frame) {
     return id === 'all' ? !folder : !!project && (!folder || project.fileFolders?.some(item => item.id === folder && !item.archived));
   }
   const id = frame.values[kind === 'knowledge' ? 'knowledgeFolder' : 'bookmarkFolder'] || 'all';
-  if (['all', 'root', ...(kind === 'knowledge' ? ['favorites', 'recent'] : [])].includes(id)) return true;
+  if (['all', 'root', ...(kind === 'knowledge' ? ['favorites', 'recent', 'empty'] : [])].includes(id)) return true;
   return (kind === 'knowledge' ? D().knowledgeFolders : D().linkFolders || []).some(folder => folder.id === id);
 }
 function capture(kind) {

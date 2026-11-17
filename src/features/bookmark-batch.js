@@ -22,6 +22,11 @@ IN.bookmarkSelectPage = el => {
 };
 A.clearBookmarkSelection = () => {
   S.ui.bookmarkSelection = [];
+  S.ui.bookmarkSelecting = false;
+  render();
+};
+A.startBookmarkSelection = () => {
+  S.ui.bookmarkSelecting = true;
   render();
 };
 A.bookmarkBatch = () => {
