@@ -107,7 +107,11 @@
   color: var(--text-2);
   font-size: var(--fs-xs);
 }
-.bookmark-library .bookmark-description {
+.bookmark-library .bookmark-card > .bookmark-description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   margin-block: 8px 0;
   font-size: var(--fs-sm);
 }
