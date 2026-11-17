@@ -53,7 +53,11 @@ export function deviceViewResetPlan(storage, user, workspace, section) {
   for (let index = 0; index < storage.length; index++) {
     const key = storage.key(index),
       name = ownedName(key, user, workspace);
-    if (name && (names[section].includes(name) || (section === 'other' && (name.startsWith('collection:') || name.startsWith('whiteboard-outline:')))))
+    if (
+      name &&
+      (names[section].includes(name) ||
+        (section === 'other' && (name.startsWith('collection:') || name.startsWith('whiteboard-outline:') || name.startsWith('bookmarkLayout:'))))
+    )
       add(key, null);
   }
   return plan;

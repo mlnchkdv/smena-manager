@@ -21,6 +21,20 @@ function storage(entries = []) {
     removeItem: key => data.delete(key),
   };
 }
+test('reset includes per-folder bookmark views without touching another account or workspace', () => {
+  const own = layoutPreferenceKeys('owner', 'space', 'bookmarkLayout:folder')[0];
+  const other = layoutPreferenceKeys('other', 'space', 'bookmarkLayout:folder')[0];
+  const elsewhere = layoutPreferenceKeys('owner', 'elsewhere', 'bookmarkLayout:folder')[0];
+  const source = storage([
+    [own, '"compact"'],
+    [other, '"list"'],
+    [elsewhere, '"grid"'],
+  ]);
+  resetDeviceViews(source, 'owner', 'space', 'other');
+  assert.equal(source.data.has(own), false);
+  assert.equal(source.data.get(other), '"list"');
+  assert.equal(source.data.get(elsewhere), '"grid"');
+});
 test('knowledge view reset preserves searches, recent items and unknown metadata in both key generations', () => {
   const keys = knowledgeViewKeys('owner', 'space'),
     value = { paneWidth: 410, columns: ['title', 'owner'], cardDensity: 'compact', views: [{ id: 'q', query: 'team' }], recent: ['n'], future: { kept: true } };
