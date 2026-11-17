@@ -56,12 +56,7 @@ async function privateFileOperation(request, kind, body, operation) {
   const digest = apiDigest([kind, request.params.upload_id || null, body]);
   return withIntegrationOperation(key, async () => {
     const membership = await getWorkspaceDatabase({ fields: ['members'] });
-    const active = applyIntegrationMemberAccess(
-      await integrationRegistry.verify(request.integrationToken),
-      knowledgeActor(membership, request.user, [], { write: true }),
-    );
-    if (!active.policy.uploadsEnabled || !active.policy.writeEnabled || !active.scopes.includes('files:write'))
-      throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
+    const active = await assertIntegrationFileWrite(request, membership);
     const root = await getWorkspaceDatabase({ fields: ['_integrationOperations'] });
     if ((root._integrationOperations || []).some(row => row.key === key && row.expiresAt > Date.now())) throw integrationError('IDEMPOTENCY_KEY_REUSED', 409);
     const cached = await integrationRegistry.mutate(data => {
@@ -81,6 +76,21 @@ async function privateFileOperation(request, kind, body, operation) {
     });
     return result;
   });
+}
+async function assertIntegrationFileWrite(request, database) {
+  const active = applyIntegrationMemberAccess(
+    await integrationRegistry.verify(request.integrationToken),
+    knowledgeActor(database, request.user, [], { write: true }),
+  );
+  if (
+    !active.policy.uploadsEnabled ||
+    !active.policy.writeEnabled ||
+    !active.scopes.includes('files:write') ||
+    process.env.SMENA_PUBLIC_API_WRITE_ENABLED === 'false' ||
+    process.env.SMENA_PUBLIC_API_UPLOADS_ENABLED === 'false'
+  )
+    throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
+  return active;
 }
 function adapted(request, body, identity) {
   const value = Object.create(request);
@@ -238,6 +248,7 @@ export function registerPublicApiFiles(router) {
         if (proof.sha256 !== upload.metadata.sha256) throw integrationError('UPLOAD_CHECKSUM_MISMATCH', 409);
         const completion = adapted(req, { ticket: renewUploadTicket(ticket), fileId: proof.fileId });
         completion.expectedSha256 = upload.metadata.sha256;
+        completion.authorizeCatalogWrite = database => assertIntegrationFileWrite(req, database);
         const { file } = await completeResumableFileUpload(completion);
         const value = fileDto(file);
         await integrationRegistry.mutate(data => {

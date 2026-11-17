@@ -491,7 +491,8 @@ export async function completeResumableFileUpload(request) {
     }
     try {
       data = await mutateWorkspaceCatalogCommand(
-        (database, actor = request.user) => {
+        async (database, actor = request.user) => {
+          if (request.authorizeCatalogWrite) await request.authorizeCatalogWrite(database);
           fileRecord = appendFileRecord(database, actor, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
           return database;
         },

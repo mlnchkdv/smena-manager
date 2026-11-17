@@ -163,12 +163,38 @@ test('MCP uploads resume at provider offsets, verify SHA-256, register once and 
     );
     assert.equal((await getWorkspaceDatabase()).files.length, 1);
     const baseline = await getWorkspaceDatabase();
-    await mutateWorkspaceDatabase(data => {
-      data.projects[0].private = true;
-      data.projects[0].members = ['owner'];
-      data.projects[0].lead = 'owner';
-      return data;
-    }, baseline.revision);
+    const racing = await client.call('POST', '/workspaces/default/uploads', {
+      body: { name: 'racing.mp4', size: bytes.length, project_id: 'p', sha256: sha },
+      operationId: 'member-permissions-race-begin',
+    });
+    const originalProof = storage.verifyResumableUpload;
+    let probes = 0;
+    storage.verifyResumableUpload = async () => {
+      if (++probes === 2) await integrationRegistry.setMemberAccess(owner, 'default', baseline.members[1], { enabled: true, scopes: ['knowledge:read'] });
+      return { fileId: 'drive-racing-object', filename: source.filename, size: bytes.length, mimeType: 'video/mp4', sha256: sha };
+    };
+    await assert.rejects(
+      client.call('POST', '/workspaces/default/uploads/' + racing.upload_id + '/complete', {
+        body: { file_id: 'drive-racing-object' },
+        operationId: 'member-permissions-race-complete',
+      }),
+      { code: 'INTEGRATION_SCOPE_FORBIDDEN' },
+    );
+    assert.equal((await getWorkspaceDatabase()).files.length, 1, 'a scope reduction during Drive verification must prevent catalog publication');
+    storage.verifyResumableUpload = originalProof;
+    await integrationRegistry.setMemberAccess(owner, 'default', baseline.members[1], {
+      enabled: true,
+      scopes: ['knowledge:read', 'knowledge:write', 'files:read', 'files:write'],
+    });
+    await mutateWorkspaceDatabase(
+      data => {
+        data.projects[0].private = true;
+        data.projects[0].members = ['owner'];
+        data.projects[0].lead = 'owner';
+        return data;
+      },
+      (await getWorkspaceDatabase()).revision,
+    );
     await assert.rejects(client.call('GET', '/workspaces/default/files/' + result.id), { status: 404 });
     await assert.rejects(client.call('GET', '/workspaces/default/uploads/' + uploadId + '/transport'), { status: 403 });
     await integrationRegistry.revoke(actor, 'default', issued.integration.id);
