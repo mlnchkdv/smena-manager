@@ -451,3 +451,8 @@
   text-align: left;
   min-height: 44px;
 }
+
+.home-work-empty .home-task-panel > .empty-state.sm {
+  min-height: 0;
+  padding-block: 24px;
+}
