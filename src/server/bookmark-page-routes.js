@@ -6,7 +6,7 @@ import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
 import { workspaceScope } from './workspace-context.js';
 import { bookmarkReaderPage, saveBookmarkSnapshot, readBookmarkSnapshot, bookmarkPageSummary, SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
-import { createBookmarkThumbnailLoader } from './bookmark-thumbnails.js';
+import { createBookmarkThumbnailLoader, createSavedBookmarkThumbnailLoader } from './bookmark-thumbnails.js';
 import { archiveBookmarkHtml, ARCHIVE_CSP } from './bookmark-html-archive.js';
 
 export function createBookmarkPageRouter({
@@ -15,6 +15,7 @@ export function createBookmarkPageRouter({
   loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }),
 } = {}) {
   const bookmarkPageRouter = Router();
+  const savedThumbnail = createSavedBookmarkThumbnailLoader((bookmark, id) => readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, id));
   const activeCount = row => (row.pageSnapshots || []).filter(ref => !ref.isArchived).length;
   const requests = new Map();
   bookmarkPageRouter.use((request, response, next) => {
@@ -48,7 +49,7 @@ export function createBookmarkPageRouter({
   bookmarkPageRouter.get('/:id/image', async (request, response, next) => {
     try {
       const bookmark = await target(request);
-      const result = await loadThumbnail(bookmark);
+      const result = (await savedThumbnail(bookmark, workspaceScope())) || (await loadThumbnail(bookmark));
       if ((await target(request)).url !== bookmark.url) return response.status(204).end();
       response.set({ 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox" });
       if (!result) return response.status(204).end();
@@ -80,7 +81,12 @@ export function createBookmarkPageRouter({
       const bookmark = await target(request);
       const page = await readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, request.params.snapshot);
       await target(request);
-      if (page.format !== 'html' || !page.document) throw pageError('PAGE_SNAPSHOT_UNAVAILABLE', 404);
+      const document =
+        page.format === 'html' && page.document
+          ? page.document
+          : '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Saved text copy</title></head><body>' +
+            page.html +
+            '</body></html>';
       response.set({
         'Content-Security-Policy': ARCHIVE_CSP,
         'Cache-Control': 'private, no-store',
@@ -88,7 +94,7 @@ export function createBookmarkPageRouter({
         'Referrer-Policy': 'no-referrer',
       });
       if (request.query.download === '1') response.attachment(`smena-page-${request.params.snapshot}.html`);
-      response.type('html').send(page.document);
+      response.type('html').send(document);
     } catch (error) {
       next(error.statusCode ? error : pageError());
     }

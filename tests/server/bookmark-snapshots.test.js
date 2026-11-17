@@ -9,7 +9,7 @@ import { requireAuth } from '../../src/server/auth.js';
 import { requireWorkspace } from '../../src/server/workspace-directory.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from '../../src/server/workspace-store.js';
 import { getStorageProvider } from '../../src/server/storage/index.js';
-import { readBookmarkSnapshot } from '../../src/server/bookmark-snapshots.js';
+import { readBookmarkSnapshot, saveBookmarkSnapshot } from '../../src/server/bookmark-snapshots.js';
 import { writeRecoveryBundle } from '../../src/server/recovery-bundle.js';
 
 test('member captures immutable page versions; reads survive source disappearance, reload and recovery export', async () => {
@@ -132,6 +132,23 @@ test('member captures immutable page versions; reads survive source disappearanc
     assert.equal(retained.links[0].pageSnapshots.filter(ref => !ref.isArchived).length, 10);
     assert.equal(retained._fileRegistry['id:' + first.snapshot.storageFileId].storageName, first.snapshot.storageName);
     assert.match((await readBookmarkSnapshot(getStorageProvider(), 'default', retained.links[0], second.snapshot.id)).html, /Version 2/);
+    const legacy = await saveBookmarkSnapshot(getStorageProvider(), 'default', retained.links[0], {
+      url: 'https://example.com',
+      html: '<h1>Legacy text archive</h1>',
+      capturedAt: new Date().toISOString(),
+    });
+    await mutateWorkspaceDatabase(
+      data => {
+        data.links[0].pageSnapshots.push(legacy);
+        return data;
+      },
+      retained.revision,
+      { role: 'admin' },
+    );
+    const legacyDownload = await call('/page/snapshots/' + legacy.id + '/document?download=1');
+    assert.equal(legacyDownload.status, 200);
+    assert.match(legacyDownload.headers.get('content-disposition'), /attachment/);
+    assert.match(await legacyDownload.text(), /Legacy text archive/);
   } finally {
     await new Promise(resolve => server.close(resolve));
     await fixture.cleanup();

@@ -1,5 +1,47 @@
 import { fetchPublicImage, fetchPublicPage, pageMetadata } from './web-page-fetch.js';
 
+// Archived covers are immutable, workspace-scoped and read only after route auth.
+// Prefer a real saved raster image over a new request to a possibly changed site.
+export function createSavedBookmarkThumbnailLoader(read) {
+  const cache = new Map();
+  const pending = new Map();
+  let bytes = 0;
+  return async (bookmark, workspace) => {
+    const ref = bookmark.pageSnapshots?.find(row => row.format === 'html' && !row.isArchived) || bookmark.pageSnapshots?.find(row => row.format === 'html');
+    if (!ref) return null;
+    const key = workspace + ':' + bookmark.id + ':' + ref.sha256;
+    if (cache.has(key)) return cache.get(key);
+    if (pending.has(key)) return pending.get(key);
+    if (pending.size >= 16) return null;
+    const work = (async () => {
+      let result = null;
+      try {
+        const page = await read(bookmark, ref.id);
+        for (const match of (page.document || '').matchAll(/<img\b[^>]*\bsrc="data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)"/gi)) {
+          if (match[2].length > 4 * 1024 * 1024) continue;
+          const body = Buffer.from(match[2], 'base64');
+          // Tiny tracking pixels make poor covers; keep looking for content.
+          if (body.length < 128) continue;
+          result = { contentType: match[1], body };
+          break;
+        }
+      } catch {
+        // A missing or unverifiable archive never bypasses its integrity checks.
+      }
+      cache.set(key, result);
+      bytes += result?.body.length || 0;
+      while (cache.size > 64 || bytes > 16 * 1024 * 1024) {
+        const first = cache.keys().next().value;
+        bytes -= cache.get(first)?.body.length || 0;
+        cache.delete(first);
+      }
+      return result;
+    })().finally(() => pending.delete(key));
+    pending.set(key, work);
+    return work;
+  };
+}
+
 // Cache only public raster data, never credentials or private page contents.
 // Permissions are checked by the router on every request, including cache hits.
 export function createBookmarkThumbnailLoader({ fetchPage = fetchPublicPage, fetchImage = fetchPublicImage, now = Date.now } = {}) {

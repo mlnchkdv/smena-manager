@@ -4,7 +4,7 @@ import { EventEmitter, once } from 'node:events';
 import { Readable } from 'node:stream';
 import express from 'express';
 import { fetchPublicImage, pageMetadata } from '../../src/server/web-page-fetch.js';
-import { createBookmarkThumbnailLoader } from '../../src/server/bookmark-thumbnails.js';
+import { createBookmarkThumbnailLoader, createSavedBookmarkThumbnailLoader } from '../../src/server/bookmark-thumbnails.js';
 import { createBookmarkPageRouter } from '../../src/server/bookmark-page-routes.js';
 import { requireAuth } from '../../src/server/auth.js';
 import { requireWorkspace } from '../../src/server/workspace-directory.js';
@@ -12,6 +12,29 @@ import { memberSharingFixture } from '../fixtures/member-sharing.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase } from '../../src/server/workspace-store.js';
 
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jB3sAAAAASUVORK5CYII=', 'base64');
+
+test('saved covers remain independent of live pages and cache only within a workspace and immutable version', async () => {
+  let reads = 0;
+  const cover = Buffer.concat([png, Buffer.alloc(200)]);
+  const loader = createSavedBookmarkThumbnailLoader(async () => {
+    reads++;
+    return { document: '<img src="data:image/png;base64,' + png.toString('base64') + '"><img src="data:image/png;base64,' + cover.toString('base64') + '">' };
+  });
+  const row = { id: 'book', pageSnapshots: [{ id: 'first', sha256: 'a'.repeat(64), format: 'html', isArchived: true }] };
+  assert.deepEqual((await loader(row, 'one')).body, cover);
+  assert.deepEqual((await loader(row, 'one')).body, cover);
+  assert.equal(reads, 1);
+  await loader(row, 'two');
+  assert.equal(reads, 2);
+  row.pageSnapshots.unshift({ id: 'new', sha256: 'b'.repeat(64), format: 'html' });
+  await loader(row, 'one');
+  assert.equal(reads, 3);
+  assert.equal(await loader({ id: 'no-copy' }, 'one'), null);
+  const unavailable = createSavedBookmarkThumbnailLoader(async () => {
+    throw new Error('Corrupt archive');
+  });
+  assert.equal(await unavailable(row, 'one'), null);
+});
 const resolve = async () => [{ address: '93.184.216.34', family: 4 }];
 function transport(body, contentType = 'image/png', redirect) {
   return {

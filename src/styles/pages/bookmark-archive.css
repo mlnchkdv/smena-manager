@@ -23,6 +23,13 @@
   border-inline-start: 3px solid var(--amber);
   padding-inline-start: 10px;
 }
+.bookmark-viewer-dialog:has([data-archive-wide]) {
+  width: min(1280px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+.bookmark-archive-width {
+  align-self: flex-start;
+}
 .bookmark-version-manager {
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -62,6 +69,13 @@
   align-items: center;
 }
 @media (max-width: 640px) {
+  .bookmark-archive-width {
+    display: none;
+  }
+  .bookmark-viewer-dialog:has([data-archive-wide]) {
+    width: 100%;
+    max-width: 100%;
+  }
   .bookmark-archive-actions .seg button {
     min-height: 44px;
   }
