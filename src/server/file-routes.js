@@ -521,7 +521,7 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
   }
 });
 
-fileRouter.get('/:id/html-preview', async (request, response, next) => {
+export async function renderHtmlFilePreview(request, response, next) {
   try {
     if (request.query.account !== request.user.id) return response.sendStatus(403);
     const data = await getWorkspaceFileSnapshot(request.user, request.params.id);
@@ -549,7 +549,8 @@ fileRouter.get('/:id/html-preview', async (request, response, next) => {
   } catch (error) {
     next(error);
   }
-});
+}
+fileRouter.get('/:id/html-preview', renderHtmlFilePreview);
 
 export async function streamFileContent(request, response, next) {
   try {

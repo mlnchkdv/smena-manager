@@ -1,0 +1,15 @@
+.file-preview-tools {
+  flex-wrap: wrap;
+}
+.file-preview-tools > [data-a='toggleMediaGallery'] {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.file-preview-tools .file-preview-navigation {
+  flex-shrink: 0;
+  margin-left: auto;
+}

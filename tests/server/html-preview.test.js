@@ -22,14 +22,14 @@ test('HTML preview requires the current account, project access and bounded stor
   const origin = 'http://127.0.0.1:' + server.address().port;
   const call = (route, auth = true) => fetch(origin + route, { headers: auth ? { Authorization: 'Bearer ' + fixture.sessions[1] } : {} });
   try {
-    const route = '/api/files/file/html-preview?account=member-profile';
+    const route = '/api/html-previews/file?account=member-profile';
     assert.equal((await call(route, false)).status, 401);
-    assert.equal((await call('/api/files/file/html-preview?account=other-profile')).status, 409);
+    assert.equal((await call('/api/html-previews/file?account=other-profile')).status, 409);
     const result = await call(route);
     assert.equal(result.status, 200, await result.clone().text());
     assert.equal(result.headers.get('content-security-policy'), HTML_PREVIEW_CSP);
     assert.match(await result.text(), /Saved report/);
-    assert.equal((await call('/api/files/private-file/html-preview?account=member-profile')).status, 404);
+    assert.equal((await call('/api/html-previews/private-file?account=member-profile')).status, 404);
   } finally {
     await new Promise(resolve => server.close(resolve));
     await fixture.cleanup();

@@ -32,6 +32,8 @@ server {
     location ^~ /api/monitor/ { return 404; }
     # Capability URLs must keep the API's sandbox/CSP and must not enter access logs.
     location ^~ /api/public/ { include /etc/nginx/snippets/smena-manager-public-proxy.conf; }
+    # Authenticated opaque-origin HTML documents retain their dedicated CSP.
+    location ^~ /api/html-previews/ { include /etc/nginx/snippets/smena-manager-public-proxy.conf; }
     location = /api { include /etc/nginx/snippets/smena-manager-proxy.conf; }
     location ^~ /api/ { include /etc/nginx/snippets/smena-manager-proxy.conf; }
 

@@ -36,7 +36,7 @@ export function ensureFilePreview(modal, refresh) {
   if (policy.kind === 'html' && getSessionToken() === 'cookie') {
     modal.preview = {
       kind: 'html',
-      url: `/api/files/${encodeURIComponent(modal.file.id)}/html-preview?workspace=${encodeURIComponent(getActiveWorkspace())}&account=${encodeURIComponent(state.owner)}`,
+      url: `/api/html-previews/${encodeURIComponent(modal.file.id)}?workspace=${encodeURIComponent(getActiveWorkspace())}&account=${encodeURIComponent(state.owner)}`,
     };
     return;
   }

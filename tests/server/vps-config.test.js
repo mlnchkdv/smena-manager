@@ -63,6 +63,7 @@ test('rendered VPS configs retain API paths, trusted proxy boundaries, Google se
   const publicProxy = files.get('/etc/nginx/snippets/smena-manager-public-proxy.conf');
   const publicHeaders = files.get('/etc/nginx/snippets/smena-manager-public-security.conf');
   assert.match(site, /location \^~ \/api\/public\/ \{ include \/etc\/nginx\/snippets\/smena-manager-public-proxy.conf; \}/);
+  assert.ok(site.includes('location ^~ /api/html-previews/ { include /etc/nginx/snippets/smena-manager-public-proxy.conf; }'));
   assert.match(publicProxy, /access_log off;/);
   assert.match(publicProxy, /proxy_buffering off;/);
   assert.match(publicProxy, /proxy_pass http:\/\/127\.0\.0\.1:3001;/);

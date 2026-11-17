@@ -33,7 +33,7 @@ import {
   RevisionConflictError,
   queryWorkspaceGraph,
 } from './workspace-store.js';
-import { fileRouter } from './file-routes.js';
+import { fileRouter, renderHtmlFilePreview } from './file-routes.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES } from '../shared/workspace-size.js';
 import { HTTP_SECURITY_HEADERS } from '../shared/http-security.js';
 import { bindAccessProfiles, memberForProfile } from '../shared/member-identity.js';
@@ -245,6 +245,7 @@ app.use('/api', (request, response, next) => {
 });
 app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
+app.get('/api/html-previews/:id', renderHtmlFilePreview);
 app.use('/api/bookmark-pages', bookmarkPageRouter);
 app.use('/api/storage/inspection', knowledgeInspectionRouter);
 

@@ -1,0 +1,4076 @@
+{
+  "date": "2026-11-17",
+  "subtaskCommit": "75b51660",
+  "productionBefore": {
+    "subtask": {
+      "width": 1366,
+      "height": 768,
+      "dialogHeight": 720,
+      "unusedBelow": 234.96
+    },
+    "mobileNavigation": {
+      "width": 320,
+      "height": 567,
+      "previous": {
+        "top": 545.29,
+        "bottom": 589.29
+      },
+      "next": {
+        "top": 595.29,
+        "bottom": 639.29
+      }
+    }
+  },
+  "subtasks": {
+    "passed": 40,
+    "rows": [
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 320,
+          "bottom": 567
+        },
+        "rows": [
+          {
+            "width": 288,
+            "height": 44,
+            "titleWidth": 251,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 71.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 567,
+          "bottom": 567
+        },
+        "emptyBelow": -48.375,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 192,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 304,
+        "contentRight": 304
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 844,
+          "bottom": 844
+        },
+        "emptyBelow": 228.625,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 320
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 320,
+          "bottom": 320
+        },
+        "emptyBelow": -295.375,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 640,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 68,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 47.125,
+            "titleWidth": 571,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 768,
+          "bottom": 768
+        },
+        "emptyBelow": 176.625,
+        "navigation": {
+          "top": 153,
+          "bottom": 197,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 512,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 624,
+        "contentRight": 624
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 21,
+          "y": 0,
+          "right": 641,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 550.625,
+          "bottom": 574.625
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 383,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 568,
+        "contentRight": 568
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 224,
+          "y": 0,
+          "right": 844,
+          "bottom": 390
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 342,
+          "bottom": 366
+        },
+        "emptyBelow": -167.625,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 771,
+        "contentRight": 771
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 404,
+          "y": 0,
+          "right": 1024,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 550.625,
+          "bottom": 574.625
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 951,
+        "contentRight": 951
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 550.625,
+          "bottom": 574.625
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1124,
+        "contentRight": 1124
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 320,
+          "bottom": 567
+        },
+        "rows": [
+          {
+            "width": 288,
+            "height": 44,
+            "titleWidth": 251,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 71.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 567,
+          "bottom": 567
+        },
+        "emptyBelow": -48.375,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 192,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 304,
+        "contentRight": 304
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 844,
+          "bottom": 844
+        },
+        "emptyBelow": 228.625,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 320
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 320,
+          "bottom": 320
+        },
+        "emptyBelow": -295.375,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 640,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 68,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 47.125,
+            "titleWidth": 571,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 768,
+          "bottom": 768
+        },
+        "emptyBelow": 176.625,
+        "navigation": {
+          "top": 153,
+          "bottom": 197,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 512,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 624,
+        "contentRight": 624
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 21,
+          "y": 0,
+          "right": 641,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 544.375,
+          "bottom": 568.375
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 383,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 568,
+        "contentRight": 568
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 224,
+          "y": 0,
+          "right": 844,
+          "bottom": 390
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 342,
+          "bottom": 366
+        },
+        "emptyBelow": -155.125,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 771,
+        "contentRight": 771
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 404,
+          "y": 0,
+          "right": 1024,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 538.125,
+          "bottom": 562.125
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 951,
+        "contentRight": 951
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 538.125,
+          "bottom": 562.125
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1124,
+        "contentRight": 1124
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 844,
+          "bottom": 844
+        },
+        "emptyBelow": 228.625,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 550.625,
+          "bottom": 574.625
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1124,
+        "contentRight": 1124
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 844,
+          "bottom": 844
+        },
+        "emptyBelow": 228.625,
+        "navigation": {
+          "top": 177,
+          "bottom": 221,
+          "buttonHeight": 44
+        },
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "height": 538.125,
+          "bottom": 562.125
+        },
+        "emptyBelow": 41,
+        "navigation": {
+          "top": 172,
+          "bottom": 202,
+          "buttonHeight": 30
+        },
+        "parent": {
+          "width": 585.9375,
+          "height": 26,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1124,
+        "contentRight": 1124
+      }
+    ],
+    "nextPreviousAndParent": true,
+    "unchangedTaskData": true,
+    "pageErrors": []
+  },
+  "viewsAndAccessibility": {
+    "passed": 4,
+    "axeScans": 8,
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "axeSurfaces": 2,
+        "keyboardTrap": true,
+        "returnFocus": true,
+        "view": {
+          "width": 320,
+          "height": 567,
+          "dialog": {
+            "x": 0,
+            "y": 156.109375,
+            "width": 320,
+            "height": 410.890625,
+            "bottom": 567
+          },
+          "overflow": 0,
+          "rootOverflow": 0,
+          "localizedFallback": true,
+          "preservedFilter": true
+        }
+      },
+      {
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "axeSurfaces": 2,
+        "keyboardTrap": true,
+        "returnFocus": true,
+        "view": {
+          "width": 1366,
+          "height": 768,
+          "dialog": {
+            "x": 473,
+            "y": 76.796875,
+            "width": 420,
+            "height": 332.640625,
+            "bottom": 409.4375
+          },
+          "overflow": 0,
+          "rootOverflow": 0,
+          "localizedFallback": true,
+          "preservedFilter": true
+        }
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "axeSurfaces": 2,
+        "keyboardTrap": true,
+        "returnFocus": true,
+        "view": {
+          "width": 320,
+          "height": 567,
+          "dialog": {
+            "x": 0,
+            "y": 174.234375,
+            "width": 320,
+            "height": 392.765625,
+            "bottom": 567
+          },
+          "overflow": 0,
+          "rootOverflow": 0,
+          "localizedFallback": true,
+          "preservedFilter": true
+        }
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "axeSurfaces": 2,
+        "keyboardTrap": true,
+        "returnFocus": true,
+        "view": {
+          "width": 1366,
+          "height": 768,
+          "dialog": {
+            "x": 473,
+            "y": 76.796875,
+            "width": 420,
+            "height": 332.640625,
+            "bottom": 409.4375
+          },
+          "overflow": 0,
+          "rootOverflow": 0,
+          "localizedFallback": true,
+          "preservedFilter": true
+        }
+      }
+    ]
+  },
+  "responsiveFocus": {
+    "resizeStates": [
+      {
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "modal": "false"
+      },
+      {
+        "width": 320,
+        "height": 567,
+        "overflow": 0,
+        "modal": "true"
+      },
+      {
+        "width": 640,
+        "height": 768,
+        "overflow": 0,
+        "modal": "true"
+      },
+      {
+        "width": 641,
+        "height": 768,
+        "overflow": 0,
+        "modal": "false"
+      },
+      {
+        "width": 390,
+        "height": 320,
+        "overflow": 0,
+        "modal": "true"
+      },
+      {
+        "width": 844,
+        "height": 390,
+        "overflow": 0,
+        "modal": "false"
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "modal": "true"
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "modal": "false"
+      }
+    ],
+    "viewerReadOnly": true,
+    "viewerParentFocus": true,
+    "reducedMotion": true,
+    "axeScans": 1,
+    "unchangedData": true
+  },
+  "materialsBefore": {
+    "states": 32,
+    "rows": [
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 152,
+              "right": 304,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 84,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 100,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 244.34375,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 252.34375,
+              "right": 404.34375,
+              "width": 152,
+              "outside": true
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 12,
+          "y": 45.375,
+          "width": 296,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 567,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 224.9375,
+          "width": 390,
+          "height": 619.0625,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 340.9375,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 195,
+          "width": 390,
+          "height": 649,
+          "bottom": 844
+        },
+        "overflow": 14,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 30,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 244.34375,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 252.34375,
+              "right": 404.34375,
+              "width": 152,
+              "outside": true
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 311,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 12,
+          "y": 67.53125,
+          "width": 366,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 14,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 30,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 244.34375,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 252.34375,
+              "right": 404.34375,
+              "width": 152,
+              "outside": true
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 115.4375,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 12,
+          "y": 25.609375,
+          "width": 366,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 320,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 547.828125,
+              "right": 724.171875,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 746,
+          "y": 0,
+          "width": 620,
+          "height": 768,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 152,
+              "right": 304,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 51,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 67,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 210.75,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 218.75,
+              "right": 370.75,
+              "width": 152,
+              "outside": true
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 12,
+          "y": 45.375,
+          "width": 296,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 567,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 224.9375,
+          "width": 390,
+          "height": 619.0625,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 340.9375,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 195,
+          "width": 390,
+          "height": 649,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 69.625,
+              "right": 212.375,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 311,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 12,
+          "y": 67.53125,
+          "width": 366,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 69.625,
+              "right": 212.375,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 12,
+          "y": 25.609375,
+          "width": 366,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 320,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 564.625,
+              "right": 707.375,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": [
+          {
+            "id": "scrollable-region-focusable",
+            "nodes": [
+              {
+                "target": [".file-preview-content"],
+                "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 746,
+          "y": 0,
+          "width": 620,
+          "height": 768,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      }
+    ]
+  },
+  "materialsAfter": {
+    "states": 32,
+    "rows": [
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 152,
+              "right": 304,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 127.65625,
+              "right": 304,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 152,
+              "right": 304,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 12,
+          "y": 45.375,
+          "width": 296,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 567,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 224.9375,
+          "width": 390,
+          "height": 619.0625,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 340.9375,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 143,
+          "width": 390,
+          "height": 701,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 197.65625,
+              "right": 374,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 259,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 12,
+          "y": 67.53125,
+          "width": 366,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 197.65625,
+              "right": 374,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 115.4375,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 12,
+          "y": 25.609375,
+          "width": 366,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 320,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "pdf",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "ru",
+        "type": "img",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 377,
+              "right": 553.34375,
+              "width": 176.34375,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 139.5625
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 746,
+          "y": 0,
+          "width": 620,
+          "height": 768,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 288,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 161.25,
+              "right": 304,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 152,
+              "right": 304,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 161.375,
+          "width": 272,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 32,
+          "y": 348,
+          "width": 272,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 12,
+          "y": 45.375,
+          "width": 296,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 567,
+          "bottom": 567
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 224.9375,
+          "width": 390,
+          "height": 619.0625,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 340.9375,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 195,
+          "width": 390,
+          "height": 649,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 210.75,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 311,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 625,
+          "width": 280,
+          "height": 154
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 12,
+          "y": 67.53125,
+          "width": 366,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844,
+          "bottom": 844
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 358,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 16,
+              "right": 60,
+              "width": 44,
+              "outside": false
+            },
+            {
+              "left": 68,
+              "right": 210.75,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 222,
+              "right": 374,
+              "width": 152,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 16,
+          "y": 132.828125,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 94,
+          "y": 111,
+          "width": 280,
+          "height": 144
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 12,
+          "y": 25.609375,
+          "width": 366,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 320,
+          "bottom": 320
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "pdf",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": []
+      },
+      {
+        "name": "file-preview",
+        "lang": "en",
+        "type": "img",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "tools": {
+          "width": 688,
+          "overflow": 0,
+          "children": [
+            {
+              "left": 339,
+              "right": 369,
+              "width": 30,
+              "outside": false
+            },
+            {
+              "left": 377,
+              "right": 519.75,
+              "width": 142.75,
+              "outside": false
+            },
+            {
+              "left": 903,
+              "right": 1027,
+              "width": 124,
+              "outside": false
+            }
+          ]
+        },
+        "info": {
+          "x": 339,
+          "y": 160.796875,
+          "width": 280,
+          "height": 122.171875
+        },
+        "menu": {
+          "x": 747,
+          "y": 529.1875,
+          "width": 280,
+          "height": 112
+        },
+        "violations": []
+      },
+      {
+        "name": "bulk-file-move",
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "search": true
+      },
+      {
+        "name": "long-discussion",
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 746,
+          "y": 0,
+          "width": 620,
+          "height": 768,
+          "bottom": 768
+        },
+        "overflow": 0,
+        "rootOverflow": 0,
+        "comments": 10
+      }
+    ]
+  },
+  "physicalDevices": {
+    "status": "not-available",
+    "availableEnvironment": "Windows desktop browsers only; no connected WPD device, adb or idevice_id",
+    "notVerified": ["physical iOS and Android keyboards", "VoiceOver", "TalkBack"]
+  }
+}
