@@ -222,7 +222,7 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
       if (active >= 4) await new Promise(resolve => waiters.push(resolve));
       else active++;
       try {
-        if (signal.aborted) throw new Error('Capture deadline');
+        if (signal.aborted || total >= MAX_ASSET_BYTES) throw new Error('Capture resource budget or deadline');
         const resource = await fetchAsset(url, { signal });
         total += resource.body.length;
         if (total > MAX_ASSET_BYTES) throw new Error('Capture resource budget');

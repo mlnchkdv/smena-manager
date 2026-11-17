@@ -20,7 +20,7 @@
 }
 .bookmark-archive-warning {
   color: var(--text-2);
-  border-inline-start: 3px solid var(--warning);
+  border-inline-start: 3px solid var(--amber);
   padding-inline-start: 10px;
 }
 @media (max-width: 640px) {
