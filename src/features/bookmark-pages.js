@@ -48,7 +48,7 @@ export async function loadBookmarkMetadata() {
 A.bookmarkMetadata = loadBookmarkMetadata;
 
 const currentViewer = m => S.ui.modals.includes(m) && m.generation === getSessionGeneration();
-function pageFailure(error) {
+function pageFailure(error, saving = false) {
   if (error.code === 'PAGE_SNAPSHOT_LIMIT')
     return words('This bookmark already has 10 saved copies. Existing copies are retained.', 'У закладки уже есть 10 копий. Все существующие копии сохранены.');
   if (error.code === 'PAGE_TOO_LARGE')
@@ -56,6 +56,11 @@ function pageFailure(error) {
   if (error.code === 'PAGE_RATE_LIMIT') return words('Too many requests. Wait a minute and retry.', 'Слишком много запросов. Повторите через минуту.');
   if (error.code === 'PAGE_SNAPSHOT_UNAVAILABLE')
     return words('This saved copy is unavailable or failed verification. Try another copy.', 'Эта копия недоступна или не прошла проверку. Выберите другую.');
+  if (saving)
+    return words(
+      'Could not save this page copy. Previous copies are safe. Check the connection and retry.',
+      'Не удалось сохранить копию страницы. Предыдущие копии сохранены. Проверьте соединение и повторите.',
+    );
   return words(
     'The website could not be read. It may require sign-in, block capture or be unavailable. Existing saved copies still work.',
     'Не удалось прочитать сайт. Возможно, нужен вход, сайт запрещает чтение или недоступен. Ранее сохранённые копии остаются доступны.',
@@ -143,7 +148,7 @@ A.saveBookmarkPage = async () => {
     await refreshWorkspaceFromServer().catch(() => {});
     if (currentViewer(m)) toast(words('Page copy saved. Previous copies are retained.', 'Копия страницы сохранена. Предыдущие копии не изменены.'));
   } catch (error) {
-    if (currentViewer(m)) m.error = pageFailure(error);
+    if (currentViewer(m)) m.error = pageFailure(error, true);
   } finally {
     m.busy = m.saving = false;
     if (currentViewer(m)) render();

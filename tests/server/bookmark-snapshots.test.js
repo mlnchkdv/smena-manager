@@ -14,6 +14,15 @@ import { writeRecoveryBundle } from '../../src/server/recovery-bundle.js';
 
 test('member captures immutable page versions; reads survive source disappearance, reload and recovery export', async () => {
   const fixture = await memberSharingFixture();
+  // Drive's optimized metadata path correctly refuses new physical references.
+  // Archive writes must register their blob through the canonical catalog path.
+  const provider = getStorageProvider();
+  provider.loadDatabaseMetadata = async () => {
+    throw Object.assign(new Error('New physical references need a catalog write.'), { code: 'METADATA_WRITE_FORBIDDEN', statusCode: 403 });
+  };
+  provider.saveDatabaseMetadata = async () => {
+    throw new Error('A page archive is not a metadata-only patch.');
+  };
   let requests = 0,
     unavailable = false;
   const qa = express();
@@ -71,6 +80,7 @@ test('member captures immutable page versions; reads survive source disappearanc
     assert.equal(requests, beforeRead, 'opening the old copy does not contact the source');
     const database = await getWorkspaceDatabase();
     assert.equal(database.links[0].pageSnapshots.length, 2);
+    assert.equal(database._fileRegistry['id:' + first.snapshot.storageFileId].storageName, first.snapshot.storageName);
     await assert.rejects(readBookmarkSnapshot(getStorageProvider(), 'another-workspace', database.links[0], first.snapshot.id), {
       code: 'PAGE_SNAPSHOT_UNAVAILABLE',
     });

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireRole } from './auth.js';
 import { fetchPublicPage, pageMetadata, pageError } from './web-page-fetch.js';
-import { getWorkspaceDatabase, mutateWorkspaceMetadata, RevisionConflictError } from './workspace-store.js';
+import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
 import { workspaceScope } from './workspace-context.js';
@@ -64,7 +64,9 @@ export function createBookmarkPageRouter({ fetchPage = fetchPublicPage } = {}) {
       for (let attempt = 0; attempt < 3; attempt++) {
         const current = await getWorkspaceDatabase({ fields: ['revision'] });
         try {
-          await mutateWorkspaceMetadata(
+          // A new page copy adds a physical storage reference. Metadata-only
+          // catalog patches deliberately forbid changes to the file registry.
+          await mutateWorkspaceDatabase(
             data => {
               knowledgeActor(data, request.user, request.configuredProfiles, { write: true });
               const row = data.links?.find(item => item.id === bookmark.id && item.url === bookmark.url);
@@ -74,7 +76,12 @@ export function createBookmarkPageRouter({ fetchPage = fetchPublicPage } = {}) {
               const previous = data._documentRevisions?.bookmarks || {};
               data._documentRevisions = {
                 ...data._documentRevisions,
-                bookmarks: { ...previous, revision: Number(previous.revision || 0) + 1, updatedAt: new Date().toISOString() },
+                bookmarks: {
+                  ...previous,
+                  createdAt: previous.createdAt || data.createdAt,
+                  revision: Number(previous.revision || 0) + 1,
+                  updatedAt: new Date().toISOString(),
+                },
               };
               return data;
             },
