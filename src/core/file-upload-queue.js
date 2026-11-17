@@ -76,6 +76,7 @@ IN.uploadReviewTarget = async el => {
   if (!canEditProject(proj(project), D().me, S.ui.currentUser?.role)) return;
   const before = m.ctx;
   m.ctx = { ...m.ctx, project, folderId: folderId || null };
+  const target = m.ctx;
   m.capacity = { ...m.capacity, sufficient: false };
   render();
   try {
@@ -84,9 +85,10 @@ IN.uploadReviewTarget = async el => {
       files: m.entries.map(job => ({ name: job.name, size: job.bytes, type: job.mimeType })),
       reservedBytes: engine.jobs.filter(unfinishedUpload).reduce((sum, job) => sum + Math.max(0, job.bytes - (job.accepted || 0)), 0),
     });
-    if (S.ui.modals.at(-1) !== m) return;
+    if (S.ui.modals.at(-1) !== m || m.ctx !== target) return;
     m.capacity = capacity;
   } catch {
+    if (S.ui.modals.at(-1) !== m || m.ctx !== target) return;
     m.ctx = before;
     m.capacity = { ...m.capacity, sufficient: false };
     toast(text('Could not check this destination. Retry or cancel.', 'Не удалось проверить назначение. Повторите или отмените.'), { kind: 'err' });
