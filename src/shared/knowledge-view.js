@@ -2,6 +2,7 @@ import { createKnowledgeMatcher } from './knowledge-search.js';
 import { folderDescendants } from './knowledge-tools.js';
 import { favoriteFlag } from './personal-favorites.js';
 import { createKnowledgeColumnComparator } from './knowledge-columns.js';
+import { emptyKnowledgeBody } from './knowledge-body.js';
 export function knowledgeView(
   notes,
   {
@@ -31,13 +32,15 @@ export function knowledgeView(
     .filter(
       note =>
         folder === 'all' ||
-        (folder === 'recent'
-          ? recent.includes(note.id)
-          : folder === 'favorites'
-            ? favoriteFlag(favorites, 'note', note)
-            : folder === 'root'
-              ? !note.folderId
-              : folderIds.has(note.folderId)),
+        (folder === 'empty'
+          ? emptyKnowledgeBody(note)
+          : folder === 'recent'
+            ? recent.includes(note.id)
+            : folder === 'favorites'
+              ? favoriteFlag(favorites, 'note', note)
+              : folder === 'root'
+                ? !note.folderId
+                : folderIds.has(note.folderId)),
     )
     .filter(note => !selectedTag || (note.tags || []).some(value => String(value).trim().toLocaleLowerCase() === selectedTag))
     .filter(matches)

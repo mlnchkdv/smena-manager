@@ -26,6 +26,23 @@ test('blank card excerpts are bounded while searches retain distant matches and 
   assert.equal(note.formatted_markdown, source);
 });
 import { knowledgeView } from '../../src/shared/knowledge-view.js';
+import { emptyKnowledgeBody } from '../../src/shared/knowledge-body.js';
+
+test('empty-note filtering never mistakes unloaded bodies for empty drafts', () => {
+  const notes = [
+    { id: 'empty', formatted_markdown: ' \n ' },
+    { id: 'cold-empty', bodyPending: true, bodyEmpty: true },
+    { id: 'cold', bodyPending: true, bodyPreview: '' },
+    { id: 'text', formatted_markdown: 'hello', bodyEmpty: true },
+  ];
+  assert.deepEqual(
+    knowledgeView(notes, { folder: 'empty' })
+      .filtered.map(note => note.id)
+      .sort(),
+    ['cold-empty', 'empty'],
+  );
+  assert.equal(emptyKnowledgeBody(notes[3]), false, 'loaded content overrides stale catalog metadata');
+});
 test('card excerpts skip only the initial stock prompt while searches and stored source retain it', () => {
   const formatted_markdown = '# Новая заметка\n\nДобавьте сюда знания, регламент или рабочие договорённости команды.\n\nНастоящий регламент';
   const note = { formatted_markdown };

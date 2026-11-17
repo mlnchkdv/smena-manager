@@ -3,6 +3,8 @@
 export const KNOWLEDGE_BODY_KIND = 'knowledge-body-v1';
 export const KNOWLEDGE_BODY_MAX_BYTES = 8 * 1024 * 1024;
 export const externalKnowledgeBody = note => note?.bodyRef?.kind === KNOWLEDGE_BODY_KIND;
+// An unloaded or unavailable body is never an empty draft.
+export const emptyKnowledgeBody = note => (typeof note?.formatted_markdown === 'string' ? !note.formatted_markdown.trim() : note?.bodyEmpty === true);
 
 export function validKnowledgeBodyRef(value) {
   return (

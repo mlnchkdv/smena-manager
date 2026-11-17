@@ -21,7 +21,7 @@ export async function storeKnowledgeBody(storage, note) {
   const sha256 = digest(text);
   await storage.writeKnowledgeBody(text, sha256);
   cacheSearchValue(storage, 'body:' + sha256, note.formatted_markdown.toLocaleLowerCase(), Buffer.byteLength(note.formatted_markdown) * 2);
-  const metadata = { ...note, searchVersion: 1, bodyPreview: noteCardExcerpt(note, '').slice(0, 180) };
+  const metadata = { ...note, bodyEmpty: !note.formatted_markdown.trim(), searchVersion: 1, bodyPreview: noteCardExcerpt(note, '').slice(0, 180) };
   delete metadata.formatted_markdown;
   return { ...metadata, bodyLinks: indexKnowledgeBodyLinks(note.formatted_markdown, sha256), bodyRef: { kind: KNOWLEDGE_BODY_KIND, sha256, bytes } };
 }
@@ -41,6 +41,7 @@ export async function loadKnowledgeBody(storage, note) {
   const metadata = { ...note };
   delete metadata.bodyRef;
   delete metadata.bodyPreview;
+  delete metadata.bodyEmpty;
   delete metadata.searchVersion;
   delete metadata.bodyLinks;
   return { ...metadata, formatted_markdown: object.formatted_markdown };

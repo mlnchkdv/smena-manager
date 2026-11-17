@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { noteCardExcerpt } from '../shared/knowledge-search.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
-import { externalKnowledgeBody } from '../shared/knowledge-body.js';
+import { externalKnowledgeBody, emptyKnowledgeBody } from '../shared/knowledge-body.js';
 import { knowledgeIntakeSummary } from '../shared/knowledge-intake.js';
 
 // A token describes the canonical body version; it never grants read access.
@@ -16,6 +16,7 @@ export function knowledgeBodyToken(note) {
 export function knowledgeCatalogNote(note) {
   const value = {
     ...note,
+    bodyEmpty: emptyKnowledgeBody(note),
     bodyPreview: externalKnowledgeBody(note) ? note.bodyPreview || '' : noteCardExcerpt(note, ''),
     bodyToken: knowledgeBodyToken(note),
     bodyPending: true,

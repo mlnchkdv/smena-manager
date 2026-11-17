@@ -21,6 +21,7 @@ import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout
 import { openModal } from '../overlays/modals.js';
 import { disclosureAttributes } from './disclosure.js';
 import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
+import { emptyKnowledgeBody } from '../shared/knowledge-body.js';
 A.openKnowledgeReview = async el => (await import('../features/knowledge-review.js')).openKnowledgeReview(el.dataset.id);
 A.openKnowledgeIntake = async el => (await import('../features/knowledge-intake.js')).openKnowledgeIntake(el.dataset.id);
 A.openKnowledgeIntakeQueue = async () => (await import('../features/knowledge-intake.js')).openKnowledgeIntake();
@@ -95,7 +96,7 @@ export function noteEditor(note, folders, readOnly) {
   const conflict = knowledgeEditBlocked();
   const disabled = readOnly || conflict ? 'disabled' : '';
   return `<section class="knowledge-editor${S.ui.knowledgeFormatExpanded ? ' formatting-expanded' : ''}${S.ui.knowledgeEditorFocus ? ' is-focused' : ''}" data-pane="${pane}" aria-label="Note editor">
-    <div class="knowledge-editor-head">
+    ${!readOnly && emptyKnowledgeBody(note) ? `<p class="hint" translate="no">${kc('Empty note. Changes save automatically; closing keeps the note in your library. Move it to trash if you do not need it.', 'Пустая заметка. Изменения сохраняются автоматически; после закрытия заметка останется в базе. Ненужную заметку можно переместить в корзину.')}</p>` : ''}<div class="knowledge-editor-head">
       <div class="knowledge-heading-title">
         <label class="sr" for="knowledge-title">Note title</label>
         <textarea rows="1" class="knowledge-title" id="knowledge-title" data-in="knowledgeField" data-blur="knowledgeField" data-id="${note.id}" data-field="title" placeholder="Untitled note" ${disabled}>${esc(note.title)}</textarea>
