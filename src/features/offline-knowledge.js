@@ -179,7 +179,12 @@ export async function pinBookmark(el) {
       title: link.title,
       body: `[${link.title}](${link.url})\n\n${link.excerpt || ''}\n\n${link.description || ''}`,
     });
-    toast(kc('Bookmark kept offline.', 'Закладка сохранена офлайн.'));
+    toast(
+      kc(
+        'Link, description and excerpt kept offline. The HTML archive is not included.',
+        'Ссылка, описание и фрагмент сохранены офлайн. HTML-архив не входит.',
+      ),
+    );
   } catch (error) {
     toast(error.message, { kind: 'err' });
   }
