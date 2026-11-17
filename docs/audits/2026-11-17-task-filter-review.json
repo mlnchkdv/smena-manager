@@ -1,0 +1,2338 @@
+{
+  "date": "2026-11-17",
+  "scope": "Authenticated production read-only inspection and isolated synthetic Layout QA; emulated viewport and coarse pointer, no physical device claims",
+  "initialPublishedVersion": "47d845314b666856b7667a3918948fd615ca3a34",
+  "productionBefore": {
+    "viewport": {
+      "width": 320,
+      "height": 567
+    },
+    "language": "en",
+    "filter": {
+      "x": 132,
+      "y": 8,
+      "width": 188,
+      "right": 320
+    },
+    "rootOverflow": 0
+  },
+  "localBefore": {
+    "language": "ru",
+    "emptyResized": [
+      {
+        "width": 1366,
+        "panelWidth": 560,
+        "x": 607.4296875
+      },
+      {
+        "width": 320,
+        "panelWidth": 200,
+        "x": 120
+      },
+      {
+        "width": 390,
+        "panelWidth": 294,
+        "x": 96
+      },
+      {
+        "width": 844,
+        "panelWidth": 472,
+        "x": 372
+      }
+    ],
+    "valueButtonHeight": 26,
+    "ariaViolation": "aria-required-children"
+  },
+  "inspectedProductionDialogs": [
+    {
+      "bodyOverflow": 0,
+      "bottom": 691.1953125,
+      "name": "Library tools",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      },
+      "width": 560,
+      "x": 403,
+      "y": 76.796875
+    },
+    {
+      "bodyOverflow": 0,
+      "bottom": 567,
+      "name": "Library tools",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "width": 320,
+      "x": 0,
+      "y": 45.3671875
+    },
+    {
+      "bodyOverflow": 0,
+      "bottom": 567,
+      "name": "Note templates",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "width": 310,
+      "x": 0,
+      "y": 45.3671875
+    },
+    {
+      "bodyOverflow": 0,
+      "bottom": 691.1953125,
+      "name": "Note templates",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      },
+      "width": 560,
+      "x": 403,
+      "y": 76.796875
+    },
+    {
+      "bodyOverflow": 0,
+      "bottom": 379.8428192138672,
+      "name": "Knowledge tags",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      },
+      "width": 543.199951171875,
+      "x": 411.3999938964844,
+      "y": 89.28996276855469
+    },
+    {
+      "bodyOverflow": 0,
+      "bottom": 567,
+      "name": "Knowledge tags",
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "width": 320,
+      "x": 0,
+      "y": 190.0625
+    }
+  ],
+  "acceptance": {
+    "states": 30,
+    "rows": [
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 171.25,
+          "right": 1008,
+          "bottom": 335.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 304,
+          "height": 357.375,
+          "right": 312,
+          "bottom": 521.5390625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 374,
+          "height": 291.25,
+          "right": 382,
+          "bottom": 455.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 640,
+          "height": 768
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 243.25,
+          "right": 568,
+          "bottom": 407.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 641,
+          "height": 768
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 171.25,
+          "right": 568,
+          "bottom": 335.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 171.25,
+          "right": 568,
+          "bottom": 335.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 171.25,
+          "right": 1008,
+          "bottom": 335.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "priority-row",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 374,
+          "height": 420,
+          "right": 382,
+          "bottom": 584.1640625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 222.1640625,
+              "width": 340,
+              "height": 94,
+              "right": 360,
+              "bottom": 316.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 222.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 266.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 222.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 360,
+                  "bottom": 266.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 272.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 316.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 272.1640625,
+                  "width": 44,
+                  "height": 44,
+                  "right": 237,
+                  "bottom": 316.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 322.1640625,
+              "width": 340,
+              "height": 94,
+              "right": 360,
+              "bottom": 416.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 322.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 366.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 322.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 360,
+                  "bottom": 366.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 372.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 416.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 372.1640625,
+                  "width": 44,
+                  "height": 44,
+                  "right": 237,
+                  "bottom": 416.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 560,
+          "height": 331,
+          "right": 568,
+          "bottom": 339
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 48,
+              "width": 536,
+              "height": 44,
+              "right": 556,
+              "bottom": 92
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 70,
+                  "y": 48,
+                  "width": 120,
+                  "height": 44,
+                  "right": 190,
+                  "bottom": 92
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 196,
+                  "y": 48,
+                  "width": 84,
+                  "height": 44,
+                  "right": 280,
+                  "bottom": 92
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 286,
+                  "y": 48,
+                  "width": 220,
+                  "height": 44,
+                  "right": 506,
+                  "bottom": 92
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 512,
+                  "y": 48,
+                  "width": 44,
+                  "height": 44,
+                  "right": 556,
+                  "bottom": 92
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 98,
+              "width": 536,
+              "height": 44,
+              "right": 556,
+              "bottom": 142
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 70,
+                  "y": 98,
+                  "width": 120,
+                  "height": 44,
+                  "right": 190,
+                  "bottom": 142
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 196,
+                  "y": 98,
+                  "width": 84,
+                  "height": 44,
+                  "right": 280,
+                  "bottom": 142
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 286,
+                  "y": 98,
+                  "width": 220,
+                  "height": 44,
+                  "right": 506,
+                  "bottom": 142
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 512,
+                  "y": 98,
+                  "width": 44,
+                  "height": 44,
+                  "right": 556,
+                  "bottom": 142
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 299,
+          "right": 1008,
+          "bottom": 463.1640625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 460,
+              "y": 204.1640625,
+              "width": 536,
+              "height": 28,
+              "right": 996,
+              "bottom": 232.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 510,
+                  "y": 205.1640625,
+                  "width": 120,
+                  "height": 26,
+                  "right": 630,
+                  "bottom": 231.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 636,
+                  "y": 205.1640625,
+                  "width": 84,
+                  "height": 26,
+                  "right": 720,
+                  "bottom": 231.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 726,
+                  "y": 205.1640625,
+                  "width": 236,
+                  "height": 26,
+                  "right": 962,
+                  "bottom": 231.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 968,
+                  "y": 204.1640625,
+                  "width": 28,
+                  "height": 28,
+                  "right": 996,
+                  "bottom": 232.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 460,
+              "y": 238.1640625,
+              "width": 536,
+              "height": 28,
+              "right": 996,
+              "bottom": 266.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 510,
+                  "y": 239.1640625,
+                  "width": 120,
+                  "height": 26,
+                  "right": 630,
+                  "bottom": 265.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 636,
+                  "y": 239.1640625,
+                  "width": 84,
+                  "height": 26,
+                  "right": 720,
+                  "bottom": 265.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 726,
+                  "y": 239.1640625,
+                  "width": 236,
+                  "height": 26,
+                  "right": 962,
+                  "bottom": 265.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 968,
+                  "y": 238.1640625,
+                  "width": 28,
+                  "height": 28,
+                  "right": 996,
+                  "bottom": 266.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "reloaded",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "cleared",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 177,
+          "width": 304,
+          "height": 357.375,
+          "right": 312,
+          "bottom": 534.375
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 147.25,
+          "right": 1008,
+          "bottom": 311.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 304,
+          "height": 309.375,
+          "right": 312,
+          "bottom": 473.5390625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 374,
+          "height": 243.25,
+          "right": 382,
+          "bottom": 407.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 640,
+          "height": 768
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 195.25,
+          "right": 568,
+          "bottom": 359.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 641,
+          "height": 768
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 147.25,
+          "right": 568,
+          "bottom": 311.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 147.25,
+          "right": 568,
+          "bottom": 311.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "empty",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 147.25,
+          "right": 1008,
+          "bottom": 311.4140625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      },
+      {
+        "kind": "priority-row",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 8,
+          "y": 164.1640625,
+          "width": 374,
+          "height": 420,
+          "right": 382,
+          "bottom": 584.1640625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 222.1640625,
+              "width": 340,
+              "height": 94,
+              "right": 360,
+              "bottom": 316.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 222.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 266.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 222.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 360,
+                  "bottom": 266.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 272.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 316.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 272.1640625,
+                  "width": 44,
+                  "height": 44,
+                  "right": 237,
+                  "bottom": 316.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 322.1640625,
+              "width": 340,
+              "height": 94,
+              "right": 360,
+              "bottom": 416.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 322.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 366.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 322.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 360,
+                  "bottom": 366.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 372.1640625,
+                  "width": 167,
+                  "height": 44,
+                  "right": 187,
+                  "bottom": 416.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 193,
+                  "y": 372.1640625,
+                  "width": 44,
+                  "height": 44,
+                  "right": 237,
+                  "bottom": 416.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 560,
+          "height": 307,
+          "right": 568,
+          "bottom": 315
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 48,
+              "width": 536,
+              "height": 44,
+              "right": 556,
+              "bottom": 92
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 70,
+                  "y": 48,
+                  "width": 120,
+                  "height": 44,
+                  "right": 190,
+                  "bottom": 92
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 196,
+                  "y": 48,
+                  "width": 84,
+                  "height": 44,
+                  "right": 280,
+                  "bottom": 92
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 286,
+                  "y": 48,
+                  "width": 220,
+                  "height": 44,
+                  "right": 506,
+                  "bottom": 92
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 512,
+                  "y": 48,
+                  "width": 44,
+                  "height": 44,
+                  "right": 556,
+                  "bottom": 92
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 98,
+              "width": 536,
+              "height": 44,
+              "right": 556,
+              "bottom": 142
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 70,
+                  "y": 98,
+                  "width": 120,
+                  "height": 44,
+                  "right": 190,
+                  "bottom": 142
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 196,
+                  "y": 98,
+                  "width": 84,
+                  "height": 44,
+                  "right": 280,
+                  "bottom": 142
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 286,
+                  "y": 98,
+                  "width": 220,
+                  "height": 44,
+                  "right": 506,
+                  "bottom": 142
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 512,
+                  "y": 98,
+                  "width": 44,
+                  "height": 44,
+                  "right": 556,
+                  "bottom": 142
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "box": {
+          "x": 448,
+          "y": 164.1640625,
+          "width": 560,
+          "height": 275,
+          "right": 1008,
+          "bottom": 439.1640625
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 460,
+              "y": 204.1640625,
+              "width": 536,
+              "height": 28,
+              "right": 996,
+              "bottom": 232.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 510,
+                  "y": 205.1640625,
+                  "width": 120,
+                  "height": 26,
+                  "right": 630,
+                  "bottom": 231.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 636,
+                  "y": 205.1640625,
+                  "width": 84,
+                  "height": 26,
+                  "right": 720,
+                  "bottom": 231.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 726,
+                  "y": 205.1640625,
+                  "width": 236,
+                  "height": 26,
+                  "right": 962,
+                  "bottom": 231.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 968,
+                  "y": 204.1640625,
+                  "width": 28,
+                  "height": 28,
+                  "right": 996,
+                  "bottom": 232.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 460,
+              "y": 238.1640625,
+              "width": 536,
+              "height": 28,
+              "right": 996,
+              "bottom": 266.1640625
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 510,
+                  "y": 239.1640625,
+                  "width": 120,
+                  "height": 26,
+                  "right": 630,
+                  "bottom": 265.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 636,
+                  "y": 239.1640625,
+                  "width": 84,
+                  "height": 26,
+                  "right": 720,
+                  "bottom": 265.1640625
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 726,
+                  "y": 239.1640625,
+                  "width": 236,
+                  "height": 26,
+                  "right": 962,
+                  "bottom": 265.1640625
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 968,
+                  "y": 238.1640625,
+                  "width": 28,
+                  "height": 28,
+                  "right": 996,
+                  "bottom": 266.1640625
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "two-rows-resized",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "reloaded",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 304,
+          "height": 420,
+          "right": 312,
+          "bottom": 428
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": [
+          {
+            "box": {
+              "x": 20,
+              "y": 66,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 160
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 66,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 110
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 116,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 160
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 116,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 160
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          },
+          {
+            "box": {
+              "x": 20,
+              "y": 166,
+              "width": 270,
+              "height": 94,
+              "right": 290,
+              "bottom": 260
+            },
+            "overflow": 0,
+            "controls": [
+              {
+                "box": {
+                  "x": 20,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 166,
+                  "width": 132,
+                  "height": 44,
+                  "right": 290,
+                  "bottom": 210
+                },
+                "cls": "select select-btn"
+              },
+              {
+                "box": {
+                  "x": 20,
+                  "y": 216,
+                  "width": 132,
+                  "height": 44,
+                  "right": 152,
+                  "bottom": 260
+                },
+                "action": "fEdit",
+                "cls": "valbtn"
+              },
+              {
+                "box": {
+                  "x": 158,
+                  "y": 216,
+                  "width": 44,
+                  "height": 44,
+                  "right": 202,
+                  "bottom": 260
+                },
+                "action": "rmFilter",
+                "cls": "ibtn ibtn-xs"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "cleared",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "box": {
+          "x": 8,
+          "y": 177,
+          "width": 304,
+          "height": 309.375,
+          "right": 312,
+          "bottom": 486.375
+        },
+        "rootOverflow": 0,
+        "overflow": 0,
+        "filterRows": []
+      }
+    ],
+    "axe": [
+      {
+        "label": "ru-320-values",
+        "violations": []
+      },
+      {
+        "label": "ru-320-two",
+        "violations": []
+      },
+      {
+        "label": "ru-320-empty",
+        "violations": []
+      },
+      {
+        "label": "ru-1366-empty",
+        "violations": []
+      },
+      {
+        "label": "en-320-values",
+        "violations": []
+      },
+      {
+        "label": "en-320-two",
+        "violations": []
+      },
+      {
+        "label": "en-320-empty",
+        "violations": []
+      },
+      {
+        "label": "en-1366-empty",
+        "violations": []
+      }
+    ],
+    "errors": [],
+    "taskDataUnchanged": true
+  },
+  "keyboard": {
+    "keyboardSelection": true,
+    "results": ["High"],
+    "fieldChanged": true,
+    "operatorChanged": true,
+    "removed": true,
+    "focusReturned": true,
+    "coarse": {
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "coarse": true,
+      "x": 197.90625,
+      "right": 757.90625,
+      "width": 560,
+      "overflow": 0,
+      "controls": [
+        {
+          "width": 120,
+          "height": 44
+        },
+        {
+          "width": 84,
+          "height": 44
+        },
+        {
+          "width": 210,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        },
+        {
+          "width": 120,
+          "height": 44
+        },
+        {
+          "width": 84,
+          "height": 44
+        },
+        {
+          "width": 210,
+          "height": 44
+        },
+        {
+          "width": 44,
+          "height": 44
+        }
+      ]
+    }
+  }
+}

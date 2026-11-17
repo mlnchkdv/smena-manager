@@ -322,7 +322,6 @@ export function popHtml(p) {
     case 'filter':
       inner = filterBuilder(p);
       cls = 'fbuild';
-      style = 'max-width:560px';
       break;
     case 'fvals': {
       const v = viewOf(p.key);
@@ -417,7 +416,7 @@ export function popHtml(p) {
     }
   }
   if (!inner) return '';
-  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="menu" style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
+  return `<div class="pop floating ${cls} ${S.ui.fx.pop ? 'enter' : ''}" role="${p.type === 'filter' ? 'dialog' : 'menu'}" ${p.type === 'filter' ? `aria-label="${esc(tr('Filter'))}"` : ''} style="left:${p.x}px;top:${p.y}px;${style}" data-pop-root data-pop-type="${esc(p.type)}">${inner}</div>`;
 }
 export function filterBuilder(p) {
   const v = viewOf(p.key);

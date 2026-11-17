@@ -802,7 +802,9 @@
 }
 /* Filter builder uses the same insets as every other menu: 4px popover padding + 8px item padding. */
 .fbuild {
-  min-width: 440px;
+  width: 560px;
+  min-width: 0;
+  max-width: calc(100vw - 16px);
 }
 .fb-h {
   display: flex;
@@ -842,7 +844,7 @@
 }
 .frow {
   display: grid;
-  grid-template-columns: 44px 120px 84px minmax(0, 1fr) 26px;
+  grid-template-columns: 44px 120px 84px minmax(0, 1fr) max-content;
   gap: 6px;
   align-items: center;
 }
@@ -874,6 +876,17 @@
 }
 .valbtn:hover {
   background: var(--surface-2);
+}
+@media (max-width: 900px), (pointer: coarse) {
+  .fbuild {
+    --control-target: 44px;
+  }
+  .frow :is(.select, .valbtn, .ibtn) {
+    min-height: var(--control-target);
+  }
+  .frow .ibtn {
+    min-width: var(--control-target);
+  }
 }
 
 .palette {
