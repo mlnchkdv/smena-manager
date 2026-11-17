@@ -1,3 +1,21 @@
+export function portfolioMilestoneTiming(milestone, today, russian = false) {
+  const days =
+    milestone && !milestone.completed ? Math.max(0, Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(milestone.date + 'T00:00:00Z')) / 86400000)) : 0;
+  return {
+    days,
+    label: days
+      ? russian
+        ? `Этап просрочен на ${days} дн.`
+        : `Milestone ${days} ${days === 1 ? 'day' : 'days'} overdue`
+      : milestone?.date === today
+        ? russian
+          ? 'Этап сегодня'
+          : 'Milestone due today'
+        : russian
+          ? 'Следующий этап'
+          : 'Next milestone',
+  };
+}
 // Callers supply readable projects. Reject hidden/orphan task references again here.
 export function portfolioWork(projects, tasks, today) {
   const rows = new Map(projects.map(project => [project.id, { project, total: 0, done: 0, open: 0, overdue: 0, unassigned: 0, next: null }]));

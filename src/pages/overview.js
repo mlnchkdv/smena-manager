@@ -8,8 +8,8 @@ import { D, S, allTasks, canSee, mem, pColor, visibleProjects } from '../core/st
 import { av, empty, pIcon, pStatus, progBar, stIcon } from '../ui/helpers.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
-import { registerRussianLabels, t } from '../core/i18n.js';
-import { portfolioWork, findPortfolioRows } from '../shared/portfolio-work.js';
+import { registerRussianLabels, t, isRussian } from '../core/i18n.js';
+import { portfolioWork, findPortfolioRows, portfolioMilestoneTiming } from '../shared/portfolio-work.js';
 import { listWindow } from '../shared/list-window.js';
 import { collectionView, collectionPage, saveCollectionView } from '../core/collection-view-state.js';
 import { paginationHtml } from '../ui/pagination.js';
@@ -60,8 +60,9 @@ function taskCount(row, kind, count, label) {
   return `<button class="portfolio-count${kind === 'overdue' && count ? ' bad' : ''}" data-a="goTasks" data-f="${kind}" data-project="${esc(row.project.id)}" aria-label="${esc(t(label) + ': ' + count + ' · ' + row.project.name)}" title="${esc(t(label))}">${count}</button>`;
 }
 function nextMilestone(row, today) {
+  const timing = portfolioMilestoneTiming(row.next, today, isRussian());
   return row.next
-    ? `<small class="portfolio-next${row.next.date < today ? ' bad' : ''}"><span>${t('Next milestone')}:</span> <span translate="no">${esc(row.next.name || t('Unnamed milestone'))}</span> · ${fmtDate(row.next.date)}</small>`
+    ? `<button class="portfolio-next${timing.days ? ' bad' : ''}" data-a="openCalendarPlan" data-kind="milestone" data-project="${esc(row.project.id)}"><span translate="no">${esc(timing.label)}:</span> <span translate="no">${esc(row.next.name || t('Unnamed milestone'))}</span> · ${fmtDate(row.next.date)}</button>`
     : '';
 }
 function projectSignals(row, today) {

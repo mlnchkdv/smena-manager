@@ -75,6 +75,12 @@
   font-weight: 600;
 }
 .portfolio-next {
+  background: transparent;
+  border: 0;
+  padding: 4px 0;
+  text-align: start;
+  max-width: 100%;
+  cursor: pointer;
   display: block;
   font-size: 11.5px;
   line-height: 1.5;
@@ -296,6 +302,7 @@
   overflow-wrap: anywhere;
 }
 .portfolio-count:focus-visible,
+.portfolio-next:focus-visible,
 .portfolio-status-row:focus-visible,
 .portfolio-workload:focus-visible {
   outline: 2px solid var(--accent);

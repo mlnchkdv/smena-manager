@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { portfolioWork, findPortfolioRows } from '../../src/shared/portfolio-work.js';
+import { portfolioWork, findPortfolioRows, portfolioMilestoneTiming } from '../../src/shared/portfolio-work.js';
+test('milestone timing uses calendar dates across DST and distinguishes today and completed stages', () => {
+  assert.equal(portfolioMilestoneTiming({ date: '2026-10-24' }, '2026-10-26').days, 2);
+  assert.equal(portfolioMilestoneTiming({ date: '2026-11-16' }, '2026-11-17').label, 'Milestone 1 day overdue');
+  assert.equal(portfolioMilestoneTiming({ date: '2026-11-17' }, '2026-11-17', true).label, 'Этап сегодня');
+  assert.equal(portfolioMilestoneTiming({ date: '2026-11-18' }, '2026-11-17').label, 'Next milestone');
+  assert.equal(portfolioMilestoneTiming({ date: '2026-11-01', completed: true }, '2026-11-17').days, 0);
+});
 
 test('portfolio excludes non-readable projects before risk totals and workload', () => {
   const projects = [
