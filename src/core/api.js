@@ -1,3 +1,4 @@
+export const bookmarkPageRequest = (suffix, options = {}) => request('/api/bookmark-pages' + suffix, options, true);
 import { hydrateWhiteboards, whiteboardCatalogWrite, wantWhiteboard } from './whiteboard-catalog-transport.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';

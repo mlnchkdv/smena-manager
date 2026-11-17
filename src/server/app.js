@@ -1,3 +1,4 @@
+import { bookmarkPageRouter } from './bookmark-page-routes.js';
 import { requestSignal } from './request-signal.js';
 import { integrationRouter } from './integration-routes.js';
 import { publicLinksManagementRouter, anonymousPublicLinksRouter } from './public-links-routes.js';
@@ -244,6 +245,7 @@ app.use('/api', (request, response, next) => {
 });
 app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
+app.use('/api/bookmark-pages', bookmarkPageRouter);
 app.use('/api/storage/inspection', knowledgeInspectionRouter);
 
 app.post('/api/graph/query', async (request, response, next) => {

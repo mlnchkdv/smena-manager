@@ -462,3 +462,13 @@
     grid-column: 1 / -1;
   }
 }
+
+.bookmark-metadata-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bookmark-metadata-row .hint {
+  flex: 1 1 220px;
+}

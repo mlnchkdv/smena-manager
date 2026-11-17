@@ -1,3 +1,4 @@
+import { scheduleBookmarkMetadata } from '../features/bookmark-pages.js';
 import { setPersonalFavorite } from './actions.js';
 import { noteTypes } from '../shared/knowledge-types.js';
 import { whiteboardCopyMarkdown, whiteboardCopySourceCurrent } from '../shared/whiteboard-extract.js';
@@ -864,4 +865,5 @@ IN.bookmarkFolder = el => {
 };
 IN.bookmarkDraft = el => {
   S.ui.bookmarkDraft[el.dataset.field] = el.value;
+  if (el.dataset.field === 'url') scheduleBookmarkMetadata();
 };
