@@ -141,10 +141,15 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     HIDE_SECURITY_HEADERS: Object.keys(HTTP_SECURITY_HEADERS)
       .map(key => `proxy_hide_header ${key};`)
       .join('\n'),
+    HIDE_PUBLIC_SECURITY_HEADERS: Object.keys(HTTP_SECURITY_HEADERS)
+      .filter(key => !['Content-Security-Policy', 'Referrer-Policy'].includes(key))
+      .map(key => `proxy_hide_header ${key};`)
+      .join('\n'),
   };
   const files = {
     '/etc/nginx/sites-available/smena-manager.conf': tls ? 'nginx-site.conf.in' : 'nginx-bootstrap.conf.in',
     '/etc/nginx/snippets/smena-manager-proxy.conf': 'nginx-proxy.conf.in',
+    '/etc/nginx/snippets/smena-manager-public-proxy.conf': 'nginx-public-proxy.conf.in',
     '/etc/nginx/snippets/smena-manager-static-gzip.conf': 'nginx-static-gzip.conf.in',
     '/etc/systemd/system/smena-manager.service': 'smena-manager.service.in',
     '/etc/systemd/system/smena-manager.socket': 'smena-manager.socket.in',
@@ -168,6 +173,16 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     MARKER +
       '\n' +
       Object.entries(HTTP_SECURITY_HEADERS)
+        .map(([key, value]) => `add_header ${key} "${value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}" always;`)
+        .join('\n') +
+      '\n',
+  );
+  rendered.set(
+    '/etc/nginx/snippets/smena-manager-public-security.conf',
+    MARKER +
+      '\n' +
+      Object.entries(HTTP_SECURITY_HEADERS)
+        .filter(([key]) => !['Content-Security-Policy', 'Referrer-Policy'].includes(key))
         .map(([key, value]) => `add_header ${key} "${value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}" always;`)
         .join('\n') +
       '\n',

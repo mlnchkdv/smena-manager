@@ -60,6 +60,16 @@ test('rendered VPS configs retain API paths, trusted proxy boundaries, Google se
   const site = files.get('/etc/nginx/sites-available/smena-manager.conf');
   const proxy = files.get('/etc/nginx/snippets/smena-manager-proxy.conf');
   const headers = files.get('/etc/nginx/snippets/smena-manager-security.conf');
+  const publicProxy = files.get('/etc/nginx/snippets/smena-manager-public-proxy.conf');
+  const publicHeaders = files.get('/etc/nginx/snippets/smena-manager-public-security.conf');
+  assert.match(site, /location \^~ \/api\/public\/ \{ include \/etc\/nginx\/snippets\/smena-manager-public-proxy.conf; \}/);
+  assert.match(publicProxy, /access_log off;/);
+  assert.match(publicProxy, /proxy_buffering off;/);
+  assert.match(publicProxy, /proxy_pass http:\/\/127\.0\.0\.1:3001;/);
+  assert.doesNotMatch(publicProxy, /proxy_hide_header (Content-Security-Policy|Referrer-Policy);/);
+  assert.doesNotMatch(publicHeaders, /add_header (Content-Security-Policy|Referrer-Policy) /);
+  assert.match(publicHeaders, /X-Content-Type-Options "nosniff"/);
+  assert.match(proxy, /proxy_hide_header Content-Security-Policy;/);
   assert.match(site, /location \^~ \/api\/cron\/ \{ return 404; \}/);
   assert.match(site, /gzip off;/);
   assert.match(site, /location \^~ \/api\/monitor\/ \{ return 404; \}/);

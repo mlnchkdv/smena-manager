@@ -36,7 +36,7 @@ Management endpoints require an ordinary authenticated workspace session:
 - `POST /api/public-links` with `{kind,targetId,projectId,expiresInDays,locale}`
 - `DELETE /api/public-links/<linkId>` (creator or administrator)
 
-Kinds: `file`, `file-folder`, `note`, `note-folder`. Anonymous routes live under `/api/public/`, so the existing VPS Nginx `/api/` proxy requires no new route. The static `public-share.css` is included in the normal Vite production output.
+Kinds: `file`, `file-folder`, `note`, `note-folder`. Anonymous routes live under `/api/public/`. The managed VPS Nginx configuration gives that prefix a dedicated proxy snippet: it preserves the API's strict CSP/sandbox and no-referrer policy and disables access logging for capability URLs. The standard updater installs these snippets, validates Nginx and reloads it as part of release activation. The static `public-share.css` is included in the normal Vite production output.
 
 The private `smena-manager-public-links.json` registry is separate from workspace content and portable backups. Local mode writes it with owner-only permissions; Google Drive uses private JSON storage and conditional writes. Content restore cannot reinstate a revoked capability. The registry stores random identifiers and owner metadata, not the full signed URL. Authorized management requests reconstruct URLs with HMAC-SHA256.
 
