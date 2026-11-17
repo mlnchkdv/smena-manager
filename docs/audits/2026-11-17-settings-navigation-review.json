@@ -1,0 +1,1988 @@
+{
+  "date": "2026-11-17",
+  "initialPublishedVersion": "7539ab682637e03e646e7f5053626303c0add99d",
+  "scope": "Read-only authenticated production inspection; synthetic local API and Vite production build; emulated viewports, no physical phone or screen-reader claims",
+  "productionInspection": [
+    {
+      "box": {
+        "bottom": 335.4140625,
+        "height": 171.25,
+        "right": 1008,
+        "width": 560,
+        "x": 448,
+        "y": 164.1640625
+      },
+      "label": "published-task-filters",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    },
+    {
+      "box": {
+        "bottom": 521.5390625,
+        "height": 357.375,
+        "right": 312,
+        "width": 304,
+        "x": 8,
+        "y": 164.1640625
+      },
+      "label": "published-task-filters",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "box": {
+        "bottom": 166,
+        "height": 113,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 53
+      },
+      "label": "settings-navigation-before",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "box": {
+        "bottom": 567,
+        "height": 401,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 166
+      },
+      "label": "settings-body-before",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "box": {
+        "bottom": 166,
+        "height": 113,
+        "right": 390,
+        "width": 390,
+        "x": 0,
+        "y": 53
+      },
+      "label": "settings-navigation-before",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "box": {
+        "bottom": 692.6015625,
+        "height": 167.765625,
+        "right": 1184,
+        "width": 640,
+        "x": 544,
+        "y": 524.8359375
+      },
+      "label": "portable-backup-options",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    },
+    {
+      "box": {
+        "bottom": 2907.3359375,
+        "height": 253.53125,
+        "right": 290,
+        "width": 270,
+        "x": 20,
+        "y": 2653.8046875
+      },
+      "label": "portable-backup-options",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "box": {
+        "bottom": 941.8671875,
+        "height": 506.625,
+        "right": 290,
+        "width": 270,
+        "x": 20,
+        "y": 435.2421875
+      },
+      "label": "kms-transfer-options",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "box": {
+        "bottom": 421.2128601074219,
+        "height": 331.29290771484375,
+        "right": 954.5999450683594,
+        "width": 543.199951171875,
+        "x": 411.3999938964844,
+        "y": 89.91995239257812
+      },
+      "label": "note-types-dialog",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    },
+    {
+      "box": {
+        "bottom": 567,
+        "height": 521.6328125,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 45.3671875
+      },
+      "label": "note-types-draft",
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    }
+  ],
+  "shortScreenBefore": {
+    "viewport": {
+      "width": 390,
+      "height": 320
+    },
+    "resultsBottom": 310,
+    "bottomNavigationTop": 263,
+    "lastResultClick": "blocked by bottom navigation"
+  },
+  "settings": {
+    "states": 34,
+    "rows": [
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 862,
+          "height": 722,
+          "right": 1366,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1101,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 597,
+          "height": 722,
+          "right": 1101,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1100,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 224,
+          "y": 46,
+          "width": 876,
+          "height": 61,
+          "right": 1100,
+          "bottom": 107
+        },
+        "body": {
+          "x": 224,
+          "y": 107,
+          "width": 876,
+          "height": 661,
+          "right": 1100,
+          "bottom": 768
+        },
+        "input": {
+          "x": 240,
+          "y": 54,
+          "width": 360,
+          "height": 44,
+          "right": 600,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 608,
+          "y": 54,
+          "width": 476,
+          "height": 44,
+          "right": 1084,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 224,
+          "y": 46,
+          "width": 800,
+          "height": 61,
+          "right": 1024,
+          "bottom": 107
+        },
+        "body": {
+          "x": 224,
+          "y": 107,
+          "width": 800,
+          "height": 661,
+          "right": 1024,
+          "bottom": 768
+        },
+        "input": {
+          "x": 240,
+          "y": 54,
+          "width": 329.78125,
+          "height": 44,
+          "right": 569.78125,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 577.78125,
+          "y": 54,
+          "width": 430.21875,
+          "height": 44,
+          "right": 1008,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 900,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 46,
+          "width": 900,
+          "height": 61,
+          "right": 900,
+          "bottom": 107
+        },
+        "body": {
+          "x": 0,
+          "y": 107,
+          "width": 900,
+          "height": 661,
+          "right": 900,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 54,
+          "width": 370.6640625,
+          "height": 44,
+          "right": 386.6640625,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 394.6640625,
+          "y": 54,
+          "width": 489.3359375,
+          "height": 44,
+          "right": 884,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 641,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 46,
+          "width": 641,
+          "height": 61,
+          "right": 641,
+          "bottom": 107
+        },
+        "body": {
+          "x": 0,
+          "y": 107,
+          "width": 641,
+          "height": 661,
+          "right": 641,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 54,
+          "width": 259.109375,
+          "height": 44,
+          "right": 275.109375,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 283.109375,
+          "y": 54,
+          "width": 341.890625,
+          "height": 44,
+          "right": 625,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 640,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 640,
+          "height": 61,
+          "right": 640,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 640,
+          "height": 654,
+          "right": 640,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 258.6640625,
+          "height": 44,
+          "right": 274.6640625,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 282.6640625,
+          "y": 61,
+          "width": 341.3359375,
+          "height": 44,
+          "right": 624,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 730,
+          "right": 390,
+          "bottom": 844
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 206,
+          "right": 390,
+          "bottom": 320
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "data-transfer",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Перенос данных",
+        "selectedText": "Перенос данных",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "search-specific",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 514,
+          "right": 320,
+          "bottom": 567
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 288,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Перенос данных",
+        "selectedText": "Перенос данных",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 288,
+          "height": 325.109375,
+          "right": 304,
+          "bottom": 486.109375
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "no-results",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 514,
+          "right": 320,
+          "bottom": 567
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 288,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Перенос данных",
+        "selectedText": "Перенос данных",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 288,
+          "height": 325.109375,
+          "right": 304,
+          "bottom": 486.109375
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "clear-search",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Перенос данных",
+        "selectedText": "Перенос данных",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "short-screen-results",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 267,
+          "right": 390,
+          "bottom": 320
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 358,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Перенос данных",
+        "selectedText": "Перенос данных",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 358,
+          "height": 93,
+          "right": 374,
+          "bottom": 254
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "result-selected",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 206,
+          "right": 390,
+          "bottom": 320
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "notif-delivery",
+        "pickerTitle": "Диагностика доставки",
+        "selectedText": "Диагностика доставки",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "desktop-restored",
+        "config": ["ru", "light", "comfortable"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 862,
+          "height": 722,
+          "right": 1366,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Оформление",
+        "selectedText": "Оформление",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 862,
+          "height": 722,
+          "right": 1366,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1101,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 597,
+          "height": 722,
+          "right": 1101,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1100,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 224,
+          "y": 46,
+          "width": 876,
+          "height": 61,
+          "right": 1100,
+          "bottom": 107
+        },
+        "body": {
+          "x": 224,
+          "y": 107,
+          "width": 876,
+          "height": 661,
+          "right": 1100,
+          "bottom": 768
+        },
+        "input": {
+          "x": 240,
+          "y": 54,
+          "width": 360,
+          "height": 44,
+          "right": 600,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 608,
+          "y": 54,
+          "width": 476,
+          "height": 44,
+          "right": 1084,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 224,
+          "y": 46,
+          "width": 800,
+          "height": 61,
+          "right": 1024,
+          "bottom": 107
+        },
+        "body": {
+          "x": 224,
+          "y": 107,
+          "width": 800,
+          "height": 661,
+          "right": 1024,
+          "bottom": 768
+        },
+        "input": {
+          "x": 240,
+          "y": 54,
+          "width": 329.78125,
+          "height": 44,
+          "right": 569.78125,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 577.78125,
+          "y": 54,
+          "width": 430.21875,
+          "height": 44,
+          "right": 1008,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 900,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 46,
+          "width": 900,
+          "height": 61,
+          "right": 900,
+          "bottom": 107
+        },
+        "body": {
+          "x": 0,
+          "y": 107,
+          "width": 900,
+          "height": 661,
+          "right": 900,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 54,
+          "width": 370.6640625,
+          "height": 44,
+          "right": 386.6640625,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 394.6640625,
+          "y": 54,
+          "width": 489.3359375,
+          "height": 44,
+          "right": 884,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 641,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 46,
+          "width": 641,
+          "height": 61,
+          "right": 641,
+          "bottom": 107
+        },
+        "body": {
+          "x": 0,
+          "y": 107,
+          "width": 641,
+          "height": 661,
+          "right": 641,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 54,
+          "width": 259.109375,
+          "height": 44,
+          "right": 275.109375,
+          "bottom": 98
+        },
+        "picker": {
+          "x": 283.109375,
+          "y": 54,
+          "width": 341.890625,
+          "height": 44,
+          "right": 625,
+          "bottom": 98
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 640,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 640,
+          "height": 61,
+          "right": 640,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 640,
+          "height": 654,
+          "right": 640,
+          "bottom": 768
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 258.6640625,
+          "height": 44,
+          "right": 274.6640625,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 282.6640625,
+          "y": 61,
+          "width": 341.3359375,
+          "height": 44,
+          "right": 624,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 730,
+          "right": 390,
+          "bottom": 844
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "appearance-resize",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 206,
+          "right": 390,
+          "bottom": 320
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "data-transfer",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Data transfer",
+        "selectedText": "Data transfer",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "search-specific",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 514,
+          "right": 320,
+          "bottom": 567
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 288,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Data transfer",
+        "selectedText": "Data transfer",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 288,
+          "height": 340,
+          "right": 304,
+          "bottom": 501
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "no-results",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 514,
+          "right": 320,
+          "bottom": 567
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 288,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Data transfer",
+        "selectedText": "Data transfer",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 288,
+          "height": 340,
+          "right": 304,
+          "bottom": 501
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "clear-search",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 320,
+          "height": 567
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 320,
+          "height": 61,
+          "right": 320,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 320,
+          "height": 453,
+          "right": 320,
+          "bottom": 567
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 116.4453125,
+          "height": 44,
+          "right": 132.4453125,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 140.4453125,
+          "y": 61,
+          "width": 163.5546875,
+          "height": 44,
+          "right": 304,
+          "bottom": 105
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Data transfer",
+        "selectedText": "Data transfer",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "short-screen-results",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": true,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 267,
+          "right": 390,
+          "bottom": 320
+        },
+        "body": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 358,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "data-transfer",
+        "pickerTitle": "Data transfer",
+        "selectedText": "Data transfer",
+        "results": {
+          "x": 16,
+          "y": 161,
+          "width": 358,
+          "height": 93,
+          "right": 374,
+          "bottom": 254
+        },
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "result-selected",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 390,
+          "height": 320
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 53,
+          "width": 390,
+          "height": 61,
+          "right": 390,
+          "bottom": 114
+        },
+        "body": {
+          "x": 0,
+          "y": 114,
+          "width": 390,
+          "height": 206,
+          "right": 390,
+          "bottom": 320
+        },
+        "input": {
+          "x": 16,
+          "y": 61,
+          "width": 147.5546875,
+          "height": 44,
+          "right": 163.5546875,
+          "bottom": 105
+        },
+        "picker": {
+          "x": 171.5546875,
+          "y": 61,
+          "width": 202.4453125,
+          "height": 44,
+          "right": 374,
+          "bottom": 105
+        },
+        "pickerValue": "notif-delivery",
+        "pickerTitle": "Delivery diagnostics",
+        "selectedText": "Delivery diagnostics",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      },
+      {
+        "kind": "desktop-restored",
+        "config": ["en", "dark", "compact"],
+        "viewport": {
+          "width": 1366,
+          "height": 768
+        },
+        "query": false,
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "body": {
+          "x": 504,
+          "y": 46,
+          "width": 862,
+          "height": 722,
+          "right": 1366,
+          "bottom": 768
+        },
+        "input": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "picker": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "pickerValue": "appearance",
+        "pickerTitle": "Appearance",
+        "selectedText": "Appearance",
+        "results": null,
+        "resultsOverflow": 0,
+        "overflow": 0,
+        "rootOverflow": 0,
+        "bodyOverflow": 0
+      }
+    ],
+    "axe": [
+      {
+        "label": "ru-320-navigation",
+        "violations": []
+      },
+      {
+        "label": "ru-320-results",
+        "violations": []
+      },
+      {
+        "label": "ru-desktop-results",
+        "violations": []
+      },
+      {
+        "label": "en-320-navigation",
+        "violations": []
+      },
+      {
+        "label": "en-320-results",
+        "violations": []
+      },
+      {
+        "label": "en-desktop-results",
+        "violations": []
+      }
+    ],
+    "viewer": {
+      "height": 61,
+      "width": 320,
+      "overflow": 0,
+      "rootOverflow": 0
+    },
+    "workspaceUnchanged": true,
+    "errors": []
+  },
+  "home": {
+    "states": 4,
+    "rows": [
+      {
+        "lang": "ru",
+        "width": 1366,
+        "height": 768,
+        "open": 6,
+        "emptyCountRendered": true,
+        "overflow": {
+          "body": 0,
+          "root": 0
+        }
+      },
+      {
+        "lang": "ru",
+        "width": 320,
+        "height": 567,
+        "open": 6,
+        "emptyCountRendered": true,
+        "overflow": {
+          "body": 0,
+          "root": 0
+        }
+      },
+      {
+        "lang": "en",
+        "width": 1366,
+        "height": 768,
+        "open": 6,
+        "emptyCountRendered": true,
+        "overflow": {
+          "body": 0,
+          "root": 0
+        }
+      },
+      {
+        "lang": "en",
+        "width": 320,
+        "height": 567,
+        "open": 6,
+        "emptyCountRendered": true,
+        "overflow": {
+          "body": 0,
+          "root": 0
+        }
+      }
+    ],
+    "errors": []
+  },
+  "serverTests": {
+    "count": 10,
+    "passed": 10
+  },
+  "homeFixCommit": "e6a8af74"
+}

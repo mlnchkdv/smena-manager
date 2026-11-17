@@ -185,7 +185,22 @@
   font-size: var(--fs-sm);
 }
 .settings-section-nav:has(.settings-search) {
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.settings-section-nav > .settings-search {
+  flex: 1 1 0;
+  margin: 0;
+}
+.settings-section-nav .settings-search input {
+  min-height: 44px;
+  font-size: 16px;
+}
+.settings-section-nav > .settings-section-picker {
+  flex: 1.25 1 0;
+  min-width: 0;
+  width: 0;
 }
 /* A compact navigation column becomes a dedicated results view while searching.
    Its result list owns the remaining height rather than pushing the section away. */
@@ -194,6 +209,7 @@
   flex-direction: column;
   flex-wrap: nowrap;
   overflow: hidden;
+  padding-bottom: calc(8px + var(--bottom-nav-height, 0px));
 }
 .settings-is-searching .settings-section-nav .settings-search {
   display: flex;
