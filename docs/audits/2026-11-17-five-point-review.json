@@ -4072,5 +4072,155 @@
     "status": "not-available",
     "availableEnvironment": "Windows desktop browsers only; no connected WPD device, adb or idevice_id",
     "notVerified": ["physical iOS and Android keyboards", "VoiceOver", "TalkBack"]
+  },
+  "labelCheck": {
+    "passed": 3,
+    "rows": [
+      {
+        "width": 320,
+        "height": 567,
+        "result": [
+          {
+            "label": "Исполнитель",
+            "textRight": 112.296875,
+            "valueLeft": 112,
+            "overlap": false
+          },
+          {
+            "label": "Срок выполнения",
+            "textRight": 108.140625,
+            "valueLeft": 112,
+            "overlap": false
+          },
+          {
+            "label": "Основная задача",
+            "textRight": 93.234375,
+            "valueLeft": 112,
+            "overlap": false
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "result": [
+          {
+            "label": "Исполнитель",
+            "textRight": 112.296875,
+            "valueLeft": 112,
+            "overlap": false
+          },
+          {
+            "label": "Срок выполнения",
+            "textRight": 108.140625,
+            "valueLeft": 112,
+            "overlap": false
+          },
+          {
+            "label": "Основная задача",
+            "textRight": 93.234375,
+            "valueLeft": 112,
+            "overlap": false
+          }
+        ]
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "result": [
+          {
+            "label": "Исполнитель",
+            "textRight": 867.296875,
+            "valueLeft": 883,
+            "overlap": false
+          },
+          {
+            "label": "Срок выполнения",
+            "textRight": 863.140625,
+            "valueLeft": 883,
+            "overlap": false
+          },
+          {
+            "label": "Основная задача",
+            "textRight": 848.234375,
+            "valueLeft": 883,
+            "overlap": false
+          }
+        ]
+      }
+    ]
+  },
+  "published": {
+    "version": "8da4355f1df66eac09a8a2cee5c5fac1ff9e9d14",
+    "states": [
+      {
+        "dialog": {
+          "bottom": 768,
+          "height": 768,
+          "width": 620
+        },
+        "height": 768,
+        "name": "subtask",
+        "navigation": {
+          "bottom": 169,
+          "top": 139
+        },
+        "notesPlaceholder": "Добавьте описание, ссылки или критерии приёмки…",
+        "overflow": 0,
+        "position": "Подзадача 4 из 5 · Открыта",
+        "unusedBelow": 266.859375,
+        "width": 1366
+      },
+      {
+        "focused": "subtask-position",
+        "height": 567,
+        "modal": "true",
+        "name": "subtask",
+        "navigation": {
+          "bottom": 221,
+          "buttonHeight": 44,
+          "top": 177
+        },
+        "overflow": 0,
+        "position": "Подзадача 4 из 5 · Открыта",
+        "width": 320
+      },
+      {
+        "dialog": {
+          "bottom": 575.140625,
+          "height": 551.140625,
+          "width": 980
+        },
+        "height": 768,
+        "name": "centered-subtask",
+        "overflow": 0,
+        "unusedBelow": 41,
+        "width": 1366
+      },
+      {
+        "dialog": {
+          "bottom": 567,
+          "width": 320
+        },
+        "height": 567,
+        "name": "save-view",
+        "overflow": 0,
+        "placeholder": "Например, задачи на проверку дизайна",
+        "width": 320
+      },
+      {
+        "height": 567,
+        "name": "file-preview",
+        "overflow": 0,
+        "regionFocused": true,
+        "regionLabel": "Предпросмотр файла",
+        "regionTabIndex": "0",
+        "toolsWrap": "wrap",
+        "width": 320
+      }
+    ],
+    "phoneFocusTrap": true,
+    "ci": "https://github.com/mlnchkdv/smena-manager/actions/runs/44112573608",
+    "smokePassed": 6
   }
 }

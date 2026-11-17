@@ -5,7 +5,7 @@ export const RU = {
   'Next subtask': 'Следующая подзадача',
   'Mark subtask done': 'Отметить подзадачу выполненной',
   'Mark subtask not done': 'Отметить подзадачу невыполненной',
-  Parent: 'Родительская задача',
+  Parent: 'Основная задача',
   'Convert to task': 'Преобразовать в задачу',
   'Add details, links, or acceptance criteria…': 'Добавьте описание, ссылки или критерии приёмки…',
   'Save the current filters as a tab on this project.': 'Сохраните текущие фильтры как отдельную вкладку проекта.',
