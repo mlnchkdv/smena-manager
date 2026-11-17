@@ -25,7 +25,11 @@ A.openKnowledgeReview = async el => (await import('../features/knowledge-review.
 A.openKnowledgeIntake = async el => (await import('../features/knowledge-intake.js')).openKnowledgeIntake(el.dataset.id);
 A.openKnowledgeIntakeQueue = async () => (await import('../features/knowledge-intake.js')).openKnowledgeIntake();
 export function noteUtilities(note) {
-  return `<button class="btn btn-ghost" data-a="openKnowledgeIntake" data-id="${esc(note.id)}" translate="no">${ic('inbox', 15)}<span>${kc('Team intake', 'Командный разбор')}</span></button><button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="openKnowledgeReview" data-id="${esc(note.id)}" translate="no">${ic('badge-check', 15)}<span>${kc('Review note', 'Проверка заметки')}</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
+  const publicAction =
+    S.ui.currentUser?.role !== 'viewer' && !knowledgeEditBlocked()
+      ? `<button class="btn btn-ghost" data-a="publicNoteLink" data-id="${esc(note.id)}" translate="no">${ic('globe', 15)}<span>${kc('Public link', 'Публичная ссылка')}</span></button>`
+      : '';
+  return `${publicAction}<button class="btn btn-ghost" data-a="openKnowledgeIntake" data-id="${esc(note.id)}" translate="no">${ic('inbox', 15)}<span>${kc('Team intake', 'Командный разбор')}</span></button><button class="btn btn-ghost" data-a="viewKnowledgeHistory" data-id="${esc(note.id)}">${ic('history', 15)}<span>Version history</span></button><button class="btn btn-ghost" data-a="openKnowledgeReview" data-id="${esc(note.id)}" translate="no">${ic('badge-check', 15)}<span>${kc('Review note', 'Проверка заметки')}</span></button><button class="btn btn-ghost" data-a="downloadKnowledgeNoteSource" data-id="${esc(note.id)}">${ic('download', 15)}<span>Download source</span></button>`;
 }
 A.viewKnowledgeHistory = el => {
   const id = el.dataset.id;

@@ -98,6 +98,7 @@ export function ctxMenu(p) {
       I('previewFile', 'eye', 'Preview') +
       (writable ? I('renameFile', 'pencil', 'Rename') : '') +
       (writable ? I('moveFileToFolder', 'folder-input', 'Move to folder') : '') +
+      (writable && file.storageName ? I('publicFileLink', 'globe', isRussian() ? 'Публичная ссылка' : 'Public link') : '') +
       I('copyLink', 'link', 'Copy link') +
       (file.storageName ? I('downloadStoredFile', 'download', 'Download') : writable ? I('dupFile', 'copy', 'Duplicate') : '') +
       (canRemoveFile(file, D(), S.ui.currentUser?.role) ? sep + I('delFile', 'trash-2', 'Delete', 'danger') : '')

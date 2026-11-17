@@ -50,6 +50,11 @@ export const A = {},
   BLUR = {};
 A.reloadLanguage = () => location.reload();
 A.integrationAction = el => import('../ui/integrations.js').then(module => module.integrationAction(el));
+A.publicFileLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('file', el.dataset.id));
+A.publicNoteLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('note', el.dataset.id));
+A.publicFileFolderLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('file-folder', el.dataset.folder, el.dataset.project));
+A.publicNoteFolderLink = el => import('../ui/public-links.js').then(module => module.openPublicLink('note-folder', el.dataset.folder));
+A.publicLinkAction = el => import('../ui/public-links.js').then(module => module.publicLinkAction(el));
 registerManagementActions(
   { A, IN, KEY, DBL, BLUR },
   {

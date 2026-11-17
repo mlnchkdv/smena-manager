@@ -1,5 +1,6 @@
 import { requestSignal } from './request-signal.js';
 import { integrationRouter } from './integration-routes.js';
+import { publicLinksManagementRouter, anonymousPublicLinksRouter } from './public-links-routes.js';
 import { publicApiRouter, publicApiError } from './public-api-routes.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 import { queryKnowledgeIndex } from './knowledge-search-query.js';
@@ -193,6 +194,7 @@ app.get('/api/monitor/readiness', async (request, response, next) => {
 });
 app.use('/api/v1', publicApiRouter);
 app.use('/api/v1', publicApiError);
+app.use('/api/public', anonymousPublicLinksRouter);
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
@@ -211,6 +213,7 @@ app.post('/api/workspaces/:id/archive', async (request, response, next) => {
 });
 app.use('/api', requireWorkspace);
 app.use('/api/integrations', integrationRouter);
+app.use('/api/public-links', publicLinksManagementRouter);
 app.post('/api/workspaces', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.status(201).json({ workspace: await createWorkspace(request.user, request.body, request.configuredProfiles) });

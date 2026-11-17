@@ -523,6 +523,7 @@ export async function streamFileContent(request, response, next) {
   try {
     const database = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = database.files?.find(item => item.id === request.params.id);
+    if (request.publicFileGuard) await request.publicFileGuard(database, file);
     if (!file?.storageName) {
       response.status(404).json({ error: 'Stored file not found.', code: 'FILE_NOT_FOUND' });
       return;

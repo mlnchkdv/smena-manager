@@ -1,0 +1,142 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  color: #202124;
+  background: #f7f7f6;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 880px;
+  margin: 32px auto;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #dfdfdc;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  color: #62625d;
+}
+header b {
+  color: #202124;
+}
+h1 {
+  font-size: clamp(24px, 5vw, 36px);
+  line-height: 1.2;
+}
+article {
+  font-size: 16px;
+  line-height: 1.65;
+}
+a {
+  color: #414acb;
+  text-underline-offset: 3px;
+}
+a:focus-visible {
+  outline: 3px solid #414acb;
+  outline-offset: 4px;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 24px;
+}
+nav a,
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+pre {
+  max-width: 100%;
+  overflow: auto;
+  background: #f1f1ef;
+  padding: 16px;
+  border-radius: 8px;
+}
+code {
+  font-size: 0.9em;
+}
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+td,
+th {
+  padding: 8px 12px;
+  border: 1px solid #dededb;
+  text-align: start;
+}
+blockquote {
+  margin-inline: 0;
+  padding-inline: 16px;
+  border-inline-start: 3px solid #c9c9c3;
+}
+.shared-items {
+  padding: 0;
+  list-style: none;
+}
+.shared-items a {
+  display: flex;
+  gap: 12px;
+  padding: 14px 4px;
+  min-height: 48px;
+  border-bottom: 1px solid #e6e6e2;
+}
+.kind {
+  flex: 0 0 20px;
+}
+.notice {
+  background: #f1f1ef;
+  padding: 12px;
+  border-radius: 8px;
+}
+@media (max-width: 600px) {
+  main {
+    margin: 0;
+    min-height: 100dvh;
+    padding: 20px 16px;
+    border: 0;
+    border-radius: 0;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #ededeb;
+    background: #171819;
+  }
+  main {
+    background: #202123;
+    border-color: #434447;
+  }
+  header {
+    color: #babbb7;
+  }
+  header b {
+    color: #ededeb;
+  }
+  a {
+    color: #aeb4ff;
+  }
+  pre,
+  .notice {
+    background: #2c2d30;
+  }
+  td,
+  th,
+  .shared-items a {
+    border-color: #434447;
+  }
+}

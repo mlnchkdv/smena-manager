@@ -35,6 +35,7 @@ let revisionCache = null;
 let activeWorkspace = '';
 export const getActiveWorkspace = () => activeWorkspace || 'default';
 export const integrationRequest = (suffix = '', options = {}) => request('/api/integrations' + suffix, options, true);
+export const publicLinksRequest = (suffix = '', options = {}) => request('/api/public-links' + suffix, options, true);
 export function setActiveWorkspace(value) {
   if (activeWorkspace === value) return;
   activeWorkspace = value;
