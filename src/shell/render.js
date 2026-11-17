@@ -295,7 +295,7 @@ export function render() {
   if (prevOv.drawer && !ov.drawer && lost()) tryFocus(S.ui.drawerOpener);
   if (prevOv.knowledgeDrawer && !ov.knowledgeDrawer && lost()) tryFocus(S.ui.knowledgeDrawerOpener);
   if (prevOv.pal && !ov.pal && lost()) tryFocus(S.ui.palOpener);
-  if (prevOv.sub && !ov.sub && lost()) tryFocus('.drawer .subt [data-sid="' + (S.ui.lastSub || '') + '"]');
+  if (prevOv.sub && !ov.sub && lost()) tryFocus('.drawer .subt button.s[data-sid="' + (S.ui.lastSub || '') + '"]');
   if (lost() && fkey && tryFocus(fkey)) {
     try {
       if (s0 != null) document.activeElement.setSelectionRange(s0, s1);
@@ -348,6 +348,11 @@ const layoutObserver = new ResizeObserver(() => {
   layoutFrame = requestAnimationFrame(() => {
     if (!layoutMain?.isConnected) return;
     updateBottomNavHeight();
+    const drawer = document.querySelector('.drawer:not(.knowledge-drawer)');
+    if (drawer && drawer.getAttribute('aria-modal') !== String(S.ui.drawerFull || innerWidth <= 640)) {
+      render();
+      return;
+    }
     const filters = document.querySelector('.files-filter-options');
     if (filters && filters.classList.contains('is-mobile') !== layoutMain.clientWidth <= 850) {
       render();
@@ -444,7 +449,7 @@ export function afterRender() {
       });
   }
   const shell = document.querySelector('.shell');
-  if (shell) shell.inert = !!document.querySelector('.knowledge-drawer') || !!S.ui.modals.length || !!S.ui.palette || !!(S.ui.drawer && S.ui.drawerFull);
+  if (shell) shell.inert = !!document.querySelector('.drawer[aria-modal="true"]') || !!S.ui.modals.length || !!S.ui.palette;
   const inboxModal = !!document.querySelector('.inbox-narrow.has-selection');
   const mobileFolders = S.ui.knowledgeMobileFolders && S.ui.route === 'knowledge' && S.ui.knowledgeFolderOverlay;
   const knowledgeMain = document.querySelector('.knowledge-main');

@@ -62,3 +62,31 @@
     display: none;
   }
 }
+.subtask-navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+.subtask-navigation > .faint {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+.subtask-navigation > .ibtn {
+  flex-shrink: 0;
+}
+.subtask-drawer .kv > dt {
+  height: auto;
+  min-height: 30px;
+}
+@media (min-width: 641px) {
+  .drawer.full.subtask-drawer {
+    bottom: auto;
+    max-height: calc(100dvh - 48px);
+  }
+  .drawer.full.subtask-drawer .drawer-b {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+}

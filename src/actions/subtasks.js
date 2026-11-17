@@ -13,7 +13,7 @@ A.openSub = el => {
   S.ui.subOpen = { tid: el.dataset.id, sid: el.dataset.sid };
   S.ui.pop = null;
   render();
-  setTimeout(() => $('#s-title')?.focus(), 0);
+  setTimeout(() => $(matchMedia('(max-width: 640px)').matches ? '#subtask-position' : '#s-title')?.focus({ preventScroll: true }), 0);
 };
 A.closeSub = () => {
   S.ui.lastSub = S.ui.subOpen?.sid;
@@ -33,6 +33,8 @@ A.subNav = el => {
   if (t.subtasks[i]) {
     S.ui.subOpen = { tid: t.id, sid: t.subtasks[i].id };
     render();
+    const navigation = $(+el.dataset.d < 0 ? '#subtask-previous' : '#subtask-next');
+    (navigation && !navigation.disabled ? navigation : $('#subtask-position'))?.focus({ preventScroll: true });
   }
 };
 BLUR.commitSubTitle = el => {

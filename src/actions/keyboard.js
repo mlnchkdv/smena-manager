@@ -89,8 +89,8 @@ document.addEventListener('keydown', e => {
             ? $('.knowledge-sidebar')
             : S.ui.mnav && !S.ui.pop && innerWidth <= 900
               ? $('.side')
-              : S.ui.drawer && S.ui.drawerFull
-                ? $('.drawer')
+              : S.ui.drawer && $('.drawer[aria-modal="true"]')
+                ? $('.drawer[aria-modal="true"]')
                 : !overlayAboveDiagram()
                   ? $('.inbox-narrow.has-selection .inbox-prev,.graph-page.is-focused,.project-whiteboard.is-focused')
                   : null;

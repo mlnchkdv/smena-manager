@@ -3,6 +3,7 @@ import { esc, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { mem } from '../core/store.js';
 import { av } from '../ui/helpers.js';
+import { isRussian } from '../core/i18n.js';
 
 export function subtaskHtml(t, s, editable = true) {
   const i = t.subtasks.indexOf(s);
@@ -12,7 +13,11 @@ export function subtaskHtml(t, s, editable = true) {
       <input type="checkbox" class="check round" style="margin-top:9px" ${s.done ? 'checked' : ''} ${editable ? '' : 'disabled'} data-a="toggleSub" data-id="${t.id}" data-sid="${s.id}" aria-label="${s.done ? 'Mark subtask not done' : 'Mark subtask done'}">
       <textarea class="ttl-edit" id="s-title" ${editable ? '' : 'readonly'} rows="1" data-autosize data-blur="commitSubTitle" data-key-enter="blur" data-id="${t.id}" data-sid="${s.id}" aria-label="Subtask title" style="${s.done ? 'text-decoration:line-through;color:var(--text-3)' : ''}">${esc(s.title)}</textarea>
     </div>
-    <div class="faint" style="font-size:12px;margin:4px 0 0 26px">Subtask ${i + 1} of ${t.subtasks.length} · ${s.done ? 'Done' : 'Open'}</div>
+    <nav class="subtask-navigation" aria-label="Subtask navigation">
+      <span class="faint" id="subtask-position" tabindex="-1" translate="no">${isRussian() ? `Подзадача ${i + 1} из ${t.subtasks.length} · ${s.done ? 'Выполнена' : 'Открыта'}` : `Subtask ${i + 1} of ${t.subtasks.length} · ${s.done ? 'Done' : 'Open'}`}</span>
+      <button class="ibtn" id="subtask-previous" data-a="subNav" data-id="${t.id}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="Previous subtask" title="Previous subtask">${ic('chevron-left', 16)}</button>
+      <button class="ibtn" id="subtask-next" data-a="subNav" data-id="${t.id}" data-d="1" ${i === t.subtasks.length - 1 ? 'disabled' : ''} aria-label="Next subtask" title="Next subtask">${ic('chevron-right', 16)}</button>
+    </nav>
     <dl class="kv" style="margin-top:16px">
       <dt>${ic('user', 14)}Assignee</dt><dd><button ${editable ? '' : 'disabled'} class="pillbtn ${s.assignee ? '' : 'empty'}" data-a="pop" data-pop="subassignee" data-id="${t.id}" data-i="${i}">${av(s.assignee, 'sm', false)}<span>${s.assignee ? esc(mem(s.assignee)?.name) : 'Unassigned'}</span></button></dd>
       <dt>${ic('calendar', 14)}Due date</dt><dd><button ${editable ? '' : 'disabled'} class="pillbtn ${s.due ? '' : 'empty'}" data-a="pop" data-pop="date" data-field="subdue" data-id="${t.id}" data-i="${i}">${ic('calendar', 13)}<span class="num">${s.due ? relDate(s.due) : 'Set date'}</span></button></dd>
@@ -23,8 +28,6 @@ export function subtaskHtml(t, s, editable = true) {
     <div class="dsec row" style="gap:6px;flex-wrap:wrap">
       <button class="btn btn-secondary btn-sm" ${editable ? '' : 'hidden disabled'} data-a="promoteSub" data-id="${t.id}" data-sid="${s.id}">${ic('arrow-up-right', 13)}Convert to task</button>
       <span class="sp"></span>
-      <button class="btn btn-sm btn-ghost" data-a="subNav" data-id="${t.id}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="Previous subtask">${ic('chevron-left', 14)}Previous</button>
-      <button class="btn btn-sm btn-ghost" data-a="subNav" data-id="${t.id}" data-d="1" ${i === t.subtasks.length - 1 ? 'disabled' : ''} aria-label="Next subtask">Next${ic('chevron-right', 14)}</button>
       <button class="btn btn-sm btn-danger-ghost" ${editable ? '' : 'hidden disabled'} data-a="rmSub" data-id="${t.id}" data-sid="${s.id}">${ic('trash-2', 13)}Delete</button>
     </div>
   </div>`;

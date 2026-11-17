@@ -1,4 +1,19 @@
 export const RU = {
+  'Subtask title': 'Название подзадачи',
+  'Subtask navigation': 'Переход между подзадачами',
+  'Previous subtask': 'Предыдущая подзадача',
+  'Next subtask': 'Следующая подзадача',
+  'Mark subtask done': 'Отметить подзадачу выполненной',
+  'Mark subtask not done': 'Отметить подзадачу невыполненной',
+  Parent: 'Родительская задача',
+  'Convert to task': 'Преобразовать в задачу',
+  'Add details, links, or acceptance criteria…': 'Добавьте описание, ссылки или критерии приёмки…',
+  'Save the current filters as a tab on this project.': 'Сохраните текущие фильтры как отдельную вкладку проекта.',
+  'View name': 'Название представления',
+  'e.g. Design review queue': 'Например, задачи на проверку дизайна',
+  'No filters are active — the view will show all tasks. You can add filters after saving.':
+    'Фильтры не заданы — представление покажет все задачи. Фильтры можно добавить после сохранения.',
+  'Untitled view': 'Представление без названия',
   'Queue changed. Refresh the preview before continuing.': 'Очередь изменилась. Обновите предпросмотр перед продолжением.',
   'A delivery is in progress. Pause and wait before skipping.': 'Выполняется доставка. Приостановите очередь и дождитесь её завершения перед пропуском.',
   'Configure the origin and reduce the queue to at most 100 recipients before enabling delivery.':

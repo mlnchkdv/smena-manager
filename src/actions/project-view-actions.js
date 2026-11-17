@@ -10,6 +10,7 @@ import { primaryTeamId } from '../shared/team-relations.js';
 import { TEMPLATES, openModal } from '../overlays/modals.js';
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { getSessionGeneration } from '../core/api.js';
+import { t as tr } from '../core/i18n.js';
 
 A.openProjectAutomations = async el => {
   const before = JSON.stringify([getSessionGeneration(), D().ws.id, S.ui.route, S.ui.params]),
@@ -37,7 +38,7 @@ A.saveViewSubmit = () => {
   const m = S.ui.modals[S.ui.modals.length - 1];
   if (!canEditProject(proj(m.pid), D().me, S.ui.currentUser?.role || 'viewer'))
     return toast('You do not have permission to save workspace changes.', { kind: 'err' });
-  const name = $('#sv-name').value.trim() || 'Untitled view';
+  const name = $('#sv-name').value.trim() || tr('Untitled view');
   const type = $('#sv-type').value;
   const sv = { id: uid('v'), project: m.pid, name, type, filters: JSON.parse(JSON.stringify(viewOf(m.sourceKey || 'p:' + m.pid).filters)) };
   D().savedViews.push(sv);
