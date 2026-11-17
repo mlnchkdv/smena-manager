@@ -30,3 +30,12 @@ Release controls and recovery: [operations guide](OPERATIONS.md).
 Implemented stages, production acceptance and limits of testing:
 [16 November 2026 report](ACCEPTANCE_2026-11-16.md).
 Connection verification: [17 November 2026](CONNECTION_CHECK_2026-11-17.md).
+# Individual API and MCP access
+
+Workspace administrators manage each active member in **Settings → Integrations → Member access**.
+The four personal permissions cover reading/editing notes and reading/uploading files. Effective access is the intersection of the current membership role, workspace policy, personal permissions and the scopes originally issued to the app. Personal grants cannot override a workspace restriction or promote a viewer to editor.
+
+Changing permissions immediately narrows existing tokens. Disabling a member permanently revokes their existing tokens, including legacy tokens mapped through their workspace identity. Re-enabling access requires creating a new token. Missing personal settings inherit the existing workspace behavior, preserving installed clients.
+
+Management endpoint: `PATCH /api/integrations/members/:memberId` with `{ "enabled": true, "scopes": ["knowledge:read"] }`. It requires a signed-in workspace administrator; integration bearer tokens cannot manage grants. The registry remains outside content backups, so restoring workspace content does not restore revoked tokens.
+

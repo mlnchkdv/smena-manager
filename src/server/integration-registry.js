@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 import { getStorageProvider } from './storage/index.js';
 import { readIntegrationRegistry, saveIntegrationRegistry } from './storage/integration-registry.js';
 import { INTEGRATION_LIMITS, INTEGRATION_SCOPES } from '../shared/integration-contract.js';
+import { memberForProfile } from '../shared/member-identity.js';
 
 export const integrationError = (code, statusCode = 422, message = code) => Object.assign(new Error(message), { code, statusCode });
 const digest = secret => createHash('sha256').update(secret).digest('hex');
@@ -18,6 +19,16 @@ export const publicApiPolicy = policy => ({
   writeEnabled: policy?.writeEnabled === true,
   uploadsEnabled: policy?.uploadsEnabled === true,
 });
+export const integrationMemberAccess = value => ({
+  enabled: value?.enabled !== false,
+  scopes: Array.isArray(value?.scopes) ? value.scopes.filter(scope => INTEGRATION_SCOPES.includes(scope)) : [...INTEGRATION_SCOPES],
+});
+// Personal grants only narrow token, workspace and current membership rights.
+export function applyIntegrationMemberAccess(record, member) {
+  const access = integrationMemberAccess(record.memberAccess?.[member.id]);
+  if (!access.enabled) throw integrationError('INTEGRATION_MEMBER_DISABLED', 403);
+  return { ...record, scopes: record.scopes.filter(scope => access.scopes.includes(scope)) };
+}
 
 export class IntegrationRegistry {
   constructor({ provider = () => getStorageProvider('default'), now = () => Date.now() } = {}) {
@@ -43,12 +54,48 @@ export class IntegrationRegistry {
     this.queue = pending.catch(() => {});
     return pending;
   }
-  async list(profile, workspaceId) {
+  async list(profile, workspaceId, member = { id: profile.id }, members = []) {
     const data = await readIntegrationRegistry(this.provider());
     return {
       policy: publicApiPolicy(data.policies[workspaceId]),
+      access: integrationMemberAccess(data.memberAccess?.[workspaceId]?.[member.id]),
+      ...(profile.role === 'admin'
+        ? {
+            members: members.map(item => ({
+              id: item.id,
+              name: item.name,
+              role: item.role,
+              status: item.status,
+              ...integrationMemberAccess(data.memberAccess?.[workspaceId]?.[item.id]),
+            })),
+          }
+        : {}),
       integrations: data.records.filter(r => r.workspaceId === workspaceId && (r.userId === profile.id || profile.role === 'admin')).map(publicRecord),
     };
+  }
+  setMemberAccess(profile, workspaceId, member, input, members = [member]) {
+    if (profile.role !== 'admin') throw integrationError('WORKSPACE_FORBIDDEN', 403);
+    if (
+      !input ||
+      Object.keys(input).some(key => !['enabled', 'scopes'].includes(key)) ||
+      typeof input.enabled !== 'boolean' ||
+      !Array.isArray(input.scopes) ||
+      new Set(input.scopes).size !== input.scopes.length ||
+      input.scopes.some(scope => !INTEGRATION_SCOPES.includes(scope))
+    )
+      throw integrationError('INVALID_MEMBER_ACCESS');
+    return this.mutate(data => {
+      data.memberAccess ||= {};
+      data.memberAccess[workspaceId] ||= {};
+      const access = { ...integrationMemberAccess(input), updatedAt: new Date(this.now()).toISOString(), updatedBy: profile.id };
+      data.memberAccess[workspaceId][member.id] = access;
+      if (!access.enabled)
+        for (const record of data.records) {
+          if (record.workspaceId === workspaceId && (record.memberId === member.id || memberForProfile({ members }, record.profile)?.id === member.id))
+            record.revokedAt ||= access.updatedAt;
+        }
+      return integrationMemberAccess(access);
+    });
   }
   async fileReceipt(integration, key) {
     const data = await readIntegrationRegistry(this.provider());
@@ -63,7 +110,7 @@ export class IntegrationRegistry {
       throw integrationError('INVALID_API_POLICY');
     return this.mutate(data => (data.policies[workspaceId] = { ...publicApiPolicy(data.policies[workspaceId]), ...input }));
   }
-  create(profile, workspaceId, input) {
+  create(profile, workspaceId, input, member = { id: profile.id }) {
     const name = typeof input?.name === 'string' ? input.name.trim() : '';
     const scopes = input?.scopes;
     const days = input?.expiresInDays ?? INTEGRATION_LIMITS.lifetimeDays;
@@ -81,6 +128,9 @@ export class IntegrationRegistry {
       throw integrationError('INVALID_INTEGRATION');
     if (profile.role === 'viewer' && scopes.some(scope => scope.endsWith(':write'))) throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
     return this.mutate(data => {
+      const access = integrationMemberAccess(data.memberAccess?.[workspaceId]?.[member.id]);
+      if (!access.enabled) throw integrationError('INTEGRATION_MEMBER_DISABLED', 403);
+      if (scopes.some(scope => !access.scopes.includes(scope))) throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
       const policy = publicApiPolicy(data.policies[workspaceId]);
       if (!policy.enabled) throw integrationError('PUBLIC_API_DISABLED', 503);
       if ((!policy.writeEnabled && scopes.some(s => s.endsWith(':write'))) || (!policy.uploadsEnabled && scopes.some(s => s.startsWith('files:'))))
@@ -94,6 +144,7 @@ export class IntegrationRegistry {
         id,
         name,
         userId: profile.id,
+        memberId: member.id,
         workspaceId,
         scopes,
         createdAt: new Date(this.now()).toISOString(),
@@ -141,6 +192,7 @@ export class IntegrationRegistry {
       return {
         ...record,
         policy,
+        memberAccess: data.memberAccess?.[record.workspaceId] || {},
         fileOperationKeys: (data.fileOperations || []).filter(item => item.expiresAt > this.now() && item.integrationId === record.id).map(item => item.key),
       };
     };

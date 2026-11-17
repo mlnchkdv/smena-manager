@@ -4,12 +4,16 @@ import { workspaceScope } from './workspace-context.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
+import { bindAccessProfiles } from '../shared/member-identity.js';
+import { isActiveMember } from '../shared/workspace-membership.js';
 
 export const integrationRouter = express.Router();
 integrationRouter.use(async (request, _response, next) => {
   try {
     const data = await getWorkspaceDatabase({ fields: ['members'] });
     const member = knowledgeActor(data, request.user, request.configuredProfiles);
+    request.integrationMember = member;
+    request.integrationMembers = bindAccessProfiles(data, request.configuredProfiles).members;
     request.user = { ...request.user, role: workspaceMemberRole(member) };
     next();
   } catch (error) {
@@ -19,10 +23,20 @@ integrationRouter.use(async (request, _response, next) => {
 integrationRouter.get('/', async (request, response, next) => {
   try {
     response.json({
-      ...(await integrationRegistry.list(request.user, workspaceScope())),
+      ...(await integrationRegistry.list(request.user, workspaceScope(), request.integrationMember, request.integrationMembers.filter(isActiveMember))),
       canManage: request.user.role === 'admin',
       canWrite: request.user.role !== 'viewer',
     });
+  } catch (error) {
+    next(error);
+  }
+});
+integrationRouter.patch('/members/:id', async (request, response, next) => {
+  try {
+    if (request.user.role !== 'admin') return response.sendStatus(403);
+    const member = request.integrationMembers.find(item => item.id === request.params.id && isActiveMember(item));
+    if (!member) return response.sendStatus(404);
+    response.json(await integrationRegistry.setMemberAccess(request.user, workspaceScope(), member, request.body, request.integrationMembers));
   } catch (error) {
     next(error);
   }
@@ -37,7 +51,7 @@ integrationRouter.patch('/policy', async (request, response, next) => {
 });
 integrationRouter.post('/', async (request, response, next) => {
   try {
-    response.status(201).json(await integrationRegistry.create(request.user, workspaceScope(), request.body));
+    response.status(201).json(await integrationRegistry.create(request.user, workspaceScope(), request.body, request.integrationMember));
   } catch (error) {
     next(error);
   }

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireIntegrationScope } from './public-api-auth.js';
-import { integrationRegistry, integrationError } from './integration-registry.js';
+import { integrationRegistry, integrationError, applyIntegrationMemberAccess } from './integration-registry.js';
+import { knowledgeActor } from './knowledge-access.js';
 import { integrationOperationKey, performIntegrationNoteWrite } from './public-api-write.js';
 import { withIntegrationOperation } from './integration-operation-lock.js';
 import { getWorkspaceDatabase, getWorkspaceFileSnapshot } from './workspace-store.js';
@@ -54,7 +55,11 @@ async function privateFileOperation(request, kind, body, operation) {
   const key = integrationOperationKey(request.integration, request.get('Idempotency-Key'));
   const digest = apiDigest([kind, request.params.upload_id || null, body]);
   return withIntegrationOperation(key, async () => {
-    const active = await integrationRegistry.verify(request.integrationToken);
+    const membership = await getWorkspaceDatabase({ fields: ['members'] });
+    const active = applyIntegrationMemberAccess(
+      await integrationRegistry.verify(request.integrationToken),
+      knowledgeActor(membership, request.user, [], { write: true }),
+    );
     if (!active.policy.uploadsEnabled || !active.policy.writeEnabled || !active.scopes.includes('files:write'))
       throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
     const root = await getWorkspaceDatabase({ fields: ['_integrationOperations'] });

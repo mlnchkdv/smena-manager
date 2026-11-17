@@ -18,7 +18,14 @@ function errorText(error) {
     PUBLIC_API_DISABLED: ['Integrations are disabled for this workspace.', 'Интеграции в этом пространстве отключены.'],
     INVALID_INTEGRATION: ['Enter a name and select valid access rights.', 'Укажите название и выберите права доступа.'],
     INTEGRATION_SCOPE_DISABLED: ['Enable the requested access in workspace settings first.', 'Сначала включите выбранный доступ в настройках пространства.'],
-    INTEGRATION_SCOPE_FORBIDDEN: ['Your role does not allow this access.', 'Ваша роль не разрешает такой доступ.'],
+    INTEGRATION_SCOPE_FORBIDDEN: [
+      'Your role or personal permissions do not allow this access.',
+      'Ваша роль или персональные настройки не разрешают такой доступ.',
+    ],
+    INTEGRATION_MEMBER_DISABLED: [
+      'MCP access is disabled for your account. Contact a workspace administrator.',
+      'Доступ MCP для вас отключён. Обратитесь к администратору пространства.',
+    ],
     INTEGRATION_LIMIT: ['Disconnect unused integrations before adding another.', 'Отключите неиспользуемые интеграции перед созданием новой.'],
     INTEGRATION_REVOKED_OR_EXPIRED: ['This token is expired or disconnected.', 'Токен истёк или отключён.'],
   };
@@ -72,8 +79,10 @@ export function integrationsPanel() {
             .join('')}</div>`
         : ''
     }
+    ${data?.canManage ? `<div class="sblock"><h2>${copy('Member access', 'Доступ участников')}</h2><p class="muted">${copy('Individual permissions apply to API and MCP. Workspace and role restrictions still apply. Disabling access permanently disconnects existing tokens.', 'Персональные права действуют для API и MCP с учётом ограничений пространства и роли. Отключение доступа навсегда отзывает действующие токены.')}</p><div class="integration-members">${(data.members || []).map(member => `<details class="integration-member" data-member-id="${esc(member.id)}"><summary><span class="grow"><b>${esc(member.name || member.id)}</b><small>${esc(member.role)}</small></span><span class="badge">${member.enabled ? copy('Allowed', 'Разрешено') : copy('Disabled', 'Отключено')}</span></summary><div class="integration-member-controls"><label><input type="checkbox" data-member-enabled ${member.enabled ? 'checked' : ''}> ${copy('Allow MCP access', 'Разрешить доступ MCP')}</label><fieldset><legend>${copy('Maximum permissions', 'Максимальные права')}</legend>${['knowledge:read', 'knowledge:write', 'files:read', 'files:write'].map(right => `<label><input type="checkbox" data-member-scope="${right}" ${member.scopes.includes(right) ? 'checked' : ''}> ${esc(rights([right]))}</label>`).join('')}</fieldset>${button('member', copy('Save permissions', 'Сохранить права'), `data-id="${esc(member.id)}"`)}</div></details>`).join('')}</div></div>` : ''}
+    ${data?.access?.enabled === false ? `<p class="alert warn">${copy('MCP access is disabled for your account. Contact a workspace administrator.', 'Доступ MCP для вас отключён. Обратитесь к администратору пространства.')}</p>` : ''}
     ${s.secret ? `<div class="sblock integration-secret"><h2>${copy('Save your token', 'Сохраните токен')}</h2><p>${copy('Copy it now. It cannot be shown again. Keep it out of chats and Git.', 'Скопируйте его сейчас. Повторно показать его нельзя. Не отправляйте токен в чат и Git.')}</p><label for="integration-secret">${copy('Access token', 'Токен доступа')}</label><input id="integration-secret" class="input" type="password" readonly spellcheck="false" autocomplete="off" value="${esc(s.secret)}"><div class="row wrap">${button('copy', copy('Copy token', 'Скопировать токен'))}${button('test', copy('Test connection', 'Проверить подключение'))}${button('hide', copy('Hide token', 'Скрыть токен'))}</div></div>` : ''}
-    ${data?.policy.enabled ? `<div class="sblock"><h2>${copy('Connect an app', 'Подключить приложение')}</h2><p>${copy('Access applies to all notes in this workspace. Folder filters do not restrict access.', 'Доступ распространяется на все заметки этого пространства. Фильтр папки не ограничивает права.')}</p><div class="integration-form"><label for="integration-name">${copy('App name', 'Название приложения')}</label><input id="integration-name" class="input" maxlength="80" placeholder="Codex" autocomplete="off"><fieldset><legend>${copy('Access rights', 'Права доступа')}</legend><label><input id="integration-read" type="checkbox" checked disabled> ${copy('Read notes', 'Чтение заметок')}</label>${data.canWrite && data.policy.writeEnabled ? `<label><input id="integration-write" type="checkbox"> ${copy('Create and edit notes', 'Создание и изменение заметок')}</label>` : ''}${data.policy.uploadsEnabled ? `<label><input id="integration-files-read" type="checkbox"> ${copy('Read files', 'Чтение файлов')}</label>${data.canWrite && data.policy.writeEnabled ? `<label><input id="integration-files-write" type="checkbox"> ${copy('Upload files', 'Загрузка файлов')}</label>` : ''}` : ''}</fieldset><label for="integration-days">${copy('Expires in', 'Срок действия')}</label><select id="integration-days" class="select"><option value="30">${copy('30 days', '30 дней')}</option><option value="90">${copy('90 days', '90 дней')}</option><option value="1">${copy('1 day', '1 день')}</option></select>${button('create', copy('Create token', 'Создать токен'))}</div></div>` : data ? `<p class="hint">${copy('A workspace administrator can enable integrations here.', 'Администратор пространства может включить интеграции в этом разделе.')}</p>` : `<p role="status">${copy('Loading integrations…', 'Загрузка интеграций…')}</p>`}
+    ${data?.policy.enabled && data?.access?.enabled !== false && data?.access?.scopes.length ? `<div class="sblock"><h2>${copy('Connect an app', 'Подключить приложение')}</h2><p>${copy('Access applies to all notes in this workspace. Folder filters do not restrict access.', 'Доступ распространяется на все заметки этого пространства. Фильтр папки не ограничивает права.')}</p><div class="integration-form"><label for="integration-name">${copy('App name', 'Название приложения')}</label><input id="integration-name" class="input" maxlength="80" placeholder="Codex" autocomplete="off"><fieldset><legend>${copy('Access rights', 'Права доступа')}</legend><label><input id="integration-read" type="checkbox" ${data.access.scopes.includes('knowledge:read') ? 'checked' : 'disabled'}> ${copy('Read notes', 'Чтение заметок')}</label>${data.canWrite && data.policy.writeEnabled && data.access.scopes.includes('knowledge:write') ? `<label><input id="integration-write" type="checkbox"> ${copy('Create and edit notes', 'Создание и изменение заметок')}</label>` : ''}${data.policy.uploadsEnabled && data.access.scopes.includes('files:read') ? `<label><input id="integration-files-read" type="checkbox"> ${copy('Read files', 'Чтение файлов')}</label>${data.canWrite && data.policy.writeEnabled && data.access.scopes.includes('files:write') ? `<label><input id="integration-files-write" type="checkbox"> ${copy('Upload files', 'Загрузка файлов')}</label>` : ''}` : ''}</fieldset><label for="integration-days">${copy('Expires in', 'Срок действия')}</label><select id="integration-days" class="select"><option value="30">${copy('30 days', '30 дней')}</option><option value="90">${copy('90 days', '90 дней')}</option><option value="1">${copy('1 day', '1 день')}</option></select>${button('create', copy('Create token', 'Создать токен'))}</div></div>` : data ? `<p class="hint">${copy('A workspace administrator can enable integrations here.', 'Администратор пространства может включить интеграции в этом разделе.')}</p>` : `<p role="status">${copy('Loading integrations…', 'Загрузка интеграций…')}</p>`}
     <div class="sblock"><h2>${copy('Connected apps', 'Подключённые приложения')}</h2>${data?.integrations.length ? data.integrations.map(record => `<div class="integration-row"><div class="grow"><b>${esc(record.name)}</b><div class="muted">${esc(rights(record.scopes))}</div><small>${copy('Expires', 'Действует до')}: ${esc(fmtTimestamp(record.expiresAt))}${record.lastUsedAt ? ` · ${copy('Last used', 'Последнее использование')}: ${esc(fmtTimestamp(record.lastUsedAt))}` : ''}</small>${data.canManage ? `<small>${copy('Owner', 'Владелец')}: ${esc(record.ownerName || record.userId)}</small>` : ''}</div>${record.revokedAt ? `<span class="badge">${copy('Disconnected', 'Отключено')}</span>` : button('revoke', copy('Disconnect', 'Отключить'), `data-id="${esc(record.id)}"`)}</div>`).join('') : `<p class="muted">${copy('No connected apps yet.', 'Подключённых приложений пока нет.')}</p>`}</div>
     <p class="hint">${ic('shield-check', 15)} ${copy('Google sign-in and Google Drive credentials stay on the server. Disconnecting an app does not delete its notes.', 'Данные входа Google и Google Drive остаются на сервере. Отключение приложения не удаляет созданные им заметки.')}</p></section>`;
 }
@@ -87,8 +96,8 @@ export async function integrationAction(el) {
           name: document.getElementById('integration-name')?.value || '',
           expiresInDays: Number(document.getElementById('integration-days')?.value || 30),
           scopes: [
-            'knowledge:read',
             ...[
+              ['integration-read', 'knowledge:read'],
               ['integration-write', 'knowledge:write'],
               ['integration-files-read', 'files:read'],
               ['integration-files-write', 'files:write'],
@@ -97,7 +106,12 @@ export async function integrationAction(el) {
               .map(([, right]) => right),
           ],
         }
-      : null;
+      : operation === 'member'
+        ? {
+            enabled: el.closest('[data-member-id]')?.querySelector('[data-member-enabled]')?.checked === true,
+            scopes: [...el.closest('[data-member-id]').querySelectorAll('[data-member-scope]:checked')].map(input => input.dataset.memberScope),
+          }
+        : null;
   s.loading = true;
   s.error = '';
   s.message = '';
@@ -105,7 +119,13 @@ export async function integrationAction(el) {
   try {
     if (operation === 'policy')
       await integrationRequest('/policy', { method: 'PATCH', body: JSON.stringify({ [el.dataset.key]: !s.data.policy[el.dataset.key] }) });
-    else if (operation === 'create') {
+    else if (operation === 'member') {
+      await integrationRequest('/members/' + encodeURIComponent(el.dataset.id), { method: 'PATCH', body: JSON.stringify(payload) });
+      s.message = copy(
+        'Member permissions saved. Existing apps use the updated limits.',
+        'Права участника сохранены. Подключённые приложения используют новые ограничения.',
+      );
+    } else if (operation === 'create') {
       const result = await integrationRequest('', { method: 'POST', body: JSON.stringify(payload) });
       if (s.scope !== scope()) return;
       s.secret = result.token;
@@ -126,7 +146,7 @@ export async function integrationAction(el) {
       if (!response.ok) throw await response.json();
       s.message = copy('Connection successful. No notes were read or changed.', 'Подключение работает. Заметки не читались и не изменялись.');
     }
-    if (['policy', 'create', 'revoke', 'refresh'].includes(operation)) s.data = await integrationRequest();
+    if (['policy', 'member', 'create', 'revoke', 'refresh'].includes(operation)) s.data = await integrationRequest();
   } catch (error) {
     s.error = error;
   } finally {

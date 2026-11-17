@@ -49,6 +49,9 @@ test('public read API enforces isolated credentials, bounded UTF-8 reads, cursor
     const context = await (await call('/api/v1/me')).json();
     assert.equal(context.workspace.id, 'default');
     assert.deepEqual(context.scopes, ['knowledge:read']);
+    await integrationRegistry.setMemberAccess(actor, 'default', source.members[0], { enabled: true, scopes: [] });
+    assert.equal((await call('/api/v1/workspaces/default/notes?q=needle')).status, 403);
+    await integrationRegistry.setMemberAccess(actor, 'default', source.members[0], { enabled: true, scopes: ['knowledge:read'] });
     const search = await (await call('/api/v1/workspaces/default/notes?q=needle')).json();
     assert.deepEqual(
       search.items.map(note => note.id),

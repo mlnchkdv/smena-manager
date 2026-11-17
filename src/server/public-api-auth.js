@@ -1,4 +1,5 @@
-import { integrationRegistry, integrationError } from './integration-registry.js';
+import { integrationRegistry, integrationError, applyIntegrationMemberAccess } from './integration-registry.js';
+import { knowledgeActor } from './knowledge-access.js';
 import { inWorkspace } from './workspace-context.js';
 import { workspaceDirectoryEntries, readWorkspaceCore, workspaceUser } from './workspace-directory.js';
 
@@ -23,7 +24,7 @@ export async function requireIntegration(request, _response, next) {
     const data = await readWorkspaceCore(workspaceId);
     request.user = workspaceUser(data, record.profile);
     request.configuredProfiles = [];
-    request.integration = record;
+    request.integration = applyIntegrationMemberAccess(record, knowledgeActor(data, request.user));
     request.integrationToken = match[1];
     request.integrationWorkspace = data.ws || {};
     inWorkspace(workspaceId, next);

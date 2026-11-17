@@ -4,7 +4,7 @@ import { getWorkspaceDatabase, mutateWorkspaceMetadata, getWorkspaceFileSnapshot
 import { memberForProfile } from '../shared/member-identity.js';
 import { canReadProject } from '../shared/project-access.js';
 import { currentCatalogUser } from './file-catalog-query.js';
-import { integrationRegistry, integrationError } from './integration-registry.js';
+import { integrationRegistry, integrationError, applyIntegrationMemberAccess } from './integration-registry.js';
 import { requireIntegrationScope } from './public-api-auth.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { applyKnowledgeNoteCreate, applyKnowledgeNotePatch } from './knowledge-note-store.js';
@@ -111,7 +111,10 @@ async function performNoteWrite(request, kind, patch, key) {
     try {
       await mutateWorkspaceMetadata(
         async data => {
-          const integration = await integrationRegistry.verify(request.integrationToken);
+          const integration = applyIntegrationMemberAccess(
+            await integrationRegistry.verify(request.integrationToken),
+            knowledgeActor(data, request.user, [], { write: true }),
+          );
           if (integration.fileOperationKeys.includes(key)) throw integrationError('IDEMPOTENCY_KEY_REUSED', 409);
           if (
             !integration.scopes.includes('knowledge:read') ||
