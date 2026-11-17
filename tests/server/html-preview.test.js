@@ -1,0 +1,37 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { once } from 'node:events';
+import { htmlPreviewDocument, HTML_PREVIEW_CSP } from '../../src/server/html-preview.js';
+import { app } from '../../src/server/app.js';
+import { memberSharingFixture } from '../fixtures/member-sharing.js';
+
+test('HTML exports preserve formatting inside a scriptless network-isolated document', () => {
+  const html = htmlPreviewDocument(
+    '<style>h1{color:red}</style><h1 onclick="alert(1)">Report</h1><script>alert(1)</script><iframe src="https://evil.test"></iframe><img src="https://evil.test/t"><a href="javascript:alert(1)">Go</a><form action="/api"><input></form>',
+  );
+  assert.match(html, /h1\{color:red\}/);
+  assert.match(html, /<h1>Report<\/h1>/);
+  assert.doesNotMatch(html, /onclick|<script|<iframe|<form|<input|https:\/\/evil|javascript:/);
+  assert.match(HTML_PREVIEW_CSP, /sandbox; default-src 'none'; script-src 'none'/);
+});
+
+test('HTML preview requires the current account, project access and bounded stored bytes', async () => {
+  const fixture = await memberSharingFixture({ htmlFile: true });
+  const server = app.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const origin = 'http://127.0.0.1:' + server.address().port;
+  const call = (route, auth = true) => fetch(origin + route, { headers: auth ? { Authorization: 'Bearer ' + fixture.sessions[1] } : {} });
+  try {
+    const route = '/api/files/file/html-preview?account=member-profile';
+    assert.equal((await call(route, false)).status, 401);
+    assert.equal((await call('/api/files/file/html-preview?account=other-profile')).status, 409);
+    const result = await call(route);
+    assert.equal(result.status, 200, await result.clone().text());
+    assert.equal(result.headers.get('content-security-policy'), HTML_PREVIEW_CSP);
+    assert.match(await result.text(), /Saved report/);
+    assert.equal((await call('/api/files/private-file/html-preview?account=member-profile')).status, 404);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+    await fixture.cleanup();
+  }
+});

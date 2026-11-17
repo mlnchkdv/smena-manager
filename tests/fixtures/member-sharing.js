@@ -5,7 +5,7 @@ import { createEmptyDatabase, resetWorkspaceStore } from '../../src/server/works
 import { getStorageProvider, resetStorageProvider } from '../../src/server/storage/index.js';
 import { createTrackedSession, getAccessProfiles } from '../../src/server/auth.js';
 
-export async function memberSharingFixture() {
+export async function memberSharingFixture({ htmlFile = false } = {}) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'smena-member-sharing-'));
   const settings = {
     DATABASE_PATH: path.join(directory, 'workspace.json'),
@@ -63,10 +63,10 @@ export async function memberSharingFixture() {
         id: 'file',
         project: 'shared',
         folderId: 'file-folder',
-        name: 'member.txt',
+        name: htmlFile ? 'report.html' : 'member.txt',
         storageName: 'member.txt',
-        mimeType: 'text/plain',
-        bytes: 16,
+        mimeType: htmlFile ? 'text/html' : 'text/plain',
+        bytes: htmlFile ? 43 : 16,
         by: 'member',
         at: new Date().toISOString(),
       },
@@ -84,7 +84,7 @@ export async function memberSharingFixture() {
   };
   const provider = getStorageProvider();
   if (provider.name !== 'local') throw new Error('Member sharing fixture requires isolated local storage.');
-  await provider.uploadFile('member.txt', Buffer.from('0123456789abcdef'));
+  await provider.uploadFile('member.txt', Buffer.from(htmlFile ? '<h1>Saved report</h1><script>alert(1)</script>' : '0123456789abcdef'));
   await provider.uploadFile('private.txt', Buffer.from('secret'));
   await provider.saveDatabase(data);
   const sessions = await Promise.all(profiles.map(profile => createTrackedSession(profile, { get: () => '' }, 'access_id')));

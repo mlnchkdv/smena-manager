@@ -1,4 +1,4 @@
-import { downloadWorkspaceFile, mediaContentUrl, getSessionGeneration } from './api.js';
+import { downloadWorkspaceFile, mediaContentUrl, getSessionGeneration, getSessionToken, getActiveWorkspace } from './api.js';
 import { S } from './store.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { uid } from './utils.js';
@@ -33,6 +33,13 @@ export function ensureFilePreview(modal, refresh) {
   if (!policy.kind) return;
   const state = { owner: S.ui.currentUser?.id, generation: getSessionGeneration(), controller: new AbortController(), url: null };
   previews.set(modal, state);
+  if (policy.kind === 'html' && getSessionToken() === 'cookie') {
+    modal.preview = {
+      kind: 'html',
+      url: `/api/files/${encodeURIComponent(modal.file.id)}/html-preview?workspace=${encodeURIComponent(getActiveWorkspace())}&account=${encodeURIComponent(state.owner)}`,
+    };
+    return;
+  }
   if (['video', 'audio'].includes(policy.kind)) {
     const url = mediaContentUrl(modal.file.id, state.owner);
     if (url) {
@@ -51,7 +58,7 @@ export function ensureFilePreview(modal, refresh) {
       if (policy.kind === 'pdf') {
         state.pdf = blob;
         await showPdfPage(modal, state, modal.initialPage || 1);
-      } else if (policy.kind === 'text') modal.preview = { kind: 'text', text: await blob.text() };
+      } else if (['text', 'html'].includes(policy.kind)) modal.preview = { kind: 'text', text: await blob.text() };
       else {
         state.url = URL.createObjectURL(blob);
         modal.preview = { kind: ['video', 'audio'].includes(policy.kind) ? policy.kind : 'image', url: state.url };

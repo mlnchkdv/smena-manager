@@ -8,10 +8,13 @@ test('previews allow bounded raster images and plain text but never active forma
   assert.equal(filePreviewPolicy({ ...file, mimeType: 'text/plain' }).kind, 'text');
   assert.equal(filePreviewPolicy({ ...file, mimeType: 'application/pdf' }).kind, 'pdf');
   assert.equal(filePreviewPolicy({ ...file, mimeType: 'application/pdf', bytes: 21 * 1024 * 1024 }).kind, null);
-  for (const mimeType of ['image/svg+xml', 'text/html', 'application/javascript']) {
+  for (const mimeType of ['image/svg+xml', 'application/javascript']) {
     assert.equal(filePreviewPolicy({ ...file, mimeType }).kind, null);
   }
   assert.equal(filePreviewPolicy({ ...file, mimeType: 'text/plain', bytes: 2 * 1024 * 1024 }).kind, null);
+  assert.equal(filePreviewPolicy({ ...file, mimeType: 'text/html' }).kind, 'html');
+  assert.equal(filePreviewPolicy({ ...file, name: 'report.htm', mimeType: 'application/octet-stream' }).kind, 'html');
+  assert.equal(filePreviewPolicy({ ...file, mimeType: 'text/html', bytes: 6 * 1024 ** 2 }).kind, null);
   assert.equal(filePreviewPolicy({ mimeType: 'image/png' }).kind, null);
   assert.equal(canLoadThumbnail({ ...file, mimeType: 'image/png' }), true);
   assert.equal(canLoadThumbnail({ ...file, mimeType: 'image/gif' }), false);

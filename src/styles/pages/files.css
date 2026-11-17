@@ -1218,3 +1218,12 @@
     white-space: normal;
   }
 }
+
+.document-preview-frame {
+  width: 100%;
+  height: min(68dvh, 800px);
+  min-height: 280px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}

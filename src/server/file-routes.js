@@ -1,3 +1,4 @@
+import { htmlPreviewDocument, HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -515,6 +516,36 @@ export async function completeResumableFileUpload(request) {
 fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (request, response, next) => {
   try {
     response.status(201).json(await completeResumableFileUpload(request));
+  } catch (error) {
+    next(error);
+  }
+});
+
+fileRouter.get('/:id/html-preview', async (request, response, next) => {
+  try {
+    if (request.query.account !== request.user.id) return response.sendStatus(403);
+    const data = await getWorkspaceFileSnapshot(request.user, request.params.id);
+    const file = data.files?.find(row => row.id === request.params.id && !row.archived);
+    const project = data.projects?.find(row => row.id === file?.project);
+    if (!file?.storageName || !canReadProject(project, memberIdFor(data, request.user), request.user.role)) return response.sendStatus(404);
+    if (!/\.html?$/i.test(file.name) && !['text/html', 'application/xhtml+xml'].includes(String(file.mimeType).split(';')[0])) return response.sendStatus(415);
+    if (file.bytes > HTML_PREVIEW_MAX_BYTES) return response.sendStatus(413);
+    const result = await getStorageProvider().openDownloadStream(file.storageName, file.storageFileId);
+    if (!result) return response.sendStatus(404);
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of result.stream) {
+      size += chunk.length;
+      if (size > HTML_PREVIEW_MAX_BYTES) {
+        result.stream.destroy();
+        return response.sendStatus(413);
+      }
+      chunks.push(chunk);
+    }
+    response
+      .set({ 'Content-Security-Policy': HTML_PREVIEW_CSP, 'Referrer-Policy': 'no-referrer' })
+      .type('html')
+      .send(htmlPreviewDocument(Buffer.concat(chunks).toString('utf8')));
   } catch (error) {
     next(error);
   }

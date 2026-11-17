@@ -10,7 +10,7 @@ export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
-  'frame-src https://accounts.google.com',
+  "frame-src 'self' https://accounts.google.com",
   "frame-ancestors 'self'",
   "form-action 'self'",
   "script-src 'self' https://accounts.google.com",
