@@ -9,7 +9,7 @@ import { av, dueHtml, empty, lbl, prIcon, prPill, stIcon, stPill } from '../ui/h
 import { fxc } from '../shell/render.js';
 import { activityExtra, inProject, isRussian, t as tr } from '../core/i18n.js';
 import { listWindow } from '../shared/list-window.js';
-import { activityDateExtra, activityVerbForm } from '../shared/activity-copy.js';
+import { activityDateExtra, activityVerbForm, activityHasProjectContext } from '../shared/activity-copy.js';
 import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { canEditProject } from '../shared/project-access.js';
 import { taskCycleProject } from '../shared/task-cycles.js';
@@ -166,7 +166,7 @@ export function actHtml(a, opt = {}) {
   const self = a.by === D().me;
   const locale = isRussian() ? 'ru-RU' : 'en-US';
   const extra = activityDateExtra(a, locale, value => fmtDate(value, true)) ?? activityExtra(a.extra, a.verb, a.change);
-  return `<div class="fitem" ${a.id ? `id="activity-${esc(a.id)}" data-activity-id="${esc(a.id)}"` : ''}>${av(a.by, 'sm')}<div class="grow"><b translate="no">${esc(self ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(activityVerbForm(tr(a.verb), self, locale))}</span> ${obj} ${extra ? `<span class="muted" translate="no">${esc(extra)}</span>` : ''}${opt.proj && p && t ? ` <span class="faint" translate="no">${esc(inProject(p.name))}</span>` : ''}</div><time title="${esc(fmtTimestamp(a.at))}">${ago(a.at)}</time></div>`;
+  return `<div class="fitem" ${a.id ? `id="activity-${esc(a.id)}" data-activity-id="${esc(a.id)}"` : ''}>${av(a.by, 'sm')}<div class="grow"><b translate="no">${esc(self ? tr('You') : m?.name || tr('Someone'))}</b> <span class="muted">${esc(activityVerbForm(tr(a.verb), self, locale))}</span> ${obj} ${extra ? `<span class="muted" translate="no">${esc(extra)}</span>` : ''}${opt.proj && p && t && !activityHasProjectContext(a) ? ` <span class="faint" translate="no">${esc(inProject(p.name))}</span>` : ''}</div><time title="${esc(fmtTimestamp(a.at))}">${ago(a.at)}</time></div>`;
 }
 export function miniRow(t, opt = {}) {
   const p = proj(t.project);

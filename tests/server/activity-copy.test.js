@@ -1,3 +1,4 @@
+import { activityHasProjectContext } from '../../src/shared/activity-copy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { activityDateExtra, activityVerbForm, activityTransitionExtra, activityMoveExtra, activityCycleExtra } from '../../src/shared/activity-copy.js';
@@ -95,4 +96,11 @@ test('cycle activity retains the recorded name verbatim across languages and lat
   assert.equal(activityCycleExtra({ verb: 'changed cycle of', change: { field: 'cycleId', value: 'unknown' } }, 'en-US'), '— cycle changed');
   assert.equal(activityCycleExtra({ verb: 'moved', change: activity.change }, 'ru-RU'), null);
   assert.equal(activityCycleExtra({ verb: 'changed cycle of', extra: 'to legacy' }, 'ru-RU'), null);
+});
+
+test('only project moves suppress duplicated project context', () => {
+  assert.equal(activityHasProjectContext({ verb: 'moved', change: { field: 'project', valueLabel: 'B' } }), true);
+  assert.equal(activityHasProjectContext({ verb: 'moved', extra: 'to B' }), true);
+  assert.equal(activityHasProjectContext({ verb: 'moved', change: { field: 'status', value: 'done' } }), false);
+  assert.equal(activityHasProjectContext({ verb: 'moved' }), false);
 });

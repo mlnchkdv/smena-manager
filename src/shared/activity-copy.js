@@ -98,3 +98,10 @@ export function activityMoveExtra(activity, locale = 'en-US') {
   // Legacy "to X" is ambiguous. Never infer a status or project from today's names.
   return legacyTarget ? (ru ? `в «${legacyTarget[1]}»` : `to ${legacyTarget[1]}`) : null;
 }
+export function activityHasProjectContext(activity) {
+  if (activity.verb !== 'moved') return false;
+  return (
+    (activity.change?.field === 'project' && typeof activity.change.valueLabel === 'string') ||
+    (!activity.change && /^to .+$/u.test(String(activity.extra || '')))
+  );
+}
