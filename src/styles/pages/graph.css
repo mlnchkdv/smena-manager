@@ -1171,3 +1171,15 @@
 .graph-cluster-picker small {
   display: block;
 }
+
+.graph-page .graph-head .row button > .graph-focus-short {
+  display: none;
+}
+@media (max-width: 640px) {
+  .graph-page .graph-head .row button > .graph-focus-long {
+    display: none;
+  }
+  .graph-page .graph-head .row button > .graph-focus-short {
+    display: inline;
+  }
+}
