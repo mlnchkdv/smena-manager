@@ -52,7 +52,7 @@ const copy = {
       ['Сохраните опыт', 'Вернитесь к версиям и источникам для следующего проекта.'],
     ],
     featureTitle: 'Инструменты, которые работают вместе.',
-    featureLead: 'От ежедневных задач до командной памяти. Откройте подробности нужного раздела.',
+    featureLead: 'От ежедневных задач до командной памяти. Посмотрите, как каждый инструмент помогает общей работе.',
     features: [
       [
         '01',
@@ -113,7 +113,7 @@ const copy = {
           ['Быстрое сохранение', 'Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.'],
           [
             'HTML-архив страницы',
-            'Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и скачивание HTML. До 10 версий. Недоступные ресурсы отмечаются; содержимое, добавляемое JavaScript или требующее входа, может отсутствовать.',
+            'Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и скачивание HTML. До 10 активных копий; прежние версии можно убрать из активных и вернуть. Недоступные ресурсы отмечаются; содержимое, добавляемое JavaScript или требующее входа, может отсутствовать.',
           ],
           ['Командная обработка', 'Статус прочтения общий для пространства, избранное — личное. Отмечайте полезное и возвращайтесь к источникам позже.'],
         ],
@@ -312,7 +312,7 @@ const copy = {
           ['Quick capture', 'Paste a URL: Smena will try to fill in its title and description. Edit the details, add tags and choose a folder.'],
           [
             'HTML page archives',
-            'Save public HTML with CSS, images and fonts. Open it independently of the original, switch to text or download the HTML. Up to 10 versions. Unavailable resources are reported; content added by JavaScript or requiring sign-in may be absent.',
+            'Save public HTML with CSS, images and fonts. Open it independently of the original, switch to text or download the HTML. Keep up to 10 active copies; store and restore older versions. Unavailable resources are reported; content added by JavaScript or requiring sign-in may be absent.',
           ],
           ['Team reading', 'Reading status is shared across the workspace; favorites are personal. Keep useful sources for later.'],
         ],
@@ -413,8 +413,10 @@ function demo(c, index) {
     return `<article class="demo-note"><span class="type-pill">${c.noteType}</span><h3>${c.noteTitle}</h3><p>${c.noteBody}</p><small>${c.noteLinks}</small></article>`;
   if (index === 3)
     return `<article class="demo-bookmark"><div class="demo-web-image" aria-hidden="true"><span></span><span></span><span></span></div><div><small>example.org / research</small><h3>${c.bookmarkTitle}</h3><p>${c.bookmarkBody}</p><span class="saved-state">✓ ${c.bookmarkState}</span></div></article>`;
-  if (index === 4)
-    return `<div class="demo-canvas"><svg viewBox="0 0 700 260" aria-hidden="true"><path d="M150 90L350 160L570 90"/></svg>${c.canvasNodes.map((n, i) => `<div class="canvas-node node-${i}"><span>0${i + 1}</span><strong>${n}</strong><i aria-hidden="true"></i></div>`).join('')}</div>`;
+  if (index === 4) {
+    const ru = c.other === '/product-en.html';
+    return `<div class="canvas-trial" data-product-canvas><div class="canvas-trial-tools"><span>${ru ? 'Демо: изменения не сохраняются' : 'Demo: changes are not saved'}</span><button type="button" data-demo-connections aria-pressed="true">${ru ? 'Связи' : 'Connections'}</button><button type="button" data-demo-reset>${ru ? 'Сбросить' : 'Reset'}</button></div><div class="canvas-trial-stage"><svg aria-hidden="true"><path/></svg>${c.canvasNodes.map((n, i) => `<div class="trial-node trial-node-${i}" data-demo-node="${i}"><button class="trial-node-title" type="button" aria-label="${esc((ru ? 'Переместить: ' : 'Move: ') + n)}"><small>0${i + 1}</small><strong>${n}</strong></button><span>${[c.demoTabs[3], c.noteType, c.demoTabs[0]][i]}</span><button class="trial-node-resize" type="button" aria-label="${esc((ru ? 'Изменить размер: ' : 'Resize: ') + n)}">↘</button></div>`).join('')}</div><p class="canvas-trial-hint">${ru ? 'Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.' : 'Drag a title or a card corner. With a keyboard, use arrow keys on the focused control.'}</p></div>`;
+  }
   return `<div class="demo-graph"><svg viewBox="0 0 700 260" role="img" aria-label="${esc(c.demoText[5])}"><g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205"/></g>${[
     [350, 120],
     [160, 55],
@@ -428,19 +430,53 @@ function demo(c, index) {
     )
     .join('')}</svg></div>`;
 }
+function stories(c, lang) {
+  const ru = lang === 'ru';
+  const rows = [
+    [c.features[0], 0],
+    [c.features[1], 1],
+    [c.features[2], 2],
+    [c.features[3], 3],
+    [
+      [
+        '05',
+        ru ? 'Холсты' : 'Whiteboards',
+        ru ? 'Дайте идеям место. Соберите из них план.' : 'Give ideas room. Turn them into a plan.',
+        c.features[4][3].slice(0, 2),
+      ],
+      4,
+    ],
+    [
+      [
+        '06',
+        ru ? 'Граф связей' : 'A graph of connections',
+        ru ? 'Находите то, что связывает ваши материалы.' : 'Find what connects your materials.',
+        c.features[4][3].slice(2),
+      ],
+      5,
+    ],
+    [['07', ...c.features[5].slice(1)], 6],
+  ];
+  return rows
+    .map(
+      ([[number, title, lead, details], index]) =>
+        `<section class="feature-story" id="feature-${index === 6 ? 'spaces' : ids[index]}"><div class="story-copy"><p class="eyebrow">${number} / ${title}</p><h3>${lead}</h3><dl>${details.map(([h, p]) => `<div><dt>${h}</dt><dd>${p}</dd></div>`).join('')}</dl>${index === 6 ? `<a class="text-link" href="${ru ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide} ↗</a>` : ''}</div><div class="story-scene"><div class="scene-chrome"><span aria-hidden="true">S</span><strong>${c.project}</strong><small>${title}</small></div>${index < 6 ? demo(c, index) : `<div class="demo-access"><span class="type-pill">SMENA / ${ru ? 'КОМАНДА' : 'TEAM'}</span><h4>${ru ? 'Общая работа. Ваши настройки.' : 'Shared work. Your own setup.'}</h4><div><b>${ru ? 'Пространства' : 'Workspaces'}</b><span>${ru ? 'Команда · Личное' : 'Team · Personal'}</span></div><div><b>${ru ? 'Доступ' : 'Access'}</b><span>${ru ? 'Роли · Срок ссылки · Отзыв' : 'Roles · Link expiry · Revoke'}</span></div><div><b>API / MCP</b><span>Codex ↔ ${ru ? 'Заметки и файлы' : 'Notes and files'}</span></div></div>`}</div></section>`,
+    )
+    .join('');
+}
 function page(lang, c) {
   const route = lang === 'ru' ? '/product.html' : '/product-en.html';
   const mail = `mailto:hello@smena.agency?subject=${encodeURIComponent(c.mailSubject)}`;
-  const ctas = `<a class="button primary" href="/">${c.enter}<span aria-hidden="true">↗</span></a><a class="button secondary" href="${mail}">${c.discuss}</a>`;
+  const ctas = `<a class="button primary" href="#demo">${lang === 'ru' ? 'Посмотреть демо' : 'Explore demo'}<span aria-hidden="true">↗</span></a><a class="button secondary" href="${mail}">${c.discuss}</a>`;
   return `<!doctype html>
 <html lang="${lang}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${c.title}</title><meta name="description" content="${esc(c.description)}"><meta name="theme-color" content="#f8f7f3"><meta property="og:type" content="website"><meta property="og:title" content="${esc(c.title)}"><meta property="og:description" content="${esc(c.description)}"><meta property="og:url" content="https://smena.team${route}"><meta property="og:image" content="https://smena.team/product-share.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><link rel="canonical" href="https://smena.team${route}"><link rel="alternate" hreflang="ru" href="https://smena.team/product.html"><link rel="alternate" hreflang="en" href="https://smena.team/product-en.html"><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/product.css"><script src="/product.js" defer></script></head>
 <body><a class="skip-link" href="#main">${c.skip}</a><header class="site-header"><a class="brand" href="${route}" aria-label="Smena"><img src="/favicon.svg" width="36" height="36" alt=""><span>SMENA<span class="brand-period">.</span></span></a><nav aria-label="${lang === 'ru' ? 'Навигация по странице' : 'Page navigation'}"><a href="#features">${c.nav[0]}</a><a href="#workflow">${c.nav[1]}</a><a href="#start">${c.nav[2]}</a></nav><div class="header-actions"><a class="language" href="${c.other}" lang="${lang === 'ru' ? 'en' : 'ru'}" hreflang="${lang === 'ru' ? 'en' : 'ru'}">${c.language}</a><a class="button small secondary" href="/">${c.login} <span aria-hidden="true">↗</span></a></div></header>
-<main id="main"><section class="hero wrap"><p class="eyebrow">${c.eyebrow}</p><h1>${c.headline}</h1><p class="hero-lead">${c.lead}</p><div class="cta-row">${ctas}</div><p class="access-note">${c.access}</p><div class="hero-foot"><span>01 — 06</span><a href="#demo">${c.demo} <span aria-hidden="true">↓</span></a></div></section>
+<main id="main"><section class="hero wrap"><p class="eyebrow">SMENA.TEAM <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">${lang === 'ru' ? 'Продукт smena.agency' : 'A product by smena.agency'}</a></p><h1>${c.headline}</h1><p class="hero-lead">${c.lead}</p><div class="cta-row">${ctas}</div><p class="access-note">${c.access}</p></section>
 <section class="demo-section wrap" id="demo" aria-labelledby="demo-heading"><div class="section-caption"><h2 id="demo-heading">${c.demo}</h2><p>${c.demoNote}</p></div><div class="workbench"><div class="workbench-bar"><span class="workbench-brand" aria-hidden="true">S</span><strong>${c.project}</strong><span class="workbench-status" aria-hidden="true">●</span></div><div class="demo-tabs" aria-label="${lang === 'ru' ? 'Раздел демонстрации' : 'Demo section'}">${c.demoTabs.map((t, i) => `<a id="tab-${ids[i]}" href="#panel-${ids[i]}">${t}</a>`).join('')}</div><div class="demo-panels">${ids.map((id, i) => `<section id="panel-${id}" class="demo-panel" aria-labelledby="tab-${id}">${demo(c, i)}<p class="demo-description">${c.demoText[i]}</p></section>`).join('')}</div></div></section>
 <section class="workflow wrap" id="workflow"><div class="section-intro"><p class="eyebrow">${lang === 'ru' ? 'ОДИН РАБОЧИЙ ПРОЦЕСС' : 'ONE CONNECTED WORKFLOW'}</p><h2>${c.workflowTitle}</h2><p>${c.workflowLead}</p></div><ol class="workflow-steps">${c.steps.map(([h, p], i) => `<li><span>0${i + 1}</span><h3>${h}</h3><p>${p}</p></li>`).join('')}</ol></section>
-<section class="features wrap" id="features"><div class="section-intro"><p class="eyebrow">${lang === 'ru' ? 'ВОЗМОЖНОСТИ' : 'CAPABILITIES'}</p><h2>${c.featureTitle}</h2><p>${c.featureLead}</p></div>${c.features.map(([number, title, lead, details]) => `<section class="feature-row"><div class="feature-heading"><span class="feature-number">${number}</span><h3>${title}</h3><p>${lead}</p></div><div class="feature-details">${details.map(([h, p]) => `<details><summary>${h}<span aria-hidden="true">+</span></summary><p>${p}</p></details>`).join('')}</div></section>`).join('')}</section>
+<section class="features wrap" id="features"><div class="section-intro"><p class="eyebrow">${lang === 'ru' ? 'ВОЗМОЖНОСТИ' : 'CAPABILITIES'}</p><h2>${c.featureTitle}</h2><p>${c.featureLead}</p></div>${stories(c, lang)}</section>
 <section class="start-section" id="start"><div class="wrap"><p class="eyebrow">${lang === 'ru' ? 'ПЕРВЫЙ ШАГ' : 'YOUR FIRST STEP'}</p><h2>${c.startTitle}</h2><div class="start-paths"><article><span class="path-label">01</span><h3>${c.employee}</h3><p>${c.employeeText}</p><ol>${c.employeeSteps.map(s => `<li>${s}</li>`).join('')}</ol><a class="button primary" href="/">${c.enter} <span aria-hidden="true">↗</span></a></article><article><span class="path-label">02</span><h3>${c.team}</h3><p>${c.teamText}</p><ol>${c.teamSteps.map(s => `<li>${s}</li>`).join('')}</ol><a class="button secondary" href="${mail}">${c.discuss}</a><a class="contact-link" href="mailto:hello@smena.agency">hello@smena.agency</a></article></div></div></section>
-<section class="faq wrap"><h2>${c.faqTitle}</h2><div>${c.faq.map(([q, a]) => `<details><summary>${q}<span aria-hidden="true">+</span></summary><p>${a}</p></details>`).join('')}</div></section><section class="final-cta wrap"><p class="eyebrow">SMENA.TEAM</p><h2>${c.finalTitle}</h2><p>${c.finalText}</p><div class="cta-row">${ctas}</div></section></main><footer class="site-footer wrap"><div><a class="brand" href="${route}">SMENA.</a><p>${c.footer}</p></div><nav aria-label="${lang === 'ru' ? 'Справочные ссылки' : 'Reference links'}"><a href="/about.html">${c.about}</a><a href="${lang === 'ru' ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide}</a><a href="/privacy.html">${c.privacy}</a><a href="/terms.html">${c.terms}</a><a href="mailto:hello@smena.agency">hello@smena.agency</a></nav><small>© 2026 Smena Manager</small></footer></body></html>`;
+<section class="faq wrap"><h2>${c.faqTitle}</h2><div>${c.faq.map(([q, a]) => `<details><summary>${q}<span aria-hidden="true">+</span></summary><p>${a}</p></details>`).join('')}</div></section><section class="final-cta wrap"><p class="eyebrow">SMENA.TEAM</p><h2>${c.finalTitle}</h2><p>${c.finalText}</p><div class="cta-row">${ctas}</div></section></main><footer class="site-footer wrap"><div><a class="brand" href="${route}">SMENA.</a><p>${c.footer}</p><p class="agency-credit">${lang === 'ru' ? 'Создано агентством' : 'Created by'} <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p></div><nav aria-label="${lang === 'ru' ? 'Справочные ссылки' : 'Reference links'}"><a href="/about.html">${c.about}</a><a href="${lang === 'ru' ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide}</a><a href="/privacy.html">${c.privacy}</a><a href="/terms.html">${c.terms}</a><a href="mailto:hello@smena.agency">hello@smena.agency</a></nav><small>© 2026 Smena Manager</small></footer></body></html>`;
 }
 for (const [lang, c] of Object.entries(copy))
   await writeFile(new URL(`../public/product${lang === 'en' ? '-en' : ''}.html`, import.meta.url), page(lang, c), 'utf8');

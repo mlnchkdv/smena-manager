@@ -42,13 +42,15 @@
     </header>
     <main id="main">
       <section class="hero wrap">
-        <p class="eyebrow">РАБОЧЕЕ ПРОСТРАНСТВО КОМАНДЫ</p>
+        <p class="eyebrow">
+          SMENA.TEAM <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">Продукт smena.agency</a>
+        </p>
         <h1>От первой идеи<br />до общего результата.</h1>
         <p class="hero-lead">
           Проекты, знания и материалы рядом. Smena помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.
         </p>
         <div class="cta-row">
-          <a class="button primary" href="/">Войти в пространство<span aria-hidden="true">↗</span></a
+          <a class="button primary" href="#demo">Посмотреть демо<span aria-hidden="true">↗</span></a
           ><a
             class="button secondary"
             href="mailto:hello@smena.agency?subject=Smena%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
@@ -56,9 +58,6 @@
           >
         </div>
         <p class="access-note">Для сотрудников — вход через Google после добавления администратором. Для новых команд — знакомство и обсуждение настройки.</p>
-        <div class="hero-foot">
-          <span>01 — 06</span><a href="#demo">Посмотрите на работу в контексте <span aria-hidden="true">↓</span></a>
-        </div>
       </section>
       <section class="demo-section wrap" id="demo" aria-labelledby="demo-heading">
         <div class="section-caption">
@@ -123,11 +122,29 @@
               <p class="demo-description">Сохраните источник и читаемую копию страницы: контекст останется, даже если оригинал изменится.</p>
             </section>
             <section id="panel-whiteboards" class="demo-panel" aria-labelledby="tab-whiteboards">
-              <div class="demo-canvas">
-                <svg viewBox="0 0 700 260" aria-hidden="true"><path d="M150 90L350 160L570 90" /></svg>
-                <div class="canvas-node node-0"><span>01</span><strong>Вопрос команды</strong><i aria-hidden="true"></i></div>
-                <div class="canvas-node node-1"><span>02</span><strong>Решение</strong><i aria-hidden="true"></i></div>
-                <div class="canvas-node node-2"><span>03</span><strong>Следующий шаг</strong><i aria-hidden="true"></i></div>
+              <div class="canvas-trial" data-product-canvas>
+                <div class="canvas-trial-tools">
+                  <span>Демо: изменения не сохраняются</span><button type="button" data-demo-connections aria-pressed="true">Связи</button
+                  ><button type="button" data-demo-reset>Сбросить</button>
+                </div>
+                <div class="canvas-trial-stage">
+                  <svg aria-hidden="true"><path /></svg>
+                  <div class="trial-node trial-node-0" data-demo-node="0">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды">
+                      <small>01</small><strong>Вопрос команды</strong></button
+                    ><span>Закладки</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">↘</button>
+                  </div>
+                  <div class="trial-node trial-node-1" data-demo-node="1">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><small>02</small><strong>Решение</strong></button
+                    ><span>Решение</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">↘</button>
+                  </div>
+                  <div class="trial-node trial-node-2" data-demo-node="2">
+                    <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг">
+                      <small>03</small><strong>Следующий шаг</strong></button
+                    ><span>Проекты</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">↘</button>
+                  </div>
+                </div>
+                <p class="canvas-trial-hint">Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.</p>
               </div>
               <p class="demo-description">Разложите материалы на холсте, измените размеры карточек и соедините идеи с задачами.</p>
             </section>
@@ -195,179 +212,296 @@
         <div class="section-intro">
           <p class="eyebrow">ВОЗМОЖНОСТИ</p>
           <h2>Инструменты, которые работают вместе.</h2>
-          <p>От ежедневных задач до командной памяти. Откройте подробности нужного раздела.</p>
+          <p>От ежедневных задач до командной памяти. Посмотрите, как каждый инструмент помогает общей работе.</p>
         </div>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">01</span>
-            <h3>Проекты и задачи</h3>
-            <p>Видно, что делать дальше и кто отвечает за результат.</p>
+        <section class="feature-story" id="feature-projects">
+          <div class="story-copy">
+            <p class="eyebrow">01 / Проекты и задачи</p>
+            <h3>Видно, что делать дальше и кто отвечает за результат.</h3>
+            <dl>
+              <div>
+                <dt>Разные представления</dt>
+                <dd>Доска, список, таблица, календарь и хронология помогают выбирать подходящий способ планирования.</dd>
+              </div>
+              <div>
+                <dt>Детали задачи</dt>
+                <dd>Исполнители, сроки, приоритеты, подзадачи и зависимости сохраняют договорённости рядом с работой.</dd>
+              </div>
+              <div>
+                <dt>Обзор команды</dt>
+                <dd>Портфель проектов, просроченные задачи, загрузка участников и этапы помогают замечать риски и переходить к деталям.</dd>
+              </div>
+              <div>
+                <dt>Обсуждение и история</dt>
+                <dd>Комментарии, упоминания и активность дают контекст изменений. Уведомления зависят от настройки команды и личных предпочтений.</dd>
+              </div>
+            </dl>
           </div>
-          <div class="feature-details">
-            <details>
-              <summary>Разные представления<span aria-hidden="true">+</span></summary>
-              <p>Доска, список, таблица, календарь и хронология помогают выбирать подходящий способ планирования.</p>
-            </details>
-            <details>
-              <summary>Детали задачи<span aria-hidden="true">+</span></summary>
-              <p>Исполнители, сроки, приоритеты, подзадачи и зависимости сохраняют договорённости рядом с работой.</p>
-            </details>
-            <details>
-              <summary>Обзор команды<span aria-hidden="true">+</span></summary>
-              <p>Портфель проектов, просроченные задачи, загрузка участников и этапы помогают замечать риски и переходить к деталям.</p>
-            </details>
-            <details>
-              <summary>Обсуждение и история<span aria-hidden="true">+</span></summary>
-              <p>Комментарии, упоминания и активность дают контекст изменений. Уведомления зависят от настройки команды и личных предпочтений.</p>
-            </details>
-          </div>
-        </section>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">02</span>
-            <h3>Файлы и медиа</h3>
-            <p>Рабочие материалы в понятной структуре, с просмотром внутри приложения.</p>
-          </div>
-          <div class="feature-details">
-            <details>
-              <summary>Папки и поиск<span aria-hidden="true">+</span></summary>
-              <p>Организуйте файлы по проектам и папкам, ищите по названию и фильтруйте по типу. Переносите материалы по одному или группой.</p>
-            </details>
-            <details>
-              <summary>Большие загрузки<span aria-hidden="true">+</span></summary>
-              <p>
-                Пакетная очередь, прогресс, пауза и повтор помогают загружать фото и длинные видео. Возобновление после перезапуска зависит от браузера и
-                разрешения на доступ к исходному файлу.
-              </p>
-            </details>
-            <details>
-              <summary>Предпросмотр<span aria-hidden="true">+</span></summary>
-              <p>
-                Открывайте поддерживаемые изображения, видео, аудио, PDF и текст. HTML доступен в безопасном статическом просмотре без скриптов; оригинал можно
-                скачать.
-              </p>
-            </details>
-            <details>
-              <summary>Версии и восстановление<span aria-hidden="true">+</span></summary>
-              <p>
-                История файлов, корзина и инструменты копирования помогают исправлять ошибки. Хранение материалов использует Google Drive, настроенный для
-                команды.
-              </p>
-            </details>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Проекты и задачи</small></div>
+            <div class="demo-board">
+              <div class="demo-column">
+                <span>К выполнению</span>
+                <div class="demo-task"><span class="task-dot dot-0"></span><strong>Собрать вопросы команды</strong><small>Запуск продукта</small></div>
+              </div>
+              <div class="demo-column">
+                <span>В работе</span>
+                <div class="demo-task"><span class="task-dot dot-1"></span><strong>Подготовить первый сценарий</strong><small>Запуск продукта</small></div>
+              </div>
+              <div class="demo-column">
+                <span>Готово</span>
+                <div class="demo-task"><span class="task-dot dot-2"></span><strong>Согласовать решение</strong><small>Запуск продукта</small></div>
+              </div>
+            </div>
           </div>
         </section>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">03</span>
-            <h3>База знаний</h3>
-            <p>Решения и инструкции можно найти и использовать повторно.</p>
+        <section class="feature-story" id="feature-files">
+          <div class="story-copy">
+            <p class="eyebrow">02 / Файлы и медиа</p>
+            <h3>Рабочие материалы в понятной структуре, с просмотром внутри приложения.</h3>
+            <dl>
+              <div>
+                <dt>Папки и поиск</dt>
+                <dd>Организуйте файлы по проектам и папкам, ищите по названию и фильтруйте по типу. Переносите материалы по одному или группой.</dd>
+              </div>
+              <div>
+                <dt>Большие загрузки</dt>
+                <dd>
+                  Пакетная очередь, прогресс, пауза и повтор помогают загружать фото и длинные видео. Возобновление после перезапуска зависит от браузера и
+                  разрешения на доступ к исходному файлу.
+                </dd>
+              </div>
+              <div>
+                <dt>Предпросмотр</dt>
+                <dd>
+                  Открывайте поддерживаемые изображения, видео, аудио, PDF и текст. HTML доступен в безопасном статическом просмотре без скриптов; оригинал
+                  можно скачать.
+                </dd>
+              </div>
+              <div>
+                <dt>Версии и восстановление</dt>
+                <dd>
+                  История файлов, корзина и инструменты копирования помогают исправлять ошибки. Хранение материалов использует Google Drive, настроенный для
+                  команды.
+                </dd>
+              </div>
+            </dl>
           </div>
-          <div class="feature-details">
-            <details>
-              <summary>Заметки с контекстом<span aria-hidden="true">+</span></summary>
-              <p>Markdown, папки, теги, типы и свойства заметок. Шаблоны упрощают повторяющиеся записи.</p>
-            </details>
-            <details>
-              <summary>Поиск и подборки<span aria-hidden="true">+</span></summary>
-              <p>Полнотекстовый поиск, фильтры, сохранённые запросы и умные подборки помогают найти нужный материал.</p>
-            </details>
-            <details>
-              <summary>Связи и версии<span aria-hidden="true">+</span></summary>
-              <p>Ссылки между материалами и обратные ссылки соединяют знания с работой. История версий помогает сравнивать и восстанавливать текст.</p>
-            </details>
-            <details>
-              <summary>Импорт и переносимость<span aria-hidden="true">+</span></summary>
-              <p>
-                Импортируйте MD/TXT, экспортируйте материалы и сохраняйте выбранные данные для работы офлайн. Доступность офлайн зависит от сохранённого набора
-                и браузера.
-              </p>
-            </details>
-          </div>
-        </section>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">04</span>
-            <h3>Закладки и источники</h3>
-            <p>Полезная страница не теряется среди сообщений.</p>
-          </div>
-          <div class="feature-details">
-            <details>
-              <summary>Быстрое сохранение<span aria-hidden="true">+</span></summary>
-              <p>Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.</p>
-            </details>
-            <details>
-              <summary>HTML-архив страницы<span aria-hidden="true">+</span></summary>
-              <p>
-                Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и скачивание
-                HTML. До 10 версий. Недоступные ресурсы отмечаются; содержимое, добавляемое JavaScript или требующее входа, может отсутствовать.
-              </p>
-            </details>
-            <details>
-              <summary>Командная обработка<span aria-hidden="true">+</span></summary>
-              <p>Статус прочтения общий для пространства, избранное — личное. Отмечайте полезное и возвращайтесь к источникам позже.</p>
-            </details>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Файлы и медиа</small></div>
+            <div class="demo-files">
+              <strong>Материалы проекта</strong>
+              <div class="demo-file"><span class="file-glyph" aria-hidden="true">MP4</span><strong>Интервью.mp4</strong><span>Загружено</span></div>
+              <div class="demo-file"><span class="file-glyph" aria-hidden="true">ZIP</span><strong>Фотографии.zip</strong><span>В очереди</span></div>
+              <div class="demo-file"><span class="file-glyph" aria-hidden="true">MD</span><strong>Описание.md</strong><span>Загружено</span></div>
+            </div>
           </div>
         </section>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">05</span>
-            <h3>Холсты и граф</h3>
-            <p>Два способа увидеть общую картину: собрать её вручную или исследовать связи.</p>
+        <section class="feature-story" id="feature-knowledge">
+          <div class="story-copy">
+            <p class="eyebrow">03 / База знаний</p>
+            <h3>Решения и инструкции можно найти и использовать повторно.</h3>
+            <dl>
+              <div>
+                <dt>Заметки с контекстом</dt>
+                <dd>Markdown, папки, теги, типы и свойства заметок. Шаблоны упрощают повторяющиеся записи.</dd>
+              </div>
+              <div>
+                <dt>Поиск и подборки</dt>
+                <dd>Полнотекстовый поиск, фильтры, сохранённые запросы и умные подборки помогают найти нужный материал.</dd>
+              </div>
+              <div>
+                <dt>Связи и версии</dt>
+                <dd>Ссылки между материалами и обратные ссылки соединяют знания с работой. История версий помогает сравнивать и восстанавливать текст.</dd>
+              </div>
+              <div>
+                <dt>Импорт и переносимость</dt>
+                <dd>
+                  Импортируйте MD/TXT, экспортируйте материалы и сохраняйте выбранные данные для работы офлайн. Доступность офлайн зависит от сохранённого
+                  набора и браузера.
+                </dd>
+              </div>
+            </dl>
           </div>
-          <div class="feature-details">
-            <details>
-              <summary>Свободная композиция<span aria-hidden="true">+</span></summary>
-              <p>Текст, материалы, фигуры, группы и рамки на отдельном холсте. Перетаскивайте карточки, меняйте размер за края, масштабируйте и соединяйте.</p>
-            </details>
-            <details>
-              <summary>От схемы к действию<span aria-hidden="true">+</span></summary>
-              <p>Связывайте холст с проектом, используйте шаблоны, историю и экспорт. Материалы можно превращать в заметки и задачи.</p>
-            </details>
-            <details>
-              <summary>Граф связей<span aria-hidden="true">+</span></summary>
-              <p>Исследуйте связи заметок, задач, файлов и других материалов. Используйте фильтры, фокус и сохранённые виды.</p>
-            </details>
-            <details>
-              <summary>Управление сложностью<span aria-hidden="true">+</span></summary>
-              <p>
-                Упрощённый вид и переключение физики помогают выбрать удобный режим графа. Большие наборы показываются в пределах доступного бюджета
-                отображения.
-              </p>
-            </details>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>База знаний</small></div>
+            <article class="demo-note">
+              <span class="type-pill">Решение</span>
+              <h3>Почему мы выбрали этот сценарий</h3>
+              <p>Начинаем с одного понятного пути: от запроса пользователя до готовой задачи. Дополнительные настройки открываем по необходимости.</p>
+              <small>Связано: исследование · прототип · план запуска</small>
+            </article>
           </div>
         </section>
-        <section class="feature-row">
-          <div class="feature-heading">
-            <span class="feature-number">06</span>
-            <h3>Пространства, доступ и интеграции</h3>
-            <p>Команда управляет своей средой и тем, кому доступны материалы.</p>
+        <section class="feature-story" id="feature-bookmarks">
+          <div class="story-copy">
+            <p class="eyebrow">04 / Закладки и источники</p>
+            <h3>Полезная страница не теряется среди сообщений.</h3>
+            <dl>
+              <div>
+                <dt>Быстрое сохранение</dt>
+                <dd>Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.</dd>
+              </div>
+              <div>
+                <dt>HTML-архив страницы</dt>
+                <dd>
+                  Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и
+                  скачивание HTML. До 10 активных копий; прежние версии можно убрать из активных и вернуть. Недоступные ресурсы отмечаются; содержимое,
+                  добавляемое JavaScript или требующее входа, может отсутствовать.
+                </dd>
+              </div>
+              <div>
+                <dt>Командная обработка</dt>
+                <dd>Статус прочтения общий для пространства, избранное — личное. Отмечайте полезное и возвращайтесь к источникам позже.</dd>
+              </div>
+            </dl>
           </div>
-          <div class="feature-details">
-            <details>
-              <summary>Отдельные пространства<span aria-hidden="true">+</span></summary>
-              <p>
-                Создавайте рабочие пространства, переключайтесь между ними и настраивайте меню под себя. Доступ к чужим пространствам не возникает
-                автоматически.
-              </p>
-            </details>
-            <details>
-              <summary>Роли и публичные ссылки<span aria-hidden="true">+</span></summary>
-              <p>Управляйте ролями участников. Для файлов, папок и заметок можно выдавать отдельные публичные ссылки, задавать срок и отзывать доступ.</p>
-            </details>
-            <details>
-              <summary>API и MCP<span aria-hidden="true">+</span></summary>
-              <p>
-                Подключайте совместимые клиенты, включая Codex. Чтение и запись заметок, чтение и загрузка файлов ограничиваются правами участника и токена.
-                Инструкция подключения доступна отдельно.
-              </p>
-            </details>
-            <details>
-              <summary>Развёртывание для команды<span aria-hidden="true">+</span></summary>
-              <p>
-                Smena можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют настройки.
-                Встроенный платный ИИ-провайдер не включён по умолчанию.
-              </p>
-            </details>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Закладки и источники</small></div>
+            <article class="demo-bookmark">
+              <div class="demo-web-image" aria-hidden="true"><span></span><span></span><span></span></div>
+              <div>
+                <small>example.org / research</small>
+                <h3>Исследование: удобные рабочие процессы</h3>
+                <p>Ссылка на источник, краткое описание, теги и читаемая копия — вместе.</p>
+                <span class="saved-state">✓ Копия страницы сохранена</span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="feature-story" id="feature-whiteboards">
+          <div class="story-copy">
+            <p class="eyebrow">05 / Холсты</p>
+            <h3>Дайте идеям место. Соберите из них план.</h3>
+            <dl>
+              <div>
+                <dt>Свободная композиция</dt>
+                <dd>
+                  Текст, материалы, фигуры, группы и рамки на отдельном холсте. Перетаскивайте карточки, меняйте размер за края, масштабируйте и соединяйте.
+                </dd>
+              </div>
+              <div>
+                <dt>От схемы к действию</dt>
+                <dd>Связывайте холст с проектом, используйте шаблоны, историю и экспорт. Материалы можно превращать в заметки и задачи.</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Холсты</small></div>
+            <div class="canvas-trial" data-product-canvas>
+              <div class="canvas-trial-tools">
+                <span>Демо: изменения не сохраняются</span><button type="button" data-demo-connections aria-pressed="true">Связи</button
+                ><button type="button" data-demo-reset>Сбросить</button>
+              </div>
+              <div class="canvas-trial-stage">
+                <svg aria-hidden="true"><path /></svg>
+                <div class="trial-node trial-node-0" data-demo-node="0">
+                  <button class="trial-node-title" type="button" aria-label="Переместить: Вопрос команды">
+                    <small>01</small><strong>Вопрос команды</strong></button
+                  ><span>Закладки</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Вопрос команды">↘</button>
+                </div>
+                <div class="trial-node trial-node-1" data-demo-node="1">
+                  <button class="trial-node-title" type="button" aria-label="Переместить: Решение"><small>02</small><strong>Решение</strong></button
+                  ><span>Решение</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Решение">↘</button>
+                </div>
+                <div class="trial-node trial-node-2" data-demo-node="2">
+                  <button class="trial-node-title" type="button" aria-label="Переместить: Следующий шаг"><small>03</small><strong>Следующий шаг</strong></button
+                  ><span>Проекты</span><button class="trial-node-resize" type="button" aria-label="Изменить размер: Следующий шаг">↘</button>
+                </div>
+              </div>
+              <p class="canvas-trial-hint">Потяните заголовок или угол карточки. С клавиатуры — стрелки на выбранной кнопке.</p>
+            </div>
+          </div>
+        </section>
+        <section class="feature-story" id="feature-graph">
+          <div class="story-copy">
+            <p class="eyebrow">06 / Граф связей</p>
+            <h3>Находите то, что связывает ваши материалы.</h3>
+            <dl>
+              <div>
+                <dt>Граф связей</dt>
+                <dd>Исследуйте связи заметок, задач, файлов и других материалов. Используйте фильтры, фокус и сохранённые виды.</dd>
+              </div>
+              <div>
+                <dt>Управление сложностью</dt>
+                <dd>
+                  Упрощённый вид и переключение физики помогают выбрать удобный режим графа. Большие наборы показываются в пределах доступного бюджета
+                  отображения.
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Граф связей</small></div>
+            <div class="demo-graph">
+              <svg viewBox="0 0 700 260" role="img" aria-label="Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.">
+                <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
+                <g>
+                  <circle cx="350" cy="120" r="22" class="graph-color-0" />
+                  <text x="350" y="157" text-anchor="middle">Проект</text>
+                </g>
+                <g>
+                  <circle cx="160" cy="55" r="12" class="graph-color-1" />
+                  <text x="160" y="92" text-anchor="middle">Заметка</text>
+                </g>
+                <g>
+                  <circle cx="150" cy="205" r="12" class="graph-color-2" />
+                  <text x="150" y="242" text-anchor="middle">Файл</text>
+                </g>
+                <g>
+                  <circle cx="555" cy="55" r="12" class="graph-color-3" />
+                  <text x="555" y="92" text-anchor="middle">Задача</text>
+                </g>
+                <g>
+                  <circle cx="555" cy="205" r="12" class="graph-color-4" />
+                  <text x="555" y="242" text-anchor="middle">Источник</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+        <section class="feature-story" id="feature-spaces">
+          <div class="story-copy">
+            <p class="eyebrow">07 / Пространства, доступ и интеграции</p>
+            <h3>Команда управляет своей средой и тем, кому доступны материалы.</h3>
+            <dl>
+              <div>
+                <dt>Отдельные пространства</dt>
+                <dd>
+                  Создавайте рабочие пространства, переключайтесь между ними и настраивайте меню под себя. Доступ к чужим пространствам не возникает
+                  автоматически.
+                </dd>
+              </div>
+              <div>
+                <dt>Роли и публичные ссылки</dt>
+                <dd>Управляйте ролями участников. Для файлов, папок и заметок можно выдавать отдельные публичные ссылки, задавать срок и отзывать доступ.</dd>
+              </div>
+              <div>
+                <dt>API и MCP</dt>
+                <dd>
+                  Подключайте совместимые клиенты, включая Codex. Чтение и запись заметок, чтение и загрузка файлов ограничиваются правами участника и токена.
+                  Инструкция подключения доступна отдельно.
+                </dd>
+              </div>
+              <div>
+                <dt>Развёртывание для команды</dt>
+                <dd>
+                  Smena можно развернуть на сервере команды с Google-входом и Google Drive. Домен, хранение, резервные копии и интеграции требуют настройки.
+                  Встроенный платный ИИ-провайдер не включён по умолчанию.
+                </dd>
+              </div>
+            </dl>
+            <a class="text-link" href="/mcp-setup.html">Подключение MCP ↗</a>
+          </div>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Пространства, доступ и интеграции</small></div>
+            <div class="demo-access">
+              <span class="type-pill">SMENA / КОМАНДА</span>
+              <h4>Общая работа. Ваши настройки.</h4>
+              <div><b>Пространства</b><span>Команда · Личное</span></div>
+              <div><b>Доступ</b><span>Роли · Срок ссылки · Отзыв</span></div>
+              <div><b>API / MCP</b><span>Codex ↔ Заметки и файлы</span></div>
+            </div>
           </div>
         </section>
       </section>
@@ -450,7 +584,7 @@
         <h2>Меньше поиска контекста.<br />Больше совместной работы.</h2>
         <p>Начните с одного проекта и соберите рядом всё, что помогает его сделать.</p>
         <div class="cta-row">
-          <a class="button primary" href="/">Войти в пространство<span aria-hidden="true">↗</span></a
+          <a class="button primary" href="#demo">Посмотреть демо<span aria-hidden="true">↗</span></a
           ><a
             class="button secondary"
             href="mailto:hello@smena.agency?subject=Smena%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%20%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0%20%D0%B4%D0%BB%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B"
@@ -463,6 +597,7 @@
       <div>
         <a class="brand" href="/product.html">SMENA.</a>
         <p>Проекты · знания · материалы</p>
+        <p class="agency-credit">Создано агентством <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p>
       </div>
       <nav aria-label="Справочные ссылки">
         <a href="/about.html">О сервисе и Google</a><a href="/mcp-setup.html">Подключение MCP</a><a href="/privacy.html">Конфиденциальность</a
