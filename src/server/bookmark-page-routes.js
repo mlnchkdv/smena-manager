@@ -1,14 +1,19 @@
 import { Router } from 'express';
 import { requireRole } from './auth.js';
-import { fetchPublicPage, pageMetadata, pageError } from './web-page-fetch.js';
+import { fetchPublicPage, fetchPublicAsset, pageMetadata, pageError } from './web-page-fetch.js';
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
 import { workspaceScope } from './workspace-context.js';
-import { bookmarkReaderPage, saveBookmarkSnapshot, readBookmarkSnapshot, SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
+import { bookmarkReaderPage, saveBookmarkSnapshot, readBookmarkSnapshot, bookmarkPageSummary, SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
 import { createBookmarkThumbnailLoader } from './bookmark-thumbnails.js';
+import { archiveBookmarkHtml, ARCHIVE_CSP } from './bookmark-html-archive.js';
 
-export function createBookmarkPageRouter({ fetchPage = fetchPublicPage, loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }) } = {}) {
+export function createBookmarkPageRouter({
+  fetchPage = fetchPublicPage,
+  fetchAsset = fetchPublicAsset,
+  loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }),
+} = {}) {
   const bookmarkPageRouter = Router();
   const requests = new Map();
   bookmarkPageRouter.use((request, response, next) => {
@@ -64,7 +69,25 @@ export function createBookmarkPageRouter({ fetchPage = fetchPublicPage, loadThum
   bookmarkPageRouter.get('/:id/snapshots/:snapshot', async (request, response, next) => {
     try {
       const bookmark = await target(request);
-      response.json(await readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, request.params.snapshot));
+      response.json(bookmarkPageSummary(await readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, request.params.snapshot)));
+    } catch (error) {
+      next(error.statusCode ? error : pageError());
+    }
+  });
+  bookmarkPageRouter.get('/:id/snapshots/:snapshot/document', async (request, response, next) => {
+    try {
+      const bookmark = await target(request);
+      const page = await readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, request.params.snapshot);
+      await target(request);
+      if (page.format !== 'html' || !page.document) throw pageError('PAGE_SNAPSHOT_UNAVAILABLE', 404);
+      response.set({
+        'Content-Security-Policy': ARCHIVE_CSP,
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'no-referrer',
+      });
+      if (request.query.download === '1') response.attachment(`smena-page-${request.params.snapshot}.html`);
+      response.type('html').send(page.document);
     } catch (error) {
       next(error.statusCode ? error : pageError());
     }
@@ -73,7 +96,7 @@ export function createBookmarkPageRouter({ fetchPage = fetchPublicPage, loadThum
     try {
       const bookmark = await target(request, true);
       if ((bookmark.pageSnapshots?.length || 0) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
-      const page = bookmarkReaderPage(await fetchPage(bookmark.url));
+      const page = await archiveBookmarkHtml(await fetchPage(bookmark.url), { fetchAsset });
       const ref = await saveBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, page);
       for (let attempt = 0; attempt < 3; attempt++) {
         const current = await getWorkspaceDatabase({ fields: ['revision'] });
@@ -102,7 +125,7 @@ export function createBookmarkPageRouter({ fetchPage = fetchPublicPage, loadThum
             current.revision,
             { role: 'admin', scope: 'bookmarks' },
           );
-          return response.status(201).json({ snapshot: ref, page });
+          return response.status(201).json({ snapshot: ref, page: bookmarkPageSummary(page) });
         } catch (error) {
           if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
         }

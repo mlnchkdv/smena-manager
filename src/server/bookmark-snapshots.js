@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
 import sanitizeHtml from '../../.generated/sanitizer.mjs';
 import { pageError, pageMetadata } from './web-page-fetch.js';
+import { safeArchiveDocument } from './bookmark-html-archive.js';
 
 export const SNAPSHOT_LIMIT = 10;
-export const SNAPSHOT_MAX_BYTES = 3 * 1024 * 1024;
+export const SNAPSHOT_MAX_BYTES = 20 * 1024 * 1024;
 const hash = value => createHash('sha256').update(value).digest('hex');
 export function bookmarkReaderPage(page) {
   const html = sanitizeHtml(page.html, {
@@ -62,6 +63,8 @@ export async function saveBookmarkSnapshot(storage, workspace, bookmark, page) {
     sourceUrl: bookmark.url,
     finalUrl: page.url,
     title: page.title,
+    format: page.format || 'text',
+    capture: page.capture,
     sha256: hash(content),
     storageName: stored.filename,
     storageFileId: stored.fileId,
@@ -101,5 +104,15 @@ export async function readBookmarkSnapshot(storage, workspace, bookmark, id) {
   if (page.kind !== 'smena-bookmark-page-v1' || page.workspace !== workspace || page.bookmarkId !== bookmark.id || typeof page.html !== 'string')
     throw pageError('PAGE_SNAPSHOT_UNAVAILABLE', 404);
   // Treat restored/legacy blobs as untrusted even after integrity validation.
-  return { ...page, html: bookmarkReaderPage({ html: page.html, url: page.url }).html };
+  return {
+    ...page,
+    html: bookmarkReaderPage({ html: page.html, url: page.url }).html,
+    ...(page.format === 'html' && typeof page.document === 'string' ? { document: safeArchiveDocument(page.document) } : {}),
+  };
+}
+
+export function bookmarkPageSummary(page) {
+  const result = { ...page };
+  delete result.document;
+  return result;
 }

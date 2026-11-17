@@ -51,7 +51,7 @@ export function pageUrl(value) {
 
 // DNS is resolved and validated before each hop; connect to that exact address,
 // retaining the original Host and TLS hostname. No cookies or auth are forwarded.
-async function fetchPublicResource(value, { resolve = lookup, transport, signal, image = false } = {}) {
+async function fetchPublicResource(value, { resolve = lookup, transport, signal, image = false, asset = false } = {}) {
   let url = pageUrl(value);
   signal ||= AbortSignal.timeout(15000);
   for (let redirect = 0; redirect <= 3; redirect++) {
@@ -73,7 +73,7 @@ async function fetchPublicResource(value, { resolve = lookup, transport, signal,
           lookup: (_host, options, callback) => (options.all ? callback(null, [address]) : callback(null, address.address, address.family)),
           headers: {
             'User-Agent': 'Smena-PagePreview/1.0',
-            Accept: image ? 'image/png,image/jpeg,image/webp' : 'text/html,application/xhtml+xml',
+            Accept: asset ? 'text/css,image/*,font/*;q=0.9' : image ? 'image/png,image/jpeg,image/webp' : 'text/html,application/xhtml+xml',
             'Accept-Encoding': 'identity',
           },
         },
@@ -85,7 +85,13 @@ async function fetchPublicResource(value, { resolve = lookup, transport, signal,
             }
             if (
               response.statusCode !== 200 ||
-              !(image ? /^image\/(png|jpeg|webp)\b/i : /^(text\/html|application\/xhtml\+xml)\b/i).test(response.headers['content-type'] || '') ||
+              !(
+                asset
+                  ? /^(text\/css|image\/(png|jpeg|webp|gif|svg\+xml)|font\/[a-z0-9.-]+|application\/(font-woff|x-font-ttf|x-font-opentype|vnd.ms-fontobject|octet-stream))\b/i
+                  : image
+                    ? /^image\/(png|jpeg|webp)\b/i
+                    : /^(text\/html|application\/xhtml\+xml)\b/i
+              ).test(response.headers['content-type'] || '') ||
               (response.headers['content-encoding'] && response.headers['content-encoding'] !== 'identity')
             )
               throw pageError();
@@ -97,7 +103,7 @@ async function fetchPublicResource(value, { resolve = lookup, transport, signal,
               chunks.push(chunk);
             }
             const body = Buffer.concat(chunks);
-            if (image) resolveResult({ body, contentType: response.headers['content-type'].split(';')[0].toLowerCase(), url: url.href });
+            if (image || asset) resolveResult({ body, contentType: response.headers['content-type'].split(';')[0].toLowerCase(), url: url.href });
             else resolveResult({ html: decodeHtml(body, response.headers['content-type']), url: url.href });
           } catch (error) {
             response.destroy();
@@ -115,6 +121,7 @@ async function fetchPublicResource(value, { resolve = lookup, transport, signal,
 }
 
 export const fetchPublicPage = (value, options) => fetchPublicResource(value, options);
+export const fetchPublicAsset = (value, options) => fetchPublicResource(value, { ...options, asset: true });
 export async function fetchPublicImage(value, options = {}) {
   const result = await fetchPublicResource(value, { ...options, image: true });
   const body = result.body;

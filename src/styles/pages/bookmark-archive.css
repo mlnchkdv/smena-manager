@@ -1,0 +1,34 @@
+.bookmark-archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+.bookmark-archive-actions .seg button {
+  min-height: 36px;
+}
+.bookmark-archive-frame {
+  display: block;
+  width: 100%;
+  height: 65vh;
+  min-height: 280px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: #fff;
+  flex: none;
+}
+.bookmark-archive-warning {
+  color: var(--text-2);
+  border-inline-start: 3px solid var(--warning);
+  padding-inline-start: 10px;
+}
+@media (max-width: 640px) {
+  .bookmark-archive-actions .seg button {
+    min-height: 44px;
+  }
+  .bookmark-archive-frame {
+    height: 65dvh;
+    min-height: 260px;
+  }
+}

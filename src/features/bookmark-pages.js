@@ -8,7 +8,7 @@ import { render } from '../shell/render.js';
 import { esc } from '../core/utils.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { toast } from '../ui/toast.js';
-import { bookmarkReaderHtml } from '../ui/bookmark-reader.js';
+import { bookmarkArchiveView } from '../ui/bookmark-archive.js';
 
 const words = (en, ru) => (isRussian() ? ru : en);
 let timer, controller;
@@ -69,14 +69,33 @@ function pageFailure(error, saving = false) {
 }
 function viewer(m, H) {
   const stamp = value => new Date(value).toLocaleString(isRussian() ? 'ru-RU' : 'en-US');
+  const selected = m.snapshots.find(ref => ref.id === m.selected);
+  const source = m.selected === 'live' ? m.url : normalizedPageUrl(m.page?.url || selected?.finalUrl || selected?.sourceUrl || '') || m.url;
+  const versionOptions = m.snapshots
+    .map(
+      ref =>
+        `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${ref.format === 'html' ? words('HTML archive', 'HTML-архив') : words('Text copy', 'Текстовая копия')} · ${esc(stamp(ref.capturedAt))}</option>`,
+    )
+    .join('');
+  const archiveButton =
+    S.ui.currentUser?.role !== 'viewer'
+      ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.busy || m.snapshots.length >= 10 ? 'disabled' : ''}>${words('Archive page', 'Архивировать страницу')}</button>`
+      : '';
   return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" translate="no">
-    <div class="bookmark-viewer-heading"><h3 class="bookmark-viewer-title" title="${esc(m.title)}">${esc(m.title)}</h3><p class="hint bookmark-viewer-url" title="${esc(m.url)}">${esc(m.url)}</p></div>
-    <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${m.snapshots.map(ref => `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${words('Saved', 'Копия от')} ${esc(stamp(ref.capturedAt))}</option>`).join('')}</select></label>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" aria-label="${words('Save copy of this page', 'Сохранить копию страницы')}" ${m.busy || m.snapshots.length >= 10 ? 'disabled' : ''}>${words('Save copy', 'Сохранить копию')}</button>` : ''}<a class="btn btn-ghost" href="${esc(m.url)}" target="_blank" rel="noopener noreferrer" aria-label="${words('Open original', 'Открыть оригинал')}">${words('Original', 'Оригинал')}</a></div>
-    <details class="bookmark-page-notice"><summary>${words('About saved copies', 'О копиях страниц')}</summary><p class="hint">${words('A readable copy of public page text and tables. Scripts, images and interactive elements are excluded. Sign-in pages and content loaded by JavaScript may be incomplete. Up to 10 copies per bookmark; older copies are retained.', 'Читаемая копия текста и таблиц публичной страницы. Скрипты, изображения и интерактивные элементы исключены. Страницы со входом и содержимое, загружаемое JavaScript, могут быть неполными. До 10 копий на закладку; прежние копии сохраняются.')}</p></details>
+    <div class="bookmark-viewer-heading"><h3 class="bookmark-viewer-title" title="${esc(m.title)}">${esc(m.title)}</h3><p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p>${source !== m.url ? `<p class="hint bookmark-viewer-url">${words('Current bookmark URL: ', 'Текущий адрес закладки: ')}${esc(m.url)}</p>` : ''}</div>
+    <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${versionOptions}</select></label>${archiveButton}<a class="btn btn-ghost" href="${esc(source)}" target="_blank" rel="noopener noreferrer" aria-label="${words('Open original', 'Открыть оригинал')}">${words('Original', 'Оригинал')}</a></div>
+    <details class="bookmark-page-notice"><summary>${words('About HTML archives', 'Об HTML-архивах')}</summary><p class="hint">${words('New archives keep the public HTML, CSS, images and fonts as downloaded at capture time. Interactive scripts and embedded pages are disabled. Content loaded only by JavaScript or requiring sign-in may be absent; unavailable resources are reported. Up to 10 archives per bookmark. Previous text copies are retained.', 'Новые архивы сохраняют публичный HTML, стили, изображения и шрифты, загруженные в момент архивации. Скрипты и встроенные страницы отключены. Содержимое, загружаемое только JavaScript или требующее входа, может отсутствовать; недоступные ресурсы отмечаются в статусе. До 10 архивов на закладку. Прежние текстовые копии сохраняются.')}</p></details>
     ${m.busy ? `<p role="status">${m.saving ? words('Saving a page copy…', 'Сохраняем копию страницы…') : words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Retry', 'Повторить')}</button>` : ''}
-    ${m.page && !m.busy ? `<p class="hint" role="status">${m.selected === 'live' ? words('Preview only — not saved.', 'Предпросмотр — копия ещё не сохранена.') : words('Saved copy. Available even if the original changes or disappears.', 'Сохранённая копия. Доступна, даже если оригинал изменится или исчезнет.')} · ${esc(stamp(m.page.capturedAt))}</p><article class="bookmark-page-reader">${bookmarkReaderHtml(m.page, m.id, isRussian())}</article>` : ''}
+    ${m.page && !m.busy ? `<p class="hint" role="status">${m.selected === 'live' ? words('Text preview — not archived.', 'Текстовый предпросмотр — страница ещё не архивирована.') : words('Saved archive. The original website is not requested when you open it.', 'Сохранённый архив. При открытии оригинальный сайт не запрашивается.')} · ${esc(stamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
     </div>`;
 }
+A.bookmarkArchiveView = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'bookmarkViewer' && !m.busy) {
+    m.archiveView = el.dataset.value === 'text' ? 'text' : 'html';
+    render();
+  }
+};
 async function loadPage(m) {
   m.controller?.abort();
   m.controller = new AbortController();
@@ -143,11 +162,12 @@ A.saveBookmarkPage = async () => {
     if (!currentViewer(m)) return;
     m.snapshots.unshift(result.snapshot);
     m.selected = result.snapshot.id;
+    m.archiveView = 'html';
     m.page = result.page;
     // The durable save already succeeded. A failed refresh must not tell the
     // user the copy was lost or cause a duplicate save on retry.
     await refreshWorkspaceFromServer().catch(() => {});
-    if (currentViewer(m)) toast(words('Page copy saved. Previous copies are retained.', 'Копия страницы сохранена. Предыдущие копии не изменены.'));
+    if (currentViewer(m)) toast(words('HTML archive saved. Previous versions are retained.', 'HTML-архив сохранён. Предыдущие версии не изменены.'));
   } catch (error) {
     if (currentViewer(m)) m.error = pageFailure(error, true);
   } finally {

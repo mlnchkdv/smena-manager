@@ -112,8 +112,8 @@ const copy = {
         [
           ['Быстрое сохранение', 'Вставьте URL: Smena попробует заполнить название и описание. Поля можно отредактировать, добавить теги и папку.'],
           [
-            'Читаемая копия',
-            'Откройте страницу в просмотрщике и сохраните её текст и таблицы. До 10 копий на закладку; скрипты, изображения и интерактивные элементы в копию не входят.',
+            'HTML-архив страницы',
+            'Сохраните публичный HTML вместе со стилями, изображениями и шрифтами. Архив открывается независимо от оригинала; есть текстовый вид и скачивание HTML. До 10 версий. Недоступные ресурсы отмечаются; содержимое, добавляемое JavaScript или требующее входа, может отсутствовать.',
           ],
           ['Командная обработка', 'Статус прочтения общий для пространства, избранное — личное. Отмечайте полезное и возвращайтесь к источникам позже.'],
         ],
@@ -311,8 +311,8 @@ const copy = {
         [
           ['Quick capture', 'Paste a URL: Smena will try to fill in its title and description. Edit the details, add tags and choose a folder.'],
           [
-            'Readable page copies',
-            'Open the reader and save public page text and tables. Up to 10 copies per bookmark; copies exclude scripts, images and interactive elements.',
+            'HTML page archives',
+            'Save public HTML with CSS, images and fonts. Open it independently of the original, switch to text or download the HTML. Up to 10 versions. Unavailable resources are reported; content added by JavaScript or requiring sign-in may be absent.',
           ],
           ['Team reading', 'Reading status is shared across the workspace; favorites are personal. Keep useful sources for later.'],
         ],

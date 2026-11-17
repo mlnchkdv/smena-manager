@@ -32,6 +32,9 @@ test('member captures immutable page versions; reads survive source disappearanc
   qa.use(
     '/pages',
     createBookmarkPageRouter({
+      fetchAsset: async () => {
+        throw new Error('Unavailable synthetic resource');
+      },
       fetchPage: async url => {
         requests++;
         if (unavailable) throw new Error('Source removed');
@@ -78,6 +81,14 @@ test('member captures immutable page versions; reads survive source disappearanc
     assert.equal(saved.status, 200);
     assert.match((await saved.json()).html, /Version 1/);
     assert.equal(requests, beforeRead, 'opening the old copy does not contact the source');
+    const document = await call('/page/snapshots/' + first.snapshot.id + '/document');
+    assert.equal(document.status, 200);
+    assert.match(document.headers.get('content-security-policy'), /sandbox; default-src 'none'/);
+    assert.match(await document.text(), /Version 1/);
+    assert.equal(requests, beforeRead, 'opening archived HTML does not contact the source');
+    assert.equal((await call('/page/snapshots/' + first.snapshot.id + '/document', 'GET', null)).status, 401);
+    const download = await call('/page/snapshots/' + first.snapshot.id + '/document?download=1');
+    assert.match(download.headers.get('content-disposition'), /attachment; filename="smena-page-/);
     const database = await getWorkspaceDatabase();
     assert.equal(database.links[0].pageSnapshots.length, 2);
     assert.equal(database._fileRegistry['id:' + first.snapshot.storageFileId].storageName, first.snapshot.storageName);
