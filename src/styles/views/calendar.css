@@ -358,6 +358,38 @@
   .cal-type-legend.has-layers {
     display: none;
   }
+  .week .wcol.is-empty {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 16px;
+  }
+  .week .wcol.is-empty .wcol-h {
+    display: contents;
+  }
+  .week .wcol.is-empty .wcol-h .sp {
+    display: none;
+  }
+  .week .wcol.is-empty .wcol-h .n {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .week .wcol.is-empty .wcol-h > .muted {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .week .wcol.is-empty .wcol-h > .ibtn {
+    grid-column: 4;
+    grid-row: 1;
+  }
+  .week .wcol.is-empty .wcol-b {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+    padding: 0 8px;
+    overflow: visible;
+  }
 }
 
 .cal-agenda-earlier {

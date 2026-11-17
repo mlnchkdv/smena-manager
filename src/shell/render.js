@@ -353,6 +353,11 @@ const layoutObserver = new ResizeObserver(() => {
       render();
       return;
     }
+    const trashFilters = document.querySelector('.trash-filter-options');
+    if (trashFilters && trashFilters.classList.contains('ui-menu') !== layoutMain.clientWidth <= 640) {
+      render();
+      return;
+    }
     const inbox = document.querySelector('.inbox-grid');
     if (inbox && inbox.classList.contains('inbox-narrow') !== (innerWidth <= 900 || layoutMain.clientWidth < 760)) {
       render();
