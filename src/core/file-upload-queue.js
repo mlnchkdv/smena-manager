@@ -53,19 +53,19 @@ fileModalRenderers.uploadReview = (m, H) => {
       .join(
         '',
       )}</select></label>${m.ctx.task ? `<p class="hint">${text('Task attachments stay in their task project.', 'Вложения задачи сохраняются в её проекте.')}</p>` : ''}</details>
- ${m.capacity.sufficient === false ? `<p class="alert danger" role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : m.capacity.availableBytes === null ? `<p class="alert info" role="status">${text('Free space could not be checked. Uploading may fail if storage is full.', 'Не удалось проверить свободное место. Загрузка может прерваться при заполнении хранилища.')}</p>` : ''}
+ ${m.checkingTarget ? `<p role="status">${text('Checking destination…', 'Проверяем назначение…')}</p>` : m.capacity.sufficient === false ? `<p class="alert danger" role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : m.capacity.availableBytes === null ? `<p class="alert info" role="status">${text('Free space could not be checked. Uploading may fail if storage is full.', 'Не удалось проверить свободное место. Загрузка может прерваться при заполнении хранилища.')}</p>` : ''}
  ${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}
  ${duplicates ? `<p class="alert info">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${duplicates}. ${text('Each file will be kept separately.', 'Каждый файл будет сохранён отдельно.')}</p>` : ''}
  <details><summary>${text('Files and paths', 'Файлы и пути')}</summary><ul>${m.entries
    .slice(0, 50)
    .map(job => `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)}</li>`)
    .join('')}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details>
- <details><summary>${text('Storage and matching names', 'Хранилище и совпадение имён')}</summary>${m.capacity.availableBytes !== null ? `<p>${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}</p>` : ''}<p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p><p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p></details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`
+ <details><summary>${text('Storage and matching names', 'Хранилище и совпадение имён')}</summary>${m.capacity.availableBytes !== null ? `<p>${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}</p>` : ''}<p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p><p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p></details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.checkingTarget || m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`
   );
 };
 A.confirmUploadReview = () => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'uploadReview' || m.capacity.sufficient === false) return;
+  if (m?.type !== 'uploadReview' || m.checkingTarget || m.capacity.sufficient === false) return;
   m.resolve({ preserve: m.preserve, ctx: m.ctx });
   closeModal();
 };
@@ -77,7 +77,7 @@ IN.uploadReviewTarget = async el => {
   const before = m.ctx;
   m.ctx = { ...m.ctx, project, folderId: folderId || null };
   const target = m.ctx;
-  m.capacity = { ...m.capacity, sufficient: false };
+  m.checkingTarget = true;
   render();
   try {
     const capacity = await preflightUpload({
@@ -93,6 +93,7 @@ IN.uploadReviewTarget = async el => {
     m.capacity = { ...m.capacity, sufficient: false };
     toast(text('Could not check this destination. Retry or cancel.', 'Не удалось проверить назначение. Повторите или отмените.'), { kind: 'err' });
   }
+  m.checkingTarget = false;
   render();
 };
 A.toggleUploadStructure = () => {
