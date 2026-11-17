@@ -51,7 +51,7 @@ export function pageUrl(value) {
 
 // DNS is resolved and validated before each hop; connect to that exact address,
 // retaining the original Host and TLS hostname. No cookies or auth are forwarded.
-export async function fetchPublicPage(value, { resolve = lookup, transport, signal } = {}) {
+async function fetchPublicResource(value, { resolve = lookup, transport, signal, image = false } = {}) {
   let url = pageUrl(value);
   signal ||= AbortSignal.timeout(15000);
   for (let redirect = 0; redirect <= 3; redirect++) {
@@ -71,7 +71,11 @@ export async function fetchPublicPage(value, { resolve = lookup, transport, sign
         {
           signal,
           lookup: (_host, options, callback) => (options.all ? callback(null, [address]) : callback(null, address.address, address.family)),
-          headers: { 'User-Agent': 'Smena-PagePreview/1.0', Accept: 'text/html,application/xhtml+xml', 'Accept-Encoding': 'identity' },
+          headers: {
+            'User-Agent': 'Smena-PagePreview/1.0',
+            Accept: image ? 'image/png,image/jpeg,image/webp' : 'text/html,application/xhtml+xml',
+            'Accept-Encoding': 'identity',
+          },
         },
         async response => {
           try {
@@ -81,7 +85,7 @@ export async function fetchPublicPage(value, { resolve = lookup, transport, sign
             }
             if (
               response.statusCode !== 200 ||
-              !/^(text\/html|application\/xhtml\+xml)\b/i.test(response.headers['content-type'] || '') ||
+              !(image ? /^image\/(png|jpeg|webp)\b/i : /^(text\/html|application\/xhtml\+xml)\b/i).test(response.headers['content-type'] || '') ||
               (response.headers['content-encoding'] && response.headers['content-encoding'] !== 'identity')
             )
               throw pageError();
@@ -92,8 +96,9 @@ export async function fetchPublicPage(value, { resolve = lookup, transport, sign
               if (bytes > 2 * 1024 * 1024) throw pageError('PAGE_TOO_LARGE', 413);
               chunks.push(chunk);
             }
-            const html = decodeHtml(Buffer.concat(chunks), response.headers['content-type']);
-            resolveResult({ html, url: url.href });
+            const body = Buffer.concat(chunks);
+            if (image) resolveResult({ body, contentType: response.headers['content-type'].split(';')[0].toLowerCase(), url: url.href });
+            else resolveResult({ html: decodeHtml(body, response.headers['content-type']), url: url.href });
           } catch (error) {
             response.destroy();
             reject(error);
@@ -107,6 +112,21 @@ export async function fetchPublicPage(value, { resolve = lookup, transport, sign
     url = pageUrl(new URL(result.redirect, url).href);
   }
   throw pageError('PAGE_REDIRECT_LIMIT');
+}
+
+export const fetchPublicPage = (value, options) => fetchPublicResource(value, options);
+export async function fetchPublicImage(value, options = {}) {
+  const result = await fetchPublicResource(value, { ...options, image: true });
+  const body = result.body;
+  const type = body.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+    ? 'image/png'
+    : body[0] === 255 && body[1] === 216 && body[2] === 255
+      ? 'image/jpeg'
+      : body.subarray(0, 4).toString() === 'RIFF' && body.subarray(8, 12).toString() === 'WEBP'
+        ? 'image/webp'
+        : '';
+  if (!type || type !== result.contentType) throw pageError('PAGE_IMAGE_UNAVAILABLE');
+  return result;
 }
 
 export function pageMetadata(html, url) {
@@ -138,10 +158,18 @@ export function pageMetadata(html, url) {
       .slice(0, max);
   // Decode HTML entities without inserting remote markup in the app.
   const decode = text => text.replace(/&(amp|lt|gt|quot|#39);/g, (_, key) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[key]);
+  let imageUrl = '';
+  try {
+    const value = meta['og:image:secure_url'] || meta['og:image'] || meta['twitter:image'];
+    if (value) imageUrl = pageUrl(new URL(decode(value), url).href).href;
+  } catch {
+    /* An invalid optional image must not prevent title autofill. */
+  }
   return {
     url,
     title: decode(clean(meta['og:title'] || meta['twitter:title'] || title, 250)),
     description: decode(clean(meta.description || meta['og:description'] || meta['twitter:description'], 2000)),
     siteName: clean(meta['og:site_name'], 120) || new URL(url).hostname,
+    imageUrl,
   };
 }

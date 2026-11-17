@@ -1,5 +1,7 @@
 import '../actions/material-actions.js';
 import '../features/bookmark-batch.js';
+import '../styles/pages/bookmark-thumbnails.css';
+import { bookmarkThumbnail } from '../ui/bookmark-thumbnail.js';
 import { folderNavigation } from '../ui/folder-navigation.js';
 import { folderTrail } from '../shared/knowledge-tools.js';
 import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
@@ -82,7 +84,7 @@ function bookmarkCard(link, folders, readOnly) {
   const host = link.site_name || parsed.hostname.replace(/^www\./, '');
   const actionName = action => actionLabel(action, link.title || host, [folder?.name, parsed.hostname].filter(Boolean).join(' / '));
   return `<article aria-labelledby="bookmark-title-${esc(link.id)}" class="bookmark-card ${link.is_read ? 'is-read' : 'is-unread'} ${readOnly ? '' : 'is-selectable'}">${readOnly ? '' : `<label class="bookmark-select"><input type="checkbox" data-in="bookmarkSelect" data-id="${esc(link.id)}" aria-label="${esc(kc('Select bookmark', 'Выбрать закладку') + ': ' + (link.title || host))}" ${S.ui.bookmarkSelection?.includes(link.id) ? 'checked' : ''}></label>`}
-    <div class="bookmark-card-top">
+    ${bookmarkThumbnail(link, host)}<div class="bookmark-card-top">
       <span class="bookmark-site-icon" aria-hidden="true" translate="no">${esc(host.slice(0, 1).toUpperCase())}</span>
       <div class="grow min0"><a id="bookmark-title-${esc(link.id)}" class="bookmark-title trunc" href="${esc(parsed.toString())}" target="_blank" rel="noopener noreferrer" translate="no">${esc(link.title || host)}${ic('arrow-up-right', 13)}</a><span class="bookmark-host trunc" translate="no">${esc(host)}</span></div>
       <span class="bookmark-importance tone-${importance.tone}"><span class="sr">${esc(t('Importance'))}: </span>${prIcon(importance.priority, 13)}<span>${importance.label}</span></span>
