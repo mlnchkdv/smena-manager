@@ -280,7 +280,7 @@ export function settingsBody(sec, title) {
     case 'language':
       return (
         H('Language and regional formats.') +
-        srow('Language', 'The language used throughout the interface.', sel('lang', LANGUAGES, P.lang)) +
+        srow('Language', 'The language used throughout the interface.', sel('lang', LANGUAGES, P.lang === 'Русский' ? 'Русский' : 'English (US)')) +
         srow('Spellcheck', 'Check spelling in descriptions and comments.', tog('spell', P.spell !== false))
       );
     case 'datetime':

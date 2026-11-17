@@ -1166,14 +1166,17 @@ test('shared content, files, settings, and backups persist through core workflow
   await expect(page.locator('.settings-help-links [data-a="shortcuts"]')).toHaveText('Keyboard shortcuts');
   await expect(page.locator('.settings-help-links [data-a="openPalette"]')).toContainText('Command menu');
   await page.goto('/e2e-team/settings/language');
-  await page.locator('select[data-k="lang"]').selectOption('English (UK)', { force: true });
+  await expect(page.locator('select[data-k="lang"] option')).toHaveText(['English', 'Русский']);
+  await page.locator('select[data-k="lang"]').selectOption('English (US)', { force: true });
   await waitForSaved(page);
   await page.goto('/e2e-team/settings/data-transfer');
   await page.getByRole('button', { name: 'Restore', exact: true }).first().click();
-  await expect(page.getByRole('dialog')).toContainText(/\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}/u);
+  await expect(page.getByRole('dialog')).toContainText(/(?:\d{1,2} [A-Z][a-z]{2}|[A-Z][a-z]{2} \d{1,2},?) \d{4}, \d{2}:\d{2}/u);
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.goto('/e2e-team/settings/security');
-  await expect(page.locator('.auth-session-row[data-current="true"] time').first()).toHaveText(/\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}/u);
+  await expect(page.locator('.auth-session-row[data-current="true"] time').first()).toHaveText(
+    /(?:\d{1,2} [A-Z][a-z]{2}|[A-Z][a-z]{2} \d{1,2},?) \d{4}, \d{2}:\d{2}/u,
+  );
   await page.goto('/e2e-team/settings/language');
   await page.locator('select[data-k="lang"]').selectOption('Русский', { force: true });
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');

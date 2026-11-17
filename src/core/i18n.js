@@ -8,8 +8,7 @@ import { countLabel } from '../shared/count-label.js';
 import { activityMoveExtra, activityCycleExtra } from '../shared/activity-copy.js';
 
 export const LANGUAGES = [
-  ['English (US)', 'English (US)'],
-  ['English (UK)', 'English (UK)'],
+  ['English (US)', 'English'],
   ['Русский', 'Русский'],
 ];
 
