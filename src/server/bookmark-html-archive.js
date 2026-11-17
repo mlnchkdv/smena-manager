@@ -184,7 +184,7 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
       .filter(node => node.name === 'source')
       .map(node => node.attribs.srcset)
       .filter(Boolean);
-    for (const image of element.children.filter(node => node.name === 'img')) pictureSources.set(image, sourceCandidate(candidates[0]));
+    for (const image of element.children.filter(node => node.name === 'img')) pictureSources.set(image, candidates.map(sourceCandidate));
   }
   const pending = new Map();
   const failures = new Set();
@@ -240,6 +240,17 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
     return work;
   }
   async function dataUrl(value, parent) {
+    if (/^data:image\/svg\+xml(?:;charset=[^;,]+)?,/i.test(value || '')) {
+      try {
+        const svg = decodeURIComponent(value.slice(value.indexOf(',') + 1));
+        const safe = safeArchiveDocument(svg).match(/<svg\b[\s\S]*?<\/svg>/i)?.[0];
+        if (safe) return 'data:image/svg+xml;base64,' + Buffer.from(safe).toString('base64');
+      } catch {
+        /* Invalid inline images are reported just like unavailable resources. */
+      }
+      failures.add('inline-svg');
+      return '';
+    }
     if (/^data:(image\/|font\/|application\/(font|x-font|octet-stream))/i.test(value || '')) return value;
     if (String(value).startsWith('#')) return value;
     const result = await asset(value, parent);
@@ -314,13 +325,25 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
           return;
         }
         const imported = await css(resource.body.toString('utf8'), resource.url, new Set([...seen, url]));
-        const suffix = rule.params.slice(valueParser.stringify([first]).length).trim();
-        if (suffix && /^(?:screen|print|all|\(|not\b|only\b)/i.test(suffix))
-          rule.replaceWith(postcss.atRule({ name: 'media', params: suffix, nodes: postcss.parse(imported).nodes }));
-        else {
-          if (suffix) failures.add(parent + '#import-condition');
-          rule.replaceWith(...postcss.parse(imported).nodes);
+        let suffix = rule.params.slice(valueParser.stringify([first]).length).trim();
+        const layer = suffix.match(/^layer(?:\(([^)]*)\))?(?:\s+|$)/i);
+        if (layer) suffix = suffix.slice(layer[0].length).trim();
+        const condition = valueParser(suffix).nodes.find(n => n.type !== 'space');
+        const supports = condition?.type === 'function' && condition.value.toLowerCase() === 'supports' ? condition : null;
+        if (supports) suffix = suffix.slice(valueParser.stringify([supports]).length).trim();
+        if (suffix && !/^(?:screen|print|all|\(|not\b|only\b)/i.test(suffix)) {
+          failures.add(parent + '#import-condition');
+          rule.remove();
+          return;
         }
+        let nodes = postcss.parse(imported).nodes;
+        if (suffix) nodes = [postcss.atRule({ name: 'media', params: suffix, nodes })];
+        if (supports) {
+          const value = valueParser.stringify(supports.nodes);
+          nodes = [postcss.atRule({ name: 'supports', params: /^\s*\(/.test(value) ? value : '(' + value + ')', nodes })];
+        }
+        if (layer) nodes = [postcss.atRule({ name: 'layer', params: layer[1] || '', nodes })];
+        rule.replaceWith(...nodes);
       }),
     );
     const declarations = [];
@@ -354,6 +377,7 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
     return tree.toString().replace(/<\/style/gi, '<\\/style');
   }
   let scripts = 0;
+  const unsupported = { canvas: 0, video: 0, audio: 0, embeds: 0 };
   await Promise.all(
     elements.map(async element => {
       const attrs = element.attribs;
@@ -363,8 +387,21 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
         return;
       }
       if (['base', 'iframe', 'object', 'embed'].includes(element.name)) {
-        if (element.name !== 'base') failures.add(page.url + '#embedded-content');
+        if (element.name !== 'base') {
+          unsupported.embeds++;
+          failures.add(page.url + '#embedded-content');
+        }
         removeElement(element);
+        return;
+      }
+      if (['canvas', 'video', 'audio'].includes(element.name)) {
+        unsupported[element.name]++;
+        // Keep a downloaded video poster as a static representation when available.
+        if (element.name === 'video' && attrs.poster) {
+          const poster = await dataUrl(attrs.poster, base);
+          if (poster) replaceElement(element, parseDocument('<img alt="Video poster" src="' + poster + '">').children[0]);
+          else removeElement(element);
+        } else removeElement(element);
         return;
       }
       if (element.name === 'link') {
@@ -386,8 +423,17 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
         attrs.style = value.replace(/^x\s*\{|\}\s*$/g, '');
       }
       if (element.name === 'img') {
-        const value = attrs['data-src'] || pictureSources.get(element) || attrs.src || sourceCandidate(attrs.srcset);
-        if (value) attrs.src = await dataUrl(value, base);
+        const candidates = [...new Set([attrs['data-src'], ...(pictureSources.get(element) || []), sourceCandidate(attrs.srcset), attrs.src].filter(Boolean))];
+        attrs.src = '';
+        for (const candidate of candidates) {
+          const image = await dataUrl(candidate, base);
+          if (image) {
+            attrs.src = image;
+            // An unsuccessful alternative is not a missing visible image.
+            for (const alternative of candidates) failures.delete(resolveUrl(alternative, base));
+            break;
+          }
+        }
         delete attrs.srcset;
       }
       if (element.name === 'source') removeElement(element);
@@ -401,6 +447,6 @@ export async function archiveBookmarkHtml(page, { fetchAsset = fetchPublicAsset,
     ...bookmarkReaderPage(page),
     format: 'html',
     document: safeArchiveDocument(serialize(root)),
-    capture: { mode: 'static-html', assets: saved, missing: failures.size, bytes: total, scriptsDisabled: scripts > 0 },
+    capture: { mode: 'static-html', assets: saved, missing: failures.size, bytes: total, scriptsDisabled: scripts > 0, unsupported },
   };
 }

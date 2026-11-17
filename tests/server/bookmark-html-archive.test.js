@@ -18,6 +18,39 @@ const assets = {
   'https://example.com/cover.png': ['image/png', png],
   'https://example.com/font.woff2': ['font/woff2', Buffer.from('wOF2synthetic')],
 };
+
+test('picture alternatives retain a working image when the preferred format is unavailable', async () => {
+  const result = await archiveBookmarkHtml(
+    { ...page, html: '<p>Image archive</p><picture><source srcset="/missing.avif" type="image/avif"><img src="/cover.png"></picture>' },
+    { fetchAsset },
+  );
+  assert.match(result.document, /data:image\/png;base64/);
+  assert.equal(result.capture.missing, 0);
+});
+
+test('static capture reports unsupported visual content and retains encoded inline SVG safely', async () => {
+  const svg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"><circle r="4"/><script>bad()</script></svg>');
+  const result = await archiveBookmarkHtml(
+    { ...page, html: '<p>Visual archive</p><canvas></canvas><video poster="/cover.png"></video><audio></audio><img src="data:image/svg+xml,' + svg + '">' },
+    { fetchAsset },
+  );
+  assert.deepEqual(result.capture.unsupported, { canvas: 1, video: 1, audio: 1, embeds: 0 });
+  assert.match(result.document, /data:image\/svg\+xml;base64/);
+  assert.match(result.document, /Video poster/);
+  const embedded = result.document.match(/data:image\/svg\+xml;base64,([^" ]+)/)[1];
+  assert.doesNotMatch(Buffer.from(embedded, 'base64').toString(), /script|bad\(\)/);
+});
+
+test('CSS imports retain cascade layers, supports conditions and media queries', async () => {
+  const result = await archiveBookmarkHtml(
+    { ...page, html: '<p>Styled archive</p><style>@import "/styles/theme.css" layer(theme) supports(display:grid) screen;</style>' },
+    { fetchAsset },
+  );
+  assert.match(result.document, /@layer theme/);
+  assert.match(result.document, /@supports \(display:grid\)/);
+  assert.match(result.document, /@media screen/);
+  assert.equal(result.capture.missing, 0);
+});
 async function fetchAsset(url) {
   const item = assets[url];
   if (!item) throw new Error('Unavailable');
