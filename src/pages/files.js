@@ -220,6 +220,7 @@ export function pageFiles(projectId = null) {
 
 
 
+    ${uploadProject ? `<p class="file-upload-destination" translate="no">${document.documentElement.lang === 'ru' ? 'Загрузить в' : 'Upload to'}: <strong>${esc(uploadPath)}</strong></p>` : ''}
     ${fileCollectionPanel()}
     ${uploadsHtml()}
     ${collectionToolbar(

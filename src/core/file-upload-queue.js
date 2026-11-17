@@ -1,4 +1,4 @@
-import { A } from '../actions/actions.js';
+import { A, IN } from '../actions/actions.js';
 import { D, S, proj, save } from './store.js';
 import { uid } from './utils.js';
 import { fileType } from '../ui/helpers.js';
@@ -37,7 +37,22 @@ fileModalRenderers.uploadReview = (m, H) => {
   const duplicates = m.entries.length - new Set(m.entries.map(job => (m.preserve ? job.relativePath : job.name).toLocaleLowerCase())).size;
   return (
     H(text('Review upload', 'Проверка загрузки')) +
-    `<div class="modal-b" translate="no"><p><strong>${countLabel(m.entries.length, 'file', locale())} · ${fsize(m.capacity.bytes)}</strong></p><p class="hint">${text('Destination', 'Назначение')}: <span>${esc(path)}</span></p>
+    `<div class="modal-b" translate="no"><p><strong>${countLabel(m.entries.length, 'file', locale())} · ${fsize(m.capacity.bytes)}</strong></p><p class="file-upload-destination">${text('Upload to', 'Загрузить в')}: <strong>${esc(path)}</strong></p><details><summary>${text('Change destination', 'Изменить назначение')}</summary><label class="field">${text('Project and folder', 'Проект и папка')}<select class="select" data-in="uploadReviewTarget" ${m.ctx.task ? 'disabled' : ''}>${D()
+      .projects.filter(project => !project.archived && canEditProject(project, D().me, S.ui.currentUser?.role))
+      .flatMap(project =>
+        [
+          { id: '', name: project.name },
+          ...(project.fileFolders || [])
+            .filter(folder => !folder.archived)
+            .map(folder => ({ id: folder.id, name: [project.name, ...fileFolderPath(project, folder.id).map(f => f.name)].join(' / ') })),
+        ].map(
+          folder =>
+            `<option value="${esc(JSON.stringify([project.id, folder.id]))}" ${m.ctx.project === project.id && (m.ctx.folderId || '') === folder.id ? 'selected' : ''}>${esc(folder.name)}</option>`,
+        ),
+      )
+      .join(
+        '',
+      )}</select></label>${m.ctx.task ? `<p class="hint">${text('Task attachments stay in their task project.', 'Вложения задачи сохраняются в её проекте.')}</p>` : ''}</details>
  ${m.capacity.sufficient === false ? `<p class="alert danger" role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : m.capacity.availableBytes === null ? `<p class="alert info" role="status">${text('Free space could not be checked. Uploading may fail if storage is full.', 'Не удалось проверить свободное место. Загрузка может прерваться при заполнении хранилища.')}</p>` : ''}
  ${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}
  ${duplicates ? `<p class="alert info">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${duplicates}. ${text('Each file will be kept separately.', 'Каждый файл будет сохранён отдельно.')}</p>` : ''}
@@ -51,8 +66,32 @@ fileModalRenderers.uploadReview = (m, H) => {
 A.confirmUploadReview = () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'uploadReview' || m.capacity.sufficient === false) return;
-  m.resolve({ preserve: m.preserve });
+  m.resolve({ preserve: m.preserve, ctx: m.ctx });
   closeModal();
+};
+IN.uploadReviewTarget = async el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'uploadReview' || m.ctx.task) return;
+  const [project, folderId] = JSON.parse(el.value);
+  if (!canEditProject(proj(project), D().me, S.ui.currentUser?.role)) return;
+  const before = m.ctx;
+  m.ctx = { ...m.ctx, project, folderId: folderId || null };
+  m.capacity = { ...m.capacity, sufficient: false };
+  render();
+  try {
+    const capacity = await preflightUpload({
+      ...m.ctx,
+      files: m.entries.map(job => ({ name: job.name, size: job.bytes, type: job.mimeType })),
+      reservedBytes: engine.jobs.filter(unfinishedUpload).reduce((sum, job) => sum + Math.max(0, job.bytes - (job.accepted || 0)), 0),
+    });
+    if (S.ui.modals.at(-1) !== m) return;
+    m.capacity = capacity;
+  } catch {
+    m.ctx = before;
+    m.capacity = { ...m.capacity, sufficient: false };
+    toast(text('Could not check this destination. Retry or cancel.', 'Не удалось проверить назначение. Повторите или отмените.'), { kind: 'err' });
+  }
+  render();
 };
 A.toggleUploadStructure = () => {
   const m = S.ui.modals.at(-1);
@@ -433,6 +472,11 @@ export async function enqueueFiles(files, ctx) {
       }),
     );
     if (!accepted || !valid() || generation !== before) return [];
+    Object.assign(ctx, accepted.ctx);
+    entries.forEach(job => {
+      job.project = ctx.project;
+      job.folderId = ctx.folderId;
+    });
     const project = proj(ctx.project),
       plan = planFileImport(project, entries, ctx.folderId, accepted.preserve, () => uid('folder'));
     if (plan.added) {
