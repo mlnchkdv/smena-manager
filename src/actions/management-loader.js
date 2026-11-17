@@ -2,7 +2,9 @@ import { S } from '../core/store.js';
 import { getSessionGeneration } from '../core/api.js';
 import { toast } from '../ui/toast.js';
 import { registerLazyActions } from '../shared/lazy-actions.js';
-const context = () => JSON.stringify([S.ui.currentUser?.id, S.ui.activeWorkspace, getSessionGeneration()]);
+function context() {
+  return JSON.stringify([S.ui.currentUser?.id, S.ui.activeWorkspace, getSessionGeneration()]);
+}
 export function registerManagementActions(tables, names) {
   registerLazyActions(tables, names, {
     load: () => import('./management-actions.js'),

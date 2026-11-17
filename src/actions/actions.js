@@ -1,3 +1,5 @@
+import { A, IN, KEY, DBL, BLUR } from './registry.js';
+export { A, IN, KEY, DBL, BLUR } from './registry.js';
 import { registerManagementActions } from './management-loader.js';
 /* =====================================================================
    ACTIONS · INPUT HANDLERS · DRAG & DROP · KEYBOARD · INIT
@@ -43,11 +45,6 @@ import { nextTaskKey } from './task-key.js';
 import { registerProjectViewActions } from './project-view-loader.js';
 import { newTaskCycle, copiedTaskCycle } from '../shared/task-cycles.js';
 
-export const A = {},
-  IN = {},
-  KEY = {},
-  DBL = {},
-  BLUR = {};
 A.reloadLanguage = () => location.reload();
 A.integrationAction = el => import('../ui/integrations.js').then(module => module.integrationAction(el));
 IN.integrationMemberField = el => import('../ui/integrations.js').then(module => module.captureIntegrationMemberDraft(el));
