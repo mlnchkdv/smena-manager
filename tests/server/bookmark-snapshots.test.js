@@ -33,7 +33,10 @@ test('member captures immutable page versions; reads survive source disappearanc
       },
     }),
   );
-  qa.use((error, _request, response, _next) => response.status(error.statusCode || 500).json({ code: error.code }));
+  qa.use((error, _request, response, next) => {
+    void next; // Express recognizes error handlers by their four-argument signature.
+    response.status(error.statusCode || 500).json({ code: error.code });
+  });
   const server = qa.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const origin = 'http://127.0.0.1:' + server.address().port;
