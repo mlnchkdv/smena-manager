@@ -23,6 +23,44 @@
   border-inline-start: 3px solid var(--amber);
   padding-inline-start: 10px;
 }
+.bookmark-version-manager {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px;
+}
+.bookmark-version-manager summary {
+  cursor: pointer;
+  min-height: 32px;
+}
+.bookmark-version-manager ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+}
+.bookmark-version-manager li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-block: 12px;
+}
+.bookmark-version-manager li > div:first-child {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+.bookmark-version-manager strong,
+.bookmark-version-manager .bookmark-viewer-url {
+  display: block;
+}
+.bookmark-version-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
 @media (max-width: 640px) {
   .bookmark-archive-actions .seg button {
     min-height: 44px;

@@ -15,6 +15,7 @@ export function createBookmarkPageRouter({
   loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }),
 } = {}) {
   const bookmarkPageRouter = Router();
+  const activeCount = row => (row.pageSnapshots || []).filter(ref => !ref.isArchived).length;
   const requests = new Map();
   bookmarkPageRouter.use((request, response, next) => {
     const images = request.path.endsWith('/image');
@@ -92,10 +93,44 @@ export function createBookmarkPageRouter({
       next(error.statusCode ? error : pageError());
     }
   });
+  bookmarkPageRouter.patch('/:id/snapshots/:snapshot', requireRole('admin', 'editor'), async (request, response, next) => {
+    try {
+      if (typeof request.body?.isArchived !== 'boolean') throw pageError('PAGE_INVALID_STATE', 400);
+      await target(request, true);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const current = await getWorkspaceDatabase({ fields: ['revision'] });
+        try {
+          const result = await mutateWorkspaceDatabase(
+            data => {
+              knowledgeActor(data, request.user, request.configuredProfiles, { write: true });
+              const row = data.links?.find(item => item.id === request.params.id);
+              const ref = row?.pageSnapshots?.find(item => item.id === request.params.snapshot);
+              if (!ref) throw pageError('PAGE_SNAPSHOT_UNAVAILABLE', 404);
+              if (!request.body.isArchived && ref.isArchived && activeCount(row) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
+              ref.isArchived = request.body.isArchived;
+              const previous = data._documentRevisions?.bookmarks || {};
+              data._documentRevisions = {
+                ...data._documentRevisions,
+                bookmarks: { ...previous, revision: Number(previous.revision || 0) + 1, updatedAt: new Date().toISOString() },
+              };
+              return data;
+            },
+            current.revision,
+            { role: 'admin', scope: 'bookmarks' },
+          );
+          return response.json({ snapshots: result.links.find(row => row.id === request.params.id).pageSnapshots });
+        } catch (error) {
+          if (!(error instanceof RevisionConflictError) || attempt === 2) throw error;
+        }
+      }
+    } catch (error) {
+      next(error.statusCode ? error : pageError());
+    }
+  });
   bookmarkPageRouter.post('/:id/snapshots', requireRole('admin', 'editor'), async (request, response, next) => {
     try {
       const bookmark = await target(request, true);
-      if ((bookmark.pageSnapshots?.length || 0) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
+      if (activeCount(bookmark) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
       const page = await archiveBookmarkHtml(await fetchPage(bookmark.url), { fetchAsset });
       const ref = await saveBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, page);
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -108,7 +143,7 @@ export function createBookmarkPageRouter({
               knowledgeActor(data, request.user, request.configuredProfiles, { write: true });
               const row = data.links?.find(item => item.id === bookmark.id && item.url === bookmark.url);
               if (!row) throw pageError('PAGE_BOOKMARK_CHANGED', 409);
-              if ((row.pageSnapshots?.length || 0) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
+              if (activeCount(row) >= SNAPSHOT_LIMIT) throw pageError('PAGE_SNAPSHOT_LIMIT', 409);
               row.pageSnapshots = [ref, ...(row.pageSnapshots || [])];
               const previous = data._documentRevisions?.bookmarks || {};
               data._documentRevisions = {

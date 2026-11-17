@@ -52,8 +52,12 @@ test('member captures immutable page versions; reads survive source disappearanc
   const server = qa.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const origin = 'http://127.0.0.1:' + server.address().port;
-  const call = (route, method = 'GET', actor = 1) =>
-    fetch(origin + '/pages' + route, { method, headers: actor == null ? {} : { Authorization: 'Bearer ' + fixture.sessions[actor] } });
+  const call = (route, method = 'GET', actor = 1, body) =>
+    fetch(origin + '/pages' + route, {
+      method,
+      headers: { ...(actor == null ? {} : { Authorization: 'Bearer ' + fixture.sessions[actor] }), 'Content-Type': 'application/json' },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
   try {
     const current = await getWorkspaceDatabase();
     await mutateWorkspaceDatabase(
@@ -102,6 +106,32 @@ test('member captures immutable page versions; reads survive source disappearanc
     const bundle = JSON.parse(Buffer.concat(chunks).toString());
     assert.ok(bundle.assets.some(asset => asset.key === 'id:' + first.snapshot.storageFileId));
     assert.match(Buffer.from(bundle.assets.find(asset => asset.key === 'id:' + first.snapshot.storageFileId).base64, 'base64').toString(), /Version 1/);
+    unavailable = false;
+    for (let i = 2; i < 10; i++) assert.equal((await call('/page/snapshots', 'POST')).status, 201);
+    assert.equal((await call('/page/snapshots', 'POST')).status, 409);
+    const path = '/page/snapshots/' + first.snapshot.id;
+    assert.equal((await call(path, 'PATCH', null, { isArchived: true })).status, 401);
+    const beforeRestriction = await getWorkspaceDatabase();
+    await mutateWorkspaceDatabase(
+      data => {
+        data.members.find(row => row.id === 'other').role = 'Viewer';
+        return data;
+      },
+      beforeRestriction.revision,
+      { role: 'admin' },
+    );
+    assert.equal((await call(path, 'PATCH', 2, { isArchived: true })).status, 403);
+    assert.equal((await call(path, 'PATCH', 1, { isArchived: 'yes' })).status, 400);
+    assert.equal((await call(path, 'PATCH', 1, { isArchived: true })).status, 200);
+    assert.equal((await call('/page/snapshots', 'POST')).status, 201, 'storing a version makes room for the eleventh immutable copy');
+    assert.equal((await call(path, 'PATCH', 1, { isArchived: false })).status, 409, 'restoring obeys the same active limit');
+    assert.equal((await call('/page/snapshots/' + second.snapshot.id, 'PATCH', 1, { isArchived: true })).status, 200);
+    assert.equal((await call(path, 'PATCH', 1, { isArchived: false })).status, 200);
+    const retained = await getWorkspaceDatabase();
+    assert.equal(retained.links[0].pageSnapshots.length, 11);
+    assert.equal(retained.links[0].pageSnapshots.filter(ref => !ref.isArchived).length, 10);
+    assert.equal(retained._fileRegistry['id:' + first.snapshot.storageFileId].storageName, first.snapshot.storageName);
+    assert.match((await readBookmarkSnapshot(getStorageProvider(), 'default', retained.links[0], second.snapshot.id)).html, /Version 2/);
   } finally {
     await new Promise(resolve => server.close(resolve));
     await fixture.cleanup();
