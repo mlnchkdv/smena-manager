@@ -1,0 +1,64 @@
+.subtask-title-row .ttl-edit {
+  flex: 1;
+  min-width: 0;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+.subtask-parent-link {
+  height: auto;
+  min-height: var(--h-sm);
+  text-align: left;
+}
+.subtask-parent-link .mono {
+  flex-shrink: 0;
+}
+.subtask-parent-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+@media (max-width: 640px), (pointer: coarse) {
+  .drawer .subt,
+  .drawer .subt > .inline-in {
+    min-height: 44px;
+  }
+  .drawer .subt > button.s {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-pack: center;
+    -webkit-line-clamp: 2;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .subtask-parent-link {
+    padding-block: 4px;
+  }
+}
+@media (max-width: 640px) {
+  .drawer .subt:has(> button.s) {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    gap: 4px 9px;
+  }
+  .drawer .subt > button.s {
+    grid-column: 2 / -1;
+    grid-row: 1;
+  }
+  .drawer .subt > .due {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+  }
+  .drawer .subt > .av {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .drawer .subt > .x {
+    display: none;
+  }
+}

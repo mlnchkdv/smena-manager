@@ -1,0 +1,1741 @@
+{
+  "date": "2026-11-17",
+  "origin": "https://smena.team",
+  "baselineVersion": "94630d107ebcbe12aa9a48c3debe2810e4b954c7",
+  "productionInitial": [
+    {
+      "name": "milestones-before",
+      "bodyOverflow": 0,
+      "height": 768,
+      "main": {
+        "bottom": 292.4375,
+        "height": 58.5234375,
+        "left": 467,
+        "right": 810,
+        "top": 233.9140625,
+        "width": 343,
+        "x": 467,
+        "y": 233.9140625
+      },
+      "row": {
+        "bottom": 301.4375,
+        "height": 76.5234375,
+        "left": 419,
+        "right": 947,
+        "top": 224.9140625,
+        "width": 528,
+        "x": 419,
+        "y": 224.9140625
+      },
+      "width": 1366
+    },
+    {
+      "name": "milestones-before",
+      "actions": [
+        {
+          "height": 44,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "width": 44
+        },
+        {
+          "height": 44,
+          "width": 44
+        }
+      ],
+      "bodyOverflow": 0,
+      "height": 844,
+      "main": {
+        "bottom": 697,
+        "height": 58.5234375,
+        "left": 60,
+        "right": 363,
+        "top": 638.4765625,
+        "width": 303,
+        "x": 60,
+        "y": 638.4765625
+      },
+      "row": {
+        "bottom": 761,
+        "height": 133.5234375,
+        "left": 16,
+        "right": 374,
+        "top": 627.4765625,
+        "width": 358,
+        "x": 16,
+        "y": 627.4765625
+      },
+      "width": 390
+    },
+    {
+      "name": "task-drawer",
+      "bodyOverflow": 0,
+      "drawer": {
+        "bottom": 844,
+        "height": 844,
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "width": 390,
+        "x": 0,
+        "y": 0
+      },
+      "headerOverflow": 0,
+      "height": 844,
+      "subtasks": [
+        {
+          "height": 27.5703125,
+          "width": 259
+        },
+        {
+          "height": 27.5703125,
+          "width": 259
+        },
+        {
+          "height": 27.5703125,
+          "width": 259
+        },
+        {
+          "height": 27.5703125,
+          "width": 259
+        },
+        {
+          "height": 27.5703125,
+          "width": 259
+        }
+      ],
+      "title": {
+        "bottom": 95,
+        "height": 33,
+        "left": 10,
+        "right": 358,
+        "top": 62,
+        "width": 348,
+        "x": 10,
+        "y": 62
+      },
+      "width": 390
+    },
+    {
+      "name": "subtask-before",
+      "bodyOverflow": 16,
+      "drawer": {
+        "bottom": 567,
+        "height": 567,
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "width": 320,
+        "x": 0,
+        "y": 0
+      },
+      "escapes": [],
+      "height": 567,
+      "parent": {
+        "bottom": 346.3984375,
+        "height": 44,
+        "left": 112,
+        "right": 294,
+        "top": 302.3984375,
+        "width": 182,
+        "x": 112,
+        "y": 302.3984375
+      },
+      "subview": {
+        "bottom": 639.0390625,
+        "height": 577.0390625,
+        "left": 16,
+        "right": 294,
+        "top": 62,
+        "width": 278,
+        "x": 16,
+        "y": 62
+      },
+      "title": {
+        "bottom": 173,
+        "height": 57,
+        "left": 36,
+        "right": 300,
+        "top": 116,
+        "width": 264,
+        "x": 36,
+        "y": 116
+      },
+      "width": 320
+    },
+    {
+      "candidates": 27,
+      "dialog": {
+        "bottom": 567,
+        "width": 320,
+        "x": 0,
+        "y": 45.3671875
+      },
+      "height": 567,
+      "inputWidth": 288,
+      "name": "relation-picker",
+      "overflow": 0,
+      "width": 320
+    },
+    {
+      "candidates": 27,
+      "dialog": {
+        "bottom": 691.1953125,
+        "width": 560,
+        "x": 403,
+        "y": 76.796875
+      },
+      "height": 768,
+      "inputWidth": 528,
+      "name": "relation-picker",
+      "overflow": 0,
+      "width": 1366
+    },
+    {
+      "dialog": {
+        "bottom": 567,
+        "width": 320,
+        "x": 0,
+        "y": 96
+      },
+      "height": 567,
+      "name": "file-preview",
+      "overflow": 0,
+      "width": 320
+    }
+  ],
+  "local": {
+    "passed": 40,
+    "rows": [
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 320,
+          "bottom": 567
+        },
+        "rows": [
+          {
+            "width": 288,
+            "height": 44,
+            "titleWidth": 251,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 71.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 192,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 304,
+        "contentRight": 304
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 320
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 640,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 68,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 47.125,
+            "titleWidth": 571,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 512,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 624,
+        "contentRight": 624
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 21,
+          "y": 0,
+          "right": 641,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 617,
+        "contentRight": 617
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 224,
+          "y": 0,
+          "right": 844,
+          "bottom": 390
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 820,
+        "contentRight": 820
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 404,
+          "y": 0,
+          "right": 1024,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1000,
+        "contentRight": 1000
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1342,
+        "contentRight": 1342
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 320,
+          "bottom": 567
+        },
+        "rows": [
+          {
+            "width": 288,
+            "height": 44,
+            "titleWidth": 251,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 71.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 288,
+            "height": 47.125,
+            "titleWidth": 251,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 192,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 304,
+        "contentRight": 304
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 320
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 640,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 44,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 68,
+            "titleWidth": 571,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 608,
+            "height": 47.125,
+            "titleWidth": 571,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 512,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 624,
+        "contentRight": 624
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 21,
+          "y": 0,
+          "right": 641,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 617,
+        "contentRight": 617
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 224,
+          "y": 0,
+          "right": 844,
+          "bottom": 390
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 820,
+        "contentRight": 820
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 404,
+          "y": 0,
+          "right": 1024,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1000,
+        "contentRight": 1000
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1342,
+        "contentRight": 1342
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 382.828125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1342,
+        "contentRight": 1342
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "right": 390,
+          "bottom": 844
+        },
+        "rows": [
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 44,
+            "titleWidth": 321,
+            "titleHeight": 44,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 71.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          },
+          {
+            "width": 358,
+            "height": 47.125,
+            "titleWidth": 321,
+            "titleHeight": 47.125,
+            "lineClamp": "2",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": false
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 262,
+          "height": 44.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 374,
+        "contentRight": 374
+      },
+      {
+        "name": "subtask-list",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "drawer": {
+          "x": 746,
+          "y": 0,
+          "right": 1366,
+          "bottom": 768
+        },
+        "rows": [
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 407.53125,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          },
+          {
+            "width": 571,
+            "height": 32,
+            "titleWidth": 498,
+            "titleHeight": 27.5625,
+            "lineClamp": "none",
+            "titleOutside": false,
+            "metadataOverlap": false,
+            "arrowVisible": true
+          }
+        ]
+      },
+      {
+        "name": "subtask-detail",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "bodyOverflow": 0,
+        "rootOverflow": 0,
+        "parent": {
+          "width": 459,
+          "height": 36.25,
+          "overflow": 0,
+          "textOutside": false
+        },
+        "titleRight": 1342,
+        "contentRight": 1342
+      }
+    ],
+    "nextPreviousAndParent": true,
+    "unchangedTaskData": true,
+    "pageErrors": []
+  }
+}
