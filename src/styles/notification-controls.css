@@ -163,3 +163,42 @@
 .system-incident-details small {
   color: var(--text-3);
 }
+.inbox-conversation-header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  height: 46px;
+  padding-inline: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.inbox-conversation-header > button {
+  flex-shrink: 0;
+}
+.inbox-conversation-context {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+}
+.inbox-conversation-key {
+  flex-shrink: 0;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inbox-preview-body {
+  width: 100%;
+  max-width: 720px;
+  min-width: 0;
+  padding: 24px 28px;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .inbox-preview-body {
+    padding: 16px;
+  }
+}

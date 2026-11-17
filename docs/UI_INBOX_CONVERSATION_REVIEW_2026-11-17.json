@@ -1,0 +1,398 @@
+{
+  "date": "2026-11-17",
+  "baselineCommit": "1dd4cae2",
+  "environment": "Isolated synthetic Layout QA workspace; Chromium viewport emulation",
+  "productionBaseline": [
+    {
+      "body": {
+        "bottom": 543.3125,
+        "height": 497.3125,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 46
+      },
+      "box": {
+        "bottom": 567,
+        "height": 567,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 0
+      },
+      "header": {
+        "bottom": 46,
+        "height": 46,
+        "right": 320,
+        "width": 320,
+        "x": 0,
+        "y": 0
+      },
+      "headerControls": [
+        {
+          "box": {
+            "bottom": 44.5,
+            "height": 44,
+            "right": 60,
+            "width": 44,
+            "x": 16,
+            "y": 0.5
+          },
+          "cls": "ibtn ibtn-sm",
+          "tag": "BUTTON"
+        },
+        {
+          "box": {
+            "bottom": 26.5,
+            "height": 8,
+            "right": 76,
+            "width": 8,
+            "x": 68,
+            "y": 18.5
+          },
+          "cls": "pdot",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 31.5625,
+            "height": 18.125,
+            "right": 143.8125,
+            "width": 59.8125,
+            "x": 84,
+            "y": 13.4375
+          },
+          "cls": "muted",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 40.5078125,
+            "height": 36.015625,
+            "right": 181.125,
+            "width": 29.3125,
+            "x": 151.8125,
+            "y": 4.4921875
+          },
+          "cls": "faint mono",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 22.5,
+            "height": 0,
+            "right": 189.125,
+            "width": 0,
+            "x": 189.125,
+            "y": 22.5
+          },
+          "cls": "sp",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 44.5,
+            "height": 44,
+            "right": 329.359375,
+            "width": 132.234375,
+            "x": 197.125,
+            "y": 0.5
+          },
+          "cls": "btn btn-sm btn-secondary",
+          "tag": "BUTTON"
+        }
+      ],
+      "headerOverflow": 9,
+      "overflow": 9,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "body": {
+        "bottom": 477.9140625,
+        "height": 431.9140625,
+        "right": 390,
+        "width": 390,
+        "x": 0,
+        "y": 46
+      },
+      "box": {
+        "bottom": 844,
+        "height": 844,
+        "right": 390,
+        "width": 390,
+        "x": 0,
+        "y": 0
+      },
+      "header": {
+        "bottom": 46,
+        "height": 46,
+        "right": 390,
+        "width": 390,
+        "x": 0,
+        "y": 0
+      },
+      "headerControls": [
+        {
+          "box": {
+            "bottom": 44.5,
+            "height": 44,
+            "right": 60,
+            "width": 44,
+            "x": 16,
+            "y": 0.5
+          },
+          "cls": "ibtn ibtn-sm",
+          "tag": "BUTTON"
+        },
+        {
+          "box": {
+            "bottom": 26.5,
+            "height": 8,
+            "right": 76,
+            "width": 8,
+            "x": 68,
+            "y": 18.5
+          },
+          "cls": "pdot",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 31.5625,
+            "height": 18.125,
+            "right": 143.8125,
+            "width": 59.8125,
+            "x": 84,
+            "y": 13.4375
+          },
+          "cls": "muted",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 31.5,
+            "height": 18.0078125,
+            "right": 203.109375,
+            "width": 51.296875,
+            "x": 151.8125,
+            "y": 13.4921875
+          },
+          "cls": "faint mono",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 22.5,
+            "height": 0,
+            "right": 233.765625,
+            "width": 22.65625,
+            "x": 211.109375,
+            "y": 22.5
+          },
+          "cls": "sp",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 44.5,
+            "height": 44,
+            "right": 374,
+            "width": 132.234375,
+            "x": 241.765625,
+            "y": 0.5
+          },
+          "cls": "btn btn-sm btn-secondary",
+          "tag": "BUTTON"
+        }
+      ],
+      "headerOverflow": 0,
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "body": {
+        "bottom": 423.515625,
+        "height": 332.515625,
+        "right": 1366,
+        "width": 685.203125,
+        "x": 680.796875,
+        "y": 91
+      },
+      "box": {
+        "bottom": 767,
+        "height": 722,
+        "right": 1366,
+        "width": 685.203125,
+        "x": 680.796875,
+        "y": 45
+      },
+      "header": {
+        "bottom": 91,
+        "height": 46,
+        "right": 1366,
+        "width": 685.203125,
+        "x": 680.796875,
+        "y": 45
+      },
+      "headerControls": [
+        {
+          "box": {
+            "bottom": 80.5,
+            "height": 26,
+            "right": 722.796875,
+            "width": 26,
+            "x": 696.796875,
+            "y": 54.5
+          },
+          "cls": "ibtn ibtn-sm",
+          "tag": "BUTTON"
+        },
+        {
+          "box": {
+            "bottom": 71.5,
+            "height": 8,
+            "right": 738.796875,
+            "width": 8,
+            "x": 730.796875,
+            "y": 63.5
+          },
+          "cls": "pdot",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 76.5625,
+            "height": 18.125,
+            "right": 806.609375,
+            "width": 59.8125,
+            "x": 746.796875,
+            "y": 58.4375
+          },
+          "cls": "muted",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 76.5,
+            "height": 18.0078125,
+            "right": 865.90625,
+            "width": 51.296875,
+            "x": 814.609375,
+            "y": 58.4921875
+          },
+          "cls": "faint mono",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 67.5,
+            "height": 0,
+            "right": 1209.765625,
+            "width": 335.859375,
+            "x": 873.90625,
+            "y": 67.5
+          },
+          "cls": "sp",
+          "tag": "SPAN"
+        },
+        {
+          "box": {
+            "bottom": 80.5,
+            "height": 26,
+            "right": 1350,
+            "width": 132.234375,
+            "x": 1217.765625,
+            "y": 54.5
+          },
+          "cls": "btn btn-sm btn-secondary",
+          "tag": "BUTTON"
+        }
+      ],
+      "headerOverflow": 0,
+      "overflow": 0,
+      "rootOverflow": 0,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    }
+  ],
+  "states": 50,
+  "configurations": [
+    ["ru", "light", "comfortable"],
+    ["en", "dark", "compact"]
+  ],
+  "scenarios": [
+    "normal and long task/project titles",
+    "24-message history around an exact target",
+    "security notification with long snippet",
+    "system incident with long snippet",
+    "unavailable task with long snippet"
+  ],
+  "viewports": [
+    {
+      "width": 320,
+      "height": 567
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 390,
+      "height": 320
+    },
+    {
+      "width": 640,
+      "height": 768
+    },
+    {
+      "width": 641,
+      "height": 768
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "width": 1366,
+      "height": 768
+    }
+  ],
+  "maxHorizontalOverflowPx": 0,
+  "mobileHeaderHeightPx": 46,
+  "mobileButtonMinimumPx": 44,
+  "mobileBodyPaddingPx": 16,
+  "taskHeaderKeyNoWrap": true,
+  "axe": {
+    "scans": 10,
+    "violations": [],
+    "excludedExistingControl": "button[data-pop=assignee]: label-content-name-mismatch from the synthetic avatar initials"
+  },
+  "behavior": {
+    "historyEarlierAndLater": true,
+    "openTaskAndReturn": true,
+    "unsentDraftSurvivesResize": true,
+    "modalFocusContainedAfter20Tabs": true,
+    "escapeClosesAndRestoresNotificationFocus": true,
+    "commentsUnchanged": true,
+    "readStateUnchanged": true
+  },
+  "pageErrors": [],
+  "serverTests": {
+    "passed": 19,
+    "failed": 0
+  }
+}
