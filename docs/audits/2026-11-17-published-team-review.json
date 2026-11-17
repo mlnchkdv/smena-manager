@@ -1,0 +1,1198 @@
+{
+  "production": {
+    "baselineVersion": "9281a6ec36a696a452b8dfadf76d64b6566dc4cc",
+    "states": [
+      {
+        "route": "calendar",
+        "mode": "week",
+        "columns": "163.141px 163.141px 163.141px 163.148px 163.141px 163.141px 163.141px",
+        "height": 768,
+        "overflow": 0,
+        "week": {
+          "bottom": 768,
+          "height": 528.4375,
+          "left": 224,
+          "right": 1366,
+          "top": 239.5625,
+          "width": 1142,
+          "x": 224,
+          "y": 239.5625
+        },
+        "width": 1366
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options is-wide",
+        "first": 247.5625,
+        "height": 768,
+        "overflow": 0,
+        "titleWidth": 508.8125,
+        "width": 1366
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options ui-menu",
+        "first": 295.3359375,
+        "height": 844,
+        "overflow": 0,
+        "titleWidth": 290,
+        "width": 390
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options is-wide",
+        "first": 251.5625,
+        "height": 768,
+        "overflow": 0,
+        "titleWidth": 374.8125,
+        "width": 768
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options ui-menu",
+        "first": 295.3359375,
+        "height": 844,
+        "overflow": 0,
+        "titleWidth": 540,
+        "width": 640
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options is-wide",
+        "first": 271.1328125,
+        "height": 768,
+        "overflow": 0,
+        "titleWidth": 247.8125,
+        "width": 641
+      },
+      {
+        "route": "archive",
+        "filters": "trash-filter-options is-wide",
+        "first": 247.5625,
+        "height": 768,
+        "overflow": 0,
+        "titleWidth": 508.8125,
+        "width": 1366
+      },
+      {
+        "route": "team",
+        "phase": "before",
+        "header": {
+          "bottom": 172.3671875,
+          "height": 100.3671875,
+          "left": 16,
+          "right": 364,
+          "top": 72,
+          "width": 348,
+          "x": 16,
+          "y": 72
+        },
+        "height": 844,
+        "overflow": 0,
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 61.140625,
+            "rowHeight": 38
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 61.140625,
+            "rowHeight": 38
+          }
+        ],
+        "width": 390
+      },
+      {
+        "route": "team",
+        "phase": "before",
+        "header": 150.3671875,
+        "height": 567,
+        "overflow": 0,
+        "titles": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "width": 0
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "width": 0
+          }
+        ],
+        "width": 320
+      },
+      {
+        "route": "member",
+        "actions": {
+          "bottom": 299.4140625,
+          "height": 44,
+          "left": 16,
+          "right": 364,
+          "top": 255.4140625,
+          "width": 348,
+          "x": 16,
+          "y": 255.4140625
+        },
+        "header": 226.4140625,
+        "height": 844,
+        "overflow": 0,
+        "width": 390
+      },
+      {
+        "route": "calendar",
+        "mode": "week",
+        "width": 390,
+        "height": 844,
+        "emptyDays": 7,
+        "emptyDayHeight": 70.28125,
+        "contentTop": 295,
+        "contentBottom": 787,
+        "bottomNavTop": 787,
+        "addTarget": 44,
+        "overflow": 0
+      }
+    ],
+    "inspected": ["calendar", "archive", "tasks", "members", "whiteboards", "whiteboard", "project/board", "project/overview", "team", "member"]
+  },
+  "local": {
+    "passed": 23,
+    "rows": [
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 220,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 98.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 220,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 98.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 503.390625
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 457.390625
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 540,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 418.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 540,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 418.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 440
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 289.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 289.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 416.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 416.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 492.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 492.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 440.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 440.828125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      },
+      {
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Edit team"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 220,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 135.203125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 220,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 135.203125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 503.390625
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Edit team"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 205.203125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 205.203125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 457.390625
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Edit team"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 540,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 455.203125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 540,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 455.203125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 440
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 326.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 326.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 768,
+        "height": 1024,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 453.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 453.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 529.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 529.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 372.671875
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 477.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 477.203125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      },
+      {
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 377.3125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 377.3125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      },
+      {
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 457.390625
+      },
+      {
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      },
+      {
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "header": 44.359375,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Edit team"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 205.203125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 290,
+            "titleHeight": 19.5625,
+            "rowHeight": 60.5625,
+            "progressWidth": 205.203125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 457.390625
+      },
+      {
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 97.90625,
+            "height": 30,
+            "label": "Edit team"
+          },
+          {
+            "width": 106.59375,
+            "height": 30,
+            "label": "Add access"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 4,
+            "titleWidth": 377.3125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 8,
+            "titleWidth": 377.3125,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      }
+    ],
+    "longRows": [
+      {
+        "width": 320,
+        "height": 567,
+        "overflow": 0,
+        "header": 174.671875,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 78,
+            "titleWidth": 220,
+            "titleHeight": 39.125,
+            "rowHeight": 80.125,
+            "progressWidth": 98.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 82,
+            "titleWidth": 220,
+            "titleHeight": 39.125,
+            "rowHeight": 80.125,
+            "progressWidth": 98.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 672.828125
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "overflow": 0,
+        "header": 109.515625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 44,
+            "height": 44,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 78,
+            "titleWidth": 290,
+            "titleHeight": 39.125,
+            "rowHeight": 80.125,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          },
+          {
+            "index": 1,
+            "titleLength": 82,
+            "titleWidth": 290,
+            "titleHeight": 39.125,
+            "rowHeight": 80.125,
+            "progressWidth": 168.828125,
+            "progressValue": "0",
+            "display": "grid"
+          }
+        ],
+        "firstTask": 561.671875
+      },
+      {
+        "width": 1366,
+        "height": 844,
+        "overflow": 0,
+        "header": 49.15625,
+        "actionsOverlap": false,
+        "buttons": [
+          {
+            "width": 156.09375,
+            "height": 30,
+            "label": "Изменить команду"
+          },
+          {
+            "width": 144.328125,
+            "height": 30,
+            "label": "Добавить доступ"
+          }
+        ],
+        "projects": [
+          {
+            "index": 0,
+            "titleLength": 78,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          },
+          {
+            "index": 1,
+            "titleLength": 82,
+            "titleWidth": 340.9375,
+            "titleHeight": 19.5625,
+            "rowHeight": 38,
+            "progressWidth": 120,
+            "progressValue": "0",
+            "display": "flex"
+          }
+        ],
+        "firstTask": 368.671875
+      }
+    ],
+    "taskScopes": true,
+    "editAndInviteCancelled": true,
+    "keyboardProjectNavigation": true,
+    "pageErrors": []
+  }
+}

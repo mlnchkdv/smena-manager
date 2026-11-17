@@ -1,0 +1,47 @@
+.team-identity,
+.team-identity > div {
+  min-width: 0;
+}
+.team-identity :is(h1, p) {
+  overflow-wrap: anywhere;
+}
+.team-project-progress {
+  width: 120px;
+}
+@media (max-width: 640px) {
+  .team-page > .ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+  .team-page > .ph .acts {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+  .team-project-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    padding-block: 8px;
+  }
+  .team-project-row > .picon {
+    grid-row: 1 / 3;
+  }
+  .team-project-row > .tt {
+    grid-column: 2 / -1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .team-project-row > .pstatus {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .team-project-row > .team-project-progress {
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+  }
+}

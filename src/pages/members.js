@@ -145,10 +145,10 @@ export function pageTeam() {
     scope,
     view.page,
   );
-  return `<div class="page">
-    <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${t.c}">${ic(t.icon, 18)}</span><div><h1 translate="no">${esc(t.name)}</h1><p style="margin:2px 0 0" translate="no">${esc(teamDescription(t.desc))}</p></div></div>${canManageTeams(S.ui.currentUser?.role) ? `<div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${t.id}">${ic('pencil', 14)}Edit team</button><button class="btn btn-secondary" data-a="invite">${ic('user-plus', 14)}Add access</button></div>` : ''}</div>
+  return `<div class="page team-page">
+    <div class="ph"><div class="row team-identity" style="gap:12px"><span class="picon lg" style="--c:${t.c}">${ic(t.icon, 18)}</span><div><h1 translate="no">${esc(t.name)}</h1><p style="margin:2px 0 0" translate="no">${esc(teamDescription(t.desc))}</p></div></div>${canManageTeams(S.ui.currentUser?.role) ? `<div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${t.id}" aria-label="Edit team" title="Edit team">${ic('pencil', 14)}<span class="hide-m">Edit team</span></button><button class="btn btn-secondary" data-a="invite" aria-label="Add access" title="Add access">${ic('user-plus', 14)}<span class="hide-m">Add access</span></button></div>` : ''}</div>
     <div class="grid2"><div class="stack">
-      <section class="panel"><div class="panel-h"><h2>Projects</h2><span class="faint">${ps.length}</span></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span>${pStatus(p.status)}<span class="row" style="width:120px">${progBar(progressOf(p.id))}</span></div>`).join('') || '<div class="panel-b faint">No projects</div>'}</section>
+      <section class="panel"><div class="panel-h"><h2>Projects</h2><span class="faint">${ps.length}</span></div>${ps.map(p => `<div class="mini team-project-row" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt" translate="no">${esc(p.name)}</span>${pStatus(p.status)}<span class="row team-project-progress">${progBar(progressOf(p.id))}</span></div>`).join('') || '<div class="panel-b faint">No projects</div>'}</section>
       <section class="panel"><div class="panel-h"><h2>Open tasks</h2><span class="faint">${ts.total}</span></div><div class="panel-b team-task-scope">${segmentedControl(
         {
           label: tr('Task scope'),
