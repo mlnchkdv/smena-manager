@@ -108,6 +108,17 @@
 .modal-f .sp {
   flex: 1;
 }
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 22px;
+}
+.shortcut-row {
+  min-height: 30px;
+  padding-block: 5px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--divider);
+}
 .task-submit-short {
   display: none;
 }

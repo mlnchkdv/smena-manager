@@ -1,0 +1,1367 @@
+{
+  "baselineVersion": "cbb9ee3ee7fcd80f89488deab13b831db279d5d6",
+  "productionFindings": {
+    "shareAt320": {
+      "name": "project-access-detail",
+      "height": 567,
+      "input": {
+        "bottom": 161.3671875,
+        "height": 44,
+        "left": 16,
+        "right": 55.265625,
+        "top": 117.3671875,
+        "width": 39.265625,
+        "x": 16,
+        "y": 117.3671875
+      },
+      "members": [
+        {
+          "copy": {
+            "bottom": 244.4921875,
+            "height": 54.359375,
+            "left": 50,
+            "right": 116.3984375,
+            "top": 190.1328125,
+            "width": 66.3984375,
+            "x": 50,
+            "y": 190.1328125
+          },
+          "copyScrollWidth": 116,
+          "row": {
+            "bottom": 239.3125,
+            "height": 44,
+            "left": 16,
+            "right": 294,
+            "top": 195.3125,
+            "width": 278,
+            "x": 16,
+            "y": 195.3125
+          }
+        },
+        {
+          "copy": {
+            "bottom": 323.0703125,
+            "height": 35.515625,
+            "left": 50,
+            "right": 116.3984375,
+            "top": 287.5546875,
+            "width": 66.3984375,
+            "x": 50,
+            "y": 287.5546875
+          },
+          "copyScrollWidth": 156,
+          "row": {
+            "bottom": 327.3125,
+            "height": 44,
+            "left": 16,
+            "right": 294,
+            "top": 283.3125,
+            "width": 278,
+            "x": 16,
+            "y": 283.3125
+          }
+        },
+        {
+          "copy": {
+            "bottom": 376.4921875,
+            "height": 54.359375,
+            "left": 50,
+            "right": 116.3984375,
+            "top": 322.1328125,
+            "width": 66.3984375,
+            "x": 50,
+            "y": 322.1328125
+          },
+          "copyScrollWidth": 123,
+          "row": {
+            "bottom": 371.3125,
+            "height": 44,
+            "left": 16,
+            "right": 294,
+            "top": 327.3125,
+            "width": 278,
+            "x": 16,
+            "y": 327.3125
+          }
+        }
+      ],
+      "width": 320
+    },
+    "shortcutAt320": {
+      "name": "shortcuts",
+      "body": {
+        "height": 454,
+        "overflow": 2,
+        "scrollHeight": 752
+      },
+      "dialog": {
+        "bottom": 567,
+        "height": 521.6328125,
+        "left": 0,
+        "right": 320,
+        "top": 45.3671875,
+        "width": 320,
+        "x": 0,
+        "y": 45.3671875
+      },
+      "escape": [],
+      "height": 567,
+      "rootOverflow": 0,
+      "width": 320
+    }
+  },
+  "localBefore": {
+    "rows": [
+      {
+        "width": 320,
+        "height": 567,
+        "inputWidth": 52.265625,
+        "bodyOverflow": 0,
+        "rows": [
+          {
+            "height": 44,
+            "copyWidth": 80.609375,
+            "textOverflow": 6,
+            "verticalEscape": true
+          },
+          {
+            "height": 44,
+            "copyWidth": 110.03125,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 150.078125,
+            "textOverflow": 9,
+            "verticalEscape": true
+          },
+          {
+            "height": 44,
+            "copyWidth": 69.53125,
+            "textOverflow": 72,
+            "verticalEscape": true
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "inputWidth": 122.265625,
+        "bodyOverflow": 0,
+        "rows": [
+          {
+            "height": 44,
+            "copyWidth": 150.609375,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 180.03125,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 220.078125,
+            "textOverflow": 0,
+            "verticalEscape": true
+          },
+          {
+            "height": 44,
+            "copyWidth": 139.53125,
+            "textOverflow": 2,
+            "verticalEscape": true
+          }
+        ]
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "inputWidth": 292.265625,
+        "bodyOverflow": 0,
+        "rows": [
+          {
+            "height": 44,
+            "copyWidth": 320.609375,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 350.03125,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 390.078125,
+            "textOverflow": 0,
+            "verticalEscape": false
+          },
+          {
+            "height": 44,
+            "copyWidth": 309.53125,
+            "textOverflow": 0,
+            "verticalEscape": false
+          }
+        ]
+      }
+    ],
+    "shortcuts": {
+      "width": 320,
+      "bodyOverflow": 0,
+      "clippedRows": 1
+    }
+  },
+  "localAfter": {
+    "passed": 40,
+    "rows": [
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 302,
+        "footer": {
+          "top": 498,
+          "bottom": 567
+        },
+        "rootOverflow": 0,
+        "inputWidth": 288,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 278,
+          "copyWidth": 233,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 256,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 306,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 13,
+        "footer": {
+          "top": 775,
+          "bottom": 844
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 34,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 495,
+        "footer": {
+          "top": 251,
+          "bottom": 320
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 516,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 40,
+          "y": 61.453125,
+          "width": 560,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 65,
+        "footer": {
+          "top": 699,
+          "bottom": 768
+        },
+        "rootOverflow": 0,
+        "inputWidth": 528,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 496,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 237.4375,
+          "width": 640,
+          "height": 530.5625,
+          "bottom": 768
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 40.5,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 292.265625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 309.53125,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 16,
+          "y": 76.796875,
+          "width": 609,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 178,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 142,
+          "y": 39,
+          "width": 560,
+          "height": 312,
+          "bottom": 351
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 147,
+        "footer": {
+          "top": 296,
+          "bottom": 351
+        },
+        "rootOverflow": 0,
+        "inputWidth": 292.265625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 309.53125,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 62,
+          "y": 39,
+          "width": 720,
+          "height": 312,
+          "bottom": 351
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 182,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 232,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 292.265625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 309.53125,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 152,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 292.265625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 309.53125,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 302,
+        "footer": {
+          "top": 498,
+          "bottom": 567
+        },
+        "rootOverflow": 0,
+        "inputWidth": 288,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 278,
+          "copyWidth": 233,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 256,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 320,
+        "height": 567,
+        "dialog": {
+          "x": 0,
+          "y": 45.375,
+          "width": 320,
+          "height": 521.625,
+          "bottom": 567
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 288,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 13,
+        "footer": {
+          "top": 775,
+          "bottom": 844
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 34,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 495,
+        "footer": {
+          "top": 251,
+          "bottom": 320
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 320,
+        "dialog": {
+          "x": 0,
+          "y": 25.609375,
+          "width": 390,
+          "height": 294.390625,
+          "bottom": 320
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 516,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 40,
+          "y": 61.453125,
+          "width": 560,
+          "height": 706.546875,
+          "bottom": 768
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 65,
+        "footer": {
+          "top": 699,
+          "bottom": 768
+        },
+        "rootOverflow": 0,
+        "inputWidth": 528,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 496,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 640,
+        "height": 768,
+        "dialog": {
+          "x": 0,
+          "y": 256.125,
+          "width": 640,
+          "height": 511.875,
+          "bottom": 768
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 40.5,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 328.390625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 372,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 641,
+        "height": 768,
+        "dialog": {
+          "x": 16,
+          "y": 76.796875,
+          "width": 609,
+          "height": 614.390625,
+          "bottom": 691.1875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 178,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 142,
+          "y": 39,
+          "width": 560,
+          "height": 312,
+          "bottom": 351
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 147,
+        "footer": {
+          "top": 296,
+          "bottom": 351
+        },
+        "rootOverflow": 0,
+        "inputWidth": 328.390625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 372,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 844,
+        "height": 390,
+        "dialog": {
+          "x": 62,
+          "y": 39,
+          "width": 720,
+          "height": 312,
+          "bottom": 351
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 182,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 232,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 328.390625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 372,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1024,
+        "height": 768,
+        "dialog": {
+          "x": 152,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 328.390625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 372,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 13,
+        "footer": {
+          "top": 775,
+          "bottom": 844
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 34,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 292.265625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 309.53125,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "ru",
+        "theme": "dark",
+        "density": "compact",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 13,
+        "footer": {
+          "top": 775,
+          "bottom": 844
+        },
+        "rootOverflow": 0,
+        "inputWidth": 358,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 348,
+          "copyWidth": 303,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 326,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 44
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 390,
+        "height": 844,
+        "dialog": {
+          "x": 0,
+          "y": 67.53125,
+          "width": 390,
+          "height": 776.46875,
+          "bottom": 844
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 34,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      },
+      {
+        "name": "project-access",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 403,
+          "y": 76.796875,
+          "width": 560,
+          "height": 458.546875,
+          "bottom": 535.34375
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": {
+          "top": 480.34375,
+          "bottom": 535.34375
+        },
+        "rootOverflow": 0,
+        "inputWidth": 328.390625,
+        "memberCount": 4,
+        "suggestion": {
+          "width": 518,
+          "copyWidth": 329,
+          "overflow": 0
+        },
+        "members": {
+          "count": 4,
+          "minCopyWidth": 372,
+          "maxTextOverflow": 0,
+          "clipped": 0,
+          "minControlHeight": 26
+        }
+      },
+      {
+        "name": "shortcuts",
+        "lang": "en",
+        "theme": "light",
+        "density": "comfortable",
+        "width": 1366,
+        "height": 768,
+        "dialog": {
+          "x": 323,
+          "y": 76.796875,
+          "width": 720,
+          "height": 493.875,
+          "bottom": 570.671875
+        },
+        "bodyOverflow": 0,
+        "bodyScroll": 0,
+        "footer": null,
+        "rootOverflow": 0,
+        "rows": 19,
+        "clipped": 0
+      }
+    ],
+    "inviteExistingMember": true,
+    "memberPermission": true,
+    "generalAccess": true,
+    "pageErrors": []
+  }
+}

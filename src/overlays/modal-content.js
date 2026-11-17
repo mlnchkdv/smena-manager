@@ -103,7 +103,7 @@ export function modalHtml(m) {
     case 'milestone':
       return wrap('sm', milestoneModal(m, H));
     case 'share':
-      return wrap('', shareModal(m, H));
+      return wrap('project-share-dialog', shareModal(m, H));
     case 'invite':
       return wrap('', inviteModal(m, H));
     case 'memberProfile':
@@ -254,38 +254,38 @@ export function shareModal(m, H) {
   p.access = p.access || 'workspace';
   return `${H(`Share “${esc(p.name)}”`)}
   <div class="modal-b">
-    <form class="row" style="gap:6px" data-submit="shareInvite"><div class="grow"><label class="sr" for="share-in">Invite by email</label><input class="input" id="share-in" placeholder="Add people by name or email" value="${esc(S.ui.shareQ || '')}" data-in="shareQ" autofocus></div>
-      <select class="select" id="share-perm" style="width:132px" aria-label="Permission">${PERMS.map(x => `<option ${x === 'Can edit' ? 'selected' : ''}>${x}</option>`).join('')}</select>
+    <form class="share-invite" data-submit="shareInvite"><div class="share-invite-query"><label class="sr" for="share-in">Invite by email</label><input class="input" id="share-in" placeholder="Add people by name or email" value="${esc(S.ui.shareQ || '')}" data-in="shareQ" autofocus></div>
+      <div class="share-invite-permission"><select class="select" id="share-perm" aria-label="Permission">${PERMS.map(x => `<option value="${esc(x)}" ${x === 'Can edit' ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
       <button class="btn btn-primary" data-a="shareInvite" type="button">Invite</button></form>
     ${
       S.ui.shareQ
-        ? `<div class="panel" style="padding:4px">${
+        ? `<div class="panel share-suggestions" style="padding:4px">${
             D()
               .members.filter(
                 x => !p.members.includes(x.id) && (x.name.toLowerCase().includes(S.ui.shareQ.toLowerCase()) || x.email.includes(S.ui.shareQ.toLowerCase())),
               )
               .map(
                 x =>
-                  `<button class="mi" data-a="shareAdd" data-id="${p.id}" data-mid="${x.id}">${av(x.id, 'sm', false)}${esc(x.name)}<span class="r" translate="no">${esc(x.email)}</span></button>`,
+                  `<button class="mi share-suggestion" data-a="shareAdd" data-id="${p.id}" data-mid="${x.id}">${av(x.id, 'sm', false)}<span class="share-suggestion-copy" translate="no"><span>${esc(x.name)}</span><small class="faint">${esc(x.email)}</small></span></button>`,
               )
               .join('') ||
             `<div class="mi faint" style="cursor:default">${S.ui.shareQ.includes('@') ? `Press Invite to send an invitation to ${esc(S.ui.shareQ)}` : 'No matching members — enter an email to invite someone new'}</div>`
           }</div>`
         : ''
     }
-    <div><div class="eyebrow" style="margin-bottom:4px">People with access</div>
+    <div class="share-members"><div class="eyebrow" style="margin-bottom:4px">People with access</div>
       ${p.members
         .map(id => {
           const x = mem(id);
           if (!x) return '';
           const perm = id === p.lead ? 'Full access' : p.perms[id] || (x.role === 'Guest' ? 'Can comment' : 'Can edit');
-          return `<div class="row" style="height:44px">${av(id, 'md', false)}<div class="grow"><div style="font-weight:500;font-size:13px">${esc(x.name)}${id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</div><div class="faint" style="font-size:11.5px">${esc(x.email)}${id === p.lead ? ' · Project lead' : ''}</div></div>
-          ${id === p.lead ? `<span class="muted" style="font-size:12.5px;padding-right:8px">Full access</span>` : `<select class="select" style="width:auto;height:26px;font-size:12px;border-color:transparent;background-color:transparent" data-in="sharePerm" data-id="${p.id}" data-mid="${id}" aria-label="Permission for ${esc(x.name)}">${PERMS.map(q => `<option ${q === perm ? 'selected' : ''}>${q}</option>`).join('')}<option value="__remove">Remove access</option></select>`}</div>`;
+          return `<div class="row share-member">${av(id, 'md', false)}<div class="grow share-member-copy"><div class="share-member-name"><span translate="no">${esc(x.name)}</span>${id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</div><div class="faint share-member-email">${esc(x.email)}${id === p.lead ? ' · Project lead' : ''}</div></div>
+          <div class="share-member-permission">${id === p.lead ? `<span class="muted share-member-full">Full access</span>` : `<select class="select" data-in="sharePerm" data-id="${p.id}" data-mid="${id}" aria-label="Permission for ${esc(x.name)}">${PERMS.map(q => `<option value="${esc(q)}" ${q === perm ? 'selected' : ''}>${q}</option>`).join('')}<option value="__remove">Remove access</option></select>`}</div></div>`;
         })
         .join('')}
     </div>
     <div style="border-top:1px solid var(--divider);padding-top:12px"><div class="eyebrow" style="margin-bottom:8px">General access</div>
-      <div class="row" style="gap:10px"><span class="ftype" style="--c:var(--text-2)">${ic(p.access === 'private' ? 'lock' : 'building-2', 14)}</span><div class="grow"><select class="select" style="height:28px;width:auto;border-color:transparent;padding-left:4px;font-weight:500" data-in="shareAccess" data-id="${p.id}" aria-label="General access"><option value="private" ${p.access === 'private' ? 'selected' : ''}>Only people invited</option><option value="workspace" ${p.access === 'workspace' ? 'selected' : ''}>Everyone at ${esc(D().ws.name)}</option></select><div class="faint" style="font-size:11.5px;padding-left:4px">${p.access === 'private' ? 'Only people listed above can open this project.' : 'Anyone in the workspace can view and comment.'}</div></div></div></div>
+      <div class="row share-general-access" style="gap:10px"><span class="ftype" style="--c:var(--text-2)">${ic(p.access === 'private' ? 'lock' : 'building-2', 14)}</span><div class="grow"><select class="select" style="height:28px;width:auto;border-color:transparent;padding-left:4px;font-weight:500" data-in="shareAccess" data-id="${p.id}" aria-label="General access"><option value="private" ${p.access === 'private' ? 'selected' : ''}>Only people invited</option><option value="workspace" ${p.access === 'workspace' ? 'selected' : ''}>Everyone at ${esc(D().ws.name)}</option></select><div class="faint" style="font-size:11.5px;padding-left:4px">${p.access === 'private' ? 'Only people listed above can open this project.' : 'Anyone in the workspace can view and comment.'}</div></div></div></div>
   </div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-pid="${p.id}">${ic('link', 14)}Copy link</button><span class="sp"></span><button class="btn btn-primary" data-a="closeModal">Done</button></div>`;
 }
@@ -316,7 +316,7 @@ export function confirmModal(m) {
   <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : needs ? '' : 'autofocus'}>Cancel</button><button class="btn ${m.danger ? 'btn-danger' : 'btn-primary'} ${m.busy ? 'is-loading' : ''}" data-a="confirmOk" ${ok ? '' : 'disabled'}>${esc(m.busy ? m.busyLabel : m.ok)}</button></div>`;
 }
 export function shortcutsModal(H) {
-  return `${H('Keyboard shortcuts')}<div class="modal-b" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row" style="height:30px;font-size:13px;border-bottom:1px solid var(--divider)"><span class="grow">${n}</span>${shortcut(k)}</div>`).join('')}</div>`).join('')}</div>`;
+  return `${H('Keyboard shortcuts')}<div class="modal-b shortcuts-grid">${SHORTCUTS.map(([g, list]) => `<div><div class="eyebrow" style="margin-bottom:6px">${g}</div>${list.map(([n, k]) => `<div class="row shortcut-row"><span class="grow">${n}</span>${shortcut(k)}</div>`).join('')}</div>`).join('')}</div>`;
 }
 export function filePreviewModal(m, H) {
   ensureFilePreview(m, render);
