@@ -472,3 +472,55 @@
 .bookmark-metadata-row .hint {
   flex: 1 1 220px;
 }
+
+.bookmark-preview-row,
+.bookmark-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.bookmark-preview-row {
+  margin-block: 12px;
+}
+.bookmark-viewer-toolbar .field {
+  flex: 1 1 240px;
+  margin: 0;
+}
+.bookmark-viewer-title,
+.bookmark-viewer-url {
+  overflow-wrap: anywhere;
+}
+.bookmark-page-reader {
+  margin-block: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(12px, 3vw, 28px);
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+.bookmark-page-reader > * {
+  max-width: 100%;
+}
+.bookmark-page-reader pre {
+  white-space: pre-wrap;
+}
+.bookmark-page-reader table {
+  display: block;
+  overflow: auto;
+}
+.bookmark-page-reader th,
+.bookmark-page-reader td {
+  padding: 8px;
+  border: 1px solid var(--border);
+}
+.bookmark-page-reader p,
+.bookmark-page-reader ul,
+.bookmark-page-reader ol {
+  margin-block: 12px;
+}
+@media (max-width: 480px) {
+  .bookmark-viewer-toolbar > .btn {
+    flex: 1 1 100%;
+  }
+}
