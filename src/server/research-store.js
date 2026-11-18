@@ -5,6 +5,7 @@ import { workspaceScope } from './workspace-context.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { projectAccess } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { validateResearchRecord } from './research-validation.js';
 import {
   RESEARCH_LIMITS,
   researchError,
@@ -171,6 +172,7 @@ export function createResearchStore({
                 record.review = { status: 'reviewed', by: context.actor.id, at: now, sourceHash: current.ref.sha256 };
               } else record.archived = input.action === 'archive';
             }
+            if (['create', 'update'].includes(input.action)) await validateResearchRecord({ record, before, book, database: data, context, readObject });
             ref = await writeObject(record);
             const row = summary(record, ref);
             book.records = current ? book.records.map(item => (item.id === row.id ? row : item)) : [...book.records, row];

@@ -111,6 +111,28 @@
   display: grid;
   gap: 16px;
 }
+.research-form fieldset {
+  display: grid;
+  gap: 16px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.research-form-section {
+  display: grid;
+  gap: 12px;
+  margin-block: 12px;
+}
+.research-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block: 16px;
+}
+.research-json {
+  font-family: monospace;
+}
 .research-form .field,
 .research-form .input,
 .research-form textarea {

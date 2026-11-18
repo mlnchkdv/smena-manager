@@ -7,8 +7,9 @@ import { ic } from '../core/icons.js';
 import { openModal } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
-import { rw, researchKind, researchState, researchProfile, researchFailure, researchDate } from '../ui/research-copy.js';
-import { RESEARCH_PROFILES } from '../shared/research.js';
+import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
+import { researchTemplate, researchMetricDefaults } from '../shared/research-templates.js';
+import { researchFormFields } from '../ui/research-form.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -49,30 +50,77 @@ async function loadResearch(model = state()) {
     }
   }
 }
-const dataField = (name, label, value = '', type = 'text') =>
-  `<label class="field">${esc(label)}<input class="input" type="${type}" data-in="researchField" data-field="${esc(name)}" value="${esc(value ?? '')}" maxlength="${name === 'title' ? 240 : 8000}"></label>`;
-function recordFields(m) {
-  const record = m.record,
-    data = record.data;
-  return `${dataField('title', rw('Title', 'Название'), record.title)}${record.kind === 'experiment' ? `${dataField('hypothesis', rw('What are we testing?', 'Что проверяем?'), data.hypothesis)}${dataField('baseline', rw('Baseline', 'С чем сравниваем?'), data.baseline)}${dataField('factor', rw('What changes?', 'Что изменяем?'), data.factor)}${dataField('criterion', rw('Success criterion agreed before results', 'Критерий успеха до получения результата'), data.criterion)}` : ''}${record.kind === 'run' ? `<label class="field">${rw('Run profile', 'Профиль запуска')}<select class="select" data-in="researchField" data-field="profile">${RESEARCH_PROFILES.map(profile => `<option value="${profile}" ${data.profile === profile ? 'selected' : ''}>${esc(researchProfile(profile))}</option>`).join('')}</select></label>` : ''}<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>`;
+function seedTemplate(kind, model) {
+  return researchTemplate(kind, { russian: rw(false, true), ownerId: model.catalog?.actorId || '' });
 }
-function form(model, record) {
+function resetRaw(m) {
+  m.rawConfig = JSON.stringify(m.record.data.config || {}, null, 2);
+  m.rawManifest = JSON.stringify(m.record.data.manifest || {}, null, 2);
+}
+function form(model, record, kind = 'experiment') {
   const generation = getSessionGeneration();
-  openModal({
+  const m = {
     type: 'researchForm',
     project: model.project,
     generation,
-    record: structuredClone(record || { kind: 'experiment', title: '', body: '', data: {} }),
+    record: structuredClone(record || seedTemplate(kind, model)),
     original: !!record,
     render: (m, H) =>
-      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no">${recordFields(m)}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
-  });
+      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
+  };
+  resetRaw(m);
+  openModal(m);
+  void researchRequest(model.project, '?kind=experiment,dataset,protocol&limit=100')
+    .then(result => {
+      if (m.generation === getSessionGeneration() && S.ui.modals.includes(m)) {
+        m.references = result.items;
+        render();
+      }
+    })
+    .catch(() => {});
+  return m;
 }
 IN.researchField = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'researchForm' || m.busy) return;
   if (['title', 'body'].includes(el.dataset.field)) m.record[el.dataset.field] = el.value;
-  else m.record.data[el.dataset.field] = el.value;
+  else if (el.dataset.field === 'seed') {
+    if (el.value === '') delete m.record.data.seed;
+    else m.record.data.seed = Number(el.value);
+  } else if (el.dataset.field === 'profile') {
+    m.record.data.profile = el.value;
+    m.record.data.metrics = researchMetricDefaults(el.value, rw('Not measured yet', 'Ещё не измерено'));
+    render();
+  } else m.record.data[el.dataset.field] = el.value;
+};
+IN.researchRaw = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm' && !m.busy) m[el.dataset.field === 'config' ? 'rawConfig' : 'rawManifest'] = el.value;
+};
+IN.researchTemplate = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.original || m.busy || el.value === m.record.kind) return;
+  m.templatePending = el.value;
+  if (!m.record.title.trim() && m.record.body === seedTemplate(m.record.kind, state()).body) A.researchApplyTemplate();
+  else render();
+};
+A.researchApplyTemplate = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || !m.templatePending) return;
+  const title = m.record.title;
+  m.record = seedTemplate(m.templatePending, state());
+  m.record.title = title;
+  m.templatePending = null;
+  m.command = null;
+  resetRaw(m);
+  render();
+};
+A.researchCancelTemplate = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm') {
+    m.templatePending = null;
+    render();
+  }
 };
 IN.researchQuery = el => {
   const m = state();
@@ -106,9 +154,8 @@ A.researchPage = el => {
 };
 A.researchNew = el => {
   const model = state();
-  form(model, null);
-  const m = S.ui.modals.at(-1);
-  m.record.kind = el.dataset.kind || 'experiment';
+  const m = form(model, null, el.dataset.kind || 'experiment');
+  if (m.record.kind === 'run' && model.selected?.kind === 'experiment') m.record.data.experimentId = model.selected.id;
   render();
 };
 A.researchEdit = () => {
@@ -158,6 +205,18 @@ A.researchSave = async () => {
     render();
     return;
   }
+  try {
+    if (['run', 'protocol'].includes(m.record.kind)) m.record.data.config = JSON.parse(m.rawConfig || '{}');
+    if (m.record.kind === 'dataset') m.record.data.manifest = JSON.parse(m.rawManifest || '{}');
+  } catch {
+    m.error = rw(
+      'Check the JSON fields: use double quotes and remove trailing commas.',
+      'Проверьте JSON: используйте двойные кавычки и уберите лишние запятые.',
+    );
+    render();
+    return;
+  }
+  if (m.nextState) m.record.data.state = m.nextState;
   m.busy = true;
   m.error = '';
   render();
@@ -186,6 +245,66 @@ A.researchSave = async () => {
     if (m.generation === getSessionGeneration()) render();
   }
 };
+async function recordCommand(action) {
+  const m = state();
+  if (m.pending || !m.selected) return;
+  m.pending = true;
+  m.error = '';
+  render();
+  try {
+    const result = await researchRequest(m.project, '/commands', {
+      operationId: crypto.randomUUID(),
+      action,
+      id: m.selected.id,
+      expectedRevision: m.selected.revision,
+    });
+    if (active(m)) {
+      m.selected = result.record;
+      await loadResearch(m);
+    }
+  } catch (error) {
+    if (active(m)) m.error = researchFailure(error);
+  } finally {
+    if (active(m)) {
+      m.pending = false;
+      render();
+    }
+  }
+}
+A.researchArchive = () => recordCommand(state().selected?.archived ? 'restore' : 'archive');
+A.researchTransition = el => {
+  const model = state();
+  if (!model.selected) return;
+  const m = form(model, model.selected);
+  m.nextState = el.dataset.state;
+  render();
+};
+A.researchRepeat = () => {
+  const model = state(),
+    source = model.selected;
+  if (source?.kind !== 'run') return;
+  const m = form(model, null, 'run');
+  m.record = {
+    kind: 'run',
+    title: source.title + rw(' · repeat', ' · повтор'),
+    body: source.body,
+    tags: source.tags,
+    data: {
+      ...source.data,
+      state: 'planned',
+      baselineRunId: source.id,
+      metrics: researchMetricDefaults(source.data.profile, rw('Not measured yet', 'Ещё не измерено')),
+    },
+  };
+  for (const key of ['startedAt', 'finishedAt', 'reason', 'amendment', 'artifacts', 'evidence', 'datasetVersion', 'protocolVersion']) delete m.record.data[key];
+  resetRaw(m);
+  render();
+};
+function researchRecordActions(record) {
+  const state = record.data.state || 'planned';
+  const transitions = state === 'planned' ? ['running', 'cancelled'] : state === 'running' ? ['completed', 'failed', 'cancelled'] : [];
+  return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(researchState(next))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
+}
 function details(record, canEdit) {
   const data = record.data;
   const labels = {
@@ -196,7 +315,7 @@ function details(record, canEdit) {
     conclusion: rw('Conclusion', 'Вывод'),
     nextStep: rw('Next step', 'Следующий шаг'),
   };
-  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header><div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(
+  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${canEdit ? researchRecordActions(record) : ''}<div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(
     labels,
   )
     .filter(([key]) => data[key])

@@ -1,11 +1,12 @@
 import { isRussian, locale, registerRussianLabels } from '../core/i18n.js';
 import { S } from '../core/store.js';
+import { resolveTimeZone } from '../shared/calendar-time.js';
 registerRussianLabels({ Research: 'Исследования' });
 export const rw = (en, ru) => (isRussian() ? ru : en);
 export const researchDate = (value, time = false) =>
   time
-    ? new Date(value).toLocaleString(locale(), { timeZone: S.prefs.tz || 'UTC' })
-    : new Date(value).toLocaleDateString(locale(), { timeZone: S.prefs.tz || 'UTC' });
+    ? new Date(value).toLocaleString(locale(), { timeZone: resolveTimeZone(S.prefs.tz) })
+    : new Date(value).toLocaleDateString(locale(), { timeZone: resolveTimeZone(S.prefs.tz) });
 const kinds = {
   observation: ['Observation', 'Наблюдение'],
   source: ['Source', 'Источник'],
@@ -39,6 +40,24 @@ export const researchState = state => (states[state] ? rw(...states[state]) : st
 export const researchProfile = profile => (profiles[profile] ? rw(...profiles[profile]) : profile);
 export function researchFailure(error) {
   const messages = {
+    RESEARCH_PLAN_INCOMPLETE: [
+      'Choose a profile, experiment, dataset and protocol; specify code, hardware and a JSON configuration.',
+      'Выберите профиль, эксперимент, датасет и протокол; укажите код, оборудование и конфигурацию JSON.',
+    ],
+    RESEARCH_CRITERION_REQUIRED: [
+      'First fill in the experiment hypothesis, baseline and success criterion.',
+      'Сначала укажите в эксперименте гипотезу, базовый вариант и критерий успеха.',
+    ],
+    RESEARCH_REFERENCE_UNAVAILABLE: [
+      'A linked record is unavailable in this project. Choose an active record.',
+      'Связанная запись недоступна в этом проекте. Выберите действующую запись.',
+    ],
+    RESEARCH_METRICS_REQUIRED: ['Add measured metrics or explain why they are missing.', 'Добавьте измеренные метрики или укажите причины их отсутствия.'],
+    RESEARCH_MEMBER_UNAVAILABLE: ['The selected member has no access to this project.', 'Выбранный участник не имеет доступа к проекту.'],
+    RESEARCH_METRIC_INVALID: [
+      'Check metric values, units and reasons for missing measurements.',
+      'Проверьте значения метрик, единицы и причины отсутствия измерений.',
+    ],
     RESEARCH_STALE: [
       'This record changed. Reload it before editing; your draft is still open.',
       'Запись изменилась. Обновите её перед правкой; ваш черновик остаётся открытым.',
