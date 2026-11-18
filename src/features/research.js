@@ -603,7 +603,7 @@ A.researchDraftArticle = async () => {
 A.researchExport = async () => {
   const m = state();
   const id = m.selected?.id;
-  if (!id || (m.export?.id === id && m.export.status === 'preparing')) return;
+  if (!id || (m.export?.id === id && ['preparing', 'saving'].includes(m.export.status))) return;
   if (m.export?.href) URL.revokeObjectURL(m.export.href);
   const job = { id, status: 'preparing' };
   m.export = job;
@@ -615,20 +615,15 @@ A.researchExport = async () => {
       job.status = '';
       return;
     }
-    const href = URL.createObjectURL(blob),
-      anchor = document.createElement('a');
-    anchor.href = href;
-    anchor.download = `research-${id}.zip`;
-    document.body.append(anchor);
-    anchor.click();
-    anchor.remove();
-    job.href = href;
+    const href = URL.createObjectURL(blob);
+    Object.assign(job, { blob, href, filename: `research-${id}.zip`, status: 'ready' });
     setTimeout(() => {
       URL.revokeObjectURL(href);
       delete job.href;
+      delete job.blob;
+      if (job.status === 'ready') job.status = 'expired';
       if (active(m) && m.export === job && S.ui.params.researchId === id) render();
     }, 180000);
-    job.status = 'download';
   } catch (error) {
     job.status = 'error';
     job.message =
@@ -637,6 +632,36 @@ A.researchExport = async () => {
         : rw('Could not prepare the ZIP. Check your connection and try again.', 'Не удалось подготовить ZIP. Проверьте соединение и повторите.');
   } finally {
     if (active(m)) render();
+  }
+};
+A.researchSaveZip = async () => {
+  const m = state();
+  const job = m.export;
+  if (job?.id !== m.selected?.id || !job?.blob || job.status === 'saving') return;
+  const blob = job.blob;
+  const current = () => active(m) && m.export === job && S.ui.params.researchId === job.id;
+  job.status = 'saving';
+  job.saveError = '';
+  try {
+    const selection = window.showSaveFilePicker({
+      suggestedName: job.filename,
+      startIn: 'downloads',
+      types: [{ description: rw('ZIP archive', 'Архив ZIP'), accept: { 'application/zip': ['.zip'] } }],
+    });
+    render();
+    const handle = await selection;
+    if (!current()) return;
+    await blob.stream().pipeTo(await handle.createWritable());
+    job.savedName = handle.name;
+    job.status = 'saved';
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      job.downloadOnly = ['SecurityError', 'NotAllowedError'].includes(error.name);
+      job.saveError = rw('Could not save the ZIP to disk.', 'Не удалось сохранить ZIP на диск.');
+    }
+  } finally {
+    if (job.status === 'saving') job.status = job.blob ? 'ready' : 'expired';
+    if (current()) render();
   }
 };
 A.researchHistory = async () => {
@@ -719,19 +744,28 @@ function researchRecordActions(record) {
 function researchReadingActions(record, canEdit) {
   const model = state();
   const job = model.export?.id === record.id ? model.export : null;
+  const busy = ['preparing', 'saving'].includes(job?.status);
   const download =
     job?.status === 'preparing'
       ? rw('Preparing ZIP…', 'Готовим ZIP…')
       : job?.status === 'error'
-        ? rw('Retry ZIP download', 'Повторить скачивание ZIP')
-        : rw('Download research ZIP', 'Скачать ZIP исследования');
-  const announcement =
-    job?.status === 'error'
-      ? `<p role="alert">${esc(job.message)}</p>`
-      : job?.status === 'download'
-        ? `<p role="status" class="hint">${rw('ZIP is ready.', 'ZIP готов.')}${job.href ? ` <a href="${esc(job.href)}" download="research-${esc(record.id)}.zip">${rw('Save ZIP', 'Сохранить ZIP')}</a>` : ''}</p>`
-        : '';
-  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${job?.status === 'preparing' ? 'disabled aria-busy="true"' : ''}>${download}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+        ? rw('Retry ZIP preparation', 'Повторить подготовку ZIP')
+        : rw('Prepare research ZIP', 'Подготовить ZIP исследования');
+  const message = {
+    ready: rw('ZIP is ready.', 'ZIP готов.'),
+    saving: rw('Saving ZIP…', 'Сохраняем ZIP…'),
+    saved: job?.savedName ? `${rw('Saved to disk', 'Сохранён на диск')} · ${job.savedName}` : '',
+    expired: rw('The prepared ZIP expired. Prepare it again.', 'Срок хранения ZIP истёк. Подготовьте архив снова.'),
+  }[job?.status];
+  const error = job?.message || job?.saveError;
+  const save =
+    job?.href && !busy
+      ? typeof window.showSaveFilePicker === 'function' && !job.downloadOnly
+        ? `<button class="btn btn-secondary btn-sm" data-a="researchSaveZip">${rw('Save ZIP', 'Сохранить ZIP')}</button>`
+        : `<a class="btn btn-secondary btn-sm" href="${esc(job.href)}" download="${esc(job.filename)}">${rw('Save ZIP', 'Сохранить ZIP')}</a>`
+      : '';
+  const announcement = `${error ? `<p role="alert">${esc(error)}</p>` : ''}${message ? `<p role="status" class="hint">${esc(message)}</p>` : ''}${save}`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;

@@ -1,7 +1,12 @@
 import { test, expect } from './fixtures.js';
+import { readFile } from 'node:fs/promises';
+import { strFromU8, unzipSync } from 'fflate';
 
 test('deployment acceptance persists sessions and materials in RU/EN at desktop and mobile sizes', async ({ page }) => {
   test.setTimeout(180000);
+  await page.addInitScript(() => {
+    window.showSaveFilePicker = undefined;
+  });
   await page.goto('/');
   await page.locator('#l-access').fill('e2e-access-id-2026-secure');
   await page.locator('#login-btn').click();
@@ -173,10 +178,39 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
           .locator('.research-technical summary')
           .filter({ hasText: /History, review and export|История, проверка и экспорт/u })
           .click();
-        const [download] = await Promise.all([page.waitForEvent('download'), page.locator('[data-a="researchExport"]').click()]);
-        expect(download.suggestedFilename()).toBe(`research-${researchId}.zip`);
+        const filename = `research-${researchId}.zip`;
+        await page.locator('[data-a="researchExport"]').click();
+        const [download] = await Promise.all([page.waitForEvent('download'), page.locator('.research-page a[download]').click()]);
+        expect(download.suggestedFilename()).toBe(filename);
         expect(await download.failure()).toBeNull();
-        await expect(page.locator('.research-page a[download]')).toHaveAttribute('download', `research-${researchId}.zip`);
+        const files = unzipSync(await readFile(await download.path()));
+        expect(JSON.parse(strFromU8(files['manifest.json'])).recordId).toBe(researchId);
+        expect(strFromU8(files['article.md'])).toContain('Synthetic research journal');
+        if (width === 1366 && language === 'Русский' && test.info().project.name === 'chromium') {
+          await page.evaluate(() => {
+            window.showSaveFilePicker = async ({ suggestedName }) => {
+              if (!navigator.userActivation.isActive) throw new Error('Picker must open during the click');
+              const bytes = [];
+              return {
+                name: suggestedName,
+                createWritable: async () =>
+                  new WritableStream({
+                    write(chunk) {
+                      for (const byte of chunk) bytes.push(byte);
+                    },
+                    close() {
+                      window.savedResearchZip = bytes;
+                    },
+                  }),
+              };
+            };
+          });
+          await page.locator('[data-a="researchExport"]').click();
+          await page.getByRole('button', { name: 'Сохранить ZIP', exact: true }).click();
+          await expect(page.getByText(`Сохранён на диск · ${filename}`, { exact: true })).toBeVisible();
+          const bytes = new Uint8Array(await page.evaluate(() => window.savedResearchZip));
+          expect(JSON.parse(strFromU8(unzipSync(bytes)['manifest.json'])).recordId).toBe(researchId);
+        }
       }
       await expect(page.locator('html')).toHaveAttribute('lang', language === 'Русский' ? 'ru' : 'en');
       expect((await page.request.get('/api/auth/me')).ok()).toBeTruthy();
