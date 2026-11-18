@@ -14,7 +14,7 @@ import { researchEvidenceHtml, researchDisclosure } from '../ui/research-evidenc
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
 import { researchComparisonHtml } from '../ui/research-comparison.js';
 import { researchMetricsHtml } from '../ui/research-metrics.js';
-import { researchReportMarkdown } from '../shared/research-report.js';
+import { RESEARCH_QUESTION_LABELS, researchReportMarkdown } from '../shared/research-report.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
 const state = () => {
@@ -530,7 +530,7 @@ A.researchDraftArticle = async () => {
     if (!active(model)) return;
     const m = form(model, null, 'article');
     m.record.title = source.title + rw(' · findings', ' · результаты');
-    m.record.body = researchReportMarkdown(source, runs, rw(false, true));
+    m.record.body = researchReportMarkdown(source, runs, rw(false, true), { includeTitle: false });
     m.record.data.experimentId = source.kind === 'experiment' ? source.id : source.data.experimentId || '';
     render();
   } catch (error) {
@@ -647,20 +647,11 @@ function researchReadingActions(record, canEdit) {
 }
 function details(record, canEdit) {
   const data = record.data;
-  const labels = {
-    hypothesis: rw('Hypothesis', 'Гипотеза'),
-    baseline: rw('Baseline', 'Базовый вариант'),
-    criterion: rw('Success criterion', 'Критерий успеха'),
-    factor: rw('Changed factor', 'Изменяемый фактор'),
-    conclusion: rw('Conclusion', 'Вывод'),
-    decision: rw('Decision and basis', 'Решение и основание'),
-    nextStep: rw('Next step', 'Следующий шаг'),
-  };
   return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchCompare">${rw('Compare runs', 'Сравнить запуски')}</button>` : ''}${canEdit ? researchRecordActions(record) : ''}<div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(
-    labels,
+    RESEARCH_QUESTION_LABELS,
   )
     .filter(([key]) => data[key])
-    .map(([key, label]) => `<div><dt>${label}</dt><dd>${esc(data[key])}</dd></div>`)
+    .map(([key, label]) => `<div><dt>${rw(...label)}</dt><dd>${esc(data[key])}</dd></div>`)
     .join('')}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${
     (state().related || []).length
       ? `<details class="research-technical" open><summary>${rw('Related records', 'Связанные записи')}</summary><div class="research-list">${state()

@@ -1,6 +1,7 @@
 import { isRussian, locale, registerRussianLabels } from '../core/i18n.js';
 import { S } from '../core/store.js';
 import { resolveTimeZone } from '../shared/calendar-time.js';
+import { RESEARCH_STATE_LABELS } from '../shared/research-report.js';
 registerRussianLabels({ Research: 'Исследования' });
 export const rw = (en, ru) => (isRussian() ? ru : en);
 export const researchDate = (value, time = false) =>
@@ -18,13 +19,6 @@ const kinds = {
   review: ['Research digest', 'Обзор исследований'],
   handoff: ['Handoff', 'Передача работы'],
 };
-const states = {
-  planned: ['Planned', 'Запланирован'],
-  running: ['Running', 'Выполняется'],
-  completed: ['Completed', 'Выполнен'],
-  failed: ['Failed', 'Ошибка'],
-  cancelled: ['Cancelled', 'Отменён'],
-};
 const profiles = {
   dataset_preparation: ['Dataset preparation', 'Подготовка датасета'],
   scene_optimization: ['Scene optimization', 'Оптимизация сцены'],
@@ -36,7 +30,7 @@ const profiles = {
   foundation_training: ['Foundation training', 'Обучение базовой модели'],
 };
 export const researchKind = kind => (kinds[kind] ? rw(...kinds[kind]) : kind);
-export const researchState = state => (states[state] ? rw(...states[state]) : state);
+export const researchState = state => (RESEARCH_STATE_LABELS[state] ? rw(...RESEARCH_STATE_LABELS[state]) : state);
 export const researchProfile = profile => (profiles[profile] ? rw(...profiles[profile]) : profile);
 export function researchFailure(error) {
   const messages = {

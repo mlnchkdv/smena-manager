@@ -7,6 +7,9 @@ test('export contains immutable versions, verifiable manifests and scriptless RU
   const f = researchFixture();
   await f.enable();
   const saved = await f.create('experiment', { hypothesis: 'Synthetic', criterion: 'No fake metrics' }, 'Служебный / Synthetic');
+  const draft = await f.store.exportRecord('3dgs', saved.id, f.editor, [], true);
+  assert.match(draft.files['article.md'], /Гипотеза: Synthetic/);
+  assert.match(draft.files['article.md'], /Критерий успеха: No fake metrics/);
   await f.command({
     action: 'update',
     id: saved.id,
