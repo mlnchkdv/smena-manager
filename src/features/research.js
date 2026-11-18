@@ -15,6 +15,7 @@ import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '
 import { researchComparisonHtml } from '../ui/research-comparison.js';
 import { researchMetricsHtml } from '../ui/research-metrics.js';
 import { researchReportMarkdown } from '../shared/research-report.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -30,26 +31,27 @@ const active = model =>
 
 const researchLocation = (model, id) => ({ id: model.project, tab: 'research', ...(id ? { researchId: id } : {}) });
 async function loadResearch(model = state()) {
-  if (model.loading) return;
+  const { query, archived, view, offset } = model;
+  const key = JSON.stringify([query, archived, view, offset]);
+  if (model.listRequest?.key === key) return;
+  const request = { key };
+  model.listRequest = request;
   model.loading = true;
   model.error = '';
+  const current = () => active(model) && model.listRequest === request;
   try {
     const result = await researchRequest(
       model.project,
       '?' +
         new URLSearchParams({
-          q: model.query,
-          archived: model.archived ? 'true' : 'false',
-          offset: String(model.offset),
+          q: query,
+          archived: archived ? 'true' : 'false',
+          offset: String(offset),
           limit: '50',
-          ...(model.view === 'experiments'
-            ? { kind: 'experiment' }
-            : model.view === 'materials'
-              ? { kind: 'source,dataset,protocol,article,review,handoff' }
-              : {}),
+          ...(view === 'experiments' ? { kind: 'experiment' } : view === 'materials' ? { kind: 'source,dataset,protocol,article,review,handoff' } : {}),
         }),
     );
-    if (active(model)) {
+    if (current()) {
       model.catalog = result;
       if (model.selected) {
         const r = model.selected;
@@ -57,13 +59,17 @@ async function loadResearch(model = state()) {
           (result.canConfigure || r.data.reviewerId === result.actorId) && r.createdBy !== result.actorId && r.updatedBy !== result.actorId;
       }
       model.rows = result.items;
+      model.appliedQuery = query.trim();
       model.unsent = readPendingResearch(getActiveWorkspace(), result.actorId, model.project);
     }
   } catch (error) {
-    if (active(model)) model.error = researchFailure(error);
+    if (current()) model.error = researchFailure(error);
   } finally {
-    model.loading = false;
-    if (active(model)) render();
+    if (model.listRequest === request) {
+      model.listRequest = null;
+      model.loading = false;
+      if (active(model)) render();
+    }
   }
 }
 function seedTemplate(kind, model) {
@@ -266,11 +272,11 @@ A.researchSearch = () => {
   const m = state();
   m.offset = 0;
   void loadResearch(m);
+  render();
 };
 A.researchRefresh = () => {
   const m = state();
   m.recordError = null;
-  m.rows = null;
   m.error = '';
   void loadResearch(m);
   render();
@@ -280,7 +286,6 @@ A.researchView = el => {
   m.view = el.dataset.view;
   m.selected = null;
   m.offset = 0;
-  m.rows = null;
   void loadResearch(m);
   render();
 };
@@ -643,6 +648,32 @@ function details(record, canEdit) {
       : ''
   }${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>`;
 }
+const materialKinds = ['source', 'dataset', 'protocol', 'article', 'review', 'handoff'];
+
+function researchListContent(m) {
+  const rows = m.rows || [];
+  if (rows.length)
+    return rows
+      .map(
+        row =>
+          `<button class="research-list-item" data-a="researchOpen" data-id="${esc(row.id)}"><span class="research-list-title">${esc(row.title)}</span><span class="hint">${esc(researchKind(row.kind))}${row.state ? ' · ' + esc(researchState(row.state)) : ''}</span><span class="hint">${esc(researchDate(row.updatedAt))}</span></button>`,
+      )
+      .join('');
+  if (m.loading || m.error) return '';
+  if (m.appliedQuery)
+    return `<div class="research-empty"><h2>${rw('No matching records', 'Записи не найдены')}</h2><p>${rw('Try a shorter search.', 'Попробуйте более короткий запрос.')}</p></div>`;
+  if (m.archived) return `<div class="research-empty"><h2>${rw('Archive is empty', 'Архив пуст')}</h2></div>`;
+  if (m.view === 'materials')
+    return `<div class="research-empty"><h2>${rw('No materials yet', 'Материалов пока нет')}</h2><p>${rw('Add a source, dataset or protocol for the team.', 'Добавьте источник, набор данных или протокол для команды.')}</p></div>`;
+  return `<div class="research-empty"><h2>${rw('Start with a question', 'Начните с вопроса')}</h2><p>${rw('Create an experiment or capture an observation. Runs and evidence will stay linked to it.', 'Создайте эксперимент или запишите наблюдение. Запуски и доказательства останутся связаны с ним.')}</p></div>`;
+}
+
+function researchCreateActions(view) {
+  if (view === 'materials')
+    return `<details class="ui-menu" ${disclosureAttributes('research:material-types')}><summary class="btn btn-primary">${ic('plus', 16)}${rw('Add material', 'Добавить материал')}</summary><div class="ui-menu-content">${materialKinds.map(kind => `<button class="btn btn-ghost" data-a="researchNew" data-kind="${kind}">${esc(researchKind(kind))}</button>`).join('')}</div></details>`;
+  return `<div class="row"><button class="btn btn-secondary" data-a="researchNew" data-kind="observation">${ic('notebook-pen', 16)}${rw('Quick note', 'Быстрая запись')}</button><button class="btn btn-primary" data-a="researchNew" data-kind="experiment">${ic('plus', 16)}${rw('New experiment', 'Новый эксперимент')}</button></div>`;
+}
+
 export function researchHtml() {
   const m = state();
   const requested = S.ui.params.researchId || '';
@@ -670,7 +701,6 @@ export function researchHtml() {
       return `<section class="research-page" translate="no">${recovery}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
     return `<section class="research-page" translate="no">${recovery}<button class="btn btn-ghost" data-a="researchBack">${rw('All research', 'Все исследования')}</button>${m.recordError?.id === requested ? `<div class="research-error" role="alert">${esc(m.recordError.message)}<button class="btn btn-secondary" data-a="researchRefresh">${rw('Retry', 'Повторить')}</button></div>` : `<p role="status">${rw('Loading record…', 'Загружаем запись…')}</p>`}</section>`;
   }
-  const rows = m.view === 'materials' ? (m.rows || []).filter(row => !['experiment', 'run', 'observation'].includes(row.kind)) : m.rows || [];
   return `<section class="research-page" translate="no">${recovery}<header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
     ['experiments', rw('Experiments', 'Эксперименты')],
     ['journal', rw('Journal', 'Журнал')],
@@ -681,5 +711,5 @@ export function researchHtml() {
     )
     .join(
       '',
-    )}</div>${m.catalog.canEdit ? `<div class="row"><button class="btn btn-secondary" data-a="researchNew" data-kind="observation">${ic('notebook-pen', 16)}${rw('Quick note', 'Быстрая запись')}</button><button class="btn btn-primary" data-a="researchNew" data-kind="experiment">${ic('plus', 16)}${rw('New experiment', 'Новый эксперимент')}</button></div>` : ''}</header><form class="research-search" data-submit="researchSearch"><label class="sr" for="research-query">${rw('Search research', 'Поиск исследований')}</label><input id="research-query" class="input" data-in="researchQuery" value="${esc(m.query)}" placeholder="${rw('Search research', 'Поиск исследований')}" maxlength="200"><button class="btn btn-secondary">${rw('Search', 'Найти')}</button></form><div class="research-actions"><button class="btn btn-ghost" data-a="researchToggleArchive" aria-pressed="${!!m.archived}">${m.archived ? rw('Show active records', 'Показать действующие записи') : rw('Archive', 'Архив')}</button></div>${error}${m.loading ? `<p role="status">${rw('Updating…', 'Обновляем…')}</p>` : ''}<div class="research-list">${rows.map(row => `<button class="research-list-item" data-a="researchOpen" data-id="${esc(row.id)}"><span class="research-list-title">${esc(row.title)}</span><span class="hint">${esc(researchKind(row.kind))}${row.state ? ' · ' + esc(researchState(row.state)) : ''}</span><span class="hint">${esc(researchDate(row.updatedAt))}</span></button>`).join('') || `<div class="research-empty"><h2>${rw('Start with a question', 'Начните с вопроса')}</h2><p>${rw('Create an experiment or capture an observation. Runs and evidence will stay linked to it.', 'Создайте эксперимент или запишите наблюдение. Запуски и доказательства останутся связаны с ним.')}</p></div>`}</div><footer class="research-pagination"><span class="hint">${rw('Records', 'Записей')}: ${m.catalog.total}</span><button class="btn btn-ghost" data-a="researchPage" data-step="-1" ${m.offset ? '' : 'disabled'}>${rw('Previous', 'Назад')}</button><button class="btn btn-ghost" data-a="researchPage" data-step="1" ${m.offset + 50 < m.catalog.total ? '' : 'disabled'}>${rw('Next', 'Далее')}</button></footer></section>`;
+    )}</div>${m.catalog.canEdit ? researchCreateActions(m.view) : ''}</header><form class="research-search" data-submit="researchSearch"><label class="sr" for="research-query">${rw('Search research', 'Поиск исследований')}</label><input id="research-query" class="input" data-in="researchQuery" value="${esc(m.query)}" placeholder="${rw('Search research', 'Поиск исследований')}" maxlength="200"><button class="btn btn-secondary">${rw('Search', 'Найти')}</button></form><div class="research-actions"><button class="btn btn-ghost" data-a="researchToggleArchive" aria-pressed="${!!m.archived}">${m.archived ? rw('Show active records', 'Показать действующие записи') : rw('Archive', 'Архив')}</button></div>${error}${m.loading ? `<p role="status">${rw('Updating…', 'Обновляем…')}</p>` : ''}<div class="research-list" aria-busy="${m.loading}">${researchListContent(m)}</div>${!m.loading && !m.error ? `<footer class="research-pagination"><span class="hint">${rw('Records', 'Записей')}: ${m.catalog.total}</span><button class="btn btn-ghost" data-a="researchPage" data-step="-1" ${m.offset ? '' : 'disabled'}>${rw('Previous', 'Назад')}</button><button class="btn btn-ghost" data-a="researchPage" data-step="1" ${m.offset + 50 < m.catalog.total ? '' : 'disabled'}>${rw('Next', 'Далее')}</button></footer>` : ''}</section>`;
 }
