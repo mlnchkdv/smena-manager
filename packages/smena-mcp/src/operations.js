@@ -50,7 +50,7 @@ export class OperationJournal {
         throw Object.assign(new Error('This operation ID belongs to another request. Use a new ID for a new intended change.'), {
           code: 'OPERATION_ID_REUSED',
         });
-      if (before && Date.now() - before.createdAt >= 24 * 60 * 60 * 1000)
+      if (before && !apiPath.includes('/research/') && Date.now() - before.createdAt >= 24 * 60 * 60 * 1000)
         throw Object.assign(new Error('The retry window expired. Inspect the note and operation state before creating another request.'), {
           code: 'OPERATION_EXPIRED',
         });

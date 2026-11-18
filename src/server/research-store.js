@@ -113,7 +113,7 @@ export function createResearchStore({
       ...(record ? { record } : {}),
     };
   }
-  async function command(projectId, input, profile, profiles = []) {
+  async function command(projectId, input, profile, profiles = [], authorize = async () => {}) {
     if (!input || !researchUuid(input.operationId) || !['enable', 'create', 'update', 'archive', 'restore', 'review'].includes(input.action))
       throw researchError();
     const payloadHash = hash(researchJson(input)),
@@ -124,6 +124,7 @@ export function createResearchStore({
       let result;
       try {
         await mutate(async data => {
+          await authorize(data);
           const context = researchContext(data, projectId, profile, profiles, true),
             book = await index(data, projectId),
             prior = book.operations[operationKey];
@@ -194,6 +195,7 @@ export function createResearchStore({
           };
           book.operations[operationKey] = result;
           const nextRef = await writeObject(book, RESEARCH_LIMITS.indexBytes);
+          await authorize(data);
           data._researchProjects = { ...data._researchProjects, [projectId]: nextRef };
           result = { ...result, record: record || null, replayed: false };
           return data;
@@ -224,6 +226,33 @@ export function createResearchStore({
     researchContext(await load(), projectId, profile, profiles);
     return { items, nextCursor: ref?.sha256 || null };
   }
-  return { read, command, history };
+  async function operation(projectId, operationId, profile, profiles = []) {
+    if (!researchUuid(operationId)) throw researchError();
+    const db = await load();
+    researchContext(db, projectId, profile, profiles);
+    const book = await index(db, projectId),
+      receipt = book.operations[profile.id + ':' + operationId];
+    if (!receipt) return { operationId, state: 'not_found' };
+    const record = receipt.ref ? await readObject(receipt.ref, projectId) : null;
+    researchContext(await load(), projectId, profile, profiles);
+    return { ...receipt, record, state: 'completed' };
+  }
+  async function projects(profile, profiles = []) {
+    const db = await load();
+    knowledgeActor(db, profile, profiles);
+    const items = [];
+    for (const project of db.projects) {
+      let context;
+      try {
+        context = researchContext(db, project.id, profile, profiles);
+      } catch {
+        continue;
+      }
+      const book = await index(db, project.id);
+      items.push({ id: project.id, name: project.name, enabled: book.enabled, canEdit: !project.archived && context.access >= 3 });
+    }
+    return { items };
+  }
+  return { read, command, history, operation, projects };
 }
 export const researchStore = createResearchStore();

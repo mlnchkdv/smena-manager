@@ -14,6 +14,12 @@ const route = operation => async (request, response, next) => {
 };
 const args = request => [request.params.project, request.user, request.configuredProfiles || []];
 researchRouter.get(
+  '/projects/:project/operations/:operation',
+  route(async (request, response) => {
+    response.json(await researchStore.operation(request.params.project, request.params.operation, request.user, request.configuredProfiles || []));
+  }),
+);
+researchRouter.get(
   '/projects/:project/files',
   route(async (request, response) => {
     await researchStore.read(...args(request), { limit: 1 });

@@ -1,6 +1,7 @@
 import express from 'express';
 import { registerPublicApiWrites } from './public-api-write.js';
 import { registerPublicApiFiles } from './public-api-files.js';
+import { registerPublicApiResearch } from './public-api-research.js';
 import { requireIntegration, requireIntegrationScope } from './public-api-auth.js';
 import { integrationError } from './integration-registry.js';
 import { getWorkspaceDatabase } from './workspace-store.js';
@@ -155,6 +156,7 @@ publicApiRouter.get(
 );
 registerPublicApiWrites(publicApiRouter);
 registerPublicApiFiles(publicApiRouter);
+registerPublicApiResearch(publicApiRouter);
 publicApiRouter.use((_request, _response, next) => next(integrationError('API_NOT_FOUND', 404)));
 export function publicApiError(error, request, response, _next) {
   if (response.headersSent) return _next(error);

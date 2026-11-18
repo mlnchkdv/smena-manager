@@ -11,6 +11,7 @@ import { rw, researchKind, researchState, researchFailure, researchDate } from '
 import { researchTemplate, researchMetricDefaults } from '../shared/research-templates.js';
 import { researchFormFields } from '../ui/research-form.js';
 import { researchEvidenceHtml } from '../ui/research-evidence.js';
+import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -41,6 +42,7 @@ async function loadResearch(model = state()) {
     if (active(model)) {
       model.catalog = result;
       model.rows = result.items;
+      model.unsent = readPendingResearch(getActiveWorkspace(), result.actorId, model.project);
     }
   } catch (error) {
     if (active(model)) model.error = researchFailure(error);
@@ -68,7 +70,7 @@ function form(model, record, kind = 'experiment') {
     record: structuredClone(record || seedTemplate(kind, model)),
     original: !!record,
     render: (m, H) =>
-      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
+      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy || m.command ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
   };
   resetRaw(m);
   openModal(m);
@@ -183,6 +185,11 @@ A.researchPage = el => {
 };
 A.researchNew = el => {
   const model = state();
+  if (model.unsent) {
+    model.error = rw('Resolve the pending save before creating another record.', 'Сначала завершите ожидающее сохранение.');
+    render();
+    return;
+  }
   const m = form(model, null, el.dataset.kind || 'experiment');
   if (m.record.kind === 'run' && model.selected?.kind === 'experiment') m.record.data.experimentId = model.selected.id;
   render();
@@ -259,20 +266,53 @@ A.researchSave = async () => {
     record: draft,
   };
   try {
+    keepPendingResearch(getActiveWorkspace(), state().catalog.actorId, m.project, m.command);
     const result = await researchRequest(m.project, '/commands', m.command);
+    const verified = await researchRequest(m.project, '/records/' + encodeURIComponent(result.record.id));
+    if (verified.record.revision !== result.record.revision || verified.record.body !== result.record.body) throw new Error('RESEARCH_READBACK_PENDING');
     if (m.generation !== getSessionGeneration()) return;
     if (S.ui.modals.at(-1) === m) S.ui.modals.pop();
     const model = state();
     model.selected = result.record;
+    clearPendingResearch(getActiveWorkspace(), model.catalog.actorId, model.project);
+    model.unsent = null;
     model.rows = null;
     go('project', { id: model.project, tab: 'research', researchId: result.record.id });
     await loadResearch(model);
   } catch (error) {
     m.error = researchFailure(error);
-    if (error.status >= 400 && error.status < 500) m.command = null;
+    if (error.status >= 400 && error.status < 500) {
+      clearPendingResearch(getActiveWorkspace(), state().catalog.actorId, m.project);
+      m.command = null;
+    } else {
+      state().unsent = m.command;
+    }
   } finally {
     m.busy = false;
     if (m.generation === getSessionGeneration()) render();
+  }
+};
+A.researchRecover = async () => {
+  const m = state();
+  if (!m.unsent || m.pending) return;
+  m.pending = true;
+  render();
+  try {
+    const status = await researchRequest(m.project, '/operations/' + encodeURIComponent(m.unsent.operationId));
+    const result = status.state === 'completed' ? status : await researchRequest(m.project, '/commands', m.unsent);
+    if (!active(m)) return;
+    clearPendingResearch(getActiveWorkspace(), m.catalog.actorId, m.project);
+    m.unsent = null;
+    m.selected = result.record;
+    m.error = '';
+    await loadResearch(m);
+  } catch (error) {
+    if (active(m)) m.error = researchFailure(error);
+  } finally {
+    if (active(m)) {
+      m.pending = false;
+      render();
+    }
   }
 };
 async function recordCommand(action) {
@@ -363,15 +403,18 @@ export function researchHtml() {
   }
   if (!m.rows && !m.loading && !m.error) void loadResearch(m);
   if (!m.catalog && m.loading) return `<div class="research-page" role="status">${rw('Loading research…', 'Загружаем исследования…')}</div>`;
+  const recovery = m.unsent
+    ? `<div class="research-error" role="status"><span>${rw('A previous save needs confirmation. The exact operation is kept on this device.', 'Предыдущее сохранение требует подтверждения. Исходная операция сохранена на этом устройстве.')}</span><button class="btn btn-secondary" data-a="researchRecover" ${m.pending ? 'disabled' : ''}>${rw('Check and resume save', 'Проверить и завершить')}</button></div>`
+    : '';
   const error = m.error
     ? `<div class="research-error" role="alert">${esc(m.error)}<button class="btn btn-secondary" data-a="researchRefresh">${rw('Retry', 'Повторить')}</button></div>`
     : '';
   if (!m.catalog) return `<section class="research-page">${error}</section>`;
   if (!m.catalog.enabled)
     return `<section class="research-page research-empty" translate="no"><h2>${rw('Research journal', 'Журнал исследований')}</h2><p>${rw('Keep hypotheses, runs, evidence and decisions together in this project.', 'Соберите гипотезы, запуски, доказательства и решения в этом проекте.')}</p>${m.catalog.canConfigure ? `<button class="btn btn-primary" data-a="researchEnable" ${m.pending ? 'disabled' : ''}>${rw('Enable research for this project', 'Включить исследования для проекта')}</button>` : `<p>${rw('Ask the project owner to enable the journal.', 'Попросите руководителя проекта включить журнал.')}</p>`}${error}</section>`;
-  if (m.selected) return `<section class="research-page" translate="no">${error}${details(m.selected, m.catalog.canEdit)}</section>`;
+  if (m.selected) return `<section class="research-page" translate="no">${recovery}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
   const rows = m.view === 'materials' ? (m.rows || []).filter(row => !['experiment', 'run', 'observation'].includes(row.kind)) : m.rows || [];
-  return `<section class="research-page" translate="no"><header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
+  return `<section class="research-page" translate="no">${recovery}<header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
     ['experiments', rw('Experiments', 'Эксперименты')],
     ['journal', rw('Journal', 'Журнал')],
     ['materials', rw('Materials', 'Материалы')],

@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { getStorageProvider } from './storage/index.js';
 import { readIntegrationRegistry, saveIntegrationRegistry } from './storage/integration-registry.js';
-import { INTEGRATION_LIMITS, INTEGRATION_SCOPES } from '../shared/integration-contract.js';
+import { INTEGRATION_LIMITS, INTEGRATION_SCOPES, LEGACY_INTEGRATION_SCOPES } from '../shared/integration-contract.js';
 import { memberForProfile } from '../shared/member-identity.js';
 
 export const integrationError = (code, statusCode = 422, message = code) => Object.assign(new Error(message), { code, statusCode });
@@ -21,7 +21,7 @@ export const publicApiPolicy = policy => ({
 });
 export const integrationMemberAccess = value => ({
   enabled: value?.enabled !== false,
-  scopes: Array.isArray(value?.scopes) ? value.scopes.filter(scope => INTEGRATION_SCOPES.includes(scope)) : [...INTEGRATION_SCOPES],
+  scopes: Array.isArray(value?.scopes) ? value.scopes.filter(scope => INTEGRATION_SCOPES.includes(scope)) : [...LEGACY_INTEGRATION_SCOPES],
 });
 // Personal grants only narrow token, workspace and current membership rights.
 export function applyIntegrationMemberAccess(record, member) {

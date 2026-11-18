@@ -1,6 +1,7 @@
 // Public limits are shared by HTTP validation and the MCP adapter. They are
 // independent of the larger internal immutable-body storage budget.
-export const INTEGRATION_SCOPES = Object.freeze(['knowledge:read', 'knowledge:write', 'files:read', 'files:write']);
+export const LEGACY_INTEGRATION_SCOPES = Object.freeze(['knowledge:read', 'knowledge:write', 'files:read', 'files:write']);
+export const INTEGRATION_SCOPES = Object.freeze([...LEGACY_INTEGRATION_SCOPES, 'research:read', 'research:write']);
 export const INTEGRATION_LIMITS = Object.freeze({
   searchDefault: 20,
   searchMax: 50,
@@ -13,6 +14,12 @@ export const INTEGRATION_LIMITS = Object.freeze({
   lifetimeDays: 90,
 });
 export const API_OPERATIONS = Object.freeze([
+  ['GET', '/workspaces/{w}/research/projects', 'list_research_projects', 'research:read'],
+  ['GET', '/workspaces/{w}/research/projects/{p}', 'search_research', 'research:read'],
+  ['GET', '/workspaces/{w}/research/projects/{p}/records/{id}', 'read_research_record', 'research:read'],
+  ['GET', '/workspaces/{w}/research/projects/{p}/operations/{operation_id}', 'get_research_operation', 'research:read'],
+  ['POST', '/workspaces/{w}/research/projects/{p}/commands', 'write_research_record', 'research:write'],
+  ['POST', '/workspaces/{w}/research/projects/{p}/import', 'import_research_records', 'research:write'],
   ['GET', '/me', 'get_context', 'knowledge:read'],
   ['GET', '/workspaces', 'list_workspaces', 'knowledge:read'],
   ['GET', '/workspaces/{w}/folders', 'list_folders', 'knowledge:read'],
