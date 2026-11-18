@@ -1,0 +1,488 @@
+{
+  "date": "2026-11-18",
+  "productionBaselineCommit": "a317a21ed6ee12fecf32e5074d51e9cd1b449da1",
+  "environment": "Isolated Layout QA data; Chromium viewport emulation, stable scrollbar gutter",
+  "productionBefore": [
+    {
+      "bodyScrollTop": 0,
+      "controls": [
+        {
+          "bottom": 261.0703125,
+          "cls": "seg",
+          "height": 48,
+          "right": 143.578125,
+          "width": 127.578125,
+          "x": 16,
+          "y": 213.0703125
+        },
+        {
+          "bottom": 259.0703125,
+          "cls": "knowledge-editing-format",
+          "height": 44,
+          "right": 294,
+          "width": 110,
+          "x": 184,
+          "y": 215.0703125
+        },
+        {
+          "bottom": 309.0703125,
+          "cls": "ibtn knowledge-format-toggle",
+          "height": 44,
+          "right": 246,
+          "width": 44,
+          "x": 202,
+          "y": 265.0703125
+        },
+        {
+          "bottom": 309.0703125,
+          "cls": "ui-menu knowledge-editor-tools",
+          "height": 44,
+          "right": 294,
+          "width": 44,
+          "x": 250,
+          "y": 265.0703125
+        },
+        {
+          "bottom": 328.46875,
+          "cls": "knowledge-save-status knowledge-editor-save",
+          "height": 15.3984375,
+          "right": 294,
+          "width": 278,
+          "x": 16,
+          "y": 313.0703125
+        }
+      ],
+      "input": {
+        "bottom": 645.46875,
+        "height": 300,
+        "right": 294,
+        "width": 278,
+        "x": 16,
+        "y": 345.46875
+      },
+      "overflow": 0,
+      "rootOverflow": 0,
+      "title": {
+        "bottom": 192,
+        "height": 74,
+        "right": 242,
+        "width": 226,
+        "x": 16,
+        "y": 118
+      },
+      "toolbar": {
+        "bottom": 329.46875,
+        "height": 116.3984375,
+        "right": 294,
+        "width": 278,
+        "x": 16,
+        "y": 213.0703125
+      },
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "visibleInputHeight": 221.53125
+    },
+    {
+      "bodyScrollTop": 0,
+      "controls": [
+        {
+          "bottom": 195.0703125,
+          "cls": "seg",
+          "height": 48,
+          "right": 143.578125,
+          "width": 127.578125,
+          "x": 16,
+          "y": 147.0703125
+        },
+        {
+          "bottom": 193.0703125,
+          "cls": "knowledge-editing-format",
+          "height": 44,
+          "right": 257.578125,
+          "width": 110,
+          "x": 147.578125,
+          "y": 149.0703125
+        },
+        {
+          "bottom": 193.0703125,
+          "cls": "ibtn knowledge-format-toggle",
+          "height": 44,
+          "right": 316,
+          "width": 44,
+          "x": 272,
+          "y": 149.0703125
+        },
+        {
+          "bottom": 193.0703125,
+          "cls": "ui-menu knowledge-editor-tools",
+          "height": 44,
+          "right": 364,
+          "width": 44,
+          "x": 320,
+          "y": 149.0703125
+        },
+        {
+          "bottom": 214.46875,
+          "cls": "knowledge-save-status knowledge-editor-save",
+          "height": 15.3984375,
+          "right": 364,
+          "width": 348,
+          "x": 16,
+          "y": 199.0703125
+        }
+      ],
+      "input": {
+        "bottom": 317.46875,
+        "height": 96,
+        "right": 364,
+        "width": 348,
+        "x": 16,
+        "y": 221.46875
+      },
+      "overflow": 0,
+      "rootOverflow": 0,
+      "title": {
+        "bottom": 136,
+        "height": 74,
+        "right": 312,
+        "width": 296,
+        "x": 16,
+        "y": 62
+      },
+      "toolbar": {
+        "bottom": 215.46875,
+        "height": 68.3984375,
+        "right": 364,
+        "width": 348,
+        "x": 16,
+        "y": 147.0703125
+      },
+      "viewport": {
+        "height": 320,
+        "width": 390
+      },
+      "visibleInputHeight": 90.53125
+    },
+    {
+      "bodyScrollTop": 0,
+      "controls": [
+        {
+          "bottom": 261.0703125,
+          "cls": "seg",
+          "height": 48,
+          "right": 143.578125,
+          "width": 127.578125,
+          "x": 16,
+          "y": 213.0703125
+        },
+        {
+          "bottom": 259.0703125,
+          "cls": "knowledge-editing-format",
+          "height": 44,
+          "right": 257.578125,
+          "width": 110,
+          "x": 147.578125,
+          "y": 215.0703125
+        },
+        {
+          "bottom": 259.0703125,
+          "cls": "ibtn knowledge-format-toggle",
+          "height": 44,
+          "right": 316,
+          "width": 44,
+          "x": 272,
+          "y": 215.0703125
+        },
+        {
+          "bottom": 259.0703125,
+          "cls": "ui-menu knowledge-editor-tools",
+          "height": 44,
+          "right": 364,
+          "width": 44,
+          "x": 320,
+          "y": 215.0703125
+        },
+        {
+          "bottom": 280.46875,
+          "cls": "knowledge-save-status knowledge-editor-save",
+          "height": 15.3984375,
+          "right": 364,
+          "width": 348,
+          "x": 16,
+          "y": 265.0703125
+        }
+      ],
+      "input": {
+        "bottom": 597.46875,
+        "height": 300,
+        "right": 364,
+        "width": 348,
+        "x": 16,
+        "y": 297.46875
+      },
+      "overflow": 0,
+      "rootOverflow": 0,
+      "title": {
+        "bottom": 192,
+        "height": 74,
+        "right": 312,
+        "width": 296,
+        "x": 16,
+        "y": 118
+      },
+      "toolbar": {
+        "bottom": 281.46875,
+        "height": 68.3984375,
+        "right": 364,
+        "width": 348,
+        "x": 16,
+        "y": 213.0703125
+      },
+      "viewport": {
+        "height": 844,
+        "width": 390
+      },
+      "visibleInputHeight": 300
+    },
+    {
+      "bodyScrollTop": 0,
+      "controls": [
+        {
+          "bottom": 341.46875,
+          "cls": "seg",
+          "height": 28,
+          "right": 381.578125,
+          "width": 139.578125,
+          "x": 242,
+          "y": 313.46875
+        },
+        {
+          "bottom": 342.46875,
+          "cls": "knowledge-editing-format",
+          "height": 30,
+          "right": 494.546875,
+          "width": 104.96875,
+          "x": 389.578125,
+          "y": 312.46875
+        },
+        {
+          "bottom": 342.46875,
+          "cls": "ui-menu knowledge-editor-tools",
+          "height": 30,
+          "right": 532.546875,
+          "width": 30,
+          "x": 502.546875,
+          "y": 312.46875
+        },
+        {
+          "bottom": 365.8671875,
+          "cls": "knowledge-save-status knowledge-editor-save",
+          "height": 15.3984375,
+          "right": 1114,
+          "width": 872,
+          "x": 242,
+          "y": 350.46875
+        }
+      ],
+      "input": {
+        "bottom": 797.8671875,
+        "height": 360,
+        "right": 1114,
+        "width": 872,
+        "x": 242,
+        "y": 437.8671875
+      },
+      "overflow": 0,
+      "rootOverflow": 0,
+      "title": {
+        "bottom": 228.3984375,
+        "height": 88,
+        "right": 1114,
+        "width": 872,
+        "x": 242,
+        "y": 140.3984375
+      },
+      "toolbar": {
+        "bottom": 365.8671875,
+        "height": 53.3984375,
+        "right": 1114,
+        "width": 872,
+        "x": 242,
+        "y": 312.46875
+      },
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      },
+      "visibleInputHeight": 305.1328125
+    }
+  ],
+  "editorStates": 42,
+  "conflictStates": 4,
+  "totalMeasuredStates": 46,
+  "configurations": [
+    ["ru", "light", "comfortable"],
+    ["en", "dark", "compact"]
+  ],
+  "viewports": [
+    {
+      "width": 320,
+      "height": 567
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 390,
+      "height": 320
+    },
+    {
+      "width": 640,
+      "height": 768
+    },
+    {
+      "width": 641,
+      "height": 768
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "width": 1366,
+      "height": 768
+    }
+  ],
+  "maxEditorOverflowPx": 0,
+  "mobileToolbarHeightPx": 68.390625,
+  "mobilePickerSizePx": 44,
+  "fullPickerTitleAndAccessibleNamePreserved": true,
+  "mobileControlsRemainOnOneRow": true,
+  "shortEditorResetsOnTallViewport": true,
+  "conflict": {
+    "baselineOverflowPx": 222,
+    "afterOverflowPx": 0,
+    "states": [
+      {
+        "width": 320,
+        "height": 567,
+        "overflow": 0,
+        "bodyOverflow": 0,
+        "alertOverflow": 0,
+        "buttons": [
+          {
+            "width": 138.859375,
+            "height": 44,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          },
+          {
+            "width": 230.265625,
+            "height": 44,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          }
+        ]
+      },
+      {
+        "width": 390,
+        "height": 320,
+        "overflow": 0,
+        "bodyOverflow": 0,
+        "alertOverflow": 0,
+        "buttons": [
+          {
+            "width": 138.859375,
+            "height": 44,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          },
+          {
+            "width": 230.265625,
+            "height": 44,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          }
+        ]
+      },
+      {
+        "width": 641,
+        "height": 768,
+        "overflow": 0,
+        "bodyOverflow": 0,
+        "alertOverflow": 0,
+        "buttons": [
+          {
+            "width": 138.859375,
+            "height": 31.390625,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          },
+          {
+            "width": 230.265625,
+            "height": 31.390625,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          }
+        ]
+      },
+      {
+        "width": 1366,
+        "height": 768,
+        "overflow": 0,
+        "bodyOverflow": 0,
+        "alertOverflow": 0,
+        "buttons": [
+          {
+            "width": 138.859375,
+            "height": 31.390625,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          },
+          {
+            "width": 230.265625,
+            "height": 31.390625,
+            "scrollOverflow": 0,
+            "wrap": "normal"
+          }
+        ]
+      }
+    ],
+    "method": "New source stylesheet applied to an already reproduced conflict in a separate synthetic fixture; no sync/recovery commands changed"
+  },
+  "axe": {
+    "scans": 5,
+    "violations": []
+  },
+  "behavior": {
+    "sourceAndBlockSaveVerified": true,
+    "freshBrowserReaderVerified": true,
+    "sourceRestored": true,
+    "formatSwitchPreservesBody": true,
+    "modalKeyboardContained": true,
+    "viewerCannotEdit": true
+  },
+  "additionalDialogs": {
+    "properties": {
+      "width": 320,
+      "overflow": 0
+    },
+    "move": {
+      "width": 320,
+      "overflow": 0,
+      "bodyOverflow": 0
+    }
+  },
+  "pageErrors": [],
+  "serverTests": {
+    "passed": 19,
+    "failed": 0
+  }
+}
