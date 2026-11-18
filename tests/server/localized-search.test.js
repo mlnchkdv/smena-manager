@@ -44,7 +44,7 @@ test('palette returns executable commands for visible translated and original na
     matchesLocalizedName,
     tr: ru,
     commands: () => [{ id: 'c-task', name: 'Create task', run }],
-    searchAll: () => ({ tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [] }),
+    searchAll: () => ({ tasks: [], projects: [], people: [], files: [], comments: [], knowledge: [], bookmarks: [], research: [] }),
     esc: value => value,
   };
   vm.runInNewContext(
