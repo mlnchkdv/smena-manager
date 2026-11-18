@@ -290,10 +290,11 @@ export function renderTopbar() {
   const syncLabel = state === 'saved' && S.ui.workspaceSettingsDirty ? workspaceDraftLabel() : tr(sync[1]);
   const syncTitle =
     state === 'saved' && !S.ui.workspaceSettingsDirty && S.ui.lastSyncedAt ? `${tr('Last synchronized')}: ${fmtTimestamp(S.ui.lastSyncedAt, true)}` : syncLabel;
+  const returnLabel = tr(S.ui.materialSource?.route === 'graph' ? 'Back to graph' : 'Back to search');
   return `<header class="topbar">
     <button class="ibtn" data-a="openMnav" aria-label="Open navigation" id="mnav-btn">${ic('menu', 17)}</button>
     <button class="workspace-context pillbtn" data-a="pop" data-pop="ws" title="${esc(D().ws.name)}" aria-label="${esc(tr('Switch workspace'))}: ${esc(D().ws.name)}"><span class="trunc" translate="no">${esc(D().ws.name)}</span>${ic('chevron-down', 12)}</button>
-    <nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
+    ${S.ui.materialSource ? `<button class="ibtn" data-a="returnToMaterialSource" aria-label="${esc(returnLabel)}" title="${esc(returnLabel)}">${ic('arrow-left', 16)}</button>` : ''}<nav class="crumbs trunc" aria-label="Breadcrumb">${crumbs()}</nav>
     <span class="sp"></span>
     ${uploads.length ? `<button class="ibtn global-upload-entry" data-a="openUploadQueue" aria-label="${esc(tr('Uploads'))}: ${uploads.length}" title="${esc(tr('Uploads'))}" translate="no">${ic(uploads.some(job => job.phase === 'failed') ? 'triangle-alert' : 'upload', 16)}<small>${uploads.length}</small></button>` : ''}
     <span class="sr" id="sync-indicator" data-state="${state}" title="${esc(syncTitle)}" aria-live="polite"><span class="sync-label" translate="no">${esc(syncLabel)}</span></span>

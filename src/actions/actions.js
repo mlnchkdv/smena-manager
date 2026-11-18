@@ -382,6 +382,15 @@ A.back = () => {
   if (h) go(h.route, h.params, { back: true });
   else go('home');
 };
+A.returnToMaterialSource = () => {
+  const source = S.ui.materialSource;
+  if (!source) return;
+  if (source.route === 'search') {
+    S.ui.searchQ = source.query;
+    S.ui.searchCat = source.category;
+  }
+  go(source.route, source.params);
+};
 A.reload = () => render();
 A.keepMaterialLocation = () => {};
 A.toggleMaterialLocation = (el, event) => {

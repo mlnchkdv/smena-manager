@@ -278,7 +278,11 @@ export function paletteItems() {
         authoredName: true,
         sub: record.projectName,
         authoredSub: true,
-        run: () => go('project', { id: record.projectId, tab: 'research', researchId: record.id }),
+        run: () => {
+          S.ui.searchQ = q;
+          S.ui.searchCat = sc;
+          go('project', { id: record.projectId, tab: 'research', researchId: record.id }, { materialSource: 'search' });
+        },
       })),
     });
   }

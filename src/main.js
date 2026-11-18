@@ -337,6 +337,7 @@ function applyBrowserLocation() {
   if (!S.ui.currentUser) return;
   const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');
   S.ui.route = target.route;
+  S.ui.materialSource = null;
   S.ui.params = target.params;
   S.ui.drawer = target.drawer || null;
   S.ui.knowledgeDrawer = target.note || null;

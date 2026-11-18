@@ -13,5 +13,5 @@ export function researchEvidenceHtml(record) {
   const items = record.data.artifacts || [];
   if (!items.length) return '';
   const slug = location.pathname.split('/')[1];
-  return `<details class="research-technical" ${researchDisclosure(record, 'evidence')}><summary>${rw('Files and evidence', 'Файлы и доказательства')} · ${items.length}</summary><ul>${items.map(item => `<li><a href="/${encodeURIComponent(slug)}/file/${encodeURIComponent(item.fileId)}">${esc(item.name || item.fileId)}</a> · ${item.bytes} B<small class="hint">${item.sha256 ? ` SHA-256: ${esc(item.sha256)}` : rw(' · Checksum unavailable', ' · Контрольная сумма недоступна')}</small></li>`).join('')}</ul></details>`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'evidence')}><summary>${rw('Files and evidence', 'Файлы и доказательства')} · ${items.length}</summary><ul>${items.map(item => `<li><a href="/${encodeURIComponent(slug)}/file/${encodeURIComponent(item.fileId)}" data-a="previewFile" data-id="${esc(item.fileId)}">${esc(item.name || item.fileId)}</a> · ${item.bytes} B<small class="hint">${item.sha256 ? ` SHA-256: ${esc(item.sha256)}` : rw(' · Checksum unavailable', ' · Контрольная сумма недоступна')}</small></li>`).join('')}</ul></details>`;
 }

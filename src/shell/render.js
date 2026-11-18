@@ -53,6 +53,13 @@ export function go(route, params = {}, opt = {}) {
   if (route === 'project' && !params.tab) params.tab = 'board';
   if (!opt.back) S.ui.history.push({ route: S.ui.route, params: S.ui.params });
   const same = S.ui.route === route && JSON.stringify(S.ui.params) === JSON.stringify(params);
+  if (!same)
+    S.ui.materialSource =
+      opt.materialSource === 'graph'
+        ? { route: 'graph', params: { ...S.ui.params } }
+        : opt.materialSource === 'search'
+          ? { route: 'search', params: {}, query: S.ui.searchQ, category: S.ui.searchCat }
+          : null;
   const fromMobileNav = innerWidth <= 900 && S.ui.mnav;
   S.ui.route = route;
   S.ui.params = params;

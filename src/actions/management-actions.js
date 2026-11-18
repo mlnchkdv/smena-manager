@@ -776,7 +776,7 @@ handlers.A.previewFile = async el => {
         el.dataset.page ? { page: Number(el.dataset.page) } : el.dataset.seconds != null ? { seconds: Number(el.dataset.seconds) } : null,
       )
     : {};
-  if (f && entityAllowed(D(), `file:${f.id}`, graphOptions(), true))
+  if (f && entityAllowed(D(), `file:${f.id}`, graphOptions()))
     openModal({
       type: 'filePreview',
       file: f,
@@ -792,6 +792,7 @@ handlers.A.previewFile = async el => {
         ids: [...new Set([...document.querySelectorAll('.files-page [data-a="previewFile"]')].map(b => b.dataset.id))].slice(0, 500),
       },
     });
+  else toast('This file is unavailable or access changed.', { kind: 'err' });
 };
 handlers.A.continueFilePreviewPage = el => {
   const m = S.ui.modals.at(-1),

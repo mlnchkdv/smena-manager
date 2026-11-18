@@ -16,7 +16,7 @@ import { materialLocation } from '../ui/material-location.js';
 import { recentSearches, rememberSearch, clearSearchHistory } from '../core/search-history.js';
 import { A, KEY } from '../actions/actions.js';
 import { go, render } from '../shell/render.js';
-A.openResearchSearchResult = el => go('project', { id: el.dataset.project, tab: 'research', researchId: el.dataset.id });
+A.openResearchSearchResult = el => go('project', { id: el.dataset.project, tab: 'research', researchId: el.dataset.id }, { materialSource: 'search' });
 A.retryWhiteboardSearch = () => {
   clearWhiteboardSearch();
   render();

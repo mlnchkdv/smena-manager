@@ -657,21 +657,27 @@ A.removeRelation = async el => {
 A.openRelatedEntity = async el => {
   const key = el.dataset.key;
   const opener = focusKey(el.isConnected ? el : document.activeElement);
+  const sourceRoute = S.ui.route;
+  const location = JSON.stringify([sourceRoute, S.ui.params]);
+  const generation = getSessionGeneration();
   if (!(await hydrateRelatedFiles([key]))) return;
+  if (generation !== getSessionGeneration() || location !== JSON.stringify([S.ui.route, S.ui.params])) return;
   if (!entityAllowed(D(), key, graphOptions())) return;
   const entity = resolveGraphEntity(D(), key);
+  const options = { materialSource: sourceRoute === 'graph' ? 'graph' : null };
   S.ui.modals = [];
   S.ui.drawer = null;
   if (entity.kind === 'note') {
     S.ui.knowledgeDrawerOpener = opener;
     A.goKnowledgeNote({ dataset: { id: entity.id } });
-  } else if (entity.kind === 'bookmark') A.goBookmark({ dataset: { id: entity.id } });
+  } else if (entity.kind === 'bookmark' && A.viewBookmarkPage) A.viewBookmarkPage({ dataset: { id: entity.id } });
+  else if (entity.kind === 'bookmark') A.goBookmark({ dataset: { id: entity.id } });
   else if (entity.kind === 'file') A.previewFile({ dataset: { id: entity.id } });
   else if (entity.kind === 'task') {
     S.ui.drawerOpener = opener;
     A.openTask({ dataset: { id: entity.id } });
-  } else if (entity.kind === 'whiteboard') go('whiteboard', { id: entity.id });
-  else go('project', { id: entity.id });
+  } else if (entity.kind === 'whiteboard') go('whiteboard', { id: entity.id }, options);
+  else go('project', { id: entity.id }, options);
 };
 A.showGraph = async el => (await import('../features/graph-actions.js')).showGraph(el);
 A.searchInGraph = async () => (await import('../features/graph-actions.js')).searchInGraph();
