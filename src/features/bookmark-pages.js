@@ -1,5 +1,6 @@
 import { S, D } from '../core/store.js';
-import { bookmarkPageRequest, getSessionGeneration } from '../core/api.js';
+import { bookmarkPageRequest, getSessionGeneration, getActiveWorkspace } from '../core/api.js';
+import { offlineItems, putOffline, removeOffline } from '../core/offline-library.js';
 import { isRussian } from '../core/i18n.js';
 import { normalizedPageUrl, applyBookmarkMetadata } from '../shared/bookmark-metadata.js';
 import { A, IN } from '../actions/actions.js';
@@ -138,6 +139,7 @@ async function loadPage(m) {
   m.page = null;
   m.documentState = 'loading';
   m.document = '';
+  m.offlineCopy = null;
   render();
   try {
     const path = `/${encodeURIComponent(m.id)}`;
@@ -156,6 +158,12 @@ async function loadPage(m) {
     }
   }
   if (current() && m.page?.format === 'html') await loadDocument(m, controller);
+  if (current()) {
+    m.offlineCopy = (await offlineItems(S.ui.currentUser?.id).catch(() => [])).find(
+      item => item.workspace === getActiveWorkspace() && item.kind === 'bookmark-archive' && item.id === selected,
+    );
+    if (current()) render();
+  }
 }
 async function loadDocument(m, controller = m.controller) {
   const selected = m.selected;
@@ -195,6 +203,51 @@ async function loadDocument(m, controller = m.controller) {
 A.retryBookmarkDocument = () => {
   const m = S.ui.modals.at(-1);
   if (m?.type === 'bookmarkViewer' && m.page?.format === 'html') return loadDocument(m);
+};
+A.keepBookmarkArchiveOffline = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'bookmarkViewer' || m.documentState !== 'ready' || m.offlineBusy) return;
+  const owner = S.ui.currentUser.id,
+    workspace = getActiveWorkspace(),
+    selected = m.selected;
+  m.offlineBusy = true;
+  render();
+  try {
+    const { ensureOfflineShell } = await import('./offline-knowledge.js');
+    await ensureOfflineShell(owner, m.generation);
+    const item = await putOffline({
+      owner,
+      workspace,
+      workspaceName: D().ws.name,
+      kind: 'bookmark-archive',
+      id: selected,
+      bookmarkId: m.id,
+      title: m.page.title || m.title,
+      capturedAt: m.page.capturedAt,
+      document: m.document,
+    });
+    if (!currentViewer(m) || selected !== m.selected) return;
+    m.offlineCopy = item;
+    toast(words('Complete HTML archive saved on this device.', 'Полный HTML-архив сохранён на устройстве.'));
+  } catch {
+    toast(
+      words(
+        'Could not save locally. Check free storage. Limits: 20 MB per archive and 50 MB for the library.',
+        'Не удалось сохранить на устройстве. Проверьте свободное место. Лимиты: 20 МБ на архив и 50 МБ на библиотеку.',
+      ),
+      { kind: 'err' },
+    );
+  } finally {
+    m.offlineBusy = false;
+    if (currentViewer(m)) render();
+  }
+};
+A.removeBookmarkArchiveOffline = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'bookmarkViewer' || !m.offlineCopy) return;
+  await removeOffline(m.offlineCopy);
+  m.offlineCopy = null;
+  if (currentViewer(m)) render();
 };
 A.viewBookmarkPage = async el => {
   const link = D().links?.find(row => row.id === el.dataset.id);

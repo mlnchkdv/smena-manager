@@ -17,7 +17,7 @@ async function offlineSnapshot(entries) {
   for (const note of D().knowledgeNotes) notes.push(ids.has(note.id) ? structuredClone(await ensureKnowledgeBody(note)) : note);
   return { ...D(), knowledgeNotes: notes };
 }
-async function shell(owner, generation) {
+export async function ensureOfflineShell(owner, generation) {
   const registration = await navigator.serviceWorker.register('/sw.js');
   const worker = registration.installing || registration.waiting;
   if (worker && worker.state !== 'activated')
@@ -44,6 +44,7 @@ async function shell(owner, generation) {
   if (generation !== getSessionGeneration() || owner !== S.ui.currentUser?.id) throw Error('Account changed.');
   localStorage.setItem(OFFLINE_OWNER, owner);
 }
+const shell = ensureOfflineShell;
 export async function pinKnowledgeNote(el) {
   const note = D().knowledgeNotes.find(n => n.id === el.dataset.id),
     generation = getSessionGeneration(),

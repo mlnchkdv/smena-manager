@@ -58,6 +58,43 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  if (event.request.method === 'GET' && url.origin === self.location.origin && url.pathname === '/offline-archive') {
+    event.respondWith(
+      new Promise(resolve => {
+        const request = indexedDB.open('smena-offline-library-v1', 1);
+        request.onupgradeneeded = () => request.result.createObjectStore('items', { keyPath: 'key' });
+        request.onerror = () => resolve(new Response('Local archive unavailable.', { status: 404 }));
+        request.onsuccess = () => {
+          const db = request.result;
+          db.onversionchange = () => db.close();
+          const record = db.transaction('items').objectStore('items').get(url.searchParams.get('key'));
+          record.onsuccess = () => {
+            const item = record.result;
+            db.close();
+            resolve(
+              item?.kind === 'bookmark-archive' && typeof item.document === 'string'
+                ? new Response(item.document, {
+                    headers: {
+                      'Content-Type': 'text/html; charset=utf-8',
+                      'Cache-Control': 'no-store',
+                      'Content-Security-Policy':
+                        "sandbox; default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; media-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
+                      'Referrer-Policy': 'no-referrer',
+                      'X-Content-Type-Options': 'nosniff',
+                    },
+                  })
+                : new Response('Local archive unavailable.', { status: 404 }),
+            );
+          };
+          record.onerror = () => {
+            db.close();
+            resolve(new Response('Local archive unavailable.', { status: 404 }));
+          };
+        };
+      }),
+    );
+    return;
+  }
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
   if (event.request.mode === 'navigate')
     event.respondWith(

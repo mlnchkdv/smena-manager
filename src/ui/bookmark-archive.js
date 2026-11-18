@@ -44,5 +44,9 @@ export function bookmarkArchiveView(m, russian) {
   const width = html
     ? `<button class="btn btn-ghost btn-sm bookmark-archive-width" data-a="bookmarkArchiveWidth" aria-pressed="${!!m.wide}">${m.wide ? T('Standard width', 'Обычная ширина') : T('Expand viewer', 'Расширить просмотр')}</button>`
     : '';
-  return controls + width + status + report + body;
+  const offline =
+    html && m.selected !== 'live'
+      ? `<div class="bookmark-archive-actions"><button class="btn btn-ghost btn-sm" data-a="${m.offlineCopy ? 'removeBookmarkArchiveOffline' : 'keepBookmarkArchiveOffline'}" ${m.offlineBusy || m.documentState !== 'ready' ? 'disabled' : ''}>${m.offlineBusy ? T('Saving on this device…', 'Сохраняем на устройстве…') : m.offlineCopy ? T('Remove local archive', 'Убрать локальный архив') : T('Save this version offline', 'Сохранить эту версию офлайн')}</button>${m.offlineCopy ? `<span class="hint">${T('On this device: ', 'На устройстве: ')}${esc(new Date(m.offlineCopy.savedAt).toLocaleString(russian ? 'ru-RU' : 'en-US'))} · ${Math.ceil(m.offlineCopy.bytes / 1024)} KB · <a href="/offline.html" target="_blank" rel="noopener">${T('Open offline library', 'Открыть офлайн-библиотеку')}</a></span>` : ''}</div>`
+      : '';
+  return controls + width + offline + status + report + body;
 }

@@ -66,7 +66,23 @@ async function render() {
     item = items.find(i => i.key === active);
   if (item) {
     content.append(el('h2', item.title), el('small', `${item.workspaceName} · ${new Date(item.savedAt).toLocaleString(lang)}`));
-    if (item.kind === 'file' || item.kind === 'upload')
+    if (item.kind === 'bookmark-archive') {
+      content.append(
+        el(
+          'p',
+          words('Full saved HTML with embedded resources. Scripts are disabled.', 'Полный сохранённый HTML со встроенными ресурсами. Скрипты отключены.'),
+        ),
+      );
+      const frame = el('iframe');
+      frame.setAttribute('sandbox', '');
+      frame.title = words('Offline HTML archive', 'Локальный HTML-архив');
+      frame.src = '/offline-archive?key=' + encodeURIComponent(item.key);
+      frame.style.cssText = 'width:100%;height:65vh;border:1px solid currentColor';
+      content.append(
+        frame,
+        button(words('Download HTML', 'Скачать HTML'), () => download(new Blob([item.document], { type: 'text/html' }), `${item.title}.html`)),
+      );
+    } else if (item.kind === 'file' || item.kind === 'upload')
       content.append(button(words('Download local file', 'Скачать локальный файл'), () => download(item.blob, item.title)));
     else {
       const preview = el('div');
