@@ -14,7 +14,8 @@ import { createUploadQueue, unfinishedUpload, uploadFileKey } from '../shared/up
 import { createUploadOwner, fullUploadFingerprint, readUploadFallback } from '../shared/upload-journal.js';
 import { recoverUploadSource, uploadSourceActions } from '../shared/upload-sources.js';
 import { uploadDirectFile } from './direct-upload-session.js';
-import { uploadJournal } from './upload-journal.js';
+import { uploadJournal, canPersistUploadHandles } from './upload-journal.js';
+import { uploadResumeForecast } from '../shared/upload-resume-forecast.js';
 import { getSessionGeneration, getSessionToken, uploadWorkspaceFile, SESSION_STORAGE_KEY } from './api.js';
 import { retryWorkspaceSync, workspaceSyncIsClean } from './workspace-sync.js';
 import { applyExternalCoreSnapshot } from './bootstrap.js';
@@ -56,9 +57,13 @@ fileModalRenderers.uploadReview = (m, H) => {
  ${m.checkingTarget ? `<p role="status">${text('Checking destination…', 'Проверяем назначение…')}</p>` : m.capacity.sufficient === false ? `<p class="alert danger" role="alert">${text('Not enough space for this batch.', 'Недостаточно места для этой партии.')}</p>` : m.capacity.availableBytes === null ? `<p class="alert info" role="status">${text('Free space could not be checked. Uploading may fail if storage is full.', 'Не удалось проверить свободное место. Загрузка может прерваться при заполнении хранилища.')}</p>` : ''}
  ${m.entries.some(job => job.relativePath?.includes('/')) ? `<button class="btn btn-secondary btn-sm" data-a="toggleUploadStructure" aria-pressed="${!!m.preserve}">${m.preserve ? text('Keep folder structure', 'Сохранить структуру папок') : text('Put all files in one folder', 'Все файлы в одну папку')}</button>` : ''}
  ${duplicates ? `<p class="alert info">${text('Repeated paths in this batch', 'Повторяющиеся пути в партии')}: ${duplicates}. ${text('Each file will be kept separately.', 'Каждый файл будет сохранён отдельно.')}</p>` : ''}
+ <section class="bookmark-page-notice" aria-label="${text('Resume after reopening', 'Возобновление после открытия браузера')}"><strong>${text('After reopening the browser', 'После повторного открытия браузера')}</strong><p>${text('Can resume if file access remains granted', 'Могут продолжиться при сохранённом доступе к файлу')}: ${m.resume.automatic} · ${text('Need file access permission', 'Потребуется разрешение доступа')}: ${m.resume.permission} · ${text('Need the original file selected again', 'Потребуется повторный выбор оригинала')}: ${m.resume.reselect}</p>${m.resume.permission ? `<button class="btn btn-secondary btn-sm" data-a="authorizeUploadReviewSources">${text('Allow source access', 'Разрешить доступ к исходникам')}</button>` : ''}<p class="hint">${text('Keep this tab open for uninterrupted uploading. Automatic resume depends on browser support and retained read permission; mobile systems may stop background work. Confirmed chunks are reused after source verification.', 'Для непрерывной загрузки держите вкладку открытой. Автовозобновление зависит от браузера и сохранённого разрешения чтения; мобильная система может остановить работу в фоне. Подтверждённые части используются после проверки оригинала.')}</p></section>
  <details><summary>${text('Files and paths', 'Файлы и пути')}</summary><ul>${m.entries
    .slice(0, 50)
-   .map(job => `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)}</li>`)
+   .map(
+     job =>
+       `<li>${esc(m.preserve ? job.relativePath : job.name)} · ${fsize(job.bytes)} · ${job.resumeForecast === 'automatic' ? text('Resume if access is retained', 'Продолжится при сохранённом доступе') : job.resumeForecast === 'permission' ? text('Permission needed', 'Нужно разрешение') : text('Select original again', 'Выбрать оригинал снова')}</li>`,
+   )
    .join('')}</ul>${m.entries.length > 50 ? `<p>${text('First 50 files shown.', 'Показаны первые 50 файлов.')}</p>` : ''}</details>
  <details><summary>${text('Storage and matching names', 'Хранилище и совпадение имён')}</summary>${m.capacity.availableBytes !== null ? `<p>${text('Estimated available', 'Оценка свободного места')}: ${fsize(m.capacity.availableBytes)}</p>` : ''}<p class="hint">${text('Quota is checked now and can change. Trash and retained copies may still use physical space.', 'Квота проверена сейчас и может измениться. Корзина и удерживаемые копии могут занимать физическое место.')}</p><p class="hint">${text('Matching file names create separate files; existing contents are never overwritten. Folder names at the same level are reused.', 'Совпадающие имена создают отдельные файлы, существующее содержимое не заменяется. Папки с тем же именем на одном уровне используются повторно.')}</p></details></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${text('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmUploadReview" ${m.checkingTarget || m.capacity.sufficient === false ? 'disabled' : ''}>${text('Start upload', 'Начать загрузку')}</button></div>`
   );
@@ -68,6 +73,25 @@ A.confirmUploadReview = () => {
   if (m?.type !== 'uploadReview' || m.checkingTarget || m.capacity.sufficient === false) return;
   m.resolve({ preserve: m.preserve, ctx: m.ctx });
   closeModal();
+};
+A.authorizeUploadReviewSources = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'uploadReview') return;
+  const requests = m.entries
+    .filter(entry => entry.resumeForecast === 'permission' && entry.sourceHandle)
+    .map(entry => {
+      try {
+        return entry.sourceHandle.requestPermission({ mode: 'read' });
+      } catch {
+        return null;
+      }
+    });
+  await Promise.allSettled(requests);
+  const resume = await uploadResumeForecast(m.entries, { persistHandles: m.persistHandles });
+  if (S.ui.modals.at(-1) === m) {
+    m.resume = resume;
+    render();
+  }
 };
 IN.uploadReviewTarget = async el => {
   const m = S.ui.modals.at(-1);
@@ -462,6 +486,9 @@ export async function enqueueFiles(files, ctx) {
       reservedBytes: engine.jobs.filter(unfinishedUpload).reduce((sum, job) => sum + Math.max(0, job.bytes - (job.accepted || 0)), 0),
     });
     if (!valid() || generation !== before) return [];
+    const persistHandles = await canPersistUploadHandles(entries);
+    const resume = await uploadResumeForecast(entries, { persistHandles });
+    if (!valid() || generation !== before) return [];
     const accepted = await new Promise(resolve =>
       openModal({
         type: 'uploadReview',
@@ -469,6 +496,8 @@ export async function enqueueFiles(files, ctx) {
         ctx,
         entries,
         capacity,
+        persistHandles,
+        resume,
         preserve: entries.some(job => job.relativePath.includes('/')),
         resolve,
         onClose: () => resolve(false),

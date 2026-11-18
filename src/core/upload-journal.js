@@ -37,6 +37,18 @@ export const uploadJournal = createUploadJournal({
     clear: () => transaction(true, store => store.clear()),
   },
 });
+export async function canPersistUploadHandles(entries) {
+  const handles = entries.map(entry => entry.sourceHandle).filter(Boolean);
+  if (!handles.length) return false;
+  try {
+    await transaction(true, store => store.put(handles, 'source-probe'));
+    return (await transaction(false, store => store.get('source-probe')))?.length === handles.length;
+  } catch {
+    return false;
+  } finally {
+    await transaction(true, store => store.delete('source-probe')).catch(() => {});
+  }
+}
 
 const channel = typeof window !== 'undefined' && typeof BroadcastChannel === 'function' ? new BroadcastChannel('smena-upload-signout') : null;
 export function clearUploadJournal() {
