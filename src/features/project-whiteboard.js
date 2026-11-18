@@ -12,7 +12,7 @@ import './whiteboard-tools.js';
 import './whiteboard-extract.js';
 import './whiteboard-presentation.js';
 import './whiteboard-templates.js';
-import './whiteboard-assets.js';
+import { mountWhiteboardAssetInputs } from './whiteboard-assets.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
@@ -49,6 +49,7 @@ import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
 import { whiteboardConnection, reconnectWhiteboardEdge } from '../shared/whiteboard-connect.js';
 import { whiteboardInsertionPoint } from '../shared/whiteboard-insertion.js';
+import { whiteboardPastedContent, whiteboardMaterialPositions } from '../shared/whiteboard-content.js';
 import { whiteboardNodeCamera } from '../shared/whiteboard-camera.js';
 import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
 import { whiteboardNavigationHint } from '../ui/whiteboard-context.js';
@@ -226,14 +227,14 @@ function revealNode(node) {
   s.fit = false;
   s.autoFit = false;
 }
-function newCard(type, point) {
+function newCard(type, point, text = '') {
   if (!editable(current())) return;
   const position = point || insertion();
   openTool({
     kind: 'node',
     nodeType: type,
     title: '',
-    text: '',
+    text,
     color: type === 'group' ? 'blue' : 'neutral',
     ...position,
     width: type === 'group' ? 600 : 260,
@@ -242,6 +243,7 @@ function newCard(type, point) {
   });
 }
 A.whiteboardNewText = () => newCard('text');
+export const openWhiteboardTextDraft = (text, point) => newCard('text', point, text);
 A.whiteboardNewFrame = () => newCard('group');
 A.whiteboardNewShape = () => newCard('shape');
 A.whiteboardChooseShape = el => {
@@ -406,25 +408,23 @@ A.whiteboardChooseMaterial = async el => {
   if (activeModal() !== m || !entityAllowed(D(), key, { role: S.ui.currentUser?.role, memberId: D().me })) return;
   if (insertWhiteboardMaterials([key]).length) closeModal();
 };
-export function insertWhiteboardMaterials(keys, commit) {
+export function insertWhiteboardMaterials(keys, commit, at) {
   if (!editable(current())) return [];
-  const point = insertion();
-  const nodes = keys
-    .filter(key => entityAllowed(D(), key, { role: S.ui.currentUser?.role, memberId: D().me }) || (!!commit && key.startsWith('bookmark:')))
-    .map((key, index) => {
-      const file = key.startsWith('file:') && D().files.find(file => file.id === key.slice(5));
-      const kind = file && filePreviewPolicy(file).kind;
-      return {
-        id: uid('wc'),
-        type: 'material',
-        target: key,
-        x: point.x + (index % 3) * 400,
-        y: point.y + Math.floor(index / 3) * 500,
-        width: kind === 'pdf' ? 360 : kind === 'image' || key.startsWith('bookmark:') ? 360 : 260,
-        height: kind === 'pdf' ? 460 : kind === 'image' || key.startsWith('bookmark:') ? 300 : 180,
-        color: 'neutral',
-      };
-    });
+  const allowed = keys.filter(key => entityAllowed(D(), key, { role: S.ui.currentUser?.role, memberId: D().me }) || (!!commit && key.startsWith('bookmark:')));
+  const positions = whiteboardMaterialPositions(at || insertion(), allowed.length);
+  const nodes = allowed.map((key, index) => {
+    const file = key.startsWith('file:') && D().files.find(file => file.id === key.slice(5));
+    const kind = file && filePreviewPolicy(file).kind;
+    return {
+      id: uid('wc'),
+      type: 'material',
+      target: key,
+      ...positions[index],
+      width: kind === 'pdf' ? 360 : kind === 'image' || key.startsWith('bookmark:') ? 360 : 260,
+      height: kind === 'pdf' ? 460 : kind === 'image' || key.startsWith('bookmark:') ? 300 : 180,
+      color: 'neutral',
+    };
+  });
   if (!nodes.length || !whiteboardCommand(board => board.nodes.push(...nodes), null, null, commit)) return [];
   revealNode(nodes[0]);
   render();
@@ -527,21 +527,24 @@ A.whiteboardCopy = async () => {
   }
   toast(T('Cards copied', 'Карточки скопированы'), { kind: 'info' });
 };
-A.whiteboardPaste = async () => {
+export async function pasteWhiteboardContent(suppliedText) {
   const p = current();
   if (!editable(p)) return;
   const scope = whiteboardScope(p.id);
-  let fragment = clipboard?.scope === JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]) ? clipboard.board : null;
+  let content;
   try {
-    const value = fragment ? null : JSON.parse(await navigator.clipboard.readText());
-    if (value?.format === 'smena-whiteboard-selection' && value.version === 1) fragment = value.board;
+    content = whiteboardPastedContent(suppliedText ?? (await navigator.clipboard.readText()));
   } catch {
-    /* optional clipboard */
+    if (clipboard?.scope === JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url])) content = { kind: 'selection', board: clipboard.board };
   }
-  if (!fragment && clipboard?.scope === JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url])) fragment = clipboard.board;
-  if (current()?.id !== p.id || scope !== whiteboardScope(p.id) || !editable(current())) return;
+  if (current()?.id !== p.id || scope !== whiteboardScope(p.id) || !editable(current()) || overlayAboveDiagram()) return;
+  if (content?.kind === 'website') return A.whiteboardAddWebsite({ dataset: { url: content.url } });
+  if (content?.kind === 'text') return openWhiteboardTextDraft(content.text);
+  const fragment = content?.board;
   if (!fragment || !validWhiteboard(fragment))
-    return toast(T('Copy cards first or use a valid selection.', 'Сначала скопируйте карточки или используйте корректное выделение.'), { kind: 'info' });
+    return toast(T('Copy cards, an HTTP(S) link or text up to 6,000 characters.', 'Скопируйте карточки, ссылку HTTP(S) или текст до 6000 символов.'), {
+      kind: 'info',
+    });
   const files = fragment.nodes
     .filter(n => n.type === 'material' && n.target.startsWith('file:') && !D().files.some(f => f.id === n.target.slice(5)))
     .map(n => n.target.slice(5));
@@ -564,7 +567,8 @@ A.whiteboardPaste = async () => {
     s.multiSelect = result.ids.length > 1;
     render();
   }
-};
+}
+A.whiteboardPaste = () => pasteWhiteboardContent();
 A.whiteboardArrange = el => {
   if (!['left', 'right', 'top', 'bottom', 'center-x', 'center-y', 'distribute-x', 'distribute-y'].includes(el.dataset.mode)) return;
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
@@ -1369,6 +1373,7 @@ function up(e, cancel = false) {
   }
 }
 export function mountProjectWhiteboard() {
+  mountWhiteboardAssetInputs();
   syncWhiteboardPreviews();
   const next = document.querySelector('.whiteboard-viewport');
   if (next !== viewport) {
@@ -1567,11 +1572,10 @@ document.addEventListener(
       }
     }
     const s = whiteboardState();
-    if ((e.ctrlKey || e.metaKey) && ['c', 'v', 'a'].includes(e.key.toLowerCase())) {
+    if ((e.ctrlKey || e.metaKey) && ['c', 'a'].includes(e.key.toLowerCase())) {
       e.preventDefault();
       e.stopPropagation();
       if (e.key.toLowerCase() === 'c') void A.whiteboardCopy();
-      else if (e.key.toLowerCase() === 'v') void A.whiteboardPaste();
       else {
         s.selection = whiteboardOf(current()).nodes.map(n => n.id);
         s.selected = s.selection[0] || '';

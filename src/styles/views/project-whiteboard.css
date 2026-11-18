@@ -16,6 +16,32 @@
   padding: 8px;
   border-bottom: 1px solid var(--divider);
 }
+.whiteboard-viewport[data-drop-active],
+.whiteboard-outline[data-drop-active] {
+  outline: 3px dashed var(--accent);
+  outline-offset: -4px;
+}
+.whiteboard-outline {
+  position: relative;
+}
+.whiteboard-viewport[data-drop-active]::after,
+.whiteboard-outline[data-drop-active]::after {
+  content: attr(data-drop-label);
+  position: sticky;
+  display: block;
+  top: 12px;
+  z-index: 25;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin: 12px auto;
+  padding: 12px 16px;
+  border: 1px solid var(--accent);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text);
+  text-align: center;
+  pointer-events: none;
+}
 .whiteboard-count {
   font-size: var(--fs-xs);
   color: var(--text-3);
@@ -25,6 +51,10 @@
 }
 .whiteboard-add {
   position: relative;
+}
+.whiteboard-add-hint {
+  padding: 4px 8px;
+  white-space: normal;
 }
 .whiteboard-add > div {
   position: absolute;

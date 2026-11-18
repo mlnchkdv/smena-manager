@@ -150,17 +150,20 @@ export function projectWhiteboard(project) {
   return `<section class="project-whiteboard${state.focus ? ' is-focused' : ''}${state.presentationId ? ' is-presenting' : ''}" data-project="${esc(project.id)}" aria-label="${T('Whiteboard canvas', 'Содержимое холста')}" translate="no"><div class="whiteboard-toolbar">
   ${
     editable
-      ? `<details class="ui-menu whiteboard-add"><summary class="btn btn-primary btn-sm" aria-label="${T('Add', 'Добавить')}">${ic('plus', 15)}<span>${T('Add', 'Добавить')}</span></summary><div>${[
+      ? `<details class="ui-menu whiteboard-add" ${disclosureAttributes('whiteboard-add:' + project.id)}><summary class="btn btn-primary btn-sm" aria-label="${T('Add', 'Добавить')}">${ic('plus', 15)}<span>${T('Add', 'Добавить')}</span></summary><div>${[
           ['whiteboardNewText', 'sticky-note', 'Text card', 'Текстовая карточка'],
           ['whiteboardAddMaterial', 'file-plus', 'Linked material', 'Связанный материал'],
           ['whiteboardNewFrame', 'square-dashed', 'Frame', 'Рамка'],
           ['whiteboardNewShape', 'shapes', 'Shape', 'Фигура'],
           ['whiteboardUploadMedia', 'image', 'Image or PDF', 'Изображение или PDF'],
+          ['whiteboardPaste', 'clipboard-paste', 'Paste link or text', 'Вставить ссылку или текст'],
           ['whiteboardAddWebsite', 'globe', 'Website', 'Сайт'],
           ['whiteboardNewEdge', 'move-right', 'Connection', 'Связь'],
         ]
           .map(([a, i, en, ru]) => `<button data-a="${a}">${ic(i, 15)}${T(en, ru)}</button>`)
-          .join('')}</div></details>${button('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled')}`
+          .join(
+            '',
+          )}<p class="hint whiteboard-add-hint">${T('Drop images or PDF onto the canvas. Ctrl/Cmd + V pastes images, links or text.', 'Перетащите изображения или PDF на холст. Ctrl/Cmd + V вставляет изображения, ссылки или текст.')}</p></div></details>${button('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled')}`
       : `<span class="hint">${T('Read only', 'Только просмотр')}</span>`
   }
   ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm whiteboard-view-toggle" data-a="whiteboardToggleOutline" aria-label="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}" title="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}">${ic(state.outline ? 'list' : 'layout-dashboard', 15)}<span>${state.outline ? T('Outline', 'Список') : T('Canvas', 'Холст')}</span></button>${state.outline ? '' : `${whiteboardNavigation(state, editable)}`}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-label="${state.focus ? T('Exit focus', 'Выйти из фокуса') : T('Focus', 'Фокус')}" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}<span>${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</span></button><button class="ibtn whiteboard-tools" data-a="openWhiteboardTools" aria-label="${T('More tools', 'Другие инструменты')}" title="${T('More tools', 'Другие инструменты')}">${ic('ellipsis', 16)}</button>

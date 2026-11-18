@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-18",
+  "area": "Whiteboard content import and responsive media",
+  "localOrigin": "http://127.0.0.1:5290",
+  "fixture": "Layout QA / canvas-audit; synthetic PNG 1000×700 (1,135,330 bytes), 3-page PDF",
+  "states": 128,
+  "matrices": [
+    {
+      "states": 80,
+      "locales": ["ru", "en"],
+      "themes": ["light", "dark"],
+      "densities": ["comfortable", "compact"],
+      "sizes": 8
+    },
+    {
+      "states": 48,
+      "locales": ["ru"],
+      "sizes": 8,
+      "flows": ["add menu", "paste URL draft", "inline PDF", "full PDF", "website reader", "full image"]
+    }
+  ],
+  "accessibilityScans": 6,
+  "accessibilityViolations": 0,
+  "maxHorizontalOverflow": 0,
+  "serverTests": {
+    "passed": 62,
+    "failed": 0
+  },
+  "inputFlows": {
+    "systemClipboardWins": true,
+    "literalTextDraft": true,
+    "typingUnaffected": true,
+    "nativeSelectionPasteAndUndo": true,
+    "dragDropImageAndPdf": true,
+    "pdfPages": [1, 2],
+    "clipboardImage": true,
+    "websiteAdded": true,
+    "pageErrors": []
+  },
+  "nativeClipboardAndChooser": {
+    "realSystemImagePaste": true,
+    "fileChooserOpened": true
+  },
+  "guards": {
+    "invalidEmptyAndOversizedFilesRejected": true,
+    "batchLimitedAndCancelClearsBusy": true,
+    "viewerCannotPasteOrDrop": true,
+    "viewerCanReadPdfWithoutEditing": true
+  },
+  "pageErrors": [],
+  "productionScope": "Authenticated published UI inspected at laptop/phone sizes. File chooser reached; remote setFiles blocked by browser-extension file URL permission. No permission changes or production content writes. Complete uploads and readback were verified in the isolated workspace.",
+  "websiteScope": "Local website reader uses a sanitized response from the real bookmark-reader helper; external local fetch remains restricted. Public archive reader was inspected on smena.team in the preceding audit.",
+  "pdfPreview": {
+    "inlineMaxPixels": [640, 800],
+    "fullMaxPixels": [1280, 1600],
+    "inlineTextExtraction": false,
+    "fullTextExtraction": true
+  },
+  "references": [
+    "https://help.miro.com/hc/en-us/articles/360017731233-Ways-to-add-content",
+    "https://help.miro.com/hc/en-us/articles/360017731013-Uploading-files-to-boards"
+  ]
+}

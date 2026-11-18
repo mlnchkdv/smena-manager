@@ -11,7 +11,7 @@ let scope = '',
   observer,
   running = 0,
   queue = [];
-const live = new Set();
+const live = new Map();
 const elements = () => [...document.querySelectorAll('[data-whiteboard-media]')];
 const nodeFor = id => whiteboardOf(currentWhiteboard()).nodes.find(node => node.id === id);
 const pageFor = node => whiteboardState().mediaPages?.[node.id] || node.media?.page || 1;
@@ -77,7 +77,7 @@ async function load(entry, page, owner) {
     let result;
     if (entry.kind === 'pdf') {
       const { renderPdfPage } = await import('./pdf-preview.js');
-      result = await renderPdfPage(blob, page, entry.controller.signal);
+      result = await renderPdfPage(blob, page, entry.controller.signal, { thumbnail: true });
     } else result = { blob, page: 1, pages: 1 };
     if (owner !== generation || entry.controller.signal.aborted) return;
     const url = URL.createObjectURL(result.blob);
@@ -121,7 +121,7 @@ function request(element) {
   if (!entry) {
     let total = () => [...cache.values()].reduce((sum, item) => sum + item.file.bytes, 0);
     while (cache.size >= 6 || total() + source.item.bytes > 32 * 1024 ** 2) {
-      const unused = [...cache.keys()].find(k => !live.has(k));
+      const unused = [...cache.keys()].find(k => ![...live.values()].includes(k));
       if (!unused) break;
       release(unused);
     }
@@ -158,16 +158,17 @@ export function syncWhiteboardPreviews() {
       release(key);
   observer = new IntersectionObserver(
     entries => {
+      if (scope !== owner) return;
       for (const item of entries) {
         const node = nodeFor(item.target.dataset.whiteboardMedia),
           file = node && whiteboardMaterial(node)?.item;
         if (file) {
           const key = fileKey(file);
-          if (item.isIntersecting) live.add(key);
-          else live.delete(key);
+          if (item.isIntersecting && item.target.isConnected) live.set(item.target, key);
+          else live.delete(item.target);
         }
       }
-      for (const item of entries) if (item.isIntersecting) request(item.target);
+      for (const item of entries) if (item.isIntersecting && item.target.isConnected) request(item.target);
     },
     { root: document.querySelector('.whiteboard-viewport'), rootMargin: '80px' },
   );

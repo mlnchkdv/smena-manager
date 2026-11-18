@@ -6,7 +6,7 @@ const fonts = import.meta.glob('/node_modules/pdfjs-dist/standard_fonts/*.{pfb,t
 const assetMap = values => new Map(Object.entries(values).map(([path, url]) => [path.split('/').at(-1), url]));
 const fontAssets = assetMap(fonts);
 
-export async function renderPdfPage(blob, pageNumber, signal) {
+export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false } = {}) {
   if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
   // Only bundled font/CMap resources can be fetched. Document URLs, links,
   // JavaScript actions, XFA and interactive annotations are never mounted.
@@ -50,7 +50,7 @@ export async function renderPdfPage(blob, pageNumber, signal) {
     const original = source.getViewport({ scale: 1 });
     if (!Number.isFinite(original.width) || !Number.isFinite(original.height) || original.width <= 0 || original.height <= 0)
       throw new Error('Invalid page size.');
-    const viewport = source.getViewport({ scale: Math.min(1.5, 1280 / original.width, 1600 / original.height) });
+    const viewport = source.getViewport({ scale: Math.min(1.5, (thumbnail ? 640 : 1280) / original.width, (thumbnail ? 800 : 1600) / original.height) });
     canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.ceil(viewport.width));
     canvas.height = Math.max(1, Math.ceil(viewport.height));
@@ -58,7 +58,7 @@ export async function renderPdfPage(blob, pageNumber, signal) {
     await rendering.promise;
     const image = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     if (!image || signal.aborted) throw new DOMException('Aborted', 'AbortError');
-    const content = await source.getTextContent();
+    const content = thumbnail ? { items: [] } : await source.getTextContent();
     const text = content.items
       .map(item => item.str || '')
       .join(' ')
