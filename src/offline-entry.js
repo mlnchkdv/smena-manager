@@ -74,7 +74,10 @@ async function render() {
         ),
       );
       const frame = el('iframe');
-      frame.setAttribute('sandbox', '');
+      // Keep the initial same-origin navigation eligible for service-worker
+      // interception. The returned document enforces its own opaque-origin
+      // `sandbox` CSP and script-src 'none'; scripts are never permitted here.
+      frame.setAttribute('sandbox', 'allow-same-origin');
       frame.title = words('Offline HTML archive', 'Локальный HTML-архив');
       frame.src = '/offline-archive?key=' + encodeURIComponent(item.key);
       frame.style.cssText = 'width:100%;height:65vh;border:1px solid currentColor';
