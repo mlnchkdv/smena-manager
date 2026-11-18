@@ -73,16 +73,15 @@ async function render() {
           words('Full saved HTML with embedded resources. Scripts are disabled.', 'Полный сохранённый HTML со встроенными ресурсами. Скрипты отключены.'),
         ),
       );
-      const frame = el('iframe');
-      // Keep the initial same-origin navigation eligible for service-worker
-      // interception. The returned document enforces its own opaque-origin
-      // `sandbox` CSP and script-src 'none'; scripts are never permitted here.
-      frame.setAttribute('sandbox', 'allow-same-origin');
-      frame.title = words('Offline HTML archive', 'Локальный HTML-архив');
-      frame.src = '/offline-archive?key=' + encodeURIComponent(item.key);
-      frame.style.cssText = 'width:100%;height:65vh;border:1px solid currentColor';
+      // Opaque sandboxed iframe navigations are not service-worker clients.
+      // Open the scriptless local document in an independent tab instead of
+      // relaxing the embedded viewer's origin sandbox.
+      const open = el('a', words('Open saved HTML in a new tab', 'Открыть сохранённый HTML в новой вкладке'));
+      open.href = '/offline-archive?key=' + encodeURIComponent(item.key);
+      open.target = '_blank';
+      open.rel = 'noopener noreferrer';
       content.append(
-        frame,
+        open,
         button(words('Download HTML', 'Скачать HTML'), () => download(new Blob([item.document], { type: 'text/html' }), `${item.title}.html`)),
       );
     } else if (item.kind === 'file' || item.kind === 'upload')
