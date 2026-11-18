@@ -52,7 +52,14 @@ test('permission reference reflects source restrictions and has no unsupported b
   const source = readFileSync(new URL('../../src/pages/members.js', import.meta.url), 'utf8');
   const S = { ui: { activeWorkspace: 'default' } };
   const data = { ws: { permissions: { createProjects: false } } };
-  const context = { S, D: () => data, ROLES: ['Owner', 'Admin', 'Member', 'Guest'], ic: () => '' };
+  const context = {
+    S,
+    D: () => data,
+    ROLES: ['Owner', 'Admin', 'Member', 'Guest'],
+    workspaceRoleLabel: value => (value === 'Admin' ? 'Administrator' : value),
+    esc: value => value,
+    ic: () => '',
+  };
   vm.runInNewContext(source.slice(source.indexOf('export function permsTable'), source.indexOf('export function teamsGrid')).replace('export ', ''), context);
   const cells = (html, label) =>
     html
@@ -61,6 +68,7 @@ test('permission reference reflects source restrictions and has no unsupported b
       .match(/aria-label="(Allowed|Not allowed)"/g);
   let html = context.permsTable();
   assert.doesNotMatch(html, /Billing|Delete workspace/);
+  assert.match(html, /<th scope="col">Administrator<\/th>/);
   assert.equal(cells(html, 'Comment on tasks').at(-1), 'aria-label="Not allowed"');
   assert.equal(cells(html, 'Create projects')[2], 'aria-label="Not allowed"');
   assert.equal(cells(html, 'Archive this workspace').filter(cell => cell === 'aria-label="Allowed"').length, 0);

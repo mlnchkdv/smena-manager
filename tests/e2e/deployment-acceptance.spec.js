@@ -157,6 +157,26 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
       await page.locator('.modal [data-a="closeModal"]').first().click();
+      if (width === 320 || width === 1366) {
+        await page.goto('/e2e-team/files');
+        await page.locator('.topsearch').click();
+        await page.locator('#pal-in').fill('CI research uncertain recovery');
+        await page
+          .locator('.pi')
+          .filter({ has: page.locator('.pi-name', { hasText: /^CI research uncertain recovery$/u }) })
+          .click();
+        await expect(page.locator('.research-record-head')).toContainText('CI research uncertain recovery');
+        await page.locator('[data-a="returnToMaterialSource"]').click();
+        await expect(page.locator('#search-page-q')).toHaveValue('CI research uncertain recovery');
+        await page.locator('[data-a="openResearchSearchResult"]').click();
+        await page
+          .locator('.research-technical summary')
+          .filter({ hasText: /History, review and export|История, проверка и экспорт/u })
+          .click();
+        const [download] = await Promise.all([page.waitForEvent('download'), page.locator('[data-a="researchExport"]').click()]);
+        expect(download.suggestedFilename()).toBe(`research-${researchId}.zip`);
+        expect(await download.failure()).toBeNull();
+      }
       await expect(page.locator('html')).toHaveAttribute('lang', language === 'Русский' ? 'ru' : 'en');
       expect((await page.request.get('/api/auth/me')).ok()).toBeTruthy();
     }
