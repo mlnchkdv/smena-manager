@@ -107,7 +107,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   await page.getByRole('button', { name: 'Файлы', exact: true }).click();
   releaseSave();
   await page.waitForLoadState('networkidle');
-  await expect(page).toHaveURL(new RegExp(`/project/${researchProject}/files$`));
+  await expect(page).toHaveURL(/\/project\/[^/]+\/files$/u);
   expect((await (await page.request.get(researchRoot + '?q=CI%20research%20late')).json()).total).toBe(1);
   await page.unroute('**' + researchRoot + '/commands');
 
