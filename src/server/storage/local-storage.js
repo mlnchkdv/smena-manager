@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { localResearchObjects } from './research-objects.js';
 import { localPreparedBackups, restorePreparedBackup } from './prepared-backup-objects.js';
 import { renameWithRetry } from './windows-file-retry.js';
 import { localKnowledgeImportJournals } from './knowledge-import-journal.js';
@@ -26,6 +27,7 @@ export class LocalStorageProvider {
     Object.assign(this, localPreparedBackups(this));
     Object.assign(this, localKnowledgeImportJournals(this));
     Object.assign(this, localKnowledgeInventory(this));
+    Object.assign(this, localResearchObjects(this));
   }
 
   documentPath(name) {

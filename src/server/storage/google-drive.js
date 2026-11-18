@@ -1,4 +1,5 @@
 import { drive } from '@googleapis/drive';
+import { driveResearchObjects } from './research-objects.js';
 import { JWT, OAuth2Client } from 'google-auth-library';
 import fs from 'node:fs';
 import { Readable } from 'node:stream';
@@ -106,6 +107,7 @@ export class GoogleDriveStorageProvider {
     Object.assign(this, drivePreparedBackups(this));
     Object.assign(this, driveKnowledgeImportJournals(this));
     Object.assign(this, driveKnowledgeInventory(this));
+    Object.assign(this, driveResearchObjects(this));
     this.scope = scope;
     this.allowBootstrap = false;
     if (scope) {

@@ -672,6 +672,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
       'mediaCopies',
       'workflow',
       'automations',
+      'research',
       'knowledgeTrash',
       'knowledgeMigration',
       'knowledgeImport',
@@ -687,7 +688,7 @@ export async function mutateWorkspaceMetadata(mutator, expectedRevision, options
   if (typeof storage.loadDatabaseMetadata !== 'function' || typeof storage.saveDatabaseMetadata !== 'function')
     return mutateWorkspaceDatabase(mutator, expectedRevision, options);
   return withWorkspaceWrite(async coordination => {
-    const baseline = await storage.loadDatabaseMetadata({ knowledge: !['workflow', 'automations'].includes(options.scope) });
+    const baseline = await storage.loadDatabaseMetadata({ knowledge: !['workflow', 'automations', 'research'].includes(options.scope) });
     const current = baseline && (await loadAggregate(storage, clone(baseline)));
     // Legacy/migration side effects require complete validation and reindexing.
     // Never install an empty/identity-only catalog as a canonical cache entry.

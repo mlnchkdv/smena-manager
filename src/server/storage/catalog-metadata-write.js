@@ -17,6 +17,7 @@ const SCOPES = {
   mediaCopies: ['_mediaBackups'],
   workflow: ['projects'],
   automations: ['projects'],
+  research: ['_researchProjects'],
 };
 const forbidden = () => Object.assign(new Error('This change requires a canonical catalog write.'), { statusCode: 403, code: 'METADATA_WRITE_FORBIDDEN' });
 const omit = (value, keys) => Object.fromEntries(Object.entries(value || {}).filter(([key]) => !keys.includes(key)));
@@ -69,7 +70,7 @@ export function patchCatalogMetadata(root, current, next, scope, memberId) {
     const fields = scope === 'automations' ? PROJECT_AUTOMATION_FIELDS : ['workflow', 'workflowRevision', 'workflowUpdatedBy', 'workflowUpdatedAt'];
     for (let index = 0; index < current.projects.length; index++)
       if (!same(omit(current.projects[index], fields), omit(next.projects[index], fields))) throw forbidden();
-  } else if (!['directory', 'mediaCopies'].includes(scope)) {
+  } else if (!['directory', 'mediaCopies', 'research'].includes(scope)) {
     const document = ['knowledgeTrash', 'knowledgeMigration', 'knowledgeImport', 'knowledgeApi'].includes(scope) ? 'knowledge' : scope;
     if (
       document !== scope &&
