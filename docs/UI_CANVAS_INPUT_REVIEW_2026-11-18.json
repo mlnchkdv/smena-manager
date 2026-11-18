@@ -3,7 +3,7 @@
   "area": "Whiteboard content import and responsive media",
   "localOrigin": "http://127.0.0.1:5290",
   "fixture": "Layout QA / canvas-audit; synthetic PNG 1000×700 (1,135,330 bytes), 3-page PDF",
-  "states": 128,
+  "states": 136,
   "matrices": [
     {
       "states": 80,
@@ -17,6 +17,12 @@
       "locales": ["ru"],
       "sizes": 8,
       "flows": ["add menu", "paste URL draft", "inline PDF", "full PDF", "website reader", "full image"]
+    },
+    {
+      "states": 8,
+      "locales": ["ru"],
+      "sizes": 8,
+      "flows": ["menu avoids trigger, trigger closes menu, final action remains reachable"]
     }
   ],
   "accessibilityScans": 6,

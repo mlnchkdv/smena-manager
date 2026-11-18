@@ -23,7 +23,13 @@ export function positionActionMenus() {
   document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
     if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
     const menu = panel.parentElement;
-    if (menu.hasAttribute('data-anchor-end')) {
+    const anchor = menu.matches('.whiteboard-toolbar > .whiteboard-add') ? menu.querySelector(':scope > summary').getBoundingClientRect() : null;
+    if (anchor) {
+      // The canvas clips its contents. A viewport menu can open above its
+      // trigger without being cut off by the whiteboard or page heading.
+      panel.style.position = 'fixed';
+      panel.style.inset = `${anchor.bottom + 6}px auto auto ${anchor.left}px`;
+    } else if (menu.hasAttribute('data-anchor-end')) {
       const anchor = menu.querySelector(':scope > summary').getBoundingClientRect();
       panel.style.inset = `${anchor.bottom + 6}px auto auto ${anchor.right - panel.offsetWidth}px`;
     } else if (menu.matches('.knowledge-folder-menu') && !matchMedia('(max-width: 900px), (pointer: coarse)').matches) {
@@ -33,10 +39,13 @@ export function positionActionMenus() {
     panel.style.translate = 'none';
     panel.style.removeProperty('max-height');
     const limit = parseFloat(getComputedStyle(panel).maxHeight);
-    panel.style.maxHeight = `${Math.max(0, Math.min(Number.isFinite(limit) ? limit : Infinity, bottom - top))}px`;
+    const below = anchor ? Math.max(0, bottom - anchor.bottom - 6) : 0;
+    const above = anchor ? Math.max(0, anchor.top - top - 6) : 0;
+    const available = anchor ? Math.max(below, above) : bottom - top;
+    panel.style.maxHeight = `${Math.max(0, Math.min(Number.isFinite(limit) ? limit : Infinity, available))}px`;
     const box = panel.getBoundingClientRect();
     const x = Math.max(left - box.left, Math.min(0, right - box.right));
-    const y = Math.max(top - box.top, Math.min(0, bottom - box.bottom));
+    const y = anchor ? (below >= above ? anchor.bottom + 6 : anchor.top - 6 - box.height) - box.top : Math.max(top - box.top, Math.min(0, bottom - box.bottom));
     panel.style.translate = `${x}px ${y}px`;
   });
 }
