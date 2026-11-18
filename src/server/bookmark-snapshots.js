@@ -51,11 +51,11 @@ export function bookmarkReaderPage(page) {
   if (!sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).trim()) throw pageError('PAGE_EMPTY');
   return { ...pageMetadata(page.html, page.url), html, capturedAt: new Date().toISOString() };
 }
-export async function saveBookmarkSnapshot(storage, workspace, bookmark, page) {
+export async function saveBookmarkSnapshot(storage, workspace, bookmark, page, snapshotId = randomUUID()) {
   const content = JSON.stringify({ kind: 'smena-bookmark-page-v1', workspace, bookmarkId: bookmark.id, ...page });
   const bytes = Buffer.byteLength(content);
   if (bytes > SNAPSHOT_MAX_BYTES) throw pageError('PAGE_TOO_LARGE', 413);
-  const id = randomUUID();
+  const id = snapshotId;
   const stored = await storage.uploadFile(`bookmark-page-${id}.json`, Buffer.from(content), 'application/json');
   return {
     id,

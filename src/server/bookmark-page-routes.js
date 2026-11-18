@@ -4,7 +4,8 @@ import { fetchPublicPage, fetchPublicAsset, pageMetadata, pageError } from './we
 import { getWorkspaceDatabase, mutateWorkspaceDatabase, RevisionConflictError } from './workspace-store.js';
 import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
-import { workspaceScope } from './workspace-context.js';
+import { workspaceScope, workspaceState } from './workspace-context.js';
+import { createBookmarkArchiveJobs } from './bookmark-archive-jobs.js';
 import { bookmarkReaderPage, saveBookmarkSnapshot, readBookmarkSnapshot, bookmarkPageSummary, SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
 import { createBookmarkThumbnailLoader, createSavedBookmarkThumbnailLoader } from './bookmark-thumbnails.js';
 import { archiveBookmarkHtml, ARCHIVE_CSP } from './bookmark-html-archive.js';
@@ -15,6 +16,18 @@ export function createBookmarkPageRouter({
   loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }),
 } = {}) {
   const bookmarkPageRouter = Router();
+  const jobs = workspaceState(() =>
+    createBookmarkArchiveJobs({
+      load: getWorkspaceDatabase,
+      mutate: mutateWorkspaceDatabase,
+      capture: async (url, stage) => {
+        const page = await fetchPage(url);
+        await stage('resources');
+        return archiveBookmarkHtml(page, { fetchAsset });
+      },
+      save: (bookmark, page, id) => saveBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, page, id),
+    }),
+  );
   const savedThumbnail = createSavedBookmarkThumbnailLoader((bookmark, id) => readBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, id));
   const activeCount = row => (row.pageSnapshots || []).filter(ref => !ref.isArchived).length;
   const requests = new Map();
@@ -46,6 +59,22 @@ export function createBookmarkPageRouter({
     if (!bookmark) throw pageError('PAGE_BOOKMARK_NOT_FOUND', 404);
     return bookmark;
   }
+  bookmarkPageRouter.get('/:id/archive-jobs', async (request, response, next) => {
+    try {
+      response.json({ jobs: await jobs().list(request.user, request.configuredProfiles, request.params.id) });
+    } catch (error) {
+      next(error);
+    }
+  });
+  bookmarkPageRouter.post('/:id/archive-jobs', requireRole('admin', 'editor'), async (request, response, next) => {
+    try {
+      response
+        .status(202)
+        .json({ job: await jobs().create(request.user, request.configuredProfiles, request.params.id, request.body?.key, request.body?.mode) });
+    } catch (error) {
+      next(error);
+    }
+  });
   bookmarkPageRouter.get('/:id/image', async (request, response, next) => {
     try {
       const bookmark = await target(request);
