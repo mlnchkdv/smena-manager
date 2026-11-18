@@ -1,10 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { releasePattern, ROOT } from './lib.mjs';
 
 // Explicit part of the trusted root deployment, never application startup.
 // The download runs as the build user; runtime binaries remain root-owned.
 export async function provisionCaptureRuntime(stage, node, run) {
-  if (!/^\/srv\/smena-manager\/releases\/\.stage-[a-f0-9-]+$/u.test(stage) || !path.isAbsolute(node)) throw new Error('Invalid capture staging path.');
+  const release = path.basename(stage).replace(/^\.stage-/u, '');
+  if (path.dirname(stage) !== `${ROOT}/releases` || !releasePattern.test(release) || !path.isAbsolute(node) || (await fs.realpath(stage)) !== stage)
+    throw new Error('Invalid capture release path.');
   const { version } = JSON.parse(await fs.readFile(path.join(stage, 'node_modules/playwright/package.json'), 'utf8'));
   if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error('Invalid capture dependency version.');
   const marker = '/etc/smena-manager/capture-runtime.json';
