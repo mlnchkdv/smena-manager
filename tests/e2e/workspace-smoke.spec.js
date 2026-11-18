@@ -1501,6 +1501,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
     await expect(page.locator('.files-folder-tile')).toHaveCount(2);
     await page.locator(`.files-folder-open[data-folder="${target === 'batch-b' ? 'batch-a' : 'batch-b'}"]`).click();
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await page.locator('[data-a="startFileSelection"]').click();
     await page.locator('[data-a="selectFilePage"]').click();
     await expect(page.locator('.files-selected-count b')).toHaveText('3');
     await setFilesView(page, 'list');
@@ -1532,6 +1533,7 @@ test('bulk files move atomically across searchable folder pages and go to recove
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
   }
+  await page.locator('[data-a="startFileSelection"]').click();
   await page.locator('[data-a="selectFilePage"]').click();
   await openFileSelectionTools(page);
   await page.locator('[data-a="trashSelectedFiles"]').click();
@@ -1586,6 +1588,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     await page.goto('/e2e-team/files');
     await page.locator('#workspace-file-q').fill(folderName);
     await expect(page.locator('.workspace-file-card')).toHaveCount(3);
+    await page.locator('[data-a="startFileSelection"]').click();
     await page.locator('[data-a="selectFilePage"]').click();
     if (language === 'Русский') await expectRussianUi(page, 'ZIP selection toolbar');
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -1639,6 +1642,7 @@ test('file ZIP downloads preserve Unicode and duplicates and never publish faile
     if ((await page.locator('.files-exports').getAttribute('open')) === null) await page.locator('.files-exports > summary').click();
     await exportRow.locator('[data-a="cancelFileExport"]').click();
     await page.locator('#workspace-file-q').fill(folderName);
+    await page.locator('[data-a="startFileSelection"]').click();
     await page.locator('[data-a="selectFilePage"]').click();
     await expect(page.locator('.files-page')).toBeVisible();
     await page.screenshot({ path: `output/playwright/files-zip-${language === 'Русский' ? 'ru' : 'en'}-320.png`, fullPage: true });

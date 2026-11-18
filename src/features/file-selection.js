@@ -6,7 +6,13 @@ import { mutate, toast } from '../ui/toast.js';
 import { fileBatchTargets } from '../shared/file-organization.js';
 import { detachTaskFile } from '../shared/file-identity.js';
 
+A.startFileSelection = () => {
+  S.ui.fileSelecting = true;
+  S.ui.fileSelectionNotice = false;
+  render();
+};
 A.toggleFileSelection = el => {
+  if (!S.ui.fileSelecting) return;
   const file = D().files.find(file => file.id === el.dataset.id);
   if (!file || !canSee(proj(file.project))) return;
   const selected = new Set(S.ui.fileSelection || []);
@@ -46,6 +52,8 @@ A.selectFileResults = async el => {
 };
 A.clearFileSelection = () => {
   S.ui.fileSelection = [];
+  S.ui.fileSelecting = false;
+  S.ui.fileSelectionNotice = false;
   render();
 };
 A.trashSelectedFiles = () => {

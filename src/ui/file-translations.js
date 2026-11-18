@@ -1,5 +1,7 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  Select: 'Выбрать',
+  'Selection cleared because the view changed.': 'Выбор снят после изменения представления.',
   'Upload files or choose existing ones.': 'Загрузите файлы или выберите существующие.',
   'Browse folders': 'Выбрать папку',
   Video: 'Видео',

@@ -197,6 +197,11 @@ document.addEventListener('keydown', e => {
       A.toggleGraphFocus();
       return;
     }
+    if (S.ui.fileSelecting && document.querySelector('.files-selection-bar')) {
+      e.preventDefault();
+      A.clearFileSelection();
+      return;
+    }
     if (t.value && t.id === 'graph-search') {
       e.preventDefault();
       A.clearGraphQuery();

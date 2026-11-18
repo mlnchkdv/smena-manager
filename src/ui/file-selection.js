@@ -8,14 +8,19 @@ import { archiveSelectionIssue, STREAM_ZIP_POLICY } from '../shared/file-archive
 import { collectionSelection } from './collection-layout.js';
 
 export function syncFileSelection(files, projectId = null) {
-  const scope = JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, projectId]);
-  if (S.ui.fileSelectionScope !== scope) S.ui.fileSelection = [];
+  const scope = JSON.stringify([S.ui.currentUser?.id, D().ws?.id || D().ws?.url, projectId, S.ui.fileProject, S.ui.fileFolder, S.ui.fileQ, S.ui.fileType]);
+  if (S.ui.fileSelectionScope !== scope) {
+    S.ui.fileSelectionNotice = !!S.ui.fileSelection?.length;
+    S.ui.fileSelection = [];
+    S.ui.fileSelecting = false;
+  }
   S.ui.fileSelectionScope = scope;
   const available = new Set(files.map(file => file.id));
   S.ui.fileSelection = [...new Set(S.ui.fileSelection || [])].filter(id => available.has(id)).slice(0, 500);
 }
 
 export function fileSelectButton(file) {
+  if (!S.ui.fileSelecting) return '';
   const selected = (S.ui.fileSelection || []).includes(file.id);
   return `<button class="file-select ${selected ? 'on' : ''}" data-a="toggleFileSelection" data-id="${esc(file.id)}" aria-pressed="${selected}" aria-label="${esc(t('Select file'))}: ${esc(file.name)}">${ic(selected ? 'square-check' : 'square', 17)}</button>`;
 }
@@ -39,6 +44,8 @@ export function fileDownloadProgress() {
 }
 
 export function fileSelectionBar(page, results = page, remote = null) {
+  if (!S.ui.fileSelecting)
+    return `${S.ui.fileSelectionNotice ? `<p class="hint" role="status">${t('Selection cleared because the view changed.')}</p>` : ''}${page.length ? `<button class="btn btn-secondary btn-sm" data-a="startFileSelection">${ic('list-checks', 16)}${t('Select')}</button>` : ''}`;
   const ids = S.ui.fileSelection || [];
   const files = D().files.filter(file => ids.includes(file.id));
   const pageIds = new Set(page.map(file => file.id));
@@ -57,7 +64,7 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const selectPage = `<button class="btn btn-ghost btn-sm" data-a="selectFilePage" data-ids="${esc(page.map(file => file.id).join(','))}" aria-pressed="${checked}" ${!page.length ? 'disabled' : ''}>${ic(checked ? 'square-check' : 'square', 16)}<span>Select page</span></button>`;
   return collectionSelection(
     `
-    ${files.length ? '' : `${selectPage}<details class="ui-menu files-selection-tools" ${disclosureAttributes('files:selection')}><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details>`}
+    ${files.length ? '' : `${selectPage}<details class="ui-menu files-selection-tools" ${disclosureAttributes('files:selection')}><summary class="ibtn" aria-label="Selection options" title="Selection options">${ic('ellipsis', 16)}</summary><div>${selectResults}</div></details><button class="btn btn-ghost btn-sm" data-a="clearFileSelection">${t('Done')}</button>`}
     ${
       files.length
         ? `<span class="files-selected-count" role="status"><span>Selected files</span>: <b>${files.length}</b>${hiddenCount ? ` · ${hiddenCount} <span>outside this page</span>` : ''}</span><span class="sp"></span>
@@ -66,8 +73,8 @@ export function fileSelectionBar(page, results = page, remote = null) {
     <button class="btn btn-secondary btn-sm" data-a="streamSelectedFiles" ${streamIssue || busy ? 'disabled' : ''} title="${esc(t(streamIssue || 'Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.'))}">${ic('arrow-down-to-line', 15)}<span>Stream ZIP</span></button>
     <button class="btn btn-secondary btn-sm" data-a="moveFileToFolder" ${movable ? '' : 'disabled'} title="Choose editable files from one project.">${ic('folder-input', 15)}<span>Move</span></button>
     <button class="btn btn-secondary btn-sm" data-a="trashSelectedFiles" ${removable ? '' : 'disabled'} title="Deleting files requires edit access and ownership, or an administrator role.">${ic('trash-2', 15)}<span>Move to trash</span></button>
-    <details class="selection-policy"><summary>Details</summary><p class="hint">Selection is kept when filters change. Up to 500 files.</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details></div></details>
-    <button class="ibtn" data-a="clearFileSelection" aria-label="Clear selection">${ic('x', 16)}</button>`
+    <details class="selection-policy"><summary>Details</summary><p class="hint" translate="no">${t('Selection cleared because the view changed.')} ${t('Select up to 500 files at a time.')}</p><p class="hint">${esc(t(downloadIssue || 'ZIP: up to 100 files / 50 MB. Folder paths are preserved.'))}</p><p class="hint">Streamed ZIP: up to 500 files / 250 MB, 45 seconds. No whole-archive memory buffer.</p></details></div></details>
+    <button class="btn btn-ghost btn-sm" data-a="clearFileSelection">${t('Done')}</button>`
         : ''
     }
   `,

@@ -121,7 +121,6 @@ export function pageFiles(projectId = null) {
   const writableIds = new Set(writable.map(project => project.id));
   const index = createFileIndex(D(), projects, Object.fromEntries(Object.entries(FT).map(([key, meta]) => [key, `${meta.n} ${tr(meta.n)}`])));
   const allFiles = index.files;
-  syncFileSelection(allFiles, projectId);
   const query = String(S.ui.fileQ || '')
     .trim()
     .toLowerCase();
@@ -133,6 +132,7 @@ export function pageFiles(projectId = null) {
   S.ui.fileProject = projectFilter;
   const currentFolder = activeFileFolder(proj(projectFilter), S.ui.fileFolder);
   if (!currentFolder) S.ui.fileFolder = null;
+  syncFileSelection(allFiles, projectId);
   const sort = S.ui.fileSort || 'date';
   const view = S.ui.fileView || 'grid';
   const uploadProject =
