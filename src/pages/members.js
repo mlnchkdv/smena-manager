@@ -13,7 +13,7 @@ import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { page404 } from './errors.js';
-import { isRussian, t as tr, uiCount } from '../core/i18n.js';
+import { isRussian, t as tr, uiCount, workspaceRoleLabel } from '../core/i18n.js';
 import { canManageTeams } from '../shared/workspace-permissions.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 
@@ -29,8 +29,8 @@ const memberAccessBadge = m =>
       : '<span class="badge green">Access active</span>';
 const memberRoleControl = (m, isAdmin) =>
   isAdmin && m.role !== 'Owner' && m.id !== D().me
-    ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${esc(m.id)}" aria-label="${actionLabel('Role', m.name, tr(m.role))}">${esc(m.role)}${ic('chevron-down', 12)}</button>`
-    : `<span class="badge">${esc(m.role)}</span>`;
+    ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${esc(m.id)}" aria-label="${actionLabel('Role', m.name, workspaceRoleLabel(m.role))}">${esc(workspaceRoleLabel(m.role))}${ic('chevron-down', 12)}</button>`
+    : `<span class="badge">${esc(workspaceRoleLabel(m.role))}</span>`;
 
 function mobileMembers(members, isAdmin, activity) {
   if (!members.length)
@@ -65,7 +65,7 @@ export function pageMembers() {
           ? permsTable()
           : `
     <div class="member-filter-toolbar"><div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="mem-q" data-in="memQ" placeholder="${isRussian() ? 'Имя, почта, должность или команда' : 'Name, email, job title or team'}" value="${esc(u.memQ || '')}" aria-label="Search members"></div>
-      <label class="member-role-filter"><span class="sr">Filter by role</span><select class="select" data-in="memberRoleFilter" aria-label="Filter by role">${['all', ...ROLES].map(r => `<option value="${r}" ${role === r ? 'selected' : ''}>${r === 'all' ? 'All roles' : r}</option>`).join('')}</select></label><span class="hint num" role="status">${ms.length} / ${D().members.length}</span>${q || role !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="clearMemberFilters">Clear filters</button>' : ''}</div>
+      <label class="member-role-filter"><span class="sr">Filter by role</span><select class="select" data-in="memberRoleFilter" aria-label="Filter by role">${['all', ...ROLES].map(r => `<option value="${r}" ${role === r ? 'selected' : ''}>${r === 'all' ? 'All roles' : esc(workspaceRoleLabel(r))}</option>`).join('')}</select></label><span class="hint num" role="status">${ms.length} / ${D().members.length}</span>${q || role !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="clearMemberFilters">Clear filters</button>' : ''}</div>
     ${mobileMembers(ms, isAdmin, activity)}<div class="panel hide-m member-catalog-table" style="overflow-x:auto">${
       ms.length
         ? `<table class="perm-t" style="min-width:880px"><thead><tr><th style="padding-left:14px">Member</th><th style="text-align:left">Role</th><th style="text-align:left">Team</th><th>Active projects</th><th>Tasks</th><th style="text-align:left">Recorded activity</th><th style="text-align:left">Status</th><th></th></tr></thead><tbody>
@@ -74,7 +74,7 @@ export function pageMembers() {
         const ap = visibleProjects().filter(p => p.members.includes(m.id) && p.status !== 'complete').length;
         const ot = allTasks().filter(t => t.assignee === m.id && t.status !== 'done').length;
         return `<tr data-ctx="member" data-id="${m.id}"><td style="padding-left:14px"><button class="row" data-a="go" data-r="member" data-id="${m.id}" style="gap:10px;text-align:left">${av(m.id, 'md', false, true)}<span class="col"><b style="font-weight:500"><span translate="no">${esc(m.name)}</span>${m.id === D().me ? ' <span class="faint" style="font-weight:400">(you)</span>' : ''}</b>${m.title ? `<span class="member-job-title faint" translate="no">${esc(m.title)}</span>` : ''}<span class="faint" style="font-size:12px" translate="no">${esc(m.email)}</span></span></button></td>
-      <td style="text-align:left">${isAdmin && m.role !== 'Owner' && m.id !== D().me ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${m.role}</span>`}</td>
+      <td style="text-align:left">${isAdmin && m.role !== 'Owner' && m.id !== D().me ? `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${esc(workspaceRoleLabel(m.role))}${ic('chevron-down', 12)}</button>` : `<span class="pillbtn">${m.role === 'Owner' ? ic('crown', 13) : ''}${esc(workspaceRoleLabel(m.role))}</span>`}</td>
       <td style="text-align:left"><span class="row">${ic(TM[m.team].icon, 13)}<span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></span></td><td class="num">${ap}</td><td class="num">${ot}</td>
       <td style="text-align:left" class="muted">${recordedMemberLabel(m, activity)}</td>
       <td style="text-align:left">${m.status === 'invited' ? '<span class="badge amber"><span class="dot"></span>Invited</span>' : m.status === 'deactivated' ? '<span class="badge gray">Access deactivated</span>' : '<span class="badge green"><span class="dot"></span>Access active</span>'}</td>
@@ -101,7 +101,7 @@ export function permsTable() {
     ['Archive this workspace', archivable, archivable, 0, 0],
     ['Clear workspace content', 1, 1, 0, 0],
   ];
-  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details><div class="panel" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col">${r}</th>`).join('')}</tr></thead><tbody>${rows
+  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details><div class="panel" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col">${esc(workspaceRoleLabel(r))}</th>`).join('')}</tr></thead><tbody>${rows
     .map(
       r =>
         `<tr><th scope="row" style="padding-left:14px;text-align:left;font-weight:400">${r[0]}</th>${r
@@ -161,7 +161,7 @@ export function pageTeam() {
         },
       )}<p class="hint">${tr(scope === 'projects' ? 'Open tasks in this team’s visible projects, regardless of assignee.' : 'Open tasks assigned to team members, across visible projects.')}</p></div>${ts.rows.map(x => miniRow(x)).join('') || '<div class="panel-b faint">No tasks here</div>'}${ts.pages > 1 ? `<nav class="panel-b team-task-pagination" aria-label="${tr('Team task pages')}"><span class="hint" role="status">${ts.start}–${ts.end} / ${ts.total}</span><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page - 1}" ${ts.page === 0 ? 'disabled' : ''}>Previous</button><button class="btn btn-secondary btn-sm" data-a="teamTaskPage" data-page="${ts.page + 1}" ${ts.page + 1 === ts.pages ? 'disabled' : ''}>Next</button></nav>` : ''}</section>
     </div>
-    <section class="panel" style="align-self:start"><div class="panel-h"><h2>Members</h2><span class="faint">${ms.length}</span></div>${ms.map(m => `<div class="mini" style="min-height:48px" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false, true)}<div class="grow"><div style="font-weight:500" translate="no">${esc(m.name)}</div><div class="faint" style="font-size:12px" translate="no">${esc(m.title)}</div></div><span class="badge">${m.role}</span></div>`).join('')}</section></div>
+    <section class="panel" style="align-self:start"><div class="panel-h"><h2>Members</h2><span class="faint">${ms.length}</span></div>${ms.map(m => `<div class="mini" style="min-height:48px" data-a="go" data-r="member" data-id="${m.id}">${av(m.id, 'md', false, true)}<div class="grow"><div style="font-weight:500" translate="no">${esc(m.name)}</div><div class="faint" style="font-size:12px" translate="no">${esc(m.title)}</div></div><span class="badge">${esc(workspaceRoleLabel(m.role))}</span></div>`).join('')}</section></div>
   </div>`;
 }
 export function pageMember() {
@@ -179,7 +179,7 @@ export function pageMember() {
   return `<div class="page member-profile">
     <div class="row member-profile-head" style="gap:18px;margin-bottom:22px;flex-wrap:wrap;align-items:flex-start">
       ${av(m.id, 'xl ' + (m.last != null && m.last < 5 ? 'presence' : ''), false)}
-      <div class="grow member-profile-identity"><div class="row" style="gap:10px;flex-wrap:wrap"><h1 style="font-size:var(--fs-2xl);margin:0;font-weight:600;letter-spacing:-.02em" translate="no">${esc(m.name)}</h1><span class="badge">${m.role === 'Owner' ? ic('crown', 11) : ''}${m.role}</span>${m.status === 'invited' ? '<span class="badge amber">Invite pending</span>' : ''}</div>
+      <div class="grow member-profile-identity"><div class="row" style="gap:10px;flex-wrap:wrap"><h1 style="font-size:var(--fs-2xl);margin:0;font-weight:600;letter-spacing:-.02em" translate="no">${esc(m.name)}</h1><span class="badge">${m.role === 'Owner' ? ic('crown', 11) : ''}${esc(workspaceRoleLabel(m.role))}</span>${m.status === 'invited' ? '<span class="badge amber">Invite pending</span>' : ''}</div>
         <div class="muted" style="margin-top:3px"><span translate="no">${esc(m.title)}</span> · <span ${team(m.team) ? 'translate="no"' : ''}>${esc(TM[m.team].name)}</span></div>
         <div class="row faint" style="margin-top:8px;gap:14px;font-size:12.5px;flex-wrap:wrap"><span class="row member-profile-email" style="gap:5px">${ic('mail', 13)}<span style="user-select:all" translate="no">${esc(m.email)}</span></span>${m.tz?.trim() ? `<span class="row" style="gap:5px">${ic('map-pin', 13)}<span translate="no">${esc(m.tz)}</span></span>` : ''}<span class="row" style="gap:5px">${ic('clock', 13)}${tr('Recorded activity')}: ${recordedMemberLabel(m, activity)}</span></div></div>
       <div class="member-profile-actions"><button class="btn btn-secondary" data-a="copyText" data-text="${esc(m.email)}" aria-label="Copy email" title="Copy email">${ic('copy', 14)}<span class="hide-m">Copy email</span><span class="only-m">Copy</span></button><button class="btn btn-primary" data-a="newTask" data-assignee="${m.id}">${ic('plus', 14)}Assign task</button><button class="ibtn" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="${actionLabel('Member options', m.name, m.email)}">${ic('ellipsis', 16)}</button></div>

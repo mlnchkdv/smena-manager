@@ -30,7 +30,7 @@ import { entityAllowed, resolveGraphEntity } from '../shared/relations.js';
 import { graphOptions } from '../ui/relations.js';
 
 import { workspaceSlug } from '../shared/workspace-slug.js';
-import { isRussian, templateText, t } from '../core/i18n.js';
+import { isRussian, templateText, t, workspaceRoleName, workspaceRoleLabel } from '../core/i18n.js';
 import { resolveAppLocation } from '../shared/app-location.js';
 import { activeWorkspaceAdministrators, isWorkspaceAdministrator } from '../shared/workspace-membership.js';
 
@@ -659,19 +659,21 @@ A.popPick = el => {
       return;
     }
     const m = mem(p.id);
-    if (!m || m.id === D().me || m.role === 'Owner') return;
+    if (!m || m.id === D().me || m.role === 'Owner' || !['Admin', 'Member', 'Guest'].includes(v) || m.role === v) return;
     if (isWorkspaceAdministrator(m) && v !== 'Admin' && activeWorkspaceAdministrators(D()).length <= 1) {
       S.ui.pop = null;
       render();
       toast("Assign another administrator before changing the last administrator's role.", { kind: 'err', ms: 7000 });
       return;
     }
-    mutate(() => {
+    const previous = workspaceRoleName(m.role);
+    const changed = mutate(() => {
       m.role = v;
+      logAct('changed the workspace role of', null, `${m.name}: ${previous} → ${workspaceRoleName(v)}`);
     });
     S.ui.pop = null;
     render();
-    toast(`${m.name} is now ${v === 'Admin' ? 'an' : 'a'} ${v}`);
+    if (changed) toast(`${t('Role updated')} · ${m.name} · ${workspaceRoleLabel(v)}`);
     return;
   }
   const field = { status: 'status', priority: 'priority', assignee: 'assignee', project: 'project', recur: 'recur', estimate: 'estimate', date: p.field }[

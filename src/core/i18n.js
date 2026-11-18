@@ -143,8 +143,13 @@ const TEMPLATE_TEXT_RU = {
 };
 
 export const templateText = value => (isRussian() ? TEMPLATE_TEXT_RU[value] || value : value);
-export const workspaceRoleLabel = role =>
-  t({ owner: 'Owner', admin: 'Administrator', viewer: 'Guest', guest: 'Guest' }[String(role || '').toLowerCase()] || 'Member');
+export const workspaceRoleName = role =>
+  ({ owner: 'Owner', admin: 'Administrator', administrator: 'Administrator', viewer: 'Guest', guest: 'Guest' })[
+    String(role || '')
+      .trim()
+      .toLowerCase()
+  ] || 'Member';
+export const workspaceRoleLabel = role => t(workspaceRoleName(role));
 
 const pluralRu = (value, one, few, many) => {
   const count = Number(value);

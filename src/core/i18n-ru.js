@@ -1235,6 +1235,8 @@ export const RU = {
   'Back to graph': 'Вернуться в граф',
   'Back to search': 'Вернуться к поиску',
   'This file is unavailable or access changed.': 'Файл недоступен или права доступа изменились.',
+  'changed the workspace role of': 'изменил(а) роль в пространстве у',
+  'Role updated': 'Роль изменена',
   Bug: 'Ошибка',
   Growth: 'Рост',
   QA: 'Тестирование',

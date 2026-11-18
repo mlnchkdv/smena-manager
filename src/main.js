@@ -41,7 +41,7 @@ import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAnd
 import { toast } from './ui/toast.js';
 import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
 import { deliverBrowserNotification } from './core/browser-notifications.js';
-import { t as tr, workspaceDraftLabel, projectRuleConflictLabel } from './core/i18n.js';
+import { t as tr, workspaceDraftLabel, projectRuleConflictLabel, workspaceRoleLabel } from './core/i18n.js';
 import { syncWebPushSubscription } from './core/push-subscriptions.js';
 import { disableWorkspaceSync, retryWorkspaceSync, workspaceSyncIsClean, workspaceSyncState } from './core/workspace-sync.js';
 import { pollConnectionFlags, workspaceRefreshDelay } from './core/workspace-refresh.js';
@@ -295,9 +295,10 @@ window.addEventListener('smena:personal-save-status', event => {
 });
 
 window.addEventListener('smena:permission-denied', event => {
-  const viewer = event.detail?.role === 'viewer';
+  const role = event.detail?.role;
+  const message = tr(role === 'viewer' ? 'You have view-only access to this workspace.' : 'Only an administrator can change this setting.');
   render();
-  toast(viewer ? 'You have view-only access to this workspace.' : 'Only an administrator can change this setting.', { kind: 'err' });
+  toast(role ? `${message} ${tr('Role')} · ${workspaceRoleLabel(role)}` : message, { kind: 'err' });
 });
 
 window.addEventListener('smena:google-credential', event => {
