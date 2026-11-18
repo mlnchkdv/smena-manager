@@ -7,6 +7,7 @@ import { projectAccess } from '../shared/project-access.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
 import { validateResearchRecord } from './research-validation.js';
 import { resolveResearchFiles, validateResearchEvidence } from './research-evidence.js';
+import { researchExportFiles } from './research-export.js';
 import {
   RESEARCH_LIMITS,
   researchError,
@@ -104,6 +105,22 @@ export function createResearchStore({
       actorId: context.actor.id,
       canEdit: !context.project.archived && context.access >= 3,
       canConfigure: !context.project.archived && context.access >= 4,
+      reviewers: db.members
+        .filter(member => {
+          try {
+            return researchContext(db, projectId, { ...member, role: workspaceMemberRole(member) }, []).access >= 3;
+          } catch {
+            return false;
+          }
+        })
+        .map(member => ({ id: member.id, name: member.name || member.id })),
+      canReview:
+        !!record &&
+        !context.project.archived &&
+        context.access >= 3 &&
+        (context.access >= 4 || record.data.reviewerId === context.actor.id) &&
+        record.createdBy !== context.actor.id &&
+        record.updatedBy !== context.actor.id,
       total: filtered.length,
       items: filtered.slice(offset, offset + Math.min(100, limit)).map(row => {
         const item = { ...row };
@@ -171,7 +188,8 @@ export function createResearchStore({
                 Object.assign(record, draft, { review: { status: 'draft' } });
               } else if (input.action === 'review') {
                 if (context.access < 4 && before.data.reviewerId !== context.actor.id) throw researchError('RESEARCH_REVIEW_FORBIDDEN', 403);
-                if (before.createdBy === context.actor.id) throw researchError('RESEARCH_SELF_REVIEW', 409);
+                if (before.createdBy === context.actor.id || before.updatedBy === context.actor.id) throw researchError('RESEARCH_SELF_REVIEW', 409);
+                if (!before.body.trim()) throw researchError('RESEARCH_REVIEW_INCOMPLETE');
                 record.review = { status: 'reviewed', by: context.actor.id, at: now, sourceHash: current.ref.sha256 };
               } else record.archived = input.action === 'archive';
             }
@@ -253,6 +271,39 @@ export function createResearchStore({
     }
     return { items };
   }
-  return { read, command, history, operation, projects };
+  async function exportRecord(projectId, id, profile, profiles = [], russian = false) {
+    const db = await load();
+    researchContext(db, projectId, profile, profiles);
+    const book = await index(db, projectId),
+      row = book.records.find(item => item.id === id);
+    if (!row) throw researchError('RESEARCH_NOT_FOUND', 404);
+    const queue = [row.ref, ...book.records.filter(item => !item.archived && item.experimentId === id).map(item => item.ref)],
+      seen = new Set(),
+      objects = [];
+    let bytes = 0;
+    while (queue.length) {
+      const ref = queue.shift();
+      if (!ref || seen.has(ref.sha256)) continue;
+      seen.add(ref.sha256);
+      bytes += ref.bytes;
+      if (bytes > 8 * 1024 * 1024 || seen.size > 200) throw researchError('RESEARCH_EXPORT_LIMIT', 413);
+      const value = await readObject(ref, projectId);
+      objects.push({ sha256: ref.sha256, value });
+      if (value.previous) queue.push(value.previous);
+      for (const field of ['experimentId', 'datasetId', 'protocolId', 'baselineRunId']) {
+        const related = book.records.find(item => item.id === value.data[field]);
+        if (related) queue.push(related.ref);
+      }
+      for (const frozen of Object.values(value.plan || {})) if (frozen?.ref) queue.push(frozen.ref);
+    }
+    const record = objects.find(object => object.sha256 === row.ref.sha256).value;
+    const runs = book.records
+      .filter(item => !item.archived && (item.experimentId === id || item.id === id) && item.kind === 'run')
+      .map(item => objects.find(object => object.sha256 === item.ref.sha256)?.value)
+      .filter(Boolean);
+    researchContext(await load(), projectId, profile, profiles);
+    return { filename: 'research-' + id + '.zip', files: researchExportFiles(record, runs, objects, russian) };
+  }
+  return { read, command, history, operation, projects, exportRecord };
 }
 export const researchStore = createResearchStore();

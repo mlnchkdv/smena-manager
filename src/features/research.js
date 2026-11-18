@@ -14,6 +14,7 @@ import { researchEvidenceHtml } from '../ui/research-evidence.js';
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
 import { researchComparisonHtml } from '../ui/research-comparison.js';
 import { researchMetricsHtml } from '../ui/research-metrics.js';
+import { researchReportMarkdown } from '../shared/research-report.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -71,6 +72,7 @@ function form(model, record, kind = 'experiment') {
     generation,
     record: structuredClone(record || seedTemplate(kind, model)),
     original: !!record,
+    reviewers: model.catalog?.reviewers || [],
     render: (m, H) =>
       `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy || m.command ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
   };
@@ -290,6 +292,7 @@ A.researchOpen = async el => {
     const result = await researchRequest(model.project, '/records/' + encodeURIComponent(el.dataset.id));
     if (active(model)) {
       model.selected = result.record;
+      model.catalog = { ...model.catalog, canReview: result.canReview, reviewers: result.reviewers };
       go('project', { id: model.project, tab: 'research', researchId: result.record.id });
     }
   } catch (error) {
@@ -422,6 +425,103 @@ async function recordCommand(action) {
   }
 }
 A.researchArchive = () => recordCommand(state().selected?.archived ? 'restore' : 'archive');
+A.researchReview = () => recordCommand('review');
+A.researchDraftArticle = async () => {
+  const model = state(),
+    source = model.selected;
+  if (!source) return;
+  try {
+    const listing = await researchRequest(model.project, '?kind=run&limit=100');
+    const rows = listing.items.filter(row => row.experimentId === (source.kind === 'experiment' ? source.id : source.data.experimentId));
+    if (listing.total > 100) throw { code: 'RESEARCH_EXPORT_LIMIT' };
+    const runs = await Promise.all(rows.map(async row => (await researchRequest(model.project, '/records/' + encodeURIComponent(row.id))).record));
+    if (!active(model)) return;
+    const m = form(model, null, 'article');
+    m.record.title = source.title + rw(' · findings', ' · результаты');
+    m.record.body = researchReportMarkdown(source, runs, rw(false, true));
+    m.record.data.experimentId = source.kind === 'experiment' ? source.id : source.data.experimentId || '';
+    render();
+  } catch (error) {
+    if (active(model)) {
+      model.error = researchFailure(error);
+      render();
+    }
+  }
+};
+A.researchExport = async () => {
+  const m = state();
+  if (m.pending || !m.selected) return;
+  m.pending = true;
+  render();
+  try {
+    const result = await researchRequest(m.project, '/records/' + encodeURIComponent(m.selected.id) + '/export?lang=' + rw('en', 'ru'));
+    if (!active(m)) return;
+    const { zipSync, strToU8 } = await import('fflate');
+    const bytes = zipSync(Object.fromEntries(Object.entries(result.files).map(([name, text]) => [name, strToU8(text)])), { level: 0 });
+    const href = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' })),
+      anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = result.filename;
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(href), 30000);
+  } catch (error) {
+    if (active(m)) m.error = researchFailure(error);
+  } finally {
+    if (active(m)) {
+      m.pending = false;
+      render();
+    }
+  }
+};
+A.researchHistory = async () => {
+  const model = state();
+  if (!model.selected) return;
+  const m = {
+    type: 'researchHistory',
+    project: model.project,
+    current: model.selected,
+    items: [],
+    busy: true,
+    canEdit: model.catalog.canEdit,
+    generation: getSessionGeneration(),
+    render: (m, H) =>
+      `${H(rw('Record history', 'История записи'))}<div class="modal-b research-form" translate="no">${m.busy ? `<p role="status">${rw('Loading history…', 'Загружаем историю…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.items.map((item, i) => `<details><summary>v${item.revision} · ${esc(researchDate(item.at, true))}</summary><article class="knowledge-body">${renderKnowledgeMarkdown(item.record.body)}</article><pre class="research-code">${esc(JSON.stringify(item.record.data, null, 2))}</pre>${m.canEdit ? `<button class="btn btn-secondary" data-a="researchRestoreVersion" data-index="${i}">${rw('Use as a new revision', 'Взять за основу новой редакции')}</button>` : ''}</details>`).join('') || (!m.busy ? `<p>${rw('This is the first revision.', 'Это первая редакция.')}</p>` : '')}${m.cursor ? `<button class="btn btn-secondary" data-a="researchMoreHistory">${rw('Earlier revisions', 'Более ранние редакции')}</button>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${rw('Close', 'Закрыть')}</button></div>`,
+  };
+  openModal(m);
+  await loadHistory(m);
+};
+async function loadHistory(m) {
+  m.busy = true;
+  try {
+    const result = await researchRequest(
+      m.project,
+      '/records/' + encodeURIComponent(m.current.id) + '/history' + (m.cursor ? '?cursor=' + encodeURIComponent(m.cursor) : ''),
+    );
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
+      m.items.push(...result.items);
+      m.cursor = result.nextCursor;
+    }
+  } catch (error) {
+    m.error = researchFailure(error);
+  } finally {
+    m.busy = false;
+    if (S.ui.modals.includes(m)) render();
+  }
+}
+A.researchMoreHistory = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchHistory' && !m.busy) void loadHistory(m);
+};
+A.researchRestoreVersion = el => {
+  const m = S.ui.modals.at(-1),
+    older = m?.items?.[Number(el.dataset.index)]?.record;
+  if (m?.type !== 'researchHistory' || !older || !m.canEdit) return;
+  S.ui.modals.pop();
+  const restored = { ...older, revision: m.current.revision };
+  const draft = form(state(), restored);
+  draft.record.data.amendment = rw('Based on revision ', 'На основе редакции ') + older.revision;
+  render();
+};
 A.researchTransition = el => {
   const model = state();
   if (!model.selected) return;
@@ -455,6 +555,9 @@ function researchRecordActions(record) {
   const transitions = state === 'planned' ? ['running', 'cancelled'] : state === 'running' ? ['completed', 'failed', 'cancelled'] : [];
   return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(researchState(next))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
 }
+function researchReadingActions(record, canEdit) {
+  return `<details class="research-technical"><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+}
 function details(record, canEdit) {
   const data = record.data;
   const labels = {
@@ -472,7 +575,7 @@ function details(record, canEdit) {
     .map(([key, label]) => `<div><dt>${label}</dt><dd>${esc(data[key])}</dd></div>`)
     .join(
       '',
-    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
+    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
 }
 export function researchHtml() {
   const m = state();

@@ -14,6 +14,14 @@ const route = operation => async (request, response, next) => {
 };
 const args = request => [request.params.project, request.user, request.configuredProfiles || []];
 researchRouter.get(
+  '/projects/:project/records/:id/export',
+  route(async (request, response) => {
+    response.json(
+      await researchStore.exportRecord(request.params.project, request.params.id, request.user, request.configuredProfiles || [], request.query.lang === 'ru'),
+    );
+  }),
+);
+researchRouter.get(
   '/projects/:project/operations/:operation',
   route(async (request, response) => {
     response.json(await researchStore.operation(request.params.project, request.params.operation, request.user, request.configuredProfiles || []));

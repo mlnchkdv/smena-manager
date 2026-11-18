@@ -28,6 +28,7 @@ export function modalHtml(m) {
   switch (m.type) {
     case 'researchForm':
     case 'researchCompare':
+    case 'researchHistory':
       return wrap('md research-form-dialog', m.render(m, H));
     case 'publicLink':
       return wrap('md public-link-dialog', m.render(m, H));

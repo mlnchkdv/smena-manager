@@ -85,6 +85,12 @@ export function researchFormFields(m) {
       field('conclusion', rw('Verified conclusion / current state', 'Проверенный вывод / текущее состояние'), data.conclusion) +
       field('nextStep', rw('Next action', 'Следующий шаг'), data.nextStep);
   if (kind === 'run') fields += researchMetricsForm(m);
+  fields += select(
+    'reviewerId',
+    rw('Reviewer, optional', 'Рецензент, необязательно'),
+    data.reviewerId,
+    (m.reviewers || []).map(member => [member.id, member.name]),
+  );
   fields += researchEvidenceForm(m);
   return `${template}${field('title', rw('Title', 'Название'), record.title)}${fields}<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>${m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state) ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment) : ''}`;
 }
