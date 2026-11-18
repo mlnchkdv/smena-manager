@@ -95,7 +95,7 @@
                   ><strong>Product launch</strong>
                 </div>
                 <div class="example-toolbar">
-                  <span class="hint">Click a task to change its status.</span
+                  <span class="hint">Open a task, then choose its status.</span
                   ><button type="button" class="btn btn-secondary" data-demo-action="board-layout">
                     <svg
                       class="i"
@@ -391,7 +391,8 @@
                     Demo upload queue</span
                   ><span class="prog" role="progressbar" aria-label="Demo progress" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"
                     ><i style="--p: 0.64"></i></span
-                  ><b>64%</b><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false">Pause</button>
+                  ><b>64%</b><button class="btn btn-secondary" data-demo-start>Start demo</button
+                  ><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false" disabled>Pause</button>
                 </div>
                 <p class="example-status" role="status" aria-live="polite">Demo. Changes are not saved.</p>
                 <dialog class="example-dialog" aria-label="Demo preview">
@@ -449,6 +450,24 @@
                       <option>Meeting</option>
                       <option>Research</option>
                     </select></label
+                  ><button type="button" class="btn btn-secondary" data-demo-action="note-edit">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                      />
+                      <path d="m15 5 4 4" /></svg
+                    >Edit</button
                   ><button type="button" class="btn btn-secondary" data-demo-action="note-version">
                     <svg
                       class="i"
@@ -946,28 +965,29 @@
                       <circle cx="12" cy="12" r="10" />
                       <circle cx="12" cy="12" r="1" /></svg
                     >Simplified view</button
+                  ><button class="btn btn-secondary" data-demo-physics aria-pressed="false">Physics off</button
                   ><span class="hint">Select a node to see its connections.</span>
                 </div>
                 <div class="demo-graph">
                   <svg viewBox="0 0 700 260" aria-hidden="true">
                     <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
-                    <g>
+                    <g data-demo-graph-node="0" role="button" tabindex="0" aria-label="Project">
                       <circle cx="350" cy="120" r="22" class="graph-color-0" />
                       <text x="350" y="157" text-anchor="middle">Project</text>
                     </g>
-                    <g>
+                    <g data-demo-graph-node="1" role="button" tabindex="0" aria-label="Note">
                       <circle cx="160" cy="55" r="12" class="graph-color-1" />
                       <text x="160" y="92" text-anchor="middle">Note</text>
                     </g>
-                    <g>
+                    <g data-demo-graph-node="2" role="button" tabindex="0" aria-label="File">
                       <circle cx="150" cy="205" r="12" class="graph-color-2" />
                       <text x="150" y="242" text-anchor="middle">File</text>
                     </g>
-                    <g>
+                    <g data-demo-graph-node="3" role="button" tabindex="0" aria-label="Task">
                       <circle cx="555" cy="55" r="12" class="graph-color-3" />
                       <text x="555" y="92" text-anchor="middle">Task</text>
                     </g>
-                    <g>
+                    <g data-demo-graph-node="4" role="button" tabindex="0" aria-label="Source">
                       <circle cx="555" cy="205" r="12" class="graph-color-4" />
                       <text x="555" y="242" text-anchor="middle">Source</text>
                     </g>
@@ -1092,7 +1112,7 @@
                 ><strong>Product launch</strong>
               </div>
               <div class="example-toolbar">
-                <span class="hint">Click a task to change its status.</span
+                <span class="hint">Open a task, then choose its status.</span
                 ><button type="button" class="btn btn-secondary" data-demo-action="board-layout">
                   <svg
                     class="i"
@@ -1415,7 +1435,8 @@
                   Demo upload queue</span
                 ><span class="prog" role="progressbar" aria-label="Demo progress" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"
                   ><i style="--p: 0.64"></i></span
-                ><b>64%</b><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false">Pause</button>
+                ><b>64%</b><button class="btn btn-secondary" data-demo-start>Start demo</button
+                ><button class="btn btn-secondary" data-demo-action="queue" aria-pressed="false" disabled>Pause</button>
               </div>
               <p class="example-status" role="status" aria-live="polite">Demo. Changes are not saved.</p>
               <dialog class="example-dialog" aria-label="Demo preview">
@@ -1497,6 +1518,24 @@
                     <option>Meeting</option>
                     <option>Research</option>
                   </select></label
+                ><button type="button" class="btn btn-secondary" data-demo-action="note-edit">
+                  <svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                    />
+                    <path d="m15 5 4 4" /></svg
+                  >Edit</button
                 ><button type="button" class="btn btn-secondary" data-demo-action="note-version">
                   <svg
                     class="i"
@@ -1943,28 +1982,29 @@
                     <circle cx="12" cy="12" r="10" />
                     <circle cx="12" cy="12" r="1" /></svg
                   >Simplified view</button
+                ><button class="btn btn-secondary" data-demo-physics aria-pressed="false">Physics off</button
                 ><span class="hint">Select a node to see its connections.</span>
               </div>
               <div class="demo-graph">
                 <svg viewBox="0 0 700 260" aria-hidden="true">
                   <g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205" /></g>
-                  <g>
+                  <g data-demo-graph-node="0" role="button" tabindex="0" aria-label="Project">
                     <circle cx="350" cy="120" r="22" class="graph-color-0" />
                     <text x="350" y="157" text-anchor="middle">Project</text>
                   </g>
-                  <g>
+                  <g data-demo-graph-node="1" role="button" tabindex="0" aria-label="Note">
                     <circle cx="160" cy="55" r="12" class="graph-color-1" />
                     <text x="160" y="92" text-anchor="middle">Note</text>
                   </g>
-                  <g>
+                  <g data-demo-graph-node="2" role="button" tabindex="0" aria-label="File">
                     <circle cx="150" cy="205" r="12" class="graph-color-2" />
                     <text x="150" y="242" text-anchor="middle">File</text>
                   </g>
-                  <g>
+                  <g data-demo-graph-node="3" role="button" tabindex="0" aria-label="Task">
                     <circle cx="555" cy="55" r="12" class="graph-color-3" />
                     <text x="555" y="92" text-anchor="middle">Task</text>
                   </g>
-                  <g>
+                  <g data-demo-graph-node="4" role="button" tabindex="0" aria-label="Source">
                     <circle cx="555" cy="205" r="12" class="graph-color-4" />
                     <text x="555" y="242" text-anchor="middle">Source</text>
                   </g>
@@ -2128,11 +2168,16 @@
       <div>
         <a class="brand" href="/product-en.html">smena.team</a>
         <p>Projects · knowledge · materials</p>
-        <p class="agency-credit">Created by <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">smena.agency ↗</a></p>
+        <p class="agency-credit">
+          Created by
+          <a href="https://smena.agency" target="_blank" rel="noopener noreferrer"
+            ><span class="agency-wordmark" aria-hidden="true"></span><span class="sr">smena.agency</span></a
+          >
+        </p>
       </div>
       <nav aria-label="Reference links">
-        <a href="/about.html#english">Service and Google</a><a href="/mcp-setup-en.html">Connect MCP</a><a href="/privacy.html#english">Privacy</a
-        ><a href="/terms.html#english">Terms</a><a href="mailto:hello@smena.agency">hello@smena.agency</a>
+        <a href="/mcp-setup-en.html">Connect MCP</a><a href="/privacy.html#english">Privacy</a><a href="/terms.html#english">Terms</a
+        ><a href="mailto:hello@smena.agency">hello@smena.agency</a>
       </nav>
       <small>© 2026 smena.team</small>
     </footer>

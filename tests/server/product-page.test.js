@@ -15,6 +15,8 @@ test('public product pages expose all capabilities without scripts and keep acce
     assert.equal(elements.find(node => node.name === 'html').attribs.lang, lang);
     assert.match(html, /smena\.team/);
     assert.doesNotMatch(html, /SMENA\.|Smena Manager|>Smena</);
+    assert.doesNotMatch(html, /href="\/about\.html/);
+    assert.match(html, /agency-wordmark/);
     assert.equal(elements.filter(node => node.attribs['data-product-example']).length, 12);
     assert.equal(elements.filter(node => node.attribs.class === 'feature-story').length, 7);
     const ids = elements.map(node => node.attribs.id).filter(Boolean);
@@ -35,6 +37,22 @@ test('public product pages expose all capabilities without scripts and keep acce
   assert.doesNotMatch(script, /\bfetch\s*\(|\/api\/|smena\.v1|\bimport\s/);
   assert.match(script, /lostpointercapture/);
   assert.match(script, /new ResizeObserver\(fit\)/);
+});
+test('old about links lead to capabilities and archived demo documents stay scriptless', async () => {
+  const redirect = await read('public/about.html');
+  assert.match(redirect, /noindex,follow/);
+  assert.match(redirect, /canonical.*product\.html/);
+  assert.match(await read('public/about-redirect.js'), /product-en\.html/);
+  const logo = await read('public/smena-agency-logo.svg');
+  assert.match(logo, /viewBox="0 0 527 104"/);
+  assert.doesNotMatch(logo, /<script|<image|href=/);
+  for (const lang of ['ru', 'en'])
+    for (const suffix of ['', '-previous']) {
+      const html = await read(`public/product-saved-page-${lang}${suffix}.html`);
+      assert.match(html, new RegExp(`lang="${lang}"`));
+      assert.doesNotMatch(html, /<script|https?:/);
+      assert.match(html, /product-saved-page\.css/);
+    }
 });
 
 test('public themes retain every native light and dark design token', async () => {

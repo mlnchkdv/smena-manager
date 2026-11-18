@@ -9,6 +9,7 @@ if (tabs.length) {
       item.setAttribute('aria-selected', String(selected));
       item.tabIndex = selected ? 0 : -1;
       document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+      document.getElementById(item.getAttribute('aria-controls')).classList.toggle('demo-is-active', selected);
     }
     if (focus) tab.focus();
     if (updateUrl) history.replaceState(null, '', tab.hash);
@@ -76,6 +77,10 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
       );
   };
   const dialog = example.querySelector('dialog');
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('close', () => dialog.querySelectorAll('video,audio').forEach(media => media.pause()));
   const show = content => {
     const body = dialog.querySelector('.example-dialog-body');
     body.replaceChildren(content);
@@ -87,10 +92,47 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
     const action = button.dataset.demoAction;
     if (action === 'task') {
       const columns = [...example.querySelectorAll('.bcol')];
-      const next = columns[(columns.indexOf(button.closest('.bcol')) + 1) % columns.length];
-      next.querySelector('.bcol-b').append(button);
-      for (const column of columns) column.querySelector('.cnt').textContent = column.querySelectorAll('.kcard').length;
-      status(button.querySelector('.kcard-title').textContent + ' \u2192 ' + next.querySelector('.bcol-h>span:nth-child(2)').textContent);
+      const article = document.createElement('article');
+      const heading = document.createElement('h3');
+      heading.textContent = button.querySelector('.kcard-title').textContent;
+      const label = document.createElement('label');
+      label.className = 'field';
+      label.textContent = words('Status', 'Статус');
+      const select = document.createElement('select');
+      select.className = 'select';
+      columns.forEach((column, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = column.querySelector('.bcol-h>span:nth-child(2)').textContent;
+        select.append(option);
+      });
+      select.value = String(columns.indexOf(button.closest('.bcol')));
+      label.append(select);
+      const description = document.createElement('p');
+      description.textContent = words(
+        'Goal: make the next delivery clear. Review the result and move the task when it is ready.',
+        'Цель: сделать следующий результат понятным. Проверьте работу и смените статус, когда всё готово.',
+      );
+      const apply = document.createElement('button');
+      apply.className = 'btn btn-primary';
+      apply.textContent = words('Apply in demo', 'Применить в демо');
+      apply.onclick = () => {
+        const before = button.getBoundingClientRect(),
+          next = columns[Number(select.value)];
+        next.querySelector('.bcol-b').append(button);
+        const after = button.getBoundingClientRect();
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches)
+          button.animate([{ transform: `translate(${before.x - after.x}px,${before.y - after.y}px)` }, { transform: 'none' }], {
+            duration: 160,
+            easing: 'ease-out',
+          });
+        for (const column of columns) column.querySelector('.cnt').textContent = column.querySelectorAll('.kcard').length;
+        status(heading.textContent + ' → ' + select.selectedOptions[0].textContent);
+        dialog.close();
+        button.focus();
+      };
+      article.append(heading, description, label, apply);
+      show(article);
     } else if (action === 'board-layout' || action === 'bookmark-layout') {
       const board = example.querySelector(action === 'board-layout' ? '.board' : '.bookmark-grid');
       const list = board.classList.toggle('is-list');
@@ -136,6 +178,31 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
             : words('Detailed graph.', '\u041f\u043e\u0434\u0440\u043e\u0431\u043d\u044b\u0439 \u0433\u0440\u0430\u0444.'),
         );
       }
+    } else if (action === 'note-edit') {
+      const body = example.querySelector('[data-demo-note-body]');
+      const label = document.createElement('label');
+      label.className = 'field';
+      label.textContent = words('Note text', 'Текст заметки');
+      const textarea = document.createElement('textarea');
+      textarea.className = 'textarea';
+      textarea.rows = 7;
+      textarea.maxLength = 2000;
+      textarea.value = body.dataset.current;
+      const apply = document.createElement('button');
+      apply.className = 'btn btn-primary';
+      apply.textContent = words('Save in demo', 'Сохранить в демо');
+      apply.onclick = () => {
+        body.textContent = body.dataset.current = textarea.value;
+        const version = example.querySelector('[data-demo-action="note-version"]');
+        version.setAttribute('aria-pressed', 'false');
+        version.textContent = words('Previous version', 'Прежняя версия');
+        status(words('Demo note saved. Earlier text remains in history.', 'Заметка демо сохранена. Прежний текст остался в истории.'));
+        dialog.close();
+      };
+      label.append(textarea);
+      const section = document.createElement('div');
+      section.append(label, apply);
+      show(section);
     } else if (action === 'note-version') {
       const body = example.querySelector('[data-demo-note-body]');
       const previous = button.getAttribute('aria-pressed') !== 'true';
@@ -156,7 +223,68 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
             ),
       );
     } else if (action === 'archive') {
-      show(example.querySelector('[data-demo-archive]').content.cloneNode(true));
+      const article = document.createElement('article');
+      article.className = 'example-archive-viewer';
+      const toolbar = document.createElement('div');
+      toolbar.className = 'example-toolbar';
+      const label = document.createElement('label');
+      label.className = 'field';
+      label.textContent = words('Saved version', 'Сохранённая версия');
+      const version = document.createElement('select');
+      version.className = 'select';
+      for (const [value, name] of [
+        ['current', words('17 Nov · HTML archive', '17 ноября · HTML-архив')],
+        ['previous', words('12 Nov · earlier version', '12 ноября · прежняя версия')],
+      ]) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = name;
+        version.append(option);
+      }
+      label.append(version);
+      toolbar.append(label);
+      const html = document.createElement('button'),
+        text = document.createElement('button');
+      html.className = text.className = 'btn btn-secondary';
+      html.textContent = words('Saved HTML', 'Сохранённый HTML');
+      text.textContent = words('Text', 'Текст');
+      toolbar.append(html, text);
+      const frame = document.createElement('iframe');
+      frame.className = 'example-archive-frame';
+      frame.setAttribute('sandbox', '');
+      frame.title = words('Saved page example', 'Пример сохранённой страницы');
+      const reader = document.createElement('div');
+      reader.className = 'example-archive-text';
+      reader.append(example.querySelector('[data-demo-archive]').content.cloneNode(true));
+      reader.hidden = true;
+      const load = () => {
+        frame.src = `/product-saved-page-${russian ? 'ru' : 'en'}${version.value === 'previous' ? '-previous' : ''}.html`;
+        reader.querySelector('small').textContent = version.selectedOptions[0].textContent;
+      };
+      html.onclick = () => {
+        frame.hidden = false;
+        reader.hidden = true;
+        html.setAttribute('aria-pressed', 'true');
+        text.setAttribute('aria-pressed', 'false');
+      };
+      text.onclick = () => {
+        frame.hidden = true;
+        reader.hidden = false;
+        html.setAttribute('aria-pressed', 'false');
+        text.setAttribute('aria-pressed', 'true');
+      };
+      html.setAttribute('aria-pressed', 'true');
+      text.setAttribute('aria-pressed', 'false');
+      version.onchange = load;
+      load();
+      const report = document.createElement('p');
+      report.className = 'hint';
+      report.textContent = words(
+        'Demo archive · HTML + styles · scripts disabled. The original website is not requested.',
+        'Архив демо · HTML и стили · скрипты отключены. Оригинальный сайт не запрашивается.',
+      );
+      article.append(toolbar, report, frame, reader);
+      show(article);
     } else if (action === 'file') {
       const article = document.createElement('article');
       const h3 = document.createElement('h3');
@@ -178,10 +306,36 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
             '\u0426\u0435\u043b\u044c: \u0441\u043e\u0431\u0440\u0430\u0442\u044c \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b \u043f\u0440\u043e\u0435\u043a\u0442\u0430 \u0432 \u043e\u0434\u043d\u043e\u043c \u043f\u0440\u043e\u0441\u0442\u0440\u0430\u043d\u0441\u0442\u0432\u0435.',
           );
         article.append(pre);
+      } else if (button.dataset.kind === 'MP4') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.src = '/product-demo.mp4';
+        video.className = 'example-video';
+        article.append(video);
+        p.textContent = words(
+          'A real, four-second synthetic video. Use playback, volume and fullscreen controls. Your files are never accessed by this demo.',
+          'Настоящее синтетическое видео на четыре секунды. Попробуйте воспроизведение, громкость и полный экран. Демо не обращается к вашим файлам.',
+        );
+      } else {
+        const list = document.createElement('ul');
+        for (const name of ['brief.md', 'references/', 'assets/cover.png', 'delivery/checklist.md']) {
+          const item = document.createElement('li');
+          item.textContent = name;
+          list.append(item);
+        }
+        article.append(list);
+        p.textContent = words(
+          'Sample ZIP contents. Folder paths remain intact when collecting project files.',
+          'Пример содержимого ZIP. При сборе файлов проекта структура папок сохраняется.',
+        );
       }
       show(article);
-    } else if (action === 'close-dialog') dialog.close();
-    else if (action === 'graph-node') {
+    } else if (action === 'close-dialog') {
+      dialog.querySelectorAll('video,audio').forEach(media => media.pause());
+      dialog.close();
+    } else if (action === 'graph-node') {
       for (const node of example.querySelectorAll('[data-node]')) node.setAttribute('aria-pressed', String(node === button));
       for (const [i, node] of [...example.querySelectorAll('.demo-graph svg>g:not(.graph-lines)')].entries())
         node.classList.toggle('is-selected', i === Number(button.dataset.node));
@@ -204,7 +358,22 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
       ),
     );
   });
-  example.querySelector('[data-demo-type]')?.addEventListener('change', event => status(words('Type: ', '\u0422\u0438\u043f: ') + event.target.value));
+  example.querySelector('[data-demo-type]')?.addEventListener('change', event => {
+    let properties = example.querySelector('[data-demo-properties]');
+    if (!properties) {
+      properties = document.createElement('p');
+      properties.dataset.demoProperties = '';
+      properties.className = 'example-note-properties';
+      example.querySelector('.example-note').append(properties);
+    }
+    properties.textContent =
+      event.target.selectedIndex === 1
+        ? words('Meeting · Decisions · Next steps', 'Встреча · Решения · Следующие шаги')
+        : event.target.selectedIndex === 2
+          ? words('Research · Hypothesis · Result · Source', 'Исследование · Гипотеза · Результат · Источник')
+          : words('Note · Summary · Related materials', 'Заметка · Краткое описание · Связанные материалы');
+    status(words('Type: ', 'Тип: ') + event.target.value);
+  });
   example.querySelector('[data-demo-search]')?.addEventListener('input', event => {
     let matches = 0;
     for (const card of example.querySelectorAll('.bookmark-card')) {
@@ -217,6 +386,134 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
 }
 
 // Pointer and keyboard interactions, clamped again whenever the viewport changes.
+for (const example of document.querySelectorAll('[data-product-example="1"]')) {
+  const start = example.querySelector('[data-demo-start]'),
+    pause = example.querySelector('[data-demo-action="queue"]');
+  const progress = example.querySelector('[role="progressbar"]'),
+    value = example.querySelector('.example-upload>b');
+  let amount = 0,
+    last = 0,
+    frame;
+  function tick(now) {
+    if (pause.getAttribute('aria-pressed') === 'true') {
+      last = 0;
+      return;
+    }
+    if (last) amount = Math.min(100, amount + Math.min(150, now - last) / 50);
+    last = now;
+    progress.setAttribute('aria-valuenow', String(Math.round(amount)));
+    progress.querySelector('i').style.setProperty('--p', amount / 100);
+    value.textContent = Math.round(amount) + '%';
+    if (amount < 100) frame = requestAnimationFrame(tick);
+    else {
+      start.disabled = false;
+      start.textContent = words('Replay', 'Повторить');
+      pause.disabled = true;
+      example.querySelector('.example-status').textContent = words(
+        'Demo upload completed. No files were sent.',
+        'Загрузка демо завершена. Файлы никуда не отправлялись.',
+      );
+    }
+  }
+  start.onclick = () => {
+    cancelAnimationFrame(frame);
+    amount = 0;
+    last = 0;
+    pause.disabled = false;
+    pause.setAttribute('aria-pressed', 'false');
+    pause.textContent = words('Pause', 'Пауза');
+    start.disabled = true;
+    frame = requestAnimationFrame(tick);
+  };
+  pause.addEventListener('click', () => {
+    cancelAnimationFrame(frame);
+    last = 0;
+    if (pause.getAttribute('aria-pressed') === 'false') frame = requestAnimationFrame(tick);
+  });
+}
+for (const example of document.querySelectorAll('[data-product-example="5"]')) {
+  const svg = example.querySelector('.demo-graph svg'),
+    nodes = [...svg.querySelectorAll('[data-demo-graph-node]')],
+    path = svg.querySelector('.graph-lines path');
+  const physics = example.querySelector('[data-demo-physics]');
+  if (!physics) continue;
+  const edges = [
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+    [1, 2],
+  ];
+  let drag;
+  const positions = () =>
+    nodes.map(node => ({ x: Number(node.querySelector('circle').getAttribute('cx')), y: Number(node.querySelector('circle').getAttribute('cy')) }));
+  const point = event => {
+    const box = svg.getBoundingClientRect();
+    return { x: ((event.clientX - box.left) / box.width) * 700, y: ((event.clientY - box.top) / box.height) * 260 };
+  };
+  function move(index, dx, dy, before) {
+    const connected = physics.getAttribute('aria-pressed') === 'true';
+    const current = before.map((p, i) => ({
+      x: Math.max(35, Math.min(665, p.x + dx * (i === index ? 1 : connected ? 0.4 : 0))),
+      y: Math.max(30, Math.min(215, p.y + dy * (i === index ? 1 : connected ? 0.4 : 0))),
+    }));
+    nodes.forEach((node, i) => {
+      const { x, y } = current[i];
+      node.querySelector('circle').setAttribute('cx', x);
+      node.querySelector('circle').setAttribute('cy', y);
+      node.querySelector('text').setAttribute('x', x);
+      node.querySelector('text').setAttribute('y', y + 37);
+    });
+    path.setAttribute('d', edges.map(([a, b]) => `M${current[a].x} ${current[a].y}L${current[b].x} ${current[b].y}`).join(''));
+  }
+  physics.onclick = () => {
+    const enabled = physics.getAttribute('aria-pressed') !== 'true';
+    physics.setAttribute('aria-pressed', String(enabled));
+    physics.textContent = enabled ? words('Physics on', 'Физика вкл.') : words('Physics off', 'Физика выкл.');
+  };
+  nodes.forEach((node, index) => {
+    node.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      drag = { index, start: point(event), before: positions(), id: event.pointerId };
+      node.setPointerCapture(event.pointerId);
+      node.focus();
+      event.preventDefault();
+    });
+    node.addEventListener('pointermove', event => {
+      if (drag?.id !== event.pointerId || drag.index !== index) return;
+      const p = point(event);
+      move(index, p.x - drag.start.x, p.y - drag.start.y, drag.before);
+    });
+    node.addEventListener('pointerup', () => {
+      drag = null;
+    });
+    node.addEventListener('pointercancel', () => {
+      if (drag) move(index, 0, 0, drag.before);
+      drag = null;
+    });
+    node.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && drag) {
+        move(index, 0, 0, drag.before);
+        drag = null;
+        return;
+      }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        example.querySelector(`[data-demo-action="graph-node"][data-node="${index}"]`).click();
+        return;
+      }
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const step = event.shiftKey ? 24 : 8;
+      move(
+        index,
+        event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0,
+        event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0,
+        positions(),
+      );
+    });
+  });
+}
 for (const canvas of document.querySelectorAll('[data-product-canvas]')) {
   const stage = canvas.querySelector('.canvas-trial-stage');
   const nodes = [...stage.querySelectorAll('[data-demo-node]')];

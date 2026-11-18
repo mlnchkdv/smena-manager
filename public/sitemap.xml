@@ -2,7 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url><loc>https://smena.team/product.html</loc><xhtml:link rel="alternate" hreflang="ru" href="https://smena.team/product.html"/><xhtml:link rel="alternate" hreflang="en" href="https://smena.team/product-en.html"/></url>
   <url><loc>https://smena.team/product-en.html</loc><xhtml:link rel="alternate" hreflang="ru" href="https://smena.team/product.html"/><xhtml:link rel="alternate" hreflang="en" href="https://smena.team/product-en.html"/></url>
-  <url><loc>https://smena.team/about.html</loc></url>
   <url><loc>https://smena.team/mcp-setup.html</loc></url>
   <url><loc>https://smena.team/mcp-setup-en.html</loc></url>
 </urlset>

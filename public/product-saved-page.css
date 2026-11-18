@@ -1,0 +1,65 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  color: #20392f;
+  background: #f4f1e8;
+  font:
+    16px/1.65 system-ui,
+    sans-serif;
+}
+header {
+  padding: 28px;
+  background: #20392f;
+  color: #fffdf5;
+}
+header small {
+  letter-spacing: 0.08em;
+  font-size: 11px;
+}
+h1 {
+  font-size: clamp(28px, 6vw, 42px);
+  line-height: 1.15;
+  margin: 18px 0;
+}
+main {
+  padding: 24px 28px;
+}
+h2 {
+  font-size: 22px;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0;
+}
+.steps section {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  gap: 12px;
+  border: 1px solid #a4b6a4;
+  border-radius: 8px;
+}
+.steps b {
+  font-size: 12px;
+  color: #61694e;
+}
+.previous {
+  background: #eeedf7;
+  color: #342d59;
+}
+.previous header {
+  background: #342d59;
+}
+@media (max-width: 420px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  header,
+  main {
+    padding: 20px;
+  }
+}
