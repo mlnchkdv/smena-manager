@@ -124,6 +124,12 @@ export function validateResearchDraft(input) {
     if (data[key] && !researchId(data[key])) throw researchError();
   if (data.metrics != null && (!Array.isArray(data.metrics) || data.metrics.length > RESEARCH_LIMITS.metrics || !data.metrics.every(validResearchMetric)))
     throw researchError('RESEARCH_METRIC_INVALID');
+  if (
+    data.metrics &&
+    new Set(data.metrics.map(metric => [metric.key, metric.unit, metric.scope, metric.aggregation, metric.origin || 'team'].join('\u001f'))).size !==
+      data.metrics.length
+  )
+    throw researchError('RESEARCH_METRIC_INVALID');
   if (data.artifacts != null && (!Array.isArray(data.artifacts) || data.artifacts.length > RESEARCH_LIMITS.artifacts)) throw researchError();
   const tags = input.tags || [];
   if (!Array.isArray(tags) || tags.length > 30 || !tags.every(tag => text(tag, 80))) throw researchError();

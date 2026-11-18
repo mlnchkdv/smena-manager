@@ -133,6 +133,17 @@
 .research-json {
   font-family: monospace;
 }
+.research-code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  max-height: 320px;
+  overflow: auto;
+}
+.research-technical small {
+  display: block;
+  overflow-wrap: anywhere;
+}
 .research-form .field,
 .research-form .input,
 .research-form textarea {

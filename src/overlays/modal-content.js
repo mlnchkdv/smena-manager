@@ -27,6 +27,7 @@ export function modalHtml(m) {
   const wrap = (cls, inner) => `<div class="modal ${cls}" role="dialog" aria-modal="true" aria-labelledby="mt-${m.type}">${inner}</div>`;
   switch (m.type) {
     case 'researchForm':
+    case 'researchCompare':
       return wrap('md research-form-dialog', m.render(m, H));
     case 'publicLink':
       return wrap('md public-link-dialog', m.render(m, H));

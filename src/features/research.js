@@ -12,6 +12,8 @@ import { researchTemplate, researchMetricDefaults } from '../shared/research-tem
 import { researchFormFields } from '../ui/research-form.js';
 import { researchEvidenceHtml } from '../ui/research-evidence.js';
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
+import { researchComparisonHtml } from '../ui/research-comparison.js';
+import { researchMetricsHtml } from '../ui/research-metrics.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -104,6 +106,85 @@ IN.researchRaw = el => {
 IN.researchFileQuery = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type === 'researchForm') m.fileQuery = el.value;
+};
+IN.researchMetric = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || m.command) return;
+  const metric = m.record.data.metrics?.[Number(el.dataset.index)];
+  if (!metric) return;
+  const key = el.dataset.field;
+  metric[key] = ['n', 'value'].includes(key) ? (el.value === '' ? null : Number(el.value)) : el.value;
+  if (metric.status === 'measured') {
+    metric.protocolId = m.record.data.protocolId || '';
+    metric.scope ||= 'scene';
+    metric.aggregation ||= 'mean';
+  } else metric.value = null;
+  if (key === 'status') render();
+};
+A.researchAddMetric = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || m.command) return;
+  m.record.data.metrics ||= [];
+  m.record.data.metrics.push({
+    key: 'metric_' + (m.record.data.metrics.length + 1),
+    unit: '',
+    value: null,
+    status: 'missing',
+    reason: rw('Not measured yet', 'Ещё не измерено'),
+    origin: 'team',
+  });
+  render();
+};
+A.researchRemoveMetric = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || m.command) return;
+  m.record.data.metrics.splice(Number(el.dataset.index), 1);
+  render();
+};
+A.researchCompare = async () => {
+  const model = state(),
+    m = {
+      type: 'researchCompare',
+      project: model.project,
+      ids: [],
+      rows: [],
+      records: [],
+      generation: getSessionGeneration(),
+      busy: true,
+      render: (m, H) => H(rw('Compare runs', 'Сравнение запусков')) + researchComparisonHtml(m),
+    };
+  openModal(m);
+  try {
+    const result = await researchRequest(m.project, '?kind=run&limit=100');
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration())
+      m.rows = result.items.filter(
+        row => !model.selected || row.experimentId === (model.selected.kind === 'experiment' ? model.selected.id : model.selected.data.experimentId),
+      );
+  } catch (error) {
+    m.error = researchFailure(error);
+  } finally {
+    m.busy = false;
+    if (S.ui.modals.includes(m)) render();
+  }
+};
+A.researchPickCompare = async el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchCompare' || m.busy) return;
+  if (m.ids.includes(el.dataset.id)) m.ids = m.ids.filter(id => id !== el.dataset.id);
+  else if (m.ids.length < 4) m.ids.push(el.dataset.id);
+  else return;
+  m.busy = true;
+  m.error = '';
+  render();
+  try {
+    const records = await Promise.all(m.ids.map(id => researchRequest(m.project, '/records/' + encodeURIComponent(id))));
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) m.records = records.map(result => result.record);
+  } catch (error) {
+    m.error = researchFailure(error);
+  } finally {
+    m.busy = false;
+    if (S.ui.modals.includes(m)) render();
+  }
 };
 A.researchFindFiles = async () => {
   const m = S.ui.modals.at(-1);
@@ -244,7 +325,6 @@ A.researchSave = async () => {
   try {
     if (['run', 'protocol'].includes(m.record.kind)) m.record.data.config = JSON.parse(m.rawConfig || '{}');
     if (m.record.kind === 'dataset') m.record.data.manifest = JSON.parse(m.rawManifest || '{}');
-    if (m.record.kind === 'run') m.record.data.metrics = JSON.parse(m.rawMetrics || '[]');
   } catch {
     m.error = rw(
       'Check the JSON fields: use double quotes and remove trailing commas.',
@@ -385,14 +465,14 @@ function details(record, canEdit) {
     conclusion: rw('Conclusion', 'Вывод'),
     nextStep: rw('Next step', 'Следующий шаг'),
   };
-  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${canEdit ? researchRecordActions(record) : ''}<div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(
+  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchCompare">${rw('Compare runs', 'Сравнить запуски')}</button>` : ''}${canEdit ? researchRecordActions(record) : ''}<div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(
     labels,
   )
     .filter(([key]) => data[key])
     .map(([key, label]) => `<div><dt>${label}</dt><dd>${esc(data[key])}</dd></div>`)
     .join(
       '',
-    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
+    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
 }
 export function researchHtml() {
   const m = state();
