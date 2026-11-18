@@ -611,6 +611,17 @@
   max-height: 200px;
   overflow: auto;
 }
+.whiteboard-card-reader .whiteboard-card-head {
+  display: none;
+}
+.whiteboard-card-reader .whiteboard-card-content {
+  max-height: none;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+.whiteboard-card-reader .whiteboard-card-content p {
+  white-space: pre-wrap;
+}
 .whiteboard-outline h3,
 .whiteboard-outline > .hint {
   grid-column: 1 / -1;

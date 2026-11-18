@@ -35,7 +35,10 @@ import { render } from '../shell/render.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
-import { whiteboardEdges } from '../views/project-whiteboard.js';
+import { whiteboardEdges, whiteboardCard } from '../views/project-whiteboard.js';
+import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
+import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
+import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
 import { overlayAboveDiagram } from '../ui/diagram-focus.js';
 import { syncDiagramWindow } from '../ui/diagram-window.js';
 import { whiteboardPickCandidates } from '../shared/whiteboard-picking.js';
@@ -46,6 +49,32 @@ import { patchWhiteboardContext } from '../shared/whiteboard-context.js';
 import { whiteboardNavigationHint } from '../ui/whiteboard-context.js';
 import { refreshWhiteboardOverview } from '../ui/whiteboard-overview.js';
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+A.whiteboardReadCard = async el => {
+  const p = current(),
+    scope = whiteboardScope(p?.id);
+  const node = whiteboardOf(p).nodes.find(node => node.id === el.dataset.id);
+  if (!p || !node) return;
+  const m = {
+    type: 'whiteboardReader',
+    nodeId: node.id,
+    scope,
+    render: (m, H) => {
+      const card = whiteboardScope(current()?.id) === m.scope ? whiteboardOf(current()).nodes.find(node => node.id === m.nodeId) : null;
+      const source = card?.type === 'material' ? whiteboardMaterial(card) : null;
+      return `${H(card ? whiteboardLabel(card) : T('Card unavailable', 'Карточка недоступна'))}<div class="modal-b whiteboard-card-reader" translate="no">${m.busy ? `<p role="status">${T('Loading text…', 'Загружаем текст…')}</p>` : m.error ? `<p role="alert">${T('Unable to load the source. Close and retry, or open the material.', 'Не удалось загрузить источник. Закройте и повторите или откройте материал.')}</p>` : ''}${card ? (source?.kind === 'note' && typeof source.item.formatted_markdown === 'string' ? `<article class="knowledge-body">${renderKnowledgeMarkdown(knowledgeDisplayParts(source.item).body, { plainText: source.item.sourceFormat === 'text' })}</article>` : whiteboardCard(card, false, true)) : `<p>${T('The card was removed or access changed.', 'Карточка удалена или доступ изменился.')}</p>`}${source ? `<button class="btn btn-secondary" data-a="openRelatedEntity" data-key="${esc(card.target)}">${T('Open source material', 'Открыть исходный материал')}</button>` : ''}</div>`;
+    },
+  };
+  const source = node.type === 'material' ? whiteboardMaterial(node) : null;
+  m.busy = source?.kind === 'note' && source.item.bodyPending;
+  openModal(m);
+  if (m.busy) {
+    await ensureKnowledgeBody(source.item).catch(() => {
+      m.error = true;
+    });
+    m.busy = false;
+    if (S.ui.modals.includes(m)) render();
+  }
+};
 const colors = () => [
   T('Neutral', 'Нейтральный'),
   T('Violet', 'Фиолетовый'),
