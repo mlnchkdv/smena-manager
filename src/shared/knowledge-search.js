@@ -101,5 +101,6 @@ export function noteCardExcerpt(note, query) {
 export function noteCardPreview(note, query) {
   const excerpt = noteCardExcerpt(note, query);
   const unavailable = typeof note.formatted_markdown !== 'string' && !!(note.bodyPending || note.bodyRef || note.bodyToken);
-  return { excerpt, state: excerpt ? 'text' : unavailable ? 'unavailable' : 'empty' };
+  const empty = typeof note.formatted_markdown === 'string' ? !note.formatted_markdown.trim() : note.bodyEmpty === true;
+  return { excerpt, state: excerpt ? 'text' : empty ? 'empty' : unavailable ? 'cold' : 'nontext' };
 }

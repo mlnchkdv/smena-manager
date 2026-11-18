@@ -10,7 +10,7 @@ export function markdownText(value) {
         .join(' · '),
     )
     .replace(/^\s*```[^\n]*$/gm, '')
-    .replace(/!?\[([^\]]+)\]\([^\n)]+\)/g, '$1')
+    .replace(/!?\[([^\]]*)\]\([^\n)]+\)/g, '$1')
     .replace(/\[\[([^\]]+)\]\]/g, '$1')
     .replace(/^\s{0,3}(?:#{1,6}\s+|>\s?|[-+*]\s+|\d+\.\s+)/gm, '')
     .replace(/^\s*\[[ xX]\]\s+/gm, '')

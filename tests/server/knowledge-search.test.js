@@ -5,11 +5,13 @@ import { noteCardPreview } from '../../src/shared/knowledge-search.js';
 
 test('catalogue distinguishes known empty text from a body without a preview', () => {
   assert.deepEqual(noteCardPreview({ formatted_markdown: '' }, ''), { excerpt: '', state: 'empty' });
-  assert.deepEqual(noteCardPreview({ bodyPending: true, bodyRef: {} }, ''), { excerpt: '', state: 'unavailable' });
+  assert.deepEqual(noteCardPreview({ bodyPending: true, bodyRef: {} }, ''), { excerpt: '', state: 'cold' });
   assert.equal(noteCardPreview({ bodyPending: true, summary: 'Available summary' }, '').state, 'text');
   assert.equal(noteCardPreview({ formatted_markdown: '# Title\n\nUseful text' }, '').state, 'text');
   const template = { formatted_markdown: '# New note\n\nAdd team knowledge, guidelines, or working agreements here.' };
-  assert.equal(noteCardPreview(template, '').state, 'empty');
+  assert.equal(noteCardPreview(template, '').state, 'nontext');
+  assert.equal(noteCardPreview({ bodyPending: true, bodyEmpty: true }, '').state, 'empty');
+  assert.equal(noteCardPreview({ formatted_markdown: '![](/photo.png)' }, '').state, 'nontext');
   assert.match(template.formatted_markdown, /Add team knowledge/);
 });
 
