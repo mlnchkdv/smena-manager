@@ -359,6 +359,10 @@ A.researchEnable = async () => {
 A.researchSave = async () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'researchForm' || m.busy || m.generation !== getSessionGeneration()) return;
+  const model = state(),
+    workspace = getActiveWorkspace(),
+    actorId = model.catalog?.actorId;
+  if (model.project !== m.project || !actorId) return;
   if (!m.record.title.trim()) {
     m.error = rw('Enter a title.', 'Введите название.');
     render();
@@ -388,30 +392,31 @@ A.researchSave = async () => {
     record: draft,
   };
   try {
-    keepPendingResearch(getActiveWorkspace(), state().catalog.actorId, m.project, m.command);
+    keepPendingResearch(workspace, actorId, m.project, m.command);
     const result = await researchRequest(m.project, '/commands', m.command);
+    if (m.generation !== getSessionGeneration()) return;
     const verified = await researchRequest(m.project, '/records/' + encodeURIComponent(result.record.id));
     if (verified.record.revision !== result.record.revision || verified.record.body !== result.record.body) throw new Error('RESEARCH_READBACK_PENDING');
-    if (m.generation !== getSessionGeneration()) return;
-    if (S.ui.modals.at(-1) === m) S.ui.modals.pop();
-    const model = state();
-    model.selected = result.record;
-    clearPendingResearch(getActiveWorkspace(), model.catalog.actorId, model.project);
+    if (m.generation !== getSessionGeneration() || !active(model)) return;
+    clearPendingResearch(workspace, actorId, m.project);
     model.unsent = null;
     model.rows = null;
+    if (!S.ui.modals.includes(m)) return;
+    if (S.ui.modals.at(-1) === m) S.ui.modals.pop();
+    model.selected = result.record;
     go('project', { id: model.project, tab: 'research', researchId: result.record.id });
     await loadResearch(model);
   } catch (error) {
     m.error = researchFailure(error);
     if (error.status >= 400 && error.status < 500) {
-      clearPendingResearch(getActiveWorkspace(), state().catalog.actorId, m.project);
+      clearPendingResearch(workspace, actorId, m.project);
       m.command = null;
     } else {
-      state().unsent = m.command;
+      if (active(model)) model.unsent = m.command;
     }
   } finally {
     m.busy = false;
-    if (m.generation === getSessionGeneration()) render();
+    if (m.generation === getSessionGeneration() && active(model)) render();
   }
 };
 A.researchRecover = async () => {
