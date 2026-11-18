@@ -823,6 +823,14 @@
 .graph-toolbar:has(.graph-display-trigger) {
   grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
+.graph-physics-mode {
+  display: block;
+  font-size: var(--fs-xs);
+  line-height: 1.3;
+  font-weight: 400;
+  color: var(--text-2);
+  white-space: normal;
+}
 @media (max-width: 640px) {
   .graph-page .graph-toolbar:not(:has(.graph-display-trigger)) {
     grid-template-columns: minmax(0, 1fr) auto;
