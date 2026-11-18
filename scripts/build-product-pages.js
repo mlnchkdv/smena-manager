@@ -19,7 +19,7 @@ const copy = {
     access: 'Для сотрудников — вход через Google после добавления администратором. Для новых команд — знакомство и обсуждение настройки.',
     demo: 'Посмотрите на работу в контексте',
     demoNote: 'Интерактивная демонстрация · Все данные вымышлены',
-    demoTabs: ['Проекты', 'Файлы', 'Знания', 'Закладки', 'Холсты', 'Граф'],
+    demoTabs: ['Проекты', 'Файлы', 'Знания', 'Закладки', 'Холсты', 'Граф', 'Исследования'],
     demoText: [
       'Одна задача — разные представления. Доска помогает видеть поток работы, список — быстро разбирать детали.',
       'Фотографии, видео и документы — в папках проекта. Очередь показывает ход загрузки и доступные действия.',
@@ -27,6 +27,7 @@ const copy = {
       'Сохраните источник и читаемую копию страницы: контекст останется, даже если оригинал изменится.',
       'Разложите материалы на холсте, измените размеры карточек и соедините идеи с задачами.',
       'Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.',
+      'От гипотезы и протокола до сравнения запусков и мини-статьи. Откройте каждый шаг демонстрации.',
     ],
     project: 'Запуск продукта',
     plan: 'К выполнению',
@@ -225,7 +226,7 @@ const copy = {
     access: 'Employees sign in with Google after an administrator adds them. New teams can get in touch to discuss their setup.',
     demo: 'See work in context',
     demoNote: 'Interactive demo · All data is illustrative',
-    demoTabs: ['Projects', 'Files', 'Knowledge', 'Bookmarks', 'Whiteboards', 'Graph'],
+    demoTabs: ['Projects', 'Files', 'Knowledge', 'Bookmarks', 'Whiteboards', 'Graph', 'Research'],
     demoText: [
       'One task, different perspectives. Use a board to see the flow of work or a list to review details.',
       'Keep photos, videos and documents in project folders. The upload queue shows progress and available actions.',
@@ -233,6 +234,7 @@ const copy = {
       'Save a source and a readable page copy so its context survives changes to the original.',
       'Arrange materials on a whiteboard, resize cards and connect ideas to tasks.',
       'Explore connections between materials. Filters and focus keep the relevant part in view.',
+      'Follow a hypothesis from the protocol through run comparison and a short article. Open each demo step.',
     ],
     project: 'Product launch',
     plan: 'To do',
@@ -406,7 +408,7 @@ const copy = {
   },
 };
 const esc = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
-const ids = ['projects', 'files', 'knowledge', 'bookmarks', 'whiteboards', 'graph'];
+const ids = ['projects', 'files', 'knowledge', 'bookmarks', 'whiteboards', 'graph', 'research'];
 function stories(c, lang) {
   const ru = lang === 'ru';
   const rows = [
@@ -432,12 +434,29 @@ function stories(c, lang) {
       ],
       5,
     ],
-    [['07', ...c.features[5].slice(1)], 6],
+    [
+      [
+        '07',
+        ru ? 'Исследования' : 'Research',
+        ru ? 'Гипотезы, замеры и решения в журнале проекта.' : 'Hypotheses, measurements and decisions in one project journal.',
+        ru
+          ? [
+              ['План эксперимента', 'Задайте гипотезу, критерий успеха и протокол. Свяжите запуск с версией набора данных.'],
+              ['Сравнение и отчёт', 'Сравните условия и замеры. Подготовьте мини-статью или скачайте ZIP с материалами журнала и их редакциями.'],
+            ]
+          : [
+              ['Experiment plan', 'Write a hypothesis, success criterion and protocol. Link the run to a dataset version.'],
+              ['Comparison and reporting', 'Compare conditions and measurements. Draft a short article or download a ZIP of journal records and revisions.'],
+            ],
+      ],
+      6,
+    ],
+    [['08', ...c.features[5].slice(1)], 7],
   ];
   return rows
     .map(
       ([[number, title, lead, details], index]) =>
-        `<section class="feature-story" id="feature-${index === 6 ? 'spaces' : ids[index]}"><div class="story-copy"><p class="eyebrow">${number} / ${title}</p><h3>${lead}</h3><dl>${details.map(([h, p]) => `<div><dt>${h}</dt><dd>${p}</dd></div>`).join('')}</dl>${index === 6 ? `<a class="text-link" href="${ru ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide} ↗</a>` : ''}</div><div class="story-scene"><div class="scene-chrome"><span aria-hidden="true">S</span><strong>${c.project}</strong><small>${title}</small></div>${index < 6 ? demo(c, index, true) : `<div class="demo-access"><span class="type-pill">smena.team / ${ru ? 'КОМАНДА' : 'TEAM'}</span><h4>${ru ? 'Общая работа. Ваши настройки.' : 'Shared work. Your own setup.'}</h4><div><b>${ru ? 'Пространства' : 'Workspaces'}</b><span>${ru ? 'Команда · Личное' : 'Team · Personal'}</span></div><div><b>${ru ? 'Доступ' : 'Access'}</b><span>${ru ? 'Роли · Срок ссылки · Отзыв' : 'Roles · Link expiry · Revoke'}</span></div><div><b>API / MCP</b><span>Codex ↔ ${ru ? 'Заметки и файлы' : 'Notes and files'}</span></div></div>`}</div></section>`,
+        `<section class="feature-story" id="feature-${index === 7 ? 'spaces' : ids[index]}"><div class="story-copy"><p class="eyebrow">${number} / ${title}</p><h3>${lead}</h3><dl>${details.map(([h, p]) => `<div><dt>${h}</dt><dd>${p}</dd></div>`).join('')}</dl>${index === 7 ? `<a class="text-link" href="${ru ? '/mcp-setup.html' : '/mcp-setup-en.html'}">${c.guide} ↗</a>` : ''}</div><div class="story-scene"><div class="scene-chrome"><span aria-hidden="true">S</span><strong>${c.project}</strong><small>${title}</small></div>${index < ids.length ? demo(c, index, true) : `<div class="demo-access"><span class="type-pill">smena.team / ${ru ? 'КОМАНДА' : 'TEAM'}</span><h4>${ru ? 'Общая работа. Ваши настройки.' : 'Shared work. Your own setup.'}</h4><div><b>${ru ? 'Пространства' : 'Workspaces'}</b><span>${ru ? 'Команда · Личное' : 'Team · Personal'}</span></div><div><b>${ru ? 'Доступ' : 'Access'}</b><span>${ru ? 'Роли · Срок ссылки · Отзыв' : 'Roles · Link expiry · Revoke'}</span></div><div><b>API / MCP</b><span>Codex ↔ ${ru ? 'Заметки и файлы' : 'Notes and files'}</span></div></div>`}</div></section>`,
     )
     .join('');
 }

@@ -82,6 +82,13 @@ test('deployment acceptance: public capabilities demos work in both languages on
       const before = Number(await node.locator('circle').getAttribute('cx'));
       await node.press('ArrowRight');
       expect(Number(await node.locator('circle').getAttribute('cx'))).toBeGreaterThan(before);
+      await page.getByRole('tab', { name: text('Research', 'Исследования'), exact: true }).click();
+      const demo = page.getByRole('tabpanel').filter({ visible: true });
+      await demo.locator('[data-stage="runs"]').click();
+      await expect(demo.locator('[data-demo-research-view="runs"]')).toContainText('A · 100% → B · 75%');
+      await demo.locator('[data-stage="article"]').click();
+      await expect(demo.locator('[data-demo-research-view="article"]')).toBeVisible();
+      await expect(demo.locator('[data-demo-research-view="runs"]')).toBeHidden();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     }
 });

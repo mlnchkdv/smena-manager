@@ -17,8 +17,8 @@ test('public product pages expose all capabilities without scripts and keep acce
     assert.doesNotMatch(html, /SMENA\.|Smena Manager|>Smena</);
     assert.doesNotMatch(html, /href="\/about\.html/);
     assert.match(html, /agency-wordmark/);
-    assert.equal(elements.filter(node => node.attribs['data-product-example']).length, 12);
-    assert.equal(elements.filter(node => node.attribs.class === 'feature-story').length, 7);
+    assert.equal(elements.filter(node => node.attribs['data-product-example']).length, 14);
+    assert.equal(elements.filter(node => node.attribs.class === 'feature-story').length, 8);
     const ids = elements.map(node => node.attribs.id).filter(Boolean);
     assert.equal(ids.length, new Set(ids).size, 'no duplicate IDs across repeated examples');
     for (const node of elements.filter(node => node.name === 'dialog')) assert.ok(node.attribs['aria-label']);
@@ -27,7 +27,7 @@ test('public product pages expose all capabilities without scripts and keep acce
       assert.equal(node.children.length, 0, 'no inline scripts under the production CSP');
     }
     assert.ok(!elements.some(node => node.attribs['data-a']), 'demo cannot invoke production actions');
-    for (const id of ['projects', 'files', 'knowledge', 'bookmarks', 'whiteboards', 'graph']) {
+    for (const id of ['projects', 'files', 'knowledge', 'bookmarks', 'whiteboards', 'graph', 'research']) {
       const panel = elements.find(node => node.attribs.id === 'panel-' + id);
       assert.ok(panel);
       assert.equal(panel.attribs.hidden, undefined, 'all capabilities readable without JavaScript');

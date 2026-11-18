@@ -75,7 +75,8 @@
           <div class="demo-tabs" aria-label="Раздел демонстрации">
             <a id="tab-projects" href="#panel-projects">Проекты</a><a id="tab-files" href="#panel-files">Файлы</a
             ><a id="tab-knowledge" href="#panel-knowledge">Знания</a><a id="tab-bookmarks" href="#panel-bookmarks">Закладки</a
-            ><a id="tab-whiteboards" href="#panel-whiteboards">Холсты</a><a id="tab-graph" href="#panel-graph">Граф</a>
+            ><a id="tab-whiteboards" href="#panel-whiteboards">Холсты</a><a id="tab-graph" href="#panel-graph">Граф</a
+            ><a id="tab-research" href="#panel-research">Исследования</a>
           </div>
           <div class="demo-panels">
             <section id="panel-projects" class="demo-panel" aria-labelledby="tab-projects">
@@ -1033,6 +1034,86 @@
                 </dialog>
               </div>
               <p class="demo-description">Найдите связи между материалами. Фильтры и фокус помогают исследовать нужный фрагмент.</p>
+            </section>
+            <section id="panel-research" class="demo-panel" aria-labelledby="tab-research">
+              <div class="product-demo" data-product-example="6">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+                      <path d="M8.5 2h7" />
+                      <path d="M7 16h10" /></svg></span
+                  ><strong>Журнал исследований</strong>
+                </div>
+                <div class="research-demo-nav seg" role="group" aria-label="Шаги исследования">
+                  <button type="button" data-demo-action="research-stage" data-stage="experiment" aria-pressed="false">Эксперимент</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="protocol" aria-pressed="false">Протокол</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="runs" aria-pressed="false">Сравнить запуски</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="article" aria-pressed="false">Мини-статья</button>
+                </div>
+                <div class="research-preview">
+                  <section data-demo-research-view="experiment" class="research-demo-card">
+                    <span class="hint">Эксперимент · Вымышленный пример</span>
+                    <h3>Ускорит ли уменьшение масштаба предпросмотр?</h3>
+                    <p>Сравните одну сцену при внутреннем масштабе 100% и 75%. Задайте критерий успеха до запуска обеих версий.</p>
+                  </section>
+                  <section data-demo-research-view="protocol" class="research-demo-card">
+                    <span class="hint">Протокол · Вымышленный пример</span>
+                    <h3>Три ракурса, одно выходное разрешение</h3>
+                    <p>
+                      Зафиксируйте набор данных, ракурсы и выходное разрешение. Запишите медианное время кадра и сходство изображений, приложите CSV и кадры.
+                    </p>
+                  </section>
+                  <section data-demo-research-view="runs" class="research-demo-card">
+                    <span class="hint">Сравнить запуски · Вымышленный пример</span>
+                    <h3>A · 100% → B · 75%</h3>
+                    <p>
+                      Запланировано одно изменение — масштаб рендера. Оба запуска ожидают выполнения. Время кадра и сходство изображений предстоит измерить.
+                    </p>
+                  </section>
+                  <section data-demo-research-view="article" class="research-demo-card">
+                    <span class="hint">Мини-статья · Вымышленный пример</span>
+                    <h3>Черновик выводов</h3>
+                    <p>Черновик объединяет гипотезу, протокол и запуски. Следующий шаг — записать замеры и обосновать решение.</p>
+                  </section>
+                </div>
+                <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+                <dialog class="example-dialog" aria-label="Пример просмотра">
+                  <div class="example-dialog-head">
+                    <strong>Пример просмотра</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
+              </div>
+              <p class="demo-description">От гипотезы и протокола до сравнения запусков и мини-статьи. Откройте каждый шаг демонстрации.</p>
             </section>
           </div>
         </div>
@@ -2065,9 +2146,101 @@
             </div>
           </div>
         </section>
+        <section class="feature-story" id="feature-research">
+          <div class="story-copy">
+            <p class="eyebrow">07 / Исследования</p>
+            <h3>Гипотезы, замеры и решения в журнале проекта.</h3>
+            <dl>
+              <div>
+                <dt>План эксперимента</dt>
+                <dd>Задайте гипотезу, критерий успеха и протокол. Свяжите запуск с версией набора данных.</dd>
+              </div>
+              <div>
+                <dt>Сравнение и отчёт</dt>
+                <dd>Сравните условия и замеры. Подготовьте мини-статью или скачайте ZIP с материалами журнала и их редакциями.</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Запуск продукта</strong><small>Исследования</small></div>
+            <div class="product-demo" data-product-example="6">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+                    <path d="M8.5 2h7" />
+                    <path d="M7 16h10" /></svg></span
+                ><strong>Журнал исследований</strong>
+              </div>
+              <div class="research-demo-nav seg" role="group" aria-label="Шаги исследования">
+                <button type="button" data-demo-action="research-stage" data-stage="experiment" aria-pressed="false">Эксперимент</button
+                ><button type="button" data-demo-action="research-stage" data-stage="protocol" aria-pressed="false">Протокол</button
+                ><button type="button" data-demo-action="research-stage" data-stage="runs" aria-pressed="false">Сравнить запуски</button
+                ><button type="button" data-demo-action="research-stage" data-stage="article" aria-pressed="false">Мини-статья</button>
+              </div>
+              <div class="research-preview">
+                <section data-demo-research-view="experiment" class="research-demo-card">
+                  <span class="hint">Эксперимент · Вымышленный пример</span>
+                  <h3>Ускорит ли уменьшение масштаба предпросмотр?</h3>
+                  <p>Сравните одну сцену при внутреннем масштабе 100% и 75%. Задайте критерий успеха до запуска обеих версий.</p>
+                </section>
+                <section data-demo-research-view="protocol" class="research-demo-card">
+                  <span class="hint">Протокол · Вымышленный пример</span>
+                  <h3>Три ракурса, одно выходное разрешение</h3>
+                  <p>Зафиксируйте набор данных, ракурсы и выходное разрешение. Запишите медианное время кадра и сходство изображений, приложите CSV и кадры.</p>
+                </section>
+                <section data-demo-research-view="runs" class="research-demo-card">
+                  <span class="hint">Сравнить запуски · Вымышленный пример</span>
+                  <h3>A · 100% → B · 75%</h3>
+                  <p>Запланировано одно изменение — масштаб рендера. Оба запуска ожидают выполнения. Время кадра и сходство изображений предстоит измерить.</p>
+                </section>
+                <section data-demo-research-view="article" class="research-demo-card">
+                  <span class="hint">Мини-статья · Вымышленный пример</span>
+                  <h3>Черновик выводов</h3>
+                  <p>Черновик объединяет гипотезу, протокол и запуски. Следующий шаг — записать замеры и обосновать решение.</p>
+                </section>
+              </div>
+              <p class="example-status" role="status" aria-live="polite">Демонстрация. Изменения не сохраняются.</p>
+              <dialog class="example-dialog" aria-label="Пример просмотра">
+                <div class="example-dialog-head">
+                  <strong>Пример просмотра</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Закрыть просмотр">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
+            </div>
+          </div>
+        </section>
         <section class="feature-story" id="feature-spaces">
           <div class="story-copy">
-            <p class="eyebrow">07 / Пространства, доступ и интеграции</p>
+            <p class="eyebrow">08 / Пространства, доступ и интеграции</p>
             <h3>Команда управляет своей средой и тем, кому доступны материалы.</h3>
             <dl>
               <div>

@@ -23,7 +23,7 @@ export function productDemo(c, index, compact = false) {
   const button = (action, label, icon = '', primary = false) =>
     `<button type="button" class="btn ${primary ? 'btn-primary' : 'btn-secondary'}" data-demo-action="${action}">${icon ? ic(icon) : ''}${label}</button>`;
   const heading = text =>
-    `<div class="example-heading"><span class="picon" style="--c:var(--accent)">${ic(['FolderKanban', 'Files', 'Library', 'Bookmark', 'PanelsTopLeft', 'Network'][index])}</span><strong>${text}</strong></div>`;
+    `<div class="example-heading"><span class="picon" style="--c:var(--accent)">${ic(['FolderKanban', 'Files', 'Library', 'Bookmark', 'PanelsTopLeft', 'Network', 'FlaskConical'][index])}</span><strong>${text}</strong></div>`;
   let body = '';
   if (index === 0) {
     body = `${heading(c.project)}<div class="example-toolbar"><span class="hint">${T('Open a task, then choose its status.', 'Откройте задачу и выберите статус.')}</span>${button('board-layout', T('List', 'Список'), 'List')}</div><div class="board" data-demo-board>${[c.plan, c.work, c.done].map((name, i) => `<section class="bcol"><div class="bcol-h"><span class="status-dot status-${i}"></span><span>${name}</span><span class="cnt">1</span></div><div class="bcol-b"><button class="kcard" data-demo-action="task" data-task="${i}"><span class="kcard-title">${esc(c.tasks[i])}</span><span class="example-card-meta"><span>${ic('MessageSquare', 12)} ${i + 1}</span><span class="av sm" style="--c:var(--accent)" aria-label="${T('Demo member', 'Участник демо')}">A</span></span></button></div></section>`).join('')}</div>`;
@@ -60,7 +60,7 @@ export function productDemo(c, index, compact = false) {
     body = `${heading(T('Bookmarks', 'Закладки'))}<div class="example-toolbar"><label class="example-search">${ic('Search')}<input class="input" type="search" data-demo-search placeholder="${T('Search bookmarks', 'Поиск закладок')}" aria-label="${T('Search demo bookmarks', 'Поиск закладок в демо')}"></label>${button('bookmark-layout', T('List', 'Список'), 'List')}</div><div class="bookmark-library"><div class="bookmark-grid">${cards}</div></div><p class="example-empty" hidden>${T('No matches. Try another search.', 'Ничего не найдено. Измените запрос.')}</p><template data-demo-archive><article class="example-saved-page"><small>${T('Saved HTML sample · 17 November 2026', 'Пример сохранённого HTML · 17 ноября 2026')}</small><h3>${T('Work with context.', 'Работайте с контекстом.')}</h3><p>${c.bookmarkBody}</p><div class="example-saved-columns"><span>${c.demoTabs[2]}</span><span>${c.demoTabs[0]}</span><span>${c.demoTabs[1]}</span></div><p>${T('The real archive stores the downloaded page styles, images and fonts. Scripts and embedded pages are disabled.', 'Настоящий архив сохраняет загруженные стили, изображения и шрифты страницы. Скрипты и встроенные страницы отключены.')}</p></article></template>`;
   } else if (index === 4) {
     body = `<div class="canvas-trial" data-product-canvas><div class="canvas-trial-tools">${button('canvas-add', T('Add card', 'Добавить карточку'), 'Plus')}<button class="btn btn-secondary" type="button" data-demo-connections aria-pressed="true">${T('Connections', 'Связи')}</button><button class="btn btn-ghost" type="button" data-demo-reset>${T('Reset', 'Сбросить')}</button></div><div class="canvas-trial-stage"><svg aria-hidden="true"><path/></svg>${c.canvasNodes.map((name, i) => `<div class="trial-node trial-node-${i}" data-demo-node="${i}"><button class="trial-node-title" type="button" aria-label="${esc(T('Move: ', 'Переместить: ') + name)}"><strong>${name}</strong></button><span>${[c.demoTabs[3], c.noteType, c.demoTabs[0]][i]}</span><button class="trial-node-resize" type="button" aria-label="${esc(T('Resize: ', 'Изменить размер: ') + name)}">${ic('MoveDiagonal2')}</button></div>`).join('')}</div><p class="canvas-trial-hint">${T('Drag a title or corner. Keyboard: arrow keys, Shift for larger steps.', 'Тяните за заголовок или угол. Клавиатура: стрелки, Shift — больший шаг.')}</p></div>`;
-  } else {
+  } else if (index === 5) {
     body = `${heading(T('Graph', 'Граф'))}<div class="example-toolbar">${button('graph-simple', T('Simplified view', '\u0423\u043f\u0440\u043e\u0449\u0451\u043d\u043d\u044b\u0439 \u0432\u0438\u0434'), 'CircleDot')}<button class="btn btn-secondary" data-demo-physics aria-pressed="false">${T('Physics off', '\u0424\u0438\u0437\u0438\u043a\u0430 \u0432\u044b\u043a\u043b.\u0020')}</button><span class="hint">${T('Select a node to see its connections.', 'Выберите узел, чтобы увидеть его связи.')}</span></div><div class="demo-graph"><svg viewBox="0 0 700 260" aria-hidden="true"><g class="graph-lines"><path d="M350 120L160 55M350 120L150 205M350 120L555 55M350 120L555 205M160 55L150 205"/></g>${[
       [350, 120],
       [160, 55],
@@ -75,6 +75,46 @@ export function productDemo(c, index, compact = false) {
       .join(
         '',
       )}</svg></div><div class="example-graph-nodes" aria-label="${T('Select graph node', 'Выбрать узел графа')}">${c.graphNames.map((name, i) => `<button class="btn btn-secondary" data-demo-action="graph-node" data-node="${i}" aria-pressed="false">${name}</button>`).join('')}</div>`;
+  } else {
+    const stages = [
+      [
+        'experiment',
+        T('Experiment', 'Эксперимент'),
+        T('Can a lower render scale speed up preview?', 'Ускорит ли уменьшение масштаба предпросмотр?'),
+        T(
+          'Compare the same scene at 100% and 75% internal scale. Set a success criterion before running either version.',
+          'Сравните одну сцену при внутреннем масштабе 100% и 75%. Задайте критерий успеха до запуска обеих версий.',
+        ),
+      ],
+      [
+        'protocol',
+        T('Protocol', 'Протокол'),
+        T('Three viewpoints, one output size', 'Три ракурса, одно выходное разрешение'),
+        T(
+          'Keep the dataset, views and output size fixed. Record median frame time and image similarity, with a CSV and reference frames.',
+          'Зафиксируйте набор данных, ракурсы и выходное разрешение. Запишите медианное время кадра и сходство изображений, приложите CSV и кадры.',
+        ),
+      ],
+      [
+        'runs',
+        T('Compare runs', 'Сравнить запуски'),
+        T('A · 100% → B · 75%', 'A · 100% → B · 75%'),
+        T(
+          'The only planned change is render scale. Both runs are planned. Frame time and image similarity are awaiting measurements.',
+          'Запланировано одно изменение — масштаб рендера. Оба запуска ожидают выполнения. Время кадра и сходство изображений предстоит измерить.',
+        ),
+      ],
+      [
+        'article',
+        T('Short article', 'Мини-статья'),
+        T('Draft findings', 'Черновик выводов'),
+        T(
+          'The draft groups the hypothesis, protocol and runs. Next, record the measurements and use them to support a decision.',
+          'Черновик объединяет гипотезу, протокол и запуски. Следующий шаг — записать замеры и обосновать решение.',
+        ),
+      ],
+    ];
+    body = `${heading(T('Research journal', 'Журнал исследований'))}<div class="research-demo-nav seg" role="group" aria-label="${T('Research steps', 'Шаги исследования')}">${stages.map(([id, label]) => `<button type="button" data-demo-action="research-stage" data-stage="${id}" aria-pressed="false">${esc(label)}</button>`).join('')}</div><div class="research-preview">${stages.map(([id, label, title, description]) => `<section data-demo-research-view="${id}" class="research-demo-card"><span class="hint">${esc(label)} · ${T('Fictional example', 'Вымышленный пример')}</span><h3>${esc(title)}</h3><p>${esc(description)}</p></section>`).join('')}</div>`;
   }
   return `<div class="product-demo" data-product-example="${index}">${body}<p class="example-status" role="status" aria-live="polite">${T('Demo. Changes are not saved.', 'Демонстрация. Изменения не сохраняются.')}</p><dialog class="example-dialog" aria-label="${T('Demo preview', '\u041f\u0440\u0438\u043c\u0435\u0440 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0430')}"><div class="example-dialog-head"><strong>${T('Demo preview', 'Пример просмотра')}</strong><button class="ibtn" data-demo-action="close-dialog" aria-label="${T('Close preview', 'Закрыть просмотр')}">${ic('X')}</button></div><div class="example-dialog-body"></div></dialog></div>`;
 }

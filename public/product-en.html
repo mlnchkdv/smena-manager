@@ -69,7 +69,8 @@
           <div class="demo-tabs" aria-label="Demo section">
             <a id="tab-projects" href="#panel-projects">Projects</a><a id="tab-files" href="#panel-files">Files</a
             ><a id="tab-knowledge" href="#panel-knowledge">Knowledge</a><a id="tab-bookmarks" href="#panel-bookmarks">Bookmarks</a
-            ><a id="tab-whiteboards" href="#panel-whiteboards">Whiteboards</a><a id="tab-graph" href="#panel-graph">Graph</a>
+            ><a id="tab-whiteboards" href="#panel-whiteboards">Whiteboards</a><a id="tab-graph" href="#panel-graph">Graph</a
+            ><a id="tab-research" href="#panel-research">Research</a>
           </div>
           <div class="demo-panels">
             <section id="panel-projects" class="demo-panel" aria-labelledby="tab-projects">
@@ -1026,6 +1027,82 @@
                 </dialog>
               </div>
               <p class="demo-description">Explore connections between materials. Filters and focus keep the relevant part in view.</p>
+            </section>
+            <section id="panel-research" class="demo-panel" aria-labelledby="tab-research">
+              <div class="product-demo" data-product-example="6">
+                <div class="example-heading">
+                  <span class="picon" style="--c: var(--accent)"
+                    ><svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+                      <path d="M8.5 2h7" />
+                      <path d="M7 16h10" /></svg></span
+                  ><strong>Research journal</strong>
+                </div>
+                <div class="research-demo-nav seg" role="group" aria-label="Research steps">
+                  <button type="button" data-demo-action="research-stage" data-stage="experiment" aria-pressed="false">Experiment</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="protocol" aria-pressed="false">Protocol</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="runs" aria-pressed="false">Compare runs</button
+                  ><button type="button" data-demo-action="research-stage" data-stage="article" aria-pressed="false">Short article</button>
+                </div>
+                <div class="research-preview">
+                  <section data-demo-research-view="experiment" class="research-demo-card">
+                    <span class="hint">Experiment · Fictional example</span>
+                    <h3>Can a lower render scale speed up preview?</h3>
+                    <p>Compare the same scene at 100% and 75% internal scale. Set a success criterion before running either version.</p>
+                  </section>
+                  <section data-demo-research-view="protocol" class="research-demo-card">
+                    <span class="hint">Protocol · Fictional example</span>
+                    <h3>Three viewpoints, one output size</h3>
+                    <p>Keep the dataset, views and output size fixed. Record median frame time and image similarity, with a CSV and reference frames.</p>
+                  </section>
+                  <section data-demo-research-view="runs" class="research-demo-card">
+                    <span class="hint">Compare runs · Fictional example</span>
+                    <h3>A · 100% → B · 75%</h3>
+                    <p>The only planned change is render scale. Both runs are planned. Frame time and image similarity are awaiting measurements.</p>
+                  </section>
+                  <section data-demo-research-view="article" class="research-demo-card">
+                    <span class="hint">Short article · Fictional example</span>
+                    <h3>Draft findings</h3>
+                    <p>The draft groups the hypothesis, protocol and runs. Next, record the measurements and use them to support a decision.</p>
+                  </section>
+                </div>
+                <p class="example-status" role="status" aria-live="polite">Demo. Changes are not saved.</p>
+                <dialog class="example-dialog" aria-label="Demo preview">
+                  <div class="example-dialog-head">
+                    <strong>Demo preview</strong
+                    ><button class="ibtn" data-demo-action="close-dialog" aria-label="Close preview">
+                      <svg
+                        class="i"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="example-dialog-body"></div>
+                </dialog>
+              </div>
+              <p class="demo-description">Follow a hypothesis from the protocol through run comparison and a short article. Open each demo step.</p>
             </section>
           </div>
         </div>
@@ -2044,9 +2121,101 @@
             </div>
           </div>
         </section>
+        <section class="feature-story" id="feature-research">
+          <div class="story-copy">
+            <p class="eyebrow">07 / Research</p>
+            <h3>Hypotheses, measurements and decisions in one project journal.</h3>
+            <dl>
+              <div>
+                <dt>Experiment plan</dt>
+                <dd>Write a hypothesis, success criterion and protocol. Link the run to a dataset version.</dd>
+              </div>
+              <div>
+                <dt>Comparison and reporting</dt>
+                <dd>Compare conditions and measurements. Draft a short article or download a ZIP of journal records and revisions.</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="story-scene">
+            <div class="scene-chrome"><span aria-hidden="true">S</span><strong>Product launch</strong><small>Research</small></div>
+            <div class="product-demo" data-product-example="6">
+              <div class="example-heading">
+                <span class="picon" style="--c: var(--accent)"
+                  ><svg
+                    class="i"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+                    <path d="M8.5 2h7" />
+                    <path d="M7 16h10" /></svg></span
+                ><strong>Research journal</strong>
+              </div>
+              <div class="research-demo-nav seg" role="group" aria-label="Research steps">
+                <button type="button" data-demo-action="research-stage" data-stage="experiment" aria-pressed="false">Experiment</button
+                ><button type="button" data-demo-action="research-stage" data-stage="protocol" aria-pressed="false">Protocol</button
+                ><button type="button" data-demo-action="research-stage" data-stage="runs" aria-pressed="false">Compare runs</button
+                ><button type="button" data-demo-action="research-stage" data-stage="article" aria-pressed="false">Short article</button>
+              </div>
+              <div class="research-preview">
+                <section data-demo-research-view="experiment" class="research-demo-card">
+                  <span class="hint">Experiment · Fictional example</span>
+                  <h3>Can a lower render scale speed up preview?</h3>
+                  <p>Compare the same scene at 100% and 75% internal scale. Set a success criterion before running either version.</p>
+                </section>
+                <section data-demo-research-view="protocol" class="research-demo-card">
+                  <span class="hint">Protocol · Fictional example</span>
+                  <h3>Three viewpoints, one output size</h3>
+                  <p>Keep the dataset, views and output size fixed. Record median frame time and image similarity, with a CSV and reference frames.</p>
+                </section>
+                <section data-demo-research-view="runs" class="research-demo-card">
+                  <span class="hint">Compare runs · Fictional example</span>
+                  <h3>A · 100% → B · 75%</h3>
+                  <p>The only planned change is render scale. Both runs are planned. Frame time and image similarity are awaiting measurements.</p>
+                </section>
+                <section data-demo-research-view="article" class="research-demo-card">
+                  <span class="hint">Short article · Fictional example</span>
+                  <h3>Draft findings</h3>
+                  <p>The draft groups the hypothesis, protocol and runs. Next, record the measurements and use them to support a decision.</p>
+                </section>
+              </div>
+              <p class="example-status" role="status" aria-live="polite">Demo. Changes are not saved.</p>
+              <dialog class="example-dialog" aria-label="Demo preview">
+                <div class="example-dialog-head">
+                  <strong>Demo preview</strong
+                  ><button class="ibtn" data-demo-action="close-dialog" aria-label="Close preview">
+                    <svg
+                      class="i"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="example-dialog-body"></div>
+              </dialog>
+            </div>
+          </div>
+        </section>
         <section class="feature-story" id="feature-spaces">
           <div class="story-copy">
-            <p class="eyebrow">07 / Workspaces, access and integrations</p>
+            <p class="eyebrow">08 / Workspaces, access and integrations</p>
             <h3>Your team controls its environment and who can access materials.</h3>
             <dl>
               <div>

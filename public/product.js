@@ -86,10 +86,24 @@ for (const example of document.querySelectorAll('[data-product-example]')) {
     body.replaceChildren(content);
     dialog.showModal();
   };
+  const researchSteps = [...example.querySelectorAll('[data-demo-action="research-stage"]')];
+  const showResearchStage = stage => {
+    for (const step of researchSteps) {
+      const selected = step.dataset.stage === stage;
+      step.setAttribute('aria-pressed', String(selected));
+      step.classList.toggle('on', selected);
+    }
+    for (const view of example.querySelectorAll('[data-demo-research-view]')) view.hidden = view.dataset.demoResearchView !== stage;
+  };
+  if (researchSteps.length) showResearchStage(researchSteps[0].dataset.stage);
   example.addEventListener('click', event => {
     const button = event.target.closest('[data-demo-action]');
     if (!button) return;
     const action = button.dataset.demoAction;
+    if (action === 'research-stage') {
+      showResearchStage(button.dataset.stage);
+      status(button.textContent.trim());
+    }
     if (action === 'task') {
       const columns = [...example.querySelectorAll('.bcol')];
       const article = document.createElement('article');

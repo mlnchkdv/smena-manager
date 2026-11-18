@@ -842,6 +842,35 @@ dd {
   font: 10px var(--mono);
   color: var(--accent);
 }
+.research-demo-nav {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.research-demo-nav button {
+  min-height: 44px;
+}
+.research-demo-card {
+  padding: clamp(12px, 3vw, 20px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.research-demo-card + .research-demo-card {
+  margin-top: 8px;
+}
+.research-demo-card[hidden] {
+  display: none;
+}
+.research-demo-card h3 {
+  margin: 4px 0 8px;
+}
+.research-demo-card p {
+  margin: 0;
+  max-width: 58ch;
+}
 .example-status {
   font-size: 11px;
   color: var(--text-3);
