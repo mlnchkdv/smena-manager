@@ -48,6 +48,7 @@
 @media (max-height: 480px) {
   .knowledge-shell[data-folder-overlay='true'].folders-open aside.knowledge-sidebar {
     inset: 0;
+    height: 100dvh;
     max-height: 100dvh;
     border-radius: 0;
     overflow: hidden;
@@ -80,6 +81,7 @@
     grid-column: 1 / -1;
     grid-row: 3;
     min-height: 150px;
+    max-height: none;
   }
 }
 .knowledge-shell[data-folder-overlay='true'] {

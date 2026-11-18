@@ -321,7 +321,7 @@
   ],
   "editorStates": 42,
   "conflictStates": 4,
-  "totalMeasuredStates": 46,
+  "totalMeasuredStates": 50,
   "configurations": [
     ["ru", "light", "comfortable"],
     ["en", "dark", "compact"]
@@ -484,5 +484,64 @@
   "serverTests": {
     "passed": 19,
     "failed": 0
+  },
+  "folderOverlay": {
+    "productionBefore": {
+      "viewport": {
+        "width": 390,
+        "height": 320
+      },
+      "panelHeight": 256
+    },
+    "states": 4,
+    "rows": [
+      {
+        "width": 390,
+        "height": 320,
+        "y": 0,
+        "bottom": 320,
+        "panelHeight": 320,
+        "overflow": 0,
+        "foldersHeight": 150,
+        "foldersScrollHeight": 686,
+        "headOverflow": 0
+      },
+      {
+        "width": 320,
+        "height": 320,
+        "y": 0,
+        "bottom": 320,
+        "panelHeight": 320,
+        "overflow": 0,
+        "foldersHeight": 150,
+        "foldersScrollHeight": 686,
+        "headOverflow": 0
+      },
+      {
+        "width": 640,
+        "height": 390,
+        "y": 0,
+        "bottom": 390,
+        "panelHeight": 390,
+        "overflow": 0,
+        "foldersHeight": 150,
+        "foldersScrollHeight": 774,
+        "headOverflow": 0
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "y": 50.640625,
+        "bottom": 844,
+        "panelHeight": 793.359375,
+        "overflow": 0,
+        "foldersHeight": 539,
+        "foldersScrollHeight": 1434,
+        "headOverflow": 0
+      }
+    ],
+    "lastFolderReachable": true,
+    "lastFolderId": "ui-qa-folder-24",
+    "compiledBuild": true
   }
 }
