@@ -16,7 +16,7 @@ export function researchFormFields(m) {
     kind = record.kind;
   const references = (k, key, label) =>
     select(key, label, data[key], [
-      ...(data[key] && !(m.references || []).some(row => row.id === data[key]) ? [[data[key], rw('Selected record: ', 'Выбрана запись: ') + data[key]]] : []),
+      ...(data[key] && !(m.references || []).some(row => row.id === data[key]) ? [[data[key], rw('Current selection', 'Текущий выбор')]] : []),
       ...(m.references || []).filter(row => row.kind === k).map(row => [row.id, row.title]),
     ]);
   const template = !m.original
@@ -50,7 +50,8 @@ export function researchFormFields(m) {
     fields =
       field('split', rw('Evaluation split', 'Разбиение оценки'), data.split) +
       field('evaluationResolution', rw('Evaluation resolution', 'Разрешение оценки'), data.evaluationResolution) +
-      json('config', rw('Metric definitions and evaluation settings (JSON)', 'Определения метрик и настройки оценки (JSON)'), m.rawConfig);
+      json('config', rw('Metric definitions and evaluation settings (JSON)', 'Определения метрик и настройки оценки (JSON)'), m.rawConfig) +
+      `<p class="hint">${rw('List the metrics a run should capture in the JSON field.', 'Перечислите в JSON метрики, которые нужно собрать при запуске.')} <code>{"metrics":["ssim",{"key":"frame_time_p50","unit":"ms"}]}</code></p>`;
   if (kind === 'run')
     fields =
       references('experiment', 'experimentId', rw('Experiment', 'Эксперимент')) +
@@ -82,7 +83,11 @@ export function researchFormFields(m) {
     fields =
       references('experiment', 'experimentId', rw('Related experiment', 'Связанный эксперимент')) +
       field('nextStep', rw('Next action', 'Следующий шаг'), data.nextStep);
-  if (kind === 'run') fields += researchMetricsForm(m);
+  if (kind === 'run') {
+    if (data.state === 'planned' && data.protocolId && !data.protocolVersion)
+      fields += `<button class="btn btn-secondary" data-a="researchProtocolMetrics" ${m.protocolMetricRequest?.protocolId === data.protocolId ? 'disabled' : ''}>${m.protocolMetricRequest?.protocolId === data.protocolId ? rw('Loading metrics…', 'Загружаем метрики…') : rw('Add metrics from protocol', 'Добавить метрики из протокола')}</button>${m.protocolMetricMessage ? `<p class="hint" role="status">${esc(m.protocolMetricMessage)}</p>` : ''}`;
+    fields += researchMetricsForm(m);
+  }
   if (kind === 'run' && (data.datasetVersion || data.protocolVersion))
     fields += `<p class="hint">${rw('Inherited input revisions', 'Унаследованные редакции входов')}: dataset v${esc(data.datasetVersion?.revision || '?')} · protocol v${esc(data.protocolVersion?.revision || '?')}</p>${data.state === 'planned' ? `<button class="btn btn-secondary" data-a="researchLatestInputs">${rw('Use latest input revisions instead', 'Вместо этого взять последние редакции входов')}</button>` : ''}`;
   if (['experiment', 'article', 'handoff', 'run'].includes(kind))

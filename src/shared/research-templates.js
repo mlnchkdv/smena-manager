@@ -1,3 +1,5 @@
+import { RESEARCH_LIMITS, validResearchMetric } from './research.js';
+
 export const RESEARCH_TEMPLATE_VERSION = 1;
 export const RESEARCH_TEMPLATE_SECTIONS = Object.freeze({
   observation: [
@@ -108,6 +110,17 @@ export const RESEARCH_PROFILE_METRICS = Object.freeze({
 });
 export function researchMetricDefaults(profile, reason = 'Not measured yet') {
   return (RESEARCH_PROFILE_METRICS[profile] || []).map(([key, unit]) => ({ key, unit, value: null, status: 'missing', reason, scope: 'run', origin: 'team' }));
+}
+export function protocolResearchMetrics(config, reason = 'Not measured yet') {
+  if (!Array.isArray(config?.metrics)) return [];
+  const units = new Map(Object.values(RESEARCH_PROFILE_METRICS).flat());
+  const rows = new Map();
+  for (const item of config.metrics.slice(0, RESEARCH_LIMITS.metrics)) {
+    const { key, unit, scope = 'run', aggregation } = typeof item === 'string' ? { key: item, unit: units.get(item) } : item || {};
+    const metric = { key, unit, scope, ...(aggregation ? { aggregation } : {}), status: 'missing', value: null, reason, origin: 'team' };
+    if (validResearchMetric(metric)) rows.set([key, unit, scope, aggregation || ''].join('\u001f'), metric);
+  }
+  return [...rows.values()];
 }
 export function researchTemplate(kind, { russian = false, ownerId = '', now = new Date().toISOString() } = {}) {
   const sections = RESEARCH_TEMPLATE_SECTIONS[kind];

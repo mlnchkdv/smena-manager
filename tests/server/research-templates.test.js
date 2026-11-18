@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { researchFixture } from '../fixtures/research.js';
-import { researchTemplate, researchMetricDefaults, repeatResearchRun } from '../../src/shared/research-templates.js';
+import { researchTemplate, researchMetricDefaults, protocolResearchMetrics, repeatResearchRun } from '../../src/shared/research-templates.js';
 import { RESEARCH_KINDS, RESEARCH_PROFILES } from '../../src/shared/research.js';
 
 test('nine versioned templates cover RU/EN and all profiles leave measurements explicitly missing', () => {
@@ -12,6 +12,14 @@ test('nine versioned templates cover RU/EN and all profiles leave measurements e
     assert.equal(ru.data.templateVersion, '1');
   }
   for (const profile of RESEARCH_PROFILES) assert.ok(researchMetricDefaults(profile).every(metric => metric.value === null && metric.status !== 'measured'));
+  const definitions = protocolResearchMetrics({ metrics: ['ssim', 'unknown', { key: 'fps', unit: 'fps', scope: 'held-out', aggregation: 'mean' }, 'ssim'] });
+  assert.deepEqual(
+    definitions.map(metric => [metric.key, metric.unit, metric.scope, metric.value]),
+    [
+      ['ssim', 'ratio', 'run', null],
+      ['fps', 'fps', 'held-out', null],
+    ],
+  );
 });
 test('starting a run validates its plan, freezes input revisions, and terminal corrections require a reason', async () => {
   const f = researchFixture();

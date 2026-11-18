@@ -8,7 +8,8 @@ import { openModal } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
-import { researchTemplate, researchMetricDefaults, repeatResearchRun } from '../shared/research-templates.js';
+import { researchTemplate, researchMetricDefaults, protocolResearchMetrics, repeatResearchRun } from '../shared/research-templates.js';
+import { RESEARCH_LIMITS } from '../shared/research.js';
 import { researchFormFields } from '../ui/research-form.js';
 import { researchEvidenceHtml, researchDisclosure } from '../ui/research-evidence.js';
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
@@ -94,6 +95,7 @@ function form(model, record, kind = 'experiment') {
       `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy || m.command ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
   };
   resetRaw(m);
+  m.metricSeed = m.original ? '' : JSON.stringify(m.record.data.metrics || []);
   openModal(m);
   void researchRequest(model.project, '?kind=experiment,dataset,protocol&limit=100')
     .then(result => {
@@ -114,13 +116,70 @@ IN.researchField = el => {
     else m.record.data.seed = Number(el.value);
   } else if (el.dataset.field === 'profile') {
     m.record.data.profile = el.value;
-    m.record.data.metrics = researchMetricDefaults(el.value, rw('Not measured yet', 'Ещё не измерено'));
+    if (m.metricSeed === JSON.stringify(m.record.data.metrics || [])) {
+      m.record.data.metrics = researchMetricDefaults(el.value, rw('Not measured yet', 'Ещё не измерено'));
+      m.metricSeed = JSON.stringify(m.record.data.metrics);
+      if (m.record.data.protocolId) void loadProtocolMetrics(m, false);
+    }
     render();
   } else {
     if (['datasetId', 'protocolId'].includes(el.dataset.field) && m.record.data[el.dataset.field] !== el.value)
       delete m.record.data[el.dataset.field === 'datasetId' ? 'datasetVersion' : 'protocolVersion'];
     m.record.data[el.dataset.field] = el.value;
+    if (el.dataset.field === 'protocolId') {
+      m.protocolMetricMessage = '';
+      const untouched = m.metricSeed === JSON.stringify(m.record.data.metrics || []);
+      if (el.value && untouched) void loadProtocolMetrics(m, false);
+      else {
+        if (!el.value && untouched) {
+          m.record.data.metrics = researchMetricDefaults(m.record.data.profile, rw('Not measured yet', 'Ещё не измерено'));
+          m.metricSeed = JSON.stringify(m.record.data.metrics);
+        }
+        render();
+      }
+    }
   }
+};
+async function loadProtocolMetrics(m, explicit) {
+  const protocolId = m.record.data.protocolId;
+  if (!protocolId || m.record.data.protocolVersion || m.busy || m.command) return;
+  const request = { protocolId };
+  m.protocolMetricRequest = request;
+  const open = () => S.ui.modals.includes(m) && m.generation === getSessionGeneration() && m.protocolMetricRequest === request;
+  const current = () => open() && !m.busy && !m.command && m.record.kind === 'run' && m.record.data.protocolId === protocolId;
+  render();
+  try {
+    const { record } = await researchRequest(m.project, '/records/' + encodeURIComponent(protocolId));
+    if (!current() || record.kind !== 'protocol') return;
+    const reason = rw('Not measured yet', 'Ещё не измерено');
+    const fromProtocol = protocolResearchMetrics(record.data.config, reason);
+    const currentMetrics = m.record.data.metrics || [];
+    if (m.metricSeed === JSON.stringify(currentMetrics)) {
+      m.record.data.metrics = fromProtocol.length ? fromProtocol : researchMetricDefaults(m.record.data.profile, reason);
+      m.metricSeed = JSON.stringify(m.record.data.metrics);
+    } else if (explicit && fromProtocol.length) {
+      const merged = [...currentMetrics];
+      for (const metric of fromProtocol) {
+        if (merged.length === RESEARCH_LIMITS.metrics) break;
+        if (!merged.some(existing => existing.key === metric.key && existing.unit === metric.unit && existing.scope === metric.scope)) merged.push(metric);
+      }
+      m.record.data.metrics = merged;
+    }
+    m.protocolMetricMessage = fromProtocol.length
+      ? rw('Protocol metrics checked. Existing measurements are kept.', 'Метрики протокола проверены. Введённые измерения сохранены.')
+      : rw('This protocol has no metric definitions. Profile metrics are available.', 'В протоколе нет определений метрик. Доступны метрики профиля.');
+  } catch (error) {
+    if (current()) m.protocolMetricMessage = researchFailure(error);
+  } finally {
+    if (open()) {
+      m.protocolMetricRequest = null;
+      render();
+    }
+  }
+}
+A.researchProtocolMetrics = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm' && m.record.kind === 'run' && m.record.data.state === 'planned') void loadProtocolMetrics(m, true);
 };
 IN.researchRaw = el => {
   const m = S.ui.modals.at(-1);
@@ -279,6 +338,7 @@ A.researchApplyTemplate = () => {
   m.templatePending = null;
   m.command = null;
   resetRaw(m);
+  m.metricSeed = JSON.stringify(m.record.data.metrics || []);
   render();
 };
 A.researchCancelTemplate = () => {
