@@ -88,7 +88,10 @@ export function createResearchStore({
     researchContext(await load(), projectId, profile, profiles);
     const filtered = book.records
       .filter(
-        row => !!row.archived === !!archived && (!kind || row.kind === kind) && (!query || row.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())),
+        row =>
+          !!row.archived === !!archived &&
+          (!kind || kind.split(',').includes(row.kind)) &&
+          (!query || row.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())),
       )
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
     return {

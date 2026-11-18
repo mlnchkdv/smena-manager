@@ -1,4 +1,5 @@
 import { isFavorite } from '../core/favorites.js';
+import { researchHtml } from '../features/research.js';
 import { actionLabel } from '../ui/action-label.js';
 /* =====================================================================
    PROJECT PAGE + VIEWS: overview, board, list, table, calendar, timeline, files, activity
@@ -28,7 +29,7 @@ export function pageProject() {
   const p = proj(S.ui.params.id);
   if (!p) return page404();
   if (!canSee(p)) return stateDenied(p);
-  const tab = S.ui.params.tab || 'board';
+  const tab = S.ui.params.tab?.startsWith('research~') ? 'research' : S.ui.params.tab || 'board';
   const views = D().savedViews.filter(v => v.project === p.id);
   let body = '';
   const key = 'p:' + p.id;
@@ -47,6 +48,7 @@ export function pageProject() {
   } else if (tab === 'overview') body = projOverview(p);
   else if (tab === 'files') body = filesHtml(p.id);
   else if (tab === 'activity') body = projActivity(p);
+  else if (tab === 'research') body = researchHtml();
   else body = taskViewBody(tab, applyView(ts, viewOf(key)), key, p);
 
   return `<div class="page flush${tab === 'files' ? ' project-file-context' : ''}">

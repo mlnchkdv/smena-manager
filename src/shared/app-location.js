@@ -42,7 +42,7 @@ export function parseAppLocation(pathname, hash = '') {
   const legacyRoute = String(hash || '').replace(/^#/, '');
   if (!segments.length) return { kind: SIMPLE_ROUTES.has(legacyRoute) ? legacyRoute : 'home', slug: '' };
   const [slug, kind = 'home', key = '', detail = ''] = segments;
-  return { slug, kind, key, detail };
+  return { slug, kind, key, detail, ...(kind === 'project' && detail === 'research' && segments[4] ? { researchId: segments[4] } : {}) };
 }
 
 function resolveEntity(items, key) {
@@ -74,7 +74,9 @@ export function resolveAppLocation(pathname, hash, data, defaultRoute = 'home') 
       const board = (data.whiteboards || []).find(b => b.legacyProject === project.id);
       return board ? { route: 'whiteboard', params: { id: board.id } } : { route: 'whiteboards', params: { project: project.id } };
     }
-    return project ? { route: 'project', params: { id: project.id, tab: parsed.detail || 'board' } } : { route: 'nowhere', params: {} };
+    return project
+      ? { route: 'project', params: { id: project.id, tab: parsed.detail || 'board', ...(parsed.researchId ? { researchId: parsed.researchId } : {}) } }
+      : { route: 'nowhere', params: {} };
   }
   if (route === 'task') {
     const task = resolveEntity(data.tasks, parsed.key);
@@ -106,7 +108,10 @@ export function appLocationPath(data, ui) {
   if (ui.route === 'project') {
     const project = data.projects.find(item => item.id === ui.params.id);
     if (!project) return `/${slug}/projects`;
-    const tab = ui.params.tab && ui.params.tab !== 'board' ? `/${encode(ui.params.tab)}` : '';
+    const tab =
+      ui.params.tab && ui.params.tab !== 'board'
+        ? `/${encode(ui.params.tab)}${ui.params.tab === 'research' && ui.params.researchId ? '/' + encode(ui.params.researchId) : ''}`
+        : '';
     const routeKey = entityRouteKey(data.projects, project);
     return `/${slug}/project/${encode(routeKey === project.key ? routeKey.toLowerCase() : routeKey)}${tab}`;
   }

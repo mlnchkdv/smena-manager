@@ -1,4 +1,10 @@
 export const bookmarkPageRequest = (suffix, options = {}) => request('/api/bookmark-pages' + suffix, options, true);
+export const researchRequest = (project, suffix = '', payload) =>
+  request(
+    '/api/research/projects/' + encodeURIComponent(project) + suffix,
+    payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) },
+    true,
+  );
 import { hydrateWhiteboards, whiteboardCatalogWrite, wantWhiteboard } from './whiteboard-catalog-transport.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';

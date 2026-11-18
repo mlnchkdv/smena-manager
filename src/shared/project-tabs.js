@@ -6,5 +6,6 @@ export const PROJECT_TABS = Object.freeze([
   ['calendar', 'Calendar', 'calendar'],
   ['timeline', 'Timeline', 'chart-gantt'],
   ['files', 'Files', 'paperclip'],
+  ['research', 'Research', 'flask-conical'],
   ['activity', 'Activity', 'activity'],
 ]);

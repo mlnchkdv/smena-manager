@@ -2,6 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { appLocationPath, parseAppLocation, resolveAppLocation } from '../../src/shared/app-location.js';
 
+test('research record links retain the project view and exact record after reload', () => {
+  const data = { ws: { url: 'smena' }, projects: [{ id: 'p', key: '3DGS' }] };
+  const params = { id: 'p', tab: 'research', researchId: 'record-123' };
+  const url = appLocationPath(data, { route: 'project', params });
+  assert.equal(url, '/smena/project/3dgs/research/record-123');
+  assert.deepEqual(resolveAppLocation(url, '', data), { route: 'project', params });
+});
+
 const data = {
   ws: { url: 'smena' },
   projects: [{ id: 'p1', key: 'WEB' }],

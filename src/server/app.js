@@ -1,4 +1,5 @@
 import { bookmarkPageRouter } from './bookmark-page-routes.js';
+import { researchRouter } from './research-routes.js';
 import { requestSignal } from './request-signal.js';
 import { integrationRouter } from './integration-routes.js';
 import { publicLinksManagementRouter, anonymousPublicLinksRouter } from './public-links-routes.js';
@@ -247,6 +248,7 @@ app.use('/api/files/exports', fileExportRouter);
 app.use('/api/files', fileRouter);
 app.get('/api/html-previews/:id', renderHtmlFilePreview);
 app.use('/api/bookmark-pages', bookmarkPageRouter);
+app.use('/api/research', researchRouter);
 app.use('/api/storage/inspection', knowledgeInspectionRouter);
 
 app.post('/api/graph/query', async (request, response, next) => {

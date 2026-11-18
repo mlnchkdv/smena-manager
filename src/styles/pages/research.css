@@ -1,0 +1,149 @@
+.research-page {
+  max-width: 1100px;
+  margin-inline: auto;
+  padding: 24px;
+}
+.research-toolbar,
+.research-record-head,
+.research-pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.research-toolbar > .row {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.research-search {
+  display: flex;
+  gap: 8px;
+  margin-block: 20px;
+}
+.research-search .input {
+  min-width: 0;
+  flex: 1;
+}
+.research-list {
+  display: grid;
+}
+.research-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 180px) auto;
+  gap: 16px;
+  text-align: start;
+  align-items: center;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  background: transparent;
+  min-width: 0;
+}
+.research-list-item:hover {
+  background: var(--surface-2);
+}
+.research-list-title {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.research-record-head {
+  margin-block: 16px;
+}
+.research-record-head h2 {
+  overflow-wrap: anywhere;
+}
+.research-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--text-2);
+  margin-block: 16px;
+}
+.research-properties {
+  display: grid;
+  gap: 12px;
+  margin-block: 20px;
+}
+.research-properties > div {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+}
+.research-properties dt {
+  color: var(--text-3);
+}
+.research-properties dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.research-body {
+  max-width: 820px;
+  overflow-wrap: anywhere;
+}
+.research-technical {
+  margin-block: 24px;
+}
+.research-empty {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding-block: 24px;
+}
+.research-empty p {
+  max-width: 660px;
+  color: var(--text-2);
+}
+.research-pagination {
+  justify-content: flex-end;
+  margin-block: 16px;
+}
+.research-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--red);
+  margin-block: 16px;
+}
+.research-form {
+  display: grid;
+  gap: 16px;
+}
+.research-form .field,
+.research-form .input,
+.research-form textarea {
+  min-width: 0;
+  width: 100%;
+}
+.research-form textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+@media (max-width: 600px) {
+  .research-page {
+    padding: 16px 12px;
+  }
+  .research-toolbar > .row {
+    width: 100%;
+  }
+  .research-toolbar > .row > .btn {
+    flex: 1 1 140px;
+  }
+  .research-list-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .research-list-title {
+    grid-column: 1 / -1;
+  }
+  .research-properties > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .research-form .input,
+  .research-form textarea {
+    font-size: 16px;
+  }
+}
