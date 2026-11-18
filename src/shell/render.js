@@ -394,7 +394,7 @@ function refreshThumbnails() {
 let whiteboardModule;
 export function afterRender() {
   revealProjectView();
-  if (document.querySelector('.project-whiteboard')) {
+  if (whiteboardModule || document.querySelector('.project-whiteboard')) {
     whiteboardModule ||= import('../features/project-whiteboard.js');
     void whiteboardModule
       .then(module => module.mountProjectWhiteboard())

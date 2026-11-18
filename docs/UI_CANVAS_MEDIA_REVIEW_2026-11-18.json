@@ -1,0 +1,173 @@
+{
+  "date": "2026-11-18",
+  "environment": "Isolated Layout QA, production Vite preview, Chromium viewport emulation",
+  "productionBefore": [
+    {
+      "canvas": {
+        "bottom": 574.6015625,
+        "height": 363.609375,
+        "width": 1014,
+        "x": 245,
+        "y": 210.9921875
+      },
+      "overflow": 0,
+      "toolbarHeight": 51,
+      "viewport": {
+        "height": 631,
+        "width": 1280
+      }
+    },
+    {
+      "canvas": {
+        "bottom": 513.0390625,
+        "height": 280,
+        "width": 302,
+        "x": 9,
+        "y": 233.0390625
+      },
+      "overflow": 0,
+      "toolbarHeight": 57,
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "canvas": {
+        "bottom": 712.6015625,
+        "height": 500.609375,
+        "width": 1100,
+        "x": 245,
+        "y": 211.9921875
+      },
+      "overflow": 0,
+      "toolbarHeight": 51,
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    }
+  ],
+  "shapeCount": {
+    "before": 3,
+    "after": 12
+  },
+  "upload": {
+    "imageBytes": 1135330,
+    "imageDimensions": [1000, 700],
+    "pdfPages": 3,
+    "pdfBytes": 1578,
+    "maximumFilesPerBatch": 12,
+    "maximumPreviewBytes": 20971520,
+    "storedAs": "authorized file references; no media bytes in board JSON"
+  },
+  "boardSchema": 5,
+  "legacySchemasPreserved": [1, 2, 3, 4],
+  "measuredStates": 80,
+  "viewports": [
+    {
+      "width": 320,
+      "height": 567
+    },
+    {
+      "width": 360,
+      "height": 640
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 390,
+      "height": 320
+    },
+    {
+      "width": 640,
+      "height": 768
+    },
+    {
+      "width": 641,
+      "height": 768
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 1366,
+      "height": 768
+    }
+  ],
+  "configurations": [
+    ["ru", "light", "comfortable"],
+    ["en", "dark", "compact"]
+  ],
+  "modes": ["canvas", "focus", "outline", "shape dialog", "website dialog"],
+  "maxPageAndToolbarOverflow": 0,
+  "allFocusViewsInsideViewport": true,
+  "allModalsInsideViewport": true,
+  "axe": {
+    "scans": 6,
+    "violations": []
+  },
+  "pageErrors": [],
+  "functional": {
+    "largeImageAndPdfUploaded": true,
+    "pdfPages": [1, 2, 3],
+    "lastPageClamped": true,
+    "websiteAdded": true,
+    "images": [
+      {
+        "width": 1000,
+        "height": 700,
+        "alt": "large-image.png"
+      },
+      {
+        "width": 893,
+        "height": 1263,
+        "alt": "three-pages.pdf · Страница 3"
+      }
+    ],
+    "persistedBoardVersion": 5,
+    "persistedMediaCount": 2,
+    "pdfReaderCurrentPageVerified": true,
+    "pdfText": "CANVAS PDF - PAGE 2  Synthetic local acceptance document. Readable text and page navigation.",
+    "websiteViewerOpened": true,
+    "freshContextMediaVerified": true,
+    "version": 5,
+    "pdfPagingReusesSource": true,
+    "websiteThumbnailOpensReader": true,
+    "websiteReaderContract": "sanitized local HTTP response; protected local DNS blocked external fetch",
+    "fullImageViewer": true,
+    "inlineUrlsRevokedOnExit": true,
+    "viewerCanReadAndPagePdf": true,
+    "viewerCannotEdit": true,
+    "pagingDoesNotChangeBoardHash": true,
+    "unsafeAndCredentialUrlsRejected": true,
+    "existingWebsiteReused": true,
+    "undoRedoVerified": true,
+    "shapeKeyboardSelectionVerified": true,
+    "modalKeyboardContained": true,
+    "cancelDoesNotCreateShape": true
+  },
+  "website": {
+    "externalFetchOnLocalMachine": "PAGE_BLOCKED_ADDRESS from the existing protected fetch policy; protections unchanged",
+    "fallbackVerified": true,
+    "readerVerified": "sanitized response produced by bookmarkReaderPage; local HTTP route fixture",
+    "thumbnailVerified": "local image response fixture",
+    "implementation": "existing authorized bookmark reader and archives; original-site link remains available; external pages are not inserted as unrestricted iframes"
+  },
+  "cache": {
+    "concurrentLoads": 2,
+    "maximumFiles": 6,
+    "maximumSourceBytes": 33554432,
+    "maximumRenderedPagesPerPdf": 3,
+    "sourceReusedAcrossPages": true,
+    "urlsRevokedOnSpaExit": true
+  },
+  "serverTests": {
+    "passed": 59,
+    "failed": 0
+  },
+  "productionWrites": 0
+}

@@ -5,13 +5,15 @@ import { disclosureAttributes } from '../ui/disclosure.js';
 import { esc } from '../core/utils.js';
 import { whiteboardMaterialPreview } from '../shared/whiteboard-material.js';
 import { whiteboardMediaPosition, formatWhiteboardTime } from '../shared/whiteboard-media.js';
-import { canLoadThumbnail } from '../shared/file-preview-policy.js';
+import { bookmarkThumbnail } from '../ui/bookmark-thumbnail.js';
+import '../styles/pages/bookmark-thumbnails.css';
+import { normalizedPageUrl } from '../shared/bookmark-metadata.js';
 import { ic } from '../core/icons.js';
 import { D, S } from '../core/store.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardPresentationNavigation } from '../ui/whiteboard-presentation.js';
 import { whiteboardConnectionText } from '../ui/whiteboard-edge-text.js';
-import { whiteboardCurve, whiteboardShapeSvg } from '../shared/whiteboard-diagram.js';
+import { whiteboardCurve, whiteboardShapeSvg, whiteboardShapeInsets } from '../shared/whiteboard-diagram.js';
 import { whiteboardOf, whiteboardBounds, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
 import { groupResizeNodes } from '../shared/whiteboard-group-resize.js';
 import { whiteboardContext, whiteboardNavigation, whiteboardNavigationHint } from '../ui/whiteboard-context.js';
@@ -37,9 +39,11 @@ function materialContent(node, preview, source) {
     whiteboard: T('Whiteboard', 'Холст'),
   };
   const media = preview.kind === 'file' ? whiteboardMediaPosition(source.item, node.media) : null;
-  const image = media?.kind === 'image' && canLoadThumbnail(source.item);
+  const inline = ['image', 'pdf'].includes(media?.kind);
+  const page = whiteboardState().mediaPages?.[node.id] || media?.page || 1;
   const position = media?.page ? T(`Page ${media.page}`, `Страница ${media.page}`) : media?.seconds != null ? formatWhiteboardTime(media.seconds) : '';
-  return `<span class="whiteboard-material-kind">${esc(names[preview.kind] || T('Material', 'Материал'))}${position ? ` · ${esc(position)}` : ''}</span>${image ? `<div class="whiteboard-material-image" data-file-thumb="${esc(source.id)}"><span class="art" aria-hidden="true">${ic('image', 24)}</span></div>` : preview.text ? `<p class="whiteboard-material-excerpt" translate="no">${esc(preview.text)}</p>` : ''}${preview.tags.length ? `<div class="whiteboard-material-tags" translate="no">${preview.tags.map(tag => `<span>${esc(tag)}</span>`).join('')}</div>` : ''}${media?.kind ? `<button class="btn btn-ghost btn-sm" data-a="whiteboardOpenMedia" data-id="${esc(node.id)}">${ic('arrow-up-right', 14)}${T('Open preview', 'Открыть предпросмотр')}</button>` : `<button class="btn btn-ghost btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${T('Open material', 'Открыть материал')}</button>`}`;
+  const website = preview.kind === 'bookmark' && normalizedPageUrl(source.item.url);
+  return `<span class="whiteboard-material-kind">${esc(names[preview.kind] || T('Material', 'Материал'))}${position ? ` · ${esc(position)}` : ''}</span>${inline ? `<div class="whiteboard-inline-preview" data-whiteboard-media="${esc(node.id)}" data-media-page="${media.kind === 'pdf' ? page : 1}"><span class="hint" role="status">${T('Loading preview…', 'Загружаем предпросмотр…')}</span></div>${media.kind === 'pdf' ? `<div class="whiteboard-media-pages" role="group" aria-label="${T('PDF pages', 'Страницы PDF')}"><button class="ibtn" data-a="whiteboardMediaPage" data-id="${esc(node.id)}" data-step="-1" aria-label="${T('Previous PDF page', 'Предыдущая страница PDF')}" disabled>${ic('chevron-left', 14)}</button><span data-whiteboard-page-label aria-live="polite">${page} / …</span><button class="ibtn" data-a="whiteboardMediaPage" data-id="${esc(node.id)}" data-step="1" aria-label="${T('Next PDF page', 'Следующая страница PDF')}" disabled>${ic('chevron-right', 14)}</button></div>` : ''}` : website ? bookmarkThumbnail(source.item, new URL(website).hostname, { action: 'whiteboardOpenWebsite', id: node.id }) : preview.text ? `<p class="whiteboard-material-excerpt" translate="no">${esc(preview.text)}</p>` : ''}${preview.tags.length && !inline ? `<div class="whiteboard-material-tags" translate="no">${preview.tags.map(tag => `<span>${esc(tag)}</span>`).join('')}</div>` : ''}${website ? `<button class="btn btn-ghost btn-sm" data-a="whiteboardOpenWebsite" data-id="${esc(node.id)}">${ic('globe', 14)}${T('View website', 'Просмотреть сайт')}</button>` : media?.kind ? `<button class="btn btn-ghost btn-sm" data-a="whiteboardOpenMedia" data-id="${esc(node.id)}">${ic('expand', 14)}${T('Open preview', 'Открыть предпросмотр')}</button>` : `<button class="btn btn-ghost btn-sm" data-a="openRelatedEntity" data-key="${esc(node.target)}">${ic('arrow-up-right', 14)}${T('Open material', 'Открыть материал')}</button>`}`;
 }
 // The view can arrive before its interaction chunk. Keep the first navigation
 // action rather than dropping it while afterRender imports that chunk.
@@ -89,7 +93,8 @@ export function whiteboardCard(node, editable, outline = false) {
     state = whiteboardState();
   const material = node.type === 'material' ? whiteboardMaterial(node) : null;
   const preview = whiteboardMaterialPreview(material);
-  return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-shape="${node.shape || ''}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px;--shape-pad-x:${Math.round(node.width * (node.shape === 'diamond' ? 0.22 : 0.12))}px;--shape-pad-y:${Math.round(node.height * (node.shape === 'diamond' ? 0.22 : 0.12))}px"`}>
+  const inset = whiteboardShapeInsets(node.shape);
+  return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-media-preview="${preview?.kind === 'bookmark' || (preview?.kind === 'file' && ['image', 'pdf'].includes(whiteboardMediaPosition(material.item, node.media).kind))}" data-shape="${node.shape || ''}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px;--shape-pad-x:${Math.round(node.width * inset.x)}px;--shape-pad-y:${Math.round(node.height * inset.y)}px"`}>
     ${node.type === 'shape' && !outline ? `<svg class="whiteboard-shape-art" viewBox="0 0 ${node.width} ${node.height}" preserveAspectRatio="none" aria-hidden="true">${whiteboardShapeSvg({ ...node, x: 0, y: 0 })}</svg>` : ''}<div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(preview?.icon || icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`, whiteboardLabel(node)) : ''}</div>
     ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? materialContent(node, preview, material) : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
     ${editable && !outline && state.selected === node.id ? `<span id="whiteboard-resize-help" class="sr">${T('Drag an edge or corner. On the corner handle, use arrow keys to resize, Shift for larger steps. Escape cancels a drag. Resizing a frame keeps its contents unchanged.', 'Потяните край или угол. На угловом маркере меняйте размер стрелками, Shift — крупный шаг. Escape отменяет перетаскивание. Размер рамки меняется без изменения содержимого.')}</span><span class="whiteboard-resize-size" aria-hidden="true"></span>${['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'].map(direction => `<button class="whiteboard-resize" data-board-resize="${direction}" tabindex="${direction === 'se' ? '0' : '-1'}" aria-label="${esc(T('Resize card', 'Изменить размер карточки'))}: ${label} (${direction.toUpperCase()})" aria-describedby="whiteboard-resize-help" title="${esc(T('Drag to resize', 'Потяните, чтобы изменить размер'))}"></button>`).join('')}` : ''}
@@ -150,6 +155,8 @@ export function projectWhiteboard(project) {
           ['whiteboardAddMaterial', 'file-plus', 'Linked material', 'Связанный материал'],
           ['whiteboardNewFrame', 'square-dashed', 'Frame', 'Рамка'],
           ['whiteboardNewShape', 'shapes', 'Shape', 'Фигура'],
+          ['whiteboardUploadMedia', 'image', 'Image or PDF', 'Изображение или PDF'],
+          ['whiteboardAddWebsite', 'globe', 'Website', 'Сайт'],
           ['whiteboardNewEdge', 'move-right', 'Connection', 'Связь'],
         ]
           .map(([a, i, en, ru]) => `<button data-a="${a}">${ic(i, 15)}${T(en, ru)}</button>`)
@@ -157,12 +164,12 @@ export function projectWhiteboard(project) {
       : `<span class="hint">${T('Read only', 'Только просмотр')}</span>`
   }
   ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`)}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm whiteboard-view-toggle" data-a="whiteboardToggleOutline" aria-label="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}" title="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}">${ic(state.outline ? 'list' : 'layout-dashboard', 15)}<span>${state.outline ? T('Outline', 'Список') : T('Canvas', 'Холст')}</span></button>${state.outline ? '' : `${whiteboardNavigation(state, editable)}`}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-label="${state.focus ? T('Exit focus', 'Выйти из фокуса') : T('Focus', 'Фокус')}" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}<span>${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</span></button><button class="ibtn whiteboard-tools" data-a="openWhiteboardTools" aria-label="${T('More tools', 'Другие инструменты')}" title="${T('More tools', 'Другие инструменты')}">${ic('ellipsis', 16)}</button>
-  </div><p id="whiteboard-help" class="hint whiteboard-mode-help">${state.outline ? T('Outline: choose a card to read or edit it. Connections are listed below.', 'Список: выберите карточку для чтения или изменения. Связи показаны ниже.') : whiteboardNavigationHint(state.navigationMode, editable)}</p>
+  </div>${state.uploadingMedia ? `<div class="whiteboard-upload-status" role="status">${T('Uploading media…', 'Загружаем материалы…')}<button class="btn btn-ghost btn-sm" data-a="whiteboardUploadProgress">${T('Uploads', 'Загрузки')}</button></div>` : ''}<p id="whiteboard-help" class="hint whiteboard-mode-help">${state.outline ? T('Outline: choose a card to read or edit it. Connections are listed below.', 'Список: выберите карточку для чтения или изменения. Связи показаны ниже.') : whiteboardNavigationHint(state.navigationMode, editable)}</p>
   ${whiteboardPresentationNavigation(board, state)}${whiteboardContext(board, state, editable)}
   ${state.connectFrom || state.reconnect ? `<div class="whiteboard-connect-status" role="status"><span>${T('Choose a destination card. Escape cancels.', 'Выберите карточку назначения. Escape — отмена.')}</span><button class="btn btn-ghost btn-sm" data-a="whiteboardCancelConnect">${T('Cancel', 'Отмена')}</button></div>` : ''}
   ${
     state.outline
-      ? `<div class="whiteboard-outline">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
+      ? `<div class="whiteboard-outline" data-keep="whiteboard-outline:${esc(state.scope)}">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
       : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${state.navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})">${whiteboardEdges(board)}${[
           ...board.nodes,
         ]

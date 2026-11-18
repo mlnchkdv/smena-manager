@@ -36,3 +36,47 @@
     gap: 12px;
   }
 }
+.whiteboard-shape-picker > summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+.whiteboard-shape-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding-block: 8px;
+}
+.whiteboard-shape-grid > button {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+.whiteboard-shape-grid > button:is(:hover, [aria-pressed='true']) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.whiteboard-shape-grid svg {
+  width: 58px;
+  height: 38px;
+  fill: var(--surface);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+@media (max-width: 480px) {
+  .whiteboard-shape-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

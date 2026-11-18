@@ -1,6 +1,18 @@
 import { validWhiteboardMedia } from './whiteboard-media.js';
 export const BOARD_COLORS = ['neutral', 'violet', 'blue', 'green', 'amber', 'rose'];
-export const BOARD_SHAPES = ['rectangle', 'ellipse', 'diamond'];
+export const LEGACY_BOARD_SHAPES = ['rectangle', 'ellipse', 'diamond'];
+export const BOARD_SHAPES = [
+  ...LEGACY_BOARD_SHAPES,
+  'triangle',
+  'pentagon',
+  'hexagon',
+  'parallelogram',
+  'trapezoid',
+  'cylinder',
+  'document',
+  'arrow-right',
+  'star',
+];
 export const BOARD_LINE_STYLES = ['solid', 'dashed', 'dotted'];
 export const BOARD_ENDINGS = ['none', 'arrow', 'dot'];
 export const whiteboardEdgeEnd = (edge, side) => edge[side + 'End'] ?? (side === 'to' && edge.arrow ? 'arrow' : 'none');
@@ -10,7 +22,7 @@ const object = value => value && typeof value === 'object' && !Array.isArray(val
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
-  if (!object(board) || ![1, 2, 3, 4].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
+  if (!object(board) || ![1, 2, 3, 4, 5].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges)) return false;
   if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > 200 || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
   const ids = new Set();
@@ -39,7 +51,7 @@ export function validWhiteboard(board) {
       )
     )
       return false;
-    if (node.type === 'shape' ? !BOARD_SHAPES.includes(node.shape) : Object.hasOwn(node, 'shape')) return false;
+    if (node.type === 'shape' ? !(board.version >= 5 ? BOARD_SHAPES : LEGACY_BOARD_SHAPES).includes(node.shape) : Object.hasOwn(node, 'shape')) return false;
     if (Object.hasOwn(node, 'sequence') && (node.type !== 'group' || !Number.isSafeInteger(node.sequence) || node.sequence < 0 || node.sequence > 1000000))
       return false;
     if (

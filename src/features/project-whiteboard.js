@@ -1,4 +1,6 @@
 import { ic } from '../core/icons.js';
+import { whiteboardShapePicker } from '../ui/whiteboard-shape-picker.js';
+import { syncWhiteboardPreviews } from '../core/whiteboard-previews.js';
 import { resizedWhiteboardNode, snapWhiteboardResize } from '../shared/whiteboard-resize.js';
 import { resizeWhiteboardGroup, groupResizeNodes } from '../shared/whiteboard-group-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
@@ -10,11 +12,13 @@ import './whiteboard-tools.js';
 import './whiteboard-extract.js';
 import './whiteboard-presentation.js';
 import './whiteboard-templates.js';
+import './whiteboard-assets.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
 import { whiteboardScope, whiteboardState, whiteboardLabel, whiteboardMaterial, wbText as T } from '../core/whiteboard-state.js';
 import { whiteboardMediaPosition, parseWhiteboardTime, formatWhiteboardTime } from '../shared/whiteboard-media.js';
+import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { currentWhiteboard } from '../core/whiteboard-state.js';
@@ -22,6 +26,7 @@ import { entityAllowed } from '../shared/relations.js';
 import {
   BOARD_COLORS,
   BOARD_SHAPES,
+  LEGACY_BOARD_SHAPES,
   BOARD_LINE_STYLES,
   BOARD_ENDINGS,
   whiteboardEdgeEnd,
@@ -65,6 +70,8 @@ A.whiteboardReadCard = async el => {
     },
   };
   const source = node.type === 'material' ? whiteboardMaterial(node) : null;
+  if (source?.kind === 'file' && filePreviewPolicy(source.item).kind) return A.whiteboardOpenMedia({ dataset: { id: node.id } });
+  if (source?.kind === 'bookmark') return A.whiteboardOpenWebsite({ dataset: { id: node.id } });
   m.busy = source?.kind === 'note' && source.item.bodyPending;
   openModal(m);
   if (m.busy) {
@@ -122,8 +129,7 @@ function modalForm(m, H) {
   } else {
     body = `${m.nodeType === 'material' ? `<p>${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="7" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}${colorField(m)}<details><summary>${T('Size and position', 'Размер и положение')}</summary><div class="whiteboard-form-grid">${field('x', 'X', m.x, 'number', 'min="-50000" max="50000" step="10"')}${field('y', 'Y', m.y, 'number', 'min="-50000" max="50000" step="10"')}${field('width', T('Width', 'Ширина'), m.width, 'number', 'min="160" max="2000" step="10"')}${field('height', T('Height', 'Высота'), m.height, 'number', 'min="100" max="2000" step="10"')}</div></details>`;
   }
-  if (m.kind === 'node' && m.nodeType === 'shape')
-    body = optionField(m, 'shape', T('Shape', 'Фигура'), BOARD_SHAPES, [T('Rectangle', 'Прямоугольник'), T('Ellipse', 'Эллипс'), T('Diamond', 'Ромб')]) + body;
+  if (m.kind === 'node' && m.nodeType === 'shape') body = whiteboardShapePicker(m.shape, m.shapePickerOpen ?? !m.id) + body;
   if (m.kind === 'node' && m.nodeType === 'material') {
     const source = whiteboardMaterial(m.base),
       media = source?.kind === 'file' ? whiteboardMediaPosition(source.item, m.media) : null;
@@ -155,7 +161,7 @@ const activeModal = () => {
     p = current();
   return m?.type === 'whiteboardTool' && p?.id === m.project && m.scope === whiteboardScope(p.id) ? m : null;
 };
-export function whiteboardCommand(edit, restoreToken, replaceBaseHash) {
+export function whiteboardCommand(edit, restoreToken, replaceBaseHash, commit) {
   const p = current();
   if (!editable(p)) {
     toast(T('Editing is unavailable. Check access or synchronization.', 'Редактирование недоступно. Проверьте доступ и синхронизацию.'), { kind: 'err' });
@@ -179,6 +185,7 @@ export function whiteboardCommand(edit, restoreToken, replaceBaseHash) {
   if (
     !mutate(() => {
       p.whiteboard = next;
+      commit?.();
       if (restoreToken) p.whiteboardRestoreFrom = restoreToken;
       if (replaceBaseHash) p.whiteboardReplaceBaseHash = replaceBaseHash;
     })
@@ -237,6 +244,14 @@ function newCard(type, point) {
 A.whiteboardNewText = () => newCard('text');
 A.whiteboardNewFrame = () => newCard('group');
 A.whiteboardNewShape = () => newCard('shape');
+A.whiteboardChooseShape = el => {
+  const m = activeModal();
+  if (!m || m.kind !== 'node' || m.nodeType !== 'shape' || !BOARD_SHAPES.includes(el.dataset.shape)) return;
+  m.shape = el.dataset.shape;
+  m.shapePickerOpen = false;
+  render();
+  requestAnimationFrame(() => document.querySelector('.whiteboard-shape-picker > summary')?.focus());
+};
 A.whiteboardEdit = el => {
   const node = whiteboardOf(current()).nodes.find(n => n.id === (el.dataset.id || whiteboardState().selected));
   if (node) {
@@ -308,6 +323,7 @@ A.whiteboardSave = () => {
     command(next => {
       if (item.media) next.version = Math.max(next.version, 2);
       if (item.type === 'shape' || m.kind === 'edge') next.version = Math.max(next.version, 3);
+      if (item.type === 'shape' && !LEGACY_BOARD_SHAPES.includes(item.shape)) next.version = Math.max(next.version, 5);
       next[collection] = old ? next[collection].map(n => (n.id === old.id ? item : n)) : [...next[collection], item];
     })
   ) {
@@ -326,10 +342,11 @@ A.whiteboardOpenMedia = el => {
     source = node && whiteboardMaterial(node);
   if (source?.kind !== 'file') return;
   const position = whiteboardMediaPosition(source.item, node.media);
+  const page = whiteboardState().mediaPages?.[node.id] || position.page;
   A.previewFile({
     dataset: {
       id: source.id,
-      ...(position.page ? { page: String(position.page) } : {}),
+      ...(page ? { page: String(page) } : {}),
       ...(position.seconds != null ? { seconds: String(position.seconds) } : {}),
     },
   });
@@ -387,12 +404,32 @@ A.whiteboardChooseMaterial = async el => {
     }
   }
   if (activeModal() !== m || !entityAllowed(D(), key, { role: S.ui.currentUser?.role, memberId: D().me })) return;
-  const node = { id: uid('wc'), type: 'material', target: key, ...insertion(), width: 260, height: 180, color: 'violet' };
-  if (command(board => board.nodes.push(node))) {
-    revealNode(node);
-    closeModal();
-  }
+  if (insertWhiteboardMaterials([key]).length) closeModal();
 };
+export function insertWhiteboardMaterials(keys, commit) {
+  if (!editable(current())) return [];
+  const point = insertion();
+  const nodes = keys
+    .filter(key => entityAllowed(D(), key, { role: S.ui.currentUser?.role, memberId: D().me }) || (!!commit && key.startsWith('bookmark:')))
+    .map((key, index) => {
+      const file = key.startsWith('file:') && D().files.find(file => file.id === key.slice(5));
+      const kind = file && filePreviewPolicy(file).kind;
+      return {
+        id: uid('wc'),
+        type: 'material',
+        target: key,
+        x: point.x + (index % 3) * 400,
+        y: point.y + Math.floor(index / 3) * 500,
+        width: kind === 'pdf' ? 360 : kind === 'image' || key.startsWith('bookmark:') ? 360 : 260,
+        height: kind === 'pdf' ? 460 : kind === 'image' || key.startsWith('bookmark:') ? 300 : 180,
+        color: 'neutral',
+      };
+    });
+  if (!nodes.length || !whiteboardCommand(board => board.nodes.push(...nodes), null, null, commit)) return [];
+  revealNode(nodes[0]);
+  render();
+  return nodes;
+}
 const command = whiteboardCommand;
 const selectedIds = () => {
   const s = whiteboardState();
@@ -1332,6 +1369,7 @@ function up(e, cancel = false) {
   }
 }
 export function mountProjectWhiteboard() {
+  syncWhiteboardPreviews();
   const next = document.querySelector('.whiteboard-viewport');
   if (next !== viewport) {
     stopSpacePan();
