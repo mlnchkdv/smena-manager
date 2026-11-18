@@ -82,6 +82,35 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   const researchId = research.items[0].id;
   await page.unroute('**' + researchRoot + '/commands');
 
+  // A user may close a saving form and continue working. A late response must
+  // stay with its original project instead of reopening a reader on another page.
+  await page.locator('[data-a="researchBack"]').click();
+  await page.locator('[data-a="researchNew"][data-kind="observation"]').click();
+  await page.locator('[data-in="researchField"][data-field="title"]').fill('CI research late response');
+  await page.locator('[data-in="researchField"][data-field="body"]').fill('Synthetic late-response acceptance.');
+  let releaseSave, notifyCommitted;
+  const gate = new Promise(resolve => {
+    releaseSave = resolve;
+  });
+  const committed = new Promise(resolve => {
+    notifyCommitted = resolve;
+  });
+  await page.route('**' + researchRoot + '/commands', async route => {
+    const response = await route.fetch();
+    notifyCommitted();
+    await gate;
+    await route.fulfill({ response });
+  });
+  await page.locator('[data-a="researchSave"]').click();
+  await committed;
+  await page.locator('.modal [data-a="closeModal"]').first().click();
+  await page.getByRole('button', { name: 'Файлы', exact: true }).click();
+  releaseSave();
+  await page.waitForLoadState('networkidle');
+  await expect(page).toHaveURL(new RegExp(`/project/${researchProject}/files$`));
+  expect((await (await page.request.get(researchRoot + '?q=CI%20research%20late')).json()).total).toBe(1);
+  await page.unroute('**' + researchRoot + '/commands');
+
   for (const language of ['Русский', 'English (US)']) {
     await page.setViewportSize({ width: 1366, height: 768 });
     await page.goto('/e2e-team/settings/language');
