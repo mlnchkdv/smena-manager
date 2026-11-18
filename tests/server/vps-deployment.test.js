@@ -7,10 +7,22 @@ import { activateRelease } from '../../deploy/vps/transaction.mjs';
 import { parseOptions, publishAssets, extractCommit } from '../../deploy/vps/manage.mjs';
 import { execFileSync } from 'node:child_process';
 import { verifyVhost, verifyBackend, verifyStaticCompression, waitForVhost } from '../../deploy/vps/health.mjs';
-import { domainInNginxDump } from '../../deploy/vps/lib.mjs';
+import { domainInNginxDump, renderTemplates } from '../../deploy/vps/lib.mjs';
 import { createGracefulShutdown } from '../../src/server/graceful-shutdown.js';
 import http from 'node:http';
 import { gzipSync } from 'node:zlib';
+
+test('VPS sets HSTS on HTTPS responses without changing preview isolation', async () => {
+  const tls = await renderTemplates('example.test', '/opt/smena-node/bin/node');
+  const bootstrap = await renderTemplates('example.test', '/opt/smena-node/bin/node', { tls: false });
+  const snippets = '/etc/nginx/snippets/smena-manager-';
+  for (const name of ['security', 'public-security']) {
+    assert.match(tls.get(`${snippets}${name}.conf`), /add_header Strict-Transport-Security "max-age=31536000" always;/);
+    assert.doesNotMatch(bootstrap.get(`${snippets}${name}.conf`), /Strict-Transport-Security/);
+  }
+  for (const name of ['proxy', 'public-proxy']) assert.match(tls.get(`${snippets}${name}.conf`), /proxy_hide_header Strict-Transport-Security;/);
+  assert.doesNotMatch(tls.get(`${snippets}public-security.conf`), /Content-Security-Policy|Referrer-Policy/);
+});
 
 test('TLS readiness retries cold starts but still requires a fully verified release', async () => {
   let calls = 0;

@@ -134,14 +134,16 @@ export async function loadProtectedEnvironment(domain, { envFile = ENV_FILE, pro
 export async function renderTemplates(domain, node, { tls = true, templateDir = new URL('./templates/', import.meta.url) } = {}) {
   domain = domainName(domain);
   if (!/^\/[a-zA-Z0-9/_.-]+$/.test(node)) throw new Error('Use an absolute Node binary path without spaces.');
+  const headers = { ...HTTP_SECURITY_HEADERS };
+  if (tls) headers['Strict-Transport-Security'] = 'max-age=31536000';
   const values = {
     DOMAIN: domain,
     NODE: node,
     NODE_DIR: path.dirname(node),
-    HIDE_SECURITY_HEADERS: Object.keys(HTTP_SECURITY_HEADERS)
+    HIDE_SECURITY_HEADERS: Object.keys(headers)
       .map(key => `proxy_hide_header ${key};`)
       .join('\n'),
-    HIDE_PUBLIC_SECURITY_HEADERS: Object.keys(HTTP_SECURITY_HEADERS)
+    HIDE_PUBLIC_SECURITY_HEADERS: Object.keys(headers)
       .filter(key => !['Content-Security-Policy', 'Referrer-Policy'].includes(key))
       .map(key => `proxy_hide_header ${key};`)
       .join('\n'),
@@ -172,7 +174,7 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     '/etc/nginx/snippets/smena-manager-security.conf',
     MARKER +
       '\n' +
-      Object.entries(HTTP_SECURITY_HEADERS)
+      Object.entries(headers)
         .map(([key, value]) => `add_header ${key} "${value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}" always;`)
         .join('\n') +
       '\n',
@@ -181,7 +183,7 @@ export async function renderTemplates(domain, node, { tls = true, templateDir = 
     '/etc/nginx/snippets/smena-manager-public-security.conf',
     MARKER +
       '\n' +
-      Object.entries(HTTP_SECURITY_HEADERS)
+      Object.entries(headers)
         .filter(([key]) => !['Content-Security-Policy', 'Referrer-Policy'].includes(key))
         .map(([key, value]) => `add_header ${key} "${value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}" always;`)
         .join('\n') +
