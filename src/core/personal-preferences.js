@@ -6,6 +6,15 @@ const changedFields = (before, after) => Object.fromEntries(Object.entries(after
 const browserNotify = detail => {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('smena:personal-save-status', { detail }));
 };
+export const PREFERENCE_CONFIRMATION_KEY = 'smena.preferences.confirmed.v1';
+const sharedKeys = ['theme', 'lang', 'density'];
+const publishBrowser = detail => {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(PREFERENCE_CONFIRMATION_KEY, JSON.stringify(detail));
+  } catch {
+    /* Optional cross-tab update. */
+  }
+};
 
 export function createPersonalPreferenceSync(options = {}) {
   const write = options.write || savePersonalSettings;
@@ -14,7 +23,9 @@ export function createPersonalPreferenceSync(options = {}) {
   const schedule = options.schedule || setTimeout;
   const cancel = options.cancel || clearTimeout;
   const session = options.session || getSessionGeneration;
+  const publish = options.publish || publishBrowser;
   let owner;
+  let workspace;
   let generation = 0;
   let sessionAtConfigure;
   let confirmed = {};
@@ -63,9 +74,18 @@ export function createPersonalPreferenceSync(options = {}) {
           }
           if (!current(run)) return;
           try {
-            await write({ preferences: patch });
+            const result = await write({ preferences: patch });
             if (!current(run)) return;
             confirmed = { ...confirmed, ...patch };
+            publish({
+              owner,
+              workspace,
+              preferences: Object.fromEntries(
+                sharedKeys.filter(key => Object.hasOwn(result?.preferences || confirmed, key)).map(key => [key, (result?.preferences || confirmed)[key]]),
+              ),
+              revision: result?.data?.revision,
+              at: Date.now(),
+            });
             retryDelay = 1000;
             try {
               await runJournal.acknowledge(sent);
@@ -102,6 +122,7 @@ export function createPersonalPreferenceSync(options = {}) {
       queued = new Set();
       retryDelay = 1000;
       owner = id;
+      workspace = context.workspace;
       sessionAtConfigure = session();
       confirmed = personalPreferenceData(preferences);
       desired = { ...confirmed };
@@ -127,6 +148,17 @@ export function createPersonalPreferenceSync(options = {}) {
       return operation.finally(() => ownQueue.delete(operation));
     },
     retry: flush,
+    receive(id, patch) {
+      if (id !== owner || session() !== sessionAtConfigure) return {};
+      const pending = changedFields(confirmed, desired),
+        applied = {};
+      for (const key of sharedKeys)
+        if (Object.hasOwn(patch, key) && !Object.hasOwn(pending, key)) {
+          applied[key] = patch[key];
+          confirmed[key] = desired[key] = lastInput[key] = patch[key];
+        }
+      return applied;
+    },
     async settled() {
       const run = generation;
       // queue() persists its recovery journal before flush() assigns active.
@@ -159,3 +191,4 @@ export const queuePersonalPreferences = (...args) => sync.queue(...args);
 export const retryPersonalPreferences = () => sync.retry();
 export const personalPreferenceSyncState = () => sync.state();
 export const waitForPersonalPreferences = () => sync.settled();
+export const receivePersonalPreferences = (...args) => sync.receive(...args);

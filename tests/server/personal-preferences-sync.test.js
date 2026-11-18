@@ -227,3 +227,19 @@ test('a recovery quota error warns without preventing a successful server prefer
   assert.equal(sync.state().status, 'saved');
   assert.deepEqual(writes, [{ preferences: { theme: 'dark' } }]);
 });
+test('remote confirmed preferences rebase stale tabs without resending old values or discarding a newer local change', async () => {
+  const writes = [],
+    published = [];
+  const f = fixture(async input => {
+    writes.push(input.preferences);
+    return { preferences: input.preferences, data: { revision: writes.length + 10 } };
+  });
+  const sync = createPersonalPreferenceSync({ ...f.options, publish: value => published.push(value) });
+  await sync.configure('alice', { theme: 'light', lang: 'Русский', density: 'compact' }, { workspace: 'team' });
+  assert.deepEqual(sync.receive('someone-else', { theme: 'dark' }), {});
+  assert.deepEqual(sync.receive('alice', { theme: 'dark' }), { theme: 'dark' });
+  await sync.queue('alice', { theme: 'dark', lang: 'English (US)', density: 'compact' });
+  assert.deepEqual(writes, [{ lang: 'English (US)' }], 'a stale tab sends only its new edit');
+  assert.equal(published[0].workspace, 'team');
+  assert.equal(published[0].revision, 11);
+});

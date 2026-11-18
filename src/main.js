@@ -10,6 +10,7 @@ import './core/store.js';
 import './core/i18n.js';
 import './ui/helpers.js';
 import './core/theme.js';
+import './core/personal-preference-tabs.js';
 import './ui/toast.js';
 import './ui/select.js';
 import './shell/render.js';
