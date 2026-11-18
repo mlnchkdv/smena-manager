@@ -1,5 +1,6 @@
 import { esc } from '../core/utils.js';
 import { rw } from './research-copy.js';
+import { researchDisclosure } from './research-evidence.js';
 
 export function researchMetricsHtml(record) {
   const metrics = record.data.metrics || [];
@@ -13,10 +14,10 @@ export function researchMetricsForm(m) {
     `<label class="field">${label}<input class="input" data-in="researchMetric" data-index="${i}" data-field="${key}" type="${type}" value="${esc(value ?? '')}" ${type === 'number' ? 'step="any"' : ''} maxlength="180"></label>`;
   const select = (i, key, label, value, options) =>
     `<label class="field">${label}<select class="select" data-in="researchMetric" data-index="${i}" data-field="${key}">${options.map(([id, text]) => `<option value="${esc(id)}" ${value === id ? 'selected' : ''}>${esc(text)}</option>`).join('')}</select></label>`;
-  return `<details ${m.nextState === 'completed' ? 'open' : ''}><summary>${rw('Measurements', 'Измерения')} · ${metrics.length}</summary><p class="hint">${rw('Keep absent values missing and explain why. Team measurements require a protocol and attached evidence.', 'Сохраняйте отсутствующие значения как «не измерено» и указывайте причину. Измерениям команды нужны протокол и прикреплённое доказательство.')}</p><div class="research-form-section">${metrics
+  return `<details ${researchDisclosure(m, 'metrics')}><summary>${rw('Measurements', 'Измерения')} · ${metrics.length}</summary><p class="hint">${rw('Keep absent values missing and explain why. Team measurements require a protocol and attached evidence.', 'Сохраняйте отсутствующие значения как «не измерено» и указывайте причину. Измерениям команды нужны протокол и прикреплённое доказательство.')}</p><div class="research-form-section">${metrics
     .map(
       (metric, i) =>
-        `<details><summary>${esc(metric.key)} · ${metric.status === 'measured' ? esc(String(metric.value) + ' ' + metric.unit) : rw('Not measured', 'Не измерено')}</summary><div class="research-form-section">${field(i, 'key', rw('Metric', 'Метрика'), metric.key)}${field(i, 'unit', rw('Unit', 'Единица'), metric.unit)}${select(
+        `<details ${researchDisclosure(m, 'metric:' + i)}><summary>${esc(metric.key)} · ${metric.status === 'measured' ? esc(String(metric.value) + ' ' + metric.unit) : rw('Not measured', 'Не измерено')}</summary><div class="research-form-section">${field(i, 'key', rw('Metric', 'Метрика'), metric.key)}${field(i, 'unit', rw('Unit', 'Единица'), metric.unit)}${select(
           i,
           'status',
           rw('Measurement status', 'Статус измерения'),

@@ -10,7 +10,7 @@ import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
 import { researchTemplate, researchMetricDefaults, repeatResearchRun } from '../shared/research-templates.js';
 import { researchFormFields } from '../ui/research-form.js';
-import { researchEvidenceHtml } from '../ui/research-evidence.js';
+import { researchEvidenceHtml, researchDisclosure } from '../ui/research-evidence.js';
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
 import { researchComparisonHtml } from '../ui/research-comparison.js';
 import { researchMetricsHtml } from '../ui/research-metrics.js';
@@ -78,6 +78,7 @@ function form(model, record, kind = 'experiment') {
     generation,
     record: structuredClone(record || seedTemplate(kind, model)),
     original: !!record,
+    draftId: crypto.randomUUID(),
     reviewers: model.catalog?.reviewers || [],
     render: (m, H) =>
       `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy || m.command ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
@@ -201,8 +202,10 @@ A.researchPickCompare = async el => {
 };
 A.researchFindFiles = async () => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'researchForm' || m.busy) return;
+  if (m?.type !== 'researchForm' || m.busy || m.filesLoading) return;
   m.error = '';
+  m.filesLoading = true;
+  render();
   try {
     const result = await researchRequest(m.project, '/files?q=' + encodeURIComponent(m.fileQuery || ''));
     if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
@@ -212,6 +215,9 @@ A.researchFindFiles = async () => {
   } catch (error) {
     m.error = researchFailure(error);
     render();
+  } finally {
+    m.filesLoading = false;
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) render();
   }
 };
 A.researchAttachFile = el => {
@@ -596,7 +602,7 @@ function researchRecordActions(record) {
   return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(next === 'running' ? rw('Start run', 'Начать запуск') : next === 'completed' ? rw('Complete run', 'Завершить запуск') : next === 'failed' ? rw('Record failure', 'Записать ошибку') : rw('Cancel run', 'Отменить запуск'))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
 }
 function researchReadingActions(record, canEdit) {
-  return `<details class="research-technical"><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;
@@ -623,7 +629,7 @@ function details(record, canEdit) {
           )
           .join('')}</div></details>`
       : ''
-  }${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>`;
+  }${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>`;
 }
 export function researchHtml() {
   const m = state();

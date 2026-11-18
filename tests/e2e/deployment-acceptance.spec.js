@@ -139,6 +139,17 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
       await expect(page.locator('[data-in="researchField"][data-field="body"]')).toHaveValue(
         'Synthetic research journal / Служебный журнал. No scientific result.',
       );
+      if (width === 320) {
+        await page
+          .locator('.research-form summary')
+          .filter({ hasText: /Files and evidence|Файлы и доказательства/u })
+          .click();
+        await page.locator('[data-a="researchFindFiles"]').click();
+        const evidence = page.locator('.research-form [data-a="researchAttachFile"]').filter({ hasText: 'CI deployment.txt' });
+        await expect(evidence).toBeVisible();
+        await evidence.click();
+        await expect(page.locator('.research-form details[data-ui-disclosure$=":evidence"]')).toHaveAttribute('open', '');
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
       await page.locator('.modal [data-a="closeModal"]').first().click();
       await expect(page.locator('html')).toHaveAttribute('lang', language === 'Русский' ? 'ru' : 'en');
