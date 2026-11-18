@@ -14,14 +14,19 @@ import { render } from '../shell/render.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
+import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout-preferences.js';
+import { activityPresetFilters } from '../shared/activity-presets.js';
+import { openModal, closeModal } from '../overlays/modals.js';
 for (const key of ['actFrom', 'actTo'])
   IN[key] = el => {
     S.ui[key] = /^\d{4}-\d{2}-\d{2}$/.test(el.value) ? el.value : '';
+    S.ui.actPeriod = '';
     render();
   };
 A.resetActivityDates = () => {
   S.ui.actFrom = '';
   S.ui.actTo = '';
+  S.ui.actPeriod = '';
   render();
 };
 IN.actQuery = el => {
@@ -42,9 +47,63 @@ A.activityPeriod = el => {
   start.setUTCDate(start.getUTCDate() - Math.max(0, Number(el.dataset.days) - 1));
   S.ui.actFrom = start.toISOString().slice(0, 10);
   S.ui.actTo = today;
+  S.ui.actPeriod = String(el.dataset.days);
   render();
 };
-const activityDefaults = { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '', actQuery: '', actProject: 'all' };
+const activityDefaults = { actFilter: 'all', actWho: 'all', actFrom: '', actTo: '', actQuery: '', actProject: 'all', actPeriod: '' };
+const presets = () => {
+  const saved = readLayoutPreference('activity-presets', []);
+  return Array.isArray(saved) ? saved.filter(row => typeof row.id === 'string' && typeof row.name === 'string' && row.filters).slice(0, 12) : [];
+};
+const applyPreset = filters =>
+  Object.assign(
+    S.ui,
+    activityPresetFilters(filters, {
+      today: calendarDate(new Date(), S.prefs.tz),
+      projectIds: D()
+        .projects.filter(canSee)
+        .map(row => row.id),
+      memberIds: D().members.map(row => row.id),
+    }),
+  );
+IN.activityPresetName = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'activityPreset') m.name = el.value.slice(0, 60);
+};
+A.saveActivityPreset = () =>
+  openModal({
+    type: 'activityPreset',
+    name: '',
+    render: (m, H) =>
+      `${H(T('Save activity filters', 'Сохранить фильтры активности'))}<div class="modal-b" translate="no"><label class="field">${T('Name', 'Название')}<input class="input" data-in="activityPresetName" maxlength="60" value="${esc(m.name)}"></label><p class="hint">${T('Personal preset for this workspace on this device. Relative periods stay relative.', 'Личная подборка для этого пространства на устройстве. Относительный период будет сдвигаться вместе с датой.')}</p></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="confirmActivityPreset">${T('Save', 'Сохранить')}</button></div>`,
+  });
+A.confirmActivityPreset = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'activityPreset' || !m.name.trim()) return;
+  const rows = presets();
+  const filters = Object.fromEntries(Object.keys(activityDefaults).map(key => [key, String(S.ui[key] || '')]));
+  if (filters.actPeriod) {
+    filters.actFrom = '';
+    filters.actTo = '';
+  }
+  writeLayoutPreference('activity-presets', [{ id: crypto.randomUUID(), name: m.name.trim(), filters }, ...rows].slice(0, 12));
+  closeModal();
+  render();
+};
+A.applyActivityPreset = el => {
+  const preset = presets().find(row => row.id === el.dataset.id);
+  if (preset) {
+    applyPreset(preset.filters);
+    render();
+  }
+};
+A.deleteActivityPreset = el => {
+  writeLayoutPreference(
+    'activity-presets',
+    presets().filter(row => row.id !== el.dataset.id),
+  );
+  render();
+};
 A.resetActivityFilters = () => {
   resetCollectionView(collectionView('activity', activityDefaults));
   render();
@@ -52,6 +111,7 @@ A.resetActivityFilters = () => {
 
 export function pageActivity() {
   const viewState = collectionView('activity', activityDefaults);
+  if (S.ui.actPeriod) applyPreset(S.ui);
   const f = S.ui.actFilter || 'all';
   const who = S.ui.actWho || 'all';
   const tasks = new Map((D().tasks || []).map(t => [t.id, t]));
@@ -113,7 +173,12 @@ export function pageActivity() {
       .join(
         '',
       )}</select></label></div><div class="activity-context-bar"><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="activity-date-fields"><div class="activity-date-presets"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button></div><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details>${f !== 'all' || who !== 'all' || from || to || query || project !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>' : ''}${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
-    ${activityGroupingControl('activity-grouping', true)}</div>
+    <details class="ui-menu" data-anchor-end ${disclosureAttributes('activity:presets')}><summary class="btn btn-secondary" translate="no">${T('Saved filters', '\u041c\u043e\u0438 \u0444\u0438\u043b\u044c\u0442\u0440\u044b')} · ${presets().length}</summary><div translate="no"><button class="btn btn-ghost" data-a="saveActivityPreset">${T('Save current filters', '\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0442\u0435\u043a\u0443\u0449\u0438\u0435 \u0444\u0438\u043b\u044c\u0442\u0440\u044b')}</button>${presets()
+      .map(
+        row =>
+          `<div class="row"><button class="btn btn-ghost grow" data-a="applyActivityPreset" data-id="${esc(row.id)}">${esc(row.name)}</button><button class="btn btn-ghost btn-sm" data-a="deleteActivityPreset" data-id="${esc(row.id)}" aria-label="${T('Remove preset', '\u0423\u0431\u0440\u0430\u0442\u044c \u043f\u043e\u0434\u0431\u043e\u0440\u043a\u0443')}: ${esc(row.name)}">×</button></div>`,
+      )
+      .join('')}</div></details>${activityGroupingControl('activity-grouping', true)}</div>
     ${
       invalidRange
         ? `<p id="activity-date-error" class="alert warn" role="alert" translate="no">${T('The start date must be on or before the end date. Correct the dates or clear the period.', 'Начальная дата должна быть не позже конечной. Исправьте даты или очистите период.')}</p>`
