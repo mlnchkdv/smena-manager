@@ -6,8 +6,8 @@ const fonts = import.meta.glob('/node_modules/pdfjs-dist/standard_fonts/*.{pfb,t
 const assetMap = values => new Map(Object.entries(values).map(([path, url]) => [path.split('/').at(-1), url]));
 const fontAssets = assetMap(fonts);
 
-export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false } = {}) {
-  if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+async function openPdf(blob, signal) {
+  signal.throwIfAborted();
   // Only bundled font/CMap resources can be fetched. Document URLs, links,
   // JavaScript actions, XFA and interactive annotations are never mounted.
   class LocalBinaryDataFactory {
@@ -20,20 +20,43 @@ export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = fals
       return new Uint8Array(await response.arrayBuffer());
     }
   }
-  const loading = getDocument({
-    data: new Uint8Array(await blob.arrayBuffer()),
-    BinaryDataFactory: LocalBinaryDataFactory,
-    useWorkerFetch: false,
-    useWasm: false,
-    disableFontFace: true,
-    useSystemFonts: true,
-    enableXfa: false,
-    stopAtErrors: true,
-    maxImageSize: 8_000_000,
-    canvasMaxAreaInBytes: 16_000_000,
-    isOffscreenCanvasSupported: false,
-    isImageDecoderSupported: false,
-  });
+  const data = new Uint8Array(await blob.arrayBuffer());
+  signal.throwIfAborted();
+  return {
+    loading: getDocument({
+      data,
+      BinaryDataFactory: LocalBinaryDataFactory,
+      useWorkerFetch: false,
+      useWasm: false,
+      disableFontFace: true,
+      useSystemFonts: true,
+      enableXfa: false,
+      stopAtErrors: true,
+      maxImageSize: 8_000_000,
+      canvasMaxAreaInBytes: 16_000_000,
+      isOffscreenCanvasSupported: false,
+      isImageDecoderSupported: false,
+    }),
+  };
+}
+
+export async function readPdfPageCount(blob, signal) {
+  const { loading } = await openPdf(blob, signal);
+  const cancel = () => void loading.destroy().catch(() => {});
+  signal.addEventListener('abort', cancel, { once: true });
+  const timer = setTimeout(cancel, 15000);
+  try {
+    signal.throwIfAborted();
+    return (await loading.promise).numPages;
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener('abort', cancel);
+    await loading.destroy().catch(() => {});
+  }
+}
+
+export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false } = {}) {
+  const { loading } = await openPdf(blob, signal);
   let rendering;
   let canvas;
   const cancel = () => {

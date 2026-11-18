@@ -1,10 +1,16 @@
 import { filePreviewPolicy } from './file-preview-policy.js';
 
 export function validWhiteboardMedia(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1) return false;
-  return Object.hasOwn(value, 'page')
-    ? Number.isSafeInteger(value.page) && value.page >= 1 && value.page <= 100000
-    : Object.hasOwn(value, 'seconds') && Number.isSafeInteger(value.seconds) && value.seconds >= 0 && value.seconds <= 604800;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const count = Object.keys(value).length;
+  if (Object.hasOwn(value, 'page'))
+    return (
+      (count === 1 || (count === 2 && Object.hasOwn(value, 'fixed') && value.fixed === true)) &&
+      Number.isSafeInteger(value.page) &&
+      value.page >= 1 &&
+      value.page <= 100000
+    );
+  return count === 1 && Object.hasOwn(value, 'seconds') && Number.isSafeInteger(value.seconds) && value.seconds >= 0 && value.seconds <= 604800;
 }
 export function parseWhiteboardTime(source) {
   if (typeof source !== 'string' || source.length > 16 || !source.trim()) return null;
@@ -26,7 +32,7 @@ export function clampedMediaStart(seconds, duration) {
 export function whiteboardMediaPosition(file, value) {
   const { kind } = filePreviewPolicy(file);
   if (!validWhiteboardMedia(value)) return { kind };
-  if (kind === 'pdf' && Object.hasOwn(value, 'page')) return { kind, page: value.page };
+  if (kind === 'pdf' && Object.hasOwn(value, 'page')) return { kind, page: value.page, ...(value.fixed ? { fixed: true } : {}) };
   if (['video', 'audio'].includes(kind) && Object.hasOwn(value, 'seconds')) return { kind, seconds: value.seconds };
   return { kind };
 }

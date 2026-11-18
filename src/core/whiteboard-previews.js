@@ -3,6 +3,7 @@ import { currentWhiteboard, whiteboardMaterial, whiteboardScope, whiteboardState
 import { downloadWorkspaceFile } from './api.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
+import { WHITEBOARD_PDF_PAGE_BATCH } from '../shared/whiteboard-pdf-pages.js';
 import { render } from '../shell/render.js';
 
 const cache = new Map();
@@ -14,8 +15,21 @@ let scope = '',
 const live = new Map();
 const elements = () => [...document.querySelectorAll('[data-whiteboard-media]')];
 const nodeFor = id => whiteboardOf(currentWhiteboard()).nodes.find(node => node.id === id);
-const pageFor = node => whiteboardState().mediaPages?.[node.id] || node.media?.page || 1;
+export const whiteboardPreviewPage = node => (!node.media?.fixed && whiteboardState().mediaPages?.[node.id]) || node.media?.page || 1;
 const fileKey = file => JSON.stringify([file.id, file.storageFileId || file.storageName, file.bytes, file.mimeType]);
+export async function whiteboardPdfPageCount(file, signal) {
+  const policy = filePreviewPolicy(file);
+  if (policy.kind !== 'pdf') return 0;
+  const entry = cache.get(fileKey(file));
+  if (entry?.pageCount) return entry.pageCount;
+  const cached = await entry?.source?.catch(() => null);
+  signal.throwIfAborted();
+  const blob = cached || (await downloadWorkspaceFile(file.id, false, { signal, maxBytes: policy.maxBytes })).blob;
+  const { readPdfPageCount } = await import('./pdf-preview.js');
+  const count = await readPdfPageCount(blob, signal);
+  if (entry && !entry.controller.signal.aborted) entry.pageCount = count;
+  return count;
+}
 function release(key) {
   const entry = cache.get(key);
   if (!entry) return;
@@ -70,9 +84,10 @@ function paintEntry(entry, page) {
   for (const element of elements()) if (element.dataset.previewKey === entry.key && Number(element.dataset.mediaPage) === page) paint(element, entry, page);
 }
 async function load(entry, page, owner) {
+  let blob;
   try {
     entry.source ||= downloadWorkspaceFile(entry.file.id, false, { signal: entry.controller.signal, maxBytes: 20 * 1024 ** 2 }).then(result => result.blob);
-    const blob = await entry.source;
+    blob = await entry.source;
     if (owner !== generation || entry.controller.signal.aborted) return;
     let result;
     if (entry.kind === 'pdf') {
@@ -81,17 +96,17 @@ async function load(entry, page, owner) {
     } else result = { blob, page: 1, pages: 1 };
     if (owner !== generation || entry.controller.signal.aborted) return;
     const url = URL.createObjectURL(result.blob);
+    entry.pageCount = result.pages;
     entry.pages.set(page, { url, page: result.page, pages: result.pages });
-    // Keep at most three rendered pages per PDF. Source bytes remain bounded
-    // separately and are reused when browsing back without a second download.
+    // Keep one batch of extracted pages and a small browsing buffer per PDF.
     for (const [number, state] of entry.pages)
-      if (entry.pages.size > 3 && number !== page && !state.pending) {
+      if (entry.pages.size > WHITEBOARD_PDF_PAGE_BATCH + 3 && number !== page && !state.pending) {
         if (state.url) URL.revokeObjectURL(state.url);
         entry.pages.delete(number);
       }
   } catch {
     if (owner !== generation || entry.controller.signal.aborted) return;
-    entry.source = null;
+    if (!blob) entry.source = null;
     entry.pages.set(page, { failed: true });
   } finally {
     if (owner === generation) {
@@ -116,7 +131,7 @@ function request(element) {
   const kind = filePreviewPolicy(source.item).kind;
   if (!['image', 'pdf'].includes(kind)) return;
   const key = fileKey(source.item),
-    page = kind === 'pdf' ? pageFor(node) : 1;
+    page = kind === 'pdf' ? whiteboardPreviewPage(node) : 1;
   let entry = cache.get(key);
   if (!entry) {
     let total = () => [...cache.values()].reduce((sum, item) => sum + item.file.bytes, 0);
@@ -177,8 +192,8 @@ export function syncWhiteboardPreviews() {
 A.whiteboardMediaPage = el => {
   const node = nodeFor(el.dataset.id),
     source = node && whiteboardMaterial(node);
-  if (source?.kind !== 'file' || filePreviewPolicy(source.item).kind !== 'pdf') return;
-  const state = cache.get(fileKey(source.item))?.pages.get(pageFor(node));
+  if (source?.kind !== 'file' || node.media?.fixed || filePreviewPolicy(source.item).kind !== 'pdf') return;
+  const state = cache.get(fileKey(source.item))?.pages.get(whiteboardPreviewPage(node));
   if (!state?.pages) return;
   const page = Math.max(1, Math.min(state.pages, state.page + (Number(el.dataset.step) < 0 ? -1 : 1)));
   const view = whiteboardState();
@@ -191,6 +206,7 @@ A.whiteboardRetryMedia = el => {
     source = node && whiteboardMaterial(node);
   if (source?.kind !== 'file') return;
   const entry = cache.get(fileKey(source.item));
-  if (entry?.pages.get(pageFor(node))?.failed) entry.pages.delete(pageFor(node));
+  const page = whiteboardPreviewPage(node);
+  if (entry?.pages.get(page)?.failed) entry.pages.delete(page);
   render();
 };

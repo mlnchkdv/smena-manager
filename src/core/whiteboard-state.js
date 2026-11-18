@@ -63,5 +63,6 @@ export function whiteboardLabel(node = {}) {
       node.title || wbText(node.type === 'group' ? 'Untitled frame' : 'Untitled card', node.type === 'group' ? 'Рамка без названия' : 'Карточка без названия')
     );
   const item = whiteboardMaterial(node)?.item;
-  return item?.title || item?.name || item?.url || wbText('Material unavailable', 'Материал недоступен');
+  const name = item?.title || item?.name || item?.url || wbText('Material unavailable', 'Материал недоступен');
+  return node.media?.fixed ? wbText(`Page ${node.media.page}`, `Страница ${node.media.page}`) + ' · ' + name : name;
 }

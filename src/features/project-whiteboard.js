@@ -1,6 +1,6 @@
 import { ic } from '../core/icons.js';
 import { whiteboardShapePicker } from '../ui/whiteboard-shape-picker.js';
-import { syncWhiteboardPreviews } from '../core/whiteboard-previews.js';
+import { syncWhiteboardPreviews, whiteboardPreviewPage } from '../core/whiteboard-previews.js';
 import { resizedWhiteboardNode, snapWhiteboardResize } from '../shared/whiteboard-resize.js';
 import { resizeWhiteboardGroup, groupResizeNodes } from '../shared/whiteboard-group-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
@@ -10,6 +10,7 @@ import './whiteboard-history.js';
 import './whiteboard-portable.js';
 import './whiteboard-tools.js';
 import './whiteboard-extract.js';
+import './whiteboard-pdf-pages.js';
 import './whiteboard-presentation.js';
 import './whiteboard-templates.js';
 import { mountWhiteboardAssetInputs } from './whiteboard-assets.js';
@@ -94,6 +95,7 @@ const colors = () => [
 const current = currentWhiteboard;
 const editable = p =>
   p && !p.archived && !whiteboardState(p.id).presentationId && canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
+export const canEditCurrentWhiteboard = () => editable(current());
 const field = (name, label, value, type = 'text', extra = '') =>
   `<label class="field">${label}<input class="input" data-in="whiteboardField" data-field="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 const colorField = m =>
@@ -134,7 +136,7 @@ function modalForm(m, H) {
   if (m.kind === 'node' && m.nodeType === 'material') {
     const source = whiteboardMaterial(m.base),
       media = source?.kind === 'file' ? whiteboardMediaPosition(source.item, m.media) : null;
-    if (media && ['pdf', 'video', 'audio'].includes(media.kind))
+    if (media && !media.fixed && ['pdf', 'video', 'audio'].includes(media.kind))
       body = `${
         media.kind === 'pdf'
           ? field('mediaPage', T('PDF page', 'Страница PDF'), m.mediaPage ?? '', 'number', 'min="1" max="100000" placeholder="1"')
@@ -304,7 +306,8 @@ A.whiteboardSave = () => {
       item.target = old.target;
       const source = whiteboardMaterial(old),
         kind = source?.kind === 'file' ? whiteboardMediaPosition(source.item, old.media).kind : null;
-      if (kind === 'pdf' && m.mediaPage !== '' && m.mediaPage !== 0) item.media = { page: m.mediaPage };
+      if (old.media?.fixed) item.media = { ...old.media };
+      else if (kind === 'pdf' && m.mediaPage !== '' && m.mediaPage !== 0) item.media = { page: m.mediaPage };
       else if (['video', 'audio'].includes(kind)) {
         const seconds = parseWhiteboardTime(m.mediaTime);
         if (Number.isNaN(seconds)) {
@@ -341,7 +344,7 @@ A.whiteboardOpenMedia = el => {
     source = node && whiteboardMaterial(node);
   if (source?.kind !== 'file') return;
   const position = whiteboardMediaPosition(source.item, node.media);
-  const page = whiteboardState().mediaPages?.[node.id] || position.page;
+  const page = position.kind === 'pdf' ? whiteboardPreviewPage(node) : null;
   A.previewFile({
     dataset: {
       id: source.id,
@@ -591,6 +594,30 @@ function focusWhiteboardCard(id) {
   paintView();
 }
 A.whiteboardFocusCard = el => focusWhiteboardCard(el.dataset.id);
+export function revealWhiteboardPdfPages(cards) {
+  const state = whiteboardState();
+  const first = cards[0];
+  const intent = (state.locateIntent = uid('locate'));
+  Object.assign(state, { selected: first.id, selection: [first.id], selectedEdge: '', multiSelect: false });
+  render();
+  requestAnimationFrame(() => {
+    if (state !== whiteboardState() || state.locateIntent !== intent || state.selected !== first.id) return;
+    if (state.outline) {
+      const card = document.querySelector(`.whiteboard-outline [data-board-id="${CSS.escape(first.id)}"]`);
+      card?.scrollIntoView({ block: 'nearest' });
+      card?.querySelector('[data-board-drag]')?.focus({ preventScroll: true });
+      return;
+    }
+    const viewport = document.querySelector('.whiteboard-viewport');
+    if (!viewport) return;
+    const box = viewport.getBoundingClientRect();
+    const area = box.width >= 640 ? whiteboardBounds({ nodes: cards }) : first;
+    const camera = whiteboardNodeCamera(area, box);
+    if (camera) Object.assign(state, camera, { fit: false, autoFit: false });
+    paintView();
+    viewport.focus({ preventScroll: true });
+  });
+}
 A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
   render();
