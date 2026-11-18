@@ -81,9 +81,12 @@ export function researchFormFields(m) {
   if (kind === 'article' || kind === 'handoff')
     fields =
       references('experiment', 'experimentId', rw('Related experiment', 'Связанный эксперимент')) +
-      field('conclusion', rw('Verified conclusion / current state', 'Проверенный вывод / текущее состояние'), data.conclusion) +
       field('nextStep', rw('Next action', 'Следующий шаг'), data.nextStep);
   if (kind === 'run') fields += researchMetricsForm(m);
+  if (kind === 'run' && (data.datasetVersion || data.protocolVersion))
+    fields += `<p class="hint">${rw('Inherited input revisions', 'Унаследованные редакции входов')}: dataset v${esc(data.datasetVersion?.revision || '?')} · protocol v${esc(data.protocolVersion?.revision || '?')}</p>${data.state === 'planned' ? `<button class="btn btn-secondary" data-a="researchLatestInputs">${rw('Use latest input revisions instead', 'Вместо этого взять последние редакции входов')}</button>` : ''}`;
+  if (['experiment', 'article', 'handoff', 'run'].includes(kind))
+    fields += `<details><summary>${rw('Conclusion and decision', 'Вывод и решение')}</summary><div class="research-form-section">${field('conclusion', rw('Conclusion and limitations', 'Вывод и ограничения'), data.conclusion)}${field('decision', rw('Decision and basis', 'Решение и основание'), data.decision)}</div></details>`;
   if (['run', 'article', 'handoff'].includes(kind))
     fields += `<details><summary>${rw('Find older related records', 'Найти ранние связанные записи')}</summary><label class="field">${rw('Record title', 'Название записи')}<input class="input" data-in="researchReferenceQuery" value="${esc(m.referenceQuery || '')}" maxlength="200"></label><button class="btn btn-secondary" data-a="researchFindReferences">${rw('Find related records', 'Найти связанные записи')}</button></details>`;
   fields += select(

@@ -8,7 +8,7 @@ import { openModal } from '../overlays/modals.js';
 import { go, render } from '../shell/render.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
-import { researchTemplate, researchMetricDefaults } from '../shared/research-templates.js';
+import { researchTemplate, researchMetricDefaults, repeatResearchRun } from '../shared/research-templates.js';
 import { researchFormFields } from '../ui/research-form.js';
 import { researchEvidenceHtml } from '../ui/research-evidence.js';
 import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
@@ -105,7 +105,11 @@ IN.researchField = el => {
     m.record.data.profile = el.value;
     m.record.data.metrics = researchMetricDefaults(el.value, rw('Not measured yet', 'Ещё не измерено'));
     render();
-  } else m.record.data[el.dataset.field] = el.value;
+  } else {
+    if (['datasetId', 'protocolId'].includes(el.dataset.field) && m.record.data[el.dataset.field] !== el.value)
+      delete m.record.data[el.dataset.field === 'datasetId' ? 'datasetVersion' : 'protocolVersion'];
+    m.record.data[el.dataset.field] = el.value;
+  }
 };
 IN.researchRaw = el => {
   const m = S.ui.modals.at(-1);
@@ -570,20 +574,15 @@ A.researchRepeat = () => {
     source = model.selected;
   if (source?.kind !== 'run') return;
   const m = form(model, null, 'run');
-  m.record = {
-    kind: 'run',
-    title: source.title + rw(' · repeat', ' · повтор'),
-    body: source.body,
-    tags: source.tags,
-    data: {
-      ...source.data,
-      state: 'planned',
-      baselineRunId: source.id,
-      metrics: researchMetricDefaults(source.data.profile, rw('Not measured yet', 'Ещё не измерено')),
-    },
-  };
-  for (const key of ['startedAt', 'finishedAt', 'reason', 'amendment', 'artifacts', 'evidence', 'datasetVersion', 'protocolVersion']) delete m.record.data[key];
+  m.record = repeatResearchRun(source, { russian: rw(false, true), ownerId: model.catalog.actorId });
   resetRaw(m);
+  render();
+};
+A.researchLatestInputs = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || m.command || m.record.data.state !== 'planned') return;
+  delete m.record.data.datasetVersion;
+  delete m.record.data.protocolVersion;
   render();
 };
 function researchRecordActions(record) {
@@ -602,6 +601,7 @@ function details(record, canEdit) {
     criterion: rw('Success criterion', 'Критерий успеха'),
     factor: rw('Changed factor', 'Изменяемый фактор'),
     conclusion: rw('Conclusion', 'Вывод'),
+    decision: rw('Decision and basis', 'Решение и основание'),
     nextStep: rw('Next step', 'Следующий шаг'),
   };
   return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('All research', 'Все исследования')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2></div>${canEdit ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchCompare">${rw('Compare runs', 'Сравнить запуски')}</button>` : ''}${canEdit ? researchRecordActions(record) : ''}<div class="research-status-line"><span>${data.state ? esc(researchState(data.state)) : rw('Draft', 'Черновик')}</span><span>${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div><dl class="research-properties">${Object.entries(

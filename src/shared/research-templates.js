@@ -133,3 +133,34 @@ export function researchTemplate(kind, { russian = false, ownerId = '', now = ne
     },
   };
 }
+export function repeatResearchRun(source, options = {}) {
+  if (source?.kind !== 'run') throw new TypeError('A run is required.');
+  const template = researchTemplate('run', options),
+    data = structuredClone(source.data);
+  for (const key of [
+    'startedAt',
+    'finishedAt',
+    'reason',
+    'amendment',
+    'artifacts',
+    'evidence',
+    'conclusion',
+    'decision',
+    'nextStep',
+    'pending',
+    'compatibility',
+  ])
+    delete data[key];
+  return {
+    ...template,
+    title: source.title + (options.russian ? ' · повтор' : ' · repeat'),
+    tags: [...(source.tags || [])],
+    data: {
+      ...data,
+      ownerId: options.ownerId || data.ownerId || '',
+      state: 'planned',
+      baselineRunId: source.id,
+      metrics: researchMetricDefaults(data.profile, options.russian ? 'Ещё не измерено' : 'Not measured yet'),
+    },
+  };
+}

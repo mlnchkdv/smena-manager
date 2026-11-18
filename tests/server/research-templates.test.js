@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { researchFixture } from '../fixtures/research.js';
-import { researchTemplate, researchMetricDefaults } from '../../src/shared/research-templates.js';
+import { researchTemplate, researchMetricDefaults, repeatResearchRun } from '../../src/shared/research-templates.js';
 import { RESEARCH_KINDS, RESEARCH_PROFILES } from '../../src/shared/research.js';
 
 test('nine versioned templates cover RU/EN and all profiles leave measurements explicitly missing', () => {
@@ -48,5 +48,14 @@ test('starting a run validates its plan, freezes input revisions, and terminal c
   await assert.rejects(f.update(run, { conclusion: 'Corrected' }), { code: 'RESEARCH_AMENDMENT_REQUIRED' });
   run = (await f.update(run, { conclusion: 'No scientific result', amendment: 'Fix description' })).record;
   assert.ok(run.data.finishedAt);
+  const repeated = repeatResearchRun(run, { ownerId: 'editor', russian: true });
+  assert.equal(repeated.data.conclusion, undefined);
+  assert.equal(repeated.data.finishedAt, undefined);
+  assert.equal(repeated.data.artifacts, undefined);
+  assert.ok(!repeated.body.includes('No scientific result'));
+  assert.equal(repeated.data.datasetVersion.revision, 1);
+  const pending = (await f.create('run', repeated.data, 'Repeat')).record;
+  const restarted = (await f.update(pending, { state: 'running' })).record;
+  assert.equal(restarted.data.datasetVersion.revision, 1);
   await assert.rejects(f.update(run, { state: 'running' }), { code: 'RESEARCH_STATE_TRANSITION' });
 });
