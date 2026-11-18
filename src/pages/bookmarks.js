@@ -146,7 +146,18 @@ export function pageBookmarks() {
     : `<strong class="trunc">${esc(folderFilter === 'root' ? kc('No folder', 'Без папки') : kc('Folder unavailable', 'Папка недоступна'))}</strong>`;
   const scope = S.ui.bookmarkScope || 'active';
   const readOnly = S.ui.currentUser?.role === 'viewer';
-  const page = bookmarkView(links, { query, folder: folderFilter, scope, page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope }) });
+  const archiveFilters = {
+    archive: S.ui.bookmarkArchiveFilter || 'all',
+    capturedAfter: S.ui.bookmarkCapturedAfter || '',
+    sort: S.ui.bookmarkArchiveSort || 'updated',
+  };
+  const page = bookmarkView(links, {
+    query,
+    folder: folderFilter,
+    scope,
+    ...archiveFilters,
+    page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope, ...archiveFilters }),
+  });
   S.ui.listPages.bookmarks = page.page;
   const selectionKey = JSON.stringify([D().me, D().ws.id || D().ws.url, query, folderFilter, scope, page.page]);
   if (S.ui.bookmarkSelectionKey !== selectionKey) {
@@ -179,6 +190,17 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
         .join('')}</div></details>
       ${collectionOptions(
         `
+      <label class="field" translate="no">${kc('Saved page', 'Сохранённая страница')}<select class="select" data-in="bookmarkArchiveFilter">${[
+        ['all', kc('All', 'Все')],
+        ['none', kc('No saved copy', 'Нет копии')],
+        ['html', kc('HTML archive', 'HTML-архив')],
+        ['text', kc('Text copy', 'Текстовая копия')],
+        ['incomplete', kc('Missing resources', 'Неполное оформление')],
+      ]
+        .map(([v, label]) => `<option value="${v}" ${archiveFilters.archive === v ? 'selected' : ''}>${label}</option>`)
+        .join(
+          '',
+        )}</select></label><label class="field" translate="no">${kc('Captured since', 'Архивировано с даты')}<input class="input" type="date" data-in="bookmarkCapturedAfter" value="${esc(archiveFilters.capturedAfter)}"></label><label class="field" translate="no">${kc('Sort', 'Сортировка')}<select class="select" data-in="bookmarkArchiveSort"><option value="updated" ${archiveFilters.sort === 'updated' ? 'selected' : ''}>${kc('Recently updated', 'Недавно обновлённые')}</option><option value="captured" ${archiveFilters.sort === 'captured' ? 'selected' : ''}>${kc('Recently captured', 'Недавно архивированные')}</option></select></label><button class="btn btn-secondary" data-a="searchBookmarkArchives" translate="no">${ic('search', 16)}${kc('Search saved pages', 'Поиск по сохранённым страницам')}</button>
       ${segmentedControl({
         label: 'Bookmark status',
         key: 'bookmarkScope',
@@ -188,7 +210,11 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
           ['archived', 'Archived'],
         ],
       })}${readOnly ? '' : `<button class="btn btn-secondary" data-a="newBookmarkFolder">${ic('folder-plus', 14)}New folder</button>`}`,
-        { key: 'bookmarks', label: 'Filters', active: scope !== 'active' },
+        {
+          key: 'bookmarks',
+          label: 'Filters',
+          active: scope !== 'active' || archiveFilters.archive !== 'all' || !!archiveFilters.capturedAfter || archiveFilters.sort !== 'updated',
+        },
       )}
     `,
       'Bookmark filters and view',

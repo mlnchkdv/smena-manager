@@ -263,7 +263,7 @@ A.viewBookmarkPage = async el => {
     generation: getSessionGeneration(),
     render: viewer,
   };
-  m.selected = m.snapshots.find(ref => !ref.isArchived)?.id || m.snapshots[0]?.id || 'live';
+  m.selected = m.snapshots.find(ref => ref.id === el.dataset.snapshot)?.id || m.snapshots.find(ref => !ref.isArchived)?.id || m.snapshots[0]?.id || 'live';
   m.onClose = () => {
     m.controller?.abort();
     clearTimeout(m.jobTimer);
@@ -380,5 +380,55 @@ A.saveBookmarkPage = async () => {
       render();
       await watchArchive(m);
     }
+  }
+};
+for (const field of ['bookmarkArchiveFilter', 'bookmarkCapturedAfter', 'bookmarkArchiveSort'])
+  IN[field] = el => {
+    S.ui[field] = el.value;
+    render();
+  };
+IN.bookmarkArchiveSearchQuery = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'bookmarkArchiveSearch') m.query = el.value;
+};
+A.searchBookmarkArchives = () =>
+  openModal({
+    type: 'bookmarkArchiveSearch',
+    query: S.ui.bookmarkQuery || '',
+    results: [],
+    generation: getSessionGeneration(),
+    render: (m, H) =>
+      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><label class="field">${words('Words in archived pages', 'Слова в сохранённых страницах')}<input class="input" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'disabled' : ''}></label><p class="hint">${words('Searches saved versions, including stored copies. Checks 20 versions at a time without downloading page HTML to your device.', 'Поиск по версиям, включая убранные из активных. Проверяем по 20 версий, не загружая HTML страниц на устройство.')}</p><button class="btn btn-primary" data-a="runBookmarkArchiveSearch" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total} · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}</p>` : ''}<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(new Date(row.capturedAt).toLocaleDateString(isRussian() ? 'ru-RU' : 'en-US'))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>${m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
+  });
+A.runBookmarkArchiveSearch = async el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'bookmarkArchiveSearch' || m.busy) return;
+  if (m.query.trim().length < 2) {
+    m.error = words('Enter at least two characters.', 'Введите не менее двух символов.');
+    render();
+    return;
+  }
+  const more = el.dataset.more === 'true' && m.searched === m.query;
+  if (!more) {
+    m.results = [];
+    m.unavailable = 0;
+  }
+  m.busy = true;
+  m.error = '';
+  render();
+  try {
+    const result = await bookmarkPageRequest('/search', { method: 'POST', body: JSON.stringify({ query: m.query, cursor: more ? m.cursor : 0 }) });
+    if (!currentViewer(m)) return;
+    m.results.push(...result.matches);
+    m.searched = m.query;
+    m.scanned = result.scanned;
+    m.total = result.total;
+    m.cursor = result.cursor;
+    m.unavailable += result.unavailable;
+  } catch {
+    if (currentViewer(m)) m.error = words('Search unavailable. Check the connection and retry.', 'Поиск недоступен. Проверьте соединение и повторите.');
+  } finally {
+    m.busy = false;
+    if (currentViewer(m)) render();
   }
 };
