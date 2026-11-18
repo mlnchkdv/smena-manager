@@ -12,6 +12,11 @@
   min-width: 0;
   gap: var(--s-2);
 }
+@media (max-width: 640px) {
+  .collection-toolbar :is(.input, summary.btn, .whiteboards-filter-trigger) {
+    min-height: 44px;
+  }
+}
 .collection-selection {
   display: flex;
   align-items: center;

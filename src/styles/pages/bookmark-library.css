@@ -12,6 +12,9 @@
 .bookmark-library .bookmark-folder-control .select-btn {
   width: 100%;
 }
+.bookmark-compact-controls {
+  display: none;
+}
 .bookmark-library .bookmark-view-menu {
   position: relative;
   justify-self: end;
@@ -230,10 +233,17 @@
 }
 @media (max-width: 760px) {
   .bookmark-library .bookmark-toolbar {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   .bookmark-library .bookmark-search {
-    grid-column: 1 / -1;
+    grid-column: auto;
+  }
+  .bookmark-library .bookmark-wide-control {
+    display: none;
+  }
+  .bookmark-compact-controls {
+    display: grid;
+    gap: 6px;
   }
   .bookmark-library .bookmark-grid.is-list .bookmark-card {
     grid-template-columns: 72px minmax(0, 1fr);
