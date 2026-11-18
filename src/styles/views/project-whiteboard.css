@@ -483,13 +483,11 @@
   border: 1px dashed var(--wb-accent);
 }
 .whiteboard-card[data-kind='group']:not(.in-outline) {
-  z-index: auto;
   overflow: visible;
 }
 .whiteboard-card[data-kind='group']:not(.in-outline) > .whiteboard-card-head {
   position: absolute;
   inset: auto 0 100%;
-  z-index: 4;
   background: var(--surface);
   border-radius: var(--r) var(--r) 0 0;
 }
