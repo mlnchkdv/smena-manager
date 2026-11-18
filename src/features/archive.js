@@ -1,4 +1,4 @@
-import { trashLocation } from '../shared/trash-recovery.js';
+import { trashLocation, trashRestorePlan } from '../shared/trash-recovery.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
 import { t, isRussian } from '../core/i18n.js';
@@ -46,6 +46,12 @@ export function pageArchive() {
   const row = (lead, title, sub, when, restoreAct, delAct, id) =>
     `<article class="mini archive-item" aria-label="${esc(title)}"><span class="archive-item-icon">${lead}</span><div class="grow archive-item-copy"><div class="trunc archive-item-title" translate="no">${esc(title)}</div><div class="faint trunc archive-item-context">${sub}</div></div><span class="faint archive-item-date">${when}</span><div class="archive-item-actions"><button class="btn btn-secondary btn-sm" data-a="${restoreAct}" data-id="${esc(id)}" aria-label="${actionLabel('Restore', title, id)}">${ic('rotate-ccw', 13)}Restore</button><button class="ibtn ibtn-sm" data-a="${delAct}" data-id="${esc(id)}" data-tip="Delete permanently" aria-label="${actionLabel('Delete permanently', title, id)}" style="color:var(--red)">${ic('trash-2', 15)}</button></div></article>`;
   const trashNames = { task: 'Task', project: 'Project', note: 'Note', bookmark: 'Bookmark', file: 'File' };
+  const restoreTarget = item => {
+    const plan = trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role);
+    if (plan.error) return `<span class="hint">${esc(t(plan.error))}</span>`;
+    const target = plan.target || t('No folder');
+    return `<span class="archive-restore-target" title="${esc(target)}">${t('Destination')} · <span translate="no">${esc(target)}</span></span>`;
+  };
   const overview = `<section class="panel archive-overview" style="padding:16px"><h2>${isRussian() ? 'Восстановление материалов' : 'Recover materials'}</h2><p>${isRussian() ? 'Выберите раздел сверху. Архивные материалы и корзина хранятся отдельно; перед окончательным удалением приложение запросит подтверждение.' : 'Choose a category above. Archived work and trash are separate; permanent deletion requires confirmation.'}</p>${
     trash.length
       ? `<h3>${isRussian() ? 'Недавно в корзине' : 'Recently deleted'}</h3><ul class="archive-recent">${trash
@@ -61,7 +67,7 @@ export function pageArchive() {
       ? overview
       : tab === 'trash'
         ? page.total
-          ? `<div class="panel" style="overflow:hidden">${page.items.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${esc(trashLocation(item, D()) || t('No folder'))}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
+          ? `<div class="panel" style="overflow:hidden">${page.items.map(item => row(ic(item.kind === 'project' ? 'folder-kanban' : item.kind === 'file' ? 'paperclip' : item.kind === 'note' ? 'file-text' : item.kind === 'bookmark' ? 'bookmark' : 'circle-check', 15), item.name, `${t(trashNames[item.kind] || 'Item')} · ${restoreTarget(item)}`, item.deletedAt ? 'Deleted ' + ago(item.deletedAt) : 'Deleted', 'restoreTrash', 'purgeTrash', item.id)).join('')}</div>`
           : `<div class="panel">${empty('trash-2', trash.length ? 'No matching items' : 'Trash is empty', trash.length ? 'Change the search or filters.' : 'Deleted tasks, projects, notes, bookmarks, and files will appear here.', '')}</div>`
         : tab === 'tasks'
           ? ts.length

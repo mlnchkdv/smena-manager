@@ -1,8 +1,10 @@
 import { canEditProject } from './project-access.js';
 import { folderTrail } from './knowledge-tools.js';
+import { activeFileFolder, fileFolderPath } from './file-organization.js';
 export function trashLocation(item, data) {
   const raw = item.data || {};
   const project = raw.project || data.projects?.find(p => p.id === (raw.task?.project || raw.file?.project));
+  if (item.kind === 'file' && project) return [project.name, ...fileFolderPath(project, raw.file?.folderId).map(folder => folder.name)].join(' / ');
   if (project) return project.name;
   if (item.kind === 'note')
     return folderTrail(raw.note?.folderId, data.knowledgeFolders || [])
@@ -31,11 +33,11 @@ export function trashRestorePlan(item, data, memberId, role) {
       : kind === 'bookmark'
         ? !!record?.folder && !data.linkFolders?.some(f => f.id === record.folder)
         : kind === 'file'
-          ? !!record?.folderId && !project?.fileFolders?.some(f => f.id === record.folderId && !f.archived)
+          ? !!record?.folderId && !activeFileFolder(project, record.folderId)
           : false;
   return {
     error,
-    target: trashLocation(item, data),
+    target: kind === 'file' && missingFolder ? project?.name || '' : trashLocation(item, data),
     missingFolder,
     sameName: !!record && data[collection]?.some(value => (value.title || value.name) === (record.title || record.name)),
   };

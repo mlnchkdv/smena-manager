@@ -13,6 +13,11 @@
 .archive-item-date {
   font-size: var(--fs-xs);
 }
+.archive-item .archive-item-context:has(.archive-restore-target) {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .archive-item-date {
   white-space: nowrap;
 }

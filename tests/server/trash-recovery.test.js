@@ -19,4 +19,14 @@ test('restore preview rejects ID collisions, missing projects and lost edit acce
   assert.equal(JSON.stringify(note), before);
   data.knowledgeNotes.push({ id: 'n' });
   assert.match(trashRestorePlan(note, data, 'm', 'admin').error, /ID/);
+  data.projects[0].fileFolders = [
+    { id: 'a', name: 'Captures' },
+    { id: 'b', parentId: 'a', name: 'A/B' },
+  ];
+  const file = { kind: 'file', data: { file: { id: 'f', project: 'p', folderId: 'b' } } };
+  assert.equal(trashRestorePlan(file, data, 'm', 'admin').target, 'Private / Captures / A/B');
+  data.projects[0].fileFolders[1].archived = true;
+  const root = trashRestorePlan(file, data, 'm', 'admin');
+  assert.equal(root.target, 'Private');
+  assert.equal(root.missingFolder, true);
 });
