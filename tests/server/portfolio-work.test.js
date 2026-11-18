@@ -5,7 +5,7 @@ test('milestone timing uses calendar dates across DST and distinguishes today an
   assert.equal(portfolioMilestoneTiming({ date: '2026-10-24' }, '2026-10-26').days, 2);
   assert.equal(portfolioMilestoneTiming({ date: '2026-11-16' }, '2026-11-17').label, 'Milestone 1 day overdue');
   assert.equal(portfolioMilestoneTiming({ date: '2026-11-17' }, '2026-11-17', true).label, 'Этап сегодня');
-  assert.equal(portfolioMilestoneTiming({ date: '2026-11-18' }, '2026-11-17').label, 'Next milestone');
+  assert.equal(portfolioMilestoneTiming({ date: '2026-11-18' }, '2026-11-17').label, 'Milestone in 1 day');
   assert.equal(portfolioMilestoneTiming({ date: '2026-11-01', completed: true }, '2026-11-17').days, 0);
 });
 

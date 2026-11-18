@@ -1,7 +1,7 @@
 /* ---------- WORKSPACE OVERVIEW ---------- */
 import '../styles/portfolio.css';
 import { appLocationPath } from '../shared/app-location.js';
-import { TODAY, esc, fmtDate, iso, relDate } from '../core/utils.js';
+import { esc, fmtDate, iso } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, pColor, visibleProjects } from '../core/store.js';
@@ -84,7 +84,7 @@ export function pageOverview() {
       .filter(p => S.ui.portfolioScope === 'all' || (S.ui.portfolioScope === 'complete' ? p.status === 'complete' : p.status !== 'complete')),
     projectIds = new Set(projects.map(p => p.id)),
     all = allTasks().filter(task => projectIds.has(task.project)),
-    today = iso(TODAY);
+    today = iso(new Date());
   const work = portfolioWork(projects, all, today);
   const filtered = findPortfolioRows(work.rows, S.ui.portfolioQuery, S.ui.portfolioAttention === 'yes', id => mem(id)?.name);
   const pageKey = 'portfolio:' + JSON.stringify([S.ui.portfolioScope, S.ui.portfolioQuery, S.ui.portfolioAttention]);
@@ -145,7 +145,7 @@ export function pageOverview() {
     <div class="portfolio-support">
       <section class="panel"><div class="panel-h"><h2>Tasks by status</h2></div><div class="panel-b">${counts.map(c => `<button class="row portfolio-status-row" data-a="goTasks" data-projects="${projects.map(p => p.id).join(',')}" data-status="${c.s.id}" aria-label="${t(c.s.name)}: ${c.n}">${stIcon(c.s.id)}<span class="grow">${c.s.name}</span><span class="num muted">${c.n}</span></button>`).join('')}</div></section>
       <section class="panel"><div class="panel-h"><h2>Open tasks by member</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="go" data-r="members">All members</button></div></div><div class="panel-b">${load.map(l => `<button class="portfolio-workload" data-a="goTasks" data-projects="${projects.map(p => p.id).join(',')}" data-f="open" data-assignee="${esc(l.m.id)}" title="${esc(t('Open tasks') + ': ' + l.m.name)}">${av(l.m.id, 'sm', false)}<span class="trunc" translate="no">${esc(l.m.name)}</span><i style="--work:${(l.n / max) * 100}%"></i><b class="num">${l.n}</b></button>`).join('') || '<p class="faint">No open assignments</p>'}</div></section>
-      ${milestones.length ? `<section class="panel"><div class="panel-h"><h2>Milestones to review</h2></div><div class="panel-b">${milestones.map(row => `<button class="portfolio-milestone" data-a="go" data-r="project" data-id="${esc(row.project.id)}" data-tab="timeline"><span class="pdot" style="--c:${pColor(row.project)}"></span><span class="grow"><b translate="no">${esc(row.next.name || t('Unnamed milestone'))}</b><small translate="no">${esc(row.project.name)}</small></span><span class="num${row.next.date < today ? ' bad' : ''}">${relDate(row.next.date)}</span></button>`).join('')}</div></section>` : ''}
+      ${milestones.length ? `<section class="panel"><div class="panel-h"><h2>Milestones to review</h2></div><div class="panel-b">${milestones.map(row => `<button class="portfolio-milestone" data-a="go" data-r="project" data-id="${esc(row.project.id)}" data-tab="timeline"><span class="pdot" style="--c:${pColor(row.project)}"></span><span class="grow"><b translate="no">${esc(row.next.name || t('Unnamed milestone'))}</b><small translate="no">${esc(row.project.name)}</small></span><span class="portfolio-milestone-timing${row.next.date < today ? ' bad' : ''}" translate="no" title="${esc(fmtDate(row.next.date))}">${esc(portfolioMilestoneTiming(row.next, today, isRussian()).label)}<small>${fmtDate(row.next.date)}</small></span></button>`).join('')}</div></section>` : ''}
     </div>
   </div>`;
 }

@@ -333,3 +333,13 @@
     min-height: 32px;
   }
 }
+.portfolio-milestone-timing {
+  text-align: end;
+  max-width: 45%;
+  white-space: normal;
+}
+.portfolio-milestone-timing small {
+  display: block;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
