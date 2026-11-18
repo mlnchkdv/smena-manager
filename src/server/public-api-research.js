@@ -86,13 +86,11 @@ export function registerPublicApiResearch(router) {
           const result = await researchStore.command(req.params.project, commands[i], req.user, [], authorizeWrite(req, [commands[i]]));
           completed.push({ operationId: result.operationId, id: result.id, revision: result.revision, replayed: result.replayed });
         } catch (error) {
-          res
-            .status(error.statusCode || 500)
-            .json({
-              completed,
-              failed: { index: i, operationId: commands[i].operationId, code: error.code || 'RESEARCH_UNAVAILABLE' },
-              pending: commands.slice(i + 1).map(row => row.operationId),
-            });
+          res.status(error.statusCode || 500).json({
+            completed,
+            failed: { index: i, operationId: commands[i].operationId, code: error.code || 'RESEARCH_UNAVAILABLE' },
+            pending: commands.slice(i + 1).map(row => row.operationId),
+          });
           return;
         }
       }
