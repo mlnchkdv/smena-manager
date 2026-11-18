@@ -80,6 +80,14 @@
   border: 1px solid var(--border);
   white-space: nowrap;
 }
+.project-deadline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.project-deadline svg {
+  flex-shrink: 0;
+}
 .pstatus i {
   width: 6px;
   height: 6px;

@@ -6,7 +6,7 @@ import { calendarDate } from '../shared/calendar-time.js';
 import { ic } from '../core/icons.js';
 import { STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, pColor, visibleProjects } from '../core/store.js';
-import { av, empty, pIcon, pStatus, progBar, stIcon } from '../ui/helpers.js';
+import { av, empty, pIcon, pStatus, progBar, projectDueHtml, stIcon } from '../ui/helpers.js';
 import { pageIntroduction } from '../ui/page-introduction.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { registerRussianLabels, t, isRussian } from '../core/i18n.js';
@@ -36,7 +36,6 @@ registerRussianLabels({
   'All members': 'Все участники',
   'Overdue tasks': 'Просроченные задачи',
   'Without assignee': 'Без исполнителя',
-  'Project deadline overdue': 'Срок проекта просрочен',
   'Projects with overdue tasks or deadlines, unassigned tasks, overdue milestones or At risk status.':
     'Проекты с просроченными задачами, сроком проекта или этапа, задачами без исполнителя либо статусом «Под угрозой».',
 });
@@ -66,10 +65,8 @@ function nextMilestone(row, today) {
     ? `<button class="portfolio-next${timing.days ? ' bad' : ''}" data-a="openCalendarPlan" data-kind="milestone" data-project="${esc(row.project.id)}"><span translate="no">${esc(timing.label)}:</span> <span translate="no">${esc(row.next.name || t('Unnamed milestone'))}</span> · ${fmtDate(row.next.date)}</button>`
     : '';
 }
-function projectSignals(row, today) {
+function projectSignals(row) {
   const reasons = [];
-  if (row.project.status !== 'complete' && row.project.due && row.project.due < today)
-    reasons.push(`<span class="bad">${t('Project deadline overdue')}</span>`);
   if (row.unassigned) reasons.push(`<span>${t('Without assignee')}: ${taskCount(row, 'unassigned', row.unassigned, 'Without assignee')}</span>`);
   return reasons.length ? `<div class="portfolio-signals">${reasons.join('')}</div>` : '';
 }
@@ -138,8 +135,8 @@ export function pageOverview() {
               '<button class="btn btn-secondary" data-a="go" data-r="projects">All projects</button>',
             )
           : `
-      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num" title="${row.total ? t('Progress') : t('No tasks yet')}">${row.total ? row.progress + '%' : '—'}</b></div>${nextMilestone(row, today)}${projectSignals(row, today)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue tasks')} ${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</span><span>${row.project.due ? `${ic('calendar', 12)}<span class="sr">${t('Due')}: </span>${fmtDate(row.project.due)}` : ''}</span></div></article>`).join('')}</div>
-      <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>${t('Overdue tasks')}</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}${projectSignals(row, today)}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${row.total ? `${progBar(row.progress)}<span class="num">${row.progress}%</span>` : `<span class="hint">${t('No tasks yet')}</span>`}</span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</td><td>${row.project.due ? fmtDate(row.project.due) : '—'}</td></tr>`).join('')}</tbody></table></div>`
+      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num" title="${row.total ? t('Progress') : t('No tasks yet')}">${row.total ? row.progress + '%' : '—'}</b></div>${nextMilestone(row, today)}${projectSignals(row)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue tasks')} ${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</span><span>${projectDueHtml(row.project, { icon: true })}</span></div></article>`).join('')}</div>
+      <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>${t('Overdue tasks')}</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}${projectSignals(row)}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${row.total ? `${progBar(row.progress)}<span class="num">${row.progress}%</span>` : `<span class="hint">${t('No tasks yet')}</span>`}</span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</td><td>${projectDueHtml(row.project)}</td></tr>`).join('')}</tbody></table></div>`
       }
       ${paginationHtml(window, pageKey)}
     </section>

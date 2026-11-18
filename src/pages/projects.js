@@ -7,7 +7,7 @@ import { PSTAT } from '../core/constants.js';
 import { D, S, TM, canSee, mem, progressOf, tasksOf, visibleProjects } from '../core/store.js';
 import { recordedActivityIndex, compareProjectActivity } from '../shared/recorded-activity.js';
 import { locale, t } from '../core/i18n.js';
-import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
+import { av, avStack, empty, pIcon, pStatus, progBar, projectDueHtml } from '../ui/helpers.js';
 import { collectionOptions } from '../ui/collection-layout.js';
 
 const activityLabel = at => (at ? ago(at) : t('Activity unavailable'));
@@ -19,13 +19,12 @@ export function projectCard(p, at) {
   const href = appLocationPath(D(), { route: 'project', params: { id: p.id } }),
     name = esc(p.name),
     description = !p.desc || p.desc === 'No description yet.' ? t('No description yet.') : p.desc,
-    due = fmtDate(p.due),
     activity = locked ? '—' : activityLabel(at);
   return `<article class="pcard project-card" data-ctx="project" data-id="${esc(p.id)}" aria-label="${name}">
     <div class="project-card-head">${pIcon(p)}<div class="project-card-identity"><div class="project-card-title-row"><h2><a class="project-card-link" href="${esc(href)}" data-a="go" data-r="project" data-id="${esc(p.id)}" aria-label="${name}" title="${name}" translate="no">${name}</a></h2>${isFavorite('project', p) ? `<span style="color:var(--amber)">${ic('star', 12)}</span>` : ''}${p.private ? `<span class="faint" data-tip="Private project">${ic('lock', 12)}</span>` : ''}</div>${pStatus(p.status)}</div><button class="ibtn ibtn-sm project-card-menu" data-a="ctxBtn" data-ctx="project" data-id="${esc(p.id)}" aria-label="${esc(t('Project options'))}: ${name}" title="${esc(t('Project options'))}">${ic('ellipsis', 16)}</button></div>
     <p class="desc" translate="no">${esc(description)}</p>
     ${locked ? `<div class="row faint project-card-progress">${ic('lock', 12)}<span>Restricted — request access to see tasks</span></div>` : `<div class="project-card-progress">${progBar(pr, p.status === 'complete' ? 'green' : p.status === 'risk' ? 'red' : '')}<span class="num">${pr}%</span></div>`}
-    <div class="foot project-card-foot"><div class="project-card-stats"><span class="project-card-count"><span class="sr">${esc(t('Tasks'))}: </span>${ic('circle-check', 12)}<span class="num">${locked ? '—' : `${ts.length - open}/${ts.length}`}</span></span>${p.due ? `<span class="project-card-due" title="${esc(t('Due date'))}: ${esc(due)}">${ic('calendar', 12)}<time datetime="${esc(p.due)}" translate="no">${esc(due)}</time></span>` : ''}</div><div class="project-card-secondary"><span class="project-card-activity" title="${esc(t('Last recorded activity'))}">${ic('clock', 12)}<span translate="no">${esc(activity)}</span></span><span class="project-card-members">${avStack(p.members, 3)}</span></div></div>
+    <div class="foot project-card-foot"><div class="project-card-stats"><span class="project-card-count"><span class="sr">${esc(t('Tasks'))}: </span>${ic('circle-check', 12)}<span class="num">${locked ? '—' : `${ts.length - open}/${ts.length}`}</span></span><span class="project-card-due">${projectDueHtml(p, { icon: true })}</span></div><div class="project-card-secondary"><span class="project-card-activity" title="${esc(t('Last recorded activity'))}">${ic('clock', 12)}<span translate="no">${esc(activity)}</span></span><span class="project-card-members">${avStack(p.members, 3)}</span></div></div>
   </article>`;
 }
 export function pageProjects() {
@@ -52,7 +51,7 @@ export function pageProjects() {
     body = `<div class="panel" style="overflow:hidden">${ps
       .map(p => {
         const pr = progressOf(p.id);
-        return `<div class="mini" style="min-height:52px;gap:12px" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><b style="font-weight:500">${esc(p.name)}</b>${p.private ? ic('lock', 12) : ''}</div><div class="trunc faint" style="font-size:12px">${esc(p.desc)}</div></div><span class="hide-m">${pStatus(p.status)}</span><span class="row hide-m" style="width:140px">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span><span class="num muted hide-m" style="width:70px;font-size:12px">${fmtDate(p.due)}</span>${avStack(p.members, 3)}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></div>`;
+        return `<div class="mini" style="min-height:52px;gap:12px" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project">${pIcon(p)}<div class="grow" style="min-width:0"><div class="row" style="gap:6px"><b style="font-weight:500">${esc(p.name)}</b>${p.private ? ic('lock', 12) : ''}</div><div class="trunc faint" style="font-size:12px">${esc(p.desc)}</div></div><span class="hide-m">${pStatus(p.status)}</span><span class="row hide-m" style="width:140px">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span><span class="num muted hide-m" style="width:70px;font-size:12px">${projectDueHtml(p)}</span>${avStack(p.members, 3)}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></div>`;
       })
       .join('')}</div>`;
   else
@@ -61,7 +60,7 @@ export function pageProjects() {
       .map(p => {
         const ts = tasksOf(p.id);
         const pr = progressOf(p.id);
-        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<a href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id } }))}" data-a="go" data-r="project" data-id="${esc(p.id)}" style="font-weight:500" translate="no">${esc(p.name)}</a></span><details class="project-table-details" data-a=""><summary>Details</summary><dl><dt>Team</dt><dd>${esc(TM[p.team]?.name || '—')}</dd><dt>Start</dt><dd>${fmtDate(p.start)}</dd><dt>Last activity</dt><dd>${canSee(p) ? activityLabel(times.get(p.id)) : '—'}</dd></dl></details></td><td style="text-align:left">${pStatus(p.status)}</td><td style="text-align:left"><span class="row">${av(p.lead, 'sm')}${esc(mem(p.lead)?.name)}</span></td><td style="text-align:left" class="muted">${TM[p.team]?.name}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${fmtDate(p.due)}</td><td style="text-align:left" class="muted">${canSee(p) ? activityLabel(times.get(p.id)) : '—'}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></td></tr>`;
+        return `<tr style="cursor:pointer" data-a="go" data-r="project" data-id="${p.id}" data-ctx="project"><td style="padding-left:14px"><span class="row">${pIcon(p, '', 14)}<a href="${esc(appLocationPath(D(), { route: 'project', params: { id: p.id } }))}" data-a="go" data-r="project" data-id="${esc(p.id)}" style="font-weight:500" translate="no">${esc(p.name)}</a></span><details class="project-table-details" data-a=""><summary>Details</summary><dl><dt>Team</dt><dd>${esc(TM[p.team]?.name || '—')}</dd><dt>Start</dt><dd>${fmtDate(p.start)}</dd><dt>Last activity</dt><dd>${canSee(p) ? activityLabel(times.get(p.id)) : '—'}</dd></dl></details></td><td style="text-align:left">${pStatus(p.status)}</td><td style="text-align:left"><span class="row">${av(p.lead, 'sm')}${esc(mem(p.lead)?.name)}</span></td><td style="text-align:left" class="muted">${TM[p.team]?.name}</td><td><span class="row">${progBar(pr)}<span class="num faint" style="font-size:11.5px">${pr}%</span></span></td><td class="num">${ts.length}</td><td style="text-align:left" class="num muted">${fmtDate(p.start)}</td><td style="text-align:left" class="num muted">${projectDueHtml(p)}</td><td style="text-align:left" class="muted">${canSee(p) ? activityLabel(times.get(p.id)) : '—'}</td><td><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="project" data-id="${p.id}" aria-label="Options">${ic('ellipsis', 14)}</button></td></tr>`;
       })
       .join('')}
     </tbody></table></div>`;

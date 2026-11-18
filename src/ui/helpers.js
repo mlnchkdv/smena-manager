@@ -1,11 +1,13 @@
 /* ---------- small render helpers ---------- */
-import { TODAY, diffD, esc, parse, relDate } from '../core/utils.js';
+import { TODAY, diffD, esc, fmtDate, parse, relDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { LB, PR, projectStatus, ST } from '../core/constants.js';
-import { D, mem, pColor } from '../core/store.js';
+import { D, S, mem, pColor } from '../core/store.js';
 import { canLoadThumbnail } from '../shared/file-preview-policy.js';
 import { t } from '../core/i18n.js';
 import { projectImageData } from '../shared/project-appearance.js';
+import { calendarDate } from '../shared/calendar-time.js';
+import { projectDeadlineOverdue } from '../shared/portfolio-work.js';
 
 export function av(id, cls = '', tip = true, decorative = false) {
   const m = mem(id);
@@ -53,6 +55,12 @@ export function projectIconContent(project, size = 15) {
 }
 export const pIcon = (p, cls = '', s = 15) => `<span class="picon ${cls}" style="--c:${pColor(p)}">${projectIconContent(p, s)}</span>`;
 export const pStatus = s => `<span class="pstatus" style="--c:${projectStatus(s).c}"><i></i>${projectStatus(s).name}</span>`;
+export function projectDueHtml(project, { icon = false } = {}) {
+  const date = /^\d{4}-\d{2}-\d{2}$/u.test(project.due || '') ? fmtDate(project.due) : '';
+  if (!date) return `<span class="hint">${t('No due date')}</span>`;
+  const overdue = projectDeadlineOverdue(project, calendarDate(new Date(), S.prefs.tz));
+  return `<span class="project-deadline ${overdue ? 'bad' : ''}">${overdue ? ic('clock-alert', 12) + `<span class="sr">${t('Overdue')} </span>` : icon ? ic('calendar', 12) : ''}<time datetime="${esc(project.due)}" translate="no">${esc(date)}</time></span>`;
+}
 export function dueHtml(t, withIcon = true) {
   if (!t.due) return '';
   const n = diffD(parse(t.due), TODAY);

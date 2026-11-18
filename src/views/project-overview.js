@@ -4,7 +4,7 @@ import { TODAY, dayBucket, diffD, esc, fmtDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { STATUSES } from '../core/constants.js';
 import { D, S, TM, isOver, mem, progressOf, task, tasksOf } from '../core/store.js';
-import { av, avStack, empty, pStatus, stIcon } from '../ui/helpers.js';
+import { av, avStack, empty, pStatus, projectDueHtml, stIcon } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
 import { projectCycleSummary } from '../ui/project-cycle-summary.js';
@@ -21,7 +21,6 @@ export function projOverview(p) {
   const acts = D()
     .activity.filter(a => a.project === p.id)
     .slice(0, 6);
-  const daysLeft = diffD(parse(p.due), TODAY);
   const milestones = p.milestones || [];
   const canManageMilestones = S.ui.currentUser?.role !== 'viewer';
   return `<div class="page" style="max-width:1160px;padding-top:22px">
@@ -30,7 +29,7 @@ export function projOverview(p) {
         <section class="panel"><div class="panel-h"><h2>About</h2><div class="acts"><button class="btn btn-sm btn-ghost" data-a="editProject" data-id="${p.id}">${ic('pencil', 13)}Edit</button></div></div><div class="panel-b" style="font-size:14px;line-height:1.6;color:var(--text)">${esc(p.desc)}</div></section>
         <section class="panel"><div class="panel-h"><h2>Progress</h2><div class="acts"><span class="faint" style="font-size:12px">${ts.filter(t => t.status === 'done').length} of ${ts.length} tasks done</span></div></div>
           <div class="panel-b">
-            <div class="row" style="align-items:baseline;gap:10px;margin-bottom:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em" class="num">${pr}%</span><span class="muted">${!p.due ? 'No due date' : daysLeft >= 0 ? `${daysLeft} days until ${fmtDate(p.due)}` : `Ended ${fmtDate(p.due)}`}</span>${over.length ? `<span class="badge red">${ic('clock-alert', 11)}${over.length} overdue</span>` : ''}</div>
+            <div class="row" style="align-items:baseline;gap:10px;margin-bottom:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.03em" class="num">${pr}%</span><span class="muted">${projectDueHtml(p, { icon: true })}</span>${over.length ? `<button class="btn btn-ghost btn-sm bad" data-a="goTasks" data-f="overdue" data-project="${esc(p.id)}">${ic('clock-alert', 11)}${over.length} overdue</button>` : ''}</div>
             <div class="stackbar" style="height:8px;margin-bottom:12px">${cnt.map(c => `<i style="width:${(c.n / Math.max(ts.length, 1)) * 100}%;background:var(--st-${c.s.id})" title="${c.s.name}: ${c.n}"></i>`).join('')}</div>
             <div class="row" style="flex-wrap:wrap;gap:14px;font-size:12.5px">${cnt.map(c => `<button class="row project-status-link" style="gap:5px" data-a="goFilteredList" data-id="${p.id}" data-st="${c.s.id}">${stIcon(c.s.id, 12)}<span class="muted">${c.s.name}</span><b class="num" style="font-weight:600">${c.n}</b></button>`).join('')}</div>
           </div></section>
@@ -42,7 +41,7 @@ export function projOverview(p) {
           <dt>${ic('user', 14)}Lead</dt><dd><span class="pillbtn">${av(p.lead, 'sm', false)}${esc(mem(p.lead)?.name)}</span></dd>
           <dt>${ic('users', 14)}Team</dt><dd><button class="pillbtn" data-a="go" data-r="team" data-id="${p.team}">${ic(TM[p.team].icon, 13)}${TM[p.team].name}</button></dd>
           <dt>${ic('calendar', 14)}Start</dt><dd><span class="pillbtn num">${fmtDate(p.start, true)}</span></dd>
-          <dt>${ic('flag', 14)}Due</dt><dd><span class="pillbtn num">${fmtDate(p.due, true)}</span></dd>
+          <dt>${ic('flag', 14)}Due</dt><dd><span class="pillbtn num">${projectDueHtml(p)}</span></dd>
           <dt>${ic('user-plus', 14)}Members</dt><dd><button class="pillbtn" data-a="share" data-id="${p.id}">${avStack(p.members, 6)}<span class="faint">${p.members.length}</span></button></dd>
         </dl></div></section>
         <section class="panel"><div class="panel-h"><h2>Milestones</h2><div class="acts">${canManageMilestones ? `<button class="btn btn-sm btn-ghost" data-a="manageMilestones" data-id="${p.id}">${ic('settings-2', 13)}Manage</button>` : ''}</div></div><div class="panel-b project-milestones-list">${

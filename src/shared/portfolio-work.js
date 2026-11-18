@@ -1,3 +1,6 @@
+export const projectDeadlineOverdue = (project, today) =>
+  !project.archived && project.status !== 'complete' && /^\d{4}-\d{2}-\d{2}$/u.test(project.due || '') && project.due < today;
+
 export function portfolioMilestoneTiming(milestone, today, russian = false) {
   const difference =
     milestone && !milestone.completed ? Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(milestone.date + 'T00:00:00Z')) / 86400000) : 0;
@@ -51,7 +54,7 @@ export function portfolioWork(projects, tasks, today) {
       row.unassigned > 0 ||
       row.project.status === 'risk' ||
       Boolean(row.next && row.next.date < today) ||
-      Boolean(row.project.status !== 'complete' && row.project.due && row.project.due < today);
+      projectDeadlineOverdue(row.project, today);
   }
   const ordered = [...rows.values()].sort(
     (a, b) =>
