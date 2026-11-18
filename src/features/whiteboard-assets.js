@@ -55,6 +55,7 @@ async function uploadMedia(picked, point) {
     S.ui.filePolicy = await getFileUploadPolicy();
     if (!fresh(board.id, scope) || !editable(currentWhiteboard())) return;
     const { enqueueFiles } = await import('../core/file-upload-queue.js');
+    if (!fresh(board.id, scope) || !editable(currentWhiteboard())) return;
     const uploaded = await enqueueFiles(files, { project });
     if (!fresh(board.id, scope) || !editable(currentWhiteboard())) return;
     const nodes = insertWhiteboardMaterials(
