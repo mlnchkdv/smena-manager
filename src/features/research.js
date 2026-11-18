@@ -164,51 +164,75 @@ A.researchRemoveMetric = el => {
   m.record.data.metrics.splice(Number(el.dataset.index), 1);
   render();
 };
-A.researchCompare = async () => {
-  const model = state(),
-    m = {
-      type: 'researchCompare',
-      project: model.project,
-      ids: [],
-      rows: [],
-      records: [],
-      generation: getSessionGeneration(),
-      busy: true,
-      render: (m, H) => H(rw('Compare runs', 'Сравнение запусков')) + researchComparisonHtml(m),
-    };
+A.researchCompare = () => {
+  const model = state();
+  const source = model.selected;
+  if (!source) return;
+  const m = {
+    type: 'researchCompare',
+    project: model.project,
+    experiment: source.kind === 'experiment' ? source.id : source.data.experimentId,
+    ids: [],
+    rows: null,
+    records: new Map(),
+    requests: new Set(),
+    generation: getSessionGeneration(),
+    render: (m, H) => H(rw('Compare runs', 'Сравнение запусков')) + researchComparisonHtml(m),
+  };
   openModal(m);
-  try {
-    const experiment = model.selected?.kind === 'experiment' ? model.selected.id : model.selected?.data.experimentId;
-    const result = await researchRequest(m.project, '?kind=run&limit=100' + (experiment ? '&experiment=' + encodeURIComponent(experiment) : ''));
-    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration())
-      m.rows = result.items.filter(
-        row => !model.selected || row.experimentId === (model.selected.kind === 'experiment' ? model.selected.id : model.selected.data.experimentId),
-      );
-  } catch (error) {
-    m.error = researchFailure(error);
-  } finally {
-    m.busy = false;
-    if (S.ui.modals.includes(m)) render();
-  }
+  void loadComparisonRuns(m);
 };
-A.researchPickCompare = async el => {
-  const m = S.ui.modals.at(-1);
-  if (m?.type !== 'researchCompare' || m.busy) return;
-  if (m.ids.includes(el.dataset.id)) m.ids = m.ids.filter(id => id !== el.dataset.id);
-  else if (m.ids.length < 4) m.ids.push(el.dataset.id);
-  else return;
-  m.busy = true;
+async function loadComparisonRuns(m) {
+  m.loadingRows = true;
   m.error = '';
   render();
   try {
-    const records = await Promise.all(m.ids.map(id => researchRequest(m.project, '/records/' + encodeURIComponent(id))));
-    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) m.records = records.map(result => result.record);
+    if (!m.experiment) {
+      m.rows = [];
+      return;
+    }
+    const result = await researchRequest(m.project, '?kind=run&limit=100&experiment=' + encodeURIComponent(m.experiment));
+    m.rows = result.items;
   } catch (error) {
     m.error = researchFailure(error);
   } finally {
-    m.busy = false;
-    if (S.ui.modals.includes(m)) render();
+    m.loadingRows = false;
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) render();
   }
+}
+function loadComparisonRecords(m) {
+  if (m.ids.length < 2) return;
+  for (const id of m.ids) {
+    if (m.records.has(id) || m.requests.has(id)) continue;
+    m.requests.add(id);
+    void researchRequest(m.project, '/records/' + encodeURIComponent(id))
+      .then(result => m.records.set(id, result.record))
+      .catch(error => {
+        if (m.ids.includes(id)) m.error = researchFailure(error);
+      })
+      .finally(() => {
+        m.requests.delete(id);
+        if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) render();
+      });
+  }
+}
+A.researchPickCompare = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchCompare' || !m.rows?.some(row => row.id === el.dataset.id)) return;
+  if (m.ids.includes(el.dataset.id)) m.ids = m.ids.filter(id => id !== el.dataset.id);
+  else if (m.ids.length < 4) m.ids.push(el.dataset.id);
+  else return;
+  m.error = '';
+  loadComparisonRecords(m);
+  render();
+};
+A.researchRetryCompare = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchCompare') return;
+  if (!m.rows && !m.loadingRows) return loadComparisonRuns(m);
+  m.error = '';
+  loadComparisonRecords(m);
+  render();
 };
 A.researchFindFiles = async () => {
   const m = S.ui.modals.at(-1);
