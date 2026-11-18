@@ -80,6 +80,11 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   const research = await (await page.request.get(researchRoot + '?q=CI%20research%20uncertain')).json();
   expect(research.total).toBe(1);
   const researchId = research.items[0].id;
+  await expect(page).toHaveURL(new RegExp(`/research/${researchId}$`));
+  await page.goBack();
+  await expect(page.locator('.research-record-head')).toHaveCount(0);
+  await page.goForward();
+  await expect(page.locator('.research-record-head')).toContainText('CI research uncertain recovery');
   await page.unroute('**' + researchRoot + '/commands');
 
   // A user may close a saving form and continue working. A late response must

@@ -22,7 +22,13 @@ const state = () => {
     S.ui.research = { key, project: S.ui.params.id, view: 'experiments', query: '', rows: null, selected: null, error: '', loading: false, offset: 0 };
   return S.ui.research;
 };
-const active = model => S.ui.research === model && model.key === [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
+const active = model =>
+  S.ui.route === 'project' &&
+  S.ui.params.tab === 'research' &&
+  S.ui.research === model &&
+  model.key === [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
+
+const researchLocation = (model, id) => ({ id: model.project, tab: 'research', ...(id ? { researchId: id } : {}) });
 async function loadResearch(model = state()) {
   if (model.loading) return;
   model.loading = true;
@@ -56,10 +62,8 @@ async function loadResearch(model = state()) {
   } catch (error) {
     if (active(model)) model.error = researchFailure(error);
   } finally {
-    if (active(model)) {
-      model.loading = false;
-      render();
-    }
+    model.loading = false;
+    if (active(model)) render();
   }
 }
 function seedTemplate(kind, model) {
@@ -265,8 +269,9 @@ A.researchSearch = () => {
 };
 A.researchRefresh = () => {
   const m = state();
-  m.requestedAttempt = '';
+  m.recordError = null;
   m.rows = null;
+  m.error = '';
   void loadResearch(m);
   render();
 };
@@ -326,25 +331,29 @@ A.researchEdit = () => {
   if (m.selected) form(m, m.selected);
 };
 A.researchBack = () => {
-  state().selected = null;
-  go('project', { id: state().project, tab: 'research' });
+  go('project', researchLocation(state()));
 };
-A.researchOpen = async el => {
-  const model = state();
-  model.error = '';
+A.researchOpen = el => go('project', researchLocation(state(), el.dataset.id));
+async function loadResearchRecord(model, id) {
+  const request = { id };
+  model.recordRequest = request;
+  model.recordError = null;
+  const current = () => active(model) && S.ui.params.researchId === id && model.recordRequest === request;
   try {
-    const result = await researchRequest(model.project, '/records/' + encodeURIComponent(el.dataset.id));
-    if (active(model)) {
+    const result = await researchRequest(model.project, '/records/' + encodeURIComponent(id));
+    if (current()) {
       model.selected = result.record;
       model.related = result.related || [];
-      model.catalog = { ...model.catalog, canReview: result.canReview, reviewers: result.reviewers };
-      go('project', { id: model.project, tab: 'research', researchId: result.record.id });
+      if (model.catalog) model.catalog.canReview = result.canReview;
     }
   } catch (error) {
-    if (active(model)) model.error = researchFailure(error);
+    if (current()) model.recordError = { id, message: researchFailure(error) };
+  } finally {
+    const shouldRender = current();
+    if (model.recordRequest === request) model.recordRequest = null;
+    if (shouldRender) render();
   }
-  if (active(model)) render();
-};
+}
 A.researchEnable = async () => {
   const m = state();
   if (m.pending) return;
@@ -409,8 +418,10 @@ A.researchSave = async () => {
     model.rows = null;
     if (!S.ui.modals.includes(m)) return;
     if (S.ui.modals.at(-1) === m) S.ui.modals.pop();
-    model.selected = result.record;
-    go('project', { id: model.project, tab: 'research', researchId: result.record.id });
+    model.selected = verified.record;
+    model.related = verified.related || [];
+    model.catalog.canReview = verified.canReview;
+    go('project', researchLocation(model, result.record.id));
     await loadResearch(model);
   } catch (error) {
     m.error = researchFailure(error);
@@ -436,8 +447,9 @@ A.researchRecover = async () => {
     if (!active(m)) return;
     clearPendingResearch(getActiveWorkspace(), m.catalog.actorId, m.project);
     m.unsent = null;
-    m.selected = result.record;
     m.error = '';
+    m.rows = null;
+    go('project', researchLocation(m, result.record.id));
     await loadResearch(m);
   } catch (error) {
     if (active(m)) m.error = researchFailure(error);
@@ -634,9 +646,13 @@ function details(record, canEdit) {
 export function researchHtml() {
   const m = state();
   const requested = S.ui.params.researchId || '';
-  if (requested && m.selected?.id !== requested && m.requestedAttempt !== requested) {
-    m.requestedAttempt = requested;
-    void A.researchOpen({ dataset: { id: requested } });
+  if (!requested) {
+    m.selected = null;
+    m.related = [];
+    m.recordRequest = null;
+    m.recordError = null;
+  } else if (m.selected?.id !== requested && m.recordRequest?.id !== requested && m.recordError?.id !== requested) {
+    void loadResearchRecord(m, requested);
   }
   if (!m.rows && !m.loading && !m.error) void loadResearch(m);
   if (!m.catalog && m.loading) return `<div class="research-page" role="status">${rw('Loading research…', 'Загружаем исследования…')}</div>`;
@@ -649,7 +665,11 @@ export function researchHtml() {
   if (!m.catalog) return `<section class="research-page">${error}</section>`;
   if (!m.catalog.enabled)
     return `<section class="research-page research-empty" translate="no"><h2>${rw('Research journal', 'Журнал исследований')}</h2><p>${rw('Keep hypotheses, runs, evidence and decisions together in this project.', 'Соберите гипотезы, запуски, доказательства и решения в этом проекте.')}</p>${m.catalog.canConfigure ? `<button class="btn btn-primary" data-a="researchEnable" ${m.pending ? 'disabled' : ''}>${rw('Enable research for this project', 'Включить исследования для проекта')}</button>` : `<p>${rw('Ask the project owner to enable the journal.', 'Попросите руководителя проекта включить журнал.')}</p>`}${error}</section>`;
-  if (m.selected) return `<section class="research-page" translate="no">${recovery}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
+  if (requested) {
+    if (m.selected?.id === requested)
+      return `<section class="research-page" translate="no">${recovery}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
+    return `<section class="research-page" translate="no">${recovery}<button class="btn btn-ghost" data-a="researchBack">${rw('All research', 'Все исследования')}</button>${m.recordError?.id === requested ? `<div class="research-error" role="alert">${esc(m.recordError.message)}<button class="btn btn-secondary" data-a="researchRefresh">${rw('Retry', 'Повторить')}</button></div>` : `<p role="status">${rw('Loading record…', 'Загружаем запись…')}</p>`}</section>`;
+  }
   const rows = m.view === 'materials' ? (m.rows || []).filter(row => !['experiment', 'run', 'observation'].includes(row.kind)) : m.rows || [];
   return `<section class="research-page" translate="no">${recovery}<header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
     ['experiments', rw('Experiments', 'Эксперименты')],
