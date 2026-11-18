@@ -604,6 +604,7 @@ A.researchExport = async () => {
   const m = state();
   const id = m.selected?.id;
   if (!id || (m.export?.id === id && m.export.status === 'preparing')) return;
+  if (m.export?.href) URL.revokeObjectURL(m.export.href);
   const job = { id, status: 'preparing' };
   m.export = job;
   render();
@@ -621,7 +622,12 @@ A.researchExport = async () => {
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(href), 30000);
+    job.href = href;
+    setTimeout(() => {
+      URL.revokeObjectURL(href);
+      delete job.href;
+      if (active(m) && m.export === job && S.ui.params.researchId === id) render();
+    }, 180000);
     job.status = 'download';
   } catch (error) {
     job.status = 'error';
@@ -723,7 +729,7 @@ function researchReadingActions(record, canEdit) {
     job?.status === 'error'
       ? `<p role="alert">${esc(job.message)}</p>`
       : job?.status === 'download'
-        ? `<p role="status" class="hint">${rw('ZIP download started.', 'Началось скачивание ZIP.')}</p>`
+        ? `<p role="status" class="hint">${rw('ZIP is ready.', 'ZIP готов.')}${job.href ? ` <a href="${esc(job.href)}" download="research-${esc(record.id)}.zip">${rw('Save ZIP', 'Сохранить ZIP')}</a>` : ''}</p>`
         : '';
   return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${job?.status === 'preparing' ? 'disabled aria-busy="true"' : ''}>${download}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }

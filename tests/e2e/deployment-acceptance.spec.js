@@ -176,6 +176,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
         const [download] = await Promise.all([page.waitForEvent('download'), page.locator('[data-a="researchExport"]').click()]);
         expect(download.suggestedFilename()).toBe(`research-${researchId}.zip`);
         expect(await download.failure()).toBeNull();
+        await expect(page.locator('.research-page a[download]')).toHaveAttribute('download', `research-${researchId}.zip`);
       }
       await expect(page.locator('html')).toHaveAttribute('lang', language === 'Русский' ? 'ru' : 'en');
       expect((await page.request.get('/api/auth/me')).ok()).toBeTruthy();
