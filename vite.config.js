@@ -59,7 +59,12 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: { index: path.resolve('index.html'), offline: path.resolve('offline.html') },
-      output: { manualChunks: { sanitizer: ['dompurify'] } },
+      output: {
+        manualChunks: { sanitizer: ['dompurify'] },
+        // The production static server serves .js as JavaScript. PDF.js loads
+        // its worker as a module, which the browser rejects with a binary MIME type.
+        assetFileNames: asset => (asset.names.includes('pdf.worker.min.mjs') ? 'assets/pdf.worker-[hash].js' : 'assets/[name]-[hash][extname]'),
+      },
     },
   },
   plugins: [

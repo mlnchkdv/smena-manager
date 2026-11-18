@@ -215,17 +215,14 @@ const insertion = () => {
   }
   return origin;
 };
-function revealNode(node) {
+function revealNode(node, keepZoom = false) {
   const s = whiteboardState(),
     box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   s.selected = node.id;
   s.selection = [node.id];
-  if (!box) return;
-  s.zoom = Math.max(0.2, Math.min(s.zoom, (box.width - 32) / node.width, (box.height - 32) / node.height));
-  s.x = box.width / 2 - (node.x + node.width / 2) * s.zoom;
-  s.y = box.height / 2 - (node.y + node.height / 2) * s.zoom;
-  s.fit = false;
-  s.autoFit = false;
+  s.selectedEdge = '';
+  const camera = whiteboardNodeCamera(node, box, keepZoom ? s.zoom : 1);
+  if (camera) Object.assign(s, camera, { fit: false, autoFit: false });
 }
 function newCard(type, point, text = '') {
   if (!editable(current())) return;
@@ -329,7 +326,7 @@ A.whiteboardSave = () => {
       next[collection] = old ? next[collection].map(n => (n.id === old.id ? item : n)) : [...next[collection], item];
     })
   ) {
-    if (collection === 'nodes') revealNode(item);
+    if (collection === 'nodes') revealNode(item, Boolean(old));
     else whiteboardState().selected = '';
     closeModal();
   }
@@ -574,12 +571,26 @@ A.whiteboardArrange = el => {
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
 };
 A.whiteboardToggleFocus = () => {
-  if (whiteboardState().presentationId) return A.whiteboardPresentEnd();
-  whiteboardState().focus = !whiteboardState().focus;
+  const s = whiteboardState();
+  if (s.presentationId) return A.whiteboardPresentEnd();
+  s.focus = !s.focus;
   syncDiagramWindow();
   render();
-  document.querySelector('[data-a="whiteboardToggleFocus"]')?.focus();
+  const selected = selectedIds();
+  if (s.focus && !s.outline && s.zoom < 0.65 && selected.length === 1)
+    requestAnimationFrame(() => {
+      if (whiteboardState() === s && s.focus && !s.outline && s.selected === selected[0]) focusWhiteboardCard(selected[0]);
+    });
+  document.querySelector('[data-a="whiteboardToggleFocus"]')?.focus({ preventScroll: true });
 };
+function focusWhiteboardCard(id) {
+  const node = whiteboardOf(current()).nodes.find(node => node.id === id);
+  const camera = whiteboardNodeCamera(node, document.querySelector('.whiteboard-viewport')?.getBoundingClientRect());
+  if (!camera) return;
+  Object.assign(whiteboardState(), camera, { fit: false, autoFit: false });
+  paintView();
+}
+A.whiteboardFocusCard = el => focusWhiteboardCard(el.dataset.id);
 A.whiteboardToggleOutline = () => {
   whiteboardState().outline = !whiteboardState().outline;
   render();
@@ -964,8 +975,11 @@ function stopSpacePan() {
 function openWhiteboardCard(id) {
   const node = whiteboardOf(current()).nodes.find(node => node.id === id);
   if (!node) return;
-  if (node.type === 'material') A.openRelatedEntity({ dataset: { key: node.target } });
-  else if (editable(current())) A.whiteboardEdit({ dataset: { id } });
+  if (node.type === 'material') {
+    const source = whiteboardMaterial(node);
+    if (source?.kind === 'bookmark' || (source?.kind === 'file' && filePreviewPolicy(source.item).kind)) A.whiteboardReadCard({ dataset: { id } });
+    else A.openRelatedEntity({ dataset: { key: node.target } });
+  } else if (editable(current())) A.whiteboardEdit({ dataset: { id } });
 }
 document.addEventListener('keyup', event => {
   if (event.code === 'Space') stopSpacePan();

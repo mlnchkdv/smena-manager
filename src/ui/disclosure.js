@@ -23,7 +23,9 @@ export function positionActionMenus() {
   document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
     if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
     const menu = panel.parentElement;
-    const anchor = menu.matches('.whiteboard-toolbar > .whiteboard-add') ? menu.querySelector(':scope > summary').getBoundingClientRect() : null;
+    const anchor = menu.matches('.whiteboard-toolbar > .whiteboard-add, .whiteboard-context-menu')
+      ? menu.querySelector(':scope > summary').getBoundingClientRect()
+      : null;
     if (anchor) {
       // The canvas clips its contents. A viewport menu can open above its
       // trigger without being cut off by the whiteboard or page heading.

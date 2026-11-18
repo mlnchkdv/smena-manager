@@ -468,7 +468,7 @@
     height: calc(44px / var(--whiteboard-zoom, 1));
   }
 }
-.whiteboard-viewport[data-overview='true'] .whiteboard-resize {
+.whiteboard-viewport[data-overview='true'] :is(.whiteboard-resize, .whiteboard-connect) {
   display: none;
 }
 [data-a='whiteboardResizeFocus'] {
@@ -530,20 +530,6 @@
 }
 .whiteboard-viewport[data-overview='true'] [data-overview-label='false'] .whiteboard-drag strong {
   visibility: hidden;
-}
-.whiteboard-overview-selection {
-  display: none;
-}
-.project-whiteboard:has(.whiteboard-viewport[data-overview='true']) .whiteboard-overview-selection {
-  display: block;
-  flex: 1 1 calc(100% - 30px);
-  min-width: 0;
-  margin: 0;
-  font-size: var(--fs-sm);
-  overflow-wrap: anywhere;
-}
-.project-whiteboard:has(.whiteboard-viewport[data-overview='true']) :is(.whiteboard-context-title, .whiteboard-context > strong) {
-  display: none;
 }
 @media (max-width: 900px), (pointer: coarse) {
   .whiteboard-viewport .whiteboard-drag {
@@ -1064,25 +1050,26 @@
 .whiteboard-context {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 4px 8px;
   border-bottom: 1px solid var(--divider);
-  background: var(--surface-2);
+  background: var(--surface);
 }
 .whiteboard-context-kind {
   color: var(--text-3);
   display: flex;
+  flex: 0 0 auto;
 }
 .whiteboard-context-title {
   display: flex;
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
   gap: 2px;
 }
 .whiteboard-context-title .input {
   min-width: 0;
   height: 34px;
+  max-width: 38ch;
 }
 .whiteboard-context-title [hidden] {
   display: none;
@@ -1090,20 +1077,53 @@
 .whiteboard-context-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
-.whiteboard-context-actions .select {
-  width: 124px;
+.whiteboard-context-color .select-btn,
+.whiteboard-context-color .select {
+  width: 144px;
   min-width: 0;
-  height: 34px;
 }
 .whiteboard-context .ibtn {
   flex: 0 0 auto;
 }
 .whiteboard-context > strong {
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
+  font-size: var(--fs-sm);
+}
+.whiteboard-context-menu {
+  position: relative;
+}
+.whiteboard-context-menu > div {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(240px, calc(100vw - 24px));
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.whiteboard-context-menu > div > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  text-align: start;
+  font-size: var(--fs-sm);
+}
+.whiteboard-context-menu > div > button:hover,
+.whiteboard-context-menu > div > button:focus-visible {
+  background: var(--surface-2);
 }
 .whiteboard-edges g[data-selected] > path:first-child {
   stroke-width: 3;
@@ -1118,30 +1138,11 @@
   flex-shrink: 0;
 }
 @media (max-width: 640px), (pointer: coarse) {
-  .whiteboard-toolbar {
-    flex-wrap: wrap;
-    overflow: visible;
-  }
-  .whiteboard-toolbar > .whiteboard-gesture {
-    order: 2;
-    flex: 1 0 100%;
-  }
   .whiteboard-toolbar [data-a='whiteboardUndo'][disabled] {
     display: none;
   }
-  .whiteboard-context-title {
-    flex-basis: calc(100% - 30px);
-  }
-  .whiteboard-context-actions {
-    flex: 1 1 100%;
-    justify-content: flex-end;
-  }
-  .whiteboard-context-actions .select {
-    flex: 1;
-    width: 80px;
-    max-width: 150px;
-  }
-  .whiteboard-context .ibtn {
+  .whiteboard-context :is(.ibtn, .whiteboard-context-primary),
+  .whiteboard-context-menu > div > button {
     min-width: 44px;
     min-height: 44px;
   }
@@ -1267,10 +1268,37 @@
     min-height: 140px;
   }
 }
-.whiteboard-context [data-a='whiteboardResizeFocus'] {
+.whiteboard-context-menu [data-a='whiteboardResizeFocus'] {
   display: inline-flex;
 }
 @media (max-width: 640px) {
+  .whiteboard-context {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .whiteboard-context-actions {
+    gap: 1px;
+  }
+  .whiteboard-context-color,
+  .whiteboard-context-primary > span,
+  .whiteboard-context-kind {
+    display: none;
+  }
+  .whiteboard-context-primary {
+    padding-inline: 6px;
+  }
+  .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > span {
+    display: inline;
+  }
+  .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > svg {
+    display: none;
+  }
+  .whiteboard-context:has(.whiteboard-context-title [type='submit']:not([hidden])) {
+    flex-wrap: wrap;
+  }
+  .whiteboard-context:has(.whiteboard-context-title [type='submit']:not([hidden])) .whiteboard-context-title {
+    flex: 1 0 100%;
+  }
   .whiteboard-toolbar {
     flex-wrap: nowrap;
     gap: 4px;
