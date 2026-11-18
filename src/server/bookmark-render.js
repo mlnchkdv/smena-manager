@@ -56,7 +56,14 @@ export function renderPublicPage(value, { fetchResource = fetchPublicRenderResou
         } catch {
           finish(pageError('PAGE_RENDER_UNAVAILABLE'));
         }
-      } else if (message.type === 'error') finish(pageError('PAGE_RENDER_UNAVAILABLE'));
+      } else if (message.type === 'error')
+        finish(
+          pageError(
+            ['PAGE_RENDER_SANDBOX', 'PAGE_RENDER_BROWSER_MISSING', 'PAGE_RENDER_DEPENDENCIES'].includes(message.code)
+              ? message.code
+              : 'PAGE_RENDER_UNAVAILABLE',
+          ),
+        );
     });
     child.send({ type: 'capture', url });
   });

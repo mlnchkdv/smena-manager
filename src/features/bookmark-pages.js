@@ -60,7 +60,7 @@ function pageFailure(error, saving = false) {
   if (error.code === 'PAGE_TOO_LARGE')
     return words('The page is too large to capture. Open the original website.', 'Страница слишком большая для копии. Откройте оригинал.');
   if (error.code === 'PAGE_RATE_LIMIT') return words('Too many requests. Wait a minute and retry.', 'Слишком много запросов. Повторите через минуту.');
-  if (error.code === 'PAGE_RENDER_UNAVAILABLE')
+  if (['PAGE_RENDER_UNAVAILABLE', 'PAGE_RENDER_SANDBOX', 'PAGE_RENDER_BROWSER_MISSING', 'PAGE_RENDER_DEPENDENCIES'].includes(error.code))
     return words(
       'Browser capture is unavailable. Try the fast HTML mode or ask an administrator to check the capture worker.',
       'Сохранение через браузер недоступно. Попробуйте быстрый HTML-режим или попросите администратора проверить обработчик архивации.',

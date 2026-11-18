@@ -46,8 +46,16 @@ process.on('message', async message => {
     if (Buffer.byteLength(html) > 4 * 1024 * 1024) throw new Error('Large DOM');
     const screenshot = (await page.screenshot({ type: 'jpeg', quality: 72, animations: 'disabled' })).toString('base64');
     process.send({ type: 'result', page: { html, url: page.url(), screenshot } });
-  } catch {
-    process.send({ type: 'error' });
+  } catch (error) {
+    const message = String(error?.message || '');
+    const code = /sandbox|namespace|Operation not permitted/iu.test(message)
+      ? 'PAGE_RENDER_SANDBOX'
+      : /Executable doesn't exist/iu.test(message)
+        ? 'PAGE_RENDER_BROWSER_MISSING'
+        : /shared libraries|dependencies|\.so:/iu.test(message)
+          ? 'PAGE_RENDER_DEPENDENCIES'
+          : 'PAGE_RENDER_UNAVAILABLE';
+    process.send({ type: 'error', code });
   } finally {
     await browser?.close();
     process.disconnect();

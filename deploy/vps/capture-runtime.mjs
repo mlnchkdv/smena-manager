@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 // Explicit part of the trusted root deployment, never application startup.
-// The browser download and execution run as the unprivileged application user.
+// The download runs as the build user; runtime binaries remain root-owned.
 export async function provisionCaptureRuntime(stage, node, run) {
   if (!/^\/srv\/smena-manager\/releases\/\.stage-[a-f0-9-]+$/u.test(stage) || !path.isAbsolute(node)) throw new Error('Invalid capture staging path.');
   const { version } = JSON.parse(await fs.readFile(path.join(stage, 'node_modules/playwright/package.json'), 'utf8'));
@@ -22,19 +22,43 @@ export async function provisionCaptureRuntime(stage, node, run) {
   await fs.mkdir(cache, { recursive: true, mode: 0o700 });
   const info = await fs.lstat(cache);
   if (!info.isDirectory() || (await fs.realpath(cache)) !== cache) throw new Error('Unsafe capture browser path.');
-  run('/usr/bin/chown', ['smena:smena', cache]);
+  run('/usr/bin/chown', ['-hR', 'smena-build:smena-build', cache]);
+  run('/usr/bin/chmod', ['-R', 'u+rwX,go+rX', cache]);
   run('/usr/sbin/runuser', [
     '-u',
-    'smena',
+    'smena-build',
     '--',
     '/usr/bin/env',
-    'HOME=/var/lib/smena-manager',
+    'HOME=/var/lib/smena-build',
     `PLAYWRIGHT_BROWSERS_PATH=${cache}`,
     node,
     cli,
     'install',
     'chromium',
   ]);
+  run('/usr/bin/chown', ['-hR', 'root:root', cache]);
+  run('/usr/bin/chmod', ['-R', 'a+rX,a-w', cache]);
+  // Ubuntu 24.04 requires an executable-specific permission to construct the
+  // Chromium sandbox. Do not disable AppArmor or the system-wide userns policy.
+  const restricted = await fs.readFile('/proc/sys/kernel/apparmor_restrict_unprivileged_userns', 'utf8').catch(() => '0');
+  if (restricted.trim() === '1') {
+    const { browsers } = JSON.parse(await fs.readFile(path.join(stage, 'node_modules/playwright-core/browsers.json'), 'utf8'));
+    const entries = [
+      ['chromium', 'chromium', 'chrome-linux64/chrome'],
+      ['chromium-headless-shell', 'chromium_headless_shell', 'chrome-headless-shell-linux64/chrome-headless-shell'],
+    ];
+    const profiles = [];
+    for (const [name, directory, suffix] of entries) {
+      const revision = browsers.find(browser => browser.name === name)?.revision;
+      if (!/^\d+$/u.test(revision || '')) throw new Error('Invalid capture browser revision.');
+      const executable = `${cache}/${directory}-${revision}/${suffix}`;
+      if ((await fs.realpath(executable)) !== executable) throw new Error('Unsafe browser executable.');
+      profiles.push(`${executable} flags=(unconfined) {\n  userns,\n}`);
+    }
+    const profile = '/etc/apparmor.d/smena-capture';
+    await fs.writeFile(profile, 'abi <abi/4.0>,\ninclude <tunables/global>\n' + profiles.join('\n') + '\n', { mode: 0o644 });
+    run('/usr/sbin/apparmor_parser', ['-r', profile]);
+  }
   run('/usr/bin/systemd-run', [
     '--quiet',
     '--wait',
