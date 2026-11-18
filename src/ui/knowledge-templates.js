@@ -35,7 +35,7 @@ const builtins = () => [
 const templates = () => [...builtins(), ...(D().ws.knowledgeTemplates || [])];
 function form(m, H) {
   const admin = S.ui.currentUser?.role === 'admin';
-  return `${H(kc('Note templates', 'Шаблоны заметок'))}<div class="modal-b" translate="no"><label class="field">${kc('Template', 'Шаблон')}<select class="select" data-in="selectKnowledgeTemplate"><option value="">${kc('New template', 'Новый шаблон')}</option>${templates()
+  return `${H(kc('Note templates', 'Шаблоны заметок'))}<div class="modal-b knowledge-template-form" translate="no"><label class="field">${kc('Template', 'Шаблон')}<select class="select" data-in="selectKnowledgeTemplate"><option value="">${kc('New template', 'Новый шаблон')}</option>${templates()
     .map(item => `<option value="${esc(item.id)}" ${item.id === m.item.id ? 'selected' : ''}>${esc(item.name)}</option>`)
     .join(
       '',

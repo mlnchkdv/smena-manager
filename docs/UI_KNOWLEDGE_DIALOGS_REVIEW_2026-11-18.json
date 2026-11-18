@@ -1,0 +1,283 @@
+{
+  "date": "2026-11-18",
+  "sourceBaseline": "15e00335",
+  "environment": "Production Vite preview, isolated Layout QA, Chromium viewport emulation with stable overlay scrollbar gutter",
+  "productionDialogsInspected": [
+    {
+      "name": "Инструменты базы знаний",
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Инструменты базы знаний",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Шаблоны заметок",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Шаблоны заметок",
+      "viewport": {
+        "height": 320,
+        "width": 390
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Типы заметок",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Теги базы знаний",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Архив базы знаний",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Офлайн-библиотека",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Командный разбор",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Командный разбор",
+      "viewport": {
+        "height": 320,
+        "width": 390
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Хранение базы знаний",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    },
+    {
+      "name": "Проверка заметки",
+      "viewport": {
+        "height": 567,
+        "width": 320
+      },
+      "overflow": 0
+    }
+  ],
+  "measuredStates": 52,
+  "configurations": [
+    ["ru", "light", "comfortable"],
+    ["en", "dark", "compact"]
+  ],
+  "viewports": [
+    {
+      "width": 320,
+      "height": 567
+    },
+    {
+      "width": 360,
+      "height": 640
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 390,
+      "height": 320
+    },
+    {
+      "width": 640,
+      "height": 768
+    },
+    {
+      "width": 641,
+      "height": 768
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 1366,
+      "height": 768
+    }
+  ],
+  "maxHorizontalOverflow": 0,
+  "mobileControlsMinWidth": 44,
+  "mobileControlsMinHeight": 44,
+  "beforeAfter": [
+    {
+      "dialog": "Инструменты базы знаний",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "before": {
+        "bodyHeight": 574,
+        "bodyScrollHeight": 622,
+        "dialogHeight": 614.390625,
+        "summaryHeight": 19.5625
+      },
+      "after": {
+        "bodyHeight": 375,
+        "bodyScrollHeight": 375,
+        "dialogHeight": 414.78125,
+        "summaryHeight": 44
+      }
+    },
+    {
+      "dialog": "Инструменты базы знаний",
+      "viewport": {
+        "width": 320,
+        "height": 567
+      },
+      "before": {
+        "bodyHeight": 464,
+        "bodyScrollHeight": 640,
+        "dialogHeight": 521.625,
+        "summaryHeight": 19.5625
+      },
+      "after": {
+        "bodyHeight": 464,
+        "bodyScrollHeight": 600,
+        "dialogHeight": 521.625,
+        "summaryHeight": 44
+      }
+    },
+    {
+      "dialog": "Шаблоны заметок",
+      "viewport": {
+        "width": 390,
+        "height": 320
+      },
+      "before": {
+        "bodyHeight": 115,
+        "bodyScrollHeight": 725,
+        "dialogHeight": 294.390625,
+        "footerHeight": 121
+      },
+      "after": {
+        "bodyHeight": 209,
+        "bodyScrollHeight": 725,
+        "dialogHeight": 320,
+        "footerHeight": 61
+      }
+    },
+    {
+      "dialog": "Командный разбор",
+      "viewport": {
+        "width": 390,
+        "height": 320
+      },
+      "before": {
+        "bodyHeight": 167,
+        "bodyScrollHeight": 536,
+        "dialogHeight": 294.390625,
+        "footerHeight": 69
+      },
+      "after": {
+        "bodyHeight": 167,
+        "bodyScrollHeight": 318,
+        "dialogHeight": 294.390625,
+        "footerHeight": 69
+      }
+    },
+    {
+      "dialog": "Командный разбор",
+      "viewport": {
+        "width": 320,
+        "height": 567
+      },
+      "before": {
+        "bodyHeight": 395,
+        "bodyScrollHeight": 536,
+        "dialogHeight": 521.625,
+        "footerHeight": 69
+      },
+      "after": {
+        "bodyHeight": 391,
+        "bodyScrollHeight": 391,
+        "dialogHeight": 517.5,
+        "footerHeight": 69
+      }
+    },
+    {
+      "dialog": "Командный разбор",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "before": {
+        "bodyHeight": 383,
+        "bodyScrollHeight": 383,
+        "dialogHeight": 478.375,
+        "footerHeight": 55
+      },
+      "after": {
+        "bodyHeight": 262,
+        "bodyScrollHeight": 262,
+        "dialogHeight": 357.375,
+        "footerHeight": 55
+      }
+    }
+  ],
+  "axe": {
+    "scans": 6,
+    "violations": []
+  },
+  "keyboardContained": true,
+  "pageErrors": [],
+  "behavior": {
+    "templateSaved": true,
+    "storedTemplateLoaded": true,
+    "createNoteFromSavedTemplateVerified": true,
+    "dateVariableExpanded": true,
+    "intakeEnrollmentVerified": true,
+    "ownerAndStateFiltersVerified": true,
+    "titleSearchVerified": true,
+    "noteBodyPreserved": true,
+    "originalFixtureBodyHashVerified": true
+  },
+  "serverTests": {
+    "passed": 6,
+    "failed": 0
+  },
+  "productionWrites": 0
+}

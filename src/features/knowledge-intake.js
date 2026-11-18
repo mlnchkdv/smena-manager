@@ -102,7 +102,7 @@ function duplicatePicker(m, enabled) {
 }
 function queue(m) {
   const data = m.queue;
-  return `<div class="knowledge-review-fields"><label class="field">${word('State', 'Состояние')}<select class="select" data-in="knowledgeIntakeFilter" data-field="state">${[
+  return `<div class="knowledge-review-fields knowledge-intake-filters"><label class="field">${word('State', 'Состояние')}<select class="select" data-in="knowledgeIntakeFilter" data-field="state">${[
     ['open', word('To process', 'На разбор')],
     ['closed', word('Resolved', 'Разобрано')],
     ['all', word('All', 'Все')],
@@ -114,7 +114,7 @@ function queue(m) {
     ${data ? `<p role="status">${word('Materials:', 'Материалов:')} ${data.total}</p><ul class="knowledge-intake-list">${data.rows.map(row => `<li><button class="btn btn-ghost" data-a="knowledgeIntakeSelect" data-id="${esc(row.id)}"><span translate="no">${esc(row.title)}</span><small>${row.state === 'closed' ? word('Resolved', 'Разобрано') : row.state === 'unavailable' ? word('Unavailable', 'Недоступно') : word('To process', 'На разбор')}${row.ownerId ? ` · ${esc(D().members.find(member => member.id === row.ownerId)?.name || row.ownerId)}` : ` · ${word('Unassigned', 'Без ответственного')}`}</small></button></li>`).join('')}</ul><div class="knowledge-review-buttons"><button class="btn btn-secondary" data-a="knowledgeIntakePage" data-offset="${Math.max(0, m.offset - 25)}" ${m.offset > 0 ? '' : 'disabled'}>${word('Previous', 'Назад')}</button><button class="btn btn-secondary" data-a="knowledgeIntakePage" data-offset="${m.offset + 25}" ${m.offset + 25 < data.total ? '' : 'disabled'}>${word('Next', 'Далее')}</button></div>` : ''}`;
 }
 function view(m, H) {
-  return `${H(word('Team intake', 'Командный разбор'))}<div class="modal-b knowledge-review knowledge-intake" translate="no" aria-busy="${!!m.busy}">${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.failed ? `<button class="btn btn-secondary" data-a="knowledgeIntakeRetry" ${m.busy ? 'disabled' : ''}>${word('Retry unconfirmed request', 'Повторить неподтверждённый запрос')}</button>` : ''}${m.loading ? `<p role="status">${word('Loading…', 'Загрузка…')}</p>` : m.noteId ? (m.model ? detail(m) : '') : queue(m)}</div>${footer(m)}`;
+  return `${H(word('Team intake', 'Командный разбор'))}<div class="modal-b knowledge-review knowledge-intake${m.noteId ? '' : ' knowledge-intake-queue'}" translate="no" aria-busy="${!!m.busy}">${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.failed ? `<button class="btn btn-secondary" data-a="knowledgeIntakeRetry" ${m.busy ? 'disabled' : ''}>${word('Retry unconfirmed request', 'Повторить неподтверждённый запрос')}</button>` : ''}${m.loading ? `<p role="status">${word('Loading…', 'Загрузка…')}</p>` : m.noteId ? (m.model ? detail(m) : '') : queue(m)}</div>${footer(m)}`;
 }
 async function load(m) {
   if (!fresh(m) || m.busy) return;

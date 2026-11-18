@@ -42,3 +42,18 @@
 .knowledge-intake .btn {
   white-space: normal;
 }
+.knowledge-intake-queue .field,
+.knowledge-intake-queue > [role='status'],
+.knowledge-intake-queue :is(.knowledge-intake-list, .knowledge-review-buttons) {
+  margin: 0;
+}
+.knowledge-intake-queue .knowledge-intake-list:empty {
+  display: none;
+}
+@media (min-width: 361px) {
+  .knowledge-intake-queue .knowledge-intake-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 12px;
+  }
+}

@@ -122,6 +122,52 @@
   text-align: left;
   min-height: 44px;
 }
+.knowledge-tool-dialog .knowledge-library-tools {
+  align-content: start;
+  gap: 8px;
+}
+.knowledge-library-tools > p {
+  margin: 0;
+}
+.knowledge-library-tools > details > summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+}
+.knowledge-library-tools > details .btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.knowledge-template-form {
+  align-content: start;
+}
+@media (min-width: 641px) {
+  .knowledge-tool-dialog :is(.knowledge-library-tools, .knowledge-template-form) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .knowledge-library-tools > :is(details, p, section),
+  .knowledge-template-form > :is(.field:has(textarea), .field:last-of-type, p) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-height: 480px) {
+  .modal-wrap:has(.knowledge-template-form) {
+    padding: 0;
+    align-items: center;
+  }
+  .knowledge-tool-dialog:has(.knowledge-template-form) {
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .knowledge-tool-dialog:has(.knowledge-template-form) .modal-h {
+    padding-top: 6px;
+  }
+  .knowledge-tool-dialog:has(.knowledge-template-form) .modal-f {
+    gap: 6px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+}
 @media (max-width: 900px), (pointer: coarse) {
   .knowledge-create-options > div button {
     min-height: 44px;
