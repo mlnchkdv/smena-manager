@@ -1,6 +1,7 @@
 import { esc } from '../core/utils.js';
 import { rw, researchKind, researchProfile } from './research-copy.js';
 import { RESEARCH_KINDS, RESEARCH_PROFILES } from '../shared/research.js';
+import { researchEvidenceForm } from './research-evidence.js';
 
 const field = (key, label, value = '', type = 'text') =>
   `<label class="field">${esc(label)}<input class="input" type="${type}" data-in="researchField" data-field="${key}" value="${esc(value ?? '')}" maxlength="${key === 'title' ? 240 : 8000}"></label>`;
@@ -82,5 +83,8 @@ export function researchFormFields(m) {
       references('experiment', 'experimentId', rw('Related experiment', 'Связанный эксперимент')) +
       field('conclusion', rw('Verified conclusion / current state', 'Проверенный вывод / текущее состояние'), data.conclusion) +
       field('nextStep', rw('Next action', 'Следующий шаг'), data.nextStep);
+  if (kind === 'run')
+    fields += json('metrics', rw('Measurements with protocol and evidence (JSON)', 'Измерения с протоколом и доказательствами (JSON)'), m.rawMetrics);
+  fields += researchEvidenceForm(m);
   return `${template}${field('title', rw('Title', 'Название'), record.title)}${fields}<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>${m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state) ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment) : ''}`;
 }

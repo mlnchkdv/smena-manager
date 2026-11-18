@@ -40,6 +40,22 @@ export const researchState = state => (states[state] ? rw(...states[state]) : st
 export const researchProfile = profile => (profiles[profile] ? rw(...profiles[profile]) : profile);
 export function researchFailure(error) {
   const messages = {
+    RESEARCH_EVIDENCE_UNAVAILABLE: [
+      'A linked file is unavailable in this project. Choose it again.',
+      'Связанный файл недоступен в проекте. Выберите его заново.',
+    ],
+    RESEARCH_EVIDENCE_CHANGED: [
+      'The linked file checksum changed. Check the file before attaching it again.',
+      'Контрольная сумма файла изменилась. Проверьте файл перед повторным прикреплением.',
+    ],
+    RESEARCH_METRIC_EVIDENCE_REQUIRED: [
+      'A measured result needs scope, sample count, aggregation, protocol and an attached evidence file.',
+      'Измерению нужны область оценки, число образцов, агрегация, протокол и прикреплённый файл-основание.',
+    ],
+    RESEARCH_METRIC_PROTOCOL_MISMATCH: [
+      'Team measurements must refer to this run’s evaluation protocol.',
+      'Измерения команды должны ссылаться на протокол оценки этого запуска.',
+    ],
     RESEARCH_PLAN_INCOMPLETE: [
       'Choose a profile, experiment, dataset and protocol; specify code, hardware and a JSON configuration.',
       'Выберите профиль, эксперимент, датасет и протокол; укажите код, оборудование и конфигурацию JSON.',

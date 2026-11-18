@@ -1,7 +1,7 @@
 import { createResearchStore } from '../../src/server/research-store.js';
 import { createHash, randomUUID } from 'node:crypto';
 
-export function researchFixture() {
+export function researchFixture(files = []) {
   const owner = { id: 'owner', role: 'admin', email: 'owner@example.test' };
   const editor = { id: 'editor', role: 'editor', email: 'editor@example.test' };
   let database = {
@@ -14,6 +14,7 @@ export function researchFixture() {
   };
   const blobs = new Map();
   const store = createResearchStore({
+    resolveFiles: async (_profile, ids) => files.filter(file => ids.includes(file.id)),
     scope: () => 'test',
     load: async () => structuredClone(database),
     mutate: async (fn, revision) => {

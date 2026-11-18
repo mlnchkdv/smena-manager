@@ -145,6 +145,7 @@ export function validResearchMetric(metric) {
       ? typeof metric.value === 'number' && Number.isFinite(metric.value)
       : metric.value === null && text(metric.reason, 1000) && !!metric.reason.trim()) &&
     (metric.n == null || (Number.isSafeInteger(metric.n) && metric.n > 0)) &&
+    ['scope', 'aggregation', 'protocolId', 'evidenceId', 'reason'].every(key => metric[key] == null || text(metric[key], key === 'reason' ? 1000 : 180)) &&
     (metric.origin == null || ['team', 'author'].includes(metric.origin))
   );
 }

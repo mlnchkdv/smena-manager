@@ -10,6 +10,7 @@ import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
 import { researchTemplate, researchMetricDefaults } from '../shared/research-templates.js';
 import { researchFormFields } from '../ui/research-form.js';
+import { researchEvidenceHtml } from '../ui/research-evidence.js';
 
 const state = () => {
   const key = [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
@@ -56,6 +57,7 @@ function seedTemplate(kind, model) {
 function resetRaw(m) {
   m.rawConfig = JSON.stringify(m.record.data.config || {}, null, 2);
   m.rawManifest = JSON.stringify(m.record.data.manifest || {}, null, 2);
+  m.rawMetrics = JSON.stringify(m.record.data.metrics || [], null, 2);
 }
 function form(model, record, kind = 'experiment') {
   const generation = getSessionGeneration();
@@ -95,7 +97,34 @@ IN.researchField = el => {
 };
 IN.researchRaw = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'researchForm' && !m.busy) m[el.dataset.field === 'config' ? 'rawConfig' : 'rawManifest'] = el.value;
+  if (m?.type === 'researchForm' && !m.busy) m[{ config: 'rawConfig', manifest: 'rawManifest', metrics: 'rawMetrics' }[el.dataset.field]] = el.value;
+};
+IN.researchFileQuery = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm') m.fileQuery = el.value;
+};
+A.researchFindFiles = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy) return;
+  try {
+    const result = await researchRequest(m.project, '/files?q=' + encodeURIComponent(m.fileQuery || ''));
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
+      m.files = result.items;
+      render();
+    }
+  } catch (error) {
+    m.error = researchFailure(error);
+    render();
+  }
+};
+A.researchAttachFile = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy) return;
+  m.record.data.artifacts ||= [];
+  if (m.record.data.artifacts.some(item => item.fileId === el.dataset.id))
+    m.record.data.artifacts = m.record.data.artifacts.filter(item => item.fileId !== el.dataset.id);
+  else m.record.data.artifacts.push({ fileId: el.dataset.id, role: 'evidence' });
+  render();
 };
 IN.researchTemplate = el => {
   const m = S.ui.modals.at(-1);
@@ -208,6 +237,7 @@ A.researchSave = async () => {
   try {
     if (['run', 'protocol'].includes(m.record.kind)) m.record.data.config = JSON.parse(m.rawConfig || '{}');
     if (m.record.kind === 'dataset') m.record.data.manifest = JSON.parse(m.rawManifest || '{}');
+    if (m.record.kind === 'run') m.record.data.metrics = JSON.parse(m.rawMetrics || '[]');
   } catch {
     m.error = rw(
       'Check the JSON fields: use double quotes and remove trailing commas.',
@@ -322,7 +352,7 @@ function details(record, canEdit) {
     .map(([key, label]) => `<div><dt>${label}</dt><dd>${esc(data[key])}</dd></div>`)
     .join(
       '',
-    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article><details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
+    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
 }
 export function researchHtml() {
   const m = state();

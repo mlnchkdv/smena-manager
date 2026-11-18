@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { researchStore } from './research-store.js';
 import { requireRole } from './auth.js';
 import { researchError } from '../shared/research.js';
+import { researchFiles } from './research-evidence.js';
 
 export const researchRouter = Router();
 const route = operation => async (request, response, next) => {
@@ -12,6 +13,14 @@ const route = operation => async (request, response, next) => {
   }
 };
 const args = request => [request.params.project, request.user, request.configuredProfiles || []];
+researchRouter.get(
+  '/projects/:project/files',
+  route(async (request, response) => {
+    await researchStore.read(...args(request), { limit: 1 });
+    if (typeof (request.query.q || '') !== 'string' || (request.query.q || '').length > 200) throw researchError();
+    response.json({ items: await researchFiles(request.params.project, request.user, request.query.q) });
+  }),
+);
 researchRouter.get(
   '/projects/:project',
   route(async (request, response) => {
