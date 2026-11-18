@@ -3,11 +3,10 @@ import { expect, test } from './fixtures.js';
 test('public Google OAuth disclosure pages are accessible and responsive without signing in', async ({ page }) => {
   test.setTimeout(60000);
   await page.goto('/');
-  await expect(page.locator('.auth-foot a[href="/about.html"]')).toHaveText('О продукте');
+  await expect(page.locator('.auth-foot a[href="/product.html"]')).toHaveText('Возможности smena.team');
   await expect(page.locator('.auth-foot a[href="/privacy.html"]')).toHaveText('Конфиденциальность');
 
   for (const [path, heading] of [
-    ['/about.html', 'Smena Manager'],
     ['/privacy.html', 'Политика конфиденциальности'],
     ['/terms.html', 'Условия использования'],
   ]) {
@@ -36,8 +35,53 @@ test('public Google OAuth disclosure pages are accessible and responsive without
     }
   }
 
+  await page.goto('/about.html');
+  await expect(page).toHaveURL(/\/product\.html$/);
+  await page.goto('/about.html#english');
+  await expect(page).toHaveURL(/\/product-en\.html$/);
+
   await page.goto('/privacy.html');
   await expect(page.locator('main')).toContainText('gmail.send');
   await expect(page.locator('main')).toContainText('Limited Use');
   await expect(page.locator('a[href="https://developers.google.com/terms/api-services-user-data-policy"]').first()).toBeVisible();
+});
+
+test('deployment acceptance: public capabilities demos work in both languages on desktop and mobile', async ({ page }) => {
+  test.setTimeout(90000);
+  for (const ru of [true, false])
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(ru ? '/product.html' : '/product-en.html');
+      const text = (en, russian) => (ru ? russian : en);
+      await expect(page.locator('footer a[href="https://smena.agency"] .agency-wordmark')).toBeVisible();
+      await expect(page.locator('a[href^="/about.html"]')).toHaveCount(0);
+      const project = page.getByRole('tabpanel').filter({ visible: true });
+      await project.locator('[data-demo-action="task"]').first().click();
+      const dialog = page.locator('dialog[open]');
+      await dialog.getByRole('combobox').selectOption('1');
+      await dialog.getByRole('button', { name: text('Apply in demo', 'Применить в демо'), exact: true }).click();
+      await expect(project.locator('.bcol').nth(1).locator('.kcard')).toHaveCount(2);
+      await page.getByRole('tab', { name: text('Bookmarks', 'Закладки'), exact: true }).click();
+      const bookmarks = page.getByRole('tabpanel').filter({ visible: true });
+      await bookmarks.locator('[data-demo-action="archive"]').first().click();
+      await expect(dialog.frameLocator('iframe').locator('h1')).toHaveText(text('Work with context.', 'Работайте с контекстом.'));
+      await dialog.getByRole('combobox').selectOption('previous');
+      await expect(dialog.frameLocator('iframe').locator('h1')).toHaveText(text('A shared team memory', 'Общая память команды'));
+      await dialog.getByRole('button', { name: text('Text', 'Текст'), exact: true }).click();
+      await expect(dialog.locator('.example-archive-text')).toBeVisible();
+      await page.keyboard.press('Escape');
+      await page.getByRole('tab', { name: text('Files', 'Файлы'), exact: true }).click();
+      await page.getByRole('tabpanel').filter({ visible: true }).locator('[data-kind="MP4"]').click();
+      await expect(dialog.locator('video')).toHaveAttribute('src', '/product-demo.mp4');
+      await page.keyboard.press('Escape');
+      await page.getByRole('tab', { name: text('Graph', 'Граф'), exact: true }).click();
+      const graph = page.getByRole('tabpanel').filter({ visible: true });
+      await graph.locator('[data-demo-physics]').click();
+      await expect(graph.locator('[data-demo-physics]')).toHaveAttribute('aria-pressed', 'true');
+      const node = graph.locator('[data-demo-graph-node]').first();
+      const before = Number(await node.locator('circle').getAttribute('cx'));
+      await node.press('ArrowRight');
+      expect(Number(await node.locator('circle').getAttribute('cx'))).toBeGreaterThan(before);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    }
 });
