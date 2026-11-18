@@ -4,8 +4,9 @@ import { knowledgeActor } from './knowledge-access.js';
 import { SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
 
 const busy = job => ['queued', 'fetching', 'resources', 'verifying'].includes(job.phase);
-const summary = ({ id, bookmarkId, phase, createdAt, updatedAt, snapshot, code, mode }) => ({
+const summary = ({ id, key, bookmarkId, phase, createdAt, updatedAt, snapshot, code, mode }) => ({
   id,
+  key,
   bookmarkId,
   phase,
   createdAt,

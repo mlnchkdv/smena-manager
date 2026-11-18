@@ -50,7 +50,8 @@ export function fileSelectionBar(page, results = page, remote = null) {
   const files = D().files.filter(file => ids.includes(file.id));
   const pageIds = new Set(page.map(file => file.id));
   const hiddenCount = files.filter(file => !pageIds.has(file.id)).length;
-  if (!page.length && !files.length) return '';
+  if (!page.length && !files.length)
+    return `<div class="files-selection-bar"><button class="btn btn-ghost btn-sm" data-a="clearFileSelection">${t('Done')}</button></div>`;
   const sameProject = new Set(files.map(file => file.project)).size === 1;
   const movable = files.length > 0 && sameProject && files.every(file => canEditFile(file, D(), S.ui.currentUser?.role));
   const removable = files.length > 0 && files.every(file => canRemoveFile(file, D(), S.ui.currentUser?.role));

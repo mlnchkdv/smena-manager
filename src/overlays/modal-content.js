@@ -43,7 +43,12 @@ export function modalHtml(m) {
     case 'bookmarkConnections':
       return wrap('md bookmark-connections-dialog', m.render(m, H));
     case 'bookmarkViewer':
+    case 'bookmarkArchiveSearch':
       return wrap('lg bookmark-viewer-dialog', m.render(m, H));
+    case 'activityPreset':
+      return wrap('sm', m.render(m, H));
+    case 'whiteboardReader':
+      return wrap('md whiteboard-tool-dialog', m.render(m, H));
     case 'knowledgeTool':
       return wrap('md knowledge-tool-dialog', m.render(m, H));
     case 'workspaceCreate':

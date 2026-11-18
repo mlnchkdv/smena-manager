@@ -210,6 +210,7 @@ A.keepBookmarkArchiveOffline = async () => {
   const owner = S.ui.currentUser.id,
     workspace = getActiveWorkspace(),
     selected = m.selected;
+  const localCopy = { workspaceName: D().ws.name, bookmarkId: m.id, title: m.page.title || m.title, capturedAt: m.page.capturedAt, document: m.document };
   m.offlineBusy = true;
   render();
   try {
@@ -218,13 +219,9 @@ A.keepBookmarkArchiveOffline = async () => {
     const item = await putOffline({
       owner,
       workspace,
-      workspaceName: D().ws.name,
+      ...localCopy,
       kind: 'bookmark-archive',
       id: selected,
-      bookmarkId: m.id,
-      title: m.page.title || m.title,
-      capturedAt: m.page.capturedAt,
-      document: m.document,
     });
     if (!currentViewer(m) || selected !== m.selected) return;
     m.offlineCopy = item;
@@ -336,7 +333,11 @@ async function watchArchive(m) {
   try {
     const { jobs } = await bookmarkPageRequest(`/${encodeURIComponent(m.id)}/archive-jobs`);
     if (!currentViewer(m)) return;
-    const job = m.job ? jobs.find(row => row.id === m.job.id) : jobs.find(row => !['ready', 'failed'].includes(row.phase));
+    const job = m.job
+      ? jobs.find(row => row.id === m.job.id)
+      : m.requestKey
+        ? jobs.find(row => row.key === m.requestKey)
+        : jobs.find(row => !['ready', 'failed'].includes(row.phase));
     m.job = job;
     if (job?.phase === 'ready') {
       if (!m.snapshots.some(row => row.id === job.snapshot.id)) m.snapshots.unshift(job.snapshot);

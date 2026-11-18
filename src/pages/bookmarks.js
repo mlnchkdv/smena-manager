@@ -159,7 +159,7 @@ export function pageBookmarks() {
     page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope, ...archiveFilters }),
   });
   S.ui.listPages.bookmarks = page.page;
-  const selectionKey = JSON.stringify([D().me, D().ws.id || D().ws.url, query, folderFilter, scope, page.page]);
+  const selectionKey = JSON.stringify([D().me, D().ws.id || D().ws.url, query, folderFilter, scope, archiveFilters, page.page]);
   if (S.ui.bookmarkSelectionKey !== selectionKey) {
     S.ui.bookmarkSelectionNotice = !!S.ui.bookmarkSelection?.length;
     S.ui.bookmarkSelection = [];
