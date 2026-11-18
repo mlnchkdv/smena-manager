@@ -24,7 +24,9 @@ export function createBookmarkArchiveSearch(read) {
             const key = `${scope}:${bookmark.id}:${ref.id}:${ref.sha256}`;
             let text = cache.get(key);
             if (text == null) {
-              text = textContent(parseDocument((await read(bookmark, ref.id)).html))
+              text = textContent(
+                parseDocument((await read(bookmark, ref.id)).html.replace(/<\/(?:p|h[1-6]|li|td|th|div|section|article|tr|blockquote)>/giu, '$& ')),
+              )
                 .replace(/\s+/gu, ' ')
                 .trim();
               cache.set(key, text);
