@@ -4,7 +4,7 @@ import { researchError, researchId } from '../shared/research.js';
 export async function researchFiles(projectId, profile, query = '') {
   const { revision } = await getWorkspaceDatabase({ fields: ['revision'] });
   const matches = await queryWorkspaceFileCatalog(profile, { revision, project: projectId, context: projectId, query, limit: 30 });
-  const page = await getWorkspaceFileCatalogPage(profile, { project: projectId, ids: matches.files.map(file => file.id), limit: 50 });
+  const page = await getWorkspaceFileCatalogPage(profile, { revision: matches.revision, project: projectId, ids: matches.files.map(file => file.id) });
   return (page.files || [])
     .filter(file => file.project === projectId && (!query || file.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())))
     .slice(0, 30)

@@ -19,6 +19,12 @@ test('research HTTP routes preserve ordinary-member project ACL, actor identity,
   try {
     assert.equal((await call(1)).status, 200);
     assert.equal((await (await call(1)).json()).canConfigure, false);
+    const evidence = await call(1, '/files?q=member');
+    assert.equal(evidence.status, 200, await evidence.clone().text());
+    assert.deepEqual(
+      (await evidence.json()).items.map(file => file.id),
+      ['file'],
+    );
     assert.equal((await call(0, '/commands', { operationId: randomUUID(), action: 'enable', enabled: true })).status, 200);
     const input = {
       operationId: randomUUID(),

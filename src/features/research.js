@@ -198,6 +198,7 @@ A.researchPickCompare = async el => {
 A.researchFindFiles = async () => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'researchForm' || m.busy) return;
+  m.error = '';
   try {
     const result = await researchRequest(m.project, '/files?q=' + encodeURIComponent(m.fileQuery || ''));
     if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
