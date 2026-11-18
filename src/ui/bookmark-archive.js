@@ -35,7 +35,11 @@ export function bookmarkArchiveView(m, russian) {
       : '';
   const body =
     html && m.archiveView !== 'text'
-      ? `<iframe class="bookmark-archive-frame" src="${esc(url)}" sandbox="" referrerpolicy="no-referrer" title="${T('Archived HTML page', 'Архивная HTML-страница')}"></iframe>`
+      ? m.documentState === 'ready'
+        ? `<iframe class="bookmark-archive-frame" src="${esc(url)}" sandbox="" referrerpolicy="no-referrer" title="${T('Archived HTML page', 'Архивная HTML-страница')}"></iframe>`
+        : m.documentState === 'error'
+          ? `<div class="bookmark-page-notice" role="alert"><p>${esc(m.documentError)}</p><div class="bookmark-version-actions"><button class="btn btn-secondary" data-a="retryBookmarkDocument">${T('Retry HTML', 'Повторить HTML')}</button><button class="btn btn-ghost" data-a="bookmarkArchiveView" data-value="text">${T('Read saved text', 'Читать сохранённый текст')}</button></div><p class="hint">${T('You can also choose another saved version above.', 'Также можно выбрать другую сохранённую версию выше.')}</p></div>`
+          : `<p role="status">${T('Checking saved HTML…', 'Проверяем сохранённый HTML…')}</p>`
       : `<article class="bookmark-page-reader">${bookmarkReaderHtml(page, m.id, russian)}</article>`;
   const width = html
     ? `<button class="btn btn-ghost btn-sm bookmark-archive-width" data-a="bookmarkArchiveWidth" aria-pressed="${!!m.wide}">${m.wide ? T('Standard width', 'Обычная ширина') : T('Expand viewer', 'Расширить просмотр')}</button>`

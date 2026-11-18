@@ -115,7 +115,7 @@ function addAccountHeader(headers) {
 
 async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
-  const { returnMeta = false, allowCookieOnly = false, catalogHydration = true, ...fetchOptions } = options;
+  const { returnMeta = false, allowCookieOnly = false, catalogHydration = true, responseFormat = 'json', ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers || {});
   headers.set('Accept', 'application/json');
   if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -136,7 +136,7 @@ async function request(path, options = {}, authenticated = false) {
   }
 
   const notModified = response.status === 304;
-  const body = notModified ? {} : await response.json().catch(() => ({}));
+  const body = notModified ? {} : response.ok && responseFormat === 'text' ? await response.text() : await response.json().catch(() => ({}));
   fetchOptions.signal?.throwIfAborted();
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });

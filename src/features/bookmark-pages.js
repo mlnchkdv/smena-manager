@@ -130,24 +130,72 @@ A.bookmarkArchiveWidth = () => {
 async function loadPage(m) {
   m.controller?.abort();
   m.controller = new AbortController();
+  const controller = m.controller;
+  const selected = m.selected;
+  const current = () => currentViewer(m) && m.controller === controller && m.selected === selected;
   m.busy = true;
   m.error = '';
   m.page = null;
+  m.documentState = 'loading';
+  m.document = '';
   render();
   try {
     const path = `/${encodeURIComponent(m.id)}`;
-    const options = { signal: m.controller.signal };
-    m.page = await bookmarkPageRequest(
+    const options = { signal: controller.signal };
+    const page = await bookmarkPageRequest(
       m.selected === 'live' ? path + '/preview' : path + '/snapshots/' + encodeURIComponent(m.selected),
       m.selected === 'live' ? { ...options, method: 'POST' } : options,
     );
+    if (current()) m.page = page;
   } catch (error) {
-    if (currentViewer(m)) m.error = pageFailure(error);
+    if (current() && !controller.signal.aborted) m.error = pageFailure(error);
   } finally {
-    m.busy = false;
-    if (currentViewer(m)) render();
+    if (current()) {
+      m.busy = false;
+      render();
+    }
   }
+  if (current() && m.page?.format === 'html') await loadDocument(m, controller);
 }
+async function loadDocument(m, controller = m.controller) {
+  const selected = m.selected;
+  const current = () => currentViewer(m) && m.controller === controller && m.selected === selected;
+  m.documentState = 'loading';
+  if (current()) render();
+  try {
+    const document = await bookmarkPageRequest(`/${encodeURIComponent(m.id)}/snapshots/${encodeURIComponent(selected)}/document`, {
+      responseFormat: 'text',
+      signal: controller.signal,
+    });
+    if (!/^<!doctype html>/iu.test(document) || !document.includes('Content-Security-Policy'))
+      throw Object.assign(new Error('Invalid HTML'), { code: 'PAGE_SNAPSHOT_UNAVAILABLE' });
+    if (current()) {
+      m.document = document;
+      m.documentState = 'ready';
+    }
+  } catch (error) {
+    if (current() && !controller.signal.aborted) {
+      m.documentState = 'error';
+      m.documentError =
+        error.status === 401
+          ? words('Sign in again to load the saved HTML.', 'Войдите снова, чтобы загрузить сохранённый HTML.')
+          : error.status === 403
+            ? words(
+                'Access to this archive has changed. Ask the workspace owner for access.',
+                'Доступ к архиву изменился. Обратитесь к владельцу пространства.',
+              )
+            : words(
+                'Saved HTML could not be loaded or verified. Retry, read the saved text or choose another version.',
+                'Не удалось загрузить или проверить HTML. Повторите, прочитайте сохранённый текст или выберите другую версию.',
+              );
+    }
+  }
+  if (current()) render();
+}
+A.retryBookmarkDocument = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'bookmarkViewer' && m.page?.format === 'html') return loadDocument(m);
+};
 A.viewBookmarkPage = async el => {
   const link = D().links?.find(row => row.id === el.dataset.id);
   if (!link || !normalizedPageUrl(link.url)) return;
