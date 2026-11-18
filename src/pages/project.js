@@ -29,7 +29,7 @@ export function pageProject() {
   const p = proj(S.ui.params.id);
   if (!p) return page404();
   if (!canSee(p)) return stateDenied(p);
-  const tab = S.ui.params.tab?.startsWith('research~') ? 'research' : S.ui.params.tab || 'board';
+  const tab = S.ui.params.tab || 'board';
   const views = D().savedViews.filter(v => v.project === p.id);
   let body = '';
   const key = 'p:' + p.id;

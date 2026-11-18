@@ -1,5 +1,5 @@
 import { esc } from '../core/utils.js';
-import { rw, researchKind, researchProfile } from './research-copy.js';
+import { rw, researchKind, researchProfile, researchState } from './research-copy.js';
 import { RESEARCH_KINDS, RESEARCH_PROFILES } from '../shared/research.js';
 import { researchEvidenceForm } from './research-evidence.js';
 import { researchMetricsForm } from './research-metrics.js';
@@ -15,12 +15,10 @@ export function researchFormFields(m) {
     data = record.data,
     kind = record.kind;
   const references = (k, key, label) =>
-    select(
-      key,
-      label,
-      data[key],
-      (m.references || []).filter(row => row.kind === k).map(row => [row.id, row.title]),
-    );
+    select(key, label, data[key], [
+      ...(data[key] && !(m.references || []).some(row => row.id === data[key]) ? [[data[key], rw('Selected record: ', 'Выбрана запись: ') + data[key]]] : []),
+      ...(m.references || []).filter(row => row.kind === k).map(row => [row.id, row.title]),
+    ]);
   const template = !m.original
     ? `<label class="field">${rw('Template', 'Шаблон')}<select class="select" data-in="researchTemplate">${RESEARCH_KINDS.map(id => `<option value="${id}" ${kind === id ? 'selected' : ''}>${esc(researchKind(id))}</option>`).join('')}</select></label>`
     : '';
@@ -67,7 +65,8 @@ export function researchFormFields(m) {
   if (kind === 'run' && m.original && data.state !== 'planned') fields = `<fieldset disabled>${fields}</fieldset>`;
   if (['failed', 'cancelled'].includes(m.nextState || data.state))
     fields += field('reason', rw('Why did this run stop?', 'Почему остановлен запуск?'), data.reason);
-  if (m.nextState) fields = `<p role="status">${rw('Save to change the state to', 'Сохранение изменит состояние на')}: ${esc(m.nextState)}</p>` + fields;
+  if (m.nextState)
+    fields = `<p role="status">${rw('Save to change the state to', 'Сохранение изменит состояние на')}: ${esc(researchState(m.nextState))}</p>` + fields;
   if (kind === 'review')
     fields =
       field('periodFrom', rw('Reporting period starts', 'Начало отчётного периода'), data.periodFrom, 'date') +
@@ -85,6 +84,8 @@ export function researchFormFields(m) {
       field('conclusion', rw('Verified conclusion / current state', 'Проверенный вывод / текущее состояние'), data.conclusion) +
       field('nextStep', rw('Next action', 'Следующий шаг'), data.nextStep);
   if (kind === 'run') fields += researchMetricsForm(m);
+  if (['run', 'article', 'handoff'].includes(kind))
+    fields += `<details><summary>${rw('Find older related records', 'Найти ранние связанные записи')}</summary><label class="field">${rw('Record title', 'Название записи')}<input class="input" data-in="researchReferenceQuery" value="${esc(m.referenceQuery || '')}" maxlength="200"></label><button class="btn btn-secondary" data-a="researchFindReferences">${rw('Find related records', 'Найти связанные записи')}</button></details>`;
   fields += select(
     'reviewerId',
     rw('Reviewer, optional', 'Рецензент, необязательно'),

@@ -31,12 +31,13 @@ export class SmenaApiClient {
     }
     const reader = response.body.getReader();
     const parts = [];
+    const responseLimit = /\/research\/projects(?:\/|$)/u.test(path) ? 2 * 1024 * 1024 : 512 * 1024;
     let size = 0;
     while (true) {
       const part = await reader.read();
       if (part.done) break;
       size += part.value.byteLength;
-      if (size > 512 * 1024) {
+      if (size > responseLimit) {
         await reader.cancel();
         throw Object.assign(new Error('Response exceeds the MCP limit. Request a smaller page.'), { code: 'RESPONSE_TOO_LARGE' });
       }

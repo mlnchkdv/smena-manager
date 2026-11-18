@@ -33,6 +33,7 @@ async function loadResearch(model = state()) {
       '?' +
         new URLSearchParams({
           q: model.query,
+          archived: model.archived ? 'true' : 'false',
           offset: String(model.offset),
           limit: '50',
           ...(model.view === 'experiments'
@@ -44,6 +45,11 @@ async function loadResearch(model = state()) {
     );
     if (active(model)) {
       model.catalog = result;
+      if (model.selected) {
+        const r = model.selected;
+        model.catalog.canReview =
+          (result.canConfigure || r.data.reviewerId === result.actorId) && r.createdBy !== result.actorId && r.updatedBy !== result.actorId;
+      }
       model.rows = result.items;
       model.unsent = readPendingResearch(getActiveWorkspace(), result.actorId, model.project);
     }
@@ -157,7 +163,8 @@ A.researchCompare = async () => {
     };
   openModal(m);
   try {
-    const result = await researchRequest(m.project, '?kind=run&limit=100');
+    const experiment = model.selected?.kind === 'experiment' ? model.selected.id : model.selected?.data.experimentId;
+    const result = await researchRequest(m.project, '?kind=run&limit=100' + (experiment ? '&experiment=' + encodeURIComponent(experiment) : ''));
     if (S.ui.modals.includes(m) && m.generation === getSessionGeneration())
       m.rows = result.items.filter(
         row => !model.selected || row.experimentId === (model.selected.kind === 'experiment' ? model.selected.id : model.selected.data.experimentId),
@@ -247,6 +254,7 @@ A.researchSearch = () => {
 };
 A.researchRefresh = () => {
   const m = state();
+  m.requestedAttempt = '';
   m.rows = null;
   void loadResearch(m);
   render();
@@ -259,6 +267,31 @@ A.researchView = el => {
   m.rows = null;
   void loadResearch(m);
   render();
+};
+A.researchToggleArchive = () => {
+  const m = state();
+  m.archived = !m.archived;
+  m.offset = 0;
+  void loadResearch(m);
+  render();
+};
+IN.researchReferenceQuery = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm') m.referenceQuery = el.value;
+};
+A.researchFindReferences = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || m.command) return;
+  try {
+    const result = await researchRequest(m.project, '?kind=experiment,dataset,protocol&limit=100&q=' + encodeURIComponent(m.referenceQuery || ''));
+    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
+      m.references = result.items;
+      render();
+    }
+  } catch (error) {
+    m.error = researchFailure(error);
+    render();
+  }
 };
 A.researchPage = el => {
   const m = state();
@@ -292,6 +325,7 @@ A.researchOpen = async el => {
     const result = await researchRequest(model.project, '/records/' + encodeURIComponent(el.dataset.id));
     if (active(model)) {
       model.selected = result.record;
+      model.related = result.related || [];
       model.catalog = { ...model.catalog, canReview: result.canReview, reviewers: result.reviewers };
       go('project', { id: model.project, tab: 'research', researchId: result.record.id });
     }
@@ -431,7 +465,8 @@ A.researchDraftArticle = async () => {
     source = model.selected;
   if (!source) return;
   try {
-    const listing = await researchRequest(model.project, '?kind=run&limit=100');
+    const experiment = source.kind === 'experiment' ? source.id : source.data.experimentId;
+    const listing = await researchRequest(model.project, '?kind=run&limit=100' + (experiment ? '&experiment=' + encodeURIComponent(experiment) : ''));
     const rows = listing.items.filter(row => row.experimentId === (source.kind === 'experiment' ? source.id : source.data.experimentId));
     if (listing.total > 100) throw { code: 'RESEARCH_EXPORT_LIMIT' };
     const runs = await Promise.all(rows.map(async row => (await researchRequest(model.project, '/records/' + encodeURIComponent(row.id))).record));
@@ -553,10 +588,10 @@ A.researchRepeat = () => {
 function researchRecordActions(record) {
   const state = record.data.state || 'planned';
   const transitions = state === 'planned' ? ['running', 'cancelled'] : state === 'running' ? ['completed', 'failed', 'cancelled'] : [];
-  return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(researchState(next))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
+  return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(next === 'running' ? rw('Start run', 'Начать запуск') : next === 'completed' ? rw('Complete run', 'Завершить запуск') : next === 'failed' ? rw('Record failure', 'Записать ошибку') : rw('Cancel run', 'Отменить запуск'))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
 }
 function researchReadingActions(record, canEdit) {
-  return `<details class="research-technical"><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  return `<details class="research-technical"><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;
@@ -573,9 +608,16 @@ function details(record, canEdit) {
   )
     .filter(([key]) => data[key])
     .map(([key, label]) => `<div><dt>${label}</dt><dd>${esc(data[key])}</dd></div>`)
-    .join(
-      '',
-    )}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl></details>`;
+    .join('')}</dl><article class="knowledge-body research-body" translate="no">${renderKnowledgeMarkdown(record.body || '')}</article>${
+    (state().related || []).length
+      ? `<details class="research-technical" open><summary>${rw('Related records', 'Связанные записи')}</summary><div class="research-list">${state()
+          .related.map(
+            row =>
+              `<button class="research-list-item" data-a="researchOpen" data-id="${esc(row.id)}"><span>${esc(row.title)}</span><span class="hint">${esc(researchKind(row.kind))}${row.state ? ' · ' + esc(researchState(row.state)) : ''}</span></button>`,
+          )
+          .join('')}</div></details>`
+      : ''
+  }${researchReadingActions(record, canEdit)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical"><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>`;
 }
 export function researchHtml() {
   const m = state();
@@ -607,5 +649,5 @@ export function researchHtml() {
     )
     .join(
       '',
-    )}</div>${m.catalog.canEdit ? `<div class="row"><button class="btn btn-secondary" data-a="researchNew" data-kind="observation">${ic('notebook-pen', 16)}${rw('Quick note', 'Быстрая запись')}</button><button class="btn btn-primary" data-a="researchNew" data-kind="experiment">${ic('plus', 16)}${rw('New experiment', 'Новый эксперимент')}</button></div>` : ''}</header><form class="research-search" data-submit="researchSearch"><label class="sr" for="research-query">${rw('Search research', 'Поиск исследований')}</label><input id="research-query" class="input" data-in="researchQuery" value="${esc(m.query)}" placeholder="${rw('Search research', 'Поиск исследований')}" maxlength="200"><button class="btn btn-secondary">${rw('Search', 'Найти')}</button></form>${error}${m.loading ? `<p role="status">${rw('Updating…', 'Обновляем…')}</p>` : ''}<div class="research-list">${rows.map(row => `<button class="research-list-item" data-a="researchOpen" data-id="${esc(row.id)}"><span class="research-list-title">${esc(row.title)}</span><span class="hint">${esc(researchKind(row.kind))}${row.state ? ' · ' + esc(researchState(row.state)) : ''}</span><span class="hint">${esc(researchDate(row.updatedAt))}</span></button>`).join('') || `<div class="research-empty"><h2>${rw('Start with a question', 'Начните с вопроса')}</h2><p>${rw('Create an experiment or capture an observation. Runs and evidence will stay linked to it.', 'Создайте эксперимент или запишите наблюдение. Запуски и доказательства останутся связаны с ним.')}</p></div>`}</div><footer class="research-pagination"><span class="hint">${rw('Records', 'Записей')}: ${m.catalog.total}</span><button class="btn btn-ghost" data-a="researchPage" data-step="-1" ${m.offset ? '' : 'disabled'}>${rw('Previous', 'Назад')}</button><button class="btn btn-ghost" data-a="researchPage" data-step="1" ${m.offset + 50 < m.catalog.total ? '' : 'disabled'}>${rw('Next', 'Далее')}</button></footer></section>`;
+    )}</div>${m.catalog.canEdit ? `<div class="row"><button class="btn btn-secondary" data-a="researchNew" data-kind="observation">${ic('notebook-pen', 16)}${rw('Quick note', 'Быстрая запись')}</button><button class="btn btn-primary" data-a="researchNew" data-kind="experiment">${ic('plus', 16)}${rw('New experiment', 'Новый эксперимент')}</button></div>` : ''}</header><form class="research-search" data-submit="researchSearch"><label class="sr" for="research-query">${rw('Search research', 'Поиск исследований')}</label><input id="research-query" class="input" data-in="researchQuery" value="${esc(m.query)}" placeholder="${rw('Search research', 'Поиск исследований')}" maxlength="200"><button class="btn btn-secondary">${rw('Search', 'Найти')}</button></form><div class="research-actions"><button class="btn btn-ghost" data-a="researchToggleArchive" aria-pressed="${!!m.archived}">${m.archived ? rw('Show active records', 'Показать действующие записи') : rw('Archive', 'Архив')}</button></div>${error}${m.loading ? `<p role="status">${rw('Updating…', 'Обновляем…')}</p>` : ''}<div class="research-list">${rows.map(row => `<button class="research-list-item" data-a="researchOpen" data-id="${esc(row.id)}"><span class="research-list-title">${esc(row.title)}</span><span class="hint">${esc(researchKind(row.kind))}${row.state ? ' · ' + esc(researchState(row.state)) : ''}</span><span class="hint">${esc(researchDate(row.updatedAt))}</span></button>`).join('') || `<div class="research-empty"><h2>${rw('Start with a question', 'Начните с вопроса')}</h2><p>${rw('Create an experiment or capture an observation. Runs and evidence will stay linked to it.', 'Создайте эксперимент или запишите наблюдение. Запуски и доказательства останутся связаны с ним.')}</p></div>`}</div><footer class="research-pagination"><span class="hint">${rw('Records', 'Записей')}: ${m.catalog.total}</span><button class="btn btn-ghost" data-a="researchPage" data-step="-1" ${m.offset ? '' : 'disabled'}>${rw('Previous', 'Назад')}</button><button class="btn btn-ghost" data-a="researchPage" data-step="1" ${m.offset + 50 < m.catalog.total ? '' : 'disabled'}>${rw('Next', 'Далее')}</button></footer></section>`;
 }

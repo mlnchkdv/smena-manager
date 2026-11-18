@@ -38,18 +38,28 @@ researchRouter.get(
 researchRouter.get(
   '/projects/:project',
   route(async (request, response) => {
-    const { q = '', kind, archived, offset = '0', limit = '50' } = request.query;
+    const { q = '', kind, experiment, archived, offset = '0', limit = '50' } = request.query;
     if (
       typeof q !== 'string' ||
       q.length > 200 ||
       (kind != null && typeof kind !== 'string') ||
+      (experiment != null && (typeof experiment !== 'string' || experiment.length > 180)) ||
       !/^\d{1,6}$/u.test(offset) ||
       !/^\d{1,3}$/u.test(limit) ||
       Number(limit) < 1 ||
       Number(limit) > 100
     )
       throw researchError();
-    response.json(await researchStore.read(...args(request), { query: q, kind, archived: archived === 'true', offset: Number(offset), limit: Number(limit) }));
+    response.json(
+      await researchStore.read(...args(request), {
+        query: q,
+        kind,
+        experimentId: experiment,
+        archived: archived === 'true',
+        offset: Number(offset),
+        limit: Number(limit),
+      }),
+    );
   }),
 );
 researchRouter.get(

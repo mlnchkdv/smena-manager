@@ -63,7 +63,8 @@ export function registerPublicApiResearch(router) {
     root + '/:project/commands',
     write,
     route(async (req, res) => {
-      if (!researchUuid(req.get('Idempotency-Key')) || (req.body.operationId && req.body.operationId !== req.get('Idempotency-Key'))) throw researchError();
+      if (!req.body || !researchUuid(req.get('Idempotency-Key')) || (req.body.operationId && req.body.operationId !== req.get('Idempotency-Key')))
+        throw researchError();
       const command = { ...req.body, operationId: req.get('Idempotency-Key') };
       res.json(await researchStore.command(req.params.project, command, req.user, [], authorizeWrite(req, [command])));
     }),
@@ -72,7 +73,7 @@ export function registerPublicApiResearch(router) {
     root + '/:project/import',
     write,
     route(async (req, res) => {
-      const commands = req.body.commands;
+      const commands = req.body?.commands;
       if (
         !Array.isArray(commands) ||
         !commands.length ||
@@ -80,21 +81,9 @@ export function registerPublicApiResearch(router) {
         commands.some(row => !['create', 'update'].includes(row?.action) || !researchUuid(row.operationId))
       )
         throw researchError();
-      const completed = [];
-      for (let i = 0; i < commands.length; i++) {
-        try {
-          const result = await researchStore.command(req.params.project, commands[i], req.user, [], authorizeWrite(req, [commands[i]]));
-          completed.push({ operationId: result.operationId, id: result.id, revision: result.revision, replayed: result.replayed });
-        } catch (error) {
-          res.status(error.statusCode || 500).json({
-            completed,
-            failed: { index: i, operationId: commands[i].operationId, code: error.code || 'RESEARCH_UNAVAILABLE' },
-            pending: commands.slice(i + 1).map(row => row.operationId),
-          });
-          return;
-        }
-      }
-      res.json({ completed, pending: [] });
+      const result = await researchStore.importBatch(req.params.project, req.get('Idempotency-Key'), commands, req.user, [], authorizeWrite(req, commands));
+      const { statusCode = 200, ...body } = result;
+      res.status(statusCode).json(body);
     }),
   );
 }

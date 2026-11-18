@@ -40,6 +40,25 @@ export const researchState = state => (states[state] ? rw(...states[state]) : st
 export const researchProfile = profile => (profiles[profile] ? rw(...profiles[profile]) : profile);
 export function researchFailure(error) {
   const messages = {
+    RESEARCH_SECRET_BLOCKED: [
+      'Remove credentials or private keys before saving. Keep secrets in your execution environment.',
+      'Уберите пароли, токены и приватные ключи. Храните секреты в среде выполнения.',
+    ],
+    RESEARCH_SOURCE_INVALID: [
+      'Use a complete HTTP or HTTPS source URL without credentials.',
+      'Укажите полный HTTP- или HTTPS-адрес источника без учётных данных.',
+    ],
+    RESEARCH_PERIOD_INVALID: [
+      'Check the report period and IANA time zone. The end date is exclusive.',
+      'Проверьте период и часовой пояс IANA. Конечная дата в период не входит.',
+    ],
+    RESEARCH_SEED_REQUIRED: ['Record the seed before this stochastic run starts.', 'Укажите seed до начала этого стохастического запуска.'],
+    RESEARCH_WEIGHTS_REQUIRED: ['Record the input weights revision or SHA-256 before starting.', 'До начала укажите версию или SHA-256 входных весов.'],
+    RESEARCH_EXPORT_LIMIT: [
+      'This report is too large. Export a single run or a smaller experiment.',
+      'Отчёт слишком большой. Экспортируйте отдельный запуск или меньший эксперимент.',
+    ],
+    RESEARCH_REVIEW_INCOMPLETE: ['Add the record description before requesting review.', 'Добавьте описание записи перед проверкой.'],
     RESEARCH_EVIDENCE_UNAVAILABLE: [
       'A linked file is unavailable in this project. Choose it again.',
       'Связанный файл недоступен в проекте. Выберите его заново.',

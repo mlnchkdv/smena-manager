@@ -170,6 +170,7 @@ export function validateResearchTransition(before, next) {
       'protocolId',
       'protocolVersion',
       'split',
+      'evaluationResolution',
       'codeRevision',
       'weightsRevision',
       'seed',

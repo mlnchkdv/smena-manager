@@ -5,6 +5,40 @@ import { canReadProject } from '../shared/project-access.js';
 
 export async function validateResearchRecord({ record, before, book, database, context, readObject }) {
   const data = record.data;
+  const secrets = /^(?:password|authorization|access[_-]?token|refresh[_-]?token|client[_-]?secret|private[_-]?key|api[_-]?key|secret)$/iu;
+  const inspect = value => {
+    if (typeof value === 'string' && /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|Bearer\s+[A-Za-z0-9._-]{20,}/u.test(value))
+      throw researchError('RESEARCH_SECRET_BLOCKED');
+    if (value && typeof value === 'object')
+      for (const [key, item] of Object.entries(value)) {
+        if (secrets.test(key)) throw researchError('RESEARCH_SECRET_BLOCKED');
+        inspect(item);
+      }
+  };
+  inspect({ body: record.body, data });
+  if (data.sourceUrl) {
+    try {
+      const url = new URL(data.sourceUrl);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) throw Error();
+    } catch {
+      throw researchError('RESEARCH_SOURCE_INVALID');
+    }
+  }
+  if (data.readDepth && !['not_read', 'abstract', 'full', 'supplement'].includes(data.readDepth)) throw researchError();
+  if (
+    record.kind === 'review' &&
+    data.periodFrom &&
+    data.periodTo &&
+    (data.periodFrom > data.periodTo || !/^\d{4}-\d{2}-\d{2}$/u.test(data.periodFrom) || !/^\d{4}-\d{2}-\d{2}$/u.test(data.periodTo))
+  )
+    throw researchError('RESEARCH_PERIOD_INVALID');
+  if (data.timeZone) {
+    try {
+      new Intl.DateTimeFormat('en', { timeZone: data.timeZone });
+    } catch {
+      throw researchError('RESEARCH_PERIOD_INVALID');
+    }
+  }
   for (const key of ['ownerId', 'reviewerId']) {
     if (!data[key]) continue;
     const member = database.members.find(member => member.id === data[key]);
@@ -23,6 +57,10 @@ export async function validateResearchRecord({ record, before, book, database, c
   if (data.datasetId) await reference(data.datasetId, 'dataset', data.datasetVersion);
   if (data.protocolId) await reference(data.protocolId, 'protocol', data.protocolVersion);
   if (record.kind !== 'run') return;
+  for (const key of ['startedAt', 'finishedAt']) {
+    if (before?.data[key]) data[key] = before.data[key];
+    else delete data[key];
+  }
   data.state ||= 'planned';
   if (!before && data.state !== 'planned') throw researchError('RESEARCH_STATE_TRANSITION', 409);
   if (data.state === 'running' && before?.data.state !== 'running') {
@@ -41,6 +79,9 @@ export async function validateResearchRecord({ record, before, book, database, c
     const experiment = await reference(data.experimentId, 'experiment');
     if (!experiment.record.data.hypothesis?.trim() || !experiment.record.data.baseline?.trim() || !experiment.record.data.criterion?.trim())
       throw researchError('RESEARCH_CRITERION_REQUIRED');
+    if (['scene_optimization', 'finetuning', 'foundation_training'].includes(data.profile) && !Number.isSafeInteger(data.seed))
+      throw researchError('RESEARCH_SEED_REQUIRED');
+    if (['pretrained_inference', 'finetuning'].includes(data.profile) && !data.weightsRevision?.trim()) throw researchError('RESEARCH_WEIGHTS_REQUIRED');
     const dataset = await reference(data.datasetId, 'dataset', data.datasetVersion),
       protocol = await reference(data.protocolId, 'protocol', data.protocolVersion);
     data.datasetVersion = dataset.version;

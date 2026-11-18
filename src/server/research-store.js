@@ -78,7 +78,7 @@ export function createResearchStore({
       ref,
     };
   }
-  async function read(projectId, profile, profiles = [], { id, query = '', kind, archived = false, offset = 0, limit = 50 } = {}) {
+  async function read(projectId, profile, profiles = [], { id, query = '', kind, experimentId, archived = false, offset = 0, limit = 50 } = {}) {
     const db = await load(),
       context = researchContext(db, projectId, profile, profiles),
       book = await index(db, projectId);
@@ -94,6 +94,7 @@ export function createResearchStore({
       .filter(
         row =>
           !!row.archived === !!archived &&
+          (!experimentId || row.experimentId === experimentId) &&
           (!kind || kind.split(',').includes(row.kind)) &&
           (!query || row.title.toLocaleLowerCase().includes(query.toLocaleLowerCase())),
       )
@@ -128,10 +129,30 @@ export function createResearchStore({
         return item;
       }),
       ...(record ? { record } : {}),
+      ...(record
+        ? {
+            related: book.records
+              .filter(
+                item =>
+                  !item.archived &&
+                  (item.experimentId === record.id ||
+                    [record.data.experimentId, record.data.datasetId, record.data.protocolId, record.data.baselineRunId].includes(item.id)),
+              )
+              .slice(0, 100)
+              .map(item => ({ id: item.id, title: item.title, kind: item.kind, state: item.state })),
+          }
+        : {}),
     };
   }
-  async function command(projectId, input, profile, profiles = [], authorize = async () => {}) {
-    if (!input || !researchUuid(input.operationId) || !['enable', 'create', 'update', 'archive', 'restore', 'review'].includes(input.action))
+  async function command(projectId, input, profile, profiles = [], authorize = async () => {}, importRegistration = false) {
+    if (
+      !input ||
+      Object.keys(input).some(
+        key => !['operationId', 'action', 'id', 'expectedRevision', 'record', 'enabled', ...(importRegistration ? ['commands'] : [])].includes(key),
+      ) ||
+      !researchUuid(input.operationId) ||
+      !['enable', 'create', 'update', 'archive', 'restore', 'review', ...(importRegistration ? ['registerImport'] : [])].includes(input.action)
+    )
       throw researchError();
     const payloadHash = hash(researchJson(input)),
       operationKey = profile.id + ':' + input.operationId;
@@ -153,7 +174,9 @@ export function createResearchStore({
           if (Object.keys(book.operations).length >= RESEARCH_LIMITS.operations) throw researchError('RESEARCH_LIMIT', 413);
           const now = new Date().toISOString();
           let ref, record;
-          if (input.action === 'enable') {
+          if (input.action === 'registerImport') {
+            if (!book.enabled) throw researchError('RESEARCH_DISABLED', 409);
+          } else if (input.action === 'enable') {
             if (context.access < 4 || typeof input.enabled !== 'boolean') throw researchError('RESEARCH_FORBIDDEN', 403);
             book.enabled = input.enabled;
           } else {
@@ -190,6 +213,11 @@ export function createResearchStore({
                 if (context.access < 4 && before.data.reviewerId !== context.actor.id) throw researchError('RESEARCH_REVIEW_FORBIDDEN', 403);
                 if (before.createdBy === context.actor.id || before.updatedBy === context.actor.id) throw researchError('RESEARCH_SELF_REVIEW', 409);
                 if (!before.body.trim()) throw researchError('RESEARCH_REVIEW_INCOMPLETE');
+                if (
+                  before.kind === 'review' &&
+                  (!before.data.periodFrom || !before.data.periodTo || before.data.periodFrom >= before.data.periodTo || !before.data.timeZone)
+                )
+                  throw researchError('RESEARCH_PERIOD_INVALID');
                 record.review = { status: 'reviewed', by: context.actor.id, at: now, sourceHash: current.ref.sha256 };
               } else record.archived = input.action === 'archive';
             }
@@ -210,6 +238,7 @@ export function createResearchStore({
             ref: ref || null,
             at: now,
             actorId: context.actor.id,
+            ...(input.action === 'registerImport' ? { batch: input.commands.map(row => ({ operationId: row.operationId, id: row.id })) } : {}),
           };
           book.operations[operationKey] = result;
           const nextRef = await writeObject(book, RESEARCH_LIMITS.indexBytes);
@@ -253,6 +282,13 @@ export function createResearchStore({
     if (!receipt) return { operationId, state: 'not_found' };
     const record = receipt.ref ? await readObject(receipt.ref, projectId) : null;
     researchContext(await load(), projectId, profile, profiles);
+    if (receipt.batch) {
+      const completed = receipt.batch
+        .filter(row => book.operations[profile.id + ':' + row.operationId])
+        .map(row => ({ operationId: row.operationId, id: row.id, revision: book.operations[profile.id + ':' + row.operationId].revision }));
+      const pending = receipt.batch.filter(row => !book.operations[profile.id + ':' + row.operationId]).map(row => row.operationId);
+      return { ...receipt, state: pending.length ? 'partial' : 'completed', completed, pending };
+    }
     return { ...receipt, record, state: 'completed' };
   }
   async function projects(profile, profiles = []) {
@@ -304,6 +340,34 @@ export function createResearchStore({
     researchContext(await load(), projectId, profile, profiles);
     return { filename: 'research-' + id + '.zip', files: researchExportFiles(record, runs, objects, russian) };
   }
-  return { read, command, history, operation, projects, exportRecord };
+  async function importBatch(projectId, operationId, commands, profile, profiles = [], authorize = async () => {}) {
+    if (
+      !researchUuid(operationId) ||
+      !Array.isArray(commands) ||
+      !commands.length ||
+      commands.length > 20 ||
+      new Set(commands.map(row => row?.operationId)).size !== commands.length ||
+      commands.some(row => !['create', 'update'].includes(row?.action) || !researchUuid(row.operationId) || row.operationId === operationId)
+    )
+      throw researchError();
+    await command(projectId, { operationId, action: 'registerImport', commands }, profile, profiles, authorize, true);
+    const completed = [];
+    for (let i = 0; i < commands.length; i++) {
+      try {
+        const result = await command(projectId, commands[i], profile, profiles, authorize);
+        completed.push({ operationId: result.operationId, id: result.id, revision: result.revision, replayed: result.replayed });
+      } catch (error) {
+        return {
+          statusCode: error.statusCode || 500,
+          operationId,
+          completed,
+          failed: { index: i, operationId: commands[i].operationId, code: error.code || 'RESEARCH_UNAVAILABLE' },
+          pending: commands.slice(i + 1).map(row => row.operationId),
+        };
+      }
+    }
+    return { operationId, completed, pending: [] };
+  }
+  return { read, command, history, operation, projects, exportRecord, importBatch };
 }
 export const researchStore = createResearchStore();
