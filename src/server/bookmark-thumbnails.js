@@ -17,7 +17,12 @@ export function createSavedBookmarkThumbnailLoader(read) {
       let result = null;
       try {
         const page = await read(bookmark, ref.id);
+        if (typeof page.screenshot === 'string' && page.screenshot.length <= 4 * 1024 * 1024) {
+          const body = Buffer.from(page.screenshot, 'base64');
+          if (body[0] === 255 && body[1] === 216 && body[2] === 255) result = { body, contentType: 'image/jpeg' };
+        }
         for (const match of (page.document || '').matchAll(/<img\b[^>]*\bsrc="data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/=]+)"/gi)) {
+          if (result) break;
           if (match[2].length > 4 * 1024 * 1024) continue;
           const body = Buffer.from(match[2], 'base64');
           // Tiny tracking pixels make poor covers; keep looking for content.

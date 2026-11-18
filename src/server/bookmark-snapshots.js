@@ -114,5 +114,6 @@ export async function readBookmarkSnapshot(storage, workspace, bookmark, id) {
 export function bookmarkPageSummary(page) {
   const result = { ...page };
   delete result.document;
+  delete result.screenshot;
   return result;
 }

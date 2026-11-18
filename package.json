@@ -52,7 +52,8 @@
     "postcss": "^8.5.29",
     "postcss-value-parser": "^4.2.0",
     "sanitize-html": "2.18.1",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "playwright": "1.64.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

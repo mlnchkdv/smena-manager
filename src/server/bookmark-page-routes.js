@@ -6,6 +6,7 @@ import { knowledgeActor } from './knowledge-access.js';
 import { getStorageProvider } from './storage/index.js';
 import { workspaceScope, workspaceState } from './workspace-context.js';
 import { createBookmarkArchiveJobs } from './bookmark-archive-jobs.js';
+import { renderPublicPage } from './bookmark-render.js';
 import { bookmarkReaderPage, saveBookmarkSnapshot, readBookmarkSnapshot, bookmarkPageSummary, SNAPSHOT_LIMIT } from './bookmark-snapshots.js';
 import { createBookmarkThumbnailLoader, createSavedBookmarkThumbnailLoader } from './bookmark-thumbnails.js';
 import { archiveBookmarkHtml, ARCHIVE_CSP } from './bookmark-html-archive.js';
@@ -14,16 +15,23 @@ export function createBookmarkPageRouter({
   fetchPage = fetchPublicPage,
   fetchAsset = fetchPublicAsset,
   loadThumbnail = createBookmarkThumbnailLoader({ fetchPage }),
+  renderPage = renderPublicPage,
 } = {}) {
   const bookmarkPageRouter = Router();
   const jobs = workspaceState(() =>
     createBookmarkArchiveJobs({
       load: getWorkspaceDatabase,
       mutate: mutateWorkspaceDatabase,
-      capture: async (url, stage) => {
-        const page = await fetchPage(url);
+      capture: async (url, stage, mode) => {
+        const source = await fetchPage(url);
+        const page = mode === 'rendered' ? await renderPage(source.url) : source;
         await stage('resources');
-        return archiveBookmarkHtml(page, { fetchAsset });
+        const archive = await archiveBookmarkHtml(page, { fetchAsset });
+        if (mode === 'rendered') {
+          archive.screenshot = page.screenshot;
+          archive.capture = { ...archive.capture, mode: 'rendered-html', viewport: { width: 1280, height: 900 } };
+        }
+        return archive;
       },
       save: (bookmark, page, id) => saveBookmarkSnapshot(getStorageProvider(), workspaceScope(), bookmark, page, id),
     }),

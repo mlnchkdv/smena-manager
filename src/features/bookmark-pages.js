@@ -59,6 +59,16 @@ function pageFailure(error, saving = false) {
   if (error.code === 'PAGE_TOO_LARGE')
     return words('The page is too large to capture. Open the original website.', 'Страница слишком большая для копии. Откройте оригинал.');
   if (error.code === 'PAGE_RATE_LIMIT') return words('Too many requests. Wait a minute and retry.', 'Слишком много запросов. Повторите через минуту.');
+  if (error.code === 'PAGE_RENDER_UNAVAILABLE')
+    return words(
+      'Browser capture is unavailable. Try the fast HTML mode or ask an administrator to check the capture worker.',
+      'Сохранение через браузер недоступно. Попробуйте быстрый HTML-режим или попросите администратора проверить обработчик архивации.',
+    );
+  if (['PAGE_QUEUE_FULL', 'PAGE_RENDER_BUSY'].includes(error.code))
+    return words(
+      'Archive workers are busy. Wait for an existing capture and retry.',
+      'Обработчики архивации заняты. Дождитесь завершения текущей копии и повторите.',
+    );
   if (error.code === 'PAGE_SNAPSHOT_UNAVAILABLE')
     return words('This saved copy is unavailable or failed verification. Try another copy.', 'Эта копия недоступна или не прошла проверку. Выберите другую.');
   if (saving)
@@ -86,7 +96,7 @@ function viewer(m, H) {
     .join('');
   const archiveButton =
     S.ui.currentUser?.role !== 'viewer'
-      ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.busy || m.job || active.length >= 10 ? 'disabled' : ''}>${words('Archive page', 'Архивировать страницу')}</button>`
+      ? `<label class="field">${words('Capture mode', 'Способ архивации')}<select class="select" data-in="bookmarkCaptureMode" ${m.job ? 'disabled' : ''}><option value="static" ${m.captureMode !== 'rendered' ? 'selected' : ''}>${words('Fast HTML', 'Быстрый HTML')}</option><option value="rendered" ${m.captureMode === 'rendered' ? 'selected' : ''}>${words('Browser · dynamic page', 'Браузер · динамическая страница')}</option></select></label><button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.busy || m.job || active.length >= 10 ? 'disabled' : ''}>${words('Archive page', 'Архивировать страницу')}</button>`
       : '';
   return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" translate="no">
     <div class="bookmark-viewer-heading" ${m.wide ? 'data-archive-wide' : ''}><h3 class="bookmark-viewer-title" title="${esc(title)}">${esc(title)}</h3>${title !== m.title ? `<p class="hint">${words('Bookmark: ', 'Закладка: ')}${esc(m.title)}</p>` : ''}<p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p>${source !== m.url ? `<p class="hint bookmark-viewer-url">${words('Current bookmark URL: ', 'Текущий адрес закладки: ')}${esc(m.url)}</p>` : ''}</div>
@@ -105,6 +115,10 @@ A.bookmarkArchiveView = el => {
     m.archiveView = el.dataset.value === 'text' ? 'text' : 'html';
     render();
   }
+};
+IN.bookmarkCaptureMode = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'bookmarkViewer' && !m.job) m.captureMode = el.value === 'rendered' ? 'rendered' : 'static';
 };
 A.bookmarkArchiveWidth = () => {
   const m = S.ui.modals.at(-1);
