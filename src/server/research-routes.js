@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { strToU8, zipSync } from 'fflate';
 import { researchStore } from './research-store.js';
 import { requireRole } from './auth.js';
 import { researchError } from '../shared/research.js';
@@ -27,9 +28,16 @@ researchRouter.get(
 researchRouter.get(
   '/projects/:project/records/:id/export',
   route(async (request, response) => {
-    response.json(
-      await researchStore.exportRecord(request.params.project, request.params.id, request.user, request.configuredProfiles || [], request.query.lang === 'ru'),
+    const result = await researchStore.exportRecord(
+      request.params.project,
+      request.params.id,
+      request.user,
+      request.configuredProfiles || [],
+      request.query.lang === 'ru',
     );
+    if (request.query.format !== 'zip') return response.json(result);
+    const entries = Object.fromEntries(Object.entries(result.files).map(([name, text]) => [name, strToU8(text)]));
+    response.attachment(result.filename).send(Buffer.from(zipSync(entries, { level: 3 })));
   }),
 );
 researchRouter.get(

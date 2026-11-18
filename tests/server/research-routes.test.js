@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
+import { strFromU8, unzipSync } from 'fflate';
 import { app } from '../../src/server/app.js';
 import { memberSharingFixture } from '../fixtures/member-sharing.js';
 
@@ -37,6 +38,13 @@ test('research HTTP routes preserve ordinary-member project ACL, actor identity,
     assert.equal((await saved.json()).record.createdBy, 'member');
     assert.equal((await (await call(1, '/commands', input)).json()).replayed, true);
     assert.equal((await (await call(1, '/records/' + input.id)).json()).record.body, 'Synthetic observation');
+    const zip = await call(1, '/records/' + input.id + '/export?format=zip&lang=ru');
+    assert.equal(zip.status, 200);
+    assert.match(zip.headers.get('content-type'), /^application\/zip/);
+    assert.match(zip.headers.get('content-disposition'), /^attachment; filename="research-/);
+    const entries = unzipSync(new Uint8Array(await zip.arrayBuffer()));
+    assert.match(strFromU8(entries['article.md']), /Запись исследования/);
+    assert.equal(JSON.parse(strFromU8(entries['manifest.json'])).recordId, input.id);
     assert.equal((await (await call(1, '?q=One&limit=1')).json()).total, 1);
     assert.equal((await call(1, '?limit=1000')).status, 400);
     const denied = await fetch(origin + '/api/research/projects/private', { headers: { Authorization: 'Bearer ' + fixture.sessions[1] } });

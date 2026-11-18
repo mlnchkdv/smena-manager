@@ -7,6 +7,12 @@ export const researchRequest = (project, suffix = '', payload) =>
     payload === undefined ? {} : { method: 'POST', body: JSON.stringify(payload) },
     true,
   );
+export const downloadResearchZip = (project, id, lang) =>
+  request(
+    `/api/research/projects/${encodeURIComponent(project)}/records/${encodeURIComponent(id)}/export?format=zip&lang=${encodeURIComponent(lang)}`,
+    { responseFormat: 'blob', signal: AbortSignal.timeout(120000) },
+    true,
+  );
 import { hydrateWhiteboards, whiteboardCatalogWrite, wantWhiteboard } from './whiteboard-catalog-transport.js';
 import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceTransportBytes } from '../shared/workspace-size.js';
 import { workspaceCoreData } from '../shared/workspace-documents.js';
@@ -125,7 +131,7 @@ async function request(path, options = {}, authenticated = false) {
   const generation = sessionGeneration;
   const { returnMeta = false, allowCookieOnly = false, catalogHydration = true, responseFormat = 'json', ...fetchOptions } = options;
   const headers = new Headers(fetchOptions.headers || {});
-  headers.set('Accept', 'application/json');
+  headers.set('Accept', responseFormat === 'blob' ? 'application/zip' : 'application/json');
   if (fetchOptions.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (authenticated) {
     headers.set('X-Smena-File-Catalog', 'demand');
@@ -144,7 +150,13 @@ async function request(path, options = {}, authenticated = false) {
   }
 
   const notModified = response.status === 304;
-  const body = notModified ? {} : response.ok && responseFormat === 'text' ? await response.text() : await response.json().catch(() => ({}));
+  const body = notModified
+    ? {}
+    : response.ok && responseFormat === 'blob'
+      ? await response.blob()
+      : response.ok && responseFormat === 'text'
+        ? await response.text()
+        : await response.json().catch(() => ({}));
   fetchOptions.signal?.throwIfAborted();
   if (authenticated && generation !== sessionGeneration)
     throw new ApiError('The signed-in account changed. Sign in again.', 0, 'SESSION_CHANGED', { staleSession: true });

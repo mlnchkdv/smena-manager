@@ -1,7 +1,7 @@
 import '../styles/pages/research.css';
 import { A, IN } from '../actions/registry.js';
 import { S } from '../core/store.js';
-import { researchRequest, getActiveWorkspace, getSessionGeneration } from '../core/api.js';
+import { researchRequest, downloadResearchZip, getActiveWorkspace, getSessionGeneration } from '../core/api.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { openModal } from '../overlays/modals.js';
@@ -602,27 +602,35 @@ A.researchDraftArticle = async () => {
 };
 A.researchExport = async () => {
   const m = state();
-  if (m.pending || !m.selected) return;
-  m.pending = true;
+  const id = m.selected?.id;
+  if (!id || (m.export?.id === id && m.export.status === 'preparing')) return;
+  const job = { id, status: 'preparing' };
+  m.export = job;
   render();
   try {
-    const result = await researchRequest(m.project, '/records/' + encodeURIComponent(m.selected.id) + '/export?lang=' + rw('en', 'ru'));
-    if (!active(m)) return;
-    const { zipSync, strToU8 } = await import('fflate');
-    const bytes = zipSync(Object.fromEntries(Object.entries(result.files).map(([name, text]) => [name, strToU8(text)])), { level: 0 });
-    const href = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' })),
+    const blob = await downloadResearchZip(m.project, id, rw('en', 'ru'));
+    if (blob.type !== 'application/zip' || !blob.size) throw new Error('RESEARCH_EXPORT_INVALID');
+    if (!active(m) || m.export !== job || S.ui.params.researchId !== id) {
+      job.status = '';
+      return;
+    }
+    const href = URL.createObjectURL(blob),
       anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = result.filename;
+    anchor.download = `research-${id}.zip`;
+    document.body.append(anchor);
     anchor.click();
+    anchor.remove();
     setTimeout(() => URL.revokeObjectURL(href), 30000);
+    job.status = 'download';
   } catch (error) {
-    if (active(m)) m.error = researchFailure(error);
+    job.status = 'error';
+    job.message =
+      error.code === 'RESEARCH_EXPORT_LIMIT'
+        ? researchFailure(error)
+        : rw('Could not prepare the ZIP. Check your connection and try again.', 'Не удалось подготовить ZIP. Проверьте соединение и повторите.');
   } finally {
-    if (active(m)) {
-      m.pending = false;
-      render();
-    }
+    if (active(m)) render();
   }
 };
 A.researchHistory = async () => {
@@ -703,7 +711,21 @@ function researchRecordActions(record) {
   return `<div class="research-actions">${record.kind === 'experiment' ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>` : ''}${record.kind === 'run' ? transitions.map(next => `<button class="btn btn-secondary" data-a="researchTransition" data-state="${next}">${esc(next === 'running' ? rw('Start run', 'Начать запуск') : next === 'completed' ? rw('Complete run', 'Завершить запуск') : next === 'failed' ? rw('Record failure', 'Записать ошибку') : rw('Cancel run', 'Отменить запуск'))}</button>`).join('') + `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${record.archived ? rw('Restore from archive', 'Восстановить из архива') : rw('Archive record', 'В архив')}</button></div>`;
 }
 function researchReadingActions(record, canEdit) {
-  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport">${rw('Download research ZIP', 'Скачать ZIP исследования')}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div><p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  const model = state();
+  const job = model.export?.id === record.id ? model.export : null;
+  const download =
+    job?.status === 'preparing'
+      ? rw('Preparing ZIP…', 'Готовим ZIP…')
+      : job?.status === 'error'
+        ? rw('Retry ZIP download', 'Повторить скачивание ZIP')
+        : rw('Download research ZIP', 'Скачать ZIP исследования');
+  const announcement =
+    job?.status === 'error'
+      ? `<p role="alert">${esc(job.message)}</p>`
+      : job?.status === 'download'
+        ? `<p role="status" class="hint">${rw('ZIP download started.', 'Началось скачивание ZIP.')}</p>`
+        : '';
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${job?.status === 'preparing' ? 'disabled aria-busy="true"' : ''}>${download}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;
