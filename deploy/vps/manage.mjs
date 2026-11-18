@@ -21,6 +21,7 @@ import {
 import { activateRelease } from './transaction.mjs';
 import { verifyBackend, verifyVhost, waitForVhost } from './health.mjs';
 import { assertBuildDisk, buildInvocation } from './build-resources.mjs';
+import { provisionCaptureRuntime } from './capture-runtime.mjs';
 
 const CONFIG = '/etc/smena-manager/deploy.json';
 const SITE = '/etc/nginx/sites-available/smena-manager.conf';
@@ -333,6 +334,7 @@ async function buildRelease(config, ref, fetchSource) {
       ['run', 'lint'],
     ])
       command('systemd-run', buildInvocation(stage, npm, args, env));
+    await provisionCaptureRuntime(stage, config.node, (program, args) => command(program, args, { env: cleanEnv() }));
     const tests = (await fs.readdir(path.join(stage, 'tests/server')))
       .filter(name => name.endsWith('.test.js'))
       .sort()
