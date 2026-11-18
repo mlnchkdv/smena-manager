@@ -53,7 +53,7 @@ export function createEmptyDatabase() {
     revision: 0,
     createdAt: now,
     updatedAt: now,
-    workspace: { name: 'Smena Manager' },
+    workspace: { name: 'smena.team' },
     workspaces: [],
     me: null,
     members: [],

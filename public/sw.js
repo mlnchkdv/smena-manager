@@ -3,10 +3,10 @@ self.addEventListener('push', event => {
   try {
     data = event.data?.json() || {};
   } catch {
-    data = { title: 'Smena Manager', body: event.data?.text() || '' };
+    data = { title: 'smena.team', body: event.data?.text() || '' };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Smena Manager', {
+    self.registration.showNotification(data.title || 'smena.team', {
       body: data.body || '',
       icon: data.icon || '/favicon.svg',
       badge: data.badge || '/favicon.svg',

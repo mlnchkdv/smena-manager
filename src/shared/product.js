@@ -1,5 +1,5 @@
-export const PRODUCT_NAME = 'Smena Manager';
-export const PRODUCT_HOST = 'smena-manager.app';
+export const PRODUCT_NAME = 'smena.team';
+export const PRODUCT_HOST = 'smena.team';
 
 export const productHost = () => (typeof window !== 'undefined' && window.location.host ? window.location.host : PRODUCT_HOST);
 

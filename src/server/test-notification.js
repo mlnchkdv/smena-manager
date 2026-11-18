@@ -12,7 +12,7 @@ export async function sendOwnTestNotification(data, member, channel, options = {
     id: `test-${crypto.randomUUID()}`,
     type: 'system',
     recipient: member.id,
-    text: locale === 'ru' ? 'Тестовое уведомление Smena Manager' : 'Smena Manager test notification',
+    text: locale === 'ru' ? 'Тестовое уведомление smena.team' : 'smena.team test notification',
     snippet: locale === 'ru' ? `Проверка доставки, запрошенная вами. ${at}` : `Delivery check requested by you. ${at}`,
   };
   const isolated = {

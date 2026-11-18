@@ -165,7 +165,7 @@ export function pushMessagePayload(notification, data, locale = notificationLoca
   const actor = notification.by ? data.members?.find(member => member.id === notification.by)?.name : '';
   const task = notification.task ? data.tasks?.find(item => item.id === notification.task) : null;
   const action = notificationAction(notification, locale);
-  const title = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action || 'Smena Manager';
+  const title = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action || 'smena.team';
   return {
     title,
     body:

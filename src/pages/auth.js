@@ -24,7 +24,7 @@ export function authShell(inner, topRight = '') {
       '',
     )}</div><button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
     <div class="auth-c">${inner}</div>
-    <div class="auth-foot" style="padding:18px;font-size:12px"><span class="faint">© 2026 ${PRODUCT_NAME} · <a href="${isRussian() ? '/product.html' : '/product-en.html'}" translate="no">${isRussian() ? 'Возможности Smena' : 'Explore Smena'}</a> · <a href="/about.html">About</a> · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a></span></div></div>`;
+    <div class="auth-foot" style="padding:18px;font-size:12px"><span class="faint">© 2026 ${PRODUCT_NAME} · <a href="${isRussian() ? '/product.html' : '/product-en.html'}" translate="no">${isRussian() ? 'Возможности smena.team' : 'Explore smena.team'}</a> · <a href="${isRussian() ? '/terms.html' : '/terms.html#english'}">Terms</a> · <a href="${isRussian() ? '/privacy.html' : '/privacy.html#english'}">Privacy</a></span></div></div>`;
 }
 export const ferr = k => (S.ui.errors[k] ? `<span class="err" id="${k}-err">${ic('circle-alert', 12)}${S.ui.errors[k]}</span>` : '');
 export const icls = k => (S.ui.errors[k] ? 'is-error' : '');
@@ -100,7 +100,7 @@ export function renderOnboarding() {
   if (st === 1) {
     const e = S.ui.errors.ws;
     body = `<h1>Create your workspace</h1><p class="sub">A workspace is where your team's projects live.</p>
-    <div class="field"><label class="label" for="o-ws">Workspace name</label><input class="input input-lg ${e ? 'is-error' : ''}" id="o-ws" data-in="onbWs" value="${esc(o.ws)}" placeholder="e.g. Smena Manager" autofocus>${e ? `<span class="err">${ic('circle-alert', 12)}${e}</span>` : ''}</div>
+    <div class="field"><label class="label" for="o-ws">Workspace name</label><input class="input input-lg ${e ? 'is-error' : ''}" id="o-ws" data-in="onbWs" value="${esc(o.ws)}" placeholder="e.g. smena.team" autofocus>${e ? `<span class="err">${ic('circle-alert', 12)}${e}</span>` : ''}</div>
     <div class="field"><label class="label" for="o-url">Workspace URL</label><div class="row workspace-url" style="gap:0"><span class="input input-lg workspace-url-prefix">${productHost()}/</span><input class="input input-lg" id="o-url" value="${esc(o.url || '')}" data-in="onbUrl" placeholder="smena-manager"></div>${o.url ? `<span class="hint" style="color:var(--green);display:flex;gap:4px;align-items:center">${ic('check', 12)}${productHost()}/${esc(o.url)} is available</span>` : ''}</div>${nav()}`;
   }
   if (st === 2)

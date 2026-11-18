@@ -76,7 +76,7 @@ export function createRawEmail({ from, to, subject, text }) {
     throw new TypeError('A valid email recipient is required.');
   }
   const message = [
-    `From: ${encodeHeader('Smena Manager')} <${from}>`,
+    `From: ${encodeHeader('smena.team')} <${from}>`,
     `To: ${to}`,
     `Subject: ${encodeHeader(subject)}`,
     'MIME-Version: 1.0',
@@ -123,10 +123,10 @@ export function emailNotificationMessage(notification, data, locale = notificati
   const action = notificationAction(notification, locale) || (locale === 'ru' ? 'Новое уведомление' : 'New notification');
   const subject = actor ? `${actor}: ${action}` : task ? `${task.title}: ${action}` : action;
   const greeting = locale === 'ru' ? `Здравствуйте, ${member?.name || ''}!` : `Hello, ${member?.name || ''}!`;
-  const open = locale === 'ru' ? 'Открыть Smena Manager' : 'Open Smena Manager';
+  const open = locale === 'ru' ? 'Открыть smena.team' : 'Open smena.team';
   return {
     to: member?.email || '',
-    subject: `[Smena Manager] ${subject}`,
+    subject: `[smena.team] ${subject}`,
     text: `${greeting}\n\n${subject}\n${notificationSnippet(notification, locale) || task?.title || ''}\n\n${open}: ${notificationUrl(data, notification)}`,
   };
 }
@@ -223,7 +223,7 @@ export function dailyDigestMessage(data, member, today, locale = notificationLoc
       : [`Open tasks: ${open.length}`, `Due today: ${dueToday}`, `Overdue: ${overdue}`];
   return {
     to: member.email,
-    subject: locale === 'ru' ? `[Smena Manager] Сводка за ${today}` : `[Smena Manager] Daily digest for ${today}`,
+    subject: locale === 'ru' ? `[smena.team] Сводка за ${today}` : `[smena.team] Daily digest for ${today}`,
     text: `${locale === 'ru' ? `Здравствуйте, ${member.name}!` : `Hello, ${member.name}!`}\n\n${lines.join('\n')}\n\n${notificationUrl(data, 'mytasks')}`,
   };
 }
