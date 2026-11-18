@@ -1,7 +1,7 @@
 import { D, S } from './store.js';
 import { searchWorkspace } from '../shared/workspace-search.js';
 
-import { getSessionGeneration, searchWhiteboards, searchWorkspaceFiles, knowledgeCatalogMode } from './api.js';
+import { getSessionGeneration, searchWhiteboards, searchWorkspaceFiles, searchResearch, knowledgeCatalogMode } from './api.js';
 import { knowledgeServerPage, clearKnowledgeSearch } from './knowledge-server-search.js';
 import { whiteboardDemandEnabled } from './whiteboard-catalog-transport.js';
 import { render } from '../shell/render.js';
@@ -14,6 +14,7 @@ function sourcesFor(consumer) {
     consumers.set(consumer, {
       boards: remoteSearchSource((options, signal) => searchWhiteboards(options.query, options.limit, options.offset, signal), render),
       files: remoteSearchSource(searchWorkspaceFiles, render),
+      research: remoteSearchSource(searchResearch, render),
     });
   return consumers.get(consumer);
 }
@@ -21,6 +22,7 @@ function clearConsumer(consumer) {
   const sources = consumers.get(consumer);
   sources?.boards.clear();
   sources?.files.clear();
+  sources?.research.clear();
   consumers.delete(consumer);
   clearKnowledgeSearch('workspace:' + consumer);
 }
@@ -40,10 +42,11 @@ window.addEventListener('smena:rendered', () => {
 });
 export function searchAll(query, options = {}) {
   const consumer = options.consumer === 'palette' ? 'palette' : 'page';
-  const { boards, files } = sourcesFor(consumer);
+  const { boards, files, research } = sourcesFor(consumer);
   const knowledge = query.trim() && knowledgeCatalogMode() ? knowledgeServerPage({ query, mode: 'workspace', channel: 'workspace:' + consumer }) : null;
   const knowledgeIds = knowledge && !knowledge.localOnly ? knowledge.matches || [] : null;
   const result = searchWorkspace(D(), query, { ...options, role: S.ui.currentUser?.role, knowledgeIds });
+  result.research = [];
   result.knowledgeStatus = knowledge?.pending ? 'loading' : knowledge?.error ? 'error' : knowledge?.localOnly ? 'local' : '';
   if (!query.trim()) {
     clearConsumer(consumer);
@@ -53,6 +56,17 @@ export function searchAll(query, options = {}) {
     revision = S.ui.workspaceRevision;
   const scope = JSON.stringify([session, S.ui.activeWorkspace, revision, query]);
   const clean = !S.ui.offline && workspaceSyncIsClean(S.data);
+  if (query.length <= 500 && !S.ui.offline) {
+    const offset = options.offsets?.research || 0;
+    const limit = consumer === 'palette' ? 12 : 30;
+    const value = research.query(scope, String(offset), { query, offset, limit });
+    result.researchStatus = value.error ? 'error' : value.pending ? 'loading' : '';
+    if (value.data) {
+      result.research = value.data.items;
+      if (options.totals) options.totals.research = value.data.total;
+      if (options.offsets) options.offsets.research = value.data.offset;
+    }
+  } else research.clear();
   if (fileCatalogInfo()?.mode === 'demand') {
     if (!clean) {
       files.clear();

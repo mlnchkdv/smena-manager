@@ -10,8 +10,8 @@ test('research HTTP routes preserve ordinary-member project ACL, actor identity,
   const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const origin = 'http://127.0.0.1:' + server.address().port;
-  const call = (actor, path = '', input) =>
-    fetch(origin + '/api/research/projects/shared' + path, {
+  const call = (actor, path = '', input, project = 'shared') =>
+    fetch(origin + '/api/research/projects/' + project + path, {
       method: input ? 'POST' : 'GET',
       headers: { Authorization: 'Bearer ' + fixture.sessions[actor], 'X-Smena-Workspace': 'default', 'Content-Type': 'application/json' },
       ...(input ? { body: JSON.stringify(input) } : {}),
@@ -41,6 +41,19 @@ test('research HTTP routes preserve ordinary-member project ACL, actor identity,
     assert.equal((await call(1, '?limit=1000')).status, 400);
     const denied = await fetch(origin + '/api/research/projects/private', { headers: { Authorization: 'Bearer ' + fixture.sessions[1] } });
     assert.equal(denied.status, 404);
+    assert.equal((await call(0, '/commands', { operationId: randomUUID(), action: 'enable', enabled: true }, 'private')).status, 200);
+    const privateInput = { ...input, operationId: randomUUID(), id: randomUUID() };
+    assert.equal((await call(0, '/commands', privateInput, 'private')).status, 200);
+    const search = (q, actor) =>
+      fetch(origin + '/api/research/search?q=' + encodeURIComponent(q), { headers: { Authorization: 'Bearer ' + fixture.sessions[actor] } });
+    assert.equal((await fetch(origin + '/api/research/search?q=One')).status, 401);
+    assert.equal((await (await search('Один', 0)).json()).total, 2);
+    const matches = await (await search('Один', 1)).json();
+    assert.equal(matches.total, 1);
+    assert.deepEqual(
+      matches.items.map(row => [row.id, row.projectId, row.projectName]),
+      [[input.id, 'shared', 'Shared project']],
+    );
   } finally {
     await new Promise(resolve => server.close(resolve));
     await fixture.cleanup();

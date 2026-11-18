@@ -1231,6 +1231,7 @@ export const RU = {
   Frontend: 'Фронтенд',
   Backend: 'Бэкенд',
   Research: 'Исследование',
+  'Research records': 'Записи исследований',
   Bug: 'Ошибка',
   Growth: 'Рост',
   QA: 'Тестирование',

@@ -1226,7 +1226,7 @@ IN.searchQ = el => {
   render();
 };
 A.searchPage = el => {
-  if (!['tasks', 'projects', 'people', 'files', 'comments', 'knowledge', 'bookmarks'].includes(el.dataset.key)) return;
+  if (!['tasks', 'projects', 'people', 'files', 'comments', 'knowledge', 'bookmarks', 'research'].includes(el.dataset.key)) return;
   S.ui.searchOffsets ||= {};
   S.ui.searchOffsets[el.dataset.key] = Math.max(0, Number(el.dataset.offset) || 0);
   render();

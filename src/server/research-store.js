@@ -307,6 +307,31 @@ export function createResearchStore({
     }
     return { items };
   }
+  async function search(profile, profiles, { query, offset, limit }) {
+    const db = await load();
+    const actor = knowledgeActor(db, profile, profiles);
+    const readable = (project, member) => !project.archived && projectAccess(project, member.id, workspaceMemberRole(member));
+    const candidates = db.projects.filter(project => db._researchProjects?.[project.id] && readable(project, actor));
+    const matches = [];
+    const needle = query.toLocaleLowerCase();
+    for (let i = 0; i < candidates.length; i += 4) {
+      const group = candidates.slice(i, i + 4);
+      const indexes = await Promise.all(group.map(project => index(db, project.id)));
+      for (const book of indexes) {
+        if (!book.enabled) continue;
+        for (const { id, title, kind, archived, updatedAt } of book.records) {
+          if (!archived && title.toLocaleLowerCase().includes(needle)) matches.push({ id, title, kind, updatedAt, projectId: book.projectId });
+        }
+      }
+    }
+    const latest = candidates.length ? await load() : db;
+    const member = knowledgeActor(latest, profile, profiles);
+    const names = new Map(latest.projects.filter(project => readable(project, member)).map(project => [project.id, project.name]));
+    const visible = matches.filter(row => names.has(row.projectId) && latest._researchProjects?.[row.projectId]);
+    visible.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));
+    const start = Math.min(offset, Math.floor(Math.max(0, visible.length - 1) / limit) * limit);
+    return { total: visible.length, offset: start, items: visible.slice(start, start + limit).map(row => ({ ...row, projectName: names.get(row.projectId) })) };
+  }
   async function exportRecord(projectId, id, profile, profiles = [], russian = false) {
     const db = await load();
     researchContext(db, projectId, profile, profiles);
@@ -368,6 +393,6 @@ export function createResearchStore({
     }
     return { operationId, completed, pending: [] };
   }
-  return { read, command, history, operation, projects, exportRecord, importBatch };
+  return { read, command, history, operation, projects, search, exportRecord, importBatch };
 }
 export const researchStore = createResearchStore();

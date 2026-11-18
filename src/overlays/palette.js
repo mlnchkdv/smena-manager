@@ -73,6 +73,7 @@ export function paletteItems() {
   pl.knowledgeStatus = '';
   pl.fileStatus = '';
   pl.whiteboardStatus = '';
+  pl.researchStatus = '';
   const q = pl.q.trim();
   const ql = q.toLowerCase();
   const groups = [];
@@ -121,6 +122,7 @@ export function paletteItems() {
   pl.knowledgeStatus = r.knowledgeStatus;
   pl.fileStatus = r.fileStatus;
   pl.whiteboardStatus = r.whiteboardStatus;
+  pl.researchStatus = r.researchStatus;
   const sc = pl.mode === 'search' ? pl.scope : 'all';
   const lim = sc === 'all' ? 4 : 12;
   if (pl.mode === 'search' && !q) {
@@ -267,6 +269,19 @@ export function paletteItems() {
     }));
     if (items.length) out.push({ name: 'Whiteboards', items });
   }
+  if ((sc === 'all' || sc === 'research') && r.research.length) {
+    out.push({
+      name: 'Research records',
+      items: r.research.slice(0, lim).map(record => ({
+        icon: 'flask-conical',
+        name: record.title,
+        authoredName: true,
+        sub: record.projectName,
+        authoredSub: true,
+        run: () => go('project', { id: record.projectId, tab: 'research', researchId: record.id }),
+      })),
+    });
+  }
   out.push({
     name: '',
     items: [
@@ -305,6 +320,7 @@ export function paletteHtml() {
     ['knowledge', 'Knowledge base', 'library-big'],
     ['bookmarks', 'Bookmarks', 'bookmark'],
     ['whiteboards', 'Whiteboards', 'panels-top-left'],
+    ['research', 'Research records', 'flask-conical'],
   ];
   return `<div class="palette" role="dialog" aria-modal="true" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}">
     <div class="pal-in">${ic(pl.mode === 'search' ? 'search' : 'command', 17)}${pl.mode !== 'cmd' ? `<span class="badge" style="flex-shrink:0">${pl.mode === 'search' ? 'Search' : 'Workspace'}</span>` : ''}<input id="pal-in" data-in="palQ" value="${esc(pl.q)}" placeholder="${ph}" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" ${flat.length ? `aria-activedescendant="pi-${pl.hl}"` : ''}><button class="ibtn pal-close" data-a="closePalette" aria-label="Close" title="Close">${ic('x', 16)}<kbd>Esc</kbd></button></div>

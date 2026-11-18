@@ -14,6 +14,17 @@ const route = operation => async (request, response, next) => {
 };
 const args = request => [request.params.project, request.user, request.configuredProfiles || []];
 researchRouter.get(
+  '/search',
+  route(async (request, response) => {
+    const { q, offset = '0', limit = '30' } = request.query;
+    if (typeof q !== 'string' || !q.trim() || q.length > 500 || !/^\d{1,6}$/u.test(offset) || !/^[1-9]\d?$/u.test(limit) || Number(limit) > 50)
+      throw researchError();
+    response.json(
+      await researchStore.search(request.user, request.configuredProfiles || [], { query: q.trim(), offset: Number(offset), limit: Number(limit) }),
+    );
+  }),
+);
+researchRouter.get(
   '/projects/:project/records/:id/export',
   route(async (request, response) => {
     response.json(

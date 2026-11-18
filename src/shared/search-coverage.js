@@ -1,15 +1,23 @@
-const SOURCES = ['tasks', 'projects', 'people', 'files', 'comments', 'knowledge', 'bookmarks', 'whiteboards'];
+const SOURCES = ['tasks', 'projects', 'people', 'files', 'comments', 'knowledge', 'bookmarks', 'whiteboards', 'research'];
 
 // Counts describe one scope: all matching loaded records, not just the current
 // page. Pending/error remote sources never turn that count into a final answer.
-export function searchCoverage({ category = 'all', totals = {}, demandFiles = false, whiteboardStatus = '', knowledgeStatus = '', locale = 'en' } = {}) {
+export function searchCoverage({
+  category = 'all',
+  totals = {},
+  demandFiles = false,
+  whiteboardStatus = '',
+  knowledgeStatus = '',
+  researchStatus = '',
+  locale = 'en',
+} = {}) {
   const ru = locale === 'ru';
   const counts = Object.fromEntries(SOURCES.map(key => [key, Math.max(0, Number(totals[key]) || 0)]));
   const count = category === 'all' ? Object.values(counts).reduce((a, b) => a + b, 0) : counts[category] || 0;
   const filesIncomplete = demandFiles && ['all', 'files'].includes(category);
   const boardsIncomplete = !!whiteboardStatus && ['all', 'whiteboards'].includes(category);
   const knowledgeIncomplete = !!knowledgeStatus && ['all', 'knowledge'].includes(category);
-  const partial = filesIncomplete || boardsIncomplete || knowledgeIncomplete;
+  const partial = filesIncomplete || boardsIncomplete || knowledgeIncomplete || (!!researchStatus && ['all', 'research'].includes(category));
   return {
     count,
     partial,
@@ -22,7 +30,8 @@ export function searchCoverage({ category = 'all', totals = {}, demandFiles = fa
       return (key === 'files' && demandFiles) ||
         (key === 'whiteboards' && whiteboardStatus) ||
         (key === 'knowledge' && knowledgeStatus) ||
-        (key === 'all' && (demandFiles || whiteboardStatus || knowledgeStatus))
+        (key === 'research' && researchStatus) ||
+        (key === 'all' && (demandFiles || whiteboardStatus || knowledgeStatus || researchStatus))
         ? ru
           ? `Загружено: ${value}`
           : `Loaded: ${value}`

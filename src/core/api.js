@@ -1,4 +1,6 @@
 export const bookmarkPageRequest = (suffix, options = {}) => request('/api/bookmark-pages' + suffix, options, true);
+export const searchResearch = ({ query, offset, limit }, signal) =>
+  request('/api/research/search?' + new URLSearchParams({ q: query, offset: String(offset), limit: String(limit) }), { signal }, true);
 export const researchRequest = (project, suffix = '', payload) =>
   request(
     '/api/research/projects/' + encodeURIComponent(project) + suffix,

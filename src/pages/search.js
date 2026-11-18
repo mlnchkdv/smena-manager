@@ -15,7 +15,8 @@ import { disclosureAttributes } from '../ui/disclosure.js';
 import { materialLocation } from '../ui/material-location.js';
 import { recentSearches, rememberSearch, clearSearchHistory } from '../core/search-history.js';
 import { A, KEY } from '../actions/actions.js';
-import { render } from '../shell/render.js';
+import { go, render } from '../shell/render.js';
+A.openResearchSearchResult = el => go('project', { id: el.dataset.project, tab: 'research', researchId: el.dataset.id });
 A.retryWhiteboardSearch = () => {
   clearWhiteboardSearch();
   render();
@@ -54,6 +55,7 @@ export function pageSearch() {
     ['knowledge', 'Knowledge base'],
     ['bookmarks', 'Bookmarks'],
     ['whiteboards', 'Whiteboards'],
+    ['research', 'Research records'],
   ];
   const coverage = searchCoverage({
     category: cat,
@@ -61,6 +63,7 @@ export function pageSearch() {
     demandFiles,
     whiteboardStatus: r.whiteboardStatus,
     knowledgeStatus: r.knowledgeStatus,
+    researchStatus: r.researchStatus,
     locale: isRussian() ? 'ru' : 'en',
   });
   const categoryCount = coverage.categoryLabel;
@@ -171,6 +174,16 @@ export function pageSearch() {
                 .join(''),
             ) +
             sec(
+              'research',
+              'Research records',
+              r.research
+                .map(
+                  record =>
+                    `<button class="mini" data-a="openResearchSearchResult" data-project="${esc(record.projectId)}" data-id="${esc(record.id)}">${ic('flask-conical', 15)}<span class="tt" translate="no">${hl(record.title, q)}</span><span class="faint" translate="no">${esc(record.projectName)}</span></button>`,
+                )
+                .join(''),
+            ) +
+            sec(
               'bookmarks',
               'Bookmarks',
               r.bookmarks
@@ -189,7 +202,7 @@ export function pageSearch() {
             ? `<div class="panel">${empty('search-x', isRussian() ? 'Поиск файлов не завершён' : 'File search is incomplete', isRussian() ? 'Проверьте статус источника выше.' : 'Check the source status above.')}</div>`
             : r.whiteboardStatus && ['all', 'whiteboards'].includes(cat)
               ? ''
-              : r.knowledgeStatus && ['all', 'knowledge'].includes(cat)
+              : sourceSearchIncomplete(r, cat)
                 ? ''
                 : `<div class="panel">${empty('search-x', demandFiles && cat === 'files' ? 'Search file catalog' : demandFiles && cat === 'all' ? 'No matches in loaded results' : 'No results found', demandFiles && ['all', 'files'].includes(cat) ? 'No matches in loaded results' : 'Try another category or a broader search term.', `<button class="btn btn-secondary btn-sm" data-a="setSearch" data-q="">Clear search</button>`)}</div>`
     }

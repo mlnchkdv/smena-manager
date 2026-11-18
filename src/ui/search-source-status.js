@@ -10,6 +10,7 @@ const sources = [
   ['files', 'fileStatus', 'Files'],
   ['knowledge', 'knowledgeStatus', 'Knowledge base'],
   ['whiteboards', 'whiteboardStatus', 'Whiteboards'],
+  ['research', 'researchStatus', 'Research records'],
 ];
 export const sourceSearchIncomplete = (result, scope = 'all') => sources.some(([key, status]) => result[status] && (scope === 'all' || scope === key));
 export function sourceSearchStatus(result, scope = 'all') {
