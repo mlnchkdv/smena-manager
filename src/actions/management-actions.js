@@ -276,9 +276,12 @@ handlers.A.openTask = el => {
     toast("You don't have access to that task", { kind: 'err' });
     return;
   }
-  if (!S.ui.drawer || !document.activeElement?.closest?.('.drawer')) S.ui.drawerOpener = el.isConnected ? focusKey(el) : S.ui.drawerOpener;
+  const trigger = el.trigger || el;
+  const replacing = !!S.ui.drawer && !!document.activeElement?.closest?.('.drawer');
+  if (!replacing && trigger.isConnected) S.ui.drawerOpener = focusKey(trigger);
+  const full = S.prefs.openTasks === 'full' || (replacing && S.ui.drawerFull);
   S.ui.drawer = id;
-  S.ui.drawerFull = S.prefs.openTasks === 'full' || (S.ui.drawerFull && S.ui.drawer === id);
+  S.ui.drawerFull = full;
   S.ui.pop = null;
   S.ui.palette = null;
   S.ui.modals = [];
@@ -294,6 +297,8 @@ handlers.A.closeDrawer = () => {
   S.ui.drawerFull = false;
   S.ui.subOpen = null;
   render();
+  if (document.activeElement === document.body) $('#main-content')?.focus({ preventScroll: true });
+  S.ui.drawerOpener = null;
 };
 handlers.A.skipToContent = () => {
   const c = $('#main-content');

@@ -125,7 +125,7 @@ export function registerNotificationActions(A) {
     const n = myNotification(el.dataset.id);
     if (!n) return;
     void persistReadState([n.id], true);
-    if (n.task) A.openTask({ dataset: { id: n.task } });
+    if (n.task) A.openTask({ dataset: { id: n.task }, trigger: el });
     else if (n.project) go('project', { id: n.project, tab: 'overview' });
     else if (n.type === 'system') {
       S.ui.inboxSel = n.id;
