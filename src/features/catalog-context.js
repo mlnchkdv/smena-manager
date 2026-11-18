@@ -19,7 +19,9 @@ let completed = '',
 function paintFeedback(key) {
   document.querySelectorAll('.catalog-context-status:not(.graph-query-status)').forEach(el => el.remove());
   if (feedback?.key !== key) return;
-  const anchor = document.querySelector('.palette .pal-in,.relation-picker > .input,.search-page > .inwrap,.graph-toolbar,.relations-panel > .relations-head');
+  const anchor = document.querySelector(
+    '.palette .pal-results,.relation-picker > .input,.search-page > .inwrap,.graph-toolbar,.relations-panel > .relations-head',
+  );
   if (!anchor) return;
   const box = document.createElement('div');
   box.className = 'catalog-context-status';
@@ -27,7 +29,7 @@ function paintFeedback(key) {
   const message = document.createElement('span');
   message.textContent =
     (feedback.error ? t('Some file results may be missing.') + ' ' : '') +
-    t(feedback.error || (anchor.matches('.pal-in,.inwrap') ? 'Searching workspace…' : 'Loading files…'));
+    t(feedback.error || (anchor.matches('.pal-results,.inwrap') ? 'Searching workspace…' : 'Loading files…'));
   box.append(message);
   if (feedback.error) {
     const retry = document.createElement('button');
@@ -36,7 +38,8 @@ function paintFeedback(key) {
     retry.textContent = t('Try again');
     box.append(retry);
   }
-  anchor.after(box);
+  if (anchor.matches('.pal-results')) anchor.prepend(box);
+  else anchor.after(box);
 }
 A.retryCatalogContext = () => {
   requests.retry();

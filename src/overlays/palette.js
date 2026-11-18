@@ -14,7 +14,7 @@ import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
 import { sortTasks, viewOf } from '../shell/view-engine.js';
 import { searchAll } from '../core/search.js';
-import { t as tr, workspaceRoleLabel } from '../core/i18n.js';
+import { isRussian, t as tr, workspaceRoleLabel } from '../core/i18n.js';
 import { A } from '../actions/actions.js';
 import { knowledgeCategoryLabel } from '../ui/knowledge-category.js';
 import { matchesLocalizedName } from '../shared/localized-search.js';
@@ -295,27 +295,28 @@ export function paletteHtml() {
   const ph =
     pl.mode === 'search' ? 'Search tasks, projects, knowledge, bookmarks, and files…' : pl.mode === 'ws' ? 'Find a workspace…' : 'Type a command or search…';
   const inputLabel = pl.mode === 'search' ? 'Search workspace' : pl.mode === 'ws' ? 'Switch workspace' : 'Command menu';
+  const scopes = [
+    ['all', 'All', 'layers'],
+    ['tasks', 'Tasks', 'circle-check'],
+    ['projects', 'Projects', 'folder'],
+    ['people', 'People', 'users'],
+    ['files', 'Files', 'paperclip'],
+    ['comments', 'Comments', 'message-square'],
+    ['knowledge', 'Knowledge base', 'library-big'],
+    ['bookmarks', 'Bookmarks', 'bookmark'],
+    ['whiteboards', 'Whiteboards', 'panels-top-left'],
+  ];
   return `<div class="palette" role="dialog" aria-modal="true" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}">
     <div class="pal-in">${ic(pl.mode === 'search' ? 'search' : 'command', 17)}${pl.mode !== 'cmd' ? `<span class="badge" style="flex-shrink:0">${pl.mode === 'search' ? 'Search' : 'Workspace'}</span>` : ''}<input id="pal-in" data-in="palQ" value="${esc(pl.q)}" placeholder="${ph}" aria-label="${esc(tr(inputLabel))}: ${esc(D().ws.name)}" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="pal-list" ${flat.length ? `aria-activedescendant="pi-${pl.hl}"` : ''}><button class="ibtn pal-close" data-a="closePalette" aria-label="Close" title="Close">${ic('x', 16)}<kbd>Esc</kbd></button></div>
-    <p class="hint" style="margin:6px 16px" translate="no">${esc(D().ws.name)} · ${esc(D().ws.url)}</p>
+    <p class="hint pal-context" title="${esc(D().ws.name)} · ${esc(D().ws.url)}" translate="no">${esc(D().ws.name)} · ${esc(D().ws.url)}</p>
     ${
       pl.mode === 'search'
-        ? `<div class="pal-scope" role="tablist">${[
-            ['all', 'All', 'layers'],
-            ['tasks', 'Tasks', 'circle-check'],
-            ['projects', 'Projects', 'folder'],
-            ['people', 'People', 'users'],
-            ['files', 'Files', 'paperclip'],
-            ['comments', 'Comments', 'message-square'],
-            ['knowledge', 'Knowledge base', 'library-big'],
-            ['bookmarks', 'Bookmarks', 'bookmark'],
-            ['whiteboards', 'Whiteboards', 'panels-top-left'],
-          ]
+        ? `<div class="pal-scope-picker"><label class="sr" for="pal-scope">${isRussian() ? 'Область поиска' : 'Search scope'}</label><select id="pal-scope" data-in="palScope">${scopes.map(([k, n]) => `<option value="${k}" ${(pl.scope || 'all') === k ? 'selected' : ''}>${esc(tr(n))}</option>`).join('')}</select></div><div class="pal-scope" role="tablist">${scopes
             .map(([k, n, i]) => `<button role="tab" class="${pl.scope === k ? 'on' : ''}" data-a="palScope" data-v="${k}">${ic(i, 12)}${n}</button>`)
             .join('')}</div>`
         : ''
     }
-    ${sourceSearchStatus(pl, pl.mode === 'search' ? pl.scope || 'all' : 'all')}
+    <div class="pal-results" id="pal-results" role="region" aria-label="${esc(tr('Search results'))}" tabindex="0">${sourceSearchStatus(pl, pl.mode === 'search' ? pl.scope || 'all' : 'all')}
     <div class="pal-list" id="pal-list" role="listbox">${
       flat.length
         ? groups
@@ -324,7 +325,7 @@ export function paletteHtml() {
                 `<div class="pal-group">${g.name ? `<div class="pal-sec">${g.name}</div>` : ''}${g.items
                   .map(it => {
                     const i = idx++;
-                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${it.highlightSub ? highlightKnowledge(it.sub, pl.q.trim()) : esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
+                    return `<div class="pi ${i === pl.hl ? 'hl' : ''}" id="pi-${i}" role="option" aria-selected="${i === pl.hl}" tabindex="-1" data-a="palRun" data-i="${i}" data-hover-i="${i}">${it.html || ic(it.icon || 'circle', 15)}<span class="pi-main"><span class="pi-name trunc" ${it.authoredName ? 'translate="no"' : ''}>${hl(it.name, pl.q.trim())}</span>${it.sub ? `<span class="sub" ${it.authoredSub ? 'translate="no"' : ''}>${it.highlightSub ? highlightKnowledge(it.sub, pl.q.trim()) : esc(it.sub)}</span>` : ''}</span><span class="r">${it.r ? `<span class="mono" translate="no">${esc(it.r)}</span>` : ''}${
                       it.kbd ? shortcut(it.kbd) : ''
                     }</span></div>`;
                   })
@@ -334,7 +335,7 @@ export function paletteHtml() {
         : sourceSearchIncomplete(pl, pl.mode === 'search' ? pl.scope || 'all' : 'all')
           ? `<p class="hint" role="status" translate="no">${document.documentElement.lang === 'ru' ? 'Поиск не завершён.' : 'Search is incomplete.'}</p>`
           : `<div class="empty-state sm"><div class="glyph">${ic('search-x', 18)}</div><h2 class="es-h">No results found</h2><p>Try a different keyword, or press Tab to search everything.</p></div>`
-    }</div>
+    }</div></div>
     <div class="pal-f"><span><kbd>↑</kbd><kbd>↓</kbd>navigate</span><span><kbd>↵</kbd>select</span>${pl.mode === 'cmd' ? '<span><kbd>Tab</kbd>search mode</span>' : '<span><kbd>⌫</kbd>back to commands</span>'}<span class="sp" style="flex:1"></span><span>${LOGO(12)}</span></div>
   </div>`;
 }

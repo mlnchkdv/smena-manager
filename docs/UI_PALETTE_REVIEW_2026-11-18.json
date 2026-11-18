@@ -1,0 +1,565 @@
+{
+  "date": "2026-11-18",
+  "productionBaselineCommit": "77e422c86e835b7b3f3029ae2e24d58225c70a55",
+  "environment": "Isolated synthetic Layout QA workspace, Chromium viewport emulation",
+  "productionBefore": [
+    {
+      "kind": "search-320",
+      "box": {
+        "bottom": 357.34375,
+        "height": 349.34375,
+        "right": 304,
+        "width": 288,
+        "x": 16,
+        "y": 8
+      },
+      "close": {
+        "bottom": 54.5,
+        "height": 44,
+        "right": 375.671875,
+        "width": 44,
+        "x": 331.671875,
+        "y": 10.5
+      },
+      "header": {
+        "bottom": 58,
+        "height": 50,
+        "overflow": 72,
+        "right": 304,
+        "width": 288,
+        "x": 16,
+        "y": 8
+      },
+      "input": {
+        "bottom": 57,
+        "height": 49,
+        "right": 321.671875,
+        "width": 202.5,
+        "x": 119.171875,
+        "y": 8
+      },
+      "list": {
+        "bottom": 357.34375,
+        "height": 144.9453125,
+        "overflow": 0,
+        "right": 304,
+        "scrollHeight": 145,
+        "width": 288,
+        "x": 16,
+        "y": 212.3984375
+      },
+      "options": 2,
+      "overflow": 72,
+      "rootOverflow": 0,
+      "scope": {
+        "bottom": 212.3984375,
+        "height": 125,
+        "right": 304,
+        "width": 288,
+        "x": 16,
+        "y": 87.3984375
+      },
+      "tabs": [
+        {
+          "bottom": 119.3984375,
+          "height": 24,
+          "right": 86.3046875,
+          "width": 58.3046875,
+          "x": 28,
+          "y": 95.3984375
+        },
+        {
+          "bottom": 119.3984375,
+          "height": 24,
+          "right": 168.96875,
+          "width": 78.6640625,
+          "x": 90.3046875,
+          "y": 95.3984375
+        },
+        {
+          "bottom": 119.3984375,
+          "height": 24,
+          "right": 259.78125,
+          "width": 86.8125,
+          "x": 172.96875,
+          "y": 95.3984375
+        },
+        {
+          "bottom": 147.3984375,
+          "height": 24,
+          "right": 97.453125,
+          "width": 69.453125,
+          "x": 28,
+          "y": 123.3984375
+        },
+        {
+          "bottom": 147.3984375,
+          "height": 24,
+          "right": 177.9453125,
+          "width": 76.4921875,
+          "x": 101.453125,
+          "y": 123.3984375
+        },
+        {
+          "bottom": 175.3984375,
+          "height": 24,
+          "right": 142.3046875,
+          "width": 114.3046875,
+          "x": 28,
+          "y": 151.3984375
+        },
+        {
+          "bottom": 175.3984375,
+          "height": 24,
+          "right": 254,
+          "width": 107.6953125,
+          "x": 146.3046875,
+          "y": 151.3984375
+        },
+        {
+          "bottom": 203.3984375,
+          "height": 24,
+          "right": 120.421875,
+          "width": 92.421875,
+          "x": 28,
+          "y": 179.3984375
+        },
+        {
+          "bottom": 203.3984375,
+          "height": 24,
+          "right": 202.65625,
+          "width": 78.234375,
+          "x": 124.421875,
+          "y": 179.3984375
+        }
+      ],
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    },
+    {
+      "kind": "search-short",
+      "box": {
+        "bottom": 232,
+        "height": 224,
+        "right": 374,
+        "width": 358,
+        "x": 16,
+        "y": 8
+      },
+      "close": {
+        "bottom": 52,
+        "height": 44,
+        "right": 375.671875,
+        "width": 44,
+        "x": 331.671875,
+        "y": 8
+      },
+      "header": {
+        "bottom": 53,
+        "height": 45,
+        "overflow": 2,
+        "right": 374,
+        "width": 358,
+        "x": 16,
+        "y": 8
+      },
+      "input": {
+        "bottom": 52,
+        "height": 44,
+        "right": 321.671875,
+        "width": 202.5,
+        "x": 119.171875,
+        "y": 8
+      },
+      "list": {
+        "bottom": 232,
+        "height": 52.6015625,
+        "overflow": 0,
+        "right": 374,
+        "scrollHeight": 145,
+        "width": 358,
+        "x": 16,
+        "y": 179.3984375
+      },
+      "options": 2,
+      "overflow": 2,
+      "rootOverflow": 0,
+      "scope": {
+        "bottom": 179.3984375,
+        "height": 97,
+        "right": 374,
+        "width": 358,
+        "x": 16,
+        "y": 82.3984375
+      },
+      "tabs": [
+        {
+          "bottom": 114.3984375,
+          "height": 24,
+          "right": 86.3046875,
+          "width": 58.3046875,
+          "x": 28,
+          "y": 90.3984375
+        },
+        {
+          "bottom": 114.3984375,
+          "height": 24,
+          "right": 168.96875,
+          "width": 78.6640625,
+          "x": 90.3046875,
+          "y": 90.3984375
+        },
+        {
+          "bottom": 114.3984375,
+          "height": 24,
+          "right": 259.78125,
+          "width": 86.8125,
+          "x": 172.96875,
+          "y": 90.3984375
+        },
+        {
+          "bottom": 114.3984375,
+          "height": 24,
+          "right": 333.234375,
+          "width": 69.453125,
+          "x": 263.78125,
+          "y": 90.3984375
+        },
+        {
+          "bottom": 142.3984375,
+          "height": 24,
+          "right": 104.4921875,
+          "width": 76.4921875,
+          "x": 28,
+          "y": 118.3984375
+        },
+        {
+          "bottom": 142.3984375,
+          "height": 24,
+          "right": 222.796875,
+          "width": 114.3046875,
+          "x": 108.4921875,
+          "y": 118.3984375
+        },
+        {
+          "bottom": 142.3984375,
+          "height": 24,
+          "right": 334.4921875,
+          "width": 107.6953125,
+          "x": 226.796875,
+          "y": 118.3984375
+        },
+        {
+          "bottom": 170.3984375,
+          "height": 24,
+          "right": 120.421875,
+          "width": 92.421875,
+          "x": 28,
+          "y": 146.3984375
+        },
+        {
+          "bottom": 170.3984375,
+          "height": 24,
+          "right": 202.65625,
+          "width": 78.234375,
+          "x": 124.421875,
+          "y": 146.3984375
+        }
+      ],
+      "viewport": {
+        "height": 320,
+        "width": 390
+      }
+    },
+    {
+      "kind": "search-desktop",
+      "box": {
+        "bottom": 420.5,
+        "height": 328.34375,
+        "right": 1003,
+        "width": 640,
+        "x": 363,
+        "y": 92.15625
+      },
+      "close": {
+        "bottom": 138.65625,
+        "height": 44,
+        "right": 989,
+        "width": 69.8046875,
+        "x": 919.1953125,
+        "y": 94.65625
+      },
+      "header": {
+        "bottom": 142.15625,
+        "height": 50,
+        "overflow": 0,
+        "right": 1003,
+        "width": 640,
+        "x": 363,
+        "y": 92.15625
+      },
+      "input": {
+        "bottom": 141.15625,
+        "height": 49,
+        "right": 909.1953125,
+        "width": 443.0234375,
+        "x": 466.171875,
+        "y": 92.15625
+      },
+      "list": {
+        "bottom": 385.5,
+        "height": 144.9453125,
+        "overflow": 0,
+        "right": 1003,
+        "scrollHeight": 145,
+        "width": 640,
+        "x": 363,
+        "y": 240.5546875
+      },
+      "options": 2,
+      "overflow": 0,
+      "rootOverflow": 0,
+      "scope": {
+        "bottom": 240.5546875,
+        "height": 69,
+        "right": 1003,
+        "width": 640,
+        "x": 363,
+        "y": 171.5546875
+      },
+      "tabs": [
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 433.3046875,
+          "width": 58.3046875,
+          "x": 375,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 515.96875,
+          "width": 78.6640625,
+          "x": 437.3046875,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 606.78125,
+          "width": 86.8125,
+          "x": 519.96875,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 680.234375,
+          "width": 69.453125,
+          "x": 610.78125,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 760.7265625,
+          "width": 76.4921875,
+          "x": 684.234375,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 879.03125,
+          "width": 114.3046875,
+          "x": 764.7265625,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 203.5546875,
+          "height": 24,
+          "right": 990.7265625,
+          "width": 107.6953125,
+          "x": 883.03125,
+          "y": 179.5546875
+        },
+        {
+          "bottom": 231.5546875,
+          "height": 24,
+          "right": 467.421875,
+          "width": 92.421875,
+          "x": 375,
+          "y": 207.5546875
+        },
+        {
+          "bottom": 231.5546875,
+          "height": 24,
+          "right": 549.65625,
+          "width": 78.234375,
+          "x": 471.421875,
+          "y": 207.5546875
+        }
+      ],
+      "viewport": {
+        "height": 768,
+        "width": 1366
+      }
+    },
+    {
+      "kind": "workspace-320",
+      "box": {
+        "bottom": 291.34375,
+        "height": 283.34375,
+        "right": 304,
+        "width": 288,
+        "x": 16,
+        "y": 8
+      },
+      "close": {
+        "bottom": 54.5,
+        "height": 44,
+        "right": 472.8671875,
+        "width": 44,
+        "x": 428.8671875,
+        "y": 10.5
+      },
+      "header": {
+        "bottom": 58,
+        "height": 50,
+        "overflow": 169,
+        "right": 304,
+        "width": 288,
+        "x": 16,
+        "y": 8
+      },
+      "input": {
+        "bottom": 57,
+        "height": 49,
+        "right": 418.8671875,
+        "width": 202.5,
+        "x": 216.3671875,
+        "y": 8
+      },
+      "list": {
+        "bottom": 291.34375,
+        "height": 203.9453125,
+        "overflow": 0,
+        "right": 304,
+        "scrollHeight": 204,
+        "width": 288,
+        "x": 16,
+        "y": 87.3984375
+      },
+      "options": 3,
+      "overflow": 169,
+      "rootOverflow": 0,
+      "scope": null,
+      "tabs": [],
+      "viewport": {
+        "height": 567,
+        "width": 320
+      }
+    }
+  ],
+  "states": 53,
+  "configurations": [
+    ["ru", "light", "comfortable"],
+    ["en", "dark", "compact"]
+  ],
+  "modes": ["commands", "workspace search", "workspace switching"],
+  "viewports": [
+    {
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "width": 1024,
+      "height": 768
+    },
+    {
+      "width": 844,
+      "height": 390
+    },
+    {
+      "width": 641,
+      "height": 768
+    },
+    {
+      "width": 640,
+      "height": 768
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 320,
+      "height": 567
+    },
+    {
+      "width": 390,
+      "height": 320
+    }
+  ],
+  "maxHorizontalOverflowPx": 0,
+  "mobileCloseMinimumPx": 44,
+  "headerHeightPx": 50,
+  "mobileScopeRowHeightPx": 61,
+  "mobileMinimumInputWidthPx": 179,
+  "shortSearchAvailableHeightPx": [
+    {
+      "config": ["ru", "light", "comfortable"],
+      "height": 163.609375
+    },
+    {
+      "config": ["ru", "light", "comfortable"],
+      "height": 163.609375
+    },
+    {
+      "config": ["en", "dark", "compact"],
+      "height": 163.609375
+    },
+    {
+      "config": ["en", "dark", "compact"],
+      "height": 163.609375
+    }
+  ],
+  "axe": {
+    "scans": 8,
+    "violations": []
+  },
+  "behavior": {
+    "keyboardScopeSelection": true,
+    "queryAndCategorySurviveResize": true,
+    "escapeRestoresOpener": true,
+    "tabContainedInAllModes": true,
+    "longUnbrokenWorkspaceContext": true,
+    "loadingAndCatalogErrorFeedbackScrollable": true,
+    "workspaceRecordsUnchanged": true,
+    "nativeCloseEnterWorks": true
+  },
+  "pageErrors": [],
+  "serverTests": {
+    "passed": 9,
+    "failed": 0
+  },
+  "additionalStates": 8,
+  "totalStates": 61,
+  "viewer": {
+    "states": 6,
+    "modes": ["commands", "workspace search", "workspace switching"],
+    "viewports": [
+      [320, 567],
+      [1366, 768]
+    ],
+    "maxHorizontalOverflowPx": 0
+  },
+  "asyncCatalog": {
+    "states": 2,
+    "delayMs": 1200,
+    "focusAndScopePreserved": true
+  }
+}

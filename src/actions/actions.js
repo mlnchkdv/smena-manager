@@ -1196,12 +1196,14 @@ A.closePalette = () => {
   S.ui.palette = null;
   render();
 };
-A.palScope = el => {
-  S.ui.palette.scope = el.dataset.v;
+function setPaletteScope(value, focusSelector) {
+  S.ui.palette.scope = value;
   S.ui.palette.hl = 0;
   render();
-  $('#pal-in')?.focus();
-};
+  $(focusSelector)?.focus();
+}
+A.palScope = el => setPaletteScope(el.dataset.v, '#pal-in');
+IN.palScope = el => setPaletteScope(el.value, '#pal-scope');
 IN.palQ = el => {
   S.ui.palette.q = el.value;
   S.ui.palette.hl = 0;

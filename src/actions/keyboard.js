@@ -94,7 +94,7 @@ document.addEventListener('keydown', e => {
                 : !overlayAboveDiagram()
                   ? $('.inbox-narrow.has-selection .inbox-prev,.graph-page.is-focused,.project-whiteboard.is-focused')
                   : null;
-    if (!pl && trapSurfaceTab(e, box)) return;
+    if (trapSurfaceTab(e, box)) return;
   }
   // Arrow keys move through open menus and pickers.
   if (S.ui.pop && !pl && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End')) {
@@ -109,6 +109,7 @@ document.addEventListener('keydown', e => {
     }
   }
   if (pl) {
+    if (t.matches('button,select') && e.key !== 'Escape') return;
     const n = pl._flat?.length || 0;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -130,9 +131,9 @@ document.addEventListener('keydown', e => {
       A.closePalette();
       return;
     }
-    if (e.key === 'Tab') {
+    if (e.key === 'Tab' && t.id === 'pal-in' && !e.shiftKey && pl.mode === 'cmd') {
       e.preventDefault();
-      pl.mode = pl.mode === 'cmd' ? 'search' : 'cmd';
+      pl.mode = 'search';
       pl.hl = 0;
       render();
       return;

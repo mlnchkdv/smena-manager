@@ -502,7 +502,7 @@ export function afterRender() {
   revealActiveSetting();
   $$('textarea[data-autosize]').forEach(autosize);
   const pal = $('#pal-in');
-  if (pal && document.activeElement !== pal && !S.ui.pop) pal.focus();
+  if (pal && !S.ui.pop && (!document.activeElement?.closest('.palette') || !document.activeElement.getClientRects().length)) pal.focus();
   if ((S.ui.route === 'project' && S.ui.params.tab === 'timeline') || S.ui.route === 'timeline') {
     void import('../views/timeline.js').then(module => module.tlAfter());
   }
