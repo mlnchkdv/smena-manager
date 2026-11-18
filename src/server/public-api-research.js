@@ -4,6 +4,22 @@ import { researchError, researchUuid } from '../shared/research.js';
 import { integrationRegistry, applyIntegrationMemberAccess, integrationError } from './integration-registry.js';
 import { knowledgeActor } from './knowledge-access.js';
 
+const canReadEvidence = integration =>
+  integration.scopes.includes('files:read') && integration.policy.uploadsEnabled && process.env.SMENA_PUBLIC_API_UPLOADS_ENABLED !== 'false';
+
+function scopeResearchEvidence(request, result) {
+  if (!result.record || canReadEvidence(request.integration)) return result;
+  const { record } = result;
+  const data = { ...record.data, artifacts: [] };
+  if (data.metrics)
+    data.metrics = data.metrics.map(metric => {
+      const measurement = { ...metric };
+      delete measurement.evidenceId;
+      return measurement;
+    });
+  return { ...result, record: { ...record, data } };
+}
+
 const authorizeWrite = (request, commands) => async database => {
   const active = applyIntegrationMemberAccess(
     await integrationRegistry.verify(request.integrationToken),
@@ -11,8 +27,7 @@ const authorizeWrite = (request, commands) => async database => {
   );
   if (!active.scopes.includes('research:write') || !active.policy.writeEnabled || process.env.SMENA_PUBLIC_API_WRITE_ENABLED === 'false')
     throw integrationError('INTEGRATION_WRITE_DISABLED', 403);
-  if (commands.some(command => command.record?.data?.artifacts?.length) && (!active.scopes.includes('files:read') || !active.policy.uploadsEnabled))
-    throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
+  if (commands.some(command => command.record?.data?.artifacts?.length) && !canReadEvidence(active)) throw integrationError('INTEGRATION_SCOPE_FORBIDDEN', 403);
 };
 
 export function registerPublicApiResearch(router) {
@@ -52,12 +67,12 @@ export function registerPublicApiResearch(router) {
   router.get(
     root + '/:project/records/:id',
     read,
-    route(async (req, res) => res.json(await researchStore.read(req.params.project, req.user, [], { id: req.params.id }))),
+    route(async (req, res) => res.json(scopeResearchEvidence(req, await researchStore.read(req.params.project, req.user, [], { id: req.params.id })))),
   );
   router.get(
     root + '/:project/operations/:operation',
     read,
-    route(async (req, res) => res.json(await researchStore.operation(req.params.project, req.params.operation, req.user))),
+    route(async (req, res) => res.json(scopeResearchEvidence(req, await researchStore.operation(req.params.project, req.params.operation, req.user)))),
   );
   router.post(
     root + '/:project/commands',
@@ -66,7 +81,7 @@ export function registerPublicApiResearch(router) {
       if (!req.body || !researchUuid(req.get('Idempotency-Key')) || (req.body.operationId && req.body.operationId !== req.get('Idempotency-Key')))
         throw researchError();
       const command = { ...req.body, operationId: req.get('Idempotency-Key') };
-      res.json(await researchStore.command(req.params.project, command, req.user, [], authorizeWrite(req, [command])));
+      res.json(scopeResearchEvidence(req, await researchStore.command(req.params.project, command, req.user, [], authorizeWrite(req, [command]))));
     }),
   );
   router.post(
