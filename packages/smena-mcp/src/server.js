@@ -57,7 +57,7 @@ export function createMcpServer(client, journal = new OperationJournal()) {
     tags: z.array(z.string().max(180)).max(100).optional(),
     aliases: z.array(z.string().max(180)).max(100).optional(),
     type_id: id.optional(),
-    properties: z.record(z.union([z.string().max(2000), z.number(), z.boolean()])).optional(),
+    properties: z.record(z.string(), z.union([z.string().max(2000), z.number(), z.boolean()])).optional(),
   };
   tools.push(
     [
@@ -106,7 +106,7 @@ export function createMcpServer(client, journal = new OperationJournal()) {
             kind: z.enum(['observation', 'source', 'dataset', 'experiment', 'run', 'protocol', 'article', 'review', 'handoff']),
             title: z.string().min(1).max(240),
             body: z.string().max(64000).optional(),
-            data: z.record(z.unknown()).optional(),
+            data: z.record(z.string(), z.unknown()).optional(),
             tags: z.array(z.string().max(80)).max(30).optional(),
           })
           .optional(),
@@ -131,7 +131,7 @@ export function createMcpServer(client, journal = new OperationJournal()) {
                 kind: z.string(),
                 title: z.string().max(240),
                 body: z.string().max(64000).optional(),
-                data: z.record(z.unknown()).optional(),
+                data: z.record(z.string(), z.unknown()).optional(),
                 tags: z.array(z.string()).optional(),
               }),
             }),
