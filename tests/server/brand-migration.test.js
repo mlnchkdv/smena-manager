@@ -19,11 +19,11 @@ test('legacy workspace branding migrates without mutating the stored snapshot', 
 
   assert.notEqual(migrated, legacy);
   assert.equal(legacy.ws.name, 'Gr8r Studio');
-  assert.deepEqual(migrated.ws, { name: 'Smena Manager', url: 'smena-manager' });
-  assert.equal(migrated.workspace.name, 'Smena Manager');
-  assert.equal(migrated.workspaces[0].name, 'Smena Manager');
+  assert.deepEqual(migrated.ws, { name: 'smena.team', url: 'smena-manager' });
+  assert.equal(migrated.workspace.name, 'smena.team');
+  assert.equal(migrated.workspaces[0].name, 'smena.team');
   assert.equal(migrated.workspaces[1].name, 'Personal');
   assert.equal(migrated.members[0].email, 'hello@example.com');
-  assert.equal(migrated.projects[0].desc, 'Refresh smena-manager.app');
-  assert.equal(migrated.sessions[0].dev, 'iPhone · Smena Manager');
+  assert.equal(migrated.projects[0].desc, 'Refresh smena.team');
+  assert.equal(migrated.sessions[0].dev, 'iPhone · smena.team');
 });

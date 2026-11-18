@@ -1,4 +1,4 @@
-import { PRODUCT_NAME } from './product.js';
+import { PRODUCT_NAME, PRODUCT_HOST } from './product.js';
 
 const LEGACY_NAME = 'Gr8r Studio';
 const LEGACY_SLUG = 'gr8rstudio';
@@ -20,10 +20,10 @@ export function migrateLegacyWorkspaceBrand(value) {
     }
   }
   for (const project of data.projects || []) {
-    if (typeof project.desc === 'string') project.desc = project.desc.replaceAll('gr8rstudio.com', 'smena-manager.app');
+    if (typeof project.desc === 'string') project.desc = project.desc.replaceAll('gr8rstudio.com', PRODUCT_HOST);
   }
   for (const session of data.sessions || []) {
-    if (typeof session.dev === 'string') session.dev = session.dev.replaceAll('Gr8r app', 'Smena Manager');
+    if (typeof session.dev === 'string') session.dev = session.dev.replaceAll('Gr8r app', PRODUCT_NAME);
   }
 
   return data;
