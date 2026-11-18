@@ -11,7 +11,7 @@ export function renderPublicPage(value, { fetchResource = fetchPublicRenderResou
     const env = Object.fromEntries(
       ['PATH', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'HOME', 'PLAYWRIGHT_BROWSERS_PATH'].filter(key => process.env[key]).map(key => [key, process.env[key]]),
     );
-    if (process.env.SMENA_VPS_MANAGED === '1' && !env.PLAYWRIGHT_BROWSERS_PATH) env.PLAYWRIGHT_BROWSERS_PATH = '/var/lib/smena-manager/browsers';
+    if (process.env.SMENA_VPS_MANAGED === '1' && !env.PLAYWRIGHT_BROWSERS_PATH) env.PLAYWRIGHT_BROWSERS_PATH = '/var/cache/smena-capture';
     const child = fork(new URL('./bookmark-render-worker.js', import.meta.url), [], {
       env,
       cwd: tmpdir(),

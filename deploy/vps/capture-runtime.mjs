@@ -18,7 +18,7 @@ export async function provisionCaptureRuntime(stage, node, run) {
   }
   const cli = path.join(stage, 'node_modules/playwright/cli.js');
   if (installed !== version) run(node, [cli, 'install-deps', 'chromium']);
-  const cache = '/var/lib/smena-manager/browsers';
+  const cache = '/var/cache/smena-capture';
   await fs.mkdir(cache, { recursive: true, mode: 0o700 });
   const info = await fs.lstat(cache);
   if (!info.isDirectory() || (await fs.realpath(cache)) !== cache) throw new Error('Unsafe capture browser path.');
