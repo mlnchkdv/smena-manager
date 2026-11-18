@@ -1,7 +1,8 @@
 /* ---------- WORKSPACE OVERVIEW ---------- */
 import '../styles/portfolio.css';
 import { appLocationPath } from '../shared/app-location.js';
-import { esc, fmtDate, iso } from '../core/utils.js';
+import { esc, fmtDate } from '../core/utils.js';
+import { calendarDate } from '../shared/calendar-time.js';
 import { ic } from '../core/icons.js';
 import { STATUSES } from '../core/constants.js';
 import { D, S, allTasks, canSee, mem, pColor, visibleProjects } from '../core/store.js';
@@ -84,7 +85,7 @@ export function pageOverview() {
       .filter(p => S.ui.portfolioScope === 'all' || (S.ui.portfolioScope === 'complete' ? p.status === 'complete' : p.status !== 'complete')),
     projectIds = new Set(projects.map(p => p.id)),
     all = allTasks().filter(task => projectIds.has(task.project)),
-    today = iso(new Date());
+    today = calendarDate(new Date(), S.prefs.tz);
   const work = portfolioWork(projects, all, today);
   const filtered = findPortfolioRows(work.rows, S.ui.portfolioQuery, S.ui.portfolioAttention === 'yes', id => mem(id)?.name);
   const pageKey = 'portfolio:' + JSON.stringify([S.ui.portfolioScope, S.ui.portfolioQuery, S.ui.portfolioAttention]);
