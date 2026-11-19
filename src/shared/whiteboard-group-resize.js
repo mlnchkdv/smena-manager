@@ -1,7 +1,9 @@
 import { whiteboardBounds, validWhiteboard } from './project-whiteboard.js';
-import { whiteboardSelectionNodes } from './whiteboard-selection.js';
+import { expandWhiteboardSelection, whiteboardSelectionNodes } from './whiteboard-selection.js';
 export function groupResizeNodes(board, ids, contents = false) {
-  return contents ? whiteboardSelectionNodes(board, ids) : board.nodes.filter(node => ids.includes(node.id));
+  if (contents) return whiteboardSelectionNodes(board, ids);
+  const selected = expandWhiteboardSelection(board, ids);
+  return board.nodes.filter(node => selected.includes(node.id));
 }
 export function resizeWhiteboardGroup(board, ids, direction, dx, dy, { contents = false, lockAspect = true } = {}) {
   const nodes = groupResizeNodes(board, ids, contents);

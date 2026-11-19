@@ -10,6 +10,7 @@ export function jsonCanvasExportLosses(board) {
     ...(board.nodes.some(node => node.media?.image) ? ['imageEdits'] : []),
     ...(board.nodes.some(node => node.type === 'shape') ? ['shapes'] : []),
     ...(board.nodes.some(node => node.sequence != null) ? ['frameOrder'] : []),
+    ...(board.groups?.length ? ['cardGroups'] : []),
     ...(board.edges.some(edge => edge.style && edge.style !== 'solid') ? ['lineStyles'] : []),
     ...(board.edges.some(edge => ['from', 'to'].some(side => whiteboardEdgeEnd(edge, side) === 'dot')) ? ['dotEndings'] : []),
   ];

@@ -12,6 +12,9 @@ import {
   copyWhiteboardSelection,
   pasteWhiteboardSelection,
   arrangeWhiteboardSelection,
+  expandWhiteboardSelection,
+  groupWhiteboardSelection,
+  ungroupWhiteboardSelection,
 } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -50,6 +53,7 @@ import { openModal, closeModal } from '../overlays/modals.js';
 import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { whiteboardEdges, whiteboardCard } from '../views/project-whiteboard.js';
+import { savedWhiteboardGroups } from '../ui/whiteboard-group-selection.js';
 import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
@@ -180,16 +184,16 @@ const activeModal = () => {
     p = current();
   return m?.type === 'whiteboardTool' && p?.id === m.project && m.scope === whiteboardScope(p.id) ? m : null;
 };
-export function whiteboardCommand(edit, restoreToken, replaceBaseHash, commit) {
+export function whiteboardCommand(change, restoreToken, replaceBaseHash, commit) {
   const p = current();
   if (!editable(p)) {
     toast(T('Editing is unavailable. Check access or synchronization.', 'Редактирование недоступно. Проверьте доступ и синхронизацию.'), { kind: 'err' });
     return false;
   }
   const before = structuredClone(whiteboardOf(p)),
-    next = structuredClone(before),
+    next = structuredClone(typeof change === 'function' ? before : change),
     state = whiteboardState();
-  edit(next);
+  if (typeof change === 'function') change(next);
   if (same(before, next)) return true;
   if (!validWhiteboard(next)) {
     toast(T('Board limit or invalid values. Use up to 200 cards and 400 connections.', 'Лимит холста или неверные значения. До 200 карточек и 400 связей.'), {
@@ -473,11 +477,18 @@ export function insertWhiteboardMaterials(keys, commit, at) {
 const command = whiteboardCommand;
 const selectedIds = () => {
   const s = whiteboardState();
-  return (s.selection?.length ? s.selection : s.selected ? [s.selected] : []).filter(id => whiteboardOf(current()).nodes.some(n => n.id === id));
+  return expandWhiteboardSelection(whiteboardOf(current()), s.selection?.length ? s.selection : s.selected ? [s.selected] : []);
 };
 function selectNodes(state, ids, active = ids[0] || '') {
-  Object.assign(state, { selected: active, selection: ids, selectedEdge: '' });
-  if (ids.length < 2) state.resizeSelection = false;
+  const selection = expandWhiteboardSelection(whiteboardOf(current()), ids);
+  Object.assign(state, { selected: selection.includes(active) ? active : selection[0] || '', selection, selectedEdge: '' });
+  if (selection.length < 2) state.resizeSelection = false;
+}
+function toggleWhiteboardSelection(id, checked) {
+  const selected = selectedIds();
+  const members = expandWhiteboardSelection(whiteboardOf(current()), [id]);
+  const include = checked ?? !selected.includes(id);
+  selectNodes(whiteboardState(), include ? [...selected, ...members] : selected.filter(member => !members.includes(member)));
 }
 A.whiteboardSelect = (el, event) => {
   const s = whiteboardState(),
@@ -485,11 +496,8 @@ A.whiteboardSelect = (el, event) => {
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
   if (s.reconnect) return finishReconnect(s.reconnect, id);
   if (Date.now() < (s.tapOpenUntil || 0)) return;
-  if (s.multiSelect || event?.shiftKey || event?.ctrlKey || event?.metaKey) {
-    const ids = new Set(selectedIds());
-    ids.has(id) ? ids.delete(id) : ids.add(id);
-    selectNodes(s, [...ids]);
-  } else selectNodes(s, [id]);
+  if (s.multiSelect || event?.shiftKey || event?.ctrlKey || event?.metaKey) toggleWhiteboardSelection(id);
+  else selectNodes(s, [id]);
   render();
 };
 function cardChooserResults(modal) {
@@ -571,10 +579,7 @@ A.whiteboardPickCard = el => {
   else A.whiteboardLocate({ dataset: { id, keepSelection: state.multiSelect ? 'true' : '' } });
 };
 IN.whiteboardSelection = el => {
-  const s = whiteboardState(),
-    ids = new Set(selectedIds());
-  el.checked ? ids.add(el.dataset.id) : ids.delete(el.dataset.id);
-  selectNodes(s, [...ids]);
+  toggleWhiteboardSelection(el.dataset.id, el.checked);
   render();
 };
 A.whiteboardToggleSelection = () => {
@@ -639,6 +644,15 @@ export async function pasteWhiteboardContent(suppliedText) {
   }
 }
 A.whiteboardPaste = () => pasteWhiteboardContent();
+A.whiteboardGroupSelection = () => {
+  const ids = selectedIds();
+  if (command(board => groupWhiteboardSelection(board, ids, uid('wg'))))
+    document.querySelector('[data-a="whiteboardUngroupSelection"]')?.focus({ preventScroll: true });
+};
+A.whiteboardUngroupSelection = () => {
+  const ids = selectedIds();
+  if (command(board => ungroupWhiteboardSelection(board, ids))) document.querySelector('[data-a="whiteboardGroupSelection"]')?.focus({ preventScroll: true });
+};
 A.whiteboardArrange = el => {
   if (!['left', 'right', 'top', 'bottom', 'center-x', 'center-y', 'distribute-x', 'distribute-y'].includes(el.dataset.mode)) return;
   if (command(next => Object.assign(next, arrangeWhiteboardSelection(next, selectedIds(), el.dataset.mode)))) render();
@@ -1157,6 +1171,12 @@ function marqueeAt(g, e, state) {
   });
   return { left, top, width: right - left, height: bottom - top, ids };
 }
+function paintWhiteboardGeometry(board) {
+  const svg = viewport?.querySelector('.whiteboard-edges');
+  if (svg) svg.outerHTML = whiteboardEdges(board);
+  const groups = viewport?.querySelector('.whiteboard-saved-groups');
+  if (groups && board.groups?.length) groups.innerHTML = savedWhiteboardGroups(board);
+}
 function resetPreview() {
   clearMarquee();
   const group = viewport?.querySelector('[data-group-resize-box]');
@@ -1173,8 +1193,7 @@ function resetPreview() {
       el.removeAttribute('data-resizing');
     }
   }
-  const svg = document.querySelector('.whiteboard-edges');
-  if (svg) svg.outerHTML = whiteboardEdges(whiteboardOf(current()));
+  paintWhiteboardGeometry(whiteboardOf(current()));
 }
 function down(e) {
   if (e.button !== 0) return;
@@ -1269,8 +1288,9 @@ function down(e) {
   const canMoveTitle = handle && mode === 'move' && s.zoom >= 0.65 && (!s.multiSelect || selected.includes(handle.dataset.boardDrag));
   if ((moveGroup || canMoveTitle) && !pendingConnection(s) && editable(current())) {
     const nodeId = moveGroup ? (selected.includes(s.selected) ? s.selected : selected[0]) : handle.dataset.boardDrag;
-    const selection = selected.includes(nodeId) ? selected : [nodeId];
-    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), selection);
+    const board = whiteboardOf(current());
+    const selection = selected.includes(nodeId) ? selected : expandWhiteboardSelection(board, [nodeId]);
+    const nodes = whiteboardSelectionNodes(board, selection);
     gesture = {
       kind: 'move',
       nodeId,
@@ -1356,8 +1376,7 @@ function move(e) {
     const box = viewport.querySelector('[data-group-resize-box]'),
       bounds = whiteboardBounds({ nodes: groupResizeNodes(g.next, g.ids, g.contents) });
     if (box) for (const key of ['x', 'y', 'width', 'height']) box.style[{ x: 'left', y: 'top' }[key] || key] = bounds[key] + 'px';
-    const svg = viewport.querySelector('.whiteboard-edges');
-    if (svg) svg.outerHTML = whiteboardEdges(g.next);
+    paintWhiteboardGeometry(g.next);
     return;
   }
   if (g.kind === 'resize') {
@@ -1394,9 +1413,8 @@ function move(e) {
       g.frame = requestAnimationFrame(() => {
         g.frame = null;
         if (gesture !== g) return;
-        const board = whiteboardOf(current()),
-          svg = viewport?.querySelector('.whiteboard-edges');
-        if (svg) svg.outerHTML = whiteboardEdges({ ...board, nodes: board.nodes.map(n => (n.id === g.node.id ? g.next : n)) });
+        const board = whiteboardOf(current());
+        paintWhiteboardGeometry({ ...board, nodes: board.nodes.map(n => (n.id === g.node.id ? g.next : n)) });
       });
     return;
   }
@@ -1439,8 +1457,7 @@ function move(e) {
         if (gesture !== g) return;
         const board = whiteboardOf(current()),
           ids = new Set(g.nodes.map(n => n.id));
-        const svg = viewport?.querySelector('.whiteboard-edges');
-        if (svg) svg.outerHTML = whiteboardEdges({ ...board, nodes: board.nodes.map(n => (ids.has(n.id) ? { ...n, x: n.x + g.dx, y: n.y + g.dy } : n)) });
+        paintWhiteboardGeometry({ ...board, nodes: board.nodes.map(n => (ids.has(n.id) ? { ...n, x: n.x + g.dx, y: n.y + g.dy } : n)) });
       });
   }
 }
@@ -1488,14 +1505,19 @@ function up(e, cancel = false) {
     return;
   }
   if (g.kind === 'groupResize') {
+    const board = whiteboardOf(current());
     if (
       g.scope !== whiteboardState().scope ||
       !g.next ||
+      !same(
+        g.nodes.map(n => n.id),
+        groupResizeNodes(board, g.ids, g.contents).map(n => n.id),
+      ) ||
       g.nodes.some(
         node =>
           !same(
             node,
-            whiteboardOf(current()).nodes.find(n => n.id === node.id),
+            board.nodes.find(n => n.id === node.id),
           ),
       )
     ) {
@@ -1542,6 +1564,10 @@ function up(e, cancel = false) {
   if (g.dx || g.dy) {
     const board = whiteboardOf(current());
     if (
+      !same(
+        g.nodes.map(n => n.id),
+        whiteboardSelectionNodes(board, g.selection).map(n => n.id),
+      ) ||
       g.nodes.some(
         n =>
           !same(

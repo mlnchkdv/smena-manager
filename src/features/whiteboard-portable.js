@@ -107,7 +107,7 @@ A.applyWhiteboardImport = () => {
       m.mode === 'replace' ? 0 : 40,
     );
     if (!result) return toast(T('The combined board exceeds its limits.', 'Объединённый холст превышает лимиты.'), { kind: 'err' });
-    if (whiteboardCommand(next => Object.assign(next, result.board), null, m.mode === 'replace' ? m.data.baseHash : null)) {
+    if (whiteboardCommand(result.board, null, m.mode === 'replace' ? m.data.baseHash : null)) {
       Object.assign(whiteboardState(), { fit: true, selected: '', selection: [] });
       closeModal();
     }
@@ -142,8 +142,8 @@ A.whiteboardExportCanvas = () => {
     confirmDlg({
       title: T('Review export', 'Проверка экспорта'),
       body: T(
-        'JSON Canvas omits PDF pages, media start times, image edits, shapes, frame order, line styles and dot endings. Text and arrow directions remain. Smena JSON preserves all fields. Continue?',
-        'JSON Canvas не переносит страницы PDF, время начала медиа, обрезку и поворот изображений, фигуры, порядок рамок, стили линий и окончания-точки. Текст и направления стрелок сохраняются. Smena JSON сохраняет все поля. Продолжить?',
+        'JSON Canvas omits PDF pages, media start times, image edits, shapes, card groups, frame order, line styles and dot endings. Text and arrow directions remain. Smena JSON preserves all fields. Continue?',
+        'JSON Canvas не переносит страницы PDF, время начала медиа, обрезку и поворот изображений, фигуры, группы карточек, порядок рамок, стили линий и окончания-точки. Текст и направления стрелок сохраняются. Smena JSON сохраняет все поля. Продолжить?',
       ),
       ok: T('Export', 'Экспортировать'),
       run: download,

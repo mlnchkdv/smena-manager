@@ -17,6 +17,7 @@ export const BOARD_LINE_STYLES = ['solid', 'dashed', 'dotted'];
 export const BOARD_ENDINGS = ['none', 'arrow', 'dot'];
 export const WHITEBOARD_PDF_PAGE_VERSION = 6;
 export const WHITEBOARD_IMAGE_VERSION = 7;
+export const WHITEBOARD_GROUP_VERSION = 8;
 export const WHITEBOARD_CARD_LIMIT = 200;
 export const whiteboardEdgeEnd = (edge, side) => edge[side + 'End'] ?? (side === 'to' && edge.arrow ? 'arrow' : 'none');
 export const emptyWhiteboard = () => ({ version: 1, nodes: [], edges: [] });
@@ -27,13 +28,13 @@ const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
   if (
     !object(board) ||
-    ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION, WHITEBOARD_IMAGE_VERSION].includes(board.version) ||
+    ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION, WHITEBOARD_IMAGE_VERSION, WHITEBOARD_GROUP_VERSION].includes(board.version) ||
     !Array.isArray(board.nodes) ||
     !Array.isArray(board.edges)
   )
     return false;
-  if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > WHITEBOARD_CARD_LIMIT || board.edges.length > 400)
-    return false;
+  const keys = ['version', 'nodes', 'edges', ...(board.version >= WHITEBOARD_GROUP_VERSION ? ['groups'] : [])];
+  if (Object.keys(board).some(k => !keys.includes(k)) || board.nodes.length > WHITEBOARD_CARD_LIMIT || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
   const ids = new Set();
   for (const node of board.nodes) {
@@ -92,6 +93,16 @@ export function validWhiteboard(board) {
     if (Object.hasOwn(edge, 'toEnd') && edge.arrow !== (edge.toEnd === 'arrow')) return false;
     edges.add(edge.id);
   }
+  if (Object.hasOwn(board, 'groups')) {
+    const cards = new Set(board.nodes.filter(node => node.type !== 'group').map(node => node.id));
+    if (!Array.isArray(board.groups) || board.groups.length > Math.floor(cards.size / 2)) return false;
+    for (const group of board.groups) {
+      if (!object(group) || !identity(group.id) || ids.has(group.id) || Object.keys(group).some(k => !['id', 'members'].includes(k))) return false;
+      if (!Array.isArray(group.members) || group.members.length < 2 || group.members.length > cards.size) return false;
+      for (const id of group.members) if (!cards.delete(id)) return false;
+      ids.add(group.id);
+    }
+  }
   return true;
 }
 export function whiteboardBounds(board) {
@@ -117,4 +128,8 @@ export function movedWhiteboardNodes(board, id) {
 export function removeWhiteboardNode(board, id) {
   board.nodes = board.nodes.filter(n => n.id !== id);
   board.edges = board.edges.filter(e => e.from !== id && e.to !== id);
+  if (board.groups) {
+    board.groups = board.groups.map(group => ({ ...group, members: group.members.filter(member => member !== id) })).filter(group => group.members.length > 1);
+    if (!board.groups.length) delete board.groups;
+  }
 }

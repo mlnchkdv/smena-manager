@@ -8,6 +8,7 @@ export { whiteboardConnectionText };
 export function whiteboardVersionDiff(current, previous, diff, changedOnly = false) {
   const changes = new Map(diff.rows.filter(row => row.kind === 'card').map(row => [row.id, row]));
   const connections = new Map(diff.rows.filter(row => row.kind === 'connection').map(row => [row.id, row]));
+  const groups = new Map(diff.rows.filter(row => row.kind === 'group').map(row => [row.id, row]));
   const visibleIds = whiteboardDiffVisibleIds(current, previous, diff.rows);
   const all = [...current.nodes, ...previous.nodes].filter(node => !changedOnly || visibleIds.has(node.id));
   const box = whiteboardBounds({ nodes: all });
@@ -28,7 +29,15 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
     const nodes = board.nodes.filter(node => !changedOnly || visibleIds.has(node.id)),
       byId = new Map(board.nodes.map(node => [node.id, node]));
     const shownEdges = board.edges.filter(edge => !changedOnly || changes.has(edge.from) || changes.has(edge.to) || connections.has(edge.id));
-    return `<figure><figcaption>${title}</figcaption><svg viewBox="${bounds}" role="img" aria-label="${title}" class="whiteboard-diff-diagram">${shownEdges
+    const groupOutlines = (board.groups || [])
+      .filter(group => !changedOnly || groups.has(group.id))
+      .map(group => {
+        const { x, y, width, height } = whiteboardBounds({ nodes: group.members.map(id => byId.get(id)) });
+        const color = colors[groups.get(group.id)?.change] || 'var(--accent)';
+        return `<rect x="${x - 6}" y="${y - 6}" width="${width + 12}" height="${height + 12}" rx="8" fill="none" stroke="${color}" stroke-dasharray="5 3" vector-effect="non-scaling-stroke"/>`;
+      })
+      .join('');
+    return `<figure><figcaption>${title}</figcaption><svg viewBox="${bounds}" role="img" aria-label="${title}" class="whiteboard-diff-diagram">${groupOutlines}${shownEdges
       .map(edge => {
         const from = byId.get(edge.from),
           to = byId.get(edge.to),

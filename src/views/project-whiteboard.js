@@ -15,7 +15,8 @@ import { whiteboardPresentationNavigation } from '../ui/whiteboard-presentation.
 import { whiteboardConnectionText } from '../ui/whiteboard-edge-text.js';
 import { whiteboardCurve, whiteboardShapeSvg, whiteboardShapeInsets } from '../shared/whiteboard-diagram.js';
 import { whiteboardOf, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
-import { groupSelectionBox, groupSelectionToolbar } from '../ui/whiteboard-group-selection.js';
+import { groupSelectionBox, groupSelectionToolbar, savedWhiteboardGroups } from '../ui/whiteboard-group-selection.js';
+import { expandWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { whiteboardConnectionControls, whiteboardContext, whiteboardNavigation, whiteboardNavigationHint } from '../ui/whiteboard-context.js';
 import { whiteboardLabel, whiteboardMaterial, whiteboardNavigationMode, whiteboardState, wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 const button = (action, icon, en, ru, extra = '', context = '') =>
@@ -136,8 +137,9 @@ export function projectWhiteboard(project) {
     editable = !state.presentationId && !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
   const navigationMode = whiteboardNavigationMode(state);
   const connectionSource = editable && board.nodes.find(node => node.id === (state.connectFrom || state.reconnect?.from));
-  if (!state.selected) state.selection = [];
-  const selectedIds = (state.selection?.length ? state.selection : state.selected ? [state.selected] : []).filter(id => board.nodes.some(n => n.id === id));
+  const selectedIds = expandWhiteboardSelection(board, state.selected ? (state.selection?.length ? state.selection : [state.selected]) : []);
+  state.selection = selectedIds;
+  if (!selectedIds.includes(state.selected)) state.selected = selectedIds[0] || '';
   const selectionHelp =
     state.outline || navigationMode === 'scroll'
       ? T('Tap cards to add or remove them from the selection.', 'Нажимайте на карточки, чтобы добавить или убрать их из выделения.')
@@ -169,11 +171,11 @@ export function projectWhiteboard(project) {
   }
   ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}" ${state.multiSelect ? 'aria-describedby="whiteboard-multi-help"' : ''}`)}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm whiteboard-view-toggle" data-a="whiteboardToggleOutline" aria-label="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}" title="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}<span>${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</span></button>${state.outline ? '' : `${whiteboardNavigation(state, editable)}`}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-label="${state.focus ? T('Exit focus', 'Выйти из фокуса') : T('Focus', 'Фокус')}" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}<span>${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</span></button><button class="ibtn whiteboard-tools" data-a="openWhiteboardTools" aria-label="${T('More tools', 'Другие инструменты')}" title="${T('More tools', 'Другие инструменты')}">${ic('ellipsis', 16)}</button>
   </div>${state.uploadingMedia ? `<div class="whiteboard-upload-status" role="status">${T('Uploading media…', 'Загружаем материалы…')}<button class="btn btn-ghost btn-sm" data-a="whiteboardUploadProgress">${T('Uploads', 'Загрузки')}</button></div>` : ''}<p id="whiteboard-help" class="sr">${state.outline ? T('Outline: choose a card to read or edit it. Connections are listed below.', 'Список: выберите карточку для чтения или изменения. Связи показаны ниже.') : whiteboardNavigationHint(navigationMode, editable)}</p>
-  ${whiteboardPresentationNavigation(board, state)}${connectionSource ? whiteboardConnectionControls(connectionSource, state.reconnect) : selectedIds.length > 1 ? groupSelectionToolbar(project.id, selectedIds, state, editable) : whiteboardContext(board, state, editable)}${state.multiSelect ? `<p class="${selectedIds.length ? 'sr' : 'whiteboard-multi-hint'}" id="whiteboard-multi-help">${selectionHelp}</p>` : ''}
+  ${whiteboardPresentationNavigation(board, state)}${connectionSource ? whiteboardConnectionControls(connectionSource, state.reconnect) : selectedIds.length > 1 ? groupSelectionToolbar(project.id, board, selectedIds, state, editable) : whiteboardContext(board, state, editable)}${state.multiSelect ? `<p class="${selectedIds.length ? 'sr' : 'whiteboard-multi-hint'}" id="whiteboard-multi-help">${selectionHelp}</p>` : ''}
   ${
     state.outline
       ? `<div class="whiteboard-outline" data-keep="whiteboard-outline:${esc(state.scope)}">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
-      : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})">${whiteboardEdges(board)}${[
+      : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})"><div class="whiteboard-saved-groups" aria-hidden="true">${savedWhiteboardGroups(board)}</div>${whiteboardEdges(board)}${[
           ...board.nodes,
         ]
           .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))

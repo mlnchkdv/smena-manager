@@ -54,6 +54,7 @@ export function whiteboardDiffVisibleIds(current, previous, rows) {
   const cards = new Set(rows.filter(row => row.kind === 'card').map(row => row.id));
   const edges = new Set(rows.filter(row => row.kind === 'connection').map(row => row.id));
   const result = new Set(cards);
+  for (const row of rows) if (row.kind === 'group') for (const group of [row.before, row.after]) for (const id of group?.members || []) result.add(id);
   for (const edge of [...current.edges, ...previous.edges])
     if (cards.has(edge.from) || cards.has(edge.to) || edges.has(edge.id)) {
       result.add(edge.from);

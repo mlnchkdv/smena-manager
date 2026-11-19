@@ -3,6 +3,7 @@ export function compareWhiteboards(current, previous) {
   for (const [field, kind] of [
     ['nodes', 'card'],
     ['edges', 'connection'],
+    ['groups', 'group'],
   ]) {
     const a = new Map((current?.[field] || []).map(n => [n.id, n]));
     const b = new Map((previous?.[field] || []).map(n => [n.id, n]));

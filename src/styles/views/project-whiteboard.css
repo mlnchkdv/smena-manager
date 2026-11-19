@@ -1055,6 +1055,13 @@
   pointer-events: none;
   border: calc(1.5px / var(--whiteboard-zoom, 1)) dashed var(--accent);
 }
+.whiteboard-saved-group {
+  position: absolute;
+  pointer-events: none;
+  outline: calc(1px / var(--whiteboard-zoom, 1)) solid color-mix(in srgb, var(--accent) 56%, transparent);
+  outline-offset: calc(5px / var(--whiteboard-zoom, 1));
+  border-radius: var(--r-sm);
+}
 .whiteboard-group-resize-box > .whiteboard-resize {
   pointer-events: auto;
 }
@@ -1458,13 +1465,23 @@
     white-space: nowrap;
   }
   .whiteboard-selection-number {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     min-width: 3ch;
     border-radius: var(--r-sm);
     background: var(--surface);
     color: var(--accent);
-    text-align: center;
     font-variant-numeric: tabular-nums;
+  }
+  .whiteboard-selection .whiteboard-arrange > summary {
+    width: 44px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .whiteboard-arrange > summary > span {
+    display: none;
   }
   .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > span {
     display: none;
@@ -1474,6 +1491,16 @@
   }
   .whiteboard-connect-prompt {
     display: grid;
+  }
+}
+@media (max-width: 365px) {
+  .whiteboard-selection .whiteboard-group-action[data-a='whiteboardGroupSelection'] {
+    width: 44px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .whiteboard-group-action[data-a='whiteboardGroupSelection'] > span {
+    display: none;
   }
 }
 .whiteboard-card[data-media-preview='true'] .whiteboard-card-content {

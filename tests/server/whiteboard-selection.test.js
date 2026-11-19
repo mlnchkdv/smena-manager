@@ -6,7 +6,15 @@ import {
   arrangeWhiteboardSelection,
   whiteboardSelectionInRect,
   whiteboardSelectionOffset,
+  whiteboardSelectionNodes,
+  expandWhiteboardSelection,
+  groupWhiteboardSelection,
+  ungroupWhiteboardSelection,
 } from '../../src/shared/whiteboard-selection.js';
+import { removeWhiteboardNode, validWhiteboard } from '../../src/shared/project-whiteboard.js';
+import { jsonCanvasExportLosses } from '../../src/shared/whiteboard-portable.js';
+import { compareWhiteboards } from '../../src/shared/whiteboard-comparison.js';
+import { whiteboardDiffVisibleIds } from '../../src/shared/whiteboard-edge.js';
 const card = (id, x, y, type = 'text') => ({
   id,
   type,
@@ -66,4 +74,74 @@ test('drag and keyboard offsets clamp a selection together at board boundaries',
   assert.deepEqual(whiteboardSelectionOffset(nodes, 90, -50), { dx: 20, dy: -15 });
   assert.deepEqual(whiteboardSelectionOffset(nodes, -30, 40), { dx: -30, dy: 40 });
   assert.deepEqual(whiteboardSelectionOffset([], 10, 10), { dx: 0, dy: 0 });
+});
+
+test('explicit membership persists independently of the cards inside a frame or group bounds', () => {
+  const board = { version: 1, nodes: [card('frame', 0, 0, 'group'), card('a', 30, 40), card('b', 700, 200), card('other', 300, 10)], edges: [] };
+  const nodes = structuredClone(board.nodes);
+  groupWhiteboardSelection(board, ['a', 'frame'], 'ignored');
+  assert.equal(board.groups, undefined);
+  groupWhiteboardSelection(board, ['a', 'b'], 'pair');
+  assert.equal(validWhiteboard(JSON.parse(JSON.stringify(board))), true);
+  assert.deepEqual(board.nodes, nodes);
+  const ungrouped = { ...board, nodes, groups: [] };
+  const diff = compareWhiteboards(ungrouped, board);
+  assert.deepEqual(
+    diff.rows.map(({ id, kind, change }) => ({ id, kind, change })),
+    [{ id: 'pair', kind: 'group', change: 'added' }],
+  );
+  assert.deepEqual([...whiteboardDiffVisibleIds(ungrouped, board, diff.rows)], ['a', 'b']);
+  assert.deepEqual(expandWhiteboardSelection(board, ['b']), ['b', 'a']);
+  assert.deepEqual(
+    whiteboardSelectionNodes(board, ['a']).map(n => n.id),
+    ['a', 'b'],
+  );
+  assert.deepEqual(
+    whiteboardSelectionNodes(board, ['frame']).map(n => n.id),
+    ['frame', 'a', 'b', 'other'],
+  );
+
+  const aligned = arrangeWhiteboardSelection(board, ['b', 'other'], 'top');
+  assert.deepEqual(
+    aligned.nodes.map(n => n.y),
+    [0, 10, 170, 10],
+  );
+  assert.equal(arrangeWhiteboardSelection(board, ['a', 'b'], 'left'), board);
+  const fragment = copyWhiteboardSelection(board, ['b']);
+  assert.deepEqual(fragment.groups, [{ id: 'pair', members: ['a', 'b'] }]);
+  assert.deepEqual(jsonCanvasExportLosses(fragment), ['cardGroups']);
+  let seq = 0;
+  const pasted = pasteWhiteboardSelection(board, fragment, prefix => prefix + seq++);
+  assert.deepEqual(pasted.board.groups, [board.groups[0], { id: 'wg2', members: pasted.ids }]);
+
+  groupWhiteboardSelection(board, ['a', 'other'], 'merged');
+  assert.deepEqual(board.groups, [{ id: 'merged', members: ['a', 'other', 'b'] }]);
+  removeWhiteboardNode(board, 'b');
+  assert.deepEqual(board.groups[0].members, ['a', 'other']);
+  const remaining = structuredClone(board.nodes);
+  ungroupWhiteboardSelection(board, ['other']);
+  assert.deepEqual(board.nodes, remaining);
+  assert.equal(board.groups, undefined);
+  assert.equal(validWhiteboard(board), true);
+});
+
+test('board validation rejects ambiguous and missing group members and deleting a member dissolves a pair', () => {
+  const board = { version: 8, nodes: [card('frame', 0, 0, 'group'), ...['a', 'b', 'c', 'd'].map(id => card(id, 0, 0))], edges: [] };
+  const group = { id: 'pair', members: ['a', 'b'] };
+  for (const groups of [
+    [{ ...group, members: ['a'] }],
+    [{ ...group, members: ['a', 'a'] }],
+    [{ ...group, members: ['a', 'unknown'] }],
+    [{ ...group, members: ['a', 'frame'] }],
+    [{ ...group, id: 'a' }],
+    [group, { id: 'pair', members: ['c', 'd'] }],
+    [group, { id: 'another', members: ['a', 'c'] }],
+  ]) {
+    assert.equal(validWhiteboard({ ...board, groups }), false);
+  }
+  board.groups = [group];
+  assert.equal(validWhiteboard({ ...board, version: 7 }), false);
+  removeWhiteboardNode(board, 'b');
+  assert.equal(board.groups, undefined);
+  assert.equal(validWhiteboard(board), true);
 });

@@ -2,7 +2,12 @@ import { ic } from '../core/icons.js';
 import { wbText as T } from '../core/whiteboard-state.js';
 import { whiteboardBounds } from '../shared/project-whiteboard.js';
 import { groupResizeNodes } from '../shared/whiteboard-group-resize.js';
-import { whiteboardSelectionNodes } from '../shared/whiteboard-selection.js';
+import {
+  canGroupWhiteboardSelection,
+  whiteboardGroupsInSelection,
+  whiteboardSelectionNodes,
+  whiteboardSelectionUnits,
+} from '../shared/whiteboard-selection.js';
 import { disclosureAttributes } from './disclosure.js';
 
 const alignments = [
@@ -16,20 +21,42 @@ const alignments = [
   ['distribute-y', 'align-vertical-distribute-center', 'Distribute vertically', 'Равные интервалы по вертикали'],
 ];
 
-export function groupSelectionToolbar(projectId, ids, state, editable) {
-  const count = T(`Selected: ${ids.length}`, `Выбрано: ${ids.length}`);
+export function groupSelectionToolbar(projectId, board, ids, state, editable) {
+  const units = whiteboardSelectionUnits(board, ids);
+  const singleGroup = units.length === 1;
+  const count = singleGroup ? T(`Group · ${ids.length}`, `Группа · ${ids.length}`) : T(`Selected: ${ids.length}`, `Выбрано: ${ids.length}`);
   const button = (action, icon, name, extra = '') =>
     `<button type="button" class="ibtn" data-a="${action}" aria-label="${name}" title="${name}" ${extra}>${ic(icon, 16)}</button>`;
   const menuItem = (action, icon, name, extra = '') => `<button type="button" data-a="${action}" ${extra}>${ic(icon, 16)}<span>${name}</span></button>`;
-  const arrange = editable
-    ? `<details class="ui-menu whiteboard-context-menu whiteboard-arrange" ${disclosureAttributes('whiteboard-arrange:' + projectId)}><summary class="btn btn-secondary btn-sm" aria-label="${T('Arrange cards', 'Выровнять карточки')}">${ic('align-start-vertical', 16)}<span>${T('Align', 'Выровнять')}</span></summary><div>${alignments.map(([mode, icon, en, ru]) => menuItem('whiteboardArrange', icon, T(en, ru), `data-mode="${mode}" ${mode.startsWith('distribute') && ids.length < 3 ? 'disabled' : ''}`)).join('')}${ids.length === 2 ? `<p class="hint">${T('Select at least three cards for equal spacing.', 'Для равных интервалов выделите хотя бы три карточки.')}</p>` : ''}</div></details>`
-    : '';
+  const arrange =
+    editable && units.length > 1
+      ? `<details class="ui-menu whiteboard-context-menu whiteboard-arrange" ${disclosureAttributes('whiteboard-arrange:' + projectId)}><summary class="btn btn-secondary btn-sm" aria-label="${T('Arrange cards', 'Выровнять карточки')}">${ic('align-start-vertical', 16)}<span>${T('Align', 'Выровнять')}</span></summary><div>${alignments.map(([mode, icon, en, ru]) => menuItem('whiteboardArrange', icon, T(en, ru), `data-mode="${mode}" ${mode.startsWith('distribute') && units.length < 3 ? 'disabled' : ''}`)).join('')}${units.length === 2 ? `<p class="hint">${T('Select at least three cards or groups for equal spacing.', 'Для равных интервалов выделите хотя бы три карточки или группы.')}</p>` : ''}</div></details>`
+      : '';
+  const group = T('Group cards', 'Сгруппировать'),
+    ungroup = T('Ungroup cards', 'Разгруппировать');
+  const canGroup = editable && canGroupWhiteboardSelection(board, ids, units);
+  const canUngroup = editable && whiteboardGroupsInSelection(board, ids).length > 0;
+  const primary =
+    canGroup || canUngroup
+      ? `<button class="btn btn-secondary btn-sm whiteboard-group-action" type="button" data-a="${canGroup ? 'whiteboardGroupSelection' : 'whiteboardUngroupSelection'}" title="${canGroup ? group : ungroup}" aria-label="${canGroup ? group : ungroup}">${ic(canGroup ? 'group' : 'ungroup', 16)}<span>${canGroup ? group : ungroup}</span></button>`
+      : '';
   const more = `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-group-tools:' + projectId)}><summary class="ibtn" aria-label="${T('Selection actions', 'Действия с выделением')}">${ic('ellipsis', 16)}</summary><div>${menuItem('whiteboardCopy', 'copy', T('Copy cards', 'Копировать карточки'))}${
     editable
       ? `${!state.outline ? menuItem('whiteboardGroupResize', 'scaling', T('Resize selection by its edges', 'Изменять выделение за края'), `aria-pressed="${!!state.resizeSelection}"`) + menuItem('whiteboardGroupContents', 'square-dashed', T('Also scale frame contents', 'Также менять содержимое рамок'), `aria-pressed="${!!state.resizeContents}"`) : ''}${menuItem('whiteboardEdit', 'pencil', T('Edit active card', 'Изменить активную карточку'))}${menuItem('whiteboardNewEdge', 'move-right', T('Connect cards', 'Связать карточки'))}${menuItem('whiteboardDelete', 'trash-2', T('Remove cards', 'Убрать карточки'))}`
       : ''
-  }</div></details>`;
-  return `<div class="whiteboard-selection" role="group" aria-label="${T('Group selection tools', 'Инструменты группового выделения')}"><span class="whiteboard-selection-count" title="${count}"><span role="status">${count}</span><span class="whiteboard-selection-number" aria-hidden="true">${ids.length}</span></span>${arrange}${button('whiteboardFocusSelection', 'scan', T('Show selected cards', 'Показать выделение'))}${more}${button('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>`;
+  }${canGroup && canUngroup ? menuItem('whiteboardUngroupSelection', 'ungroup', ungroup) : ''}</div></details>`;
+  return `<div class="whiteboard-selection" role="group" aria-label="${T('Group selection tools', 'Инструменты группового выделения')}"><span class="whiteboard-selection-count" title="${count}"><span role="status">${count}</span><span class="whiteboard-selection-number" aria-hidden="true">${singleGroup ? ic('group', 14) : ''}${ids.length}</span></span>${primary}${arrange}${button('whiteboardFocusSelection', 'scan', T('Show selected cards', 'Показать выделение'))}${more}${button('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>`;
+}
+
+export function savedWhiteboardGroups(board) {
+  if (!board.groups?.length) return '';
+  const nodes = new Map(board.nodes.map(node => [node.id, node]));
+  return board.groups
+    .map(group => {
+      const { x, y, width, height } = whiteboardBounds({ nodes: group.members.map(id => nodes.get(id)).filter(Boolean) });
+      return `<div class="whiteboard-saved-group" style="left:${x}px;top:${y}px;width:${width}px;height:${height}px"></div>`;
+    })
+    .join('');
 }
 
 export function groupSelectionBox(board, ids, state, editable) {
@@ -37,7 +64,8 @@ export function groupSelectionBox(board, ids, state, editable) {
   const resize = state.resizeSelection;
   const nodes = resize ? groupResizeNodes(board, ids, !!state.resizeContents) : whiteboardSelectionNodes(board, ids);
   const bounds = whiteboardBounds({ nodes });
-  const label = T('Move selection', 'Переместить выделение');
+  const singleGroup = whiteboardGroupsInSelection(board, ids).some(group => group.members.length === ids.length);
+  const label = singleGroup ? T('Move group', 'Переместить группу') : T('Move selection', 'Переместить выделение');
   const handles = resize
     ? ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']
         .map(
