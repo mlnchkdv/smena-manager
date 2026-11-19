@@ -19,10 +19,11 @@ export function whiteboardContext(board, state, editable) {
     attrs = key =>
       `data-scope="${esc(state.scope)}" data-kind="${kind}" data-id="${esc(item.id)}" data-field="${key}" data-base="${esc(JSON.stringify(item[key]))}"`,
     action = (a, icon, label, kind = 'icon') =>
-      `<button class="${kind === 'primary' ? 'btn btn-secondary btn-sm whiteboard-context-primary' : kind === 'icon' ? 'ibtn' : ''}" data-a="${a}" data-id="${esc(item.id)}" aria-label="${esc(label)}" title="${esc(label)}">${ic(icon, 16)}${kind === 'icon' ? '' : `<span>${esc(label)}</span>`}</button>`,
+      `<button class="${kind === 'primary' ? 'btn btn-secondary btn-sm whiteboard-context-primary' : kind === 'connect' ? 'btn btn-ghost btn-sm whiteboard-context-connect' : kind === 'icon' ? 'ibtn' : ''}" data-a="${a}" data-id="${esc(item.id)}" aria-label="${esc(label)}" title="${esc(label)}">${ic(icon, 16)}${kind === 'icon' ? '' : `<span>${esc(label)}</span>`}</button>`,
     colors = [T('Neutral', 'Нейтральный'), T('Violet', 'Фиолетовый'), T('Blue', 'Синий'), T('Green', 'Зелёный'), T('Amber', 'Янтарный'), T('Rose', 'Розовый')];
   const source = node?.type === 'material' ? whiteboardMaterial(node) : null;
   const media = source?.kind === 'file' ? filePreviewPolicy(source.item).kind : null;
+  const editInline = editable && node && node.type !== 'material';
   const editedImage = media === 'image' && node.media?.image;
   const mediaActions =
     media === 'image'
@@ -55,11 +56,24 @@ export function whiteboardContext(board, state, editable) {
   const secondary =
     !editable || edge
       ? ''
-      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${mediaActions}${action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${action('whiteboardConnectStart', 'move-right', T('Connect card', 'Связать карточку'), 'menu')}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+  const primary = editInline
+    ? action('whiteboardEdit', 'pencil', T('Edit card', 'Редактировать карточку'), 'primary')
+    : node
+      ? action('whiteboardReadCard', media === 'pdf' ? 'file-text' : source?.kind === 'bookmark' ? 'globe' : 'book-open', openLabel, 'primary')
+      : '';
   return `<aside class="whiteboard-context" ${media ? `data-media-kind="${esc(media)}"` : ''} aria-label="${T('Selection tools', 'Инструменты выделения')}" translate="no">
     <span class="whiteboard-context-kind" title="${esc(name)}">${ic(edge ? 'move-right' : media === 'image' ? 'image' : node.type === 'material' ? 'file-text' : node.type === 'group' ? 'square-dashed' : 'sticky-note', 16)}</span>${title}
-    <div class="whiteboard-context-actions">${node ? action('whiteboardReadCard', media === 'pdf' ? 'file-text' : source?.kind === 'bookmark' ? 'globe' : 'book-open', openLabel, 'primary') : ''}${node && !state.outline ? action('whiteboardFocusCard', 'scan', T('Zoom to card', 'Приблизить карточку')) : ''}${materialLink}${color}${edge && editable ? action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'), 'primary') : ''}${secondary}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>
+    <div class="whiteboard-context-actions">${primary}${node && editable ? action('whiteboardConnectStart', 'move-right', T('Connect', 'Связать'), 'connect') : ''}${node && !state.outline ? action('whiteboardFocusCard', 'scan', T('Zoom to card', 'Приблизить карточку')) : ''}${materialLink}${color}${edge && editable ? action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'), 'primary') : ''}${secondary}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>
   </aside>`;
+}
+
+export function whiteboardConnectionControls(source, reconnect) {
+  const name = whiteboardLabel(source);
+  const direction = reconnect?.side === 'from' ? T('To', 'К') : T('From', 'От');
+  const prompt = reconnect ? T('Choose a card for the connection', 'Выберите карточку для связи') : T('Choose a destination card', 'Выберите цель связи');
+  const cancel = T('Cancel connection', 'Отменить связывание');
+  return `<div class="whiteboard-connect-status" role="group" aria-label="${T('Connection tools', 'Инструменты связи')}"><div class="whiteboard-connect-prompt" role="status"><strong>${prompt}</strong><span class="trunc" title="${esc(name)}" translate="no">${direction} «${esc(name)}»</span></div><button type="button" class="btn btn-secondary btn-sm" data-a="whiteboardFindConnectionTarget">${ic('search', 15)}${T('Find target', 'Найти цель')}</button><button type="button" class="ibtn" data-a="whiteboardCancelConnect" title="${cancel}" aria-label="${cancel}">${ic('x', 16)}</button></div>`;
 }
 
 export function whiteboardNavigationHint(mode, editable) {

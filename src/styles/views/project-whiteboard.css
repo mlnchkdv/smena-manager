@@ -353,11 +353,36 @@
 .whiteboard-connect-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 12px;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
+  padding: 5px 8px;
   font-size: var(--fs-sm);
   border-bottom: 1px solid var(--divider);
+  background: var(--accent-soft);
+}
+.whiteboard-connect-status > button {
+  flex-shrink: 0;
+}
+.whiteboard-connect-prompt {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+.whiteboard-connect-prompt > span {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.project-whiteboard[data-connecting='true'] :is([data-board-resize], [data-board-connect], [data-board-reconnect]) {
+  display: none;
+}
+.project-whiteboard[data-connecting='true'] .whiteboard-viewport [data-board-drag] {
+  cursor: crosshair;
 }
 @media (pointer: coarse) {
   .whiteboard-connect {
@@ -1144,7 +1169,7 @@
   .whiteboard-toolbar [data-a='whiteboardUndo'][disabled] {
     display: none;
   }
-  .whiteboard-context :is(.ibtn, .whiteboard-context-primary),
+  .whiteboard-context :is(.ibtn, .whiteboard-context-primary, .whiteboard-context-connect),
   .whiteboard-context-menu > div > button {
     min-width: 44px;
     min-height: 44px;
@@ -1284,10 +1309,11 @@
   }
   .whiteboard-context-color,
   .whiteboard-context-primary > span,
+  .whiteboard-context-connect > span,
   .whiteboard-context-kind {
     display: none;
   }
-  .whiteboard-context-primary {
+  .whiteboard-context :is(.whiteboard-context-primary, .whiteboard-context-connect) {
     padding-inline: 6px;
   }
   .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > span {
@@ -1295,6 +1321,10 @@
   }
   .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > svg {
     display: none;
+  }
+  .whiteboard-connect-status > button {
+    min-width: 44px;
+    min-height: 44px;
   }
   .whiteboard-context:has(.whiteboard-context-title [type='submit']:not([hidden])) {
     flex-wrap: wrap;
@@ -1331,6 +1361,17 @@
   }
   .whiteboard-toolbar :is(.whiteboard-view-toggle, .whiteboard-focus-toggle) > span {
     display: none;
+  }
+}
+@media (max-width: 420px) {
+  .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > span {
+    display: none;
+  }
+  .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > svg {
+    display: block;
+  }
+  .whiteboard-connect-prompt {
+    display: grid;
   }
 }
 .whiteboard-card[data-media-preview='true'] .whiteboard-card-content {

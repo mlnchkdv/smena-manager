@@ -30,6 +30,43 @@
   color: var(--accent);
   background: var(--accent-soft);
 }
+.whiteboard-tool-dialog .whiteboard-card-form {
+  gap: 10px;
+}
+.whiteboard-card-form .field,
+.whiteboard-form-file {
+  margin: 0;
+}
+.whiteboard-form-file {
+  overflow-wrap: anywhere;
+}
+.whiteboard-card-options {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 0 8px;
+}
+.whiteboard-card-options > summary {
+  min-height: var(--control-target);
+  align-content: center;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+.whiteboard-card-options[open] {
+  padding-bottom: 8px;
+}
+.whiteboard-card-form .whiteboard-form-grid {
+  margin-top: 8px;
+}
+@media (max-width: 420px) {
+  .whiteboard-tool-dialog .whiteboard-card-form-footer {
+    justify-content: flex-end;
+    padding-inline: 10px;
+    gap: 4px;
+  }
+  .whiteboard-card-form-footer > .sp {
+    display: none;
+  }
+}
 .whiteboard-pdf-picker {
   display: grid;
   gap: 8px;
