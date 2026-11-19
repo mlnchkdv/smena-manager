@@ -6,11 +6,11 @@ import { normalizedPageUrl, applyBookmarkMetadata } from '../shared/bookmark-met
 import { A, IN } from '../actions/actions.js';
 import { openModal } from '../overlays/modals.js';
 import { render } from '../shell/render.js';
-import { esc } from '../core/utils.js';
+import { esc, fmtTimestamp } from '../core/utils.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { toast } from '../ui/toast.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
-import { bookmarkArchiveView, bookmarkArchiveUrl, bookmarkTimestamp } from '../ui/bookmark-archive.js';
+import { bookmarkArchiveView, bookmarkArchiveUrl } from '../ui/bookmark-archive.js';
 
 const words = (en, ru) => (isRussian() ? ru : en);
 let timer, controller;
@@ -89,7 +89,6 @@ function pageFailure(error, saving = false) {
   );
 }
 function viewer(m, H) {
-  const stamp = bookmarkTimestamp;
   const selected = m.snapshots.find(ref => ref.id === m.selected);
   const title = m.selected === 'live' ? m.page?.title || m.title : m.page?.title || selected?.title || m.title;
   const source = m.selected === 'live' ? m.url : normalizedPageUrl(m.page?.url || selected?.finalUrl || selected?.sourceUrl || '') || m.url;
@@ -98,7 +97,7 @@ function viewer(m, H) {
     .filter(ref => !ref.isArchived || ref.id === m.selected)
     .map(
       ref =>
-        `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${ref.format === 'html' ? words('HTML archive', 'HTML-архив') : words('Text copy', 'Текстовая копия')} · ${esc(stamp(ref.capturedAt))}</option>`,
+        `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${ref.format === 'html' ? words('HTML archive', 'HTML-архив') : words('Text copy', 'Текстовая копия')} · ${esc(fmtTimestamp(ref.capturedAt))}</option>`,
     )
     .join('');
   const captureTools =
@@ -116,16 +115,16 @@ function viewer(m, H) {
     ${m.job ? `<p role="status">${archiveStage(m.job.phase)} ${words('You can close this window; capture continues on the server.', 'Можно закрыть окно: архивация продолжится на сервере.')}</p>` : ''}
     ${m.archiveError ? `<p class="err" role="alert">${esc(m.archiveError)}</p>` : ''}
     ${m.busy && !m.page ? `<p role="status">${words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Reload preview', 'Перезагрузить просмотр')}</button>` : ''}
-    ${m.page ? `<p class="hint bookmark-preview-status">${m.selected === 'live' ? words('Text preview of the current website', 'Текстовый просмотр текущей страницы') : words('Saved copy', 'Сохранённая копия')} · ${esc(stamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
+    ${m.page ? `<p class="hint bookmark-preview-status">${m.selected === 'live' ? words('Text preview of the current website', 'Текстовый просмотр текущей страницы') : words('Saved copy', 'Сохранённая копия')} · ${esc(fmtTimestamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
     ${captureTools}
-    ${bookmarkVersionManager(m, active, stamp)}
+    ${bookmarkVersionManager(m, active)}
     ${m.description || m.tags?.length || title !== m.title || source !== m.url ? `<details class="bookmark-page-notice" ${disclosureAttributes('bookmark:details:' + m.id)}><summary>${words('Bookmark details', 'Описание закладки')}</summary>${title !== m.title ? `<p class="hint">${esc(m.title)}</p>` : ''}${source !== m.url ? `<p class="hint bookmark-viewer-url">${words('Current bookmark URL: ', 'Текущий адрес закладки: ')}${esc(m.url)}</p>` : ''}${m.description ? `<p>${esc(m.description)}</p>` : ''}${m.tags?.length ? `<p>${m.tags.map(tag => '#' + esc(tag)).join(' · ')}</p>` : ''}</details>` : ''}
     </div>`;
 }
-function bookmarkVersionManager(m, active, stamp) {
+function bookmarkVersionManager(m, active) {
   if (!m.snapshots.length) return '';
   const key = 'bookmark:copies:' + m.id;
-  return `<details class="bookmark-version-manager" ${disclosureAttributes(key)}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Up to 10 copies can stay in the version selector. Move a copy out of the list to free a slot and keep the file.', 'В списке версий может быть до 10 копий. Уберите копию из активных, чтобы освободить место и сохранить файл.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(stamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><a class="btn btn-ghost btn-sm" href="${esc(bookmarkArchiveUrl(m.id, ref.id))}&download=1">${words('Download HTML', 'Скачать HTML')}</a>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>`;
+  return `<details class="bookmark-version-manager" ${disclosureAttributes(key)}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Up to 10 copies can stay in the version selector. Move a copy out of the list to free a slot and keep the file.', 'В списке версий может быть до 10 копий. Уберите копию из активных, чтобы освободить место и сохранить файл.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(fmtTimestamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><a class="btn btn-ghost btn-sm" href="${esc(bookmarkArchiveUrl(m.id, ref.id))}&download=1">${words('Download HTML', 'Скачать HTML')}</a>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>`;
 }
 A.manageBookmarkVersions = el => {
   const details = el.closest('.modal-b')?.querySelector('.bookmark-version-manager');
@@ -436,7 +435,7 @@ A.searchBookmarkArchives = () =>
       this.controller?.abort();
     },
     render: (m, H) =>
-      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form><p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total}${m.unavailable ? ` · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}` : ''}</p>` : ''}${m.results.length ? `<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(bookmarkTimestamp(row.capturedAt))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>` : ''}${!m.busy && !m.error && m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
+      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form><p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total}${m.unavailable ? ` · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}` : ''}</p>` : ''}${m.results.length ? `<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(fmtTimestamp(row.capturedAt))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>` : ''}${!m.busy && !m.error && m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
   });
 A.runBookmarkArchiveSearch = async el => {
   const m = S.ui.modals.at(-1);
