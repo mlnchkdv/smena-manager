@@ -99,6 +99,30 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
       expect(manifest.files).toHaveLength(Object.keys(entries).length - 1);
       for (const file of manifest.files) expect(createHash('sha256').update(entries[file.name]).digest('hex')).toBe(file.sha256);
 
+      if (width === 320) {
+        let confirmArchive;
+        const pendingArchive = new Promise(resolve => {
+          confirmArchive = resolve;
+        });
+        await page.route(
+          `**${commands}`,
+          async route => {
+            await pendingArchive;
+            await route.continue();
+          },
+          { times: 1 },
+        );
+        try {
+          await page.getByRole('button', { name: lang === 'ru' ? 'В архив' : 'Archive record', exact: true }).click();
+          const pending = page.getByRole('button', { name: lang === 'ru' ? 'Переносим запись в архив…' : 'Archiving record…', exact: true });
+          await expect(pending).toBeDisabled();
+          await expect(pending).toHaveAttribute('aria-busy', 'true');
+        } finally {
+          confirmArchive();
+        }
+        await page.getByRole('button', { name: lang === 'ru' ? 'Восстановить из архива' : 'Restore from archive' }).click();
+        await expect(page.getByRole('button', { name: lang === 'ru' ? 'Изменить' : 'Edit', exact: true })).toBeVisible();
+      }
       await page.goto('/e2e-team/bookmarks');
       if (width === 320) {
         const filters = page.locator('.bookmark-toolbar .ui-menu', { has: page.locator('[data-in="bookmarkArchiveFilter"]') });

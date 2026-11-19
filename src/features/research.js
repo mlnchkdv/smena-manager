@@ -605,6 +605,7 @@ async function recordCommand(action) {
   if (m.pending || !m.selected) return;
   m.pending = true;
   const { id, revision } = m.selected;
+  m.recordAction = { id, action };
   m.error = '';
   render();
   try {
@@ -617,11 +618,12 @@ async function recordCommand(action) {
     m.rows = null;
     if (active(m)) {
       if (S.ui.params.researchId === id) m.selected = result.record;
-      await loadResearch(m);
+      void loadResearch(m);
     }
   } catch (error) {
     if (active(m)) m.error = researchFailure(error);
   } finally {
+    m.recordAction = null;
     m.pending = false;
     if (active(m)) render();
   }
@@ -808,6 +810,17 @@ A.researchLatestInputs = () => {
   delete m.record.data.protocolVersion;
   render();
 };
+const recordActionLabels = {
+  archive: ['Archive record', 'В архив', 'Archiving record…', 'Переносим запись в архив…'],
+  restore: ['Restore from archive', 'Восстановить из архива', 'Restoring record…', 'Восстанавливаем запись…'],
+  review: ['Mark as reviewed', 'Отметить проверенным', 'Saving review…', 'Сохраняем проверку…'],
+};
+function recordActionButton(record, action, style) {
+  const model = state();
+  const busy = model.recordAction?.id === record.id && model.recordAction.action === action;
+  const [en, ru, busyEn, busyRu] = recordActionLabels[action];
+  return `<button class="btn ${style}" data-a="${action === 'review' ? 'researchReview' : 'researchArchive'}" ${model.pending ? 'disabled' : ''} ${busy ? 'aria-busy="true"' : ''}>${busy ? rw(busyEn, busyRu) : rw(en, ru)}</button>${busy ? `<span class="sr" role="status">${rw(busyEn, busyRu)}</span>` : ''}`;
+}
 function researchRecordActions(record, canEdit) {
   const state = record.data.state || 'planned';
   const transitions = state === 'planned' ? ['running', 'cancelled'] : state === 'running' ? ['completed', 'failed', 'cancelled'] : [];
@@ -815,9 +828,7 @@ function researchRecordActions(record, canEdit) {
     ? `<button class="btn btn-secondary" data-a="researchCompare">${rw('Compare runs', 'Сравнить запуски')}</button>`
     : '';
   if (record.archived) {
-    const restore = canEdit
-      ? `<button class="btn btn-secondary" data-a="researchArchive">${rw('Restore from archive', 'Восстановить из архива')}</button>`
-      : '';
+    const restore = canEdit ? recordActionButton(record, 'restore', 'btn-secondary') : '';
     return restore || compare ? `<div class="research-actions">${restore}${compare}</div>` : '';
   }
   const plan =
@@ -866,7 +877,7 @@ function researchReadingActions(record, canEdit) {
         : `<a class="btn btn-secondary btn-sm" href="${esc(job.href)}" download="${esc(job.filename)}">${rw('Save ZIP', 'Сохранить ZIP')}</a>`
       : '';
   const announcement = `${error ? `<p role="alert">${esc(error)}</p>` : ''}${message ? `<p role="status" class="hint">${esc(message)}</p>` : ''}${save}`;
-  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="${stale ? 'researchReloadExport' : 'researchExport'}" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="${stale ? 'researchReloadExport' : 'researchExport'}" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? recordActionButton(record, 'review', 'btn-secondary') : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;
@@ -885,7 +896,7 @@ function details(record, canEdit) {
           )
           .join('')}</div></details>`
       : ''
-  }${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${rw('Archive record', 'В архив')}</button></div>` : ''}`;
+  }${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}${recordActionButton(record, 'archive', 'btn-ghost')}</div>` : ''}`;
 }
 const materialKinds = ['source', 'dataset', 'protocol', 'article', 'review', 'handoff'];
 
