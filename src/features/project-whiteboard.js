@@ -711,15 +711,40 @@ A.whiteboardToggleLayers = () => {
 };
 
 A.whiteboardLayerVisibility = el => {
-  const id = el.dataset.layerVisibility;
+  const { id } = el.dataset;
   const hidden = el.dataset.hidden === 'true';
   if (!command(board => setWhiteboardLayerHidden(board, id, hidden))) return;
-  document.querySelector(`[data-layer-visibility="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  document.querySelector(`[data-a="whiteboardLayerVisibility"][data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  announceWhiteboardLayerChange(hidden ? T('Layer hidden', 'Слой скрыт') : T('Layer shown', 'Слой показан'));
+};
+
+A.whiteboardLayerPositionLock = el => {
+  const { id } = el.dataset;
+  const locked = el.dataset.locked === 'true';
+  if (
+    !command(board => {
+      const layer = whiteboardLayerUnits(board).find(item => item.id === id);
+      if (layer)
+        setWhiteboardPositionLock(
+          board,
+          layer.nodes.map(node => node.id),
+          locked,
+        );
+    })
+  )
+    return;
+  document.querySelector(`[data-a="whiteboardLayerPositionLock"][data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  announceWhiteboardLayerChange(
+    locked ? T('Layer position locked', 'Положение слоя зафиксировано') : T('Layer position unlocked', 'Положение слоя разблокировано'),
+  );
+};
+
+function announceWhiteboardLayerChange(message) {
   const status = document.querySelector('[data-whiteboard-layer-status]');
   requestAnimationFrame(() => {
-    if (status?.isConnected) status.textContent = hidden ? T('Layer hidden', 'Слой скрыт') : T('Layer shown', 'Слой показан');
+    if (status?.isConnected) status.textContent = message;
   });
-};
+}
 
 function dropWhiteboardLayer(source, target, position) {
   const p = current();
@@ -742,10 +767,7 @@ function dropWhiteboardLayer(source, target, position) {
   const handle = document.querySelector(`[data-layer-handle="${CSS.escape(source)}"]`);
   handle?.focus({ preventScroll: true });
   handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  const status = document.querySelector('[data-whiteboard-layer-status]');
-  requestAnimationFrame(() => {
-    if (status?.isConnected) status.textContent = T('Layer order updated', 'Порядок слоёв изменён');
-  });
+  announceWhiteboardLayerChange(T('Layer order updated', 'Порядок слоёв изменён'));
 }
 A.whiteboardGroupSelection = () => {
   const ids = selectedIds();

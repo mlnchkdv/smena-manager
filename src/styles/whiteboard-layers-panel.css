@@ -1,6 +1,6 @@
 .whiteboard-board-area {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 28%);
+  grid-template-columns: minmax(0, 1fr) minmax(264px, 28%);
   min-width: 0;
 }
 .whiteboard-layers-panel {
@@ -81,6 +81,7 @@
 }
 .whiteboard-layer-select > svg,
 .whiteboard-layer-handle,
+.whiteboard-layer-lock,
 .whiteboard-layer-visibility {
   flex: 0 0 auto;
 }
@@ -88,19 +89,23 @@
 .whiteboard-layer-row[data-layer-hidden] .whiteboard-layer-visibility {
   color: var(--text-2);
 }
-.whiteboard-layer-visibility {
+.whiteboard-layer-visibility,
+.whiteboard-layer-lock,
+.whiteboard-layer-handle {
   min-width: 44px;
   min-height: 44px;
 }
 .whiteboard-layer-lock {
   display: grid;
   place-items: center;
-  min-width: 44px;
   color: var(--text-2);
 }
+[data-layer-locked] button.whiteboard-layer-lock {
+  /* Reserve the handle's space so the eye and lock stay in place after a toggle. */
+  margin-inline-end: 46px;
+  color: var(--text);
+}
 .whiteboard-layer-handle {
-  min-width: 44px;
-  min-height: 44px;
   touch-action: none;
   cursor: grab;
 }

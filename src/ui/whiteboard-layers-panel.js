@@ -17,16 +17,18 @@ export function whiteboardLayersPanel(board, state, editable) {
       .join(' · ');
     const typeIcon = layer.kind === 'card' ? icons[node.type] : icons[layer.kind];
     const visibility = layer.hidden ? T('Show layer', 'Показать слой') : T('Hide layer', 'Скрыть слой');
-    return `<li class="whiteboard-layer-row" data-layer-row="${esc(layer.id)}" data-layer-tier="${layer.kind === 'frame' ? 'frames' : 'cards'}" ${layer.hidden ? 'data-layer-hidden' : ''}>
+    const positionLock = layer.locked ? T('Unlock position', 'Разблокировать положение') : T('Lock position', 'Зафиксировать положение');
+    return `<li class="whiteboard-layer-row" data-layer-row="${esc(layer.id)}" data-layer-tier="${layer.kind === 'frame' ? 'frames' : 'cards'}" ${layer.hidden ? 'data-layer-hidden' : ''} ${layer.locked ? 'data-layer-locked' : ''}>
       <button type="button" class="whiteboard-layer-select" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-pressed="${layer.nodes.every(item => selected.has(item.id))}" title="${label}" ${layer.hidden ? 'disabled' : ''}>${ic(typeIcon, 16)}<span><strong>${label}</strong>${details ? `<small>${details}</small>` : ''}</span></button>
-      ${editable ? `<button type="button" class="ibtn whiteboard-layer-visibility" data-a="whiteboardLayerVisibility" data-layer-visibility="${esc(layer.id)}" data-hidden="${!layer.hidden}" aria-label="${visibility} · ${label}" title="${visibility}">${ic(layer.hidden ? 'eye-off' : 'eye', 16)}</button>` : ''}
+      ${editable ? `<button type="button" class="ibtn whiteboard-layer-visibility" data-a="whiteboardLayerVisibility" data-id="${esc(layer.id)}" data-hidden="${!layer.hidden}" aria-label="${visibility} · ${label}" title="${visibility}">${ic(layer.hidden ? 'eye-off' : 'eye', 16)}</button>` : ''}
       ${
-        layer.locked
-          ? `<span class="whiteboard-layer-lock" role="img" aria-label="${T('Position locked', 'Положение зафиксировано')}" title="${T('Position locked', 'Положение зафиксировано')}">${ic('lock-keyhole', 15)}</span>`
-          : editable
-            ? `<button type="button" class="ibtn whiteboard-layer-handle" data-layer-handle="${esc(layer.id)}" aria-describedby="whiteboard-layer-help" aria-label="${T('Reorder layer', 'Переместить слой')} · ${label}">${ic('grip-vertical', 18)}</button>`
+        editable
+          ? `<button type="button" class="ibtn whiteboard-layer-lock" data-a="whiteboardLayerPositionLock" data-id="${esc(layer.id)}" data-locked="${!layer.locked}" aria-label="${positionLock} · ${label}" title="${positionLock}">${ic(layer.locked ? 'lock-keyhole' : 'lock-open', 16)}</button>`
+          : layer.locked
+            ? `<span class="whiteboard-layer-lock" role="img" aria-label="${T('Position locked', 'Положение зафиксировано')}" title="${T('Position locked', 'Положение зафиксировано')}">${ic('lock-keyhole', 16)}</span>`
             : ''
       }
+      ${editable && !layer.locked ? `<button type="button" class="ibtn whiteboard-layer-handle" data-layer-handle="${esc(layer.id)}" aria-describedby="whiteboard-layer-help" aria-label="${T('Reorder layer', 'Переместить слой')} · ${label}">${ic('grip-vertical', 18)}</button>` : ''}
     </li>`;
   });
   return `<aside class="whiteboard-layers-panel" id="whiteboard-layers-panel" data-whiteboard-layers aria-labelledby="whiteboard-layers-title">
