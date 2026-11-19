@@ -115,7 +115,7 @@ export function createBookmarkPageRouter({
     try {
       const bookmark = await target(request);
       const page = bookmarkReaderPage(await fetchPage(bookmark.url));
-      await target(request);
+      if ((await target(request)).url !== bookmark.url) throw pageError('PAGE_BOOKMARK_CHANGED', 409);
       response.json(page);
     } catch (error) {
       next(error.statusCode ? error : pageError());

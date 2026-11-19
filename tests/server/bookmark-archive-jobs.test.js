@@ -50,4 +50,19 @@ test('archive ledger recovers queued work, deduplicates lost responses and reche
   await service.settle();
   assert.equal(data.links[0].pageSnapshots.length, 1, 'revoked write access blocks attachment');
   assert.equal((await service.list(user, [user], 'bookmark'))[0].phase, 'failed');
+
+  data.members[0].role = 'Member';
+  data._bookmarkArchiveJobs.push({
+    id: 'queued-before-url-change',
+    owner: user.id,
+    bookmarkId: 'bookmark',
+    url: 'https://example.net',
+    phase: 'queued',
+  });
+  await restarted.list(user, [user], 'bookmark');
+  await restarted.settle();
+  const [outdated] = await restarted.list(user, [user], 'bookmark');
+  assert.equal(outdated.phase, 'failed');
+  assert.equal(outdated.code, 'PAGE_BOOKMARK_CHANGED');
+  assert.equal(captures, 2, 'an outdated queued URL is never fetched');
 });

@@ -55,7 +55,12 @@ export function createBookmarkArchiveJobs({ load, mutate, capture, save, now = D
           if (!row || !busy(row)) return null;
           if (row.lease?.until > now()) return null;
           const bookmark = actor(data, user, profiles, row.bookmarkId, true);
-          if (bookmark.url !== row.url) throw pageError('PAGE_BOOKMARK_CHANGED', 409);
+          if (bookmark.url !== row.url) {
+            row.phase = 'failed';
+            row.code = 'PAGE_BOOKMARK_CHANGED';
+            row.updatedAt = now();
+            return null;
+          }
           row.phase = 'fetching';
           row.updatedAt = now();
           row.lease = { id: lease, until: now() + 120000 };
