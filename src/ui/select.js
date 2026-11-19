@@ -240,8 +240,7 @@ export const selectMenu = {
     sel.selectedIndex = i;
     sel.dispatchEvent(new Event('input', { bubbles: true }));
     sel.dispatchEvent(new Event('change', { bubbles: true }));
-    // The capture-phase menu handler can close the parent before this click,
-    // so no focused control may survive for render() to capture. Resolve anew.
+    // Rendering can replace the enhanced trigger. Resolve it again if needed.
     if (document.activeElement === document.body || btn.isConnected)
       focusSelectTrigger(document.querySelector(`[data-focus-select="${CSS.escape(identity)}"]`) || btn);
   },

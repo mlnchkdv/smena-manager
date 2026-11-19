@@ -100,6 +100,17 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
       for (const file of manifest.files) expect(createHash('sha256').update(entries[file.name]).digest('hex')).toBe(file.sha256);
 
       await page.goto('/e2e-team/bookmarks');
+      if (width === 320) {
+        const filters = page.locator('.bookmark-toolbar .ui-menu', { has: page.locator('[data-in="bookmarkArchiveFilter"]') });
+        await filters.locator('summary').click();
+        await filters.getByRole('button', { name: lang === 'ru' ? 'Сохранённая страница: Все' : 'Saved page: All' }).click();
+        await page.getByRole('option', { name: lang === 'ru' ? 'HTML-архив' : 'HTML archive', exact: true }).click();
+        const date = filters.locator('[data-in="bookmarkCapturedAfter"]');
+        await expect(date).toBeVisible();
+        await date.fill('2026-11-20');
+        await expect(page.getByRole('button', { name: saved.title, exact: true })).toHaveCount(0);
+        await page.getByRole('button', { name: lang === 'ru' ? 'Сбросить фильтры' : 'Reset filters', exact: true }).press('Enter');
+      }
       const documentResponse = page.waitForResponse(
         response => response.ok() && response.url().includes(`/snapshots/${saved.id}/document`) && response.request().isNavigationRequest(),
       );

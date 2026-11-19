@@ -1,6 +1,7 @@
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { t } from '../core/i18n.js';
+import { selectMenu } from './select.js';
 
 let scope;
 let expanded = new Set();
@@ -140,6 +141,7 @@ document.addEventListener(
 document.addEventListener(
   'click',
   event => {
+    if (selectMenu.el?.contains(event.target) && selectMenu.btn?.closest('.ui-menu[open]')) return;
     const summary = event.target.closest?.('summary');
     const menu = summary?.parentElement;
     if (menu?.matches('.ui-menu')) {
