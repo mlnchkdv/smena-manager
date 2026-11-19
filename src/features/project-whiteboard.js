@@ -18,6 +18,8 @@ import {
   movableWhiteboardNodes,
   setWhiteboardPositionLock,
   reorderWhiteboardLayers,
+  moveWhiteboardLayer,
+  whiteboardLayerUnits,
 } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -58,6 +60,7 @@ import { mutate, toast } from '../ui/toast.js';
 import { ensureFileIdentities } from './file-catalog-demand.js';
 import { whiteboardEdges, whiteboardCard } from '../views/project-whiteboard.js';
 import { savedWhiteboardGroups } from '../ui/whiteboard-group-selection.js';
+import { mountWhiteboardLayerDrag } from '../ui/whiteboard-layers-panel.js';
 import { ensureKnowledgeBody } from '../core/knowledge-bodies.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { knowledgeDisplayParts } from '../shared/knowledge-frontmatter.js';
@@ -687,6 +690,44 @@ A.whiteboardReorderLayers = el => {
     if (status?.isConnected) status.textContent = messages[direction];
   });
 };
+
+A.whiteboardToggleLayers = () => {
+  const p = current();
+  if (!p) return;
+  const state = whiteboardState(p.id);
+  if (state.presentationId) return;
+  state.layersOpen = !state.layersOpen || state.outline;
+  if (state.layersOpen) state.outline = false;
+  render();
+  const selector = state.layersOpen ? '#whiteboard-layers-panel [data-a="whiteboardToggleLayers"]' : '.whiteboard-navigation [data-a="whiteboardToggleLayers"]';
+  document.querySelector(selector)?.focus({ preventScroll: !state.layersOpen });
+};
+
+function dropWhiteboardLayer(source, target, position) {
+  const p = current();
+  if (!editable(p)) return;
+  const board = whiteboardOf(p);
+  const order = moveWhiteboardLayer(board, source, target, position);
+  if (order === board.nodes) return;
+  const layer = whiteboardLayerUnits(board).find(item => item.id === source);
+  const state = whiteboardState(p.id);
+  if (
+    !command({ ...board, nodes: order }, null, null, () =>
+      selectNodes(
+        state,
+        layer.nodes.map(node => node.id),
+      ),
+    )
+  )
+    return;
+  const handle = document.querySelector(`[data-layer-handle="${CSS.escape(source)}"]`);
+  handle?.focus({ preventScroll: true });
+  handle?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  const status = document.querySelector('[data-whiteboard-layer-status]');
+  requestAnimationFrame(() => {
+    if (status?.isConnected) status.textContent = T('Layer order updated', 'Порядок слоёв изменён');
+  });
+}
 A.whiteboardGroupSelection = () => {
   const ids = selectedIds();
   if (command(board => groupWhiteboardSelection(board, ids, uid('wg'))))
@@ -1670,6 +1711,7 @@ function up(e, cancel = false) {
 export function mountProjectWhiteboard() {
   mountWhiteboardAssetInputs();
   syncWhiteboardPreviews();
+  mountWhiteboardLayerDrag(document.querySelector('[data-whiteboard-layers]'), dropWhiteboardLayer);
   const next = document.querySelector('.whiteboard-viewport');
   if (next !== viewport) {
     stopSpacePan();
@@ -1817,6 +1859,7 @@ document.addEventListener(
   'keydown',
   e => {
     if (overlayAboveDiagram()) return;
+    if (e.key === 'Escape' && e.target.closest('[data-whiteboard-layers]')) return;
     if (
       current() &&
       whiteboardState().presentationId &&

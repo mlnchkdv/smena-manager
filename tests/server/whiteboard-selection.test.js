@@ -13,6 +13,8 @@ import {
   movableWhiteboardNodes,
   setWhiteboardPositionLock,
   reorderWhiteboardLayers,
+  whiteboardLayerUnits,
+  moveWhiteboardLayer,
 } from '../../src/shared/whiteboard-selection.js';
 import { removeWhiteboardNode, validWhiteboard, whiteboardLockedIds, whiteboardPaintOrder } from '../../src/shared/project-whiteboard.js';
 import { resizeWhiteboardGroup } from '../../src/shared/whiteboard-group-resize.js';
@@ -310,4 +312,37 @@ test('one-layer moves handle a group whose cards were interleaved before groupin
   assert.equal(ids(['d'], 'backward'), 'd a b c e f');
   assert.equal(ids(['a', 'e'], 'forward'), 'b d a c f e');
   assert.equal(ids(['a', 'b', 'c', 'd', 'e', 'f'], 'backward'), 'a b c d e f');
+});
+
+test('the layers panel moves cards and groups to the requested visible slot', () => {
+  const board = {
+    version: 8,
+    nodes: [card('a', 0, 0), card('frame1', 0, 0, 'group'), card('b', 0, 0), card('c', 0, 0), card('frame2', 0, 0, 'group'), card('d', 0, 0)],
+    groups: [{ id: 'ac', members: ['a', 'c'] }],
+    edges: [],
+  };
+  const layerIds = nodes => whiteboardLayerUnits({ ...board, nodes }).map(layer => layer.id);
+  assert.deepEqual(layerIds(board.nodes), ['d', 'ac', 'b', 'frame2', 'frame1']);
+  assert.deepEqual(
+    whiteboardLayerUnits(board)[1].nodes.map(node => node.id),
+    ['c', 'a'],
+  );
+  const back = moveWhiteboardLayer(board, 'ac', 'b', 'after');
+  assert.deepEqual(
+    back.map(node => node.id),
+    ['a', 'frame1', 'c', 'b', 'frame2', 'd'],
+  );
+  const front = moveWhiteboardLayer(board, 'ac', 'd', 'before');
+  assert.deepEqual(layerIds(front), ['ac', 'd', 'b', 'frame2', 'frame1']);
+  assert.deepEqual(
+    whiteboardPaintOrder(front).filter(n => !['a', 'c'].includes(n.id)),
+    whiteboardPaintOrder(board.nodes).filter(n => !['a', 'c'].includes(n.id)),
+  );
+  assert.equal(moveWhiteboardLayer(board, 'ac', 'd', 'after'), board.nodes);
+  assert.equal(moveWhiteboardLayer(board, 'ac', 'frame2', 'after'), board.nodes);
+  assert.deepEqual(layerIds(moveWhiteboardLayer(board, 'frame1', 'frame2', 'before')), ['d', 'ac', 'b', 'frame1', 'frame2']);
+  setWhiteboardPositionLock(board, ['a'], true);
+  assert.equal(whiteboardLayerUnits(board)[1].locked, true);
+  assert.equal(moveWhiteboardLayer(board, 'ac', 'd', 'before'), board.nodes);
+  assert.deepEqual(layerIds(moveWhiteboardLayer(board, 'b', 'ac', 'before')), ['d', 'b', 'ac', 'frame2', 'frame1']);
 });

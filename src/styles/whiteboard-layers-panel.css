@@ -1,0 +1,137 @@
+.whiteboard-board-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 28%);
+  min-width: 0;
+}
+.whiteboard-layers-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  contain: size;
+  border-inline-start: 1px solid var(--divider);
+  background: var(--surface);
+}
+.whiteboard-layers-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 9px 6px 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.whiteboard-layers-heading h2 {
+  margin: 0;
+  font-size: var(--fs-md);
+}
+.whiteboard-layers-heading small,
+.whiteboard-layer-select small,
+.whiteboard-layers-empty {
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.whiteboard-layers-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  padding: 4px 8px;
+}
+.whiteboard-layers-list:empty {
+  display: none;
+}
+.whiteboard-layers-empty {
+  margin: 12px;
+}
+.whiteboard-layer-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-block: 2px;
+  border-radius: var(--r-sm);
+}
+.whiteboard-layer-row:has([aria-pressed='true']) {
+  background: var(--accent-soft);
+}
+.whiteboard-layer-row:where(:hover, :focus-within):not(:has([aria-pressed='true'])) {
+  background: var(--surface-2);
+}
+.whiteboard-layer-select {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: var(--r-sm);
+  text-align: start;
+  font-size: var(--fs-sm);
+}
+.whiteboard-layer-select > span {
+  display: grid;
+  min-width: 0;
+}
+.whiteboard-layer-select strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.whiteboard-layer-select > svg,
+.whiteboard-layer-handle {
+  flex: 0 0 auto;
+}
+.whiteboard-layer-lock {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  color: var(--text-2);
+}
+.whiteboard-layer-handle {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: none;
+  cursor: grab;
+}
+.whiteboard-layer-row[data-layer-dragging] {
+  opacity: 0.55;
+}
+[data-layer-dragging] .whiteboard-layer-handle {
+  cursor: grabbing;
+}
+.whiteboard-layer-row[data-layer-drop]::after {
+  position: absolute;
+  z-index: 1;
+  inset-inline: 2px;
+  height: 3px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  pointer-events: none;
+  content: '';
+}
+.whiteboard-layer-row[data-layer-drop='before']::after {
+  top: -2px;
+}
+.whiteboard-layer-row[data-layer-drop='after']::after {
+  bottom: -2px;
+}
+.whiteboard-navigation [data-a='whiteboardToggleLayers'][aria-expanded='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 900px) {
+  .whiteboard-board-area {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .whiteboard-layers-panel {
+    grid-row: 1;
+    height: clamp(120px, 38dvh, 320px);
+    border-inline-start: 0;
+    border-bottom: 1px solid var(--divider);
+  }
+  .project-whiteboard.is-focused > .whiteboard-board-area {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+}

@@ -40,6 +40,7 @@ export function whiteboardState(id = S.ui.params.id) {
       selection: [],
       multiSelect: false,
       outline: false,
+      layersOpen: false,
       minimap: readLayoutPreference('whiteboard-minimap', false),
       resizeAspect: readLayoutPreference('whiteboard-resize-aspect', false),
       resizeGuides: readLayoutPreference('whiteboard-resize-guides', true),

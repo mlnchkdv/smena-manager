@@ -3,6 +3,7 @@ import {
   validWhiteboard,
   whiteboardBounds,
   whiteboardLockedIds,
+  whiteboardPaintOrder,
   WHITEBOARD_GROUP_VERSION,
   WHITEBOARD_LOCK_VERSION,
 } from './project-whiteboard.js';
@@ -15,6 +16,63 @@ export function whiteboardGroupsInSelection(board, selection) {
 export function expandWhiteboardSelection(board, selection) {
   const nodes = new Set(board.nodes.map(node => node.id));
   return [...new Set([...selection.filter(id => nodes.has(id)), ...whiteboardGroupsInSelection(board, selection).flatMap(group => group.members)])];
+}
+
+function whiteboardGroupsByMember(board) {
+  return new Map((board.groups || []).flatMap(group => group.members.map(id => [id, group])));
+}
+
+export function whiteboardLayerUnits(board) {
+  const groups = whiteboardGroupsByMember(board);
+  const layers = new Map();
+  for (const node of whiteboardPaintOrder(board.nodes).reverse()) {
+    const group = groups.get(node.id);
+    const id = group?.id || node.id;
+    if (!layers.has(id)) layers.set(id, { id, kind: group ? 'group' : node.type === 'group' ? 'frame' : 'card', locked: !!(group || node).locked, nodes: [] });
+    layers.get(id).nodes.push(node);
+  }
+  return [...layers.values()];
+}
+
+function reorderLayerTiers(nodes, reorder) {
+  const frames = reorder(
+    nodes.filter(node => node.type === 'group'),
+    'frame',
+  );
+  const cards = reorder(
+    nodes.filter(node => node.type !== 'group'),
+    'card',
+  );
+  let frameIndex = 0,
+    cardIndex = 0;
+  const result = nodes.map(node => (node.type === 'group' ? frames[frameIndex++] : cards[cardIndex++]));
+  return result.some((node, index) => node !== nodes[index]) ? result : nodes;
+}
+
+export function moveWhiteboardLayer(board, source, target, position) {
+  if (source === target || !['before', 'after'].includes(position)) return board.nodes;
+  const units = whiteboardLayerUnits(board);
+  const moving = units.find(layer => layer.id === source);
+  if (!moving || moving.locked) return board.nodes;
+  const tier = moving.kind === 'frame' ? 'frame' : 'card';
+  const neighbors = units.filter(layer => (layer.kind === 'frame') === (tier === 'frame'));
+  const oldIndex = neighbors.indexOf(moving);
+  const remaining = neighbors.filter(layer => layer !== moving);
+  const targetIndex = remaining.findIndex(layer => layer.id === target);
+  if (targetIndex < 0) return board.nodes;
+  const destination = targetIndex + Number(position === 'after');
+  if (destination === oldIndex) return board.nodes;
+
+  // Anchor the drop above the next visible layer. Unrelated cards retain their original stacking order.
+  const below = remaining[destination]?.nodes[0].id;
+  const picked = new Set(moving.nodes.map(node => node.id));
+  return reorderLayerTiers(board.nodes, (nodes, kind) => {
+    if (kind !== tier) return nodes;
+    const rest = nodes.filter(node => !picked.has(node.id)).reverse();
+    const index = below ? rest.findIndex(node => node.id === below) : rest.length;
+    rest.splice(index, 0, ...moving.nodes);
+    return rest.reverse();
+  });
 }
 
 function stepWhiteboardLayer(nodes, selected, layerOf) {
@@ -56,8 +114,8 @@ export function reorderWhiteboardLayers(board, selection, direction) {
   const locked = whiteboardLockedIds(board);
   if (!selected.size || [...selected].some(id => locked.has(id))) return board.nodes;
 
-  const groups = new Map((board.groups || []).flatMap(group => group.members.map(id => [id, group.id])));
-  const layerOf = node => groups.get(node.id) ?? node.id;
+  const groups = whiteboardGroupsByMember(board);
+  const layerOf = node => groups.get(node.id)?.id ?? node.id;
   const reorder = nodes => {
     if (direction === 'backward') return stepWhiteboardLayer(nodes, selected, layerOf);
     if (direction === 'forward') return stepWhiteboardLayer(nodes.reverse(), selected, layerOf).reverse();
@@ -65,12 +123,7 @@ export function reorderWhiteboardLayers(board, selection, direction) {
     const rest = nodes.filter(node => !selected.has(node.id));
     return direction === 'front' ? [...rest, ...chosen] : [...chosen, ...rest];
   };
-  const frames = reorder(board.nodes.filter(node => node.type === 'group'));
-  const cards = reorder(board.nodes.filter(node => node.type !== 'group'));
-  let frameIndex = 0,
-    cardIndex = 0;
-  const result = board.nodes.map(node => (node.type === 'group' ? frames[frameIndex++] : cards[cardIndex++]));
-  return result.some((node, index) => node !== board.nodes[index]) ? result : board.nodes;
+  return reorderLayerTiers(board.nodes, reorder);
 }
 
 export function whiteboardSelectionUnits(board, selection) {

@@ -175,13 +175,16 @@
     flex: 1 0 320px;
     min-height: 320px;
   }
-  .whiteboard-page .project-whiteboard:not(.is-focused) > :not(.whiteboard-viewport):not(.whiteboard-outline) {
+  .whiteboard-page .project-whiteboard:not(.is-focused) > :not(.whiteboard-viewport, .whiteboard-outline, .whiteboard-board-area) {
     flex-shrink: 0;
   }
-  .whiteboard-page .project-whiteboard:not(.is-focused) > :is(.whiteboard-viewport, .whiteboard-outline) {
+  .whiteboard-page .project-whiteboard:not(.is-focused) > :is(.whiteboard-viewport, .whiteboard-outline, .whiteboard-board-area) {
     flex: 1;
     height: auto;
     min-height: 220px;
+  }
+  .whiteboard-page .project-whiteboard:not(.is-focused) > .whiteboard-board-area > .whiteboard-viewport {
+    height: auto;
   }
 }
 .whiteboard-description {
@@ -310,6 +313,10 @@
   min-height: 0;
   height: auto;
   overflow: auto;
+}
+.whiteboard-page .is-focused > .whiteboard-board-area {
+  flex: 1;
+  min-height: 0;
 }
 .whiteboard-page .is-focused .whiteboard-viewport {
   overflow: hidden;
