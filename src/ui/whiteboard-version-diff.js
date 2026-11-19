@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 import { wbText as T } from '../core/whiteboard-state.js';
-import { whiteboardBounds, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
+import { whiteboardBounds, whiteboardEdgeEnd, whiteboardPaintOrder } from '../shared/project-whiteboard.js';
 import { whiteboardShapeSvg } from '../shared/whiteboard-diagram.js';
 import { whiteboardDiffVisibleIds, whiteboardEdgeGeometry } from '../shared/whiteboard-edge.js';
 import { whiteboardConnectionText } from './whiteboard-edge-text.js';
@@ -10,6 +10,7 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
   const connections = new Map(diff.rows.filter(row => row.kind === 'connection').map(row => [row.id, row]));
   const groups = new Map(diff.rows.filter(row => row.kind === 'group').map(row => [row.id, row]));
   const visibleIds = whiteboardDiffVisibleIds(current, previous, diff.rows);
+  for (const id of diff.layerIds) visibleIds.add(id);
   const all = [...current.nodes, ...previous.nodes].filter(node => !changedOnly || visibleIds.has(node.id));
   const box = whiteboardBounds({ nodes: all });
   const pad = Math.max(20, box.width / 30),
@@ -62,8 +63,7 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
               : '';
         return `<g><title>${esc(whiteboardConnectionText(board, edge))}</title>${change ? `<line ${line} stroke="${colors[change.change]}" stroke-width="5" stroke-dasharray="8 4"/>` : ''}<line ${line} stroke="${color}" stroke-width="1.8" ${edge.style === 'dashed' ? 'stroke-dasharray="10 6"' : edge.style === 'dotted' ? 'stroke-dasharray="2 6" stroke-linecap="round"' : ''}/>${ends}${tip}<text x="${labelX}" y="${labelY - size / 3}" text-anchor="middle" font-size="${size}" fill="var(--text)" stroke="var(--surface)" stroke-width="${size / 5}" paint-order="stroke" stroke-linejoin="round">${marks[change?.change] || ''} ${esc(edge.label.length > 40 ? edge.label.slice(0, 39) + '…' : edge.label)}</text></g>`;
       })
-      .join('')}${[...nodes]
-      .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))
+      .join('')}${whiteboardPaintOrder(nodes)
       .map(node => {
         const change = changes.get(node.id),
           color = colors[change?.change] || 'var(--border-strong)';

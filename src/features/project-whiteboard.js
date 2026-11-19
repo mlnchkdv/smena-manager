@@ -17,6 +17,7 @@ import {
   ungroupWhiteboardSelection,
   movableWhiteboardNodes,
   setWhiteboardPositionLock,
+  reorderWhiteboardLayers,
 } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -508,9 +509,10 @@ A.whiteboardSelect = (el, event) => {
   render();
 };
 function cardChooserResults(modal) {
-  const available = whiteboardOf(current()).nodes.filter(
-    node => node.id !== modal.connection?.from && (!modal.ids || modal.ids.includes(node.id)) && (!modal.onlyFrames || node.type === 'group'),
-  );
+  const nodes = whiteboardOf(current()).nodes;
+  const byId = new Map(nodes.map(node => [node.id, node]));
+  const candidates = modal.ids ? modal.ids.map(id => byId.get(id)).filter(Boolean) : nodes;
+  const available = candidates.filter(node => node.id !== modal.connection?.from && (!modal.onlyFrames || node.type === 'group'));
   const query = modal.query.trim().toLocaleLowerCase();
   const matches = available
     .map(node => ({ node, label: whiteboardLabel(node) }))
@@ -658,6 +660,27 @@ A.whiteboardPositionLock = el => {
   const button = document.querySelector('[data-a="whiteboardPositionLock"]');
   const focus = button?.getClientRects().length ? button : document.querySelector('.whiteboard-context-menu > summary');
   focus?.focus({ preventScroll: true });
+};
+A.whiteboardReorderLayers = el => {
+  const ids = selectedIds();
+  const { direction } = el.dataset;
+  const disclosure = el.closest('[data-ui-disclosure]')?.dataset.uiDisclosure;
+  let changed = false;
+  if (
+    !command(board => {
+      const order = reorderWhiteboardLayers(board, ids, direction);
+      changed = order !== board.nodes;
+      if (changed) board.nodes = order;
+    }) ||
+    !changed
+  )
+    return;
+  if (disclosure) document.querySelector(`[data-ui-disclosure="${CSS.escape(disclosure)}"] > summary`)?.focus({ preventScroll: true });
+  const status = document.querySelector('[data-whiteboard-layer-status]');
+  requestAnimationFrame(() => {
+    if (status?.isConnected)
+      status.textContent = direction === 'front' ? T('Moved to the front', 'Перемещено на передний план') : T('Moved to the back', 'Перемещено на задний план');
+  });
 };
 A.whiteboardGroupSelection = () => {
   const ids = selectedIds();

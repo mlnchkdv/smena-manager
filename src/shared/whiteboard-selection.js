@@ -17,6 +17,25 @@ export function expandWhiteboardSelection(board, selection) {
   return [...new Set([...selection.filter(id => nodes.has(id)), ...whiteboardGroupsInSelection(board, selection).flatMap(group => group.members)])];
 }
 
+export function reorderWhiteboardLayers(board, selection, direction) {
+  if (direction !== 'front' && direction !== 'back') return board.nodes;
+  const selected = new Set(expandWhiteboardSelection(board, selection));
+  const locked = whiteboardLockedIds(board);
+  if (!selected.size || [...selected].some(id => locked.has(id))) return board.nodes;
+
+  const reorder = nodes => {
+    const chosen = nodes.filter(node => selected.has(node.id));
+    const rest = nodes.filter(node => !selected.has(node.id));
+    return direction === 'front' ? [...rest, ...chosen] : [...chosen, ...rest];
+  };
+  const frames = reorder(board.nodes.filter(node => node.type === 'group'));
+  const cards = reorder(board.nodes.filter(node => node.type !== 'group'));
+  let frameIndex = 0,
+    cardIndex = 0;
+  const result = board.nodes.map(node => (node.type === 'group' ? frames[frameIndex++] : cards[cardIndex++]));
+  return result.some((node, index) => node !== board.nodes[index]) ? result : board.nodes;
+}
+
 export function whiteboardSelectionUnits(board, selection) {
   const groups = whiteboardGroupsInSelection(board, selection);
   const members = new Set(groups.flatMap(group => group.members));

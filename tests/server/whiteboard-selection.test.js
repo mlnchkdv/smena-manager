@@ -12,8 +12,9 @@ import {
   ungroupWhiteboardSelection,
   movableWhiteboardNodes,
   setWhiteboardPositionLock,
+  reorderWhiteboardLayers,
 } from '../../src/shared/whiteboard-selection.js';
-import { removeWhiteboardNode, validWhiteboard, whiteboardLockedIds } from '../../src/shared/project-whiteboard.js';
+import { removeWhiteboardNode, validWhiteboard, whiteboardLockedIds, whiteboardPaintOrder } from '../../src/shared/project-whiteboard.js';
 import { resizeWhiteboardGroup } from '../../src/shared/whiteboard-group-resize.js';
 import { jsonCanvasExportLosses } from '../../src/shared/whiteboard-portable.js';
 import { compareWhiteboards } from '../../src/shared/whiteboard-comparison.js';
@@ -203,4 +204,43 @@ test('the last member of a dissolved locked group retains its position lock', ()
   assert.equal(board.groups, undefined);
   assert.equal(board.nodes[0].locked, true);
   assert.equal(validWhiteboard(board), true);
+});
+
+test('layer changes move all group members together and keep the order within each partition', () => {
+  const board = {
+    version: 8,
+    nodes: [card('a', 20, 10), card('frame1', 0, 0, 'group'), card('b', 30, 10), card('frame2', 5, 5, 'group'), card('c', 40, 10), card('d', 50, 10)],
+    edges: [{ id: 'edge', from: 'a', to: 'b', label: '', arrow: true, color: 'neutral' }],
+    groups: [{ id: 'pair', members: ['c', 'a'] }],
+  };
+  const before = structuredClone(board);
+  const front = reorderWhiteboardLayers(board, ['c'], 'front');
+  const back = reorderWhiteboardLayers(board, ['a'], 'back');
+  const ids = nodes => nodes.map(node => node.id);
+  assert.deepEqual(ids(front), ['b', 'frame1', 'd', 'frame2', 'a', 'c']);
+  assert.deepEqual(ids(back), ['a', 'frame1', 'c', 'frame2', 'b', 'd']);
+  assert.deepEqual(ids(whiteboardPaintOrder(front)), ['frame1', 'frame2', 'b', 'd', 'a', 'c']);
+  assert.equal(reorderWhiteboardLayers({ ...board, nodes: front }, ['c'], 'front'), front);
+  assert.equal(reorderWhiteboardLayers(board, ['unknown'], 'back'), board.nodes);
+  assert.deepEqual(ids(whiteboardPaintOrder(reorderWhiteboardLayers(board, ['frame1'], 'front'))), ['frame2', 'frame1', 'a', 'b', 'c', 'd']);
+  assert.equal(validWhiteboard({ ...board, nodes: front }), true);
+  assert.deepEqual(board, before);
+
+  setWhiteboardPositionLock(board, ['c'], true);
+  assert.equal(reorderWhiteboardLayers(board, ['a'], 'front'), board.nodes);
+  assert.equal(reorderWhiteboardLayers(board, ['c', 'd'], 'back'), board.nodes);
+  assert.notEqual(reorderWhiteboardLayers(board, ['b'], 'front'), board.nodes);
+});
+
+test('layer-only edits appear in version history without counting additions or removals as reorders', () => {
+  const board = { version: 1, nodes: [card('a', 0, 0), card('frame', 0, 0, 'group'), card('b', 30, 0), card('c', 70, 0)], edges: [] };
+  const moved = { ...board, nodes: reorderWhiteboardLayers(board, ['b'], 'front') };
+  const diff = compareWhiteboards(board, moved);
+  assert.deepEqual(diff.rows, []);
+  assert.deepEqual(diff.layerIds, ['b', 'c']);
+  assert.equal(diff.changed, 1);
+  const added = { ...board, nodes: [card('new', 30, 50), ...board.nodes] };
+  assert.deepEqual(compareWhiteboards(board, added).layerIds, []);
+  const regroupedStorage = { ...board, nodes: whiteboardPaintOrder(board.nodes) };
+  assert.deepEqual(compareWhiteboards(board, regroupedStorage).layerIds, []);
 });

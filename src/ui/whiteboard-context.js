@@ -4,6 +4,7 @@ import { whiteboardLabel, whiteboardMaterial, whiteboardNavigationMode, wbText a
 import { BOARD_COLORS } from '../shared/project-whiteboard.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { disclosureAttributes } from './disclosure.js';
+import { whiteboardLayerActions } from './whiteboard-layer-actions.js';
 
 export function whiteboardContext(board, state, editable) {
   const edge = board.edges.find(edge => edge.id === state.selectedEdge),
@@ -59,7 +60,7 @@ export function whiteboardContext(board, state, editable) {
   const secondary =
     !editable || edge
       ? ''
-      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${lock}${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline && !node.locked ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${lock}${whiteboardLayerActions(board, ids)}${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline && !node.locked ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
   const primary = editInline
     ? action('whiteboardEdit', 'pencil', T('Edit card', 'Редактировать карточку'), 'primary')
     : node

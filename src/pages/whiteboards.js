@@ -10,7 +10,7 @@ import { ic } from '../core/icons.js';
 import { esc, ago } from '../core/utils.js';
 import { wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 import { whiteboardDocuments, whiteboardDocument, canReadWhiteboard, canEditWhiteboard } from '../shared/whiteboards.js';
-import { whiteboardBounds } from '../shared/project-whiteboard.js';
+import { whiteboardBounds, whiteboardPaintOrder } from '../shared/project-whiteboard.js';
 import { projectWhiteboard } from '../views/project-whiteboard.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { page404 } from './errors.js';
@@ -22,9 +22,10 @@ function preview(b) {
   const board = whiteboardCatalogInfo(b.id)?.thumbnail || b.whiteboard,
     box = whiteboardBounds(board),
     scale = Math.min(244 / Math.max(1, box.width), 84 / Math.max(1, box.height));
+  const nodes = whiteboardPaintOrder(board.nodes.slice(0, 40));
   const labels = new Map(),
     occupied = [];
-  for (const node of [...board.nodes].sort((a, b) => Number(a.type === 'group') - Number(b.type === 'group'))) {
+  for (const node of [...nodes].reverse()) {
     if (labels.size >= 6 || node.width * scale < 50 || node.height * scale < 20) continue;
     const rect = { x: node.x * scale + 6, y: node.y * scale + 3, w: Math.max(0, node.width * scale - 12), h: 13 };
     if (occupied.some(other => rect.x < other.x + other.w && rect.x + rect.w > other.x && rect.y < other.y + other.h && rect.y + rect.h > other.y)) continue;
@@ -49,8 +50,7 @@ function preview(b) {
         ? `<line x1="${a.x + a.width / 2}" y1="${a.y + a.height / 2}" x2="${z.x + z.width / 2}" y2="${z.y + z.height / 2}" stroke="var(--text-3)" stroke-width="${Math.max(1, 1 / scale)}"/>`
         : '';
     })
-    .join('')}${board.nodes
-    .slice(0, 40)
+    .join('')}${nodes
     .map(
       n =>
         `<rect x="${n.x}" y="${n.y}" width="${n.width}" height="${n.height}" rx="8" fill="${colors[n.color]}" fill-opacity="${n.type === 'group' ? '.12' : '.4'}" stroke="${colors[n.color]}" stroke-width="${Math.max(1, 1 / scale)}"/>${labels.has(n.id) ? `<text x="${n.x + 6 / scale}" y="${n.y + 14 / scale}" fill="var(--text)" font-size="${10 / scale}">${esc(labels.get(n.id))}</text>` : ''}`,

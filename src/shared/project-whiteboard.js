@@ -116,6 +116,9 @@ export function whiteboardLockedIds(board) {
   for (const group of board.groups || []) if (group.locked) for (const id of group.members) ids.add(id);
   return ids;
 }
+export function whiteboardPaintOrder(nodes) {
+  return [...nodes].sort((a, b) => Number(a.type !== 'group') - Number(b.type !== 'group'));
+}
 export function whiteboardBounds(board) {
   if (!board.nodes.length) return { x: 0, y: 0, width: 600, height: 400 };
   const x = Math.min(...board.nodes.map(n => n.x)),

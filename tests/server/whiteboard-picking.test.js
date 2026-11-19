@@ -8,7 +8,10 @@ test('overview picking uses screen-sized targets and preserves overlapping choic
     { id: 'b', type: 'text', x: 180, y: 100, width: 160, height: 100 },
   ];
   const before = JSON.stringify(nodes);
-  assert.deepEqual(whiteboardPickCandidates(nodes, { x: 135, y: 100 }, { x: 100, y: 70, zoom: 0.2 }), ['a', 'b']);
+  const point = { x: 135, y: 100 },
+    view = { x: 100, y: 70, zoom: 0.2 };
+  assert.deepEqual(whiteboardPickCandidates(nodes, point, view), ['b', 'a']);
+  assert.deepEqual(whiteboardPickCandidates([...nodes].reverse(), point, view), ['a', 'b']);
   assert.deepEqual(whiteboardPickCandidates(nodes, { x: 20, y: 20 }, { x: 100, y: 70, zoom: 0.2 }), []);
   assert.deepEqual(whiteboardPickCandidates(nodes, { x: 220, y: 220 }, { x: 0, y: 0, zoom: 2 }), ['a']);
   assert.equal(JSON.stringify(nodes), before);

@@ -14,7 +14,7 @@ import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardPresentationNavigation } from '../ui/whiteboard-presentation.js';
 import { whiteboardConnectionText } from '../ui/whiteboard-edge-text.js';
 import { whiteboardCurve, whiteboardShapeSvg, whiteboardShapeInsets } from '../shared/whiteboard-diagram.js';
-import { whiteboardOf, whiteboardEdgeEnd, whiteboardLockedIds } from '../shared/project-whiteboard.js';
+import { whiteboardOf, whiteboardEdgeEnd, whiteboardLockedIds, whiteboardPaintOrder } from '../shared/project-whiteboard.js';
 import { groupSelectionBox, groupSelectionToolbar, savedWhiteboardGroups } from '../ui/whiteboard-group-selection.js';
 import { expandWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { whiteboardConnectionControls, whiteboardContext, whiteboardNavigation, whiteboardNavigationHint } from '../ui/whiteboard-context.js';
@@ -173,14 +173,13 @@ export function projectWhiteboard(project) {
   }
   ${button('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}" ${state.multiSelect ? 'aria-describedby="whiteboard-multi-help"' : ''}`)}<span class="whiteboard-count">${board.nodes.length} / 200 · ${C(board.edges.length, 'connection')}</span><span class="sp"></span><button class="btn btn-secondary btn-sm whiteboard-view-toggle" data-a="whiteboardToggleOutline" aria-label="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}" title="${state.outline ? T('Outline. Show canvas', 'Список. Показать холст') : T('Canvas. Show outline', 'Холст. Показать список')}">${ic(state.outline ? 'layout-dashboard' : 'list', 15)}<span>${state.outline ? T('Canvas', 'Холст') : T('Outline', 'Список')}</span></button>${state.outline ? '' : `${whiteboardNavigation(state, editable)}`}<button class="btn btn-secondary btn-sm whiteboard-focus-toggle" data-a="whiteboardToggleFocus" aria-label="${state.focus ? T('Exit focus', 'Выйти из фокуса') : T('Focus', 'Фокус')}" aria-pressed="${!!state.focus}">${ic(state.focus ? 'minimize' : 'maximize', 15)}<span>${state.focus ? T('Exit focus', 'Выйти') : T('Focus', 'Фокус')}</span></button><button class="ibtn whiteboard-tools" data-a="openWhiteboardTools" aria-label="${T('More tools', 'Другие инструменты')}" title="${T('More tools', 'Другие инструменты')}">${ic('ellipsis', 16)}</button>
   </div>${state.uploadingMedia ? `<div class="whiteboard-upload-status" role="status">${T('Uploading media…', 'Загружаем материалы…')}<button class="btn btn-ghost btn-sm" data-a="whiteboardUploadProgress">${T('Uploads', 'Загрузки')}</button></div>` : ''}<p id="whiteboard-help" class="sr">${state.outline ? T('Outline: choose a card to read or edit it. Connections are listed below.', 'Список: выберите карточку для чтения или изменения. Связи показаны ниже.') : whiteboardNavigationHint(navigationMode, editable)}</p>
-  ${whiteboardPresentationNavigation(board, state)}${connectionSource ? whiteboardConnectionControls(connectionSource, state.reconnect) : selectedIds.length > 1 ? groupSelectionToolbar(project.id, board, selectedIds, state, editable) : whiteboardContext(board, state, editable)}${state.multiSelect ? `<p class="${selectedIds.length ? 'sr' : 'whiteboard-multi-hint'}" id="whiteboard-multi-help">${selectionHelp}</p>` : ''}
+  <span class="sr" role="status" data-whiteboard-layer-status></span>${whiteboardPresentationNavigation(board, state)}${connectionSource ? whiteboardConnectionControls(connectionSource, state.reconnect) : selectedIds.length > 1 ? groupSelectionToolbar(project.id, board, selectedIds, state, editable) : whiteboardContext(board, state, editable)}${state.multiSelect ? `<p class="${selectedIds.length ? 'sr' : 'whiteboard-multi-hint'}" id="whiteboard-multi-help">${selectionHelp}</p>` : ''}
   ${
     state.outline
       ? `<div class="whiteboard-outline" data-keep="whiteboard-outline:${esc(state.scope)}">${outlineHtml(board, editable, state, lockedIds)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
-      : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})"><div class="whiteboard-saved-groups" aria-hidden="true">${savedWhiteboardGroups(board)}</div>${whiteboardEdges(board)}${[
-          ...board.nodes,
-        ]
-          .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))
+      : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})"><div class="whiteboard-saved-groups" aria-hidden="true">${savedWhiteboardGroups(board)}</div>${whiteboardEdges(board)}${whiteboardPaintOrder(
+          board.nodes,
+        )
           .map(n => whiteboardCard(n, editable, false, lockedIds.has(n.id)))
           .join(
             '',

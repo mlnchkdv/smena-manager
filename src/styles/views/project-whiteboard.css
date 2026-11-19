@@ -280,9 +280,6 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
-.whiteboard-card.selected:not([data-kind='group']) {
-  z-index: 3;
-}
 .whiteboard-material-kind {
   font-size: var(--fs-xs);
   color: var(--text-3);
@@ -1228,9 +1225,13 @@
   text-align: start;
   font-size: var(--fs-sm);
 }
-.whiteboard-context-menu > div > button:hover,
+.whiteboard-context-menu > div > button:not(:disabled):hover,
 .whiteboard-context-menu > div > button:focus-visible {
   background: var(--surface-2);
+}
+.whiteboard-context-menu > div > button:disabled {
+  color: var(--text-3);
+  cursor: default;
 }
 .whiteboard-edges g[data-selected] > path:first-child {
   stroke-width: 3;

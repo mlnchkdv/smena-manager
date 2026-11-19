@@ -10,6 +10,7 @@ import {
   whiteboardSelectionUnits,
 } from '../shared/whiteboard-selection.js';
 import { disclosureAttributes } from './disclosure.js';
+import { whiteboardLayerActions } from './whiteboard-layer-actions.js';
 
 const alignments = [
   ['left', 'align-start-vertical', 'Align left', 'По левому краю'],
@@ -55,7 +56,7 @@ export function groupSelectionToolbar(projectId, board, ids, state, editable) {
     canGroup || canUngroup
       ? `<button class="btn btn-secondary btn-sm whiteboard-group-action" type="button" data-a="${canGroup ? 'whiteboardGroupSelection' : 'whiteboardUngroupSelection'}" title="${canGroup ? group : ungroup}" aria-label="${canGroup ? group : ungroup}">${ic(canGroup ? 'group' : 'ungroup', 16)}<span>${canGroup ? group : ungroup}</span></button>`
       : '';
-  const more = `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-group-tools:' + projectId)}><summary class="ibtn" aria-label="${T('Selection actions', 'Действия с выделением')}">${ic('ellipsis', 16)}</summary><div>${menuItem('whiteboardCopy', 'copy', T('Copy cards', 'Копировать карточки'))}${
+  const more = `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-group-tools:' + projectId)}><summary class="ibtn" aria-label="${T('Selection actions', 'Действия с выделением')}">${ic('ellipsis', 16)}</summary><div>${editable ? whiteboardLayerActions(board, ids) : ''}${menuItem('whiteboardCopy', 'copy', T('Copy cards', 'Копировать карточки'))}${
     editable
       ? `${!state.outline && canResize ? menuItem('whiteboardGroupResize', 'scaling', T('Resize selection by its edges', 'Изменять выделение за края'), `aria-pressed="${!!state.resizeSelection}"`) : ''}${!state.outline && units.some(nodes => nodes[0].type === 'group') ? menuItem('whiteboardGroupContents', 'square-dashed', T('Also scale frame contents', 'Также менять содержимое рамок'), `aria-pressed="${!!state.resizeContents}"`) : ''}${menuItem('whiteboardEdit', 'pencil', T('Edit active card', 'Изменить активную карточку'))}${menuItem('whiteboardNewEdge', 'move-right', T('Connect cards', 'Связать карточки'))}${menuItem('whiteboardDelete', 'trash-2', T('Remove cards', 'Убрать карточки'))}`
       : ''
