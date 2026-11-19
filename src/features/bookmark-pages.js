@@ -513,7 +513,9 @@ A.runBookmarkArchiveSearch = async el => {
   } catch (error) {
     if (!currentViewer(m)) return;
     if (error.code === 'PAGE_SEARCH_CHANGED') {
-      m.cursor = null;
+      m.results = [];
+      m.scanned = m.total = m.cursor = null;
+      m.unavailable = 0;
       m.changed = true;
       m.error = words('Saved copies changed during the search.', 'Сохранённые копии изменились во время поиска.');
     } else m.error = words('Search unavailable. Check the connection and retry.', 'Поиск недоступен. Проверьте соединение и повторите.');
