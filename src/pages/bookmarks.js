@@ -122,6 +122,18 @@ A.setBookmarkLayout = el => {
   writeLayoutPreference('bookmarkLayout:' + (S.ui.bookmarkFolder || 'all'), ['grid', 'list', 'compact'].includes(el.dataset.value) ? el.dataset.value : 'grid');
   render();
 };
+A.resetBookmarkFilters = () => {
+  Object.assign(S.ui, {
+    bookmarkQuery: '',
+    bookmarkFolder: 'all',
+    bookmarkScope: 'active',
+    bookmarkArchiveFilter: 'all',
+    bookmarkCapturedAfter: '',
+    bookmarkArchiveSort: 'updated',
+  });
+  render();
+  document.getElementById('bookmark-search')?.focus();
+};
 export function pageBookmarks() {
   if (location.hash.startsWith('#capture=')) queueMicrotask(receiveWebCapture);
   const layout = readLayoutPreference('bookmarkLayout:' + (S.ui.bookmarkFolder || 'all'), readLayoutPreference('bookmarkLayout', 'grid'));
@@ -151,6 +163,9 @@ export function pageBookmarks() {
     capturedAfter: S.ui.bookmarkCapturedAfter || '',
     sort: S.ui.bookmarkArchiveSort || 'updated',
   };
+  const filtersApplied =
+    folderFilter !== 'all' || scope !== 'active' || archiveFilters.archive !== 'all' || !!archiveFilters.capturedAfter || archiveFilters.sort !== 'updated';
+  const filteredEmpty = !!query || folderFilter !== 'all' || archiveFilters.archive !== 'all' || !!archiveFilters.capturedAfter;
   const page = bookmarkView(links, {
     query,
     folder: folderFilter,
@@ -217,12 +232,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
         {
           key: 'bookmarks',
           label: 'Filters',
-          active:
-            folderFilter !== 'all' ||
-            scope !== 'active' ||
-            archiveFilters.archive !== 'all' ||
-            !!archiveFilters.capturedAfter ||
-            archiveFilters.sort !== 'updated',
+          active: filtersApplied,
         },
       )}
     `,
@@ -233,6 +243,7 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
     <nav class="bookmark-location" aria-label="${kc('Bookmark location', 'Расположение закладок')}" translate="no">${folderNavigation('bookmarks', folderFilter === 'all' ? null : { folder: folderIndex.get(folderFilter)?.parentId || 'all' })}${folderFilter === 'all' ? `<strong>${kc('All bookmarks', 'Все закладки')}</strong>` : `<button class="btn btn-ghost btn-sm" data-a="collectionFolderUp" data-kind="bookmarks" data-folder="all">${kc('All bookmarks', 'Все закладки')}</button><span aria-hidden="true">/</span>${bookmarkCrumbs}`}</nav>
     ${!readOnly && filtered.length ? (S.ui.bookmarkSelecting ? `<div class="bookmark-bulk row" style="flex-wrap:wrap;gap:8px"><label class="row"><input type="checkbox" data-in="bookmarkSelectPage" ${filtered.every(item => S.ui.bookmarkSelection?.includes(item.id)) ? 'checked' : ''}>${kc('Select page', 'Выбрать страницу')}</label><span role="status">${kc('Selected: ', 'Выбрано: ')}${S.ui.bookmarkSelection?.length || 0}</span><button class="btn btn-secondary" data-a="bookmarkBatch" ${!S.ui.bookmarkSelection?.length ? 'disabled' : ''}>${kc('Actions', 'Действия')}</button><button class="btn btn-ghost" data-a="clearBookmarkSelection">${kc('Done', 'Готово')}</button></div>` : `<button class="btn btn-secondary btn-sm" data-a="startBookmarkSelection" translate="no">${ic('list-checks', 16)}${kc('Select', 'Выбрать')}</button>`) : ''}
     ${filtered.length ? `<span class="hint num bookmark-result-count" role="status">${page.page * 60 + 1}–${page.page * 60 + filtered.length} / ${page.total}</span>` : ''}
+    ${filtersApplied ? `<button class="btn btn-ghost btn-sm" data-a="resetBookmarkFilters" translate="no">${kc('Reset filters', 'Сбросить фильтры')}</button>` : ''}
     </div>
     ${S.ui.bookmarkSelectionNotice ? `<p class="hint" role="status">${kc('Selection cleared because the view changed.', 'Выбор снят после изменения представления.')}</p>` : ''}
     ${
@@ -240,13 +251,19 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
         ? `<div class="bookmark-grid ${layout === 'list' ? 'is-list' : layout === 'compact' ? 'is-compact' : ''}">${filtered.map(link => bookmarkCard(link, folders, readOnly)).join('')}</div>${paginationHtml(page, 'bookmarks')}`
         : empty(
             'bookmark-x',
-            scope === 'archived' ? 'No archived bookmarks' : 'No bookmarks found',
-            query || folderFilter !== 'all'
-              ? 'Try changing the search or folder filter.'
-              : readOnly
-                ? 'An editor can add the first shared bookmark.'
-                : 'Add the first useful resource for your team.',
-            readOnly || query || folderFilter !== 'all' ? '' : `<button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button>`,
+            filteredEmpty ? kc('No matching bookmarks', 'Закладки не найдены') : scope === 'archived' ? 'No archived bookmarks' : 'No bookmarks found',
+            filteredEmpty
+              ? kc('Change the search or reset the filters.', 'Измените запрос или сбросьте фильтры.')
+              : scope === 'archived'
+                ? kc('Archived bookmarks will appear here.', 'Здесь появятся закладки, перенесённые в архив.')
+                : readOnly
+                  ? 'An editor can add the first shared bookmark.'
+                  : 'Add the first useful resource for your team.',
+            query
+              ? `<button class="btn btn-secondary" data-a="searchBookmarkArchives" translate="no">${ic('search', 16)}${kc('Search saved pages', 'Поиск по сохранённым страницам')}</button>`
+              : readOnly || filteredEmpty || scope === 'archived'
+                ? ''
+                : `<button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button>`,
             '',
             1,
           )

@@ -42,7 +42,11 @@ export async function loadBookmarkMetadata() {
       const input = document.getElementById(`bookmark-${key}`);
       if (input) input.value = draft[key];
     }
-    status(words('Page details added. You can edit them.', 'Сведения добавлены. Их можно изменить.'));
+    status(
+      keys.length
+        ? words('Page details added. You can edit them.', 'Сведения добавлены. Их можно изменить.')
+        : words('No new details to fill in.', 'Новых сведений для заполнения нет.'),
+    );
   } catch {
     if (!current.signal.aborted && S.ui.bookmarkForm && S.ui.bookmarkDraft === draft)
       status(words('Could not get page details. Fill in the fields manually or retry.', 'Не удалось получить сведения. Заполните поля вручную или повторите.'));
@@ -404,7 +408,10 @@ for (const field of ['bookmarkArchiveFilter', 'bookmarkCapturedAfter', 'bookmark
   };
 IN.bookmarkArchiveSearchQuery = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'bookmarkArchiveSearch') m.query = el.value;
+  if (m?.type !== 'bookmarkArchiveSearch') return;
+  m.query = el.value;
+  const next = el.closest('.modal-b')?.querySelector('[data-more="true"]');
+  if (next) next.disabled = m.busy || m.searched !== m.query.trim();
 };
 A.searchBookmarkArchives = () =>
   openModal({
@@ -412,30 +419,40 @@ A.searchBookmarkArchives = () =>
     query: S.ui.bookmarkQuery || '',
     results: [],
     generation: getSessionGeneration(),
+    onClose() {
+      this.controller?.abort();
+    },
     render: (m, H) =>
-      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><label class="field">${words('Words in archived pages', 'Слова в сохранённых страницах')}<input class="input" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'disabled' : ''}></label><p class="hint">${words('Searches saved versions, including stored copies. Checks 20 versions at a time without downloading page HTML to your device.', 'Поиск по версиям, включая убранные из активных. Проверяем по 20 версий, не загружая HTML страниц на устройство.')}</p><button class="btn btn-primary" data-a="runBookmarkArchiveSearch" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total} · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}</p>` : ''}<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(new Date(row.capturedAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US'))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>${m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
+      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form><p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total}${m.unavailable ? ` · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}` : ''}</p>` : ''}${m.results.length ? `<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(new Date(row.capturedAt).toLocaleString(isRussian() ? 'ru-RU' : 'en-US'))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>` : ''}${!m.busy && !m.error && m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
   });
 A.runBookmarkArchiveSearch = async el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'bookmarkArchiveSearch' || m.busy) return;
-  if (m.query.trim().length < 2) {
+  const query = m.query.trim();
+  if (query.length < 2) {
     m.error = words('Enter at least two characters.', 'Введите не менее двух символов.');
     render();
     return;
   }
-  const more = el.dataset.more === 'true' && m.searched === m.query;
+  const more = el.dataset.more === 'true' && m.searched === query && m.cursor != null;
   if (!more) {
     m.results = [];
     m.unavailable = 0;
+    m.scanned = m.total = m.cursor = null;
   }
+  m.controller = new AbortController();
   m.busy = true;
   m.error = '';
   render();
   try {
-    const result = await bookmarkPageRequest('/search', { method: 'POST', body: JSON.stringify({ query: m.query, cursor: more ? m.cursor : 0 }) });
+    const result = await bookmarkPageRequest('/search', {
+      method: 'POST',
+      signal: m.controller.signal,
+      body: JSON.stringify({ query, cursor: more ? m.cursor : 0 }),
+    });
     if (!currentViewer(m)) return;
     m.results.push(...result.matches);
-    m.searched = m.query;
+    m.searched = query;
     m.scanned = result.scanned;
     m.total = result.total;
     m.cursor = result.cursor;

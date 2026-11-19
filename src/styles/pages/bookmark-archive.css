@@ -16,6 +16,16 @@
 .bookmark-preview-status {
   margin: 0;
 }
+.bookmark-archive-search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.bookmark-archive-search-form .field {
+  flex: 1 1 180px;
+  min-width: 0;
+}
 .bookmark-archive-frame {
   display: block;
   width: 100%;
