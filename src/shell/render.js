@@ -22,6 +22,7 @@ import { appLocationPath } from '../shared/app-location.js';
 import { disposeClosedPreviews, preserveFilePlayers } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
+import { replaceReadingMarkup } from '../ui/knowledge-reading-surface.js';
 import { captureGraphQueryPosition, restoreGraphQueryPosition } from '../ui/graph-query-position.js';
 import { refreshFolderKeyboard } from '../ui/knowledge-folder-keyboard.js';
 let knowledgeGridKeyboard, knowledgeGridKeyboardLoading;
@@ -266,7 +267,7 @@ export function render() {
   restoreGraphSurface?.();
   const layerHtml = renderLayer();
   if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#layer'), layerHtml);
-  else $('#layer').innerHTML = layerHtml;
+  else replaceReadingMarkup($('#layer'), layerHtml);
   restoreKnowledgeSurface?.finish();
   restorePlayers();
   translateApp();

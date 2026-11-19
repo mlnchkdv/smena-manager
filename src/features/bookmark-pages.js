@@ -108,7 +108,7 @@ function viewer(m, H) {
   const archiveButton = captureTools
     ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.submitting || m.saving || m.job || active.length >= 10 ? 'disabled' : ''}>${m.submitting ? words('Starting capture…', 'Запускаем архивацию…') : words('Archive page', 'Архивировать страницу')}</button>`
     : '';
-  return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" translate="no">
+  return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" data-keep="bookmark-viewer:${esc(m.id)}:${esc(m.selected)}" translate="no">
     <div class="bookmark-viewer-heading" ${m.wide ? 'data-archive-wide' : ''}><h3 class="bookmark-viewer-title">${esc(title)}</h3><p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p></div>
     <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${versionOptions}</select></label>${archiveButton}<a class="btn btn-ghost" href="${esc(source)}" target="_blank" rel="noopener noreferrer" aria-label="${words('Open original', 'Открыть оригинал')}">${words('Original', 'Оригинал')}</a></div>
     ${m.job ? `<p role="status">${archiveStage(m.job.phase)} ${words('You can close this window; capture continues on the server.', 'Можно закрыть окно: архивация продолжится на сервере.')}</p>` : ''}
@@ -174,10 +174,13 @@ async function loadPage(m) {
   }
   if (current() && m.page?.format === 'html') await loadDocument(m, controller);
   if (current()) {
-    m.offlineCopy = (await offlineItems(S.ui.currentUser?.id).catch(() => [])).find(
+    const offlineCopy = (await offlineItems(S.ui.currentUser?.id).catch(() => [])).find(
       item => item.workspace === getActiveWorkspace() && item.kind === 'bookmark-archive' && item.id === selected,
     );
-    if (current()) render();
+    if (current() && offlineCopy) {
+      m.offlineCopy = offlineCopy;
+      render();
+    }
   }
 }
 async function loadDocument(m, controller = m.controller) {

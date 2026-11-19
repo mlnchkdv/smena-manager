@@ -10,7 +10,7 @@ function keepConnected(root, html, retained) {
   template.innerHTML = html;
   const pairs = new Map();
   for (const item of retained) {
-    let fresh = template.content.querySelector(`[data-knowledge-reader="${item.node.dataset.knowledgeReader}"]`),
+    let fresh = template.content.querySelector(item.selector),
       old = item.node;
     if (!fresh) return false;
     while (fresh !== template.content && old !== root) {
@@ -54,6 +54,15 @@ function keepConnected(root, html, retained) {
   return true;
 }
 
+export function replaceReadingMarkup(root, html, retained = []) {
+  for (const node of root.querySelectorAll('iframe[data-bookmark-archive-frame]')) {
+    const key = CSS.escape(node.dataset.bookmarkArchiveFrame);
+    const selector = `iframe[data-bookmark-archive-frame="${key}"]`;
+    if (html.includes(`data-bookmark-archive-frame="${esc(node.dataset.bookmarkArchiveFrame)}"`)) retained.push({ node, selector });
+  }
+  if (!retained.length || !keepConnected(root, html, retained)) root.innerHTML = html;
+}
+
 // Only reuse nodes from the immediately preceding visible surface. Closing the
 // reader drops its DOM; no detached documents or cross-account body cache live here.
 export function captureKnowledgeReadingSurface() {
@@ -65,8 +74,13 @@ export function captureKnowledgeReadingSurface() {
   capture = current;
   return {
     replace(root, html) {
-      const retained = current.previous.filter(item => current.claimed.has(item) && root.contains(item.node));
-      if (!retained.length || !keepConnected(root, html, retained)) root.innerHTML = html;
+      const retained = current.previous
+        .filter(item => current.claimed.has(item) && root.contains(item.node))
+        .map(item => ({
+          ...item,
+          selector: `[data-knowledge-reader="${item.node.dataset.knowledgeReader}"]`,
+        }));
+      replaceReadingMarkup(root, html, retained);
     },
     finish() {
       for (const node of document.querySelectorAll('[data-knowledge-reader]')) {
