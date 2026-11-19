@@ -1,7 +1,7 @@
 .research-page {
   max-width: 1100px;
   margin-inline: auto;
-  padding: 24px;
+  padding: 24px 24px calc(24px + var(--bottom-nav-height, 0px));
 }
 .research-toolbar,
 .research-record-head,
@@ -194,7 +194,7 @@
 }
 @media (max-width: 600px) {
   .research-page {
-    padding: 16px 12px;
+    padding: 16px 12px calc(16px + var(--bottom-nav-height, 0px));
   }
   .research-toolbar > .row {
     width: 100%;
