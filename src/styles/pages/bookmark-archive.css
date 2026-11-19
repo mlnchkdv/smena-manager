@@ -48,6 +48,17 @@
 .bookmark-archive-search-results p {
   margin: 4px 0 0;
 }
+.bookmark-archive-search-footer {
+  justify-content: space-between;
+}
+.bookmark-archive-search-footer p {
+  flex-basis: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.bookmark-archive-search-footer .btn {
+  min-height: var(--control-target);
+}
 .bookmark-archive-frame {
   display: block;
   width: 100%;

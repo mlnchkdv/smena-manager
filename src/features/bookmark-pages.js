@@ -424,9 +424,40 @@ IN.bookmarkArchiveSearchQuery = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'bookmarkArchiveSearch') return;
   m.query = el.value;
-  const next = el.closest('.modal-b')?.querySelector('[data-more="true"]');
+  const next = el.closest('.modal')?.querySelector('[data-more="true"]');
   if (next) next.disabled = m.busy || m.searched !== m.query.trim();
 };
+function archiveSearchDialog(m, heading) {
+  const title = words('Search saved pages', 'Поиск по сохранённым страницам');
+  const progress = m.busy
+    ? words('Searching…', 'Ищем…')
+    : m.scanned == null
+      ? ''
+      : `${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total}${m.unavailable ? ` · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}` : ''}`;
+  const results = m.results.map(
+    row =>
+      `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(fmtTimestamp(row.capturedAt))}</button><p>${esc(row.excerpt)}</p></li>`,
+  );
+  const empty = !m.busy && !m.error && m.scanned != null && !results.length && m.cursor == null;
+  const pager = m.changed
+    ? `<button id="bookmark-archive-search-page" class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-restart="true">${words('Restart search', 'Начать поиск заново')}</button>`
+    : m.cursor != null
+      ? `<button id="bookmark-archive-search-page" class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>`
+      : '';
+  return `${heading(title)}<div class="modal-b" data-keep="bookmark-archive-search" translate="no">
+    <form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input id="bookmark-archive-search-query" class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form>
+    <p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>
+    ${results.length ? `<ul class="bookmark-archive-search-results">${results.join('')}</ul>` : ''}
+    ${empty ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}
+  </div>${
+    progress || pager || m.error
+      ? `<div class="modal-f bookmark-archive-search-footer" translate="no">
+    ${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}
+    <span id="bookmark-archive-search-progress" role="status" tabindex="-1">${progress}</span>${pager}
+  </div>`
+      : ''
+  }`;
+}
 A.searchBookmarkArchives = () =>
   openModal({
     type: 'bookmarkArchiveSearch',
@@ -436,8 +467,7 @@ A.searchBookmarkArchives = () =>
     onClose() {
       this.controller?.abort();
     },
-    render: (m, H) =>
-      `${H(words('Search saved pages', 'Поиск по сохранённым страницам'))}<div class="modal-b" translate="no"><form data-submit="runBookmarkArchiveSearch" class="bookmark-archive-search-form"><label class="field">${words('Words in saved pages', 'Слова в сохранённых страницах')}<input class="input" type="search" data-in="bookmarkArchiveSearchQuery" value="${esc(m.query)}" maxlength="200" ${m.busy ? 'readonly' : ''}></label><button class="btn btn-primary" ${m.busy ? 'disabled' : ''}>${words('Search', 'Найти')}</button></form><p class="hint">${words('Searches the text in saved copies, including versions removed from the active list.', 'Поиск по тексту сохранённых копий, включая версии, убранные из активных.')}</p>${m.busy ? `<p role="status">${words('Searching…', 'Ищем…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.scanned != null ? `<p role="status">${words('Versions checked: ', 'Проверено версий: ')}${m.scanned}/${m.total}${m.unavailable ? ` · ${words('Unavailable: ', 'Недоступно: ')}${m.unavailable}` : ''}</p>` : ''}${m.results.length ? `<ul class="bookmark-archive-search-results">${m.results.map(row => `<li><button class="btn btn-ghost" data-a="viewBookmarkPage" data-id="${esc(row.bookmarkId)}" data-snapshot="${esc(row.snapshotId)}">${esc(row.title)} · ${esc(fmtTimestamp(row.capturedAt))}</button><p>${esc(row.excerpt)}</p></li>`).join('')}</ul>` : ''}${!m.busy && !m.error && m.scanned != null && !m.results.length && m.cursor == null ? `<p>${words('No matching saved pages.', 'Совпадений в сохранённых страницах нет.')}</p>` : ''}${m.cursor != null ? `<button class="btn btn-secondary" data-a="runBookmarkArchiveSearch" data-more="true" ${m.busy || m.searched !== m.query.trim() ? 'disabled' : ''}>${words('Check next versions', 'Проверить следующие версии')}</button>` : ''}</div>`,
+    render: archiveSearchDialog,
   });
 A.runBookmarkArchiveSearch = async el => {
   const m = S.ui.modals.at(-1);
@@ -457,7 +487,15 @@ A.runBookmarkArchiveSearch = async el => {
   m.controller = new AbortController();
   m.busy = true;
   m.error = '';
+  m.changed = false;
   render();
+  if (!more) {
+    const input = document.getElementById('bookmark-archive-search-query');
+    if (input) input.closest('.modal-b').scrollTop = 0;
+    if (el.dataset.restart === 'true') input?.focus({ preventScroll: true });
+  } else {
+    document.getElementById('bookmark-archive-search-progress')?.focus({ preventScroll: true });
+  }
   try {
     const result = await bookmarkPageRequest('/search', {
       method: 'POST',
@@ -476,13 +514,15 @@ A.runBookmarkArchiveSearch = async el => {
     if (!currentViewer(m)) return;
     if (error.code === 'PAGE_SEARCH_CHANGED') {
       m.cursor = null;
-      m.error = words(
-        'Saved copies changed during the search. Run the search again to see all current results.',
-        'Сохранённые копии изменились во время поиска. Запустите поиск снова, чтобы увидеть все актуальные результаты.',
-      );
+      m.changed = true;
+      m.error = words('Saved copies changed during the search.', 'Сохранённые копии изменились во время поиска.');
     } else m.error = words('Search unavailable. Check the connection and retry.', 'Поиск недоступен. Проверьте соединение и повторите.');
   } finally {
     m.busy = false;
-    if (currentViewer(m)) render();
+    if (currentViewer(m)) {
+      const pagerFocused = document.activeElement?.id === 'bookmark-archive-search-progress';
+      render();
+      if (pagerFocused) document.getElementById('bookmark-archive-search-page')?.focus({ preventScroll: true });
+    }
   }
 };
