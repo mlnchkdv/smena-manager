@@ -19,7 +19,14 @@
 .research-search {
   display: flex;
   gap: 8px;
-  margin-block: 20px;
+  margin-block: 20px 8px;
+}
+.research-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block-end: 8px;
 }
 .research-search .input {
   min-width: 0;
@@ -49,6 +56,11 @@
 }
 .research-record-head {
   margin-block: 16px;
+  align-items: flex-start;
+}
+.research-record-head > div {
+  flex: 1 1 220px;
+  min-width: 0;
 }
 .research-record-head h2 {
   overflow-wrap: anywhere;
@@ -56,9 +68,9 @@
 .research-status-line {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 6px;
   color: var(--text-2);
-  margin-block: 16px;
+  margin-block-start: 8px;
 }
 .research-properties {
   display: grid;
@@ -84,6 +96,13 @@
 }
 .research-technical {
   margin-block: 24px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.research-technical > summary {
+  cursor: pointer;
+  font-weight: 600;
 }
 .research-empty {
   display: grid;
