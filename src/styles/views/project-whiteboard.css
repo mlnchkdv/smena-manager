@@ -1055,6 +1055,9 @@
   pointer-events: none;
   border: calc(1.5px / var(--whiteboard-zoom, 1)) dashed var(--accent);
 }
+.whiteboard-group-resize-box[data-saved-selection] {
+  border-color: transparent;
+}
 .whiteboard-saved-group {
   position: absolute;
   pointer-events: none;
@@ -1456,6 +1459,9 @@
     gap: 4px;
     padding-inline: 6px;
   }
+  .whiteboard-selection-count {
+    min-width: max-content;
+  }
   .whiteboard-selection-count > [role='status'] {
     position: absolute;
     width: 1px;
@@ -1493,13 +1499,13 @@
     display: grid;
   }
 }
-@media (max-width: 365px) {
-  .whiteboard-selection .whiteboard-group-action[data-a='whiteboardGroupSelection'] {
+@media (max-width: 380px) {
+  .whiteboard-selection .whiteboard-group-action {
     width: 44px;
     justify-content: center;
     padding-inline: 0;
   }
-  .whiteboard-group-action[data-a='whiteboardGroupSelection'] > span {
+  .whiteboard-group-action > span {
     display: none;
   }
 }
