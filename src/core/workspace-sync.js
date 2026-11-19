@@ -1,4 +1,4 @@
-import { putWorkspace, putWorkspaceDocument } from './api.js';
+import { getWorkspace, putWorkspace, putWorkspaceDocument } from './api.js';
 import { DOCUMENT_NAMES, serializeWorkspaceWrite, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { workspacePayload } from './workspace-snapshot.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
@@ -9,8 +9,16 @@ function browserNotify(detail) {
   window.dispatchEvent(new CustomEvent('smena:sync-status', { detail }));
 }
 
+function acknowledgedData(snapshot, sent) {
+  const canonical = workspacePayload(snapshot);
+  // The shared file's owner must not replace the current member in this browser.
+  if (Object.hasOwn(sent, 'me')) canonical.me = sent.me;
+  return canonical;
+}
+
 export function createWorkspaceSync(options = {}) {
   const writeWorkspace = options.writeWorkspace || putWorkspace;
+  const { readWorkspace, latestLocal } = options;
   const notify = options.notify || browserNotify;
   const schedule = options.schedule || setTimeout;
   const cancel = options.cancel || clearTimeout;
@@ -70,6 +78,34 @@ export function createWorkspaceSync(options = {}) {
     retryDelay = Math.min(retryDelay * 2, 30_000);
   }
 
+  async function writeWithRebase(data, expectedRevision, base, writeGeneration) {
+    try {
+      return { snapshot: await writeWorkspace(data, expectedRevision) };
+    } catch (error) {
+      // Another write may advance the workspace revision without touching any
+      // of these fields. Retry once before stopping editing for conflict review.
+      if (error.code !== 'REVISION_CONFLICT' || !readWorkspace || !base || writeGeneration !== generation) throw error;
+      const snapshot = await readWorkspace();
+      const nextRevision = Number(snapshot?.revision);
+      if (writeGeneration !== generation || !Number.isSafeInteger(nextRevision) || nextRevision < expectedRevision) throw error;
+      const remote = acknowledgedData(snapshot, data);
+      const rebased = mergeWorkspaceData(base, data, remote);
+      if (rebased.conflicts.length) throw error;
+      if (JSON.stringify(rebased.data) === JSON.stringify(remote)) return { snapshot, rebased: true };
+      return { snapshot: await writeWorkspace(rebased.data, nextRevision), rebased: true };
+    }
+  }
+
+  function recordAcknowledgementConflict(base, local) {
+    enabled = false;
+    conflict = { base: structuredClone(base), local: structuredClone(local), revision, currentRevision: revision };
+    pending = null;
+    pendingHash = null;
+    lastError = 'conflict';
+    if (journal) void journal.save({ base, local, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
+    notify({ status: 'conflict', revision, currentRevision: revision });
+  }
+
   function flush() {
     if (activePromise) return activePromise;
     if (!enabled || !pending || retryTimer) return Promise.resolve();
@@ -87,24 +123,16 @@ export function createWorkspaceSync(options = {}) {
           await writeJournal.save({ base: confirmedData, local: pending || data, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
           if (writeGeneration !== generation) return;
         }
-        const snapshot = await writeWorkspace(data, revision);
+        const { snapshot, rebased } = await writeWithRebase(data, revision, confirmedData, writeGeneration);
         if (writeGeneration !== generation) return;
         revision = Number(snapshot.revision);
-        const canonical = workspacePayload(snapshot);
-        // `me` identifies this browser's member, not the canonical member in
-        // the shared file. Applying it verbatim would switch the inbox owner.
-        if (Object.hasOwn(data, 'me')) canonical.me = data.me;
+        const canonical = acknowledgedData(snapshot, data);
         confirmedHash = JSON.stringify(canonical);
         confirmedData = structuredClone(canonical);
         if (pending) {
           const merged = mergeWorkspaceData(data, pending, canonical);
           if (merged.conflicts.length) {
-            enabled = false;
-            conflict = { base: structuredClone(data), local: structuredClone(pending), revision, currentRevision: revision };
-            pending = null;
-            pendingHash = null;
-            lastError = 'conflict';
-            notify({ status: 'conflict', revision, currentRevision: revision });
+            recordAcknowledgementConflict(data, pending);
             return;
           }
           pending = merged.data;
@@ -114,6 +142,14 @@ export function createWorkspaceSync(options = {}) {
         if (writeJournal) {
           if (pending) await writeJournal.save({ base: canonical, local: pending, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
           else await writeJournal.acknowledge(data).catch(error => notify({ status: 'recovery_unavailable', error }));
+        }
+        if (writeGeneration !== generation) return;
+        // The aggregate write queue can hold newer edits until this save
+        // completes. Check them before allowing the next snapshot to be sent.
+        const local = rebased ? latestLocal?.() : null;
+        if (local && mergeWorkspaceData(data, local, canonical).conflicts.length) {
+          recordAcknowledgementConflict(data, local);
+          return;
         }
         lastError = null;
         retryDelay = 1_000;
@@ -220,7 +256,8 @@ export function createWorkspaceSync(options = {}) {
   return { configure, disable, queue, retry, state, isClean, getConflict };
 }
 
-const workspaceSync = createWorkspaceSync();
+let latestCoreInput;
+const workspaceSync = createWorkspaceSync({ readWorkspace: getWorkspace, latestLocal: () => (latestCoreInput ? workspaceCoreData(latestCoreInput) : null) });
 const documentSyncs = Object.fromEntries(
   DOCUMENT_NAMES.map(name => [
     name,
@@ -232,27 +269,31 @@ const documentSyncs = Object.fromEntries(
 );
 
 export function configureWorkspaceSync(revision, role, data, documentSnapshots = {}, context = {}) {
-  workspaceSync.configure(revision, role, workspaceCoreData(data), { ...context, scope: 'workspace' });
+  configureCoreWorkspaceSync(revision, role, data, context);
   for (const name of DOCUMENT_NAMES) {
     documentSyncs[name].configure(documentSnapshots[name]?.revision || 0, role, workspaceDocumentData(name, data), { ...context, scope: name });
   }
 }
 export function configureCoreWorkspaceSync(revision, role, data, context = {}) {
+  latestCoreInput = null;
   workspaceSync.configure(revision, role, workspaceCoreData(data), { ...context, scope: 'workspace' });
 }
 export function configureDocumentWorkspaceSync(name, revision, role, data, context = {}) {
   documentSyncs[name].configure(revision, role, workspaceDocumentData(name, data), { ...context, scope: name });
 }
 export function queueScopedWorkspaceSync(scope, data) {
+  if (scope === 'workspace') latestCoreInput = data;
   return serializeWorkspaceWrite(() =>
     scope === 'workspace' ? workspaceSync.queue(workspaceCoreData(data)) : documentSyncs[scope].queue(workspaceDocumentData(scope, data)),
   );
 }
 export function disableWorkspaceSync() {
+  latestCoreInput = null;
   workspaceSync.disable();
   for (const sync of Object.values(documentSyncs)) sync.disable();
 }
 export function queueWorkspaceSync(data) {
+  latestCoreInput = data;
   return serializeWorkspaceWrite(async () => {
     await workspaceSync.queue(workspaceCoreData(data));
     for (const name of DOCUMENT_NAMES) await documentSyncs[name].queue(workspaceDocumentData(name, data));

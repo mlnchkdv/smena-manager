@@ -33,10 +33,11 @@ test('recovering a core conflict preserves an active knowledge write and its loc
   globalThis.fetch = async (path, options = {}) => {
     if (path === '/api/workspace' && options.method === 'PUT') {
       coreWrites += 1;
-      if (coreWrites === 1) return response({ error: 'Conflict', code: 'REVISION_CONFLICT', currentRevision: 2 }, 409);
-      return response({ data: { ...JSON.parse(options.body).data, revision: 3 } });
+      // Keep moving the snapshot through the first bounded automatic retry.
+      if (coreWrites <= 2) return response({ error: 'Conflict', code: 'REVISION_CONFLICT', currentRevision: coreWrites + 1 }, 409);
+      return response({ data: { ...JSON.parse(options.body).data, revision: 4 } });
     }
-    if (path === '/api/workspace') return response({ data: { ...remote, revision: 2 } });
+    if (path === '/api/workspace') return response({ data: { ...remote, revision: coreWrites === 1 ? 2 : 3 } });
     if (path === '/api/workspace-documents/knowledge')
       return new Promise(resolve => {
         releaseKnowledge = () => resolve(response({ data: { ...JSON.parse(options.body).data, revision: 1 } }));

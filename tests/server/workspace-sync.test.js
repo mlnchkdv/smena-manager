@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createWorkspaceSync } from '../../src/core/workspace-sync.js';
 
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const revisionConflict = currentRevision => Object.assign(new Error('Conflict'), { status: 409, code: 'REVISION_CONFLICT', currentRevision });
 
 test('a rejected project rule retains the latest draft as a reviewable conflict without automatic retries', async () => {
   for (const code of ['WORKFLOW_READY', 'AUTOMATION_ASSIGNEE_UNAVAILABLE', 'AUTOMATION_EVENT_LIMIT']) {
@@ -76,6 +77,103 @@ test('returning A to B to A while B is saving persists the final A', async () =>
   await tick();
   assert.deepEqual(writes, [b, a]);
   assert.equal(sync.isClean(a), true);
+});
+
+test('a revision change during rapid layer toggles preserves the final flags and an independent remote edit', async () => {
+  const base = { whiteboards: [{ id: 'board', whiteboard: { version: 10, nodes: [{ id: 'card', title: 'Original' }], edges: [] } }] };
+  const inFlight = structuredClone(base);
+  inFlight.whiteboards[0].whiteboard.nodes[0].hidden = true;
+  const latest = structuredClone(base);
+  latest.whiteboards[0].whiteboard.nodes[0].locked = true;
+  const remote = structuredClone(base);
+  remote.whiteboards[0].whiteboard.nodes[0].title = 'From another session';
+  let startRead, finishRead;
+  const reading = new Promise(resolve => {
+    startRead = resolve;
+  });
+  const writes = [],
+    events = [];
+  const sync = createWorkspaceSync({
+    writeWorkspace: async (data, revision) => {
+      writes.push({ data, revision });
+      if (revision === 5) throw revisionConflict(6);
+      return { ...data, revision: revision + 1 };
+    },
+    readWorkspace: () =>
+      new Promise(resolve => {
+        finishRead = resolve;
+        startRead();
+      }),
+    notify: event => events.push(event),
+  });
+  sync.configure(5, 'editor', base);
+  const saving = sync.queue(inFlight);
+  await Promise.race([reading, saving.then(() => assert.fail('A safe revision change surfaced as a conflict'))]);
+  void sync.queue(latest);
+  finishRead({ ...remote, revision: 6 });
+  await saving;
+  await tick();
+
+  const final = structuredClone(remote);
+  final.whiteboards[0].whiteboard.nodes[0].locked = true;
+  assert.deepEqual(
+    writes.map(write => write.revision),
+    [5, 6, 7],
+  );
+  assert.deepEqual(writes.at(-1).data, final);
+  assert.deepEqual(
+    events.filter(event => event.status === 'conflict'),
+    [],
+  );
+  assert.deepEqual(events.find(event => event.status === 'saved').sentData, inFlight);
+  assert.equal(sync.isClean(final), true);
+});
+
+test('stale writes with an overlapping edit or another revision change preserve the conflict draft', async () => {
+  for (const overlaps of [true, false]) {
+    const base = { title: 'Original', hidden: false };
+    const local = { title: 'Local', hidden: true };
+    const writes = [];
+    const sync = createWorkspaceSync({
+      writeWorkspace: async (_data, revision) => {
+        writes.push(revision);
+        throw revisionConflict(revision + 1);
+      },
+      readWorkspace: async () => ({ ...base, title: overlaps ? 'Remote' : base.title, revision: 6 }),
+      notify: () => {},
+    });
+    sync.configure(5, 'editor', base);
+    await sync.queue(local);
+
+    assert.deepEqual(writes, overlaps ? [5] : [5, 6]);
+    assert.deepEqual(sync.getConflict().base, base);
+    assert.deepEqual(sync.getConflict().local, local);
+  }
+});
+
+test('an edit queued during a rebased write cannot silently overwrite a conflicting remote value', async () => {
+  const base = { title: 'Original', hidden: false };
+  const inFlight = { ...base, hidden: true };
+  const remote = { ...base, title: 'Remote' };
+  const queued = { ...inFlight, title: 'Local' };
+  let latest = inFlight;
+  const sync = createWorkspaceSync({
+    readWorkspace: async () => ({ ...remote, revision: 6 }),
+    latestLocal: () => latest,
+    writeWorkspace: async (data, revision) => {
+      if (revision === 5) throw revisionConflict(6);
+      assert.equal(data.title, remote.title);
+      latest = queued;
+      return { ...data, revision: 7 };
+    },
+    notify: () => {},
+  });
+  sync.configure(5, 'editor', base);
+  await sync.queue(inFlight);
+
+  assert.deepEqual(sync.getConflict().base, inFlight);
+  assert.deepEqual(sync.getConflict().local, queued);
+  assert.equal(sync.state().enabled, false);
 });
 
 test('a return to the active value cancels an obsolete pending value', async () => {
