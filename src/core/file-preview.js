@@ -7,6 +7,14 @@ import { isRussian } from './i18n.js';
 
 const previews = new Map();
 
+export async function imagePreviewSize(url) {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+  if (!image.naturalWidth || !image.naturalHeight) throw new Error('Invalid image dimensions.');
+  return { width: image.naturalWidth, height: image.naturalHeight };
+}
+
 export function disposeClosedPreviews() {
   for (const [modal, state] of previews) {
     if (!S.ui.auth && S.ui.modals.includes(modal) && state.owner === S.ui.currentUser?.id && state.generation === getSessionGeneration()) continue;
@@ -25,7 +33,7 @@ export function disposeClosedPreviews() {
   }
 }
 
-export function ensureFilePreview(modal, refresh) {
+export function ensureFilePreview(modal, refresh, { measureImage = false } = {}) {
   modal.previewInstance ||= uid('preview');
   if (modal.preview) return;
   const policy = filePreviewPolicy(modal.file);
@@ -61,7 +69,9 @@ export function ensureFilePreview(modal, refresh) {
       } else if (['text', 'html'].includes(policy.kind)) modal.preview = { kind: 'text', text: await blob.text() };
       else {
         state.url = URL.createObjectURL(blob);
-        modal.preview = { kind: ['video', 'audio'].includes(policy.kind) ? policy.kind : 'image', url: state.url };
+        const size = measureImage && policy.kind === 'image' ? await imagePreviewSize(state.url) : null;
+        if (state.controller.signal.aborted) return;
+        modal.preview = { kind: ['video', 'audio'].includes(policy.kind) ? policy.kind : 'image', url: state.url, size };
       }
     } catch (error) {
       if (state.controller.signal.aborted) return;

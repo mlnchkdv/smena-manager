@@ -11,6 +11,7 @@ import './whiteboard-portable.js';
 import './whiteboard-tools.js';
 import './whiteboard-extract.js';
 import './whiteboard-pdf-pages.js';
+import './whiteboard-image-editor.js';
 import './whiteboard-presentation.js';
 import './whiteboard-templates.js';
 import { mountWhiteboardAssetInputs } from './whiteboard-assets.js';

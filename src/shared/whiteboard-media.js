@@ -1,8 +1,10 @@
 import { filePreviewPolicy } from './file-preview-policy.js';
+import { validWhiteboardImage } from './whiteboard-image.js';
 
 export function validWhiteboardMedia(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const count = Object.keys(value).length;
+  if (Object.hasOwn(value, 'image')) return count === 1 && validWhiteboardImage(value.image);
   if (Object.hasOwn(value, 'page'))
     return (
       (count === 1 || (count === 2 && Object.hasOwn(value, 'fixed') && value.fixed === true)) &&
@@ -33,6 +35,7 @@ export function whiteboardMediaPosition(file, value) {
   const { kind } = filePreviewPolicy(file);
   if (!validWhiteboardMedia(value)) return { kind };
   if (kind === 'pdf' && Object.hasOwn(value, 'page')) return { kind, page: value.page, ...(value.fixed ? { fixed: true } : {}) };
+  if (kind === 'image' && Object.hasOwn(value, 'image')) return { kind, image: value.image };
   if (['video', 'audio'].includes(kind) && Object.hasOwn(value, 'seconds')) return { kind, seconds: value.seconds };
   return { kind };
 }

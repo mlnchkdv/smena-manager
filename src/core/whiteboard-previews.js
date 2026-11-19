@@ -2,6 +2,8 @@ import { A } from '../actions/actions.js';
 import { currentWhiteboard, whiteboardMaterial, whiteboardScope, whiteboardState, wbText as T } from './whiteboard-state.js';
 import { downloadWorkspaceFile } from './api.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
+import { imagePreviewSize } from './file-preview.js';
+import { whiteboardImageMarkup } from '../ui/whiteboard-image.js';
 import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { WHITEBOARD_PDF_PAGE_BATCH } from '../shared/whiteboard-pdf-pages.js';
 import { render } from '../shell/render.js';
@@ -49,6 +51,11 @@ function paint(element, entry, page) {
   if (state.pending) return;
   element.replaceChildren();
   if (state.url) {
+    const edit = entry.kind === 'image' && nodeFor(element.dataset.whiteboardMedia)?.media?.image;
+    if (edit) {
+      element.innerHTML = whiteboardImageMarkup(state.url, entry.file.name, state.size, edit, 'whiteboard-inline-image');
+      return;
+    }
     const image = document.createElement('img');
     image.className = 'whiteboard-inline-image';
     image.decoding = 'async';
@@ -84,7 +91,7 @@ function paintEntry(entry, page) {
   for (const element of elements()) if (element.dataset.previewKey === entry.key && Number(element.dataset.mediaPage) === page) paint(element, entry, page);
 }
 async function load(entry, page, owner) {
-  let blob;
+  let blob, url;
   try {
     entry.source ||= downloadWorkspaceFile(entry.file.id, false, { signal: entry.controller.signal, maxBytes: 20 * 1024 ** 2 }).then(result => result.blob);
     blob = await entry.source;
@@ -95,9 +102,14 @@ async function load(entry, page, owner) {
       result = await renderPdfPage(blob, page, entry.controller.signal, { thumbnail: true });
     } else result = { blob, page: 1, pages: 1 };
     if (owner !== generation || entry.controller.signal.aborted) return;
-    const url = URL.createObjectURL(result.blob);
+    url = URL.createObjectURL(result.blob);
+    const size = entry.kind === 'image' ? await imagePreviewSize(url) : null;
+    if (owner !== generation || entry.controller.signal.aborted) {
+      URL.revokeObjectURL(url);
+      return;
+    }
     entry.pageCount = result.pages;
-    entry.pages.set(page, { url, page: result.page, pages: result.pages });
+    entry.pages.set(page, { url, size, page: result.page, pages: result.pages });
     // Keep one batch of extracted pages and a small browsing buffer per PDF.
     for (const [number, state] of entry.pages)
       if (entry.pages.size > WHITEBOARD_PDF_PAGE_BATCH + 3 && number !== page && !state.pending) {
@@ -105,6 +117,7 @@ async function load(entry, page, owner) {
         entry.pages.delete(number);
       }
   } catch {
+    if (url) URL.revokeObjectURL(url);
     if (owner !== generation || entry.controller.signal.aborted) return;
     if (!blob) entry.source = null;
     entry.pages.set(page, { failed: true });

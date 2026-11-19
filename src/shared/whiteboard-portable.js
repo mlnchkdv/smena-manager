@@ -6,7 +6,8 @@ const fail = () => {
 export function jsonCanvasExportLosses(board) {
   if (!validWhiteboard(board)) fail();
   return [
-    ...(board.nodes.some(node => node.media) ? ['mediaOffsets'] : []),
+    ...(board.nodes.some(node => node.media && !node.media.image) ? ['mediaOffsets'] : []),
+    ...(board.nodes.some(node => node.media?.image) ? ['imageEdits'] : []),
     ...(board.nodes.some(node => node.type === 'shape') ? ['shapes'] : []),
     ...(board.nodes.some(node => node.sequence != null) ? ['frameOrder'] : []),
     ...(board.edges.some(edge => edge.style && edge.style !== 'solid') ? ['lineStyles'] : []),

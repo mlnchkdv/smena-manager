@@ -23,14 +23,24 @@ export function whiteboardContext(board, state, editable) {
     colors = [T('Neutral', 'Нейтральный'), T('Violet', 'Фиолетовый'), T('Blue', 'Синий'), T('Green', 'Зелёный'), T('Amber', 'Янтарный'), T('Rose', 'Розовый')];
   const source = node?.type === 'material' ? whiteboardMaterial(node) : null;
   const media = source?.kind === 'file' ? filePreviewPolicy(source.item).kind : null;
+  const editedImage = media === 'image' && node.media?.image;
+  const mediaActions =
+    media === 'image'
+      ? action('whiteboardEditImage', 'crop', T('Crop and rotate', 'Обрезать и повернуть'), 'menu') +
+        (editedImage ? action('whiteboardRestoreImage', 'rotate-ccw', T('Restore original', 'Вернуть оригинал'), 'menu') : '')
+      : media === 'pdf' && !node.media?.fixed
+        ? action('whiteboardExtractPdfPages', 'layers', T('Extract pages', 'Вынести страницы'), 'menu')
+        : '';
   const openLabel =
     media === 'pdf'
       ? T('Open PDF', 'Открыть PDF')
-      : source?.kind === 'bookmark'
-        ? T('Open website', 'Открыть сайт')
-        : media
-          ? T('Open preview', 'Открыть предпросмотр')
-          : T('Read fully', 'Читать полностью');
+      : editedImage
+        ? T('Open original', 'Открыть оригинал')
+        : source?.kind === 'bookmark'
+          ? T('Open website', 'Открыть сайт')
+          : media
+            ? T('Open preview', 'Открыть предпросмотр')
+            : T('Read fully', 'Читать полностью');
   const materialLink =
     node?.type === 'material' && !media && source?.kind !== 'bookmark'
       ? `<button class="ibtn" data-a="openRelatedEntity" data-key="${esc(node.target)}" aria-label="${T('Open material', 'Открыть материал')}" title="${T('Open material', 'Открыть материал')}">${ic('arrow-up-right', 16)}</button>`
@@ -45,7 +55,7 @@ export function whiteboardContext(board, state, editable) {
   const secondary =
     !editable || edge
       ? ''
-      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${media === 'pdf' && !node.media?.fixed ? action('whiteboardExtractPdfPages', 'layers', T('Extract pages', 'Вынести страницы'), 'menu') : ''}${action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${action('whiteboardConnectStart', 'move-right', T('Connect card', 'Связать карточку'), 'menu')}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${mediaActions}${action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${action('whiteboardConnectStart', 'move-right', T('Connect card', 'Связать карточку'), 'menu')}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
   return `<aside class="whiteboard-context" ${media ? `data-media-kind="${esc(media)}"` : ''} aria-label="${T('Selection tools', 'Инструменты выделения')}" translate="no">
     <span class="whiteboard-context-kind" title="${esc(name)}">${ic(edge ? 'move-right' : media === 'image' ? 'image' : node.type === 'material' ? 'file-text' : node.type === 'group' ? 'square-dashed' : 'sticky-note', 16)}</span>${title}
     <div class="whiteboard-context-actions">${node ? action('whiteboardReadCard', media === 'pdf' ? 'file-text' : source?.kind === 'bookmark' ? 'globe' : 'book-open', openLabel, 'primary') : ''}${node && !state.outline ? action('whiteboardFocusCard', 'scan', T('Zoom to card', 'Приблизить карточку')) : ''}${materialLink}${color}${edge && editable ? action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'), 'primary') : ''}${secondary}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>

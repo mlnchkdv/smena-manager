@@ -16,6 +16,7 @@ export const BOARD_SHAPES = [
 export const BOARD_LINE_STYLES = ['solid', 'dashed', 'dotted'];
 export const BOARD_ENDINGS = ['none', 'arrow', 'dot'];
 export const WHITEBOARD_PDF_PAGE_VERSION = 6;
+export const WHITEBOARD_IMAGE_VERSION = 7;
 export const WHITEBOARD_CARD_LIMIT = 200;
 export const whiteboardEdgeEnd = (edge, side) => edge[side + 'End'] ?? (side === 'to' && edge.arrow ? 'arrow' : 'none');
 export const emptyWhiteboard = () => ({ version: 1, nodes: [], edges: [] });
@@ -24,7 +25,12 @@ const object = value => value && typeof value === 'object' && !Array.isArray(val
 const identity = value => typeof value === 'string' && /^[\p{L}\p{N}_.:@+-]{1,180}$/u.test(value);
 const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
-  if (!object(board) || ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION].includes(board.version) || !Array.isArray(board.nodes) || !Array.isArray(board.edges))
+  if (
+    !object(board) ||
+    ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION, WHITEBOARD_IMAGE_VERSION].includes(board.version) ||
+    !Array.isArray(board.nodes) ||
+    !Array.isArray(board.edges)
+  )
     return false;
   if (Object.keys(board).some(k => !['version', 'nodes', 'edges'].includes(k)) || board.nodes.length > WHITEBOARD_CARD_LIMIT || board.edges.length > 400)
     return false;
@@ -64,7 +70,8 @@ export function validWhiteboard(board) {
         typeof node.target !== 'string' ||
         !node.target.startsWith('file:') ||
         !validWhiteboardMedia(node.media) ||
-        (node.media.fixed && board.version < WHITEBOARD_PDF_PAGE_VERSION))
+        (node.media.fixed && board.version < WHITEBOARD_PDF_PAGE_VERSION) ||
+        (node.media.image && board.version < WHITEBOARD_IMAGE_VERSION))
     )
       return false;
     if (!['x', 'y', 'width', 'height'].every(k => Number.isSafeInteger(node[k]) && Math.abs(node[k]) <= 50000)) return false;
