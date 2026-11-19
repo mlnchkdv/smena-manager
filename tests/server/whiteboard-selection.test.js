@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../../src/shared/whiteboard-selection.js';
+import {
+  copyWhiteboardSelection,
+  pasteWhiteboardSelection,
+  arrangeWhiteboardSelection,
+  whiteboardSelectionInRect,
+  whiteboardSelectionOffset,
+} from '../../src/shared/whiteboard-selection.js';
 const card = (id, x, y, type = 'text') => ({
   id,
   type,
@@ -45,4 +51,19 @@ test('alignment and distribution preserve edges and move contents with selected 
     [30, 30, 30],
   );
   assert.equal(copyWhiteboardSelection(board, ['frame']).nodes.length, 2);
+});
+
+test('selection rectangle picks intersecting cards and only fully contained frames', () => {
+  const nodes = [card('frame', 0, 0, 'group'), card('inside', 30, 30), card('near', 240, 80), card('outside', 720, 40)];
+  assert.deepEqual(whiteboardSelectionInRect(nodes, { left: 90, top: 20, right: 280, bottom: 130 }), ['inside', 'near']);
+  assert.deepEqual(whiteboardSelectionInRect(nodes, { left: 0, top: 0, right: 600, bottom: 500 }), ['frame', 'inside', 'near']);
+  assert.deepEqual(whiteboardSelectionInRect(nodes, { left: 600, top: 0, right: 720, bottom: 500 }), []);
+  assert.deepEqual(whiteboardSelectionInRect(nodes, { left: 15, top: 50, right: 15, bottom: 100 }), []);
+});
+
+test('drag and keyboard offsets clamp a selection together at board boundaries', () => {
+  const nodes = [card('a', 49980, -49985), card('b', 48000, -49600)];
+  assert.deepEqual(whiteboardSelectionOffset(nodes, 90, -50), { dx: 20, dy: -15 });
+  assert.deepEqual(whiteboardSelectionOffset(nodes, -30, 40), { dx: -30, dy: 40 });
+  assert.deepEqual(whiteboardSelectionOffset([], 10, 10), { dx: 0, dy: 0 });
 });

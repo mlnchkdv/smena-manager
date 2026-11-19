@@ -1,5 +1,26 @@
 import { movedWhiteboardNodes, validWhiteboard } from './project-whiteboard.js';
 import { appendFrameSequence } from './whiteboard-presentation.js';
+
+export function whiteboardSelectionInRect(nodes, rect) {
+  const { left, top, right, bottom } = rect;
+  if (left >= right || top >= bottom) return [];
+  return nodes
+    .filter(node => {
+      const nodeRight = node.x + node.width;
+      const nodeBottom = node.y + node.height;
+      return node.type === 'group'
+        ? node.x >= left && node.y >= top && nodeRight <= right && nodeBottom <= bottom
+        : node.x < right && node.y < bottom && nodeRight > left && nodeBottom > top;
+    })
+    .map(node => node.id);
+}
+
+export function whiteboardSelectionOffset(nodes, dx, dy) {
+  if (!nodes.length) return { dx: 0, dy: 0 };
+  const clamp = (axis, delta) => Math.max(...nodes.map(node => -50000 - node[axis]), Math.min(...nodes.map(node => 50000 - node[axis]), delta));
+  return { dx: clamp('x', dx), dy: clamp('y', dy) };
+}
+
 export function whiteboardSelectionNodes(board, selection) {
   const ids = new Set(selection.flatMap(id => movedWhiteboardNodes(board, id).map(n => n.id)));
   return board.nodes.filter(n => ids.has(n.id));

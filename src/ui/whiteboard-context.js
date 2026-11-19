@@ -91,11 +91,14 @@ export function whiteboardNavigationHint(mode, editable) {
 export function whiteboardNavigation(state, editable) {
   const mode = whiteboardNavigationMode(state);
   const hint = whiteboardNavigationHint(mode, editable);
+  const modeIcon = mode === 'pan' ? 'hand' : mode === 'scroll' ? 'mouse' : 'mouse-pointer-2';
   return `<label class="whiteboard-gesture" title="${esc(hint)}"><span class="sr">${T('Interaction mode', 'Режим управления')}</span><select class="select" data-in="whiteboardNavigation" aria-label="${T('Interaction mode', 'Режим управления')}" aria-describedby="whiteboard-mode-hint" title="${esc(hint)}">${[
     ...(state.focus ? [] : [['scroll', T('Scroll', 'Прокрутка')]]),
     ['pan', T('Pan', 'Панорама')],
     ['move', editable ? T('Cards', 'Карточки') : T('Select', 'Выбор')],
   ]
     .map(([value, label]) => `<option value="${value}" ${mode === value ? 'selected' : ''}>${label}</option>`)
-    .join('')}</select><span class="sr" id="whiteboard-mode-hint">${esc(hint)}</span></label>`;
+    .join(
+      '',
+    )}</select><span class="whiteboard-gesture-icon" aria-hidden="true">${ic(modeIcon, 16)}</span><span class="sr" id="whiteboard-mode-hint">${esc(hint)}</span></label>`;
 }

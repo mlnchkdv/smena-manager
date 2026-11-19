@@ -5,7 +5,14 @@ import { resizedWhiteboardNode, snapWhiteboardResize } from '../shared/whiteboar
 import { resizeWhiteboardGroup, groupResizeNodes } from '../shared/whiteboard-group-resize.js';
 import { refreshWhiteboardMinimap } from '../ui/whiteboard-minimap.js';
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
-import { whiteboardSelectionNodes, copyWhiteboardSelection, pasteWhiteboardSelection, arrangeWhiteboardSelection } from '../shared/whiteboard-selection.js';
+import {
+  whiteboardSelectionNodes,
+  whiteboardSelectionInRect,
+  whiteboardSelectionOffset,
+  copyWhiteboardSelection,
+  pasteWhiteboardSelection,
+  arrangeWhiteboardSelection,
+} from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
 import './whiteboard-tools.js';
@@ -468,22 +475,21 @@ const selectedIds = () => {
   const s = whiteboardState();
   return (s.selection?.length ? s.selection : s.selected ? [s.selected] : []).filter(id => whiteboardOf(current()).nodes.some(n => n.id === id));
 };
+function selectNodes(state, ids, active = ids[0] || '') {
+  Object.assign(state, { selected: active, selection: ids, selectedEdge: '' });
+  if (ids.length < 2) state.resizeSelection = false;
+}
 A.whiteboardSelect = (el, event) => {
   const s = whiteboardState(),
     id = el.dataset.id;
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
   if (s.reconnect) return finishReconnect(s.reconnect, id);
   if (Date.now() < (s.tapOpenUntil || 0)) return;
-  s.selectedEdge = '';
-  if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
+  if (s.multiSelect || event?.shiftKey || event?.ctrlKey || event?.metaKey) {
     const ids = new Set(selectedIds());
     ids.has(id) ? ids.delete(id) : ids.add(id);
-    s.selection = [...ids];
-    s.selected = s.selection[0] || '';
-  } else {
-    if (!s.multiSelect || !selectedIds().includes(id)) s.selection = [id];
-    s.selected = id;
-  }
+    selectNodes(s, [...ids]);
+  } else selectNodes(s, [id]);
   render();
 };
 function cardChooserResults(modal) {
@@ -561,15 +567,14 @@ A.whiteboardPickCard = el => {
     if (id !== m.connection.from && same(m.connection, pendingConnection(state))) completeConnection(m.connection, id);
     return;
   }
-  (m.ids ? A.whiteboardSelect : A.whiteboardLocate)({ dataset: { id } });
+  if (m.ids) A.whiteboardSelect({ dataset: { id } });
+  else A.whiteboardLocate({ dataset: { id, keepSelection: state.multiSelect ? 'true' : '' } });
 };
 IN.whiteboardSelection = el => {
   const s = whiteboardState(),
     ids = new Set(selectedIds());
-  s.selectedEdge = '';
   el.checked ? ids.add(el.dataset.id) : ids.delete(el.dataset.id);
-  s.selection = [...ids];
-  s.selected = s.selection[0] || '';
+  selectNodes(s, [...ids]);
   render();
 };
 A.whiteboardToggleSelection = () => {
@@ -577,10 +582,7 @@ A.whiteboardToggleSelection = () => {
   render();
 };
 A.whiteboardDeselect = () => {
-  const s = whiteboardState();
-  s.selected = '';
-  s.selection = [];
-  s.selectedEdge = '';
+  selectNodes(whiteboardState(), []);
   render();
 };
 let clipboard;
@@ -663,6 +665,23 @@ function focusWhiteboardCard(id) {
   return true;
 }
 A.whiteboardFocusCard = el => focusWhiteboardCard(el.dataset.id);
+A.whiteboardFocusSelection = () => {
+  const state = whiteboardState();
+  const fit = () => {
+    const ids = selectedIds();
+    if (state !== whiteboardState() || ids.length < 2 || state.outline) return;
+    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), ids);
+    const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
+    const camera = whiteboardNodeCamera(whiteboardBounds({ nodes }), box);
+    if (!camera) return;
+    Object.assign(state, camera, { fit: false, autoFit: false });
+    paintView();
+  };
+  if (!state.outline) return fit();
+  Object.assign(state, { outline: false, fit: false, autoFit: false });
+  render();
+  requestAnimationFrame(fit);
+};
 export function revealWhiteboardPdfPages(cards) {
   const state = whiteboardState();
   const first = cards[0];
@@ -720,7 +739,9 @@ A.whiteboardLocate = el => {
   const s = whiteboardState();
   const intent = uid('locate');
   s.locateIntent = intent;
-  Object.assign(s, { selected: node.id, selection: [node.id], selectedEdge: '', outline: false, fit: false, autoFit: false });
+  const ids = el.dataset.keepSelection === 'true' ? [...new Set([...selectedIds(), node.id])] : [node.id];
+  selectNodes(s, ids, node.id);
+  Object.assign(s, { outline: false, fit: false, autoFit: false });
   render();
   requestAnimationFrame(() => {
     if (s !== whiteboardState() || s.locateIntent !== intent || s.selected !== node.id || s.outline || !focusWhiteboardCard(node.id)) return;
@@ -1115,7 +1136,31 @@ const pointers = new Map(),
   mounted = new WeakSet(),
   hydrations = new Set();
 const canvasControl = 'button:not([data-board-drag]),a,input,textarea,select,label,[contenteditable],[data-board-edge]';
+function clearMarquee() {
+  const box = viewport?.querySelector('.whiteboard-marquee');
+  if (box) box.hidden = true;
+  viewport?.querySelectorAll('[data-marquee-selected]').forEach(card => card.removeAttribute('data-marquee-selected'));
+}
+function marqueeAt(g, e, state) {
+  const bounds = viewport.getBoundingClientRect();
+  const x = value => Math.max(0, Math.min(bounds.width, value - bounds.left));
+  const y = value => Math.max(0, Math.min(bounds.height, value - bounds.top));
+  const left = x(Math.min(g.x, e.clientX)),
+    right = x(Math.max(g.x, e.clientX));
+  const top = y(Math.min(g.y, e.clientY)),
+    bottom = y(Math.max(g.y, e.clientY));
+  const ids = whiteboardSelectionInRect(whiteboardOf(current()).nodes, {
+    left: (left - state.x) / state.zoom,
+    right: (right - state.x) / state.zoom,
+    top: (top - state.y) / state.zoom,
+    bottom: (bottom - state.y) / state.zoom,
+  });
+  return { left, top, width: right - left, height: bottom - top, ids };
+}
 function resetPreview() {
+  clearMarquee();
+  const group = viewport?.querySelector('[data-group-resize-box]');
+  if (group) group.style.removeProperty('translate');
   viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
   viewport?.querySelectorAll('[data-connect-target]').forEach(el => el.removeAttribute('data-connect-target'));
   for (const n of whiteboardOf(current()).nodes) {
@@ -1138,13 +1183,15 @@ function down(e) {
   const endpoint = e.target.closest('[data-board-reconnect]');
   const resize = e.target.closest('[data-board-resize]');
   const connector = e.target.closest('[data-board-connect]');
+  const moveGroup = e.target.closest('[data-board-move-group]');
   const control = e.target.closest(canvasControl);
   const mode = whiteboardNavigationMode(s);
-  if (!spacePan && !resize && !connector && !endpoint && (control || mode === 'scroll')) return;
-  if (pointers.size >= 2 || (pointers.size && !['pan', 'move'].includes(gesture?.kind))) return;
+  if (!spacePan && !resize && !connector && !endpoint && !moveGroup && (control || mode === 'scroll')) return;
+  if (pointers.size >= 2 || (pointers.size && !['pan', 'move', 'marquee'].includes(gesture?.kind))) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (pointers.size === 2) {
     if (gesture?.kind === 'move') resetPreview();
+    if (gesture?.kind === 'marquee') clearMarquee();
     const [a, b] = [...pointers.values()];
     const box = viewport.getBoundingClientRect();
     gesture = {
@@ -1212,16 +1259,33 @@ function down(e) {
     return;
   }
   const handle = e.target.closest('[data-board-drag]');
+  const card = e.target.closest('[data-board-id]');
+  const blank = !card || (card.dataset.kind === 'group' && !handle);
   if (handle && (e.shiftKey || e.ctrlKey || e.metaKey)) {
     pointers.delete(e.pointerId);
     return;
   }
-  if (handle && s.zoom >= 0.65 && mode === 'move' && !pendingConnection(s) && editable(current())) {
-    const nodeId = handle.dataset.boardDrag;
-    const selected = selectedIds();
+  const selected = selectedIds();
+  const canMoveTitle = handle && mode === 'move' && s.zoom >= 0.65 && (!s.multiSelect || selected.includes(handle.dataset.boardDrag));
+  if ((moveGroup || canMoveTitle) && !pendingConnection(s) && editable(current())) {
+    const nodeId = moveGroup ? (selected.includes(s.selected) ? s.selected : selected[0]) : handle.dataset.boardDrag;
     const selection = selected.includes(nodeId) ? selected : [nodeId];
     const nodes = whiteboardSelectionNodes(whiteboardOf(current()), selection);
-    gesture = { kind: 'move', nodeId, selection, nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
+    gesture = {
+      kind: 'move',
+      nodeId,
+      groupHandle: !!moveGroup,
+      selection,
+      nodes: structuredClone(nodes),
+      x: e.clientX,
+      y: e.clientY,
+      scope: s.scope,
+      dx: 0,
+      dy: 0,
+    };
+    viewport.setPointerCapture(e.pointerId);
+  } else if ((e.shiftKey || s.multiSelect) && blank && !pendingConnection(s)) {
+    gesture = { kind: 'marquee', x: e.clientX, y: e.clientY, scope: s.scope, selection: selected };
     viewport.setPointerCapture(e.pointerId);
   } else {
     gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
@@ -1236,6 +1300,17 @@ function move(e) {
   const s = whiteboardState(),
     g = gesture;
   if (!g) return;
+  if (g.kind === 'marquee') {
+    if (s.scope !== g.scope || (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 5)) return;
+    g.moved = true;
+    const { ids, ...rect } = marqueeAt(g, e, s);
+    const box = viewport.querySelector('.whiteboard-marquee');
+    box.hidden = false;
+    for (const [key, value] of Object.entries(rect)) box.style[key] = `${value}px`;
+    const hits = new Set(ids);
+    for (const card of viewport.querySelectorAll('[data-board-id]')) card.toggleAttribute('data-marquee-selected', hits.has(card.dataset.boardId));
+    return;
+  }
   if (g.kind === 'connect' || g.kind === 'reconnect') {
     if (g.scope !== s.scope) return;
     g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
@@ -1348,10 +1423,9 @@ function move(e) {
   if (g.kind === 'move') {
     if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 5) return;
     g.moved = true;
-    g.dx = Math.round((e.clientX - g.x) / s.zoom / 10) * 10;
-    g.dy = Math.round((e.clientY - g.y) / s.zoom / 10) * 10;
-    g.dx = Math.max(...g.nodes.map(n => -50000 - n.x), Math.min(...g.nodes.map(n => 50000 - n.x), g.dx));
-    g.dy = Math.max(...g.nodes.map(n => -50000 - n.y), Math.min(...g.nodes.map(n => 50000 - n.y), g.dy));
+    Object.assign(g, whiteboardSelectionOffset(g.nodes, Math.round((e.clientX - g.x) / s.zoom / 10) * 10, Math.round((e.clientY - g.y) / s.zoom / 10) * 10));
+    const group = g.selection.length > 1 && viewport.querySelector('[data-group-resize-box]');
+    if (group) group.style.translate = `${g.dx}px ${g.dy}px`;
     for (const n of g.nodes) {
       const el = viewport.querySelector(`[data-board-id="${CSS.escape(n.id)}"]`);
       if (el) {
@@ -1376,6 +1450,17 @@ function up(e, cancel = false) {
   const g = gesture;
   gesture = null;
   if (!g) return;
+  if (g.kind === 'marquee') {
+    clearMarquee();
+    const state = whiteboardState();
+    if (!cancel && g.moved && g.scope === state.scope) {
+      state.panClickUntil = Date.now() + 300;
+      const { ids } = marqueeAt(g, e, state);
+      selectNodes(state, [...new Set([...g.selection, ...ids])]);
+      render();
+    }
+    return;
+  }
   if (g.kind === 'connect' || g.kind === 'reconnect') {
     resetPreview();
     const state = whiteboardState();
@@ -1453,7 +1538,7 @@ function up(e, cancel = false) {
   }
   const s = whiteboardState();
   if (g.kind !== 'move' || g.scope !== s.scope) return;
-  Object.assign(s, { selectedEdge: '', selection: g.selection, selected: g.nodeId });
+  if (g.moved || g.groupHandle) s.panClickUntil = Date.now() + 300;
   if (g.dx || g.dy) {
     const board = whiteboardOf(current());
     if (
@@ -1469,14 +1554,22 @@ function up(e, cancel = false) {
       toast(T('The card changed during the gesture. Please move it again.', 'Карточка изменилась во время жеста. Повторите перемещение.'), { kind: 'info' });
       return;
     }
-    command(next => {
-      for (const n of next.nodes)
-        if (g.nodes.some(i => i.id === n.id)) {
-          n.x += g.dx;
-          n.y += g.dy;
-        }
-    });
+    const moved = new Set(g.nodes.map(node => node.id));
+    selectNodes(s, g.selection, g.nodeId);
+    if (
+      !command(next => {
+        for (const n of next.nodes)
+          if (moved.has(n.id)) {
+            n.x += g.dx;
+            n.y += g.dy;
+          }
+      })
+    )
+      resetPreview();
   } else {
+    if (g.groupHandle || g.moved) return;
+    if (s.multiSelect) return A.whiteboardSelect({ dataset: { id: g.nodeId } });
+    selectNodes(s, g.selection, g.nodeId);
     // Selection is view state, including a captured pointer with zero movement.
     const last = s.lastTap;
     s.lastTap = { id: g.nodeId, at: Date.now(), x: e.clientX, y: e.clientY };
@@ -1542,17 +1635,19 @@ export function mountProjectWhiteboard() {
           return;
         }
         if (s.zoom >= 0.65 && event.target.closest('[data-board-drag]')) return;
-        const card = event.target.closest('[data-board-id]')?.dataset.boardId;
+        const hit = event.target.closest('[data-board-id]');
+        const frameBackground = s.multiSelect && hit?.dataset.kind === 'group' && !event.target.closest('[data-board-drag]');
+        const card = frameBackground ? '' : hit?.dataset.boardId;
         const box = next.getBoundingClientRect();
         const rawIds =
-          s.zoom < 0.65
+          s.zoom < 0.65 && !(s.multiSelect && card)
             ? whiteboardPickCandidates(whiteboardOf(current()).nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s)
             : card
               ? [card]
               : [];
         const connection = pendingConnection(s);
-        const ids = connection ? rawIds.filter(id => id !== connection.from) : rawIds;
-        if (!ids.length && (connection || (!s.selected && !s.selectedEdge))) return;
+        const ids = rawIds.filter(id => id !== connection?.from && (!frameBackground || id !== hit.dataset.boardId));
+        if (!ids.length && (connection || s.multiSelect || event.shiftKey || (!s.selected && !s.selectedEdge))) return;
         event.preventDefault();
         event.stopPropagation();
         if (ids.length === 1) A.whiteboardSelect({ dataset: { id: ids[0] } }, event);
@@ -1566,6 +1661,8 @@ export function mountProjectWhiteboard() {
       if (
         overlayAboveDiagram() ||
         spacePan ||
+        whiteboardState().multiSelect ||
+        event.shiftKey ||
         pendingConnection(whiteboardState()) ||
         event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-connect],[data-board-edge],[data-board-reconnect]')
       )
@@ -1660,6 +1757,19 @@ document.addEventListener(
       pointers.clear();
       return;
     }
+    if (
+      e.key === 'Escape' &&
+      current() &&
+      (whiteboardState().multiSelect || selectedIds().length > 1) &&
+      !e.target.closest('input,textarea,select,[contenteditable]') &&
+      (e.target.closest('.project-whiteboard') || whiteboardState().focus)
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      whiteboardState().multiSelect = false;
+      A.whiteboardDeselect();
+      return;
+    }
     if (current() && whiteboardState().focus && !S.ui.modals.length) {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -1700,8 +1810,10 @@ document.addEventListener(
       e.stopPropagation();
       if (e.key.toLowerCase() === 'c') void A.whiteboardCopy();
       else {
-        s.selection = whiteboardOf(current()).nodes.map(n => n.id);
-        s.selected = s.selection[0] || '';
+        selectNodes(
+          s,
+          whiteboardOf(current()).nodes.map(n => n.id),
+        );
         s.multiSelect = true;
         render();
       }
@@ -1714,9 +1826,7 @@ document.addEventListener(
       return;
     }
     if (e.key === 'Escape') {
-      s.selected = '';
-      s.selection = [];
-      render();
+      A.whiteboardDeselect();
       return;
     }
     if (!e.target.closest('[data-board-drag],.whiteboard-viewport') || !s.selected || !editable(current())) return;
@@ -1752,12 +1862,12 @@ document.addEventListener(
         return;
       }
       command(b => {
-        const ids = new Set(whiteboardSelectionNodes(b, selectedIds()).map(n => n.id));
-        for (const n of b.nodes)
-          if (ids.has(n.id)) {
-            n.x += dx * step;
-            n.y += dy * step;
-          }
+        const nodes = whiteboardSelectionNodes(b, selectedIds());
+        const offset = whiteboardSelectionOffset(nodes, dx * step, dy * step);
+        for (const n of nodes) {
+          n.x += offset.dx;
+          n.y += offset.dy;
+        }
       });
     }
   },
