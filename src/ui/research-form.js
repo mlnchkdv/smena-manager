@@ -16,7 +16,9 @@ export function researchFormFields(m) {
     kind = record.kind;
   const references = (k, key, label) =>
     select(key, label, data[key], [
-      ...(data[key] && !(m.references || []).some(row => row.id === data[key]) ? [[data[key], rw('Current selection', 'Текущий выбор')]] : []),
+      ...(data[key] && !(m.references || []).some(row => row.id === data[key])
+        ? [[data[key], m.selectedReferences?.find(row => row.id === data[key])?.title || rw('Current selection', 'Текущий выбор')]]
+        : []),
       ...(m.references || []).filter(row => row.kind === k).map(row => [row.id, row.title]),
     ]);
   const template = !m.original
@@ -92,14 +94,28 @@ export function researchFormFields(m) {
     fields += `<p class="hint">${rw('Inherited input revisions', 'Унаследованные редакции входов')}: dataset v${esc(data.datasetVersion?.revision || '?')} · protocol v${esc(data.protocolVersion?.revision || '?')}</p>${data.state === 'planned' ? `<button class="btn btn-secondary" data-a="researchLatestInputs">${rw('Use latest input revisions instead', 'Вместо этого взять последние редакции входов')}</button>` : ''}`;
   if (['experiment', 'article', 'handoff', 'run'].includes(kind))
     fields += `<details ${researchDisclosure(m, 'details:' + kind)}><summary>${rw('Conclusion and decision', 'Вывод и решение')}</summary><div class="research-form-section">${field('conclusion', rw('Conclusion and limitations', 'Вывод и ограничения'), data.conclusion)}${field('decision', rw('Decision and basis', 'Решение и основание'), data.decision)}</div></details>`;
-  if (['run', 'article', 'handoff'].includes(kind))
-    fields += `<details ${researchDisclosure(m, 'references')}><summary>${rw('Find older related records', 'Найти ранние связанные записи')}</summary><label class="field">${rw('Record title', 'Название записи')}<input class="input" data-in="researchReferenceQuery" value="${esc(m.referenceQuery || '')}" maxlength="200"></label><button class="btn btn-secondary" data-a="researchFindReferences">${rw('Find related records', 'Найти связанные записи')}</button></details>`;
-  fields += select(
+  const referenceStatus = {
+    loading: rw('Loading linked records…', 'Загружаем связанные записи…'),
+    error: rw('Could not load linked records. Try the search again.', 'Не удалось загрузить связанные записи. Повторите поиск.'),
+    empty: rw(
+      'No linked records match. Clear the search to show recent records.',
+      'Связанные записи не найдены. Очистите запрос, чтобы увидеть недавние записи.',
+    ),
+    ready: m.referenceQuery?.trim() ? `${rw('Records available in the fields above', 'Записей доступно в полях выше')} · ${m.references?.length || 0}` : '',
+  }[m.referenceStatus];
+  const referenceSearch = ['run', 'article', 'handoff'].includes(kind)
+    ? `${referenceStatus ? `<p class="hint" role="status">${esc(referenceStatus)}</p>` : ''}<details ${researchDisclosure(m, 'references')}><summary>${rw('Find linked records', 'Найти связанные записи')}</summary><div class="research-form-section"><label class="field">${rw('Record title', 'Название записи')}<input class="input" type="search" data-in="researchReferenceQuery" value="${esc(m.referenceQuery || '')}" maxlength="200"></label><button class="btn btn-secondary" data-a="researchFindReferences">${rw('Find related records', 'Найти связанные записи')}</button></div></details>`
+    : '';
+  const reviewer = select(
     'reviewerId',
     rw('Reviewer, optional', 'Рецензент, необязательно'),
     data.reviewerId,
     (m.reviewers || []).map(member => [member.id, member.name]),
   );
-  fields += researchEvidenceForm(m);
-  return `${template}${field('title', rw('Title', 'Название'), record.title)}${fields}<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>${m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state) ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment) : ''}`;
+  const notes = `<label class="field">${rw('Notes', 'Описание')}<textarea class="textarea" rows="6" data-in="researchField" data-field="body" maxlength="64000">${esc(record.body || '')}</textarea></label>`;
+  const amendment =
+    m.original && kind === 'run' && ['completed', 'failed', 'cancelled'].includes(data.state)
+      ? field('amendment', rw('Reason for this correction', 'Причина этого исправления'), data.amendment)
+      : '';
+  return `${field('title', rw('Title', 'Название'), record.title)}${template}${kind === 'observation' ? notes : ''}${fields}${referenceSearch}${kind !== 'observation' ? notes : ''}${amendment}${researchEvidenceForm(m)}<details ${researchDisclosure(m, 'reviewer')}><summary>${rw('Review', 'Проверка')}</summary><div class="research-form-section">${reviewer}</div></details>`;
 }

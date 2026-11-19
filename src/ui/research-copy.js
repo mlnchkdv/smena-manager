@@ -93,6 +93,10 @@ export function researchFailure(error) {
     ],
     RESEARCH_FORBIDDEN: ['Your project access does not allow this action.', 'Права проекта не позволяют выполнить это действие.'],
     RESEARCH_PROJECT_NOT_FOUND: ['The project is unavailable or access changed.', 'Проект недоступен или права изменились.'],
+    RESEARCH_NOT_FOUND: [
+      'This record is unavailable. Return to the list to choose another record.',
+      'Запись недоступна. Вернитесь к списку и выберите другую.',
+    ],
     RESEARCH_INTEGRITY: [
       'The saved record could not be verified. Retry without replacing it.',
       'Не удалось проверить сохранённую запись. Повторите загрузку, не заменяя её.',

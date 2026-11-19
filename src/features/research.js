@@ -99,15 +99,9 @@ function form(model, record, kind = 'experiment') {
   };
   resetRaw(m);
   m.metricSeed = m.original ? '' : JSON.stringify(m.record.data.metrics || []);
+  m.onClose = () => m.referenceController?.abort();
   openModal(m);
-  void researchRequest(model.project, '?kind=experiment,dataset,protocol&limit=100')
-    .then(result => {
-      if (m.generation === getSessionGeneration() && S.ui.modals.includes(m)) {
-        m.references = result.items;
-        render();
-      }
-    })
-    .catch(() => {});
+  if (['run', 'article', 'handoff'].includes(m.record.kind)) void loadReferences(m);
   return m;
 }
 IN.researchField = el => {
@@ -343,6 +337,7 @@ A.researchApplyTemplate = () => {
   resetRaw(m);
   m.metricSeed = JSON.stringify(m.record.data.metrics || []);
   render();
+  if (['run', 'article', 'handoff'].includes(m.record.kind) && !m.references) void loadReferences(m);
 };
 A.researchCancelTemplate = () => {
   const m = S.ui.modals.at(-1);
@@ -393,19 +388,35 @@ IN.researchReferenceQuery = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type === 'researchForm') m.referenceQuery = el.value;
 };
-A.researchFindReferences = async () => {
-  const m = S.ui.modals.at(-1);
-  if (m?.type !== 'researchForm' || m.busy || m.command) return;
+async function loadReferences(m, query = '') {
+  m.referenceController?.abort();
+  const controller = new AbortController();
+  m.referenceController = controller;
+  m.referenceStatus = 'loading';
+  const current = () =>
+    !controller.signal.aborted && m.referenceController === controller && S.ui.modals.includes(m) && m.generation === getSessionGeneration();
+  render();
   try {
-    const result = await researchRequest(m.project, '?kind=experiment,dataset,protocol&limit=100&q=' + encodeURIComponent(m.referenceQuery || ''));
-    if (S.ui.modals.includes(m) && m.generation === getSessionGeneration()) {
+    const result = await researchRequest(m.project, '?kind=experiment,dataset,protocol&limit=100&q=' + encodeURIComponent(query), undefined, {
+      signal: controller.signal,
+    });
+    if (current()) {
+      const selected = [m.record.data.experimentId, m.record.data.datasetId, m.record.data.protocolId];
+      m.selectedReferences = [
+        ...new Map([...(m.selectedReferences || []), ...(m.references || [])].filter(row => selected.includes(row.id)).map(row => [row.id, row])).values(),
+      ];
       m.references = result.items;
-      render();
+      m.referenceStatus = result.items.length ? 'ready' : 'empty';
     }
-  } catch (error) {
-    m.error = researchFailure(error);
-    render();
+  } catch {
+    if (current()) m.referenceStatus = 'error';
+  } finally {
+    if (current()) render();
   }
+}
+A.researchFindReferences = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type === 'researchForm' && !m.busy && !m.command) void loadReferences(m, m.referenceQuery?.trim());
 };
 A.researchPage = el => {
   const m = state();
@@ -476,6 +487,11 @@ A.researchSave = async () => {
     workspace = getActiveWorkspace(),
     actorId = model.catalog?.actorId;
   if (model.project !== m.project || !actorId) return;
+  if (model.savingForm || (model.unsent && model.unsent.operationId !== m.command?.operationId)) {
+    m.error = rw('Finish the previous save before saving this record.', 'Завершите предыдущее сохранение перед записью этой формы.');
+    render();
+    return;
+  }
   if (!m.record.title.trim()) {
     m.error = rw('Enter a title.', 'Введите название.');
     render();
@@ -494,6 +510,7 @@ A.researchSave = async () => {
   }
   if (m.nextState) m.record.data.state = m.nextState;
   m.busy = true;
+  model.savingForm = true;
   m.error = '';
   render();
   const draft = { kind: m.record.kind, title: m.record.title, body: m.record.body, data: m.record.data, tags: m.record.tags || [] };
@@ -510,10 +527,11 @@ A.researchSave = async () => {
     if (m.generation !== getSessionGeneration()) return;
     const verified = await researchRequest(m.project, '/records/' + encodeURIComponent(result.record.id));
     if (verified.record.revision !== result.record.revision || verified.record.body !== result.record.body) throw new Error('RESEARCH_READBACK_PENDING');
-    if (m.generation !== getSessionGeneration() || !active(model)) return;
+    if (m.generation !== getSessionGeneration()) return;
     clearPendingResearch(workspace, actorId, m.project);
     model.unsent = null;
     model.rows = null;
+    if (!active(model)) return;
     if (!S.ui.modals.includes(m)) return;
     if (S.ui.modals.at(-1) === m) S.ui.modals.pop();
     model.selected = verified.record;
@@ -525,18 +543,20 @@ A.researchSave = async () => {
     m.error = researchFailure(error);
     if (error.status >= 400 && error.status < 500) {
       clearPendingResearch(workspace, actorId, m.project);
+      if (model.unsent?.operationId === m.command?.operationId) model.unsent = null;
       m.command = null;
     } else {
       if (active(model)) model.unsent = m.command;
     }
   } finally {
     m.busy = false;
+    model.savingForm = false;
     if (m.generation === getSessionGeneration() && active(model)) render();
   }
 };
 A.researchRecover = async () => {
   const m = state();
-  if (!m.unsent || m.pending) return;
+  if (!m.unsent || m.pending || m.savingForm) return;
   m.pending = true;
   render();
   try {
@@ -589,24 +609,27 @@ A.researchReview = () => recordCommand('review');
 A.researchDraftArticle = async () => {
   const model = state(),
     source = model.selected;
-  if (!source) return;
+  if (!source || model.draftingArticle) return;
+  model.draftingArticle = source.id;
+  const current = () => active(model) && S.ui.params.researchId === source.id;
+  render();
   try {
     const experiment = source.kind === 'experiment' ? source.id : source.data.experimentId;
     const listing = await researchRequest(model.project, '?kind=run&limit=100' + (experiment ? '&experiment=' + encodeURIComponent(experiment) : ''));
     const rows = listing.items.filter(row => row.experimentId === (source.kind === 'experiment' ? source.id : source.data.experimentId));
     if (listing.total > 100) throw { code: 'RESEARCH_EXPORT_LIMIT' };
     const runs = await Promise.all(rows.map(async row => (await researchRequest(model.project, '/records/' + encodeURIComponent(row.id))).record));
-    if (!active(model)) return;
+    if (!current()) return;
     const m = form(model, null, 'article');
     m.record.title = source.title + rw(' · findings', ' · результаты');
     m.record.body = researchReportMarkdown(source, runs, rw(false, true), { includeTitle: false });
     m.record.data.experimentId = source.kind === 'experiment' ? source.id : source.data.experimentId || '';
     render();
   } catch (error) {
-    if (active(model)) {
-      model.error = researchFailure(error);
-      render();
-    }
+    if (current()) model.error = researchFailure(error);
+  } finally {
+    model.draftingArticle = null;
+    if (active(model)) render();
   }
 };
 A.researchExport = async () => {
@@ -685,13 +708,15 @@ A.researchHistory = async () => {
     canEdit: model.catalog.canEdit,
     generation: getSessionGeneration(),
     render: (m, H) =>
-      `${H(rw('Record history', 'История записи'))}<div class="modal-b research-form" translate="no">${m.busy ? `<p role="status">${rw('Loading history…', 'Загружаем историю…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}${m.items.map((item, i) => `<details><summary>v${item.revision} · ${esc(researchDate(item.at, true))}</summary><article class="knowledge-body">${renderKnowledgeMarkdown(item.record.body)}</article><pre class="research-code">${esc(JSON.stringify(item.record.data, null, 2))}</pre>${m.canEdit ? `<button class="btn btn-secondary" data-a="researchRestoreVersion" data-index="${i}">${rw('Use as a new revision', 'Взять за основу новой редакции')}</button>` : ''}</details>`).join('') || (!m.busy ? `<p>${rw('This is the first revision.', 'Это первая редакция.')}</p>` : '')}${m.cursor ? `<button class="btn btn-secondary" data-a="researchMoreHistory">${rw('Earlier revisions', 'Более ранние редакции')}</button>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${rw('Close', 'Закрыть')}</button></div>`,
+      `${H(rw('Record history', 'История записи'))}<div class="modal-b research-form" translate="no">${m.busy ? `<p role="status">${rw('Loading history…', 'Загружаем историю…')}</p>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="researchMoreHistory">${rw('Retry loading history', 'Повторить загрузку истории')}</button>` : ''}${m.items.map((item, i) => `<details class="research-technical" ${researchDisclosure(m.current, 'revision:' + item.revision)}><summary>v${item.revision} · ${esc(researchDate(item.at, true))}</summary><article class="knowledge-body">${renderKnowledgeMarkdown(item.record.body)}</article><pre class="research-code">${esc(JSON.stringify(item.record.data, null, 2))}</pre>${m.canEdit ? `<button class="btn btn-secondary" data-a="researchRestoreVersion" data-index="${i}">${rw('Use as a new revision', 'Взять за основу новой редакции')}</button>` : ''}</details>`).join('') || (!m.busy && !m.error ? `<p>${rw('This is the first revision.', 'Это первая редакция.')}</p>` : '')}${m.cursor && !m.error ? `<button class="btn btn-secondary" data-a="researchMoreHistory" ${m.busy ? 'disabled' : ''}>${rw('Earlier revisions', 'Более ранние редакции')}</button>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${rw('Close', 'Закрыть')}</button></div>`,
   };
   openModal(m);
   await loadHistory(m);
 };
 async function loadHistory(m) {
   m.busy = true;
+  m.error = '';
+  render();
   try {
     const result = await researchRequest(
       m.project,
@@ -787,6 +812,10 @@ function researchReadingActions(record, canEdit) {
     expired: rw('The prepared ZIP expired. Prepare it again.', 'Срок хранения ZIP истёк. Подготовьте архив снова.'),
   }[job?.status];
   const error = job?.message || job?.saveError;
+  const article =
+    canEdit && ['run', 'experiment'].includes(record.kind)
+      ? `<button class="btn btn-secondary" data-a="researchDraftArticle" ${model.draftingArticle ? 'disabled' : ''}>${model.draftingArticle === record.id ? rw('Preparing article…', 'Готовим мини-статью…') : rw('Draft findings article', 'Подготовить мини-статью')}</button>`
+      : '';
   const save =
     job?.href && !busy
       ? typeof window.showSaveFilePicker === 'function' && !job.downloadOnly
@@ -794,7 +823,7 @@ function researchReadingActions(record, canEdit) {
         : `<a class="btn btn-secondary btn-sm" href="${esc(job.href)}" download="${esc(job.filename)}">${rw('Save ZIP', 'Сохранить ZIP')}</a>`
       : '';
   const announcement = `${error ? `<p role="alert">${esc(error)}</p>` : ''}${message ? `<p role="status" class="hint">${esc(message)}</p>` : ''}${save}`;
-  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${canEdit && ['run', 'experiment'].includes(record.kind) ? `<button class="btn btn-secondary" data-a="researchDraftArticle">${rw('Draft findings article', 'Подготовить мини-статью')}</button>` : ''}${state().catalog.canReview && record.review?.status !== 'reviewed' ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;
