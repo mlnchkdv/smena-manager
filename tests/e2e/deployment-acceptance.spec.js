@@ -200,6 +200,16 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   await expect(page.locator('.research-record-head')).toContainText('CI research uncertain recovery');
   await page.unroute('**' + researchRoot + '/commands');
 
+  // A successful write must remain recoverable if reading the result fails.
+  await page.locator('[data-a="researchEdit"]').click();
+  await page.route('**' + researchRoot + '/records/' + researchId, route => route.fulfill({ status: 403, json: { code: 'RESEARCH_FORBIDDEN' } }), { times: 1 });
+  await page.locator('[data-a="researchSave"]').click();
+  await expect(page.locator('.research-form [role="alert"]')).toBeVisible();
+  await page.reload();
+  await page.locator('[data-a="researchRecover"]').click();
+  await expect(page.locator('.research-record-head')).toContainText('Редакция 2');
+  await expect(page.locator('[data-a="researchRecover"]')).toHaveCount(0);
+
   // A user may close a saving form and continue working. A late response must
   // stay with its original project instead of reopening a reader on another page.
   await page.locator('[data-a="researchBack"]').click();

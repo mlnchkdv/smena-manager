@@ -14,6 +14,6 @@ export function keepPendingResearch(workspace, actor, project, command) {
   if (text.length > 512000) throw new Error('RESEARCH_DRAFT_LIMIT');
   localStorage.setItem(key(workspace, actor, project), text);
 }
-export function clearPendingResearch(workspace, actor, project) {
-  localStorage.removeItem(key(workspace, actor, project));
+export function clearPendingResearch(workspace, actor, project, operationId) {
+  if (readPendingResearch(workspace, actor, project)?.operationId === operationId) localStorage.removeItem(key(workspace, actor, project));
 }

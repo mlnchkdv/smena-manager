@@ -489,7 +489,7 @@ A.researchSave = async () => {
     workspace = getActiveWorkspace(),
     actorId = model.catalog?.actorId;
   if (model.project !== m.project || !actorId) return;
-  if (model.savingForm || (model.unsent && model.unsent.operationId !== m.command?.operationId)) {
+  if (model.pending || model.savingForm || (model.unsent && model.unsent.operationId !== m.command?.operationId)) {
     m.error = rw('Finish the previous save before saving this record.', 'Завершите предыдущее сохранение перед записью этой формы.');
     render();
     return;
@@ -523,14 +523,23 @@ A.researchSave = async () => {
     ...(m.original ? { expectedRevision: m.record.revision } : {}),
     record: draft,
   };
+  let stored = false;
+  let accepted = false;
   try {
     keepPendingResearch(workspace, actorId, m.project, m.command);
+    stored = true;
+    model.unsent = m.command;
     const result = await researchRequest(m.project, '/commands', m.command);
+    accepted = true;
     if (m.generation !== getSessionGeneration()) return;
     const verified = await researchRequest(m.project, '/records/' + encodeURIComponent(result.record.id));
-    if (verified.record.revision !== result.record.revision || verified.record.body !== result.record.body) throw new Error('RESEARCH_READBACK_PENDING');
+    if (
+      verified.record.revision < result.record.revision ||
+      (verified.record.revision === result.record.revision && verified.record.body !== result.record.body)
+    )
+      throw new Error('RESEARCH_READBACK_PENDING');
     if (m.generation !== getSessionGeneration()) return;
-    clearPendingResearch(workspace, actorId, m.project);
+    clearPendingResearch(workspace, actorId, m.project, m.command.operationId);
     model.unsent = null;
     model.rows = null;
     if (!active(model)) return;
@@ -542,14 +551,17 @@ A.researchSave = async () => {
     go('project', researchLocation(model, result.record.id));
     await loadResearch(model);
   } catch (error) {
-    m.error = researchFailure(error);
-    if (error.status >= 400 && error.status < 500) {
-      clearPendingResearch(workspace, actorId, m.project);
+    m.error = stored
+      ? researchFailure(error)
+      : rw(
+          'Could not keep a recovery copy on this device. Check available storage and retry.',
+          'Не удалось сохранить копию для восстановления на этом устройстве. Проверьте свободное место и повторите.',
+        );
+    if (!stored || (!accepted && error.status >= 400 && error.status < 500 && ![401, 403, 408, 429].includes(error.status))) {
+      clearPendingResearch(workspace, actorId, m.project, m.command.operationId);
       if (model.unsent?.operationId === m.command?.operationId) model.unsent = null;
       m.command = null;
-    } else {
-      if (active(model)) model.unsent = m.command;
-    }
+    } else model.unsent = m.command;
   } finally {
     m.busy = false;
     model.savingForm = false;
@@ -558,52 +570,60 @@ A.researchSave = async () => {
 };
 A.researchRecover = async () => {
   const m = state();
-  if (!m.unsent || m.pending || m.savingForm) return;
+  const command = m.unsent;
+  if (!command || m.pending || m.savingForm) return;
+  const workspace = getActiveWorkspace(),
+    actorId = m.catalog.actorId,
+    generation = getSessionGeneration(),
+    originalRecordId = S.ui.params.researchId;
   m.pending = true;
   render();
   try {
-    const status = await researchRequest(m.project, '/operations/' + encodeURIComponent(m.unsent.operationId));
-    const result = status.state === 'completed' ? status : await researchRequest(m.project, '/commands', m.unsent);
-    if (!active(m)) return;
-    clearPendingResearch(getActiveWorkspace(), m.catalog.actorId, m.project);
-    m.unsent = null;
+    const status = await researchRequest(m.project, '/operations/' + encodeURIComponent(command.operationId));
+    if (generation !== getSessionGeneration()) return;
+    const result = status.state === 'completed' ? status : await researchRequest(m.project, '/commands', command);
+    clearPendingResearch(workspace, actorId, m.project, command.operationId);
+    if (m.unsent?.operationId === command.operationId) m.unsent = null;
     m.error = '';
     m.rows = null;
-    go('project', researchLocation(m, result.record.id));
+    if (!active(m)) return;
+    if (S.ui.params.researchId === originalRecordId) {
+      m.selected = null;
+      m.recordError = null;
+      go('project', researchLocation(m, result.record.id));
+    }
     await loadResearch(m);
   } catch (error) {
     if (active(m)) m.error = researchFailure(error);
   } finally {
-    if (active(m)) {
-      m.pending = false;
-      render();
-    }
+    m.pending = false;
+    if (active(m)) render();
   }
 };
 async function recordCommand(action) {
   const m = state();
   if (m.pending || !m.selected) return;
   m.pending = true;
+  const { id, revision } = m.selected;
   m.error = '';
   render();
   try {
     const result = await researchRequest(m.project, '/commands', {
       operationId: crypto.randomUUID(),
       action,
-      id: m.selected.id,
-      expectedRevision: m.selected.revision,
+      id,
+      expectedRevision: revision,
     });
+    m.rows = null;
     if (active(m)) {
-      m.selected = result.record;
+      if (S.ui.params.researchId === id) m.selected = result.record;
       await loadResearch(m);
     }
   } catch (error) {
     if (active(m)) m.error = researchFailure(error);
   } finally {
-    if (active(m)) {
-      m.pending = false;
-      render();
-    }
+    m.pending = false;
+    if (active(m)) render();
   }
 }
 A.researchArchive = () => recordCommand(state().selected?.archived ? 'restore' : 'archive');
