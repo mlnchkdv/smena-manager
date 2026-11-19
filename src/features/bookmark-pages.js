@@ -9,7 +9,7 @@ import { render } from '../shell/render.js';
 import { esc } from '../core/utils.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { toast } from '../ui/toast.js';
-import { disclosureAttributes, disclosureOpen } from '../ui/disclosure.js';
+import { disclosureAttributes } from '../ui/disclosure.js';
 import { bookmarkArchiveView, bookmarkArchiveUrl } from '../ui/bookmark-archive.js';
 
 const words = (en, ru) => (isRussian() ? ru : en);
@@ -52,6 +52,8 @@ A.bookmarkMetadata = loadBookmarkMetadata;
 
 const currentViewer = m => S.ui.modals.includes(m) && m.generation === getSessionGeneration();
 function pageFailure(error, saving = false) {
+  if (error.code === 'PAGE_BOOKMARK_CHANGED')
+    return words('The bookmark address changed. Reopen the bookmark and try again.', 'Адрес закладки изменился. Откройте закладку заново и повторите.');
   if (error.code === 'PAGE_SNAPSHOT_LIMIT')
     return words(
       'There are 10 active copies. Move a copy to stored versions to make room, or download it.',
@@ -95,20 +97,29 @@ function viewer(m, H) {
         `<option value="${esc(ref.id)}" ${m.selected === ref.id ? 'selected' : ''}>${ref.format === 'html' ? words('HTML archive', 'HTML-архив') : words('Text copy', 'Текстовая копия')} · ${esc(stamp(ref.capturedAt))}</option>`,
     )
     .join('');
-  const archiveButton =
+  const captureTools =
     S.ui.currentUser?.role !== 'viewer'
-      ? `<label class="field">${words('Capture mode', 'Способ архивации')}<select class="select" data-in="bookmarkCaptureMode" ${m.job ? 'disabled' : ''}><option value="static" ${m.captureMode !== 'rendered' ? 'selected' : ''}>${words('Fast HTML', 'Быстрый HTML')}</option><option value="rendered" ${m.captureMode === 'rendered' ? 'selected' : ''}>${words('Browser · dynamic page', 'Браузер · динамическая страница')}</option></select></label><button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.busy || m.job || active.length >= 10 ? 'disabled' : ''}>${words('Archive page', 'Архивировать страницу')}</button>`
+      ? `<details class="bookmark-page-notice" ${disclosureAttributes('bookmark:capture:' + m.id)}><summary>${words('Capture settings', 'Настройки архивации')}</summary><label class="field">${words('Capture mode', 'Способ архивации')}<select class="select" data-in="bookmarkCaptureMode" ${m.job || m.submitting ? 'disabled' : ''}><option value="static" ${m.captureMode !== 'rendered' ? 'selected' : ''}>${words('Fast HTML', 'Быстрый HTML')}</option><option value="rendered" ${m.captureMode === 'rendered' ? 'selected' : ''}>${words('Browser · dynamic page', 'Браузер · динамическая страница')}</option></select></label><p class="hint">${words('Use browser capture for public content added by JavaScript. Saved copies keep styling and resources with interactive scripts disabled.', 'Режим «Браузер» сохраняет публичное содержимое, добавленное JavaScript. Копии сохраняют оформление и ресурсы с отключёнными скриптами.')}</p></details>`
       : '';
+  const archiveButton = captureTools
+    ? `<button class="btn btn-secondary" data-a="saveBookmarkPage" ${m.submitting || m.saving || m.job || active.length >= 10 ? 'disabled' : ''}>${m.submitting ? words('Starting capture…', 'Запускаем архивацию…') : words('Archive page', 'Архивировать страницу')}</button>`
+    : '';
   return `${H(words('Bookmark viewer', 'Просмотр закладки'))}<div class="modal-b" translate="no">
-    <div class="bookmark-viewer-heading" ${m.wide ? 'data-archive-wide' : ''}><h3 class="bookmark-viewer-title" title="${esc(title)}">${esc(title)}</h3>${title !== m.title ? `<p class="hint">${words('Bookmark: ', 'Закладка: ')}${esc(m.title)}</p>` : ''}<p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p>${source !== m.url ? `<p class="hint bookmark-viewer-url">${words('Current bookmark URL: ', 'Текущий адрес закладки: ')}${esc(m.url)}</p>` : ''}</div>
-    ${m.description || m.tags?.length ? `<details class="bookmark-page-notice" ${disclosureAttributes('bookmark:details:' + m.id)}><summary>${words('Bookmark details', 'Описание закладки')}</summary>${m.description ? `<p translate="no">${esc(m.description)}</p>` : ''}${m.tags?.length ? `<p translate="no">${m.tags.map(tag => '#' + esc(tag)).join(' · ')}</p>` : ''}</details>` : ''}
+    <div class="bookmark-viewer-heading" ${m.wide ? 'data-archive-wide' : ''}><h3 class="bookmark-viewer-title">${esc(title)}</h3><p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p></div>
     <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${versionOptions}</select></label>${archiveButton}<a class="btn btn-ghost" href="${esc(source)}" target="_blank" rel="noopener noreferrer" aria-label="${words('Open original', 'Открыть оригинал')}">${words('Original', 'Оригинал')}</a></div>
-    ${m.snapshots.length ? `<details class="bookmark-version-manager" data-ui-disclosure="bookmark:copies:${esc(m.id)}" ${active.length >= 10 || disclosureOpen('bookmark:copies:' + m.id) ? 'open' : ''}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Stored versions remain readable and recoverable. Moving them out of the active list frees a slot without deleting the file.', 'Сохранённые версии доступны для просмотра и восстановления. Перенос из активного списка освобождает место без удаления файла.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(stamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><a class="btn btn-ghost btn-sm" href="${esc(bookmarkArchiveUrl(m.id, ref.id))}&download=1">${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')} ↓</a>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>` : ''}
-    <details class="bookmark-page-notice"><summary>${words('About HTML archives', 'Об HTML-архивах')}</summary><p class="hint">${words('Archives keep the public HTML, CSS, images and fonts downloaded at capture time. Scripts and embedded pages are disabled. JavaScript-only or sign-in content may be absent; unavailable resources are reported. Up to 10 active copies per bookmark; stored versions are retained.', 'Архивы сохраняют публичный HTML, стили, изображения и шрифты, загруженные в момент архивации. Скрипты и встроенные страницы отключены. Содержимое, доступное только через JavaScript или после входа, может отсутствовать; недоступные ресурсы отмечаются. До 10 активных копий на закладку; сохранённые версии не удаляются.')}</p></details>
     ${m.job ? `<p role="status">${archiveStage(m.job.phase)} ${words('You can close this window; capture continues on the server.', 'Можно закрыть окно: архивация продолжится на сервере.')}</p>` : ''}
-    ${m.busy ? `<p role="status">${m.saving ? words('Saving a page copy…', 'Сохраняем копию страницы…') : words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Retry', 'Повторить')}</button>` : ''}
-    ${m.page && !m.busy ? `<p class="hint" role="status">${m.selected === 'live' ? words('Text preview — not archived.', 'Текстовый предпросмотр — страница ещё не архивирована.') : words('Saved archive. The original website is not requested when you open it.', 'Сохранённый архив. При открытии оригинальный сайт не запрашивается.')} · ${esc(stamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
+    ${m.archiveError ? `<p class="err" role="alert">${esc(m.archiveError)}</p>` : ''}
+    ${m.busy && !m.page ? `<p role="status">${words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Reload preview', 'Перезагрузить просмотр')}</button>` : ''}
+    ${m.page ? `<p class="hint bookmark-preview-status">${m.selected === 'live' ? words('Text preview of the current website', 'Текстовый просмотр текущей страницы') : words('Saved copy', 'Сохранённая копия')} · ${esc(stamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
+    ${captureTools}
+    ${bookmarkVersionManager(m, active, stamp)}
+    ${m.description || m.tags?.length || title !== m.title || source !== m.url ? `<details class="bookmark-page-notice" ${disclosureAttributes('bookmark:details:' + m.id)}><summary>${words('Bookmark details', 'Описание закладки')}</summary>${title !== m.title ? `<p class="hint">${esc(m.title)}</p>` : ''}${source !== m.url ? `<p class="hint bookmark-viewer-url">${words('Current bookmark URL: ', 'Текущий адрес закладки: ')}${esc(m.url)}</p>` : ''}${m.description ? `<p>${esc(m.description)}</p>` : ''}${m.tags?.length ? `<p>${m.tags.map(tag => '#' + esc(tag)).join(' · ')}</p>` : ''}</details>` : ''}
     </div>`;
+}
+function bookmarkVersionManager(m, active, stamp) {
+  if (!m.snapshots.length) return '';
+  const key = 'bookmark:copies:' + m.id;
+  return `<details class="bookmark-version-manager" ${disclosureAttributes(key)}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Up to 10 copies can stay in the version selector. Move a copy out of the list to free a slot and keep the file.', 'В списке версий может быть до 10 копий. Уберите копию из активных, чтобы освободить место и сохранить файл.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(stamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><a class="btn btn-ghost btn-sm" href="${esc(bookmarkArchiveUrl(m.id, ref.id))}&download=1">${words('Download HTML', 'Скачать HTML')}</a>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>`;
 }
 A.bookmarkArchiveView = el => {
   const m = S.ui.modals.at(-1);
@@ -119,7 +130,7 @@ A.bookmarkArchiveView = el => {
 };
 IN.bookmarkCaptureMode = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'bookmarkViewer' && !m.job) m.captureMode = el.value === 'rendered' ? 'rendered' : 'static';
+  if (m?.type === 'bookmarkViewer' && !m.job && !m.submitting) m.captureMode = el.value === 'rendered' ? 'rendered' : 'static';
 };
 A.bookmarkArchiveWidth = () => {
   const m = S.ui.modals.at(-1);
@@ -273,8 +284,7 @@ A.viewBookmarkPage = async el => {
     return true;
   };
   openModal(m);
-  await loadPage(m);
-  await watchArchive(m);
+  await Promise.all([loadPage(m), watchArchive(m)]);
 };
 IN.bookmarkSnapshot = async el => {
   const m = S.ui.modals.at(-1);
@@ -294,9 +304,9 @@ A.openBookmarkCopy = el => {
 };
 A.storeBookmarkCopy = async el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'bookmarkViewer' || m.busy || S.ui.currentUser?.role === 'viewer') return;
-  m.busy = m.saving = true;
-  m.error = '';
+  if (m?.type !== 'bookmarkViewer' || m.busy || m.submitting || S.ui.currentUser?.role === 'viewer') return;
+  m.saving = true;
+  m.archiveError = '';
   render();
   try {
     const result = await bookmarkPageRequest(`/${encodeURIComponent(m.id)}/snapshots/${encodeURIComponent(el.dataset.id)}`, {
@@ -308,9 +318,9 @@ A.storeBookmarkCopy = async el => {
     await refreshWorkspaceFromServer().catch(() => {});
     toast(words('Saved copies updated. Files are retained.', 'Список копий обновлён. Файлы сохранены.'));
   } catch (error) {
-    if (currentViewer(m)) m.error = pageFailure(error, true);
+    if (currentViewer(m)) m.archiveError = pageFailure(error, true);
   } finally {
-    m.busy = m.saving = false;
+    m.saving = false;
     if (currentViewer(m)) render();
   }
 };
@@ -345,10 +355,11 @@ async function watchArchive(m) {
       m.job = null;
       m.archiveView = 'html';
       m.requestKey = null;
+      m.archiveError = '';
       await loadPage(m);
       await refreshWorkspaceFromServer().catch(() => {});
     } else if (job?.phase === 'failed') {
-      m.error = pageFailure({ code: job.code }, true);
+      m.archiveError = pageFailure({ code: job.code }, true);
       m.job = null;
       m.requestKey = null;
     }
@@ -362,9 +373,9 @@ async function watchArchive(m) {
 }
 A.saveBookmarkPage = async () => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'bookmarkViewer' || m.busy || m.job || S.ui.currentUser?.role === 'viewer') return;
-  m.busy = true;
-  m.error = '';
+  if (m?.type !== 'bookmarkViewer' || m.saving || m.submitting || m.job || S.ui.currentUser?.role === 'viewer') return;
+  m.submitting = true;
+  m.archiveError = '';
   m.requestKey ||= crypto.randomUUID();
   render();
   try {
@@ -374,9 +385,12 @@ A.saveBookmarkPage = async () => {
     });
     if (currentViewer(m)) m.job = job;
   } catch (error) {
-    if (currentViewer(m)) m.error = pageFailure(error, true);
+    if (currentViewer(m)) {
+      m.archiveError = pageFailure(error, true);
+      if (error.status >= 400 && error.status < 500) m.requestKey = null;
+    }
   } finally {
-    m.busy = false;
+    m.submitting = false;
     if (currentViewer(m)) {
       render();
       await watchArchive(m);

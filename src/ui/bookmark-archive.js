@@ -15,7 +15,7 @@ export function bookmarkArchiveView(m, russian) {
   const controls = html
     ? `<div class="bookmark-archive-actions"><div class="seg" role="group" aria-label="${T('Archive view', 'Вид архива')}"><button data-a="bookmarkArchiveView" data-value="html" aria-pressed="${m.archiveView !== 'text'}" class="${m.archiveView !== 'text' ? 'on' : ''}">${T('Saved HTML', 'Сохранённый HTML')}</button><button data-a="bookmarkArchiveView" data-value="text" aria-pressed="${m.archiveView === 'text'}" class="${m.archiveView === 'text' ? 'on' : ''}">${T('Text', 'Текст')}</button></div><a class="btn btn-secondary btn-sm" href="${esc(url)}&download=1">${T('Download HTML', 'Скачать HTML')}</a></div>`
     : url
-      ? `<a class="btn btn-secondary btn-sm" href="${esc(url)}&download=1">${T('Download text copy', 'Скачать текстовую копию')}</a>`
+      ? `<a class="btn btn-secondary btn-sm" href="${esc(url)}&download=1">${T('Download text as HTML', 'Скачать текст в HTML')}</a>`
       : '';
   const capture = page.capture;
   const omitted = Object.entries(capture?.unsupported || {}).filter(([, count]) => count > 0);
@@ -48,5 +48,5 @@ export function bookmarkArchiveView(m, russian) {
     html && m.selected !== 'live'
       ? `<div class="bookmark-archive-actions"><button class="btn btn-ghost btn-sm" data-a="${m.offlineCopy ? 'removeBookmarkArchiveOffline' : 'keepBookmarkArchiveOffline'}" ${m.offlineBusy || m.documentState !== 'ready' ? 'disabled' : ''}>${m.offlineBusy ? T('Saving on this device…', 'Сохраняем на устройстве…') : m.offlineCopy ? T('Remove local archive', 'Убрать локальный архив') : T('Save this version offline', 'Сохранить эту версию офлайн')}</button>${m.offlineCopy ? `<span class="hint">${T('On this device: ', 'На устройстве: ')}${esc(new Date(m.offlineCopy.savedAt).toLocaleString(russian ? 'ru-RU' : 'en-US'))} · ${Math.ceil(m.offlineCopy.bytes / 1024)} KB · <a href="/offline.html" target="_blank" rel="noopener">${T('Open offline library', 'Открыть офлайн-библиотеку')}</a></span>` : ''}</div>`
       : '';
-  return controls + width + offline + status + report + body;
+  return controls + body + `<div class="bookmark-archive-details">${width}${offline}${status}${report}</div>`;
 }

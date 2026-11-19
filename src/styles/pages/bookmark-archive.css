@@ -8,6 +8,14 @@
 .bookmark-archive-actions .seg button {
   min-height: 36px;
 }
+.bookmark-archive-details {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.bookmark-preview-status {
+  margin: 0;
+}
 .bookmark-archive-frame {
   display: block;
   width: 100%;
