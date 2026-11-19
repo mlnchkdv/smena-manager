@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyBookmarkBatch } from '../../src/shared/bookmark-batch.js';
+import { applyBookmarkBatch, bookmarksForTrash } from '../../src/shared/bookmark-batch.js';
 const fixture = () => ({
   linkFolders: [{ id: 'a' }, { id: 'b' }],
   links: [
@@ -36,5 +36,14 @@ test('read-only, invalid destination and oversized batches fail before changes',
     ),
   );
   assert.throws(() => applyBookmarkBatch(data, ['one'], { type: 'addTag', tag: ' ' }, 'editor'));
+  assert.deepEqual(data, before);
+});
+
+test('a trash batch must still contain every selected bookmark when confirmed', () => {
+  const data = fixture();
+  const before = structuredClone(data);
+  assert.deepEqual(bookmarksForTrash(data, ['one', 'two'], 'editor'), data.links);
+  assert.throws(() => bookmarksForTrash(data, ['one', 'gone'], 'editor'), /changed/);
+  assert.throws(() => bookmarksForTrash(data, ['one', 'two'], 'viewer'), /Permission/);
   assert.deepEqual(data, before);
 });

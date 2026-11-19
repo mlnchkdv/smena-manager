@@ -30,6 +30,11 @@
 .archive-item-actions {
   gap: 12px;
 }
+.archive-bookmark-batch {
+  max-width: 100%;
+  margin-bottom: 12px;
+  white-space: normal;
+}
 .trash-filter-options.is-wide,
 .trash-filter-options.is-wide > div {
   display: contents;

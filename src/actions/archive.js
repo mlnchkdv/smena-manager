@@ -1,5 +1,5 @@
-import { trashRestorePlan } from '../shared/trash-recovery.js';
-import { t } from '../core/i18n.js';
+import { restorableBookmarkTrash, restoreBookmarkTrash, trashRestorePlan } from '../shared/trash-recovery.js';
+import { isRussian, t } from '../core/i18n.js';
 /* =====================================================================
    ACTIONS · ARCHIVE: restore and purge
    ===================================================================== */
@@ -7,7 +7,7 @@ import { esc } from '../core/utils.js';
 import { D, S, logAct, task } from '../core/store.js';
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { A, IN, confirmDlg, deleteTasks } from './actions.js';
-import { purgeWorkspaceTrash } from '../core/api.js';
+import { getSessionGeneration, purgeWorkspaceTrash } from '../core/api.js';
 import { knowledgeCatalogMode } from '../core/api.js';
 import { applyWorkspaceSnapshot } from '../core/bootstrap.js';
 import { queueWorkspaceSync } from '../core/workspace-sync.js';
@@ -63,9 +63,7 @@ function restoreTrash(item) {
     if (data.note.folderId && !D().knowledgeFolders.some(f => f.id === data.note.folderId)) data.note.folderId = null;
     D().knowledgeNotes.push(data.note);
   } else if (item.kind === 'bookmark') {
-    if (D().links.some(link => link.id === data.link?.id)) return false;
-    if (data.link.folder && !D().linkFolders.some(f => f.id === data.link.folder)) data.link.folder = null;
-    D().links.push(data.link);
+    return restoreBookmarkTrash(D(), [item.id], D().me, S.ui.currentUser?.role) === 1;
   } else if (item.kind === 'file') {
     if (!D().projects.some(project => project.id === data.file?.project) || D().files.some(file => file.id === data.file?.id)) return false;
     D().files.push(restoredFileFolder(data.file, D()));
@@ -97,6 +95,34 @@ A.restoreTrash = el => {
         restored = restoreTrash(current);
       });
       if (changed && restored) toast(`“${item.name}” restored.`);
+    },
+  });
+};
+
+A.restoreTrashBookmarks = el => {
+  const ids = JSON.parse(el.dataset.ids);
+  const role = () => S.ui.currentUser?.role;
+  const entries = restorableBookmarkTrash(D(), ids, D().me, role());
+  const words = (en, ru) => (isRussian() ? ru : en);
+  const unavailable = () =>
+    toast(
+      words(
+        'The bookmarks in the trash have changed. Review the list and try again.',
+        'Список закладок в корзине изменился. Проверьте его и повторите попытку.',
+      ),
+      { kind: 'err' },
+    );
+  if (!entries.length) return unavailable();
+  const generation = getSessionGeneration();
+  const workspace = D().ws.id || D().ws.url;
+  confirmDlg({
+    title: words('Restore bookmarks on this page?', 'Восстановить закладки на этой странице?'),
+    body: `<p>${words('Bookmarks to restore', 'Закладок к восстановлению')} <b>${entries.length}</b></p><p>${words('Bookmarks return to their original folders. If a folder is missing, its bookmarks return to No folder.', 'Закладки вернутся в исходные папки. Если папка удалена, её закладки появятся в разделе «Без папки».')}</p>`,
+    ok: words('Restore bookmarks', 'Восстановить закладки'),
+    run: () => {
+      if (generation !== getSessionGeneration() || workspace !== (D().ws.id || D().ws.url)) return;
+      if (!restorableBookmarkTrash(D(), ids, D().me, role()).length) return unavailable();
+      if (mutate(() => restoreBookmarkTrash(D(), ids, D().me, role()))) toast(words('Bookmarks restored: ', 'Восстановлено закладок: ') + entries.length);
     },
   });
 };

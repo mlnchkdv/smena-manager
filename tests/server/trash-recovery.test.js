@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { trashRestorePlan } from '../../src/shared/trash-recovery.js';
+import { restoreBookmarkTrash, trashRestorePlan } from '../../src/shared/trash-recovery.js';
 test('restore preview rejects ID collisions, missing projects and lost edit access without modifying data', () => {
   const data = {
     projects: [{ id: 'p', name: 'Private', access: 'private', members: ['m'], perms: { m: 'Can view' } }],
@@ -29,4 +29,26 @@ test('restore preview rejects ID collisions, missing projects and lost edit acce
   const root = trashRestorePlan(file, data, 'm', 'admin');
   assert.equal(root.target, 'Private');
   assert.equal(root.missingFolder, true);
+});
+
+test('restoring a bookmark page from trash is atomic and retains saved copies and folders', () => {
+  const bookmark = { id: 'a', folder: 'kept', pageSnapshots: [{ id: 'copy' }], is_archived: true };
+  const second = { id: 'b', folder: 'gone', favorite: true };
+  const note = { kind: 'note', id: 'trash-note', data: { note: { id: 'n' } } };
+  const data = {
+    linkFolders: [{ id: 'kept' }],
+    links: [{ id: 'b' }],
+    trash: [{ kind: 'bookmark', id: 'trash-a', data: { link: bookmark } }, { kind: 'bookmark', id: 'trash-b', data: { link: second } }, note],
+  };
+  const ids = ['trash-a', 'trash-b'];
+  const before = structuredClone(data);
+  assert.equal(restoreBookmarkTrash(data, ids, 'm', 'editor'), 0);
+  assert.deepEqual(data, before);
+  data.links = [];
+  assert.equal(restoreBookmarkTrash(data, ids, 'm', 'viewer'), 0);
+  assert.equal(restoreBookmarkTrash(data, ['trash-a', 'trash-note'], 'm', 'editor'), 0);
+  assert.equal(restoreBookmarkTrash(data, ids, 'm', 'editor'), 2);
+  assert.deepEqual(data.links, [bookmark, { ...second, folder: null }]);
+  assert.deepEqual(data.trash, [note]);
+  assert.equal(restoreBookmarkTrash(data, ids, 'm', 'editor'), 0);
 });

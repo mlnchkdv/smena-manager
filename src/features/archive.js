@@ -52,6 +52,12 @@ export function pageArchive() {
     const target = plan.target || t('No folder');
     return `<span class="archive-restore-target" title="${esc(target)}">${t('Destination')} · <span translate="no">${esc(target)}</span></span>`;
   };
+  const bookmarkBatch =
+    tab === 'trash' ? page.items.filter(item => item.kind === 'bookmark' && !trashRestorePlan(item, D(), D().me, S.ui.currentUser?.role).error) : [];
+  const restoreBookmarks =
+    bookmarkBatch.length > 1
+      ? `<button class="btn btn-secondary archive-bookmark-batch" data-a="restoreTrashBookmarks" data-ids="${esc(JSON.stringify(bookmarkBatch.map(item => item.id)))}" translate="no">${ic('rotate-ccw', 15)}${isRussian() ? 'Восстановить закладки на странице' : 'Restore bookmarks on this page'} (${bookmarkBatch.length})</button>`
+      : '';
   const overview = `<section class="panel archive-overview" style="padding:16px"><h2>${isRussian() ? 'Восстановление материалов' : 'Recover materials'}</h2><p>${isRussian() ? 'Выберите раздел сверху. Архивные материалы и корзина хранятся отдельно; перед окончательным удалением приложение запросит подтверждение.' : 'Choose a category above. Archived work and trash are separate; permanent deletion requires confirmation.'}</p>${
     trash.length
       ? `<h3>${isRussian() ? 'Недавно в корзине' : 'Recently deleted'}</h3><ul class="archive-recent">${trash
@@ -102,6 +108,6 @@ export function pageArchive() {
           `<button role="tab" aria-selected="${tab === k}" class="tab ${tab === k ? 'on' : ''}" data-a="archiveCategory" data-category="${k}">${n}<span class="cnt">${c}</span></button>`,
       )
       .join('')}</div>
-    ${tab === 'trash' ? filters : ''}${body}${tab === 'trash' ? paginationHtml(page, pageKey) : ''}
+    ${tab === 'trash' ? filters + restoreBookmarks : ''}${body}${tab === 'trash' ? paginationHtml(page, pageKey) : ''}
   </div>`;
 }

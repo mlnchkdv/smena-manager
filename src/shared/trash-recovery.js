@@ -42,3 +42,25 @@ export function trashRestorePlan(item, data, memberId, role) {
     sameName: !!record && data[collection]?.some(value => (value.title || value.name) === (record.title || record.name)),
   };
 }
+
+export function restorableBookmarkTrash(data, ids, memberId, role) {
+  const selected = new Set(ids);
+  const entries = (data.trash || []).filter(item => item.kind === 'bookmark' && selected.has(item.id));
+  if (!selected.size || selected.size > 50 || selected.size !== entries.length) return [];
+  const bookmarkIds = new Set();
+  for (const item of entries) {
+    if (trashRestorePlan(item, data, memberId, role).error || bookmarkIds.has(item.data.link.id)) return [];
+    bookmarkIds.add(item.data.link.id);
+  }
+  return entries;
+}
+
+export function restoreBookmarkTrash(data, ids, memberId, role) {
+  const entries = restorableBookmarkTrash(data, ids, memberId, role);
+  if (!entries.length) return 0;
+  const restoredIds = new Set(entries.map(item => item.id));
+  const folders = new Set((data.linkFolders || []).map(folder => folder.id));
+  data.links = [...(data.links || []), ...entries.map(({ data: { link } }) => (link.folder && !folders.has(link.folder) ? { ...link, folder: null } : link))];
+  data.trash = data.trash.filter(item => !restoredIds.has(item.id));
+  return entries.length;
+}

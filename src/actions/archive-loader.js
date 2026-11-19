@@ -12,7 +12,7 @@ const context = () => JSON.stringify([getSessionGeneration(), D().ws.id, S.ui.cu
 
 export function registerArchiveActions(actions, inputs) {
   for (const [table, name] of [
-    ...['restoreTask', 'purgeTask', 'restoreTrash', 'purgeTrash'].map(name => [actions, name]),
+    ...['restoreTask', 'purgeTask', 'restoreTrash', 'restoreTrashBookmarks', 'purgeTrash'].map(name => [actions, name]),
     ...['trashQuery', 'trashFilter'].map(name => [inputs, name]),
   ]) {
     const run = async element => {

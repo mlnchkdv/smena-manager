@@ -1,11 +1,11 @@
-import { A, IN } from '../actions/actions.js';
+import { A, IN, confirmDlg, moveToTrash } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { esc } from '../core/utils.js';
 import { isRussian } from '../core/i18n.js';
 import { render } from '../shell/render.js';
 import { mutate, toast } from '../ui/toast.js';
 import { openModal, closeModal } from '../overlays/modals.js';
-import { applyBookmarkBatch } from '../shared/bookmark-batch.js';
+import { applyBookmarkBatch, bookmarksForTrash } from '../shared/bookmark-batch.js';
 const T = (en, ru) => (isRussian() ? ru : en);
 const scope = () => JSON.stringify([S.ui.currentUser?.id, D().ws.id || D().ws.url]);
 IN.bookmarkSelect = el => {
@@ -61,6 +61,9 @@ A.bookmarkBatch = () => {
             '</button>',
         )
         .join('') +
+      '<button class="btn btn-secondary danger" data-a="trashSelectedBookmarks">' +
+      T('Move to trash', 'В корзину') +
+      '</button>' +
       '</div><p class="hint">' +
       T(
         'Favorites and shared reading status remain unchanged. Archived links can be restored.',
@@ -105,4 +108,45 @@ A.applyBookmarkBatch = el => {
       (result.failed.length ? T(' · Skipped (removed or tag limit): ', ' · Пропущено (удалены или лимит тегов): ') + result.failed.length : ''),
     { kind: result.failed.length ? 'info' : 'ok' },
   );
+};
+
+A.trashSelectedBookmarks = () => {
+  const modal = S.ui.modals.at(-1);
+  if (!modal?.ids || modal.scope !== scope()) return;
+  const unavailable = () =>
+    toast(T('The selected bookmarks changed. Close the dialog and select them again.', 'Выбор закладок изменился. Закройте окно и выберите их снова.'), {
+      kind: 'err',
+    });
+  let links;
+  try {
+    links = bookmarksForTrash(D(), modal.ids, S.ui.currentUser?.role);
+  } catch {
+    return unavailable();
+  }
+  confirmDlg({
+    title: T('Move selected bookmarks to trash?', 'Переместить выбранные закладки в корзину?'),
+    body: `<p>${T('Selected', 'Выбрано')} <b>${links.length}</b></p><p>${T('You can restore these bookmarks and their saved pages from the workspace trash.', 'Закладки и их сохранённые страницы можно восстановить из корзины рабочего пространства.')}</p>`,
+    ok: T('Move to trash', 'В корзину'),
+    danger: true,
+    run: () => {
+      if (modal.scope !== scope() || S.ui.modals.at(-1) !== modal) return;
+      try {
+        if (
+          !mutate(() => {
+            const current = bookmarksForTrash(D(), modal.ids, S.ui.currentUser?.role);
+            for (const link of current) moveToTrash('bookmark', link.title, { link: structuredClone(link) });
+            const ids = new Set(current.map(link => link.id));
+            D().links = D().links.filter(link => !ids.has(link.id));
+            S.ui.bookmarkSelection = [];
+            S.ui.bookmarkSelecting = false;
+          })
+        )
+          return;
+        closeModal();
+        toast(T('Moved to trash: ', 'Перемещено в корзину: ') + links.length);
+      } catch {
+        unavailable();
+      }
+    },
+  });
 };

@@ -1,7 +1,19 @@
-export function applyBookmarkBatch(data, ids, command, role, now = new Date().toISOString()) {
+function bookmarkBatchIds(ids, role) {
   if (!['admin', 'editor'].includes(role)) throw new Error('Permission denied');
   const selected = [...new Set(ids)];
   if (!selected.length || selected.length > 60) throw new Error('Select up to 60 bookmarks');
+  return selected;
+}
+
+export function bookmarksForTrash(data, ids, role) {
+  const selected = new Set(bookmarkBatchIds(ids, role));
+  const links = (data.links || []).filter(link => selected.has(link.id));
+  if (links.length !== selected.size) throw new Error('Selected bookmarks have changed');
+  return links;
+}
+
+export function applyBookmarkBatch(data, ids, command, role, now = new Date().toISOString()) {
+  const selected = bookmarkBatchIds(ids, role);
   if (!['move', 'addTag', 'removeTag', 'archive', 'restore'].includes(command.type)) throw new Error('Invalid operation');
   if (command.type === 'move' && command.folder && !data.linkFolders?.some(f => f.id === command.folder)) throw new Error('Folder unavailable');
   const tag = String(command.tag || '').trim();
