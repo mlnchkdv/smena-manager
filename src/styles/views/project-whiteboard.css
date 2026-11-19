@@ -915,6 +915,11 @@
     height: 70px;
   }
 }
+@media (max-width: 400px) {
+  .whiteboard-minimap {
+    bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) + 56px);
+  }
+}
 @media (max-height: 420px) {
   .whiteboard-minimap {
     width: 96px;
@@ -1312,9 +1317,11 @@
     min-width: 0;
     padding: 0;
   }
-  .whiteboard-gesture .select-btn {
+  .whiteboard-toolbar .whiteboard-gesture > .select-btn {
     min-width: 0;
     width: 100%;
+    padding-inline: 8px 27px;
+    font-size: var(--fs-sm);
   }
   .whiteboard-toolbar :is(.whiteboard-view-toggle, .whiteboard-focus-toggle) {
     flex: 0 0 44px;

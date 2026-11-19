@@ -15,6 +15,10 @@ export const currentWhiteboard = () =>
 export const wbText = (en, ru) => (isRussian() ? ru : en);
 export const wbCount = (count, kind) => countLabel(count, kind, isRussian() ? 'ru-RU' : 'en-US');
 export const whiteboardScope = id => JSON.stringify([getSessionGeneration(), S.ui.activeWorkspace, D().ws.id || D().ws.url, id]);
+export function whiteboardNavigationMode(state) {
+  if (!state.focus) return state.navigationMode;
+  return state.focusNavigationMode || (state.navigationMode === 'pan' ? 'pan' : 'move');
+}
 let state;
 window.addEventListener('smena:device-view-reset', event => {
   if (state && localViewResetApplies(event, 'other')) Object.assign(state, { minimap: false, resizeAspect: false, resizeGuides: true, collapsedGroups: {} });

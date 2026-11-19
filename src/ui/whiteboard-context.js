@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { whiteboardLabel, whiteboardMaterial, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardLabel, whiteboardMaterial, whiteboardNavigationMode, wbText as T } from '../core/whiteboard-state.js';
 import { BOARD_COLORS } from '../shared/project-whiteboard.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { disclosureAttributes } from './disclosure.js';
@@ -64,20 +64,24 @@ export function whiteboardContext(board, state, editable) {
 
 export function whiteboardNavigationHint(mode, editable) {
   return mode === 'pan'
-    ? T('Pan: drag to move around the canvas.', 'Панорама: перетаскивайте поле, чтобы перемещаться по холсту.')
+    ? T('Pan: drag the canvas, tap to select a card.', 'Панорама: перетаскивайте холст, нажимайте на карточки для выделения.')
     : mode === 'move'
       ? editable
-        ? T('Cards: drag a card title to move it.', 'Карточки: перемещайте карточку за заголовок.')
+        ? T(
+            'Cards: drag a title to move the card or drag anywhere else to pan.',
+            'Карточки: тяните за заголовок, чтобы переместить карточку. В других местах перетаскивайте холст.',
+          )
         : T('Select: choose cards to read them. This board is read-only.', 'Выбор: выбирайте карточки для чтения. Холст доступен только для просмотра.')
       : T('Scroll: swipe to scroll the page. Cards stay in place.', 'Прокрутка: листайте страницу. Карточки остаются на месте.');
 }
 export function whiteboardNavigation(state, editable) {
-  const hint = whiteboardNavigationHint(state.navigationMode, editable);
+  const mode = whiteboardNavigationMode(state);
+  const hint = whiteboardNavigationHint(mode, editable);
   return `<label class="whiteboard-gesture" title="${esc(hint)}"><span class="sr">${T('Interaction mode', 'Режим управления')}</span><select class="select" data-in="whiteboardNavigation" aria-label="${T('Interaction mode', 'Режим управления')}" aria-describedby="whiteboard-mode-hint" title="${esc(hint)}">${[
-    ['scroll', T('Scroll', 'Прокрутка')],
+    ...(state.focus ? [] : [['scroll', T('Scroll', 'Прокрутка')]]),
     ['pan', T('Pan', 'Панорама')],
     ['move', editable ? T('Cards', 'Карточки') : T('Select', 'Выбор')],
   ]
-    .map(([mode, label]) => `<option value="${mode}" ${state.navigationMode === mode ? 'selected' : ''}>${label}</option>`)
+    .map(([value, label]) => `<option value="${value}" ${mode === value ? 'selected' : ''}>${label}</option>`)
     .join('')}</select><span class="sr" id="whiteboard-mode-hint">${esc(hint)}</span></label>`;
 }

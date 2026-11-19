@@ -323,7 +323,7 @@
 .whiteboard-view-toggle {
   flex-shrink: 0;
 }
-@media (max-width: 900px), (pointer: coarse) {
+@media (min-width: 641px) and (max-width: 900px), (min-width: 641px) and (pointer: coarse) {
   .project-whiteboard .whiteboard-toolbar .whiteboard-view-toggle {
     padding-inline: 4px;
     font-size: var(--fs-2xs);

@@ -18,7 +18,7 @@ import { mountWhiteboardAssetInputs } from './whiteboard-assets.js';
 import { A, IN } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { queryFileCatalog } from '../core/api.js';
-import { whiteboardScope, whiteboardState, whiteboardLabel, whiteboardMaterial, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardScope, whiteboardState, whiteboardLabel, whiteboardMaterial, whiteboardNavigationMode, wbText as T } from '../core/whiteboard-state.js';
 import { whiteboardMediaPosition, parseWhiteboardTime, formatWhiteboardTime } from '../shared/whiteboard-media.js';
 import { filePreviewPolicy } from '../shared/file-preview-policy.js';
 import { workspaceSyncState } from '../core/workspace-sync.js';
@@ -454,6 +454,31 @@ A.whiteboardSelect = (el, event) => {
   }
   render();
 };
+function cardChooserResults(modal) {
+  const available = whiteboardOf(current()).nodes.filter(node => (!modal.ids || modal.ids.includes(node.id)) && (!modal.onlyFrames || node.type === 'group'));
+  const query = modal.query.trim().toLocaleLowerCase();
+  const matches = available
+    .map(node => ({ node, label: whiteboardLabel(node) }))
+    .filter(({ node, label }) => `${label} ${node.text || ''}`.toLocaleLowerCase().includes(query));
+  const selected = new Set(selectedIds());
+  const types = {
+    group: T('Frame', 'Рамка'),
+    shape: T('Shape', 'Фигура'),
+    material: T('Linked material', 'Связанный материал'),
+    text: T('Text card', 'Текстовая карточка'),
+  };
+  return {
+    status: T(`Found: ${matches.length} / ${available.length}`, `Найдено: ${matches.length} / ${available.length}`),
+    html:
+      matches
+        .map(({ node, label }) => {
+          const checked = selected.has(node.id);
+          return `<button class="whiteboard-card-choice" data-a="whiteboardPickCard" data-id="${esc(node.id)}" aria-pressed="${checked}"><strong>${checked ? ic('check', 14) : ''}${esc(label)}</strong><small>${types[node.type]}</small>${node.text ? `<span>${esc(node.text.slice(0, 160))}${node.text.length > 160 ? '…' : ''}</span>` : ''}</button>`;
+        })
+        .join('') || `<p>${T('No matching cards.', 'Карточки не найдены.')}</p>`,
+  };
+}
+
 function openCardChooser(ids) {
   const p = current();
   if (!p) return;
@@ -465,12 +490,11 @@ function openCardChooser(ids) {
     ids,
     query: '',
     render: (m, H) => {
-      const available = whiteboardOf(current() || {}).nodes.filter(n => (!m.ids || m.ids.includes(n.id)) && (!m.onlyFrames || n.type === 'group'));
-      const matches = available.filter(n => `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(m.query.trim().toLocaleLowerCase()));
+      const { status, html } = cardChooserResults(m);
       const kindPicker = m.ids
         ? ''
         : `<div class="whiteboard-pick-kinds" role="group" aria-label="${T('Card types', 'Типы карточек')}"><button class="btn btn-secondary btn-sm" data-a="whiteboardPickKind" data-kind="all" aria-pressed="${!m.onlyFrames}">${T('All cards', 'Все карточки')}</button><button class="btn btn-secondary btn-sm" data-a="whiteboardPickKind" data-kind="frames" aria-pressed="${!!m.onlyFrames}">${ic('square-dashed', 14)}${T('Frames', 'Рамки')}</button></div>`;
-      return `${H(T('Choose card', 'Выбрать карточку'))}<div class="modal-b">${kindPicker}<label class="field">${T('Search cards', 'Поиск карточек')}<input class="input" id="whiteboard-pick-query" data-in="whiteboardPickQuery" value="${esc(m.query)}" autofocus></label><p class="hint" role="status" aria-live="polite">${T(`Found: ${matches.length} / ${available.length}`, `Найдено: ${matches.length} / ${available.length}`)}</p><div class="whiteboard-card-choices">${matches.map(n => `<button class="whiteboard-card-choice" data-a="whiteboardPickCard" data-id="${esc(n.id)}" aria-pressed="${selectedIds().includes(n.id)}"><strong>${selectedIds().includes(n.id) ? ic('check', 14) : ''}${esc(whiteboardLabel(n))}</strong><small>${T(n.type === 'group' ? 'Frame' : n.type === 'material' ? 'Linked material' : 'Text card', n.type === 'group' ? 'Рамка' : n.type === 'material' ? 'Связанный материал' : 'Текстовая карточка')}</small>${n.text ? `<span>${esc(n.text.slice(0, 160))}${n.text.length > 160 ? '…' : ''}</span>` : ''}</button>`).join('') || `<p>${T('No matching cards.', 'Карточки не найдены.')}</p>`}</div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button></div>`;
+      return `${H(T('Choose card', 'Выбрать карточку'))}<div class="modal-b" translate="no">${kindPicker}<label class="field">${T('Search cards', 'Поиск карточек')}<input class="input" id="whiteboard-pick-query" data-in="whiteboardPickQuery" value="${esc(m.query)}" autofocus></label><p class="hint" data-whiteboard-pick-status role="status">${status}</p><div class="whiteboard-card-choices">${html}</div></div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Cancel', 'Отмена')}</button></div>`;
     },
   });
 }
@@ -485,16 +509,19 @@ IN.whiteboardPickQuery = el => {
   const m = activeModal();
   if (m?.kind !== 'pick') return;
   m.query = el.value;
-  render();
+  const dialog = el.closest('.modal');
+  const { status, html } = cardChooserResults(m);
+  dialog.querySelector('[data-whiteboard-pick-status]').textContent = status;
+  dialog.querySelector('.whiteboard-card-choices').innerHTML = html;
 };
 A.whiteboardPickCard = el => {
   const m = activeModal();
   if (m?.kind !== 'pick' || !whiteboardOf(current()).nodes.some(n => n.id === el.dataset.id && (!m.ids || m.ids.includes(n.id)))) return;
   const id = el.dataset.id;
-  const locate = m.onlyFrames;
+  const state = whiteboardState();
+  const locate = !m.ids && !state.connectFrom && !state.reconnect;
   closeModal();
-  A.whiteboardSelect({ dataset: { id } });
-  if (locate) A.whiteboardLocate({ dataset: { id } });
+  (locate ? A.whiteboardLocate : A.whiteboardSelect)({ dataset: { id } });
 };
 IN.whiteboardSelection = el => {
   const s = whiteboardState(),
@@ -593,6 +620,7 @@ function focusWhiteboardCard(id) {
   if (!camera) return;
   Object.assign(whiteboardState(), camera, { fit: false, autoFit: false });
   paintView();
+  return true;
 }
 A.whiteboardFocusCard = el => focusWhiteboardCard(el.dataset.id);
 export function revealWhiteboardPdfPages(cards) {
@@ -624,13 +652,19 @@ A.whiteboardToggleOutline = () => {
   render();
 };
 A.whiteboardTogglePan = () => {
-  const s = whiteboardState();
-  s.navigationMode = s.navigationMode === 'scroll' ? 'move' : 'scroll';
+  const state = whiteboardState();
+  const mode = whiteboardNavigationMode(state);
+  setWhiteboardNavigation(state, state.focus ? (mode === 'pan' ? 'move' : 'pan') : mode === 'scroll' ? 'move' : 'scroll');
   render();
 };
+function setWhiteboardNavigation(state, mode) {
+  if (state.focus) state.focusNavigationMode = mode;
+  else state.navigationMode = mode;
+}
 IN.whiteboardNavigation = el => {
-  if (!['scroll', 'pan', 'move'].includes(el.value)) return;
-  whiteboardState().navigationMode = el.value;
+  const state = whiteboardState();
+  if (!['scroll', 'pan', 'move'].includes(el.value) || (state.focus && el.value === 'scroll')) return;
+  setWhiteboardNavigation(state, el.value);
   render();
   document.querySelector('[data-in="whiteboardNavigation"] + .select-btn')?.focus({ preventScroll: true });
   const live = document.getElementById('sr-live');
@@ -646,15 +680,10 @@ A.whiteboardLocate = el => {
   const s = whiteboardState();
   const intent = uid('locate');
   s.locateIntent = intent;
-  Object.assign(s, { selected: node.id, selection: [node.id], outline: false, fit: false, autoFit: false });
+  Object.assign(s, { selected: node.id, selection: [node.id], selectedEdge: '', outline: false, fit: false, autoFit: false });
   render();
   requestAnimationFrame(() => {
-    const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
-    if (!box || s !== whiteboardState() || s.locateIntent !== intent) return;
-    const camera = whiteboardNodeCamera(node, box);
-    if (!camera) return;
-    Object.assign(s, camera);
-    paintView();
+    if (s !== whiteboardState() || s.locateIntent !== intent || s.selected !== node.id || s.outline || !focusWhiteboardCard(node.id)) return;
     document.querySelector(`[data-board-drag="${CSS.escape(node.id)}"]`)?.focus({ preventScroll: true });
   });
 };
@@ -1017,6 +1046,7 @@ let cameraSize, cameraOwner;
 const pointers = new Map(),
   mounted = new WeakSet(),
   hydrations = new Set();
+const canvasControl = 'button:not([data-board-drag]),a,input,textarea,select,label,[contenteditable],[data-board-edge]';
 function resetPreview() {
   viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
   viewport?.querySelectorAll('[data-connect-target]').forEach(el => el.removeAttribute('data-connect-target'));
@@ -1035,14 +1065,31 @@ function resetPreview() {
 }
 function down(e) {
   if (e.button !== 0) return;
+  const s = whiteboardState();
+  if (!pointers.size) s.panClickUntil = 0;
   const endpoint = e.target.closest('[data-board-reconnect]');
-  if (e.target.closest('[data-board-edge]') && !spacePan) return;
   const resize = e.target.closest('[data-board-resize]');
   const connector = e.target.closest('[data-board-connect]');
-  if (whiteboardState().navigationMode === 'scroll' && !resize && !connector && !endpoint && !spacePan) return;
+  const control = e.target.closest(canvasControl);
+  const mode = whiteboardNavigationMode(s);
+  if (!spacePan && !resize && !connector && !endpoint && (control || mode === 'scroll')) return;
+  if (pointers.size >= 2 || (pointers.size && !['pan', 'move'].includes(gesture?.kind))) return;
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  const s = whiteboardState(),
-    box = viewport.getBoundingClientRect();
+  if (pointers.size === 2) {
+    if (gesture?.kind === 'move') resetPreview();
+    const [a, b] = [...pointers.values()];
+    const box = viewport.getBoundingClientRect();
+    gesture = {
+      kind: 'pinch',
+      distance: Math.hypot(a.x - b.x, a.y - b.y),
+      zoom: s.zoom,
+      anchorX: ((a.x + b.x) / 2 - box.left - s.x) / s.zoom,
+      anchorY: ((a.y + b.y) / 2 - box.top - s.y) / s.zoom,
+    };
+    viewport.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
   if (spacePan) {
     gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
     viewport.setPointerCapture(e.pointerId);
@@ -1051,7 +1098,10 @@ function down(e) {
   }
   if (endpoint && editable(current())) {
     const intent = reconnectIntent(endpoint);
-    if (!intent) return;
+    if (!intent) {
+      pointers.delete(e.pointerId);
+      return;
+    }
     gesture = { ...intent, kind: 'reconnect', scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
     viewport.setPointerCapture(e.pointerId);
     e.preventDefault();
@@ -1067,20 +1117,6 @@ function down(e) {
     gesture = { kind: 'connect', from: connector?.dataset.boardConnect || s.connectFrom, scope: s.scope, x: e.clientX, y: e.clientY, moved: false };
     viewport.setPointerCapture(e.pointerId);
     e.preventDefault();
-    return;
-  }
-  if (pointers.size === 2) {
-    resetPreview();
-    const [a, b] = [...pointers.values()];
-    gesture = {
-      kind: 'pinch',
-      distance: Math.hypot(a.x - b.x, a.y - b.y),
-      zoom: s.zoom,
-      anchorX: ((a.x + b.x) / 2 - box.left - s.x) / s.zoom,
-      anchorY: ((a.y + b.y) / 2 - box.top - s.y) / s.zoom,
-    };
-    e.preventDefault();
-    viewport.setPointerCapture(e.pointerId);
     return;
   }
   if (resize && editable(current())) {
@@ -1104,41 +1140,32 @@ function down(e) {
       return;
     }
     const node = whiteboardOf(current()).nodes.find(n => n.id === resize.closest('[data-board-id]')?.dataset.boardId);
-    if (!node) return;
+    if (!node) {
+      pointers.delete(e.pointerId);
+      return;
+    }
     gesture = { kind: 'resize', node: structuredClone(node), direction: resize.dataset.boardResize, x: e.clientX, y: e.clientY, zoom: s.zoom, scope: s.scope };
     viewport.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
   }
-  if (s.zoom < 0.65 && !e.target.closest('.whiteboard-navigation,.whiteboard-minimap')) {
-    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
-    viewport.setPointerCapture(e.pointerId);
-    e.preventDefault();
-    return;
-  }
   const handle = e.target.closest('[data-board-drag]');
-  if (handle && s.navigationMode === 'pan') {
-    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
-    viewport.setPointerCapture(e.pointerId);
-    e.preventDefault();
-    return;
-  }
   if (handle && (e.shiftKey || e.ctrlKey || e.metaKey)) {
     pointers.delete(e.pointerId);
     return;
   }
-  if (handle && editable(current())) {
-    s.selectedEdge = '';
-    if (!selectedIds().includes(handle.dataset.boardDrag)) s.selection = [handle.dataset.boardDrag];
-    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), s.selection?.length ? s.selection : [handle.dataset.boardDrag]);
-    s.selected = handle.dataset.boardDrag;
-    gesture = { kind: 'move', nodeId: handle.dataset.boardDrag, nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
-  } else if (!e.target.closest('button,a,.whiteboard-card')) gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
-  else {
-    pointers.delete(e.pointerId);
-    return;
+  if (handle && s.zoom >= 0.65 && mode === 'move' && editable(current())) {
+    const nodeId = handle.dataset.boardDrag;
+    const selected = selectedIds();
+    const selection = selected.includes(nodeId) ? selected : [nodeId];
+    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), selection);
+    gesture = { kind: 'move', nodeId, selection, nodes: structuredClone(nodes), x: e.clientX, y: e.clientY, scope: s.scope, dx: 0, dy: 0 };
+    viewport.setPointerCapture(e.pointerId);
+  } else {
+    gesture = { kind: 'pan', x: e.clientX, y: e.clientY, panX: s.x, panY: s.y };
+    // Keep the original hit target for taps while tracking drags past the viewport edge.
+    e.target.setPointerCapture(e.pointerId);
   }
-  viewport.setPointerCapture(e.pointerId);
   e.preventDefault();
 }
 function move(e) {
@@ -1242,11 +1269,13 @@ function move(e) {
     s.zoom = Math.max(0.2, Math.min(2.5, (g.zoom * Math.hypot(a.x - b.x, a.y - b.y)) / Math.max(1, g.distance)));
     s.x = (a.x + b.x) / 2 - box.left - g.anchorX * s.zoom;
     s.y = (a.y + b.y) / 2 - box.top - g.anchorY * s.zoom;
+    s.fit = s.autoFit = false;
     paintView();
     return;
   }
   if (g.kind === 'pan') {
-    g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
+    if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) <= 5) return;
+    g.moved = true;
     s.x = g.panX + e.clientX - g.x;
     s.y = g.panY + e.clientY - g.y;
     s.fit = false;
@@ -1280,8 +1309,8 @@ function move(e) {
   }
 }
 function up(e, cancel = false) {
+  if (e.pointerId != null && !pointers.delete(e.pointerId)) return;
   viewport?.querySelector('.whiteboard-guides')?.replaceChildren();
-  pointers.delete(e.pointerId);
   const g = gesture;
   gesture = null;
   if (!g) return;
@@ -1323,7 +1352,7 @@ function up(e, cancel = false) {
     }
     return;
   }
-  if (g.kind === 'pan' && g.moved) whiteboardState().overviewPanUntil = Date.now() + 300;
+  if ((g.kind === 'pan' && g.moved) || g.kind === 'pinch') whiteboardState().panClickUntil = Date.now() + 300;
   if (cancel) {
     resetPreview();
     if (g.kind === 'groupResize') render();
@@ -1378,7 +1407,10 @@ function up(e, cancel = false) {
       resetPreview();
     return;
   }
-  if (g.kind === 'move' && (g.dx || g.dy) && g.scope === whiteboardState().scope) {
+  const s = whiteboardState();
+  if (g.kind !== 'move' || g.scope !== s.scope) return;
+  Object.assign(s, { selectedEdge: '', selection: g.selection, selected: g.nodeId });
+  if (g.dx || g.dy) {
     const board = whiteboardOf(current());
     if (
       g.nodes.some(
@@ -1400,10 +1432,9 @@ function up(e, cancel = false) {
           n.y += g.dy;
         }
     });
-  } else if (g.kind === 'move' && g.scope === whiteboardState().scope) {
+  } else {
     // Selection is view state, including a captured pointer with zero movement.
-    const s = whiteboardState(),
-      last = s.lastTap;
+    const last = s.lastTap;
     s.lastTap = { id: g.nodeId, at: Date.now(), x: e.clientX, y: e.clientY };
     if (last?.id === g.nodeId && Date.now() - last.at < 400 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 8) {
       s.lastTap = null;
@@ -1460,24 +1491,27 @@ export function mountProjectWhiteboard() {
       'click',
       event => {
         const s = whiteboardState();
-        if (
-          event.detail === 0 ||
-          s.zoom >= 0.65 ||
-          event.target.closest('.whiteboard-navigation,.whiteboard-minimap,[data-board-resize],[data-board-reconnect]')
-        )
-          return;
-        if (Date.now() < (s.overviewPanUntil || 0)) {
+        if (event.detail === 0 || event.target.closest(canvasControl)) return;
+        if (Date.now() < (s.panClickUntil || 0)) {
           event.preventDefault();
           event.stopPropagation();
           return;
         }
+        if (s.zoom >= 0.65 && event.target.closest('[data-board-drag]')) return;
+        const card = event.target.closest('[data-board-id]')?.dataset.boardId;
         const box = next.getBoundingClientRect();
-        const ids = whiteboardPickCandidates(whiteboardOf(current()).nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s);
-        if (!ids.length) return;
+        const ids =
+          s.zoom < 0.65
+            ? whiteboardPickCandidates(whiteboardOf(current()).nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s)
+            : card
+              ? [card]
+              : [];
+        if (!ids.length && (s.connectFrom || s.reconnect || (!s.selected && !s.selectedEdge))) return;
         event.preventDefault();
         event.stopPropagation();
-        if (ids.length === 1) A.whiteboardSelect({ dataset: { id: ids[0] } });
-        else openCardChooser(ids);
+        if (ids.length === 1) A.whiteboardSelect({ dataset: { id: ids[0] } }, event);
+        else if (ids.length) openCardChooser(ids);
+        else A.whiteboardDeselect();
       },
       true,
     );
@@ -1511,7 +1545,7 @@ export function mountProjectWhiteboard() {
       'wheel',
       e => {
         if (e.target.closest('.whiteboard-navigation')) return;
-        if (whiteboardState().navigationMode === 'scroll' && !e.ctrlKey && !e.metaKey) return;
+        if (whiteboardNavigationMode(whiteboardState()) === 'scroll' && !e.ctrlKey && !e.metaKey) return;
         e.preventDefault();
         const s = whiteboardState();
         if (e.ctrlKey || e.metaKey) {
