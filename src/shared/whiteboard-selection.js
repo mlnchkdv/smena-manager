@@ -1,4 +1,11 @@
-import { movedWhiteboardNodes, validWhiteboard, whiteboardBounds, WHITEBOARD_GROUP_VERSION } from './project-whiteboard.js';
+import {
+  movedWhiteboardNodes,
+  validWhiteboard,
+  whiteboardBounds,
+  whiteboardLockedIds,
+  WHITEBOARD_GROUP_VERSION,
+  WHITEBOARD_LOCK_VERSION,
+} from './project-whiteboard.js';
 import { appendFrameSequence } from './whiteboard-presentation.js';
 
 export function whiteboardGroupsInSelection(board, selection) {
@@ -20,7 +27,8 @@ export function whiteboardSelectionUnits(board, selection) {
 }
 
 export function canGroupWhiteboardSelection(board, selection, units = whiteboardSelectionUnits(board, selection)) {
-  return units.length >= 2 && units.every(nodes => nodes[0].type !== 'group');
+  const locked = whiteboardLockedIds(board);
+  return units.length >= 2 && units.every(nodes => nodes[0].type !== 'group' && nodes.every(node => !locked.has(node.id)));
 }
 
 export function groupWhiteboardSelection(board, selection, id) {
@@ -33,8 +41,20 @@ export function groupWhiteboardSelection(board, selection, id) {
 
 export function ungroupWhiteboardSelection(board, selection) {
   if (!board.groups) return;
-  board.groups = board.groups.filter(group => !group.members.some(id => selection.includes(id)));
+  board.groups = board.groups.filter(group => group.locked || !group.members.some(id => selection.includes(id)));
   if (!board.groups.length) delete board.groups;
+}
+
+export function setWhiteboardPositionLock(board, selection, locked) {
+  const groups = whiteboardGroupsInSelection(board, selection);
+  const members = new Set(groups.flatMap(group => group.members));
+  const targets = [...groups, ...board.nodes.filter(node => selection.includes(node.id) && !members.has(node.id))];
+  if (!targets.length) return;
+  if (locked) board.version = Math.max(board.version, WHITEBOARD_LOCK_VERSION);
+  for (const target of targets) {
+    if (locked) target.locked = true;
+    else delete target.locked;
+  }
 }
 
 export function whiteboardSelectionInRect(nodes, rect) {
@@ -62,6 +82,11 @@ export function whiteboardSelectionNodes(board, selection) {
   const ids = new Set(expandWhiteboardSelection(board, moving));
   return board.nodes.filter(n => ids.has(n.id));
 }
+export function movableWhiteboardNodes(board, selection) {
+  const nodes = whiteboardSelectionNodes(board, selection);
+  const locked = whiteboardLockedIds(board);
+  return nodes.some(node => locked.has(node.id)) ? [] : nodes;
+}
 export function copyWhiteboardSelection(board, selection) {
   const nodes = structuredClone(whiteboardSelectionNodes(board, selection)),
     ids = new Set(nodes.map(n => n.id));
@@ -80,7 +105,7 @@ export function pasteWhiteboardSelection(board, fragment, idFactory, dx = 40, dy
   const edges = fragment.edges.map(e => ({ ...structuredClone(e), id: idFactory('we'), from: ids.get(e.from), to: ids.get(e.to) }));
   const groups = [
     ...structuredClone(board.groups || []),
-    ...(fragment.groups || []).map(group => ({ id: idFactory('wg'), members: group.members.map(id => ids.get(id)) })),
+    ...(fragment.groups || []).map(group => ({ ...group, id: idFactory('wg'), members: group.members.map(id => ids.get(id)) })),
   ];
   const next = {
     version: Math.max(board.version, fragment.version),
@@ -95,7 +120,7 @@ export function arrangeWhiteboardSelection(board, selection, mode) {
   const chosen = whiteboardSelectionUnits(board, selection).map(nodes => ({ ...whiteboardBounds({ nodes }), nodes }));
   const horizontal = mode === 'distribute-x',
     vertical = mode === 'distribute-y';
-  if (chosen.length < (horizontal || vertical ? 3 : 2)) return board;
+  if (chosen.length < (horizontal || vertical ? 3 : 2) || !movableWhiteboardNodes(board, selection).length) return board;
   const next = structuredClone(board),
     target = new Map();
   const left = Math.min(...chosen.map(n => n.x)),

@@ -18,8 +18,8 @@ export function whiteboardContext(board, state, editable) {
     name = edge ? T('Connection', 'Связь') : whiteboardLabel(node),
     attrs = key =>
       `data-scope="${esc(state.scope)}" data-kind="${kind}" data-id="${esc(item.id)}" data-field="${key}" data-base="${esc(JSON.stringify(item[key]))}"`,
-    action = (a, icon, label, kind = 'icon') =>
-      `<button class="${kind === 'primary' ? 'btn btn-secondary btn-sm whiteboard-context-primary' : kind === 'connect' ? 'btn btn-ghost btn-sm whiteboard-context-connect' : kind === 'icon' ? 'ibtn' : ''}" data-a="${a}" data-id="${esc(item.id)}" aria-label="${esc(label)}" title="${esc(label)}">${ic(icon, 16)}${kind === 'icon' ? '' : `<span>${esc(label)}</span>`}</button>`,
+    action = (a, icon, label, kind = 'icon', extra = '') =>
+      `<button class="${kind === 'primary' ? 'btn btn-secondary btn-sm whiteboard-context-primary' : kind === 'connect' ? 'btn btn-ghost btn-sm whiteboard-context-connect' : kind === 'icon' ? 'ibtn' : ''}" data-a="${a}" data-id="${esc(item.id)}" aria-label="${esc(label)}" title="${esc(label)}" ${extra}>${ic(icon, 16)}${kind === 'icon' ? '' : `<span>${esc(label)}</span>`}</button>`,
     colors = [T('Neutral', 'Нейтральный'), T('Violet', 'Фиолетовый'), T('Blue', 'Синий'), T('Green', 'Зелёный'), T('Amber', 'Янтарный'), T('Rose', 'Розовый')];
   const source = node?.type === 'material' ? whiteboardMaterial(node) : null;
   const media = source?.kind === 'file' ? filePreviewPolicy(source.item).kind : null;
@@ -53,10 +53,13 @@ export function whiteboardContext(board, state, editable) {
   const color = editable
     ? `<div class="whiteboard-context-color"><select class="select" data-in="whiteboardContextField" aria-label="${T('Color', 'Цвет')}" ${attrs('color')}>${BOARD_COLORS.map((color, i) => `<option value="${color}" ${item.color === color ? 'selected' : ''}>${colors[i]}</option>`).join('')}</select></div>`
     : '';
+  const lock = node?.locked
+    ? action('whiteboardPositionLock', 'lock-open', T('Unlock position', 'Разблокировать положение'), 'menu')
+    : action('whiteboardPositionLock', 'lock-keyhole', T('Lock position', 'Зафиксировать положение'), 'menu', 'data-locked="true"');
   const secondary =
     !editable || edge
       ? ''
-      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div>${lock}${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline && !node.locked ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
   const primary = editInline
     ? action('whiteboardEdit', 'pencil', T('Edit card', 'Редактировать карточку'), 'primary')
     : node

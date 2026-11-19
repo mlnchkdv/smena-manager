@@ -14,7 +14,7 @@ import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { whiteboardPresentationNavigation } from '../ui/whiteboard-presentation.js';
 import { whiteboardConnectionText } from '../ui/whiteboard-edge-text.js';
 import { whiteboardCurve, whiteboardShapeSvg, whiteboardShapeInsets } from '../shared/whiteboard-diagram.js';
-import { whiteboardOf, whiteboardEdgeEnd } from '../shared/project-whiteboard.js';
+import { whiteboardOf, whiteboardEdgeEnd, whiteboardLockedIds } from '../shared/project-whiteboard.js';
 import { groupSelectionBox, groupSelectionToolbar, savedWhiteboardGroups } from '../ui/whiteboard-group-selection.js';
 import { expandWhiteboardSelection } from '../shared/whiteboard-selection.js';
 import { whiteboardConnectionControls, whiteboardContext, whiteboardNavigation, whiteboardNavigationHint } from '../ui/whiteboard-context.js';
@@ -62,13 +62,13 @@ for (const action of ['whiteboardPickFromList', 'whiteboardTogglePan']) {
   };
   A[action] = load;
 }
-function outlineHtml(board, editable, state) {
+function outlineHtml(board, editable, state, lockedIds) {
   const query = (state.outlineQuery || '').trim().toLocaleLowerCase();
   const frames = board.nodes.filter(n => n.type === 'group').sort((a, b) => a.width * a.height - b.width * b.height);
   const owner = n =>
     frames.find(f => n.id !== f.id && n.x >= f.x && n.y >= f.y && n.x + n.width <= f.x + f.width && n.y + n.height <= f.y + f.height)?.id || '';
   const card = n =>
-    `<div class="whiteboard-outline-entry">${whiteboardCard(n, editable, true)}<button class="btn btn-ghost btn-sm" data-a="whiteboardLocate" data-id="${esc(n.id)}">${ic('locate', 14)}${T('Find on canvas', 'Найти на холсте')}</button></div>`;
+    `<div class="whiteboard-outline-entry">${whiteboardCard(n, editable, true, lockedIds.has(n.id))}<button class="btn btn-ghost btn-sm" data-a="whiteboardLocate" data-id="${esc(n.id)}">${ic('locate', 14)}${T('Find on canvas', 'Найти на холсте')}</button></div>`;
   const matchingFrames = frames.filter(f => whiteboardLabel(f).toLocaleLowerCase().includes(query));
   const matches = board.nodes.filter(
     n => n.type !== 'group' && (matchingFrames.some(f => f.id === owner(n)) || `${whiteboardLabel(n)} ${n.text || ''}`.toLocaleLowerCase().includes(query)),
@@ -85,16 +85,17 @@ function outlineHtml(board, editable, state) {
     })
     .join('')}${!matches.length && !matchingFrames.length && query ? `<p class="hint">${T('No matching cards.', 'Карточки не найдены.')}</p>` : ''}`;
 }
-export function whiteboardCard(node, editable, outline = false) {
+export function whiteboardCard(node, editable, outline = false, locked = !!node.locked) {
   const label = esc(whiteboardLabel(node)),
     state = whiteboardState();
   const material = node.type === 'material' ? whiteboardMaterial(node) : null;
   const preview = whiteboardMaterialPreview(material);
   const inset = whiteboardShapeInsets(node.shape);
-  return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" data-media-preview="${preview?.kind === 'bookmark' || (preview?.kind === 'file' && ['image', 'pdf'].includes(whiteboardMediaPosition(material.item, node.media).kind))}" data-shape="${node.shape || ''}" data-color="${node.color}" aria-label="${label}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px;--shape-pad-x:${Math.round(node.width * inset.x)}px;--shape-pad-y:${Math.round(node.height * inset.y)}px"`}>
-    ${node.type === 'shape' && !outline ? `<svg class="whiteboard-shape-art" viewBox="0 0 ${node.width} ${node.height}" preserveAspectRatio="none" aria-hidden="true">${whiteboardShapeSvg({ ...node, x: 0, y: 0 })}</svg>` : ''}<div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-pressed="${!!(state.selection?.includes(node.id) || state.selected === node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}" aria-describedby="whiteboard-help">${ic(preview?.icon || icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`, whiteboardLabel(node)) : ''}</div>
+  const positionLabel = locked ? ' · ' + T('Position locked', 'Положение зафиксировано') : '';
+  return `<article class="whiteboard-card ${state.selection?.includes(node.id) || state.selected === node.id ? 'selected' : ''} ${outline ? 'in-outline' : ''}" data-board-id="${esc(node.id)}" data-kind="${node.type}" ${locked ? 'data-position-locked' : ''} data-media-preview="${preview?.kind === 'bookmark' || (preview?.kind === 'file' && ['image', 'pdf'].includes(whiteboardMediaPosition(material.item, node.media).kind))}" data-shape="${node.shape || ''}" data-color="${node.color}" aria-label="${label}${positionLabel}" ${outline ? '' : `style="left:${node.x}px;top:${node.y}px;width:${node.width}px;height:${node.height}px;--shape-pad-x:${Math.round(node.width * inset.x)}px;--shape-pad-y:${Math.round(node.height * inset.y)}px"`}>
+    ${node.type === 'shape' && !outline ? `<svg class="whiteboard-shape-art" viewBox="0 0 ${node.width} ${node.height}" preserveAspectRatio="none" aria-hidden="true">${whiteboardShapeSvg({ ...node, x: 0, y: 0 })}</svg>` : ''}<div class="whiteboard-card-head">${state.multiSelect ? `<label class="whiteboard-select-box"><input type="checkbox" data-in="whiteboardSelection" data-id="${esc(node.id)}" aria-label="${T('Select card', 'Выбрать карточку')}: ${label}" ${state.selection?.includes(node.id) ? 'checked' : ''}></label>` : ''}<button class="whiteboard-drag" data-board-drag="${esc(node.id)}" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-pressed="${!!(state.selection?.includes(node.id) || state.selected === node.id)}" aria-label="${esc(T('Select card', 'Выбрать карточку'))}: ${label}${positionLabel}" aria-describedby="whiteboard-help">${ic(locked ? 'lock-keyhole' : preview?.icon || icons[node.type], 15)}<strong>${label}</strong></button>${editable ? button('whiteboardEdit', 'pencil', 'Edit card', 'Изменить карточку', `data-id="${esc(node.id)}"`, whiteboardLabel(node)) : ''}</div>
     ${node.type === 'group' ? '' : `<div class="whiteboard-card-content">${node.type === 'material' ? materialContent(node, preview, material) : `<p>${esc(node.text || T('Add your thoughts…', 'Добавьте свои мысли…'))}</p>`}</div>`}
-    ${editable && !outline && state.selected === node.id ? `<span id="whiteboard-resize-help" class="sr">${T('Drag an edge or corner. On the corner handle, use arrow keys to resize, Shift for larger steps. Escape cancels a drag. Resizing a frame keeps its contents unchanged.', 'Потяните край или угол. На угловом маркере меняйте размер стрелками, Shift — крупный шаг. Escape отменяет перетаскивание. Размер рамки меняется без изменения содержимого.')}</span><span class="whiteboard-resize-size" aria-hidden="true"></span>${['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'].map(direction => `<button class="whiteboard-resize" data-board-resize="${direction}" tabindex="${direction === 'se' ? '0' : '-1'}" aria-label="${esc(T('Resize card', 'Изменить размер карточки'))}: ${label} (${direction.toUpperCase()})" aria-describedby="whiteboard-resize-help" title="${esc(T('Drag to resize', 'Потяните, чтобы изменить размер'))}"></button>`).join('')}` : ''}
+    ${editable && !outline && !locked && state.selected === node.id ? `<span id="whiteboard-resize-help" class="sr">${T('Drag an edge or corner. On the corner handle, use arrow keys to resize, Shift for larger steps. Escape cancels a drag. Resizing a frame keeps its contents unchanged.', 'Потяните край или угол. На угловом маркере меняйте размер стрелками, Shift — крупный шаг. Escape отменяет перетаскивание. Размер рамки меняется без изменения содержимого.')}</span><span class="whiteboard-resize-size" aria-hidden="true"></span>${['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'].map(direction => `<button class="whiteboard-resize" data-board-resize="${direction}" tabindex="${direction === 'se' ? '0' : '-1'}" aria-label="${esc(T('Resize card', 'Изменить размер карточки'))}: ${label} (${direction.toUpperCase()})" aria-describedby="whiteboard-resize-help" title="${esc(T('Drag to resize', 'Потяните, чтобы изменить размер'))}"></button>`).join('')}` : ''}
     ${editable && !outline && state.selected === node.id ? `<button class="whiteboard-connect" data-board-connect="${esc(node.id)}" data-a="whiteboardConnectStart" data-id="${esc(node.id)}" aria-label="${esc(T('Connect from card', 'Связать с другой карточкой'))}: ${label}" title="${esc(T('Drag to another card, or click then choose a card', 'Перетащите на другую карточку или нажмите и выберите её'))}">${ic('plus', 14)}</button>` : ''}
   </article>`;
 }
@@ -136,6 +137,7 @@ export function projectWhiteboard(project) {
     state = whiteboardState(project.id),
     editable = !state.presentationId && !project.archived && canEditWhiteboard(D(), project, D().me, S.ui.currentUser?.role);
   const navigationMode = whiteboardNavigationMode(state);
+  const lockedIds = whiteboardLockedIds(board);
   const connectionSource = editable && board.nodes.find(node => node.id === (state.connectFrom || state.reconnect?.from));
   const selectedIds = expandWhiteboardSelection(board, state.selected ? (state.selection?.length ? state.selection : [state.selected]) : []);
   state.selection = selectedIds;
@@ -174,12 +176,12 @@ export function projectWhiteboard(project) {
   ${whiteboardPresentationNavigation(board, state)}${connectionSource ? whiteboardConnectionControls(connectionSource, state.reconnect) : selectedIds.length > 1 ? groupSelectionToolbar(project.id, board, selectedIds, state, editable) : whiteboardContext(board, state, editable)}${state.multiSelect ? `<p class="${selectedIds.length ? 'sr' : 'whiteboard-multi-hint'}" id="whiteboard-multi-help">${selectionHelp}</p>` : ''}
   ${
     state.outline
-      ? `<div class="whiteboard-outline" data-keep="whiteboard-outline:${esc(state.scope)}">${outlineHtml(board, editable, state)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
+      ? `<div class="whiteboard-outline" data-keep="whiteboard-outline:${esc(state.scope)}">${outlineHtml(board, editable, state, lockedIds)}<h3>${T('Connections', 'Связи')}</h3>${edgeList || `<p class="hint">${T('No connections yet.', 'Связей пока нет.')}</p>`}</div>`
       : `<div class="whiteboard-viewport" role="region" data-overview="${state.zoom < 0.65}" data-navigation="${navigationMode}" tabindex="0" aria-label="${T('Whiteboard navigation', 'Навигация по холсту')}" aria-describedby="whiteboard-help"><div class="whiteboard-world" style="--whiteboard-zoom:${state.zoom};transform:translate(${state.x}px,${state.y}px) scale(${state.zoom})"><div class="whiteboard-saved-groups" aria-hidden="true">${savedWhiteboardGroups(board)}</div>${whiteboardEdges(board)}${[
           ...board.nodes,
         ]
           .sort((a, b) => (a.type !== 'group') - (b.type !== 'group'))
-          .map(n => whiteboardCard(n, editable))
+          .map(n => whiteboardCard(n, editable, false, lockedIds.has(n.id)))
           .join(
             '',
           )}${groupSelectionBox(board, selectedIds, state, editable && !connectionSource)}${connectionHandles(board, state, editable)}<div class="whiteboard-guides" aria-hidden="true"></div></div><div class="whiteboard-marquee" aria-hidden="true" hidden></div>${!board.nodes.length ? `<div class="whiteboard-empty">${ic('layout-dashboard', 32)}<h2>${T('Give your ideas room', 'Разложите идеи по местам')}</h2><p>${T('Arrange cards and materials, then connect them.', 'Разместите карточки и материалы, затем свяжите их.')}</p>${editable ? `<button class="btn btn-primary btn-sm" data-a="whiteboardNewText">${ic('plus', 15)}${T('First card', 'Первая карточка')}</button>` : ''}</div>` : ''}${whiteboardMinimap(board, state)}<div class="whiteboard-navigation">${button('whiteboardPickFromList', 'search', 'Find card', 'Найти карточку')}${button('whiteboardZoomOut', 'minus', 'Zoom out', 'Уменьшить')}<button class="whiteboard-scale" data-a="whiteboardResetZoom" aria-label="${T('Reset zoom', 'Сбросить масштаб')}">${Math.round(state.zoom * 100)}%</button>${button('whiteboardZoomIn', 'plus', 'Zoom in', 'Увеличить')}${button('whiteboardFit', 'scan', 'Fit all cards', 'Показать весь холст')}</div></div>`

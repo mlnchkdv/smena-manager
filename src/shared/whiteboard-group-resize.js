@@ -1,4 +1,4 @@
-import { whiteboardBounds, validWhiteboard } from './project-whiteboard.js';
+import { whiteboardBounds, validWhiteboard, whiteboardLockedIds } from './project-whiteboard.js';
 import { expandWhiteboardSelection, whiteboardSelectionNodes } from './whiteboard-selection.js';
 export function groupResizeNodes(board, ids, contents = false) {
   if (contents) return whiteboardSelectionNodes(board, ids);
@@ -7,7 +7,8 @@ export function groupResizeNodes(board, ids, contents = false) {
 }
 export function resizeWhiteboardGroup(board, ids, direction, dx, dy, { contents = false, lockAspect = true } = {}) {
   const nodes = groupResizeNodes(board, ids, contents);
-  if (!nodes.length || !/^(n|ne|e|se|s|sw|w|nw)$/u.test(direction) || ![dx, dy].every(Number.isFinite)) return board;
+  const locked = whiteboardLockedIds(board);
+  if (!nodes.length || nodes.some(node => locked.has(node.id)) || !/^(n|ne|e|se|s|sw|w|nw)$/u.test(direction) || ![dx, dy].every(Number.isFinite)) return board;
   const bounds = whiteboardBounds({ nodes });
   let sx = direction.includes('e') ? 1 + dx / bounds.width : direction.includes('w') ? 1 - dx / bounds.width : 1;
   let sy = direction.includes('s') ? 1 + dy / bounds.height : direction.includes('n') ? 1 - dy / bounds.height : 1;

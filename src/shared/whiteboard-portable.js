@@ -11,6 +11,7 @@ export function jsonCanvasExportLosses(board) {
     ...(board.nodes.some(node => node.type === 'shape') ? ['shapes'] : []),
     ...(board.nodes.some(node => node.sequence != null) ? ['frameOrder'] : []),
     ...(board.groups?.length ? ['cardGroups'] : []),
+    ...(board.nodes.some(node => node.locked) || board.groups?.some(group => group.locked) ? ['positionLocks'] : []),
     ...(board.edges.some(edge => edge.style && edge.style !== 'solid') ? ['lineStyles'] : []),
     ...(board.edges.some(edge => ['from', 'to'].some(side => whiteboardEdgeEnd(edge, side) === 'dot')) ? ['dotEndings'] : []),
   ];

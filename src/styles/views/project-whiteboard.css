@@ -546,6 +546,14 @@
   font-size: var(--fs-sm);
   font-weight: 600;
 }
+.whiteboard-card[data-position-locked] .whiteboard-drag {
+  cursor: pointer;
+}
+.whiteboard-viewport .whiteboard-card[data-position-locked] .whiteboard-drag > svg {
+  flex: none;
+  width: calc(14px / var(--whiteboard-zoom, 1));
+  height: calc(14px / var(--whiteboard-zoom, 1));
+}
 .whiteboard-viewport .whiteboard-drag {
   min-height: calc(28px / var(--whiteboard-zoom, 1));
 }
@@ -1487,6 +1495,14 @@
     padding-inline: 0;
   }
   .whiteboard-arrange > summary > span {
+    display: none;
+  }
+  .whiteboard-selection:has([data-group-lock]) .whiteboard-group-action {
+    width: 44px;
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .whiteboard-selection:has([data-group-lock]) .whiteboard-group-action > span {
     display: none;
   }
   .whiteboard-context[data-media-kind='pdf'] .whiteboard-context-primary > span {

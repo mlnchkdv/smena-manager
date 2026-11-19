@@ -18,6 +18,7 @@ export const BOARD_ENDINGS = ['none', 'arrow', 'dot'];
 export const WHITEBOARD_PDF_PAGE_VERSION = 6;
 export const WHITEBOARD_IMAGE_VERSION = 7;
 export const WHITEBOARD_GROUP_VERSION = 8;
+export const WHITEBOARD_LOCK_VERSION = 9;
 export const WHITEBOARD_CARD_LIMIT = 200;
 export const whiteboardEdgeEnd = (edge, side) => edge[side + 'End'] ?? (side === 'to' && edge.arrow ? 'arrow' : 'none');
 export const emptyWhiteboard = () => ({ version: 1, nodes: [], edges: [] });
@@ -28,7 +29,7 @@ const text = (value, max) => typeof value === 'string' && value.length <= max;
 export function validWhiteboard(board) {
   if (
     !object(board) ||
-    ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION, WHITEBOARD_IMAGE_VERSION, WHITEBOARD_GROUP_VERSION].includes(board.version) ||
+    ![1, 2, 3, 4, 5, WHITEBOARD_PDF_PAGE_VERSION, WHITEBOARD_IMAGE_VERSION, WHITEBOARD_GROUP_VERSION, WHITEBOARD_LOCK_VERSION].includes(board.version) ||
     !Array.isArray(board.nodes) ||
     !Array.isArray(board.edges)
   )
@@ -36,6 +37,7 @@ export function validWhiteboard(board) {
   const keys = ['version', 'nodes', 'edges', ...(board.version >= WHITEBOARD_GROUP_VERSION ? ['groups'] : [])];
   if (Object.keys(board).some(k => !keys.includes(k)) || board.nodes.length > WHITEBOARD_CARD_LIMIT || board.edges.length > 400) return false;
   if (JSON.stringify(board).length > 350000) return false;
+  const lockFields = board.version >= WHITEBOARD_LOCK_VERSION ? ['locked'] : [];
   const ids = new Set();
   for (const node of board.nodes) {
     if (!object(node) || !identity(node.id) || ids.has(node.id) || !['text', 'material', 'group', ...(board.version >= 3 ? ['shape'] : [])].includes(node.type))
@@ -58,10 +60,12 @@ export function validWhiteboard(board) {
             ...(board.version >= 2 ? ['media'] : []),
             ...(board.version >= 3 ? ['shape'] : []),
             ...(board.version >= 4 ? ['sequence'] : []),
+            ...lockFields,
           ].includes(k),
       )
     )
       return false;
+    if (Object.hasOwn(node, 'locked') && node.locked !== true) return false;
     if (node.type === 'shape' ? !(board.version >= 5 ? BOARD_SHAPES : LEGACY_BOARD_SHAPES).includes(node.shape) : Object.hasOwn(node, 'shape')) return false;
     if (Object.hasOwn(node, 'sequence') && (node.type !== 'group' || !Number.isSafeInteger(node.sequence) || node.sequence < 0 || node.sequence > 1000000))
       return false;
@@ -94,16 +98,23 @@ export function validWhiteboard(board) {
     edges.add(edge.id);
   }
   if (Object.hasOwn(board, 'groups')) {
-    const cards = new Set(board.nodes.filter(node => node.type !== 'group').map(node => node.id));
+    const cards = new Set(board.nodes.filter(node => node.type !== 'group' && !node.locked).map(node => node.id));
     if (!Array.isArray(board.groups) || board.groups.length > Math.floor(cards.size / 2)) return false;
     for (const group of board.groups) {
-      if (!object(group) || !identity(group.id) || ids.has(group.id) || Object.keys(group).some(k => !['id', 'members'].includes(k))) return false;
+      if (!object(group) || !identity(group.id) || ids.has(group.id) || Object.keys(group).some(k => !['id', 'members', ...lockFields].includes(k)))
+        return false;
+      if (Object.hasOwn(group, 'locked') && group.locked !== true) return false;
       if (!Array.isArray(group.members) || group.members.length < 2 || group.members.length > cards.size) return false;
       for (const id of group.members) if (!cards.delete(id)) return false;
       ids.add(group.id);
     }
   }
   return true;
+}
+export function whiteboardLockedIds(board) {
+  const ids = new Set(board.nodes.filter(node => node.locked).map(node => node.id));
+  for (const group of board.groups || []) if (group.locked) for (const id of group.members) ids.add(id);
+  return ids;
 }
 export function whiteboardBounds(board) {
   if (!board.nodes.length) return { x: 0, y: 0, width: 600, height: 400 };
@@ -129,7 +140,14 @@ export function removeWhiteboardNode(board, id) {
   board.nodes = board.nodes.filter(n => n.id !== id);
   board.edges = board.edges.filter(e => e.from !== id && e.to !== id);
   if (board.groups) {
-    board.groups = board.groups.map(group => ({ ...group, members: group.members.filter(member => member !== id) })).filter(group => group.members.length > 1);
+    board.groups = board.groups.filter(group => {
+      if (!group.members.includes(id)) return true;
+      group.members = group.members.filter(member => member !== id);
+      if (group.members.length > 1) return true;
+      const survivor = board.nodes.find(node => node.id === group.members[0]);
+      if (group.locked && survivor) survivor.locked = true;
+      return false;
+    });
     if (!board.groups.length) delete board.groups;
   }
 }

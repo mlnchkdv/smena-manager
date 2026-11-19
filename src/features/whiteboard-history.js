@@ -38,8 +38,11 @@ function form(m, H) {
             .join(' · ')
             .slice(0, 400)
       : '—';
-  const describe = (kind, board, item) =>
-    kind === 'connection' ? whiteboardConnectionText(board, item) : kind === 'group' && item ? C(item.members.length, 'card') : text(item);
+  const describe = (kind, board, item) => {
+    if (kind === 'connection') return whiteboardConnectionText(board, item);
+    const description = kind === 'group' && item ? C(item.members.length, 'card') : text(item);
+    return item?.locked ? description + ' · ' + T('Position locked', 'Положение зафиксировано') : description;
+  };
   const kinds = { card: T('Card', 'Карточка'), connection: T('Connection', 'Связь'), group: T('Group', 'Группа') };
   return `${H(T('Whiteboard history', 'История холста'))}<div class="modal-b" translate="no"><p class="hint">${T('Compare with the current whiteboard before restoring. The current state will remain in history.', 'Сравните версию с текущим холстом перед восстановлением. Текущее состояние останется в истории.')}</p><details class="whiteboard-history-limits"><summary>${T('History limits', 'Ограничения истории')}</summary><p class="hint">${T('Up to 5 previous versions per whiteboard within a shared 700,000-character budget. Linked materials remain unchanged.', 'До 5 предыдущих версий холста в общем лимите 700 000 символов. Исходные материалы не меняются.')}</p></details>${m.loading ? `<p role="status">${T('Loading…', 'Загрузка…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p>` : ''}${m.data ? `<div class="whiteboard-version-list">${m.data.versions.map(v => `<button class="btn btn-secondary" data-a="chooseWhiteboardVersion" data-id="${esc(v.id)}" aria-pressed="${v.id === m.version}"><span>${esc(fmtTimestamp(v.sourceAt || v.at))} · ${esc(author(v))}</span><small>${C(v.board.nodes.length, 'card')} · ${C(v.board.edges.length, 'connection')}</small></button>`).join('') || `<p>${T('No previous versions yet. A version is saved when the board changes.', 'Предыдущих версий пока нет. Версия сохраняется при изменении холста.')}</p>`}</div>` : ''}${
     version

@@ -15,6 +15,8 @@ import {
   expandWhiteboardSelection,
   groupWhiteboardSelection,
   ungroupWhiteboardSelection,
+  movableWhiteboardNodes,
+  setWhiteboardPositionLock,
 } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -46,6 +48,7 @@ import {
   validWhiteboard,
   whiteboardBounds,
   removeWhiteboardNode,
+  whiteboardLockedIds,
 } from '../shared/project-whiteboard.js';
 import { esc, uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
@@ -148,7 +151,9 @@ function modalForm(m, H) {
     body = `<p class="hint">${T('Visual connection on this canvas. It does not create a relation between source materials.', 'Визуальная связь на этом холсте. Она не создаёт отношение между исходными материалами.')}</p><div class="whiteboard-form-grid">${select('from', T('From card', 'От карточки'))}${select('to', T('To card', 'К карточке'))}${optionField(m, 'fromEnd', T('Start', 'Начало'), BOARD_ENDINGS, ends)}${optionField(m, 'toEnd', T('End', 'Конец'), BOARD_ENDINGS, ends)}</div>${field('label', T('Label', 'Подпись'), m.label, 'text', 'maxlength="120"')}<div class="whiteboard-form-grid">${colorField(m)}${optionField(m, 'style', T('Line style', 'Стиль линии'), BOARD_LINE_STYLES, [T('Solid', 'Сплошная'), T('Dashed', 'Штриховая'), T('Dotted', 'Пунктирная')])}</div>`;
   } else {
     const material = m.nodeType === 'material';
-    body = `${material ? `<p class="whiteboard-form-file" translate="no">${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="4" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}<details class="whiteboard-card-options" ${material ? 'open' : ''}><summary>${T('Color, size and position', 'Цвет, размер и положение')}</summary>${colorField(m)}<div class="whiteboard-form-grid">${field('x', 'X', m.x, 'number', 'min="-50000" max="50000"')}${field('y', 'Y', m.y, 'number', 'min="-50000" max="50000"')}${field('width', T('Width', 'Ширина'), m.width, 'number', 'min="160" max="2000"')}${field('height', T('Height', 'Высота'), m.height, 'number', 'min="100" max="2000"')}</div></details>`;
+    const locked = m.id && whiteboardLockedIds(board).has(m.id);
+    const geometry = (key, label, min, max) => field(key, label, m[key], 'number', `min="${min}" max="${max}" ${locked ? 'disabled' : ''}`);
+    body = `${material ? `<p class="whiteboard-form-file" translate="no">${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="4" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}<details class="whiteboard-card-options" ${material ? 'open' : ''}><summary>${T('Color, size and position', 'Цвет, размер и положение')}</summary>${colorField(m)}${locked ? `<p class="hint">${T('Position and size are locked.', 'Положение и размер зафиксированы.')}</p>` : ''}<div class="whiteboard-form-grid">${geometry('x', 'X', -50000, 50000)}${geometry('y', 'Y', -50000, 50000)}${geometry('width', T('Width', 'Ширина'), 160, 2000)}${geometry('height', T('Height', 'Высота'), 100, 2000)}</div></details>`;
   }
   if (m.kind === 'node' && m.nodeType === 'shape') body = whiteboardShapePicker(m.shape, m.shapePickerOpen ?? !m.id) + body;
   if (m.kind === 'node' && m.nodeType === 'material') {
@@ -333,7 +338,9 @@ function saveWhiteboardForm(addAnother = false) {
       style: m.style,
     };
   else {
-    item = { id: m.id || uid('wc'), type: m.nodeType, x: m.x, y: m.y, width: m.width, height: m.height, color: m.color };
+    const position = old && whiteboardLockedIds(board).has(old.id) ? old : m;
+    item = { id: m.id || uid('wc'), type: m.nodeType, x: position.x, y: position.y, width: position.width, height: position.height, color: m.color };
+    if (old?.locked) item.locked = true;
     if (m.nodeType === 'material') {
       item.target = old.target;
       const source = whiteboardMaterial(old),
@@ -644,6 +651,14 @@ export async function pasteWhiteboardContent(suppliedText) {
   }
 }
 A.whiteboardPaste = () => pasteWhiteboardContent();
+A.whiteboardPositionLock = el => {
+  const ids = selectedIds();
+  const locked = el.dataset.locked === 'true';
+  if (!ids.length || !command(board => setWhiteboardPositionLock(board, ids, locked))) return;
+  const button = document.querySelector('[data-a="whiteboardPositionLock"]');
+  const focus = button?.getClientRects().length ? button : document.querySelector('.whiteboard-context-menu > summary');
+  focus?.focus({ preventScroll: true });
+};
 A.whiteboardGroupSelection = () => {
   const ids = selectedIds();
   if (command(board => groupWhiteboardSelection(board, ids, uid('wg'))))
@@ -976,6 +991,7 @@ A.whiteboardDuplicate = () => {
   const node = whiteboardOf(current()).nodes.find(n => n.id === whiteboardState().selected);
   if (!node) return;
   const copy = { ...structuredClone(node), id: uid('wc'), x: Math.min(50000, node.x + 30), y: Math.min(50000, node.y + 30) };
+  delete copy.locked;
   if (command(board => board.nodes.push(copy))) {
     revealNode(copy);
     render();
@@ -1091,10 +1107,11 @@ A.whiteboardToggleGuides = () => {
   render();
 };
 A.whiteboardResizeFocus = () => {
-  const s = whiteboardState(),
-    node = whiteboardOf(current()).nodes.find(n => n.id === s.selected);
+  const board = whiteboardOf(current());
+  const node = board.nodes.find(n => n.id === whiteboardState().selected);
   const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
-  if (!node || !box) return;
+  if (!node || !box || whiteboardLockedIds(board).has(node.id)) return;
+  const s = whiteboardState();
   s.zoom = 1;
   s.x = box.width / 2 - node.x - node.width;
   s.y = box.height / 2 - node.y - node.height;
@@ -1248,14 +1265,20 @@ function down(e) {
     return;
   }
   if (resize && editable(current())) {
+    const board = whiteboardOf(current());
+    const locked = whiteboardLockedIds(board);
     if (resize.dataset.boardGroupResize) {
       const ids = selectedIds(),
-        board = structuredClone(whiteboardOf(current()));
+        nodes = groupResizeNodes(board, ids, !!s.resizeContents);
+      if (nodes.some(node => locked.has(node.id))) {
+        pointers.delete(e.pointerId);
+        return;
+      }
       gesture = {
         kind: 'groupResize',
-        board,
+        board: structuredClone(board),
         ids,
-        nodes: groupResizeNodes(board, ids, !!s.resizeContents),
+        nodes: structuredClone(nodes),
         contents: !!s.resizeContents,
         direction: resize.dataset.boardResize,
         x: e.clientX,
@@ -1267,8 +1290,8 @@ function down(e) {
       e.preventDefault();
       return;
     }
-    const node = whiteboardOf(current()).nodes.find(n => n.id === resize.closest('[data-board-id]')?.dataset.boardId);
-    if (!node) {
+    const node = board.nodes.find(n => n.id === resize.closest('[data-board-id]')?.dataset.boardId);
+    if (!node || locked.has(node.id)) {
       pointers.delete(e.pointerId);
       return;
     }
@@ -1290,7 +1313,11 @@ function down(e) {
     const nodeId = moveGroup ? (selected.includes(s.selected) ? s.selected : selected[0]) : handle.dataset.boardDrag;
     const board = whiteboardOf(current());
     const selection = selected.includes(nodeId) ? selected : expandWhiteboardSelection(board, [nodeId]);
-    const nodes = whiteboardSelectionNodes(board, selection);
+    const nodes = movableWhiteboardNodes(board, selection);
+    if (!nodes.length) {
+      pointers.delete(e.pointerId);
+      return;
+    }
     gesture = {
       kind: 'move',
       nodeId,
@@ -1506,6 +1533,7 @@ function up(e, cancel = false) {
   }
   if (g.kind === 'groupResize') {
     const board = whiteboardOf(current());
+    const locked = whiteboardLockedIds(board);
     if (
       g.scope !== whiteboardState().scope ||
       !g.next ||
@@ -1515,6 +1543,7 @@ function up(e, cancel = false) {
       ) ||
       g.nodes.some(
         node =>
+          locked.has(node.id) ||
           !same(
             node,
             board.nodes.find(n => n.id === node.id),
@@ -1537,10 +1566,12 @@ function up(e, cancel = false) {
       resetPreview();
       return;
     }
+    const board = whiteboardOf(current());
     if (
+      whiteboardLockedIds(board).has(g.node.id) ||
       !same(
         g.node,
-        whiteboardOf(current()).nodes.find(n => n.id === g.node.id),
+        board.nodes.find(n => n.id === g.node.id),
       )
     ) {
       resetPreview();
@@ -1566,7 +1597,7 @@ function up(e, cancel = false) {
     if (
       !same(
         g.nodes.map(n => n.id),
-        whiteboardSelectionNodes(board, g.selection).map(n => n.id),
+        movableWhiteboardNodes(board, g.selection).map(n => n.id),
       ) ||
       g.nodes.some(
         n =>
@@ -1880,7 +1911,8 @@ document.addEventListener(
           direction = resize.dataset.boardResize;
         command(b => {
           const node = b.nodes.find(n => n.id === id);
-          if (node) Object.assign(node, resizedWhiteboardNode(node, direction, dx * step, dy * step, 10, { lockAspect: s.resizeAspect }));
+          if (node && !whiteboardLockedIds(b).has(node.id))
+            Object.assign(node, resizedWhiteboardNode(node, direction, dx * step, dy * step, 10, { lockAspect: s.resizeAspect }));
         });
         requestAnimationFrame(() =>
           document.querySelector(`[data-board-id="${CSS.escape(id)}"] [data-board-resize="${direction}"]`)?.focus({ preventScroll: true }),
@@ -1888,7 +1920,7 @@ document.addEventListener(
         return;
       }
       command(b => {
-        const nodes = whiteboardSelectionNodes(b, selectedIds());
+        const nodes = movableWhiteboardNodes(b, selectedIds());
         const offset = whiteboardSelectionOffset(nodes, dx * step, dy * step);
         for (const n of nodes) {
           n.x += offset.dx;

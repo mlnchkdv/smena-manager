@@ -10,8 +10,11 @@ import {
   expandWhiteboardSelection,
   groupWhiteboardSelection,
   ungroupWhiteboardSelection,
+  movableWhiteboardNodes,
+  setWhiteboardPositionLock,
 } from '../../src/shared/whiteboard-selection.js';
-import { removeWhiteboardNode, validWhiteboard } from '../../src/shared/project-whiteboard.js';
+import { removeWhiteboardNode, validWhiteboard, whiteboardLockedIds } from '../../src/shared/project-whiteboard.js';
+import { resizeWhiteboardGroup } from '../../src/shared/whiteboard-group-resize.js';
 import { jsonCanvasExportLosses } from '../../src/shared/whiteboard-portable.js';
 import { compareWhiteboards } from '../../src/shared/whiteboard-comparison.js';
 import { whiteboardDiffVisibleIds } from '../../src/shared/whiteboard-edge.js';
@@ -143,5 +146,61 @@ test('board validation rejects ambiguous and missing group members and deleting 
   assert.equal(validWhiteboard({ ...board, version: 7 }), false);
   removeWhiteboardNode(board, 'b');
   assert.equal(board.groups, undefined);
+  assert.equal(validWhiteboard(board), true);
+});
+
+test('position locks apply to a card or entire saved group and block indirect geometry changes', () => {
+  const board = {
+    version: 8,
+    nodes: [card('frame', 0, 0, 'group'), card('a', 30, 40), card('b', 700, 200), card('c', 300, 10), card('d', 960, 10)],
+    edges: [],
+    groups: [{ id: 'pair', members: ['a', 'b'] }],
+  };
+  setWhiteboardPositionLock(board, ['b'], true);
+  assert.equal(board.version, 9);
+  assert.deepEqual([...whiteboardLockedIds(board)], ['a', 'b']);
+  assert.deepEqual(board.groups[0], { id: 'pair', members: ['a', 'b'], locked: true });
+  assert.equal(board.nodes[1].locked, undefined);
+  assert.deepEqual(movableWhiteboardNodes(board, ['b']), []);
+  assert.deepEqual(movableWhiteboardNodes(board, ['frame', 'd']), []);
+  assert.deepEqual(
+    movableWhiteboardNodes(board, ['d']).map(node => node.id),
+    ['d'],
+  );
+  assert.equal(arrangeWhiteboardSelection(board, ['frame', 'd'], 'left'), board);
+  assert.equal(resizeWhiteboardGroup(board, ['a', 'c'], 'nw', 20, 30), board);
+  assert.equal(resizeWhiteboardGroup(board, ['frame', 'c'], 'nw', 20, 30, { contents: true }), board);
+  groupWhiteboardSelection(board, ['b', 'c'], 'invalid');
+  ungroupWhiteboardSelection(board, ['a']);
+  assert.equal(board.groups.length, 1);
+  assert.equal(validWhiteboard(board), true);
+  assert.equal(validWhiteboard({ ...board, version: 8 }), false);
+  assert.equal(validWhiteboard({ ...board, groups: [{ ...board.groups[0], locked: 'true' }] }), false);
+  const fragment = copyWhiteboardSelection(board, ['b']);
+  assert.deepEqual(jsonCanvasExportLosses(fragment), ['cardGroups', 'positionLocks']);
+  let seq = 0;
+  const pasted = pasteWhiteboardSelection(board, fragment, prefix => prefix + seq++);
+  assert.equal(pasted.board.groups[1].locked, true);
+  assert.deepEqual(pasted.board.groups[1].members, pasted.ids);
+  setWhiteboardPositionLock(board, ['a'], false);
+  assert.deepEqual(
+    movableWhiteboardNodes(board, ['b']).map(node => node.id),
+    ['a', 'b'],
+  );
+  ungroupWhiteboardSelection(board, ['a']);
+  setWhiteboardPositionLock(board, ['a'], true);
+  assert.equal(board.nodes[1].locked, true);
+  assert.deepEqual(movableWhiteboardNodes(board, ['a']), []);
+  groupWhiteboardSelection(board, ['a', 'b'], 'invalid');
+  assert.equal(board.groups, undefined);
+  assert.equal(validWhiteboard(board), true);
+  assert.equal(validWhiteboard({ ...board, version: 8 }), false);
+});
+
+test('the last member of a dissolved locked group retains its position lock', () => {
+  const board = { version: 9, nodes: [card('a', 0, 0), card('b', 350, 0)], edges: [], groups: [{ id: 'pair', members: ['a', 'b'], locked: true }] };
+  removeWhiteboardNode(board, 'b');
+  assert.equal(board.groups, undefined);
+  assert.equal(board.nodes[0].locked, true);
   assert.equal(validWhiteboard(board), true);
 });
