@@ -774,7 +774,14 @@ A.saveBookmark = () => {
     S.ui.bookmarkForm = false;
     S.ui.bookmarkEditing = null;
     S.ui.bookmarkDraft = emptyBookmarkDraft();
-    Object.assign(S.ui, savedBookmarkView(existing || { ...values, is_archived: false }, S.ui.bookmarkFolder));
+    Object.assign(
+      S.ui,
+      savedBookmarkView(existing || values, S.ui.bookmarkFolder, {
+        archive: S.ui.bookmarkArchiveFilter,
+        capturedAfter: S.ui.bookmarkCapturedAfter,
+        timeZone: S.prefs.tz,
+      }),
+    );
   });
 };
 A.newBookmarkFolder = () => {

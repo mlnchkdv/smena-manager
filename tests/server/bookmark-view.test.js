@@ -29,6 +29,23 @@ test('editing an archived bookmark keeps the archived list selected', () => {
   assert.deepEqual(savedBookmarkView({ folder: 'docs', is_archived: true }, 'docs'), { bookmarkQuery: '', bookmarkScope: 'archived', bookmarkFolder: 'docs' });
 });
 
+test('capture type and date match the same copy, and saving only relaxes conflicting filters', () => {
+  const link = {
+    id: 'guide',
+    pageSnapshots: [
+      { format: 'html', capturedAt: '2026-11-01' },
+      { format: 'text', capturedAt: '2026-11-18' },
+    ],
+  };
+  const options = { archive: 'html', capturedAfter: '2026-11-18' };
+  assert.equal(bookmarkView([link], options).total, 0);
+  assert.equal(bookmarkView([link], { ...options, archive: 'text' }).total, 1);
+  assert.equal(savedBookmarkView(link, 'all', options).bookmarkCapturedAfter, '');
+  assert.equal(savedBookmarkView(link, 'all', options).bookmarkArchiveFilter, undefined);
+  assert.equal(savedBookmarkView({}, 'all', options).bookmarkArchiveFilter, 'all');
+  assert.equal(savedBookmarkView({}, 'all', options).bookmarkCapturedAfter, '');
+});
+
 test('large bookmark collections have bounded pages without mutating source order', () => {
   const links = Array.from({ length: 1300 }, (_, i) => ({ id: String(i), title: 'Team guide', updated_at: new Date(i * 1000).toISOString() }));
   assert.equal(bookmarkView(links).items.length, 60);

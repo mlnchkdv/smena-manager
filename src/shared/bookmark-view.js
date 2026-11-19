@@ -11,13 +11,30 @@ export function bookmarkContextPage(ui, { query = '', folder = 'all', scope = 'a
 }
 
 /** Keep a saved bookmark visible even if its title, folder or archive state changed. */
-export function savedBookmarkView(link, folderFilter = 'all') {
+export function savedBookmarkView(link, folderFilter = 'all', { archive = 'all', capturedAfter = '', timeZone = 'UTC' } = {}) {
   const folderMatches = folderFilter === 'all' || (folderFilter === 'root' ? !link.folder : link.folder === folderFilter);
+  const copies = link.pageSnapshots || [];
+  const visibleArchive = matchesCopies(copies, archive, '', timeZone) ? archive : 'all';
   return {
     bookmarkQuery: '',
     bookmarkScope: link.is_archived ? 'archived' : 'active',
     bookmarkFolder: folderMatches ? folderFilter : link.folder || 'root',
+    ...(visibleArchive !== archive ? { bookmarkArchiveFilter: visibleArchive } : {}),
+    ...(capturedAfter && !matchesCopies(copies, visibleArchive, capturedAfter, timeZone) ? { bookmarkCapturedAfter: '' } : {}),
   };
+}
+
+function matchesCopies(copies, archive, capturedAfter, timeZone) {
+  if (archive === 'none') return !capturedAfter && !copies.length;
+  if (archive === 'all' && !capturedAfter) return true;
+  return copies.some(ref => {
+    if (archive === 'html' && ref.format !== 'html') return false;
+    if (archive === 'text' && ref.format === 'html') return false;
+    if (archive === 'incomplete' && !(ref.capture?.missing > 0)) return false;
+    if (!capturedAfter) return true;
+    const stamp = Date.parse(ref.capturedAt);
+    return Number.isFinite(stamp) && calendarDate(stamp, timeZone) >= capturedAfter;
+  });
 }
 
 export function bookmarkView(
@@ -28,26 +45,7 @@ export function bookmarkView(
   const filtered = links
     .filter(link => (scope === 'archived' ? link.is_archived : !link.is_archived))
     .filter(link => folder === 'all' || (folder === 'root' ? !link.folder : link.folder === folder))
-    .filter(link => {
-      const copies = link.pageSnapshots || [];
-      if (
-        capturedAfter &&
-        !copies.some(ref => {
-          const stamp = Date.parse(ref.capturedAt);
-          return Number.isFinite(stamp) && calendarDate(stamp, timeZone) >= capturedAfter;
-        })
-      )
-        return false;
-      return archive === 'none'
-        ? !copies.length
-        : archive === 'html'
-          ? copies.some(ref => ref.format === 'html')
-          : archive === 'text'
-            ? copies.some(ref => ref.format !== 'html')
-            : archive === 'incomplete'
-              ? copies.some(ref => ref.capture?.missing > 0)
-              : true;
-    })
+    .filter(link => matchesCopies(link.pageSnapshots || [], archive, capturedAfter, timeZone))
     .filter(link => {
       if (!terms.length) return true;
       const text = [link.title, link.description, link.excerpt, link.url, link.site_name, ...(link.tags || [])].join(' ').toLocaleLowerCase();
