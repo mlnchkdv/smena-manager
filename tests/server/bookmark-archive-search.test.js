@@ -50,4 +50,7 @@ test('archive filters compose and sort by capture date', () => {
     ['html'],
   );
   assert.equal(bookmarkView(links, { sort: 'captured' }).items[0].id, 'html');
+  const beforeMidnightUtc = [{ id: 'local-today', pageSnapshots: [{ capturedAt: '2026-11-17T21:30:00Z' }] }];
+  assert.equal(bookmarkView(beforeMidnightUtc, { capturedAfter: '2026-11-18', timeZone: 'UTC' }).total, 0);
+  assert.equal(bookmarkView(beforeMidnightUtc, { capturedAfter: '2026-11-18', timeZone: 'Europe/Saratov' }).total, 1);
 });

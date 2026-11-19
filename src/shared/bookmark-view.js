@@ -1,5 +1,6 @@
 import { searchTerms } from './knowledge-search.js';
 import { listWindow } from './list-window.js';
+import { calendarDate } from './calendar-time.js';
 
 export function bookmarkContextPage(ui, { query = '', folder = 'all', scope = 'active', archive = 'all', capturedAfter = '', sort = 'updated' } = {}) {
   const key = JSON.stringify([String(query).trim().toLocaleLowerCase(), folder, scope, archive, capturedAfter, sort]);
@@ -19,14 +20,24 @@ export function savedBookmarkView(link, folderFilter = 'all') {
   };
 }
 
-export function bookmarkView(links, { query = '', folder = 'all', scope = 'active', page = 0, archive = 'all', capturedAfter = '', sort = 'updated' } = {}) {
+export function bookmarkView(
+  links,
+  { query = '', folder = 'all', scope = 'active', page = 0, archive = 'all', capturedAfter = '', sort = 'updated', timeZone = 'UTC' } = {},
+) {
   const terms = searchTerms(query);
   const filtered = links
     .filter(link => (scope === 'archived' ? link.is_archived : !link.is_archived))
     .filter(link => folder === 'all' || (folder === 'root' ? !link.folder : link.folder === folder))
     .filter(link => {
       const copies = link.pageSnapshots || [];
-      if (capturedAfter && !copies.some(ref => String(ref.capturedAt).slice(0, 10) >= capturedAfter)) return false;
+      if (
+        capturedAfter &&
+        !copies.some(ref => {
+          const stamp = Date.parse(ref.capturedAt);
+          return Number.isFinite(stamp) && calendarDate(stamp, timeZone) >= capturedAfter;
+        })
+      )
+        return false;
       return archive === 'none'
         ? !copies.length
         : archive === 'html'

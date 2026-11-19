@@ -171,6 +171,7 @@ export function pageBookmarks() {
     folder: folderFilter,
     scope,
     ...archiveFilters,
+    timeZone: S.prefs.tz,
     page: bookmarkContextPage(S.ui, { query, folder: folderFilter, scope, ...archiveFilters }),
   });
   S.ui.listPages.bookmarks = page.page;
@@ -264,8 +265,6 @@ ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared li
               : readOnly || filteredEmpty || scope === 'archived'
                 ? ''
                 : `<button class="btn btn-primary" data-a="newBookmark">${ic('plus', 14)}Add bookmark</button>`,
-            '',
-            1,
           )
     }
   </div>`;

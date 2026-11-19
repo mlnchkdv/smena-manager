@@ -1,8 +1,12 @@
 import { getActiveWorkspace } from '../core/api.js';
 import { S } from '../core/store.js';
+import { locale } from '../core/i18n.js';
 import { esc } from '../core/utils.js';
+import { formatTimestamp } from '../shared/calendar-time.js';
 import { bookmarkReaderHtml } from './bookmark-reader.js';
 import '../styles/pages/bookmark-archive.css';
+
+export const bookmarkTimestamp = value => formatTimestamp(value, { locale: locale(), timeZone: S.prefs.tz, timeFormat: S.prefs.timeFormat });
 
 export function bookmarkArchiveUrl(bookmarkId, snapshotId) {
   return `/api/bookmark-pages/${encodeURIComponent(bookmarkId)}/snapshots/${encodeURIComponent(snapshotId)}/document?workspace=${encodeURIComponent(getActiveWorkspace())}&account=${encodeURIComponent(S.ui.currentUser?.id || '')}`;
@@ -46,7 +50,7 @@ export function bookmarkArchiveView(m, russian) {
     : '';
   const offline =
     html && m.selected !== 'live'
-      ? `<div class="bookmark-archive-actions"><button class="btn btn-ghost btn-sm" data-a="${m.offlineCopy ? 'removeBookmarkArchiveOffline' : 'keepBookmarkArchiveOffline'}" ${m.offlineBusy || m.documentState !== 'ready' ? 'disabled' : ''}>${m.offlineBusy ? T('Saving on this device…', 'Сохраняем на устройстве…') : m.offlineCopy ? T('Remove local archive', 'Убрать локальный архив') : T('Save this version offline', 'Сохранить эту версию офлайн')}</button>${m.offlineCopy ? `<span class="hint">${T('On this device: ', 'На устройстве: ')}${esc(new Date(m.offlineCopy.savedAt).toLocaleString(russian ? 'ru-RU' : 'en-US'))} · ${Math.ceil(m.offlineCopy.bytes / 1024)} KB · <a href="/offline.html" target="_blank" rel="noopener">${T('Open offline library', 'Открыть офлайн-библиотеку')}</a></span>` : ''}</div>`
+      ? `<div class="bookmark-archive-actions"><button class="btn btn-ghost btn-sm" data-a="${m.offlineCopy ? 'removeBookmarkArchiveOffline' : 'keepBookmarkArchiveOffline'}" ${m.offlineBusy || m.documentState !== 'ready' ? 'disabled' : ''}>${m.offlineBusy ? T('Saving on this device…', 'Сохраняем на устройстве…') : m.offlineCopy ? T('Remove local archive', 'Убрать локальный архив') : T('Save this version offline', 'Сохранить эту версию офлайн')}</button>${m.offlineCopy ? `<span class="hint">${T('On this device: ', 'На устройстве: ')}${esc(bookmarkTimestamp(m.offlineCopy.savedAt))} · ${Math.ceil(m.offlineCopy.bytes / 1024)} KB · <a href="/offline.html" target="_blank" rel="noopener">${T('Open offline library', 'Открыть офлайн-библиотеку')}</a></span>` : ''}</div>`
       : '';
   return controls + body + `<div class="bookmark-archive-details">${width}${offline}${status}${report}</div>`;
 }
