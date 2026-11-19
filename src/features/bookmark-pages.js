@@ -460,7 +460,7 @@ A.runBookmarkArchiveSearch = async el => {
     const result = await bookmarkPageRequest('/search', {
       method: 'POST',
       signal: m.controller.signal,
-      body: JSON.stringify({ query, cursor: more ? m.cursor : 0 }),
+      body: JSON.stringify({ query, ...(more ? { cursor: m.cursor, collectionVersion: m.collectionVersion } : {}) }),
     });
     if (!currentViewer(m)) return;
     m.results.push(...result.matches);
@@ -468,9 +468,17 @@ A.runBookmarkArchiveSearch = async el => {
     m.scanned = result.scanned;
     m.total = result.total;
     m.cursor = result.cursor;
+    m.collectionVersion = result.collectionVersion;
     m.unavailable += result.unavailable;
-  } catch {
-    if (currentViewer(m)) m.error = words('Search unavailable. Check the connection and retry.', 'Поиск недоступен. Проверьте соединение и повторите.');
+  } catch (error) {
+    if (!currentViewer(m)) return;
+    if (error.code === 'PAGE_SEARCH_CHANGED') {
+      m.cursor = null;
+      m.error = words(
+        'Saved copies changed during the search. Run the search again to see all current results.',
+        'Сохранённые копии изменились во время поиска. Запустите поиск снова, чтобы увидеть все актуальные результаты.',
+      );
+    } else m.error = words('Search unavailable. Check the connection and retry.', 'Поиск недоступен. Проверьте соединение и повторите.');
   } finally {
     m.busy = false;
     if (currentViewer(m)) render();

@@ -27,6 +27,12 @@ test('archive search scans bounded batches, returns exact versions and scopes it
   assert.equal(first.cursor, 20);
   assert.equal(first.unavailable, 1);
   assert.equal(first.matches[0].snapshotId, '21');
+  const next = await search(links, { query: 'dynamic results', cursor: first.cursor, collectionVersion: first.collectionVersion }, 'workspace-one');
+  assert.equal(next.matches.length, 3);
+  const changed = [{ ...links[0], pageSnapshots: links[0].pageSnapshots.slice(1) }];
+  await assert.rejects(search(changed, { query: 'dynamic results', cursor: first.cursor, collectionVersion: first.collectionVersion }, 'workspace-one'), {
+    code: 'PAGE_SEARCH_CHANGED',
+  });
   const last = await search(links, { query: 'Experiment &', cursor: first.cursor }, 'workspace-one');
   assert.equal(last.matches.length, 3);
   assert.equal(last.cursor, null);
