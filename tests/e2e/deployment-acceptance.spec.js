@@ -1,12 +1,9 @@
 import { test, expect } from './fixtures.js';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { strFromU8, unzipSync } from 'fflate';
 
-test('deployment acceptance persists sessions and materials in RU/EN at desktop and mobile sizes', async ({ page }) => {
-  test.setTimeout(180000);
-  await page.addInitScript(() => {
-    window.showSaveFilePicker = undefined;
-  });
+async function createAcceptanceWorkspace(page, projectName) {
   await page.goto('/');
   await page.locator('#l-access').fill('e2e-access-id-2026-secure');
   await page.locator('#login-btn').click();
@@ -14,12 +11,123 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   await page.locator('#o-url').fill('e2e-team');
   await page.locator('#onb-next').click();
   await page.locator('#onb-next').click();
-  await page.locator('#o-proj').fill('Проверка интерфейса');
+  await page.locator('#o-proj').fill(projectName);
   await page.locator('#onb-next').click();
   await page.locator('[data-a="onbNext"][data-skip="1"]').click();
   await page.locator('[data-a="onbFinish"]').click();
   await expect(page.locator('.shell')).toBeVisible();
   await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+}
+
+test('deployment acceptance opens a saved research ZIP and bookmark archive on desktop and mobile', async ({ page }, testInfo) => {
+  test.setTimeout(150000);
+  await page.addInitScript(() => {
+    window.showSaveFilePicker = undefined;
+  });
+  await createAcceptanceWorkspace(page, '3DGS');
+  const data = (await (await page.request.get('/api/workspace')).json()).data;
+  const project = data.projects[0].id;
+  const commands = `/api/research/projects/${project}/commands`;
+  const record = crypto.randomUUID();
+  expect((await page.request.post(commands, { data: { operationId: crypto.randomUUID(), action: 'enable', enabled: true } })).ok()).toBeTruthy();
+  expect(
+    (
+      await page.request.post(commands, {
+        data: {
+          operationId: crypto.randomUUID(),
+          action: 'create',
+          id: record,
+          record: {
+            kind: 'experiment',
+            title: '3DGS · Export check',
+            body: 'A synthetic archive / Служебный архив.',
+            data: { hypothesis: 'Test render scale' },
+          },
+        },
+      })
+    ).ok(),
+  ).toBeTruthy();
+
+  const saved = { id: crypto.randomUUID(), title: 'Capture check', format: 'html', capturedAt: '2026-11-18T12:00:00Z' };
+  const linkId = 'acceptance-bookmark';
+  const url = 'https://example.com/archive-check';
+  const bookmarkDocument = (await (await page.request.get('/api/workspace-documents/bookmarks')).json()).data;
+  bookmarkDocument.links.push({ id: linkId, title: saved.title, url, tags: [], pageSnapshots: [saved] });
+  expect(
+    (await page.request.put('/api/workspace-documents/bookmarks', { data: { revision: bookmarkDocument.revision, data: bookmarkDocument } })).ok(),
+  ).toBeTruthy();
+  const snapshotUrl = `**/api/bookmark-pages/${linkId}/snapshots/${saved.id}`;
+  await page.route(snapshotUrl, route =>
+    route.fulfill({ json: { ...saved, url, html: '<p>Saved page text</p>', capture: { assets: 1, scriptsDisabled: true } } }),
+  );
+  await page.route(snapshotUrl + '/document*', route =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<!doctype html><html><meta http-equiv="Content-Security-Policy" content="default-src 'none'"><h1>Saved page</h1></html>`,
+    }),
+  );
+
+  for (const [language, lang] of [
+    ['Русский', 'ru'],
+    ['English (US)', 'en'],
+  ]) {
+    await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language, { timeout: 20000 });
+    await expect(page.locator('html')).toHaveAttribute('lang', lang);
+    await expect(page.locator('#sync-indicator')).toHaveAttribute('data-state', 'saved');
+
+    for (const [width, height] of [
+      [1366, 900],
+      [390, 844],
+      [320, 700],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto(`/e2e-team/project/${project}/research/${record}`);
+      const summary = page.getByText(lang === 'ru' ? 'История, проверка и экспорт' : 'History, review and export', { exact: true });
+      await summary.waitFor({ state: 'visible', timeout: 20000 });
+      await summary.click();
+      await page.getByRole('button', { name: lang === 'ru' ? 'Подготовить ZIP исследования' : 'Prepare research ZIP' }).click();
+      const save = page.getByRole('link', { name: lang === 'ru' ? 'Сохранить ZIP' : 'Save ZIP' });
+      const [download] = await Promise.all([page.waitForEvent('download'), save.click()]);
+      const zipPath = testInfo.outputPath(`3dgs-${lang}-${width}.zip`);
+      await download.saveAs(zipPath);
+      const entries = unzipSync(await readFile(zipPath));
+      const manifest = JSON.parse(strFromU8(entries['manifest.json']));
+      expect(manifest.recordId).toBe(record);
+      expect(strFromU8(entries['article.html'])).toContain(`<html lang="${lang}">`);
+      expect(manifest.files).toHaveLength(Object.keys(entries).length - 1);
+      for (const file of manifest.files) expect(createHash('sha256').update(entries[file.name]).digest('hex')).toBe(file.sha256);
+
+      await page.goto('/e2e-team/bookmarks');
+      const documentResponse = page.waitForResponse(
+        response => response.ok() && response.url().includes(`/snapshots/${saved.id}/document`) && response.request().isNavigationRequest(),
+      );
+      await page.getByRole('button', { name: saved.title, exact: true }).click({ timeout: 20000 });
+      const viewer = page.getByRole('dialog');
+      await expect(viewer.locator('iframe.bookmark-archive-frame')).toBeVisible({ timeout: 15000 });
+      expect(await (await documentResponse).text()).toContain('<h1>Saved page</h1>');
+      await expect(viewer.locator('[data-in="bookmarkCaptureMode"]')).toBeHidden();
+      const frame = await viewer.locator('.bookmark-archive-frame').boundingBox();
+      expect(frame.y).toBeLessThan(height - 100);
+      if (width === 1366) {
+        const archiveFrame = viewer.locator('.bookmark-archive-frame');
+        const originalFrame = await archiveFrame.elementHandle();
+        await viewer.getByRole('button', { name: lang === 'ru' ? 'Расширить просмотр' : 'Expand viewer' }).click();
+        expect(await archiveFrame.evaluate((node, original) => node === original, originalFrame)).toBe(true);
+      }
+      await viewer.getByRole('button', { name: lang === 'ru' ? 'Текст' : 'Text', exact: true }).click();
+      await expect(viewer.locator('.bookmark-page-reader')).toContainText('Saved page text');
+    }
+  }
+});
+
+test('deployment acceptance persists sessions and materials in RU/EN at desktop and mobile sizes', async ({ page }) => {
+  test.setTimeout(180000);
+  await page.addInitScript(() => {
+    window.showSaveFilePicker = undefined;
+  });
+  await createAcceptanceWorkspace(page, 'Проверка интерфейса');
 
   const initial = (await (await page.request.get('/api/workspace')).json()).data;
   const upload = await page.request.post('/api/files/upload', {
