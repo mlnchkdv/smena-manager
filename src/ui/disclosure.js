@@ -24,6 +24,7 @@ export function positionActionMenus() {
   document.querySelectorAll('.ui-menu[open] > div').forEach(panel => {
     if (!['absolute', 'fixed'].includes(getComputedStyle(panel).position)) return;
     const menu = panel.parentElement;
+    if (!menuAnchors.has(menu)) menuAnchors.set(menu, menu.querySelector(':scope > summary')?.getBoundingClientRect());
     const anchor = menu.matches('.whiteboard-toolbar > .whiteboard-add, .whiteboard-context-menu')
       ? menu.querySelector(':scope > summary').getBoundingClientRect()
       : null;
@@ -67,7 +68,7 @@ document.addEventListener(
     const scroller = event.target;
     document.querySelectorAll('.ui-menu[open]').forEach(menu => {
       // A menu may scroll internally. Only its moving ancestors invalidate the anchor.
-      if (scroller?.contains(menu) && !menu.contains(scroller)) {
+      if (scroller?.contains(menu) && !menu.contains(scroller) && !menu.contains(selectMenu.btn)) {
         const before = menuAnchors.get(menu),
           after = menu.querySelector(':scope > summary')?.getBoundingClientRect();
         // Fractional viewport rounding/scroll-into-view must not dismiss a menu

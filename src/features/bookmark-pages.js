@@ -416,6 +416,8 @@ A.saveBookmarkPage = async () => {
 for (const field of ['bookmarkArchiveFilter', 'bookmarkCapturedAfter', 'bookmarkArchiveSort'])
   IN[field] = el => {
     S.ui[field] = el.value;
+    const filters = el.closest('details.collection-options');
+    if (filters) filters.open = true;
     render();
   };
 IN.bookmarkArchiveSearchQuery = el => {

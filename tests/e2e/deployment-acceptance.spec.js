@@ -53,6 +53,10 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
   const url = 'https://example.com/archive-check';
   const bookmarkDocument = (await (await page.request.get('/api/workspace-documents/bookmarks')).json()).data;
   bookmarkDocument.links.push({ id: linkId, title: saved.title, url, tags: [], pageSnapshots: [saved] });
+  bookmarkDocument.links.push(
+    { id: 'capture-links-only-a', title: 'Link without an archive A', url: 'https://example.com/link-only-a', tags: [] },
+    { id: 'capture-links-only-b', title: 'Link without an archive B', url: 'https://example.com/link-only-b', tags: [] },
+  );
   expect(
     (await page.request.put('/api/workspace-documents/bookmarks', { data: { revision: bookmarkDocument.revision, data: bookmarkDocument } })).ok(),
   ).toBeTruthy();
@@ -131,6 +135,7 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
         await page.getByRole('option', { name: lang === 'ru' ? 'HTML-архив' : 'HTML archive', exact: true }).click();
         const date = filters.locator('[data-in="bookmarkCapturedAfter"]');
         await expect(date).toBeVisible();
+        await expect(page.locator('.bookmark-grid article')).toHaveCount(1);
         await date.fill('2026-11-20');
         await expect(page.getByRole('button', { name: saved.title, exact: true })).toHaveCount(0);
         await page.getByRole('button', { name: lang === 'ru' ? 'Сбросить фильтры' : 'Reset filters', exact: true }).press('Enter');
