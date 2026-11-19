@@ -33,7 +33,7 @@ export function researchComparisonHtml(m) {
   const options = (m.rows || [])
     .map(row => {
       const index = m.ids.indexOf(row.id);
-      return `<button class="btn btn-secondary" data-a="researchPickCompare" data-id="${esc(row.id)}" aria-pressed="${index !== -1}" ${index === -1 && m.ids.length === 4 ? 'disabled' : ''}>${index === -1 ? '' : `${String.fromCharCode(65 + index)} · `}${esc(row.title)}</button>`;
+      return `<button class="btn btn-secondary research-compare-option" data-a="researchPickCompare" data-id="${esc(row.id)}" aria-pressed="${index !== -1}" ${index === -1 && m.ids.length === 4 ? 'disabled' : ''}>${index === -1 ? '' : `<span class="badge">${index === 0 ? rw('A · Baseline', 'A · Базовый') : String.fromCharCode(65 + index)}</span>`}<span>${esc(row.title)}</span></button>`;
     })
     .join('');
   const breakdown = !base
@@ -46,5 +46,14 @@ export function researchComparisonHtml(m) {
           return `<section><h3>A · ${esc(base.title)} → ${String.fromCharCode(66 + index)} · ${esc(candidate.title)}</h3><p>${comparison.compatible ? rw('Same evaluation conditions. Differences do not prove causation.', 'Одинаковые условия оценки. Различия не доказывают причинность.') : reasons.map(esc).join(' · ')}</p>${comparison.metrics.map(metric => `<dl class="research-properties"><div><dt>${esc(metric.key)} · ${esc(metric.scope || '')}</dt><dd>${value(metric.before)} → ${value(metric.after)}<br>${metric.comparable ? rw('Difference', 'Разница') + ': ' + esc(String(metric.delta) + ' ' + metric.unit) : esc(reason(metric.reason))}</dd></div></dl>`).join('')}${comparison.configDiff.length ? `<details open><summary>${rw('Configuration differences', 'Различия конфигурации')} · ${comparison.configDiff.length}</summary><dl class="research-properties">${comparison.configDiff.map(diff => `<div><dt><code>${esc(diff.key)}</code></dt><dd>${configValue(diff.before)} → ${configValue(diff.after)}</dd></div>`).join('')}</dl></details>` : ''}</section>`;
         })
         .join('');
-  return `<div class="modal-b research-form" translate="no"><p>${rw('Select two to four runs. The first selected run is the baseline.', 'Выберите от двух до четырёх запусков. Первый выбранный — базовый.')}</p><div class="research-form-section">${options}${m.rows?.length === 0 ? `<p>${rw('No runs yet. Plan a run from an experiment first.', 'Запусков пока нет. Сначала запланируйте запуск из эксперимента.')}</p>` : ''}</div>${m.error ? `<div role="alert">${esc(m.error)} <button class="btn btn-secondary" data-a="researchRetryCompare">${rw('Retry', 'Повторить')}</button></div>` : ''}${loading ? `<p role="status">${rw('Loading runs…', 'Загружаем запуски…')}</p>` : ''}${breakdown}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${rw('Close', 'Закрыть')}</button></div>`;
+  const notice =
+    m.rows?.length === 0
+      ? rw('No runs yet. Plan a run from an experiment first.', 'Запусков пока нет. Запланируйте запуск из эксперимента.')
+      : m.rows?.length === 1
+        ? rw(
+            'Plan another run in this experiment to compare it with the first.',
+            'Запланируйте ещё один запуск в этом эксперименте, чтобы сравнить его с первым.',
+          )
+        : '';
+  return `<div class="modal-b research-form" translate="no"><p>${rw('Select two to four runs. The first selected run is the baseline.', 'Выберите от двух до четырёх запусков. Первый выбранный — базовый.')}</p>${options ? `<div class="research-compare-options" role="group" aria-label="${rw('Runs to compare', 'Запуски для сравнения')}">${options}</div>` : ''}${notice ? `<p class="hint">${notice}</p>` : ''}${m.error ? `<div role="alert">${esc(m.error)} <button class="btn btn-secondary" data-a="researchRetryCompare">${rw('Retry', 'Повторить')}</button></div>` : ''}${loading ? `<p role="status">${rw('Loading runs…', 'Загружаем запуски…')}</p>` : ''}${breakdown}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${rw('Close', 'Закрыть')}</button></div>`;
 }

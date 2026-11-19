@@ -77,6 +77,9 @@
   gap: 12px;
   margin-block: 20px;
 }
+.research-properties:empty {
+  display: none;
+}
 .research-properties > div {
   display: grid;
   grid-template-columns: 160px minmax(0, 1fr);
@@ -142,6 +145,22 @@
   display: grid;
   gap: 12px;
   margin-block: 12px;
+}
+.research-compare-options {
+  display: grid;
+  gap: 8px;
+}
+.research-compare-option {
+  min-height: 44px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.research-compare-option[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--surface-2);
 }
 .research-actions {
   display: flex;

@@ -228,6 +228,7 @@ A.researchCompare = () => {
     type: 'researchCompare',
     project: model.project,
     experiment: source.kind === 'experiment' ? source.id : source.data.experimentId,
+    baseline: source.kind === 'run' ? source.id : '',
     ids: [],
     rows: null,
     records: new Map(),
@@ -249,6 +250,7 @@ async function loadComparisonRuns(m) {
     }
     const result = await researchRequest(m.project, '?kind=run&limit=100&experiment=' + encodeURIComponent(m.experiment));
     m.rows = result.items;
+    if (m.baseline && m.rows.some(row => row.id === m.baseline)) m.ids = [m.baseline];
   } catch (error) {
     m.error = researchFailure(error);
   } finally {
@@ -771,15 +773,17 @@ A.researchLatestInputs = () => {
   render();
 };
 function researchRecordActions(record, canEdit) {
-  if (record.archived)
-    return canEdit
-      ? `<div class="research-actions"><button class="btn btn-secondary" data-a="researchArchive">${rw('Restore from archive', 'Восстановить из архива')}</button></div>`
-      : '';
   const state = record.data.state || 'planned';
   const transitions = state === 'planned' ? ['running', 'cancelled'] : state === 'running' ? ['completed', 'failed', 'cancelled'] : [];
   const compare = ['experiment', 'run'].includes(record.kind)
     ? `<button class="btn btn-secondary" data-a="researchCompare">${rw('Compare runs', 'Сравнить запуски')}</button>`
     : '';
+  if (record.archived) {
+    const restore = canEdit
+      ? `<button class="btn btn-secondary" data-a="researchArchive">${rw('Restore from archive', 'Восстановить из архива')}</button>`
+      : '';
+    return restore || compare ? `<div class="research-actions">${restore}${compare}</div>` : '';
+  }
   const plan =
     canEdit && record.kind === 'experiment'
       ? `<button class="btn btn-primary" data-a="researchNew" data-kind="run">${rw('Plan run', 'Запланировать запуск')}</button>`
@@ -828,7 +832,7 @@ function researchReadingActions(record, canEdit) {
 function details(record, canEdit) {
   const data = record.data;
   const editing = canEdit && !record.archived;
-  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('Back to research', 'К списку исследований')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2><div class="research-status-line">${record.archived ? `<span class="badge">${rw('Archived', 'В архиве')}</span>` : ''}${data.state ? `<span class="badge">${esc(researchState(data.state))}</span>` : ''}<span class="badge">${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div></div>${editing ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${researchRecordActions(record, canEdit)}<dl class="research-properties">${Object.entries(
+  return `<button class="btn btn-ghost" data-a="researchBack">${ic('arrow-left', 16)}${rw('Back to research', 'К списку исследований')}</button><header class="research-record-head"><div><p class="hint">${esc(researchKind(record.kind))} · ${rw('Revision', 'Редакция')} ${record.revision}</p><h2 translate="no">${esc(record.title)}</h2><div class="research-status-line">${record.archived ? `<span class="badge">${rw('Archived', 'В архиве')}</span>` : ''}${data.state ? `<span class="badge">${esc(researchState(data.state))}</span>` : ''}<span class="badge">${record.review?.status === 'reviewed' ? rw('Reviewed', 'Проверено') : rw('Not reviewed', 'Не проверено')}</span></div></div>${editing ? `<button class="btn btn-secondary" data-a="researchEdit">${ic('pencil', 16)}${rw('Edit', 'Изменить')}</button>` : ''}</header>${researchRecordActions(record, canEdit)}${researchReadingActions(record, editing)}<dl class="research-properties">${Object.entries(
     RESEARCH_QUESTION_LABELS,
   )
     .filter(([key]) => data[key])
@@ -842,7 +846,7 @@ function details(record, canEdit) {
           )
           .join('')}</div></details>`
       : ''
-  }${researchReadingActions(record, editing)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${rw('Archive record', 'В архив')}</button></div>` : ''}`;
+  }${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}<button class="btn btn-ghost" data-a="researchArchive">${rw('Archive record', 'В архив')}</button></div>` : ''}`;
 }
 const materialKinds = ['source', 'dataset', 'protocol', 'article', 'review', 'handoff'];
 
