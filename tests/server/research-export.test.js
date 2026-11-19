@@ -16,7 +16,8 @@ test('export contains immutable versions, verifiable manifests and scriptless RU
     expectedRevision: 1,
     record: { kind: 'experiment', title: '<script>test</script>', body: '## Result\n\n<script>alert(1)</script>', data: { conclusion: 'No result' } },
   });
-  const result = await f.store.exportRecord('3dgs', saved.id, f.editor, [], true);
+  await assert.rejects(f.store.exportRecord('3dgs', saved.id, f.editor, [], true, 1), { code: 'RESEARCH_EXPORT_STALE' });
+  const result = await f.store.exportRecord('3dgs', saved.id, f.editor, [], true, 2);
   assert.ok(result.files['article.md'].includes('Черновик'));
   assert.ok(result.files['article.html'].includes('lang="ru"'));
   assert.ok(!result.files['article.html'].includes('<script>'));

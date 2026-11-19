@@ -28,12 +28,15 @@ researchRouter.get(
 researchRouter.get(
   '/projects/:project/records/:id/export',
   route(async (request, response) => {
+    const { revision } = request.query;
+    if (revision != null && (typeof revision !== 'string' || !/^[1-9]\d{0,14}$/u.test(revision))) throw researchError();
     const result = await researchStore.exportRecord(
       request.params.project,
       request.params.id,
       request.user,
       request.configuredProfiles || [],
       request.query.lang === 'ru',
+      revision == null ? null : Number(revision),
     );
     if (request.query.format !== 'zip') return response.json(result);
     const entries = Object.fromEntries(Object.entries(result.files).map(([name, text]) => [name, strToU8(text)]));

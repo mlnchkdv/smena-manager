@@ -332,12 +332,13 @@ export function createResearchStore({
     const start = Math.min(offset, Math.floor(Math.max(0, visible.length - 1) / limit) * limit);
     return { total: visible.length, offset: start, items: visible.slice(start, start + limit).map(row => ({ ...row, projectName: names.get(row.projectId) })) };
   }
-  async function exportRecord(projectId, id, profile, profiles = [], russian = false) {
+  async function exportRecord(projectId, id, profile, profiles = [], russian = false, revision = null) {
     const db = await load();
     researchContext(db, projectId, profile, profiles);
     const book = await index(db, projectId),
       row = book.records.find(item => item.id === id);
     if (!row) throw researchError('RESEARCH_NOT_FOUND', 404);
+    if (revision != null && revision !== row.revision) throw researchError('RESEARCH_EXPORT_STALE', 409);
     const queue = [row.ref, ...book.records.filter(item => !item.archived && item.experimentId === id).map(item => item.ref)],
       seen = new Set(),
       objects = [];

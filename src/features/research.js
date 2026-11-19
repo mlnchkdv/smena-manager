@@ -634,18 +634,23 @@ A.researchDraftArticle = async () => {
     if (active(model)) render();
   }
 };
+function preparedResearchExport(model, record = model.selected) {
+  const job = model.export;
+  return job?.id === record?.id && job?.revision === record?.revision && job?.language === rw('en', 'ru') ? job : null;
+}
 A.researchExport = async () => {
   const m = state();
-  const id = m.selected?.id;
-  if (!id || (m.export?.id === id && ['preparing', 'saving'].includes(m.export.status))) return;
+  const record = m.selected;
+  if (!record || ['preparing', 'saving'].includes(preparedResearchExport(m)?.status)) return;
+  const { id, revision } = record;
   if (m.export?.href) URL.revokeObjectURL(m.export.href);
-  const job = { id, status: 'preparing' };
+  const job = { id, revision, language: rw('en', 'ru'), status: 'preparing' };
   m.export = job;
   render();
   try {
-    const blob = await downloadResearchZip(m.project, id, rw('en', 'ru'));
+    const blob = await downloadResearchZip(m.project, id, job.language, job.revision);
     if (blob.type !== 'application/zip' || !blob.size) throw new Error('RESEARCH_EXPORT_INVALID');
-    if (!active(m) || m.export !== job || S.ui.params.researchId !== id) {
+    if (!active(m) || preparedResearchExport(m) !== job || S.ui.params.researchId !== id) {
       job.status = '';
       return;
     }
@@ -659,21 +664,32 @@ A.researchExport = async () => {
       if (active(m) && m.export === job && S.ui.params.researchId === id) render();
     }, 180000);
   } catch (error) {
-    job.status = 'error';
+    job.status = error.code === 'RESEARCH_EXPORT_STALE' ? 'stale' : 'error';
     job.message =
-      error.code === 'RESEARCH_EXPORT_LIMIT'
-        ? researchFailure(error)
-        : rw('Could not prepare the ZIP. Check your connection and try again.', 'Не удалось подготовить ZIP. Проверьте соединение и повторите.');
+      job.status === 'stale'
+        ? rw('The record changed. Reload it to prepare the latest ZIP.', 'Запись изменилась. Обновите её, чтобы подготовить актуальный ZIP.')
+        : error.code === 'RESEARCH_EXPORT_LIMIT'
+          ? researchFailure(error)
+          : rw('Could not prepare the ZIP. Check your connection and try again.', 'Не удалось подготовить ZIP. Проверьте соединение и повторите.');
   } finally {
     if (active(m)) render();
   }
 };
+A.researchReloadExport = () => {
+  const model = state();
+  const id = model.selected?.id;
+  if (!id) return;
+  model.export = null;
+  model.selected = null;
+  void loadResearchRecord(model, id);
+  render();
+};
 A.researchSaveZip = async () => {
   const m = state();
-  const job = m.export;
-  if (job?.id !== m.selected?.id || !job?.blob || job.status === 'saving') return;
+  const job = preparedResearchExport(m);
+  if (!job?.blob || job.status === 'saving') return;
   const blob = job.blob;
-  const current = () => active(m) && m.export === job && S.ui.params.researchId === job.id;
+  const current = () => active(m) && preparedResearchExport(m) === job && S.ui.params.researchId === job.id;
   job.status = 'saving';
   job.saveError = '';
   try {
@@ -801,14 +817,17 @@ function researchRecordActions(record, canEdit) {
 }
 function researchReadingActions(record, canEdit) {
   const model = state();
-  const job = model.export?.id === record.id ? model.export : null;
+  const job = preparedResearchExport(model, record);
   const busy = ['preparing', 'saving'].includes(job?.status);
+  const stale = job?.status === 'stale';
   const download =
     job?.status === 'preparing'
       ? rw('Preparing ZIP…', 'Готовим ZIP…')
-      : job?.status === 'error'
-        ? rw('Retry ZIP preparation', 'Повторить подготовку ZIP')
-        : rw('Prepare research ZIP', 'Подготовить ZIP исследования');
+      : stale
+        ? rw('Reload record', 'Обновить запись')
+        : job?.status === 'error'
+          ? rw('Retry ZIP preparation', 'Повторить подготовку ZIP')
+          : rw('Prepare research ZIP', 'Подготовить ZIP исследования');
   const message = {
     ready: rw('ZIP is ready.', 'ZIP готов.'),
     saving: rw('Saving ZIP…', 'Сохраняем ZIP…'),
@@ -827,7 +846,7 @@ function researchReadingActions(record, canEdit) {
         : `<a class="btn btn-secondary btn-sm" href="${esc(job.href)}" download="${esc(job.filename)}">${rw('Save ZIP', 'Сохранить ZIP')}</a>`
       : '';
   const announcement = `${error ? `<p role="alert">${esc(error)}</p>` : ''}${message ? `<p role="status" class="hint">${esc(message)}</p>` : ''}${save}`;
-  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="researchExport" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
+  return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="${stale ? 'researchReloadExport' : 'researchExport'}" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? `<button class="btn btn-secondary" data-a="researchReview">${rw('Mark as reviewed', 'Отметить проверенным')}</button>` : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
 function details(record, canEdit) {
   const data = record.data;

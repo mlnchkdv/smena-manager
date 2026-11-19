@@ -7,9 +7,9 @@ export const researchRequest = (project, suffix = '', payload, { signal } = {}) 
     payload === undefined ? { signal } : { signal, method: 'POST', body: JSON.stringify(payload) },
     true,
   );
-export const downloadResearchZip = (project, id, lang) =>
+export const downloadResearchZip = (project, id, lang, revision) =>
   request(
-    `/api/research/projects/${encodeURIComponent(project)}/records/${encodeURIComponent(id)}/export?format=zip&lang=${encodeURIComponent(lang)}`,
+    `/api/research/projects/${encodeURIComponent(project)}/records/${encodeURIComponent(id)}/export?${new URLSearchParams({ format: 'zip', lang, revision: String(revision) })}`,
     { responseFormat: 'blob', signal: AbortSignal.timeout(120000) },
     true,
   );
