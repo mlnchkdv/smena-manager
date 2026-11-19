@@ -17,13 +17,50 @@ export function expandWhiteboardSelection(board, selection) {
   return [...new Set([...selection.filter(id => nodes.has(id)), ...whiteboardGroupsInSelection(board, selection).flatMap(group => group.members)])];
 }
 
+function stepWhiteboardLayer(nodes, selected, layerOf) {
+  const rest = [],
+    chosen = [];
+  for (const node of nodes) {
+    if (selected.has(node.id)) chosen.push({ node, gap: rest.length });
+    else rest.push(node);
+  }
+  if (!chosen.length || !rest.length) return nodes;
+
+  const firstRest = new Map();
+  rest.forEach((node, index) => {
+    const layer = layerOf(node);
+    if (!firstRest.has(layer)) firstRest.set(layer, index);
+  });
+  const lastChosen = new Map(chosen.map(({ node }, index) => [layerOf(node), index]));
+  const slots = rest.map(() => []);
+  let target = 0;
+  for (let start = 0; start < chosen.length;) {
+    // Keep runs of selected cards and all members of the same group together.
+    let end = start;
+    for (let index = start; index <= end; index++) {
+      end = Math.max(end, lastChosen.get(layerOf(chosen[index].node)));
+      if (chosen[index + 1]?.gap === chosen[index].gap) end = Math.max(end, index + 1);
+    }
+    const neighbor = rest[chosen[start].gap - 1];
+    // Skip all members of the neighboring group without overtaking another selected block.
+    if (neighbor) target = Math.max(target, firstRest.get(layerOf(neighbor)));
+    slots[target].push(...chosen.slice(start, end + 1).map(({ node }) => node));
+    start = end + 1;
+  }
+  return rest.flatMap((node, index) => [...slots[index], node]);
+}
+
 export function reorderWhiteboardLayers(board, selection, direction) {
-  if (direction !== 'front' && direction !== 'back') return board.nodes;
+  if (!['front', 'back', 'forward', 'backward'].includes(direction)) return board.nodes;
   const selected = new Set(expandWhiteboardSelection(board, selection));
   const locked = whiteboardLockedIds(board);
   if (!selected.size || [...selected].some(id => locked.has(id))) return board.nodes;
 
+  const groups = new Map((board.groups || []).flatMap(group => group.members.map(id => [id, group.id])));
+  const layerOf = node => groups.get(node.id) ?? node.id;
   const reorder = nodes => {
+    if (direction === 'backward') return stepWhiteboardLayer(nodes, selected, layerOf);
+    if (direction === 'forward') return stepWhiteboardLayer(nodes.reverse(), selected, layerOf).reverse();
     const chosen = nodes.filter(node => selected.has(node.id));
     const rest = nodes.filter(node => !selected.has(node.id));
     return direction === 'front' ? [...rest, ...chosen] : [...chosen, ...rest];

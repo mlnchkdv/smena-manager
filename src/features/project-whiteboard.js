@@ -677,9 +677,14 @@ A.whiteboardReorderLayers = el => {
     return;
   if (disclosure) document.querySelector(`[data-ui-disclosure="${CSS.escape(disclosure)}"] > summary`)?.focus({ preventScroll: true });
   const status = document.querySelector('[data-whiteboard-layer-status]');
+  const messages = {
+    front: T('Moved to the front', 'Перемещено на передний план'),
+    forward: T('Moved forward one layer', 'Перемещено на слой вперёд'),
+    backward: T('Moved back one layer', 'Перемещено на слой назад'),
+    back: T('Moved to the back', 'Перемещено на задний план'),
+  };
   requestAnimationFrame(() => {
-    if (status?.isConnected)
-      status.textContent = direction === 'front' ? T('Moved to the front', 'Перемещено на передний план') : T('Moved to the back', 'Перемещено на задний план');
+    if (status?.isConnected) status.textContent = messages[direction];
   });
 };
 A.whiteboardGroupSelection = () => {

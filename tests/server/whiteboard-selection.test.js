@@ -244,3 +244,70 @@ test('layer-only edits appear in version history without counting additions or r
   const regroupedStorage = { ...board, nodes: whiteboardPaintOrder(board.nodes) };
   assert.deepEqual(compareWhiteboards(board, regroupedStorage).layerIds, []);
 });
+
+test('one-layer moves advance single cards, separate selections and frames by one neighbor', () => {
+  const board = {
+    version: 1,
+    nodes: [card('a', 0, 0), card('frame1', 0, 0, 'group'), card('b', 0, 0), card('frame2', 0, 0, 'group'), ...['c', 'd', 'e'].map(id => card(id, 0, 0))],
+    edges: [],
+  };
+  const ids = (selection, direction) =>
+    reorderWhiteboardLayers(board, selection, direction)
+      .map(node => node.id)
+      .join(' ');
+  assert.equal(ids(['b'], 'forward'), 'a frame1 c frame2 b d e');
+  assert.equal(ids(['b'], 'backward'), 'b frame1 a frame2 c d e');
+  assert.equal(ids(['b', 'd'], 'forward'), 'a frame1 c frame2 b e d');
+  assert.equal(ids(['b', 'd'], 'backward'), 'b frame1 a frame2 d c e');
+  assert.equal(ids(['frame1'], 'forward'), 'a frame2 b frame1 c d e');
+  assert.equal(reorderWhiteboardLayers(board, ['a'], 'backward'), board.nodes);
+  assert.equal(reorderWhiteboardLayers(board, ['e'], 'forward'), board.nodes);
+  assert.equal(reorderWhiteboardLayers(board, ['b'], 'sideways'), board.nodes);
+});
+
+test('one-layer moves cross adjacent groups as units and retain internal order', () => {
+  const board = {
+    version: 8,
+    nodes: ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map(id => card(id, 0, 0)),
+    edges: [],
+    groups: [
+      { id: 'bc', members: ['c', 'b'] },
+      { id: 'de', members: ['d', 'e'] },
+    ],
+  };
+  const before = structuredClone(board);
+  const move = (selection, direction) => reorderWhiteboardLayers(board, selection, direction);
+  const ids = (selection, direction) =>
+    move(selection, direction)
+      .map(node => node.id)
+      .join(' ');
+  assert.equal(ids(['a'], 'forward'), 'b c a d e f g');
+  assert.equal(ids(['f'], 'backward'), 'a b c f d e g');
+  assert.equal(ids(['c'], 'forward'), 'a d e b c f g');
+  assert.equal(ids(['d'], 'backward'), 'a d e b c f g');
+  assert.equal(ids(['c', 'e'], 'forward'), 'a f b c d e g');
+  assert.deepEqual(board, before);
+  assert.equal(validWhiteboard({ ...board, nodes: move(['c', 'e'], 'forward') }), true);
+  setWhiteboardPositionLock(board, ['c'], true);
+  assert.equal(move(['b'], 'forward'), board.nodes);
+  assert.equal(move(['c', 'f'], 'backward'), board.nodes);
+  assert.equal(ids(['a'], 'forward'), 'b c a d e f g');
+});
+
+test('one-layer moves handle a group whose cards were interleaved before grouping', () => {
+  const board = {
+    version: 8,
+    nodes: ['a', 'b', 'c', 'd', 'e', 'f'].map(id => card(id, 0, 0)),
+    edges: [],
+    groups: [{ id: 'ac', members: ['a', 'c'] }],
+  };
+  const ids = (selection, direction) =>
+    reorderWhiteboardLayers(board, selection, direction)
+      .map(node => node.id)
+      .join(' ');
+  assert.equal(ids(['c'], 'forward'), 'b d a c e f');
+  assert.equal(ids(['c'], 'backward'), 'a c b d e f');
+  assert.equal(ids(['d'], 'backward'), 'd a b c e f');
+  assert.equal(ids(['a', 'e'], 'forward'), 'b d a c f e');
+  assert.equal(ids(['a', 'b', 'c', 'd', 'e', 'f'], 'backward'), 'a b c d e f');
+});
