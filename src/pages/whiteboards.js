@@ -10,7 +10,7 @@ import { ic } from '../core/icons.js';
 import { esc, ago } from '../core/utils.js';
 import { wbText as T, wbCount as C } from '../core/whiteboard-state.js';
 import { whiteboardDocuments, whiteboardDocument, canReadWhiteboard, canEditWhiteboard } from '../shared/whiteboards.js';
-import { whiteboardBounds, whiteboardPaintOrder } from '../shared/project-whiteboard.js';
+import { whiteboardBounds, whiteboardPaintOrder, whiteboardVisibleBoard } from '../shared/project-whiteboard.js';
 import { projectWhiteboard } from '../views/project-whiteboard.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { page404 } from './errors.js';
@@ -19,7 +19,7 @@ const canEdit = b => canEditWhiteboard(D(), b, D().me, S.ui.currentUser?.role);
 const projectName = b => D().projects.find(p => p.id === b.project)?.name || T('Workspace', 'Рабочее пространство');
 const colors = { neutral: 'var(--surface-3)', violet: 'var(--violet)', blue: 'var(--blue)', green: 'var(--green)', amber: 'var(--amber)', rose: 'var(--red)' };
 function preview(b) {
-  const board = whiteboardCatalogInfo(b.id)?.thumbnail || b.whiteboard,
+  const board = whiteboardCatalogInfo(b.id)?.thumbnail || whiteboardVisibleBoard(b.whiteboard),
     box = whiteboardBounds(board),
     scale = Math.min(244 / Math.max(1, box.width), 84 / Math.max(1, box.height));
   const nodes = whiteboardPaintOrder(board.nodes.slice(0, 40));

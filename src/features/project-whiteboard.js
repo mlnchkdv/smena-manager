@@ -20,6 +20,7 @@ import {
   reorderWhiteboardLayers,
   moveWhiteboardLayer,
   whiteboardLayerUnits,
+  setWhiteboardLayerHidden,
 } from '../shared/whiteboard-selection.js';
 import './whiteboard-history.js';
 import './whiteboard-portable.js';
@@ -52,6 +53,7 @@ import {
   whiteboardBounds,
   removeWhiteboardNode,
   whiteboardLockedIds,
+  whiteboardVisibleBoard,
 } from '../shared/project-whiteboard.js';
 import { esc, uid } from '../core/utils.js';
 import { render } from '../shell/render.js';
@@ -112,6 +114,7 @@ const colors = () => [
   T('Rose', 'Розовый'),
 ];
 const current = currentWhiteboard;
+const visibleBoard = () => whiteboardVisibleBoard(whiteboardOf(current()));
 const editable = p =>
   p && !p.archived && !whiteboardState(p.id).presentationId && canEditWhiteboard(D(), p, D().me, S.ui.currentUser?.role) && !workspaceSyncState().hasConflict;
 export const canEditCurrentWhiteboard = () => editable(current());
@@ -150,7 +153,9 @@ function modalForm(m, H) {
     body = `<label class="field">${T('Search notes, tasks, bookmarks and files', 'Поиск заметок, задач, закладок и файлов')}<input class="input" autofocus data-in="whiteboardQuery" value="${esc(m.query)}"></label><p class="hint">${T('The card opens the original material. Access is checked separately. Up to 50 results; refine your search.', 'Карточка открывает оригинал. Доступ к материалу проверяется отдельно. До 50 результатов — уточните поиск.')}</p>${m.loading ? `<p role="status">${T('Searching files…', 'Ищем файлы…')}</p>` : ''}${candidates.map(c => `<button class="whiteboard-material-option" data-a="whiteboardChooseMaterial" data-key="${esc(c.key)}"><span>${esc(c.title)}</span><small>${c.kind}</small></button>`).join('') || `<p>${T('No matching materials.', 'Подходящих материалов нет.')}</p>`}<button class="btn btn-ghost btn-sm" data-a="whiteboardQueryFiles">${T('Refresh available files', 'Обновить доступные файлы')}</button>`;
   } else if (m.kind === 'edge') {
     const select = (key, label) =>
-      `<label class="field">${label}<select class="select" data-in="whiteboardField" data-field="${key}">${board.nodes.map(n => `<option value="${esc(n.id)}" ${m[key] === n.id ? 'selected' : ''}>${esc(whiteboardLabel(n))}</option>`).join('')}</select></label>`;
+      `<label class="field">${label}<select class="select" data-in="whiteboardField" data-field="${key}">${whiteboardVisibleBoard(board)
+        .nodes.map(n => `<option value="${esc(n.id)}" ${m[key] === n.id ? 'selected' : ''}>${esc(whiteboardLabel(n))}</option>`)
+        .join('')}</select></label>`;
     const ends = [T('None', 'Нет'), T('Arrow', 'Стрелка'), T('Dot', 'Точка')];
     body = `<p class="hint">${T('Visual connection on this canvas. It does not create a relation between source materials.', 'Визуальная связь на этом холсте. Она не создаёт отношение между исходными материалами.')}</p><div class="whiteboard-form-grid">${select('from', T('From card', 'От карточки'))}${select('to', T('To card', 'К карточке'))}${optionField(m, 'fromEnd', T('Start', 'Начало'), BOARD_ENDINGS, ends)}${optionField(m, 'toEnd', T('End', 'Конец'), BOARD_ENDINGS, ends)}</div>${field('label', T('Label', 'Подпись'), m.label, 'text', 'maxlength="120"')}<div class="whiteboard-form-grid">${colorField(m)}${optionField(m, 'style', T('Line style', 'Стиль линии'), BOARD_LINE_STYLES, [T('Solid', 'Сплошная'), T('Dashed', 'Штриховая'), T('Dotted', 'Пунктирная')])}</div>`;
   } else {
@@ -345,6 +350,7 @@ function saveWhiteboardForm(addAnother = false) {
     const position = old && whiteboardLockedIds(board).has(old.id) ? old : m;
     item = { id: m.id || uid('wc'), type: m.nodeType, x: position.x, y: position.y, width: position.width, height: position.height, color: m.color };
     if (old?.locked) item.locked = true;
+    if (old?.hidden) item.hidden = true;
     if (m.nodeType === 'material') {
       item.target = old.target;
       const source = whiteboardMaterial(old),
@@ -488,22 +494,23 @@ export function insertWhiteboardMaterials(keys, commit, at) {
 const command = whiteboardCommand;
 const selectedIds = () => {
   const s = whiteboardState();
-  return expandWhiteboardSelection(whiteboardOf(current()), s.selection?.length ? s.selection : s.selected ? [s.selected] : []);
+  return expandWhiteboardSelection(visibleBoard(), s.selection?.length ? s.selection : s.selected ? [s.selected] : []);
 };
 function selectNodes(state, ids, active = ids[0] || '') {
-  const selection = expandWhiteboardSelection(whiteboardOf(current()), ids);
+  const selection = expandWhiteboardSelection(visibleBoard(), ids);
   Object.assign(state, { selected: selection.includes(active) ? active : selection[0] || '', selection, selectedEdge: '' });
   if (selection.length < 2) state.resizeSelection = false;
 }
 function toggleWhiteboardSelection(id, checked) {
   const selected = selectedIds();
-  const members = expandWhiteboardSelection(whiteboardOf(current()), [id]);
+  const members = expandWhiteboardSelection(visibleBoard(), [id]);
   const include = checked ?? !selected.includes(id);
   selectNodes(whiteboardState(), include ? [...selected, ...members] : selected.filter(member => !members.includes(member)));
 }
 A.whiteboardSelect = (el, event) => {
   const s = whiteboardState(),
     id = el.dataset.id;
+  if (!visibleBoard().nodes.some(node => node.id === id)) return;
   if (s.connectFrom) return finishConnection(s.connectFrom, id);
   if (s.reconnect) return finishReconnect(s.reconnect, id);
   if (Date.now() < (s.tapOpenUntil || 0)) return;
@@ -512,7 +519,7 @@ A.whiteboardSelect = (el, event) => {
   render();
 };
 function cardChooserResults(modal) {
-  const nodes = whiteboardOf(current()).nodes;
+  const nodes = visibleBoard().nodes;
   const byId = new Map(nodes.map(node => [node.id, node]));
   const candidates = modal.ids ? modal.ids.map(id => byId.get(id)).filter(Boolean) : nodes;
   const available = candidates.filter(node => node.id !== modal.connection?.from && (!modal.onlyFrames || node.type === 'group'));
@@ -579,7 +586,7 @@ IN.whiteboardPickQuery = el => {
 };
 A.whiteboardPickCard = el => {
   const m = activeModal();
-  if (m?.kind !== 'pick' || !whiteboardOf(current()).nodes.some(n => n.id === el.dataset.id && (!m.ids || m.ids.includes(n.id)))) return;
+  if (m?.kind !== 'pick' || !visibleBoard().nodes.some(n => n.id === el.dataset.id && (!m.ids || m.ids.includes(n.id)))) return;
   const id = el.dataset.id;
   const state = whiteboardState();
   closeModal();
@@ -703,6 +710,17 @@ A.whiteboardToggleLayers = () => {
   document.querySelector(selector)?.focus({ preventScroll: !state.layersOpen });
 };
 
+A.whiteboardLayerVisibility = el => {
+  const id = el.dataset.layerVisibility;
+  const hidden = el.dataset.hidden === 'true';
+  if (!command(board => setWhiteboardLayerHidden(board, id, hidden))) return;
+  document.querySelector(`[data-layer-visibility="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+  const status = document.querySelector('[data-whiteboard-layer-status]');
+  requestAnimationFrame(() => {
+    if (status?.isConnected) status.textContent = hidden ? T('Layer hidden', 'Слой скрыт') : T('Layer shown', 'Слой показан');
+  });
+};
+
 function dropWhiteboardLayer(source, target, position) {
   const p = current();
   if (!editable(p)) return;
@@ -712,12 +730,13 @@ function dropWhiteboardLayer(source, target, position) {
   const layer = whiteboardLayerUnits(board).find(item => item.id === source);
   const state = whiteboardState(p.id);
   if (
-    !command({ ...board, nodes: order }, null, null, () =>
-      selectNodes(
-        state,
-        layer.nodes.map(node => node.id),
-      ),
-    )
+    !command({ ...board, nodes: order }, null, null, () => {
+      if (!layer.hidden)
+        selectNodes(
+          state,
+          layer.nodes.map(node => node.id),
+        );
+    })
   )
     return;
   const handle = document.querySelector(`[data-layer-handle="${CSS.escape(source)}"]`);
@@ -755,7 +774,7 @@ A.whiteboardToggleFocus = () => {
   document.querySelector('[data-a="whiteboardToggleFocus"]')?.focus({ preventScroll: true });
 };
 function focusWhiteboardCard(id) {
-  const node = whiteboardOf(current()).nodes.find(node => node.id === id);
+  const node = visibleBoard().nodes.find(node => node.id === id);
   const camera = whiteboardNodeCamera(node, document.querySelector('.whiteboard-viewport')?.getBoundingClientRect());
   if (!camera) return;
   Object.assign(whiteboardState(), camera, { fit: false, autoFit: false });
@@ -768,7 +787,7 @@ A.whiteboardFocusSelection = () => {
   const fit = () => {
     const ids = selectedIds();
     if (state !== whiteboardState() || ids.length < 2 || state.outline) return;
-    const nodes = whiteboardSelectionNodes(whiteboardOf(current()), ids);
+    const nodes = whiteboardSelectionNodes(visibleBoard(), ids);
     const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
     const camera = whiteboardNodeCamera(whiteboardBounds({ nodes }), box);
     if (!camera) return;
@@ -832,7 +851,7 @@ IN.whiteboardOutlineQuery = el => {
   render();
 };
 A.whiteboardLocate = el => {
-  const node = whiteboardOf(current()).nodes.find(n => n.id === el.dataset.id);
+  const node = visibleBoard().nodes.find(n => n.id === el.dataset.id);
   if (!node) return;
   const s = whiteboardState();
   const intent = uid('locate');
@@ -868,10 +887,11 @@ document.addEventListener(
   true,
 );
 A.whiteboardNewEdge = () => {
-  const board = whiteboardOf(current());
+  const board = visibleBoard();
   if (!editable(current())) return;
   if (board.nodes.length < 2) return toast(T('Add two cards first.', 'Сначала добавьте две карточки.'), { kind: 'info' });
-  const from = whiteboardState().selected || board.nodes[0].id;
+  const active = whiteboardState().selected;
+  const from = board.nodes.some(node => node.id === active) ? active : board.nodes[0].id;
   openTool({
     kind: 'edge',
     from,
@@ -891,7 +911,7 @@ const selectConnection = (state, id) => Object.assign(state, { selectedEdge: id,
 function beginConnection(intent, candidates) {
   const p = current();
   if (!editable(p)) return;
-  const board = whiteboardOf(p);
+  const board = visibleBoard();
   if (!board.nodes.some(node => node.id === intent.from)) return;
   if (board.nodes.length < 2) return toast(T('Add two cards first.', 'Сначала добавьте две карточки.'), { kind: 'info' });
   const state = whiteboardState();
@@ -910,6 +930,8 @@ function completeConnection(intent, target) {
 
 function finishConnection(from, to) {
   if (!editable(current()) || !to || to === from) return;
+  const nodes = visibleBoard().nodes;
+  if (![from, to].every(id => nodes.some(node => node.id === id))) return;
   let result;
   const accepted = command(board => {
     result = whiteboardConnection(board, from, to, uid('we'));
@@ -935,7 +957,7 @@ A.whiteboardCancelConnect = () => {
   render();
 };
 function reconnectIntent(el) {
-  const edge = whiteboardOf(current()).edges.find(edge => edge.id === el.dataset.id),
+  const edge = visibleBoard().edges.find(edge => edge.id === el.dataset.id),
     side = el.dataset.boardReconnect;
   return edge && ['from', 'to'].includes(side) ? { id: edge.id, side, base: edge[side], from: edge[side === 'from' ? 'to' : 'from'] } : null;
 }
@@ -946,6 +968,8 @@ A.whiteboardReconnectStart = el => {
 };
 function finishReconnect(intent, target) {
   if (!editable(current()) || !target || target === intent.from) return;
+  const shown = visibleBoard();
+  if (!shown.edges.some(edge => edge.id === intent.id) || !shown.nodes.some(node => node.id === target)) return;
   let result;
   const accepted = command(board => {
     result = reconnectWhiteboardEdge(board, { ...intent, target });
@@ -965,7 +989,7 @@ function finishReconnect(intent, target) {
   render();
 }
 A.whiteboardEditEdge = el => {
-  const edge = whiteboardOf(current()).edges.find(e => e.id === el.dataset.id);
+  const edge = visibleBoard().edges.find(e => e.id === el.dataset.id);
   if (edge)
     openTool({
       kind: 'edge',
@@ -977,7 +1001,7 @@ A.whiteboardEditEdge = el => {
     });
 };
 A.whiteboardSelectEdge = el => {
-  if (!whiteboardOf(current()).edges.some(edge => edge.id === el.dataset.id)) return;
+  if (!visibleBoard().edges.some(edge => edge.id === el.dataset.id)) return;
   const state = whiteboardState();
   if (pendingConnection(state)) return;
   selectConnection(state, el.dataset.id);
@@ -1201,7 +1225,7 @@ A.whiteboardGroupContents = () => {
 A.whiteboardFit = () => {
   const box = document.querySelector('.whiteboard-viewport')?.getBoundingClientRect();
   if (!box) return;
-  const board = whiteboardOf(current()),
+  const board = visibleBoard(),
     b = whiteboardBounds(board),
     header = board.nodes.some(n => n.type === 'group') ? (innerWidth <= 900 ? 56 : 40) : 0,
     s = whiteboardState();
@@ -1219,7 +1243,7 @@ function stopSpacePan() {
   viewport?.removeAttribute('data-space-pan');
 }
 function openWhiteboardCard(id) {
-  const node = whiteboardOf(current()).nodes.find(node => node.id === id);
+  const node = visibleBoard().nodes.find(node => node.id === id);
   if (!node) return;
   if (node.type === 'material') {
     const source = whiteboardMaterial(node);
@@ -1249,7 +1273,7 @@ function marqueeAt(g, e, state) {
     right = x(Math.max(g.x, e.clientX));
   const top = y(Math.min(g.y, e.clientY)),
     bottom = y(Math.max(g.y, e.clientY));
-  const ids = whiteboardSelectionInRect(whiteboardOf(current()).nodes, {
+  const ids = whiteboardSelectionInRect(visibleBoard().nodes, {
     left: (left - state.x) / state.zoom,
     right: (right - state.x) / state.zoom,
     top: (top - state.y) / state.zoom,
@@ -1258,10 +1282,11 @@ function marqueeAt(g, e, state) {
   return { left, top, width: right - left, height: bottom - top, ids };
 }
 function paintWhiteboardGeometry(board) {
+  const shown = whiteboardVisibleBoard(board);
   const svg = viewport?.querySelector('.whiteboard-edges');
-  if (svg) svg.outerHTML = whiteboardEdges(board);
+  if (svg) svg.outerHTML = whiteboardEdges(shown);
   const groups = viewport?.querySelector('.whiteboard-saved-groups');
-  if (groups && board.groups?.length) groups.innerHTML = savedWhiteboardGroups(board);
+  if (groups) groups.innerHTML = savedWhiteboardGroups(shown);
 }
 function resetPreview() {
   clearMarquee();
@@ -1431,7 +1456,7 @@ function move(e) {
     if (g.scope !== s.scope) return;
     g.moved ||= Math.hypot(e.clientX - g.x, e.clientY - g.y) > 5;
     const box = viewport.getBoundingClientRect(),
-      board = whiteboardOf(current());
+      board = visibleBoard();
     const ids = whiteboardPickCandidates(
       board.nodes.filter(n => n.id !== g.from),
       { x: e.clientX - box.left, y: e.clientY - box.top },
@@ -1481,7 +1506,7 @@ function move(e) {
       dy = Math.round((e.clientY - g.y) / g.zoom / 10) * 10;
     const lockAspect = s.resizeAspect && g.direction.length === 2;
     const snapped =
-      s.resizeGuides && !lockAspect ? snapWhiteboardResize(g.node, g.direction, dx, dy, whiteboardOf(current()).nodes, 6 / g.zoom) : { dx, dy, guides: [] };
+      s.resizeGuides && !lockAspect ? snapWhiteboardResize(g.node, g.direction, dx, dy, visibleBoard().nodes, 6 / g.zoom) : { dx, dy, guides: [] };
     g.next = resizedWhiteboardNode(g.node, g.direction, snapped.dx, snapped.dy, snapped.guides.length ? 1 : 10, { lockAspect });
     const guideLayer = viewport.querySelector('.whiteboard-guides');
     if (guideLayer)
@@ -1585,7 +1610,7 @@ function up(e, cancel = false) {
     if (g.moved) {
       const box = viewport.getBoundingClientRect();
       ids = whiteboardPickCandidates(
-        whiteboardOf(current()).nodes.filter(n => n.id !== g.from),
+        visibleBoard().nodes.filter(n => n.id !== g.from),
         { x: e.clientX - box.left, y: e.clientY - box.top },
         state,
       );
@@ -1768,7 +1793,7 @@ export function mountProjectWhiteboard() {
         const box = next.getBoundingClientRect();
         const rawIds =
           s.zoom < 0.65 && !(s.multiSelect && card)
-            ? whiteboardPickCandidates(whiteboardOf(current()).nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s)
+            ? whiteboardPickCandidates(visibleBoard().nodes, { x: event.clientX - box.left, y: event.clientY - box.top }, s)
             : card
               ? [card]
               : [];
@@ -1940,7 +1965,7 @@ document.addEventListener(
       else {
         selectNodes(
           s,
-          whiteboardOf(current()).nodes.map(n => n.id),
+          visibleBoard().nodes.map(n => n.id),
         );
         s.multiSelect = true;
         render();

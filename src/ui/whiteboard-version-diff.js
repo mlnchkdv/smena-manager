@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 import { wbText as T } from '../core/whiteboard-state.js';
-import { whiteboardBounds, whiteboardEdgeEnd, whiteboardPaintOrder } from '../shared/project-whiteboard.js';
+import { whiteboardBounds, whiteboardEdgeEnd, whiteboardPaintOrder, whiteboardVisibleBoard } from '../shared/project-whiteboard.js';
 import { whiteboardShapeSvg } from '../shared/whiteboard-diagram.js';
 import { whiteboardDiffVisibleIds, whiteboardEdgeGeometry } from '../shared/whiteboard-edge.js';
 import { whiteboardConnectionText } from './whiteboard-edge-text.js';
@@ -11,7 +11,9 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
   const groups = new Map(diff.rows.filter(row => row.kind === 'group').map(row => [row.id, row]));
   const visibleIds = whiteboardDiffVisibleIds(current, previous, diff.rows);
   for (const id of diff.layerIds) visibleIds.add(id);
-  const all = [...current.nodes, ...previous.nodes].filter(node => !changedOnly || visibleIds.has(node.id));
+  const shownCurrent = whiteboardVisibleBoard(current);
+  const shownPrevious = whiteboardVisibleBoard(previous);
+  const all = [...shownCurrent.nodes, ...shownPrevious.nodes].filter(node => !changedOnly || visibleIds.has(node.id));
   const box = whiteboardBounds({ nodes: all });
   const pad = Math.max(20, box.width / 30),
     size = Math.max(12, box.width / 45);
@@ -77,5 +79,5 @@ export function whiteboardVersionDiff(current, previous, diff, changedOnly = fal
         '',
       )}</svg>${shownEdges.length ? `<details class="whiteboard-diff-connections"><summary>${T('Connections · text alternative', 'Связи · текстовое описание')} · ${shownEdges.length}</summary><ul>${shownEdges.map(edge => `<li>${connections.has(edge.id) ? `${marks[connections.get(edge.id).change]} ` : ''}${esc(whiteboardConnectionText(board, edge))}</li>`).join('')}</ul></details>` : ''}</figure>`;
   };
-  return `<section class="whiteboard-visual-comparison"><p class="hint">${T('+ Added · − Removed · ~ Changed when restoring. Both views use the same scale. The list below contains full details.', '+ Добавится · − Удалится · ~ Изменится при восстановлении. Масштаб у обоих видов одинаковый. Полные сведения — в списке ниже.')}</p><button class="btn btn-ghost btn-sm" data-a="toggleWhiteboardDiffFocus" aria-pressed="${changedOnly}">${T('Only changes', 'Только изменения')}</button><div class="whiteboard-visual-pair">${picture(current, T('Current', 'Сейчас'))}${picture(previous, T('Selected version', 'Выбранная версия'))}</div></section>`;
+  return `<section class="whiteboard-visual-comparison"><p class="hint">${T('+ Added · − Removed · ~ Changed when restoring. Both views use the same scale. The list below contains full details.', '+ Добавится · − Удалится · ~ Изменится при восстановлении. Масштаб у обоих видов одинаковый. Полные сведения — в списке ниже.')}</p><button class="btn btn-ghost btn-sm" data-a="toggleWhiteboardDiffFocus" aria-pressed="${changedOnly}">${T('Only changes', 'Только изменения')}</button><div class="whiteboard-visual-pair">${picture(shownCurrent, T('Current', 'Сейчас'))}${picture(shownPrevious, T('Selected version', 'Выбранная версия'))}</div></section>`;
 }

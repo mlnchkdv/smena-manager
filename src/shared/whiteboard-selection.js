@@ -4,8 +4,10 @@ import {
   whiteboardBounds,
   whiteboardLockedIds,
   whiteboardPaintOrder,
+  whiteboardVisibleBoard,
   WHITEBOARD_GROUP_VERSION,
   WHITEBOARD_LOCK_VERSION,
+  WHITEBOARD_VISIBILITY_VERSION,
 } from './project-whiteboard.js';
 import { appendFrameSequence } from './whiteboard-presentation.js';
 
@@ -28,10 +30,24 @@ export function whiteboardLayerUnits(board) {
   for (const node of whiteboardPaintOrder(board.nodes).reverse()) {
     const group = groups.get(node.id);
     const id = group?.id || node.id;
-    if (!layers.has(id)) layers.set(id, { id, kind: group ? 'group' : node.type === 'group' ? 'frame' : 'card', locked: !!(group || node).locked, nodes: [] });
+    const record = group || node;
+    if (!layers.has(id))
+      layers.set(id, { id, kind: group ? 'group' : node.type === 'group' ? 'frame' : 'card', locked: !!record.locked, hidden: !!record.hidden, nodes: [] });
     layers.get(id).nodes.push(node);
   }
   return [...layers.values()];
+}
+
+export function setWhiteboardLayerHidden(board, id, hidden) {
+  const group = board.groups?.find(item => item.id === id);
+  // A group member shares the visibility of its row in the layers panel.
+  if (!group && board.groups?.some(item => item.members.includes(id))) return;
+  const layer = group || board.nodes.find(node => node.id === id);
+  if (!layer) return;
+  if (hidden) {
+    board.version = Math.max(board.version, WHITEBOARD_VISIBILITY_VERSION);
+    layer.hidden = true;
+  } else delete layer.hidden;
 }
 
 function reorderLayerTiers(nodes, reorder) {
@@ -137,7 +153,8 @@ export function whiteboardSelectionUnits(board, selection) {
 
 export function canGroupWhiteboardSelection(board, selection, units = whiteboardSelectionUnits(board, selection)) {
   const locked = whiteboardLockedIds(board);
-  return units.length >= 2 && units.every(nodes => nodes[0].type !== 'group' && nodes.every(node => !locked.has(node.id)));
+  const visible = new Set(whiteboardVisibleBoard(board).nodes.map(node => node.id));
+  return units.length >= 2 && units.every(nodes => nodes[0].type !== 'group' && nodes.every(node => visible.has(node.id) && !locked.has(node.id)));
 }
 
 export function groupWhiteboardSelection(board, selection, id) {
@@ -150,7 +167,7 @@ export function groupWhiteboardSelection(board, selection, id) {
 
 export function ungroupWhiteboardSelection(board, selection) {
   if (!board.groups) return;
-  board.groups = board.groups.filter(group => group.locked || !group.members.some(id => selection.includes(id)));
+  board.groups = board.groups.filter(group => group.locked || group.hidden || !group.members.some(id => selection.includes(id)));
   if (!board.groups.length) delete board.groups;
 }
 
@@ -192,7 +209,7 @@ export function whiteboardSelectionNodes(board, selection) {
   return board.nodes.filter(n => ids.has(n.id));
 }
 export function movableWhiteboardNodes(board, selection) {
-  const nodes = whiteboardSelectionNodes(board, selection);
+  const nodes = whiteboardSelectionNodes(whiteboardVisibleBoard(board), selection);
   const locked = whiteboardLockedIds(board);
   return nodes.some(node => locked.has(node.id)) ? [] : nodes;
 }
@@ -226,7 +243,8 @@ export function pasteWhiteboardSelection(board, fragment, idFactory, dx = 40, dy
   return validWhiteboard(next) ? { board: next, ids: nodes.map(n => n.id) } : null;
 }
 export function arrangeWhiteboardSelection(board, selection, mode) {
-  const chosen = whiteboardSelectionUnits(board, selection).map(nodes => ({ ...whiteboardBounds({ nodes }), nodes }));
+  const shown = whiteboardVisibleBoard(board);
+  const chosen = whiteboardSelectionUnits(shown, selection).map(nodes => ({ ...whiteboardBounds({ nodes }), nodes }));
   const horizontal = mode === 'distribute-x',
     vertical = mode === 'distribute-y';
   if (chosen.length < (horizontal || vertical ? 3 : 2) || !movableWhiteboardNodes(board, selection).length) return board;
@@ -259,7 +277,7 @@ export function arrangeWhiteboardSelection(board, selection, mode) {
   for (const n of board.nodes)
     if (n.type === 'group' && target.has(n.id)) {
       const p = target.get(n.id);
-      for (const child of whiteboardSelectionNodes(board, [n.id]))
+      for (const child of whiteboardSelectionNodes(shown, [n.id]))
         if (!target.has(child.id) && !inherited.has(child.id)) inherited.set(child.id, { x: child.x + p.x - n.x, y: child.y + p.y - n.y });
     }
   for (const n of next.nodes) {

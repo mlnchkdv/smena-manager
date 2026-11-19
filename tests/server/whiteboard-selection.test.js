@@ -15,8 +15,15 @@ import {
   reorderWhiteboardLayers,
   whiteboardLayerUnits,
   moveWhiteboardLayer,
+  setWhiteboardLayerHidden,
 } from '../../src/shared/whiteboard-selection.js';
-import { removeWhiteboardNode, validWhiteboard, whiteboardLockedIds, whiteboardPaintOrder } from '../../src/shared/project-whiteboard.js';
+import {
+  removeWhiteboardNode,
+  validWhiteboard,
+  whiteboardLockedIds,
+  whiteboardPaintOrder,
+  whiteboardVisibleBoard,
+} from '../../src/shared/project-whiteboard.js';
 import { resizeWhiteboardGroup } from '../../src/shared/whiteboard-group-resize.js';
 import { jsonCanvasExportLosses } from '../../src/shared/whiteboard-portable.js';
 import { compareWhiteboards } from '../../src/shared/whiteboard-comparison.js';
@@ -345,4 +352,62 @@ test('the layers panel moves cards and groups to the requested visible slot', ()
   assert.equal(whiteboardLayerUnits(board)[1].locked, true);
   assert.equal(moveWhiteboardLayer(board, 'ac', 'd', 'before'), board.nodes);
   assert.deepEqual(layerIds(moveWhiteboardLayer(board, 'b', 'ac', 'before')), ['d', 'b', 'ac', 'frame2', 'frame1']);
+});
+
+test('layer visibility preserves storage order, cards and connections while filtering the canvas', () => {
+  const board = {
+    version: 8,
+    nodes: [card('frame', 0, 0, 'group'), card('a', 10, 10), card('b', 30, 40), card('c', 50, 60), card('d', 600, 640)],
+    groups: [{ id: 'pair', members: ['a', 'b'] }],
+    edges: [
+      { id: 'inside', from: 'a', to: 'b', label: '', arrow: false, color: 'neutral' },
+      { id: 'outside', from: 'b', to: 'c', label: '', arrow: false, color: 'neutral' },
+      { id: 'visible', from: 'c', to: 'd', label: '', arrow: true, color: 'blue' },
+    ],
+  };
+  const original = structuredClone(board);
+  assert.equal(whiteboardVisibleBoard(board), board);
+  setWhiteboardLayerHidden(board, 'a', true);
+  assert.deepEqual(board, original);
+  setWhiteboardLayerHidden(board, 'pair', true);
+  setWhiteboardLayerHidden(board, 'd', true);
+  assert.equal(validWhiteboard(board), true);
+  assert.equal(validWhiteboard({ ...board, version: 9 }), false);
+  const shown = whiteboardVisibleBoard(board);
+  assert.deepEqual(
+    shown.nodes.map(n => n.id),
+    ['frame', 'c'],
+  );
+  assert.deepEqual(shown.edges, []);
+  assert.deepEqual(shown.groups, []);
+  assert.equal(whiteboardLayerUnits(board).find(layer => layer.id === 'pair').hidden, true);
+  assert.deepEqual(
+    movableWhiteboardNodes(board, ['frame']).map(n => n.id),
+    ['frame', 'c'],
+  );
+  assert.deepEqual(jsonCanvasExportLosses(board), ['cardGroups', 'layerVisibility']);
+  assert.deepEqual(board.edges, original.edges);
+  let index = 0;
+  const fragment = copyWhiteboardSelection(board, ['a']);
+  const pasted = pasteWhiteboardSelection(board, fragment, prefix => prefix + ++index);
+  assert.equal(pasted.board.groups[1].hidden, true);
+  setWhiteboardLayerHidden(board, 'pair', false);
+  setWhiteboardLayerHidden(board, 'd', false);
+  assert.deepEqual(whiteboardVisibleBoard(board), { ...original, version: 10 });
+});
+
+test('locked hidden groups can be shown and their surviving member retains both flags', () => {
+  const board = { version: 8, nodes: [card('a', 0, 0), card('b', 210, 0)], groups: [{ id: 'pair', members: ['a', 'b'] }], edges: [] };
+  setWhiteboardPositionLock(board, ['a'], true);
+  setWhiteboardLayerHidden(board, 'pair', true);
+  assert.equal(whiteboardLayerUnits(board)[0].locked, true);
+  assert.equal(whiteboardVisibleBoard(board).nodes.length, 0);
+  assert.equal(validWhiteboard({ ...board, groups: [{ ...board.groups[0], hidden: false }] }), false);
+  removeWhiteboardNode(board, 'b');
+  assert.equal(board.nodes[0].locked, true);
+  assert.equal(board.nodes[0].hidden, true);
+  setWhiteboardLayerHidden(board, 'a', false);
+  assert.equal(whiteboardVisibleBoard(board).nodes.length, 1);
+  assert.equal(board.nodes[0].locked, true);
+  assert.equal(validWhiteboard(board), true);
 });

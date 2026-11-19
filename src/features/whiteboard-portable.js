@@ -142,8 +142,8 @@ A.whiteboardExportCanvas = () => {
     confirmDlg({
       title: T('Review export', 'Проверка экспорта'),
       body: T(
-        'JSON Canvas omits PDF pages, media start times, image edits, shapes, card groups, position locks, frame order, line styles and dot endings. Text and arrow directions remain. Smena JSON preserves all fields. Continue?',
-        'JSON Canvas не переносит страницы PDF, время начала медиа, обрезку и поворот изображений, фигуры, группы карточек, блокировку положения, порядок рамок, стили линий и окончания-точки. Текст и направления стрелок сохраняются. Smena JSON сохраняет все поля. Продолжить?',
+        'JSON Canvas omits PDF pages, media start times, image edits, shapes, card groups, position locks, layer visibility, frame order, line styles and dot endings. Text and arrow directions remain. Smena JSON preserves all fields. Continue?',
+        'JSON Canvas не переносит страницы PDF, время начала медиа, обрезку и поворот изображений, фигуры, группы карточек, блокировку положения, видимость слоёв, порядок рамок, стили линий и окончания-точки. Текст и направления стрелок сохраняются. Smena JSON сохраняет все поля. Продолжить?',
       ),
       ok: T('Export', 'Экспортировать'),
       run: download,

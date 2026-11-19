@@ -80,8 +80,17 @@
   white-space: nowrap;
 }
 .whiteboard-layer-select > svg,
-.whiteboard-layer-handle {
+.whiteboard-layer-handle,
+.whiteboard-layer-visibility {
   flex: 0 0 auto;
+}
+.whiteboard-layer-row[data-layer-hidden] .whiteboard-layer-select,
+.whiteboard-layer-row[data-layer-hidden] .whiteboard-layer-visibility {
+  color: var(--text-2);
+}
+.whiteboard-layer-visibility {
+  min-width: 44px;
+  min-height: 44px;
 }
 .whiteboard-layer-lock {
   display: grid;

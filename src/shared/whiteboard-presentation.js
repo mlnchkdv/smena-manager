@@ -8,13 +8,17 @@ export function whiteboardFrames(board) {
 export function reorderWhiteboardFrame(board, id, direction) {
   if (![-1, 1].includes(direction)) return false;
   const frames = whiteboardFrames(board),
-    index = frames.findIndex(node => node.id === id),
+    shown = frames.filter(node => !node.hidden),
+    index = shown.findIndex(node => node.id === id),
     target = index + direction;
-  if (index < 0 || target < 0 || target >= frames.length) return false;
-  [frames[index], frames[target]] = [frames[target], frames[index]];
-  frames.forEach((node, sequence) => {
-    node.sequence = sequence;
-  });
+  if (index < 0 || target < 0 || target >= shown.length) return false;
+  [shown[index], shown[target]] = [shown[target], shown[index]];
+  let next = 0;
+  frames
+    .map(node => (node.hidden ? node : shown[next++]))
+    .forEach((node, sequence) => {
+      node.sequence = sequence;
+    });
   board.version = Math.max(board.version, 4);
   return true;
 }

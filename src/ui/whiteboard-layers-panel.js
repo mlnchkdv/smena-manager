@@ -12,10 +12,14 @@ export function whiteboardLayersPanel(board, state, editable) {
     const node = layer.nodes[0];
     const label = esc(whiteboardLabel(node));
     const kind = layer.kind === 'group' ? T('Group', 'Группа') : layer.kind === 'frame' ? T('Frame', 'Рамка') : '';
-    const details = layer.kind === 'group' ? kind + ' · ' + C(layer.nodes.length, 'card') : kind;
+    const details = [kind, layer.kind === 'group' && !layer.hidden ? C(layer.nodes.length, 'card') : '', layer.hidden ? T('Hidden', 'Скрыто') : '']
+      .filter(Boolean)
+      .join(' · ');
     const typeIcon = layer.kind === 'card' ? icons[node.type] : icons[layer.kind];
-    return `<li class="whiteboard-layer-row" data-layer-row="${esc(layer.id)}" data-layer-tier="${layer.kind === 'frame' ? 'frames' : 'cards'}">
-      <button type="button" class="whiteboard-layer-select" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-pressed="${layer.nodes.every(item => selected.has(item.id))}" title="${label}">${ic(typeIcon, 16)}<span><strong>${label}</strong>${details ? `<small>${details}</small>` : ''}</span></button>
+    const visibility = layer.hidden ? T('Show layer', 'Показать слой') : T('Hide layer', 'Скрыть слой');
+    return `<li class="whiteboard-layer-row" data-layer-row="${esc(layer.id)}" data-layer-tier="${layer.kind === 'frame' ? 'frames' : 'cards'}" ${layer.hidden ? 'data-layer-hidden' : ''}>
+      <button type="button" class="whiteboard-layer-select" data-a="whiteboardSelect" data-id="${esc(node.id)}" aria-pressed="${layer.nodes.every(item => selected.has(item.id))}" title="${label}" ${layer.hidden ? 'disabled' : ''}>${ic(typeIcon, 16)}<span><strong>${label}</strong>${details ? `<small>${details}</small>` : ''}</span></button>
+      ${editable ? `<button type="button" class="ibtn whiteboard-layer-visibility" data-a="whiteboardLayerVisibility" data-layer-visibility="${esc(layer.id)}" data-hidden="${!layer.hidden}" aria-label="${visibility} · ${label}" title="${visibility}">${ic(layer.hidden ? 'eye-off' : 'eye', 16)}</button>` : ''}
       ${
         layer.locked
           ? `<span class="whiteboard-layer-lock" role="img" aria-label="${T('Position locked', 'Положение зафиксировано')}" title="${T('Position locked', 'Положение зафиксировано')}">${ic('lock-keyhole', 15)}</span>`
