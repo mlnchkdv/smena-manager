@@ -1,3 +1,4 @@
+import { rememberBookmarkDraft } from '../core/device-drafts.js';
 import { S, D } from '../core/store.js';
 import { bookmarkPageRequest, getSessionGeneration, getActiveWorkspace } from '../core/api.js';
 import { offlineItems, putOffline, removeOffline } from '../core/offline-library.js';
@@ -19,6 +20,16 @@ function status(text) {
   if (field) field.textContent = text;
 }
 export function scheduleBookmarkMetadata() {
+  const draft = S.ui.bookmarkDraft;
+  if (draft.pageAutofillUrl !== normalizedPageUrl(draft.url || '')) {
+    for (const [key, value] of Object.entries(draft.pageAutofill || {})) {
+      if (draft[key] !== value) continue;
+      draft[key] = '';
+      const field = document.getElementById('bookmark-' + key);
+      if (field) field.value = '';
+    }
+    draft.pageAutofill = {};
+  }
   clearTimeout(timer);
   controller?.abort();
   status('');
@@ -38,6 +49,8 @@ export async function loadBookmarkMetadata() {
     const metadata = await bookmarkPageRequest('/metadata', { method: 'POST', body: JSON.stringify({ url }), signal: current.signal });
     if (current.signal.aborted || !S.ui.bookmarkForm || S.ui.bookmarkDraft !== draft || normalizedPageUrl(draft.url) !== url) return;
     const keys = applyBookmarkMetadata(draft, metadata, baseline);
+    draft.pageAutofillUrl = url;
+    rememberBookmarkDraft();
     for (const key of keys) {
       const input = document.getElementById(`bookmark-${key}`);
       if (input) input.value = draft[key];
@@ -113,6 +126,8 @@ function viewer(m, H) {
     <div class="bookmark-viewer-heading" ${m.wide ? 'data-archive-wide' : ''}><h3 class="bookmark-viewer-title">${esc(title)}</h3><p class="hint bookmark-viewer-url" title="${esc(source)}">${esc(source)}</p></div>
     <div class="bookmark-viewer-toolbar"><label class="field">${words('Page version', 'Версия страницы')}<select class="select" data-in="bookmarkSnapshot" ${m.busy ? 'disabled' : ''}><option value="live" ${m.selected === 'live' ? 'selected' : ''}>${words('Current website', 'Сейчас на сайте')}</option>${versionOptions}</select></label>${archiveButton}<a class="btn btn-ghost" href="${esc(source)}" target="_blank" rel="noopener noreferrer" aria-label="${words('Open original', 'Открыть оригинал')}">${words('Original', 'Оригинал')}</a></div>
     ${m.job ? `<p role="status">${archiveStage(m.job.phase)} ${words('You can close this window; capture continues on the server.', 'Можно закрыть окно: архивация продолжится на сервере.')}</p>` : ''}
+    ${m.downloading ? `<p role="status">${words('Downloading HTML…', 'Скачиваем HTML…')}</p>` : ''}
+    ${m.downloadError ? `<div role="alert"><p>${words('Could not download the selected copy.', 'Не удалось скачать выбранную копию.')}</p><button class="btn btn-secondary" data-a="downloadBookmarkArchive" data-id="${esc(m.downloadError)}">${words('Retry download', 'Повторить скачивание')}</button></div>` : ''}
     ${m.archiveError ? `<p class="err" role="alert">${esc(m.archiveError)}</p>` : ''}
     ${m.busy && !m.page ? `<p role="status">${words('Loading page…', 'Загружаем страницу…')}</p>` : ''}${m.error ? `<p class="err" role="alert">${esc(m.error)}</p><button class="btn btn-secondary" data-a="reloadBookmarkPage">${words('Reload preview', 'Перезагрузить просмотр')}</button>` : ''}
     ${m.page ? `<p class="hint bookmark-preview-status">${m.selected === 'live' ? words('Text preview of the current website', 'Текстовый просмотр текущей страницы') : words('Saved copy', 'Сохранённая копия')} · ${esc(fmtTimestamp(m.page.capturedAt))}</p>${bookmarkArchiveView(m, isRussian())}` : ''}
@@ -124,8 +139,33 @@ function viewer(m, H) {
 function bookmarkVersionManager(m, active) {
   if (!m.snapshots.length) return '';
   const key = 'bookmark:copies:' + m.id;
-  return `<details class="bookmark-version-manager" ${disclosureAttributes(key)}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Up to 10 copies can stay in the version selector. Move a copy out of the list to free a slot and keep the file.', 'В списке версий может быть до 10 копий. Уберите копию из активных, чтобы освободить место и сохранить файл.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(fmtTimestamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><a class="btn btn-ghost btn-sm" href="${esc(bookmarkArchiveUrl(m.id, ref.id))}&download=1">${words('Download HTML', 'Скачать HTML')}</a>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>`;
+  return `<details class="bookmark-version-manager" ${disclosureAttributes(key)}><summary>${words('Manage saved copies', 'Управление копиями')} · ${active.length}/10</summary><p class="hint">${words('Up to 10 copies can stay in the version selector. Move a copy out of the list to free a slot and keep the file.', 'В списке версий может быть до 10 копий. Уберите копию из активных, чтобы освободить место и сохранить файл.')}</p><ul>${m.snapshots.map(ref => `<li><div><strong>${esc(fmtTimestamp(ref.capturedAt))} · ${ref.format === 'html' ? 'HTML' : words('Text', 'Текст')}</strong><span class="hint bookmark-viewer-url">${esc(ref.finalUrl || ref.sourceUrl || m.url)}</span>${ref.isArchived ? `<span class="badge">${words('Stored version', 'Сохранённая версия')}</span>` : ''}</div><div class="bookmark-version-actions"><button class="btn btn-ghost btn-sm" data-a="openBookmarkCopy" data-id="${esc(ref.id)}" ${m.busy ? 'disabled' : ''}>${words('View', 'Открыть')}</button><button class="btn btn-ghost btn-sm" data-a="downloadBookmarkArchive" data-id="${esc(ref.id)}">${words('Download HTML', 'Скачать HTML')}</button>${S.ui.currentUser?.role !== 'viewer' ? `<button class="btn btn-secondary btn-sm" data-a="storeBookmarkCopy" data-id="${esc(ref.id)}" data-archived="${!ref.isArchived}" ${m.busy || (ref.isArchived && active.length >= 10) ? 'disabled' : ''}>${ref.isArchived ? words('Restore', 'Вернуть') : words('Store version', 'Убрать из активных')}</button>` : ''}</div></li>`).join('')}</ul></details>`;
 }
+A.downloadBookmarkArchive = async el => {
+  const m = S.ui.modals.at(-1);
+  const id = el.dataset.id;
+  if (m?.type !== 'bookmarkViewer' || !m.snapshots.some(ref => ref.id === id) || m.downloading) return;
+  const selection = m.selected;
+  m.downloading = id;
+  m.downloadError = null;
+  render();
+  try {
+    const response = await fetch(bookmarkArchiveUrl(m.id, id) + '&download=1', { credentials: 'same-origin' });
+    if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) throw new Error('Download failed');
+    const blob = await response.blob();
+    if (!currentViewer(m)) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (m.snapshots.find(ref => ref.id === id)?.title || m.title || 'archive') + '.html';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  } catch {
+    if (m.selected === selection) m.downloadError = id;
+  } finally {
+    m.downloading = null;
+    if (currentViewer(m)) render();
+  }
+};
 A.manageBookmarkVersions = el => {
   const details = el.closest('.modal-b')?.querySelector('.bookmark-version-manager');
   const heading = details?.querySelector('summary');
@@ -153,6 +193,7 @@ A.bookmarkArchiveWidth = () => {
   }
 };
 async function loadPage(m) {
+  m.downloadError = null;
   m.controller?.abort();
   m.controller = new AbortController();
   const controller = m.controller;

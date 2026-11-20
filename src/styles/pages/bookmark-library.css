@@ -288,3 +288,15 @@
     min-height: 44px;
   }
 }
+
+.bookmark-draft-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.bookmark-draft-row > span {
+  flex: 1 1 16rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

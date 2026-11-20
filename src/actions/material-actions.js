@@ -1,3 +1,4 @@
+import { deviceDraft, rememberBookmarkDraft, writeDeviceDraft } from '../core/device-drafts.js';
 import { scheduleBookmarkMetadata } from '../features/bookmark-pages.js';
 import { setPersonalFavorite } from './actions.js';
 import { noteTypes } from '../shared/knowledge-types.js';
@@ -682,7 +683,23 @@ A.openRelatedEntity = async el => {
 A.showGraph = async el => (await import('../features/graph-actions.js')).showGraph(el);
 A.searchInGraph = async () => (await import('../features/graph-actions.js')).searchInGraph();
 A.exportGraph = async () => (await import('../features/graph-export.js')).exportGraph();
+A.resumeBookmarkDraft = el => {
+  const id = el.dataset.id || '';
+  const draft = deviceDraft('bookmark', id);
+  if (S.ui.currentUser?.role === 'viewer' || !draft || (id && !bookmarkCollections().links.some(link => link.id === id))) return;
+  S.ui.bookmarkEditing = id || null;
+  S.ui.bookmarkDraft = { ...draft };
+  S.ui.bookmarkForm = true;
+  render();
+  document.getElementById('bookmark-url')?.focus();
+};
+A.discardBookmarkDraft = el => {
+  writeDeviceDraft('bookmark', el.dataset.id || '', null);
+  render();
+};
 A.newBookmark = () => {
+  if (deviceDraft('bookmark', '')) return A.resumeBookmarkDraft({ dataset: {} });
+
   S.ui.bookmarkEditing = null;
   S.ui.bookmarkDraft = emptyBookmarkDraft(S.ui.bookmarkFolder !== 'all' && S.ui.bookmarkFolder !== 'root' ? S.ui.bookmarkFolder : '');
   S.ui.bookmarkForm = true;
@@ -696,6 +713,7 @@ A.closeBookmarkForm = () => {
   render();
 };
 A.editBookmark = el => {
+  if (deviceDraft('bookmark', el.dataset.id)) return A.resumeBookmarkDraft(el);
   const link = bookmarkCollections().links.find(item => item.id === el.dataset.id);
   if (!link || S.ui.currentUser?.role === 'viewer') return;
   S.ui.bookmarkEditing = link.id;
@@ -771,6 +789,7 @@ A.saveBookmark = () => {
         health_status: 'unknown',
         created_at: now,
       });
+    writeDeviceDraft('bookmark', S.ui.bookmarkEditing || '', null);
     S.ui.bookmarkForm = false;
     S.ui.bookmarkEditing = null;
     S.ui.bookmarkDraft = emptyBookmarkDraft();
@@ -879,4 +898,6 @@ IN.bookmarkFolder = el => {
 IN.bookmarkDraft = el => {
   S.ui.bookmarkDraft[el.dataset.field] = el.value;
   if (el.dataset.field === 'url') scheduleBookmarkMetadata();
+  else if (S.ui.bookmarkDraft.pageAutofill) delete S.ui.bookmarkDraft.pageAutofill[el.dataset.field];
+  rememberBookmarkDraft();
 };

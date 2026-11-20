@@ -140,23 +140,30 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
         await expect(page.getByRole('button', { name: saved.title, exact: true })).toHaveCount(0);
         await page.getByRole('button', { name: lang === 'ru' ? 'Сбросить фильтры' : 'Reset filters', exact: true }).press('Enter');
       }
-      const documentResponse = page.waitForResponse(
-        response => response.ok() && response.url().includes(`/snapshots/${saved.id}/document`) && response.request().isNavigationRequest(),
-      );
       await page.getByRole('button', { name: saved.title, exact: true }).click({ timeout: 20000 });
       const viewer = page.getByRole('dialog');
-      await expect(viewer.locator('iframe.bookmark-archive-frame')).toBeVisible({ timeout: 15000 });
-      expect(await (await documentResponse).text()).toContain('<h1>Saved page</h1>');
+      const archiveFrame = viewer.locator('iframe.bookmark-archive-frame');
+      await expect(archiveFrame).toBeVisible({ timeout: 15000 });
+      await expect(archiveFrame).toHaveAttribute('src', expect.stringContaining(`/snapshots/${saved.id}/document`));
+      await expect(archiveFrame.contentFrame().getByRole('heading', { name: 'Saved page' })).toBeVisible();
       await expect(viewer.locator('[data-in="bookmarkCaptureMode"]')).toBeHidden();
       const frame = await viewer.locator('.bookmark-archive-frame').boundingBox();
       expect(frame.y).toBeLessThan(height - 100);
       if (width === 1366) {
-        const archiveFrame = viewer.locator('.bookmark-archive-frame');
         const originalFrame = await archiveFrame.elementHandle();
         await viewer.getByRole('button', { name: lang === 'ru' ? 'Расширить просмотр' : 'Expand viewer' }).click();
         expect(await archiveFrame.evaluate((node, original) => node === original, originalFrame)).toBe(true);
       }
-      await viewer.getByRole('button', { name: lang === 'ru' ? 'Текст' : 'Text', exact: true }).click();
+      if (width === 320) {
+        await page.route(snapshotUrl + '/document*download=1', route => route.fulfill({ status: 503, json: { code: 'UNAVAILABLE' } }), { times: 1 });
+        await viewer.locator('.bookmark-archive-actions [data-a="downloadBookmarkArchive"]').click();
+        const retry = viewer.getByRole('alert').getByRole('button');
+        await expect(retry).toBeVisible();
+        await expect(archiveFrame).toBeVisible();
+        const [download] = await Promise.all([page.waitForEvent('download'), retry.click()]);
+        expect(await readFile(await download.path(), 'utf8')).toContain('<h1>Saved page</h1>');
+      }
+      await viewer.getByRole('button', { name: lang === 'ru' ? 'Читать текст' : 'Read text', exact: true }).click();
       await expect(viewer.locator('.bookmark-page-reader')).toContainText('Saved page text');
     }
   }

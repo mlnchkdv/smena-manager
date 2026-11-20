@@ -1,4 +1,5 @@
 import '../actions/material-actions.js';
+import { bookmarkDrafts } from '../core/device-drafts.js';
 import '../features/bookmark-batch.js';
 import '../styles/pages/bookmark-thumbnails.css';
 import '../styles/pages/bookmark-library.css';
@@ -73,7 +74,7 @@ function bookmarkForm(folders) {
         .join('')}</select></div>
       <div class="field bookmark-tags-field"><label class="label" for="bookmark-tags">Tags</label><input class="input" id="bookmark-tags" value="${esc(draft.tags)}" data-in="bookmarkDraft" data-field="tags" placeholder="design, research, tools"><span class="hint">Separate tags with commas.</span></div>
     </div>
-    <div class="bookmark-form-actions"><button class="btn btn-secondary" data-a="closeBookmarkForm">Cancel</button><button class="btn btn-primary" data-a="saveBookmark">${ic('check', 14)}${editing ? 'Save changes' : 'Add bookmark'}</button></div>
+    <div class="bookmark-form-actions"><button class="btn btn-secondary" data-a="closeBookmarkForm">Close</button><button class="btn btn-primary" data-a="saveBookmark">${ic('check', 14)}${editing ? 'Save changes' : 'Add bookmark'}</button></div>
   </section>`;
 }
 
@@ -201,7 +202,20 @@ export function pageBookmarks() {
   return `<div class="bookmarks-page bookmark-library layout-catalog">
 ${collectionHeader(`<div><h1>Bookmarks</h1><p class="page-description">Shared links, references, and useful resources for the team.</p></div><div class="row acts">${pageIntroduction('Shared links, references, and useful resources for the team.')}${readOnly ? '' : `<button class="btn btn-secondary" data-a="webCaptureHelp" aria-label="${kc('Web capture', 'Сбор из браузера')}" translate="no">${ic('globe', 14)}<span class="hide-m">${kc('Web capture', 'Сбор из браузера')}</span></button><button class="btn btn-primary" data-a="newBookmark" aria-label="Add bookmark" title="Add bookmark">${ic('plus', 14)}<span class="hide-m">Add bookmark</span></button>`}</div>`, 'bookmarks-head compact-page-head')}
     <section class="bookmark-summary" aria-label="Bookmark summary"><span>${links.filter(link => !link.is_archived).length} active</span><span>${unread} unread</span><span translate="no">${uiCount(folders.length, 'folder')}</span></section>
-    ${S.ui.bookmarkForm && !readOnly ? bookmarkForm(folders) : ''}
+    ${
+      S.ui.bookmarkForm && !readOnly
+        ? bookmarkForm(folders)
+        : readOnly
+          ? ''
+          : bookmarkDrafts()
+              .filter(({ id }) => !id || links.some(link => link.id === id))
+              .map(
+                ({ id, draft }) =>
+                  `<div class="bookmark-draft-row" translate="no"><span>${kc('Draft', 'Черновик')} · ${esc(draft.title || draft.url || kc('New bookmark', 'Новая закладка'))}</span><button class="btn btn-secondary" data-a="resumeBookmarkDraft" data-id="${esc(id)}">${kc('Continue', 'Продолжить')}</button><button class="btn btn-ghost" data-a="discardBookmarkDraft" data-id="${esc(id)}">${kc('Delete draft', 'Удалить черновик')}</button></div>`,
+              )
+              .join('')
+    }
+
     ${collectionToolbar(
       `
       <div class="inwrap bookmark-search">${ic('search', 14)}<input class="input" id="bookmark-search" data-in="bookmarkQuery" value="${esc(S.ui.bookmarkQuery || '')}" placeholder="Search bookmarks, tags, and URLs" aria-label="Search bookmarks" style="padding-right:44px">${query ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="bookmark-search" aria-label="Clear search">${ic('x', 16)}</button>` : ''}</div>
