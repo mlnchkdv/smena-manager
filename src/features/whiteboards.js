@@ -164,6 +164,10 @@ A.openWhiteboardDocument = el => {
   }
 };
 
+A.clearWhiteboardQuery = () => {
+  IN.whiteboardsFilter({ dataset: { field: 'query' }, value: '' });
+  document.querySelector('input[data-in="whiteboardsFilter"]')?.focus();
+};
 A.resetWhiteboardCatalog = () => {
   Object.assign(whiteboardCatalogState(), { query: '', project: '', archive: '', scroll: 0, limit: 50 });
   saveWhiteboardCatalog();

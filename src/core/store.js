@@ -65,12 +65,17 @@ function initialLanguage() {
   }
   return DEFAULT_PREFS.lang;
 }
+function entryLanguage() {
+  if (typeof location === 'undefined' || location.pathname !== '/') return null;
+  const lang = new URLSearchParams(location.search).get('lang');
+  return lang === 'ru' ? 'Русский' : lang === 'en' ? 'English (US)' : null;
+}
 export const saved = load();
 export const S = {
   // A signed-out boot needs no demo tasks, files or sample identities. The
   // authenticated snapshot is loaded before the workspace shell is shown.
   data: saved?.data || { ...emptyWorkspace(), ws: { name: PRODUCT_NAME, url: 'smena-manager', c: '#1D1C1A', brand: true } },
-  prefs: Object.assign({}, DEFAULT_PREFS, { lang: initialLanguage() }, saved?.prefs || {}),
+  prefs: Object.assign({}, DEFAULT_PREFS, saved?.prefs || {}, { lang: entryLanguage() || saved?.prefs?.lang || initialLanguage() }),
   views: saved?.views || {},
   ui: {
     fx: {},
