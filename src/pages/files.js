@@ -210,7 +210,7 @@ export function pageFiles(projectId = null) {
       ${
         readOnly || !projects.length
           ? ''
-          : `<div class="files-upload-actions">${projectId ? '' : `<label class="files-upload-target" for="files-upload-project"><span>Upload to:</span><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project" title="${esc(uploadPath)}">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.id === uploadProject ? uploadPath : project.name)}</option>`).join('')}</select></label>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload" aria-label="Upload files" aria-describedby="file-upload-limits" title="${maxSize} ${tr('per file')} · ${tr('Up to 500 files in the queue.')}">${ic('upload', 14)}<span class="hide-m">Upload files</span></button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${esc(currentFolder?.id || '')}"></div>`
+          : `<div class="files-upload-actions">${projectId ? '' : `<label class="files-upload-target" for="files-upload-project"><span>Upload to:</span><select class="select" ${currentFolder || projectFilter !== 'all' ? 'disabled' : ''} id="files-upload-project" data-in="fileUploadProject" aria-label="Upload to project" title="${esc(uploadPath)}">${writable.map(project => `<option value="${project.id}" ${uploadProject === project.id ? 'selected' : ''} translate="no">${esc(project.id === uploadProject ? uploadPath : project.name)}</option>`).join('')}</select></label>`}<button class="btn btn-primary" data-a="chooseStoredFiles" data-picker="workspace-files-upload" aria-label="Upload files" aria-describedby="file-upload-limits" title="${maxSize} ${tr('per file')} · ${tr('Up to 500 files in the queue.')}">${ic('upload', 14)}<span>Upload files</span></button><input id="workspace-files-upload" type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${esc(currentFolder?.id || '')}"></div>`
       }
       ${details}
     `,
@@ -220,7 +220,7 @@ export function pageFiles(projectId = null) {
 
 
 
-    ${uploadProject ? `<p class="file-upload-destination" translate="no">${document.documentElement.lang === 'ru' ? 'Загрузить в' : 'Upload to'}: <strong>${esc(uploadPath)}</strong></p>` : ''}
+    ${uploadProject ? `<p class="file-upload-destination" translate="no">${document.documentElement.lang === 'ru' ? 'Место загрузки' : 'Upload destination'}: <strong>${esc(uploadPath)}</strong></p>` : ''}
     ${fileCollectionPanel()}
     ${uploadsHtml()}
     ${collectionToolbar(

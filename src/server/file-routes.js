@@ -285,12 +285,18 @@ fileRouter.post('/upload-preflight', requireRole('admin', 'editor'), async (requ
       0,
     );
     if (!Number.isSafeInteger(bytes)) throw new TypeError('Upload batch is too large.');
-    assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, input.project, input.task, input.folderId);
+    const database = await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] });
+    try {
+      assertFileTarget(database, request.user, input.project, input.task, input.folderId);
+    } catch (error) {
+      if (error.code === 'FILE_FORBIDDEN') throw error;
+      throw Object.assign(new Error('The upload destination is unavailable.'), { statusCode: 404, code: 'FILE_TARGET_UNAVAILABLE' });
+    }
     let status;
     try {
       status = await storage.getStatus();
     } catch {
-      /* Unknown quota is explicit; normal upload ACLs still apply. */
+      throw Object.assign(new Error('Storage is unavailable.'), { statusCode: 503, code: 'FILE_STORAGE_UNAVAILABLE' });
     }
     const reserved = Number.isSafeInteger(input.reservedBytes) && input.reservedBytes >= 0 ? input.reservedBytes : 0;
     response.json(uploadCapacity(bytes, status, reserved));

@@ -204,7 +204,7 @@ export const getPersonalPreferences = (options = {}) => request('/api/preference
 export const listFileExports = () => request('/api/files/exports', {}, true);
 export const mediaBackupRequest = (path = '', body) =>
   request('/api/files/media-backups' + path, body ? { method: 'POST', body: JSON.stringify(body) } : {}, true);
-export const preflightUpload = input => request('/api/files/upload-preflight', { method: 'POST', body: JSON.stringify(input) }, true);
+export const preflightUpload = (input, signal) => request('/api/files/upload-preflight', { method: 'POST', body: JSON.stringify(input), signal }, true);
 export const createFileExport = ids => request('/api/files/exports', { method: 'POST', body: JSON.stringify({ ids }) }, true);
 export const advanceFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}/advance`, { method: 'POST' }, true);
 export const cancelFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}`, { method: 'DELETE' }, true);
