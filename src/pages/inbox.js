@@ -1,4 +1,5 @@
 /* ---------- INBOX ---------- */
+import { deviceDraft } from '../core/device-drafts.js';
 import { MOD, ago, fmtTimestamp, esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { S, commentsOf, mem, myNotification, myNotifications, pColor, proj, task } from '../core/store.js';

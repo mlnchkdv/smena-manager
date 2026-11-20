@@ -29,6 +29,7 @@ let knowledgeGridKeyboard, knowledgeGridKeyboardLoading;
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
+import { captureWorkContext, restoreWorkContext, restoreWorkScroll, saveWorkHistory } from '../core/work-navigation.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 import { needsTaskWorkflowCommands, prepareTaskWorkflowCommands } from '../core/task-workflow-loader.js';
 
@@ -48,12 +49,22 @@ export function go(route, params = {}, opt = {}) {
     params = board ? { id: board.id } : { project: params.id };
   }
   if (S.ui.beforeWorkspaceSettingsLeave?.(route, params, opt) === false) return;
+  const form = S.ui.modals.at(-1);
+  if (form?.type === 'researchForm' && form.beforeClose() === false) {
+    form.afterDraftClose = () => go(route, params, opt);
+    return;
+  }
   closeActionMenus();
   if (route !== 'graph') S.ui.graphFocus = false;
   S.ui.restoringFilePath = null;
   if (route === 'project' && !params.tab) params.tab = 'board';
-  if (!opt.back) S.ui.history.push({ route: S.ui.route, params: S.ui.params });
   const same = S.ui.route === route && JSON.stringify(S.ui.params) === JSON.stringify(params);
+  if (!same && !opt.back && !opt.fromPopstate) {
+    const context = captureWorkContext();
+    S.ui.history.push({ route: S.ui.route, params: S.ui.params, context });
+    if (S.ui.history.length > 50) S.ui.history.shift();
+    saveWorkHistory(context);
+  }
   if (!same)
     S.ui.materialSource =
       opt.materialSource === 'graph'
@@ -61,6 +72,7 @@ export function go(route, params = {}, opt = {}) {
         : opt.materialSource === 'search'
           ? { route: 'search', params: {}, query: S.ui.searchQ, category: S.ui.searchCat }
           : null;
+  if (!same) S.ui.profileAccess = null;
   const fromMobileNav = innerWidth <= 900 && S.ui.mnav;
   S.ui.route = route;
   S.ui.params = params;
@@ -70,7 +82,8 @@ export function go(route, params = {}, opt = {}) {
   S.ui.composer = null;
   S.ui.editCell = null;
   if (route !== 'knowledge') S.ui.knowledgeDrawer = null;
-  if (!opt.keepDrawer && S.ui.drawer && innerWidth < 900) S.ui.drawer = null;
+  if (!opt.keepDrawer && S.ui.drawer && (!same || innerWidth < 900)) S.ui.drawer = null;
+  const context = restoreWorkContext(opt.workContext);
   // Pages render instantly; motion (not a fake wait) carries the transition.
   clearTimeout(go._t);
   S.ui.loading = false;
@@ -79,7 +92,8 @@ export function go(route, params = {}, opt = {}) {
   render();
   const c = $('.content');
   if (fromMobileNav) c?.focus({ preventScroll: true });
-  if (c && !same) c.scrollTop = 0;
+  if (context) restoreWorkScroll(context);
+  else if (c && !same) c.scrollTop = 0;
 }
 
 export function syncBrowserLocation(options = {}) {
@@ -87,7 +101,7 @@ export function syncBrowserLocation(options = {}) {
   if (S.ui.restoringFilePath === location.pathname) return;
   const path = appLocationPath(D(), S.ui);
   if (`${location.pathname}${location.search}` === path && !location.hash) return;
-  window.history[options.push ? 'pushState' : 'replaceState']({ smena: true }, '', path);
+  window.history[options.push ? 'pushState' : 'replaceState']({ smena: true, ...(options.taskFromWork ? { taskFromWork: true } : {}) }, '', path);
 }
 
 /* One-shot motion flags: read by templates during the next render, then cleared, so full re-renders never replay them. */

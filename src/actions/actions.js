@@ -17,6 +17,7 @@ import { canEditFile, canRemoveFile } from '../shared/file-access.js';
 import { effectiveDark } from '../core/theme.js';
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
 import { focusKey, fxSet, go, render } from '../shell/render.js';
+import { saveOpenTaskHistory } from '../core/work-navigation.js';
 import { viewOf } from '../shell/view-engine.js';
 import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
@@ -379,7 +380,7 @@ A.go = el => {
 };
 A.back = () => {
   const h = S.ui.history.pop();
-  if (h) go(h.route, h.params, { back: true });
+  if (h) go(h.route, h.params, { back: true, workContext: h.context });
   else go('home');
 };
 A.returnToMaterialSource = () => {
@@ -431,6 +432,7 @@ A.set = el => {
   if (k === 'inboxSel' && !v) v = null;
   if (k === 'inboxCat') S.ui.inboxSel = null;
   S.ui[k] = v;
+  if (k === 'drawerTab') saveOpenTaskHistory();
   if (k === 'fileView') saveFilePreferences();
   if (k === 'calMode') saveCalendarMode(v);
   if (k === 'membersTab' || k === 'searchCat') S.ui.pop = null;

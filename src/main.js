@@ -36,7 +36,8 @@ import { S, D, myNotificationPreferences, myNotifications, setWorkspaceBaseline 
 import { A, IN } from './actions/actions.js';
 import { retryOverlays } from './overlays/drawer.js';
 import { restoreDeploymentContext } from './core/deployment-context.js';
-import { ROUTE_NAMES, render, go } from './shell/render.js';
+import { restoreWorkContext, restoreWorkScroll, workHistoryContext } from './core/work-navigation.js';
+import { ROUTE_NAMES, render, go, syncBrowserLocation, tryFocus } from './shell/render.js';
 import { recoverWorkspaceConflict, refreshWorkspaceFromServer, restoreSessionAndWorkspace } from './core/bootstrap.js';
 import { toast } from './ui/toast.js';
 import { parseAppLocation, resolveAppLocation } from './shared/app-location.js';
@@ -341,6 +342,7 @@ function applyBrowserLocation() {
   const target = resolveAppLocation(location.pathname, location.hash, D(), S.prefs.home || 'home');
   S.ui.route = target.route;
   S.ui.materialSource = null;
+  S.ui.profileAccess = null;
   S.ui.params = target.params;
   S.ui.drawer = target.drawer || null;
   S.ui.knowledgeDrawer = target.note || null;
@@ -358,7 +360,13 @@ function loadRouteData() {
   if (S.ui.route === 'settings' && S.ui.params.sec === 'data-transfer') void A.loadWorkspaceBackups();
 }
 
-window.addEventListener('popstate', () => {
+window.addEventListener('popstate', event => {
+  const form = S.ui.modals.at(-1);
+  if (form?.type === 'researchForm' && form.beforeClose() === false) {
+    syncBrowserLocation({ push: true });
+    form.afterDraftClose = () => history.back();
+    return;
+  }
   S.ui.mnav = false;
   const target = parseAppLocation(location.pathname);
   if (S.ui.currentUser && target.kind === 'file' && target.key && !D().files.some(file => file.id === target.key)) {
@@ -375,8 +383,19 @@ window.addEventListener('popstate', () => {
     return;
   }
   S.ui.restoringFilePath = null;
+  const opener = S.ui.drawer ? S.ui.drawerOpener : null;
+  const returningFromTask = Boolean(S.ui.drawer && target.kind !== 'task');
   applyBrowserLocation();
+  const saved = workHistoryContext(event.state);
+  const context = restoreWorkContext(saved, { location: !target.key || !!S.ui.drawer });
   render();
+  restoreWorkScroll(context);
+  if (returningFromTask && context && !S.ui.drawer && !tryFocus(opener)) {
+    const content = document.getElementById('main-content');
+    const heading = content?.querySelector('h1') || content;
+    heading?.setAttribute('tabindex', '-1');
+    heading?.focus({ preventScroll: true });
+  }
   loadRouteData();
 });
 
@@ -414,8 +433,11 @@ window.addEventListener('popstate', () => {
     await (await import('./pages/workspace-recovery.js')).applyRecovery(error);
   }
   const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
+  const saved = user && !S.ui.needsOnboarding ? workHistoryContext(history.state) : null;
+  const work = restoreWorkContext(saved, { location: Boolean(S.ui.drawer && saved?.drawer === S.ui.drawer) });
   render();
   restoreView?.();
+  restoreWorkScroll(work);
   if (user && !S.ui.needsOnboarding) {
     loadRouteData();
     void refreshWebPushSubscription();

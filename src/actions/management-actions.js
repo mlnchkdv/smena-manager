@@ -1,5 +1,6 @@
 import { $, $$, TODAY, dOff, diffD, esc, fmtTimestamp, parse, uid } from '../core/utils.js';
 
+import { deviceDraft, writeDeviceDraft } from '../core/device-drafts.js';
 import { PR, ST } from '../core/constants.js';
 import { resetSearchSession } from '../core/search-history.js';
 import { seed } from '../data/seed.js';
@@ -22,7 +23,8 @@ import {
 import { fileType, fsize } from '../ui/helpers.js';
 
 import { mutate, mutateTaskCommand, toast } from '../ui/toast.js';
-import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
+import { captureWorkContext, saveOpenTaskHistory, saveWorkHistory, workHistoryContext } from '../core/work-navigation.js';
+import { autosize, focusKey, fxSet, go, render, syncBrowserLocation } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
 import { selectedEditableTasks } from '../shared/task-bulk-scope.js';
 import { closeModal, openModal } from '../overlays/modals.js';
@@ -276,6 +278,10 @@ handlers.A.openTask = el => {
     toast("You don't have access to that task", { kind: 'err' });
     return;
   }
+  const source = captureWorkContext();
+  const fromWork = source && !source.drawer && S.ui.locationReady;
+  const existingTaskEntry = history.state?.taskFromWork === true;
+  if (fromWork) saveWorkHistory(source);
   const trigger = el.trigger || el;
   const replacing = !!S.ui.drawer && !!document.activeElement?.closest?.('.drawer');
   if (!replacing && trigger.isConnected) S.ui.drawerOpener = focusKey(trigger);
@@ -288,11 +294,19 @@ handlers.A.openTask = el => {
   S.ui.mention = null;
   S.ui.subOpen = null;
   S.ui.drawerTab = S.ui.drawerTab || 'comments';
+  if (fromWork || existingTaskEntry) {
+    syncBrowserLocation({ push: !!fromWork, taskFromWork: true });
+    saveWorkHistory(captureWorkContext());
+  }
   render();
   const dr = $('.drawer');
   if (dr && !dr.contains(document.activeElement)) dr.focus({ preventScroll: true });
 };
 handlers.A.closeDrawer = () => {
+  if (history.state?.taskFromWork && workHistoryContext(history.state)) {
+    history.back();
+    return;
+  }
   S.ui.drawer = null;
   S.ui.drawerFull = false;
   S.ui.subOpen = null;
@@ -322,10 +336,12 @@ handlers.A._projMove = (el, d) => {
 };
 handlers.A.toggleDrawerFull = () => {
   S.ui.drawerFull = !S.ui.drawerFull;
+  saveOpenTaskHistory();
   render();
 };
 handlers.A.jumpTaskComments = () => {
   S.ui.drawerTab = 'comments';
+  saveOpenTaskHistory();
   render();
   requestAnimationFrame(() => {
     const discussion = document.querySelector('.task-discussion');
@@ -901,7 +917,8 @@ handlers.A.downloadStoredFile = async el => {
 };
 handlers.IN.draft = el => {
   const id = el.dataset.id;
-  S.ui.drafts[id] = el.value;
+  const refs = deviceDraft('comment', id)?.mentions || [];
+  writeDeviceDraft('comment', id, el.value ? { text: el.value, mentions: refs.filter(ref => el.value.includes('@' + ref.label)) } : null);
   const before = el.value.slice(0, el.selectionStart);
   const m = before.match(/(?:^|\s)@([^@\n]*)$/u);
   const prev = JSON.stringify(S.ui.mention);
@@ -911,11 +928,9 @@ handlers.IN.draft = el => {
 };
 handlers.A.pickMention = el => {
   const id = el.dataset.id;
-  const d = S.ui.drafts[id] || '';
-  S.ui.draftMentionRefs ||= {};
-  S.ui.draftMentionRefs[id] ||= [];
-  S.ui.draftMentionRefs[id].push({ id: el.dataset.member, kind: el.dataset.kind, label: el.dataset.name });
-  S.ui.drafts[id] = d.replace(/@([^@\n]*)$/u, '@' + el.dataset.name + ' ');
+  const d = deviceDraft('comment', id)?.text || '';
+  const mentions = [...(deviceDraft('comment', id)?.mentions || []), { id: el.dataset.member, kind: el.dataset.kind, label: el.dataset.name }];
+  writeDeviceDraft('comment', id, { text: d.replace(/@([^@\n]*)$/u, '@' + el.dataset.name + ' '), mentions });
   S.ui.mention = null;
   render();
   const ta = $('#d-cmt, #inbox-reply');
@@ -926,8 +941,8 @@ handlers.A.pickMention = el => {
 };
 handlers.A.insertAt = el => {
   const id = el.dataset.id;
-  const d = S.ui.drafts[id] || '';
-  S.ui.drafts[id] = d + (d && !d.endsWith(' ') ? ' @' : '@');
+  const d = deviceDraft('comment', id)?.text || '';
+  writeDeviceDraft('comment', id, { text: d + (d && !d.endsWith(' ') ? ' @' : '@'), mentions: deviceDraft('comment', id)?.mentions || [] });
   S.ui.mention = { tid: id, q: '' };
   render();
   const ta = $('#d-cmt, #inbox-reply');
@@ -937,25 +952,40 @@ handlers.A.insertAt = el => {
   }
 };
 handlers.KEY.postComment = el => A.postComment(el);
-handlers.A.postComment = el => {
+handlers.A.postComment = async el => {
   const id = el.dataset.id;
-  const txt = (S.ui.drafts[id] || '').trim();
+  const draft = deviceDraft('comment', id);
+  const txt = (draft?.text || '').trim();
   if (!txt) {
     $('#d-cmt, #inbox-reply')?.focus();
     return;
   }
+  const generation = getSessionGeneration();
   const t = task(id);
+  const commentId = draft.pendingId || uid('c');
   if (
     mutate(() => {
-      D().comments.push({ id: uid('c'), task: id, by: D().me, at: Date.now(), text: txt, mentions: S.ui.draftMentionRefs?.[id] || [], re: {} });
-      if (S.ui.draftMentionRefs) delete S.ui.draftMentionRefs[id];
-      logAct('commented on', t);
-      S.ui.drafts[id] = '';
+      if (!D().comments.some(c => c.id === commentId)) {
+        D().comments.push({ id: commentId, task: id, by: D().me, at: Date.now(), text: txt, mentions: draft.mentions || [], re: {} });
+        logAct('commented on', t);
+      }
+      writeDeviceDraft('comment', id, { ...draft, pendingId: commentId });
       S.ui.mention = null;
       S.ui.drawerTab = 'comments';
     })
   ) {
-    if (S.ui.route === 'inbox') toast('Reply posted');
+    try {
+      await queueWorkspaceSync(S.data);
+      await retryWorkspaceSync();
+      if (generation !== getSessionGeneration()) return;
+      if (!workspaceSyncIsClean(S.data) || !D().comments.some(c => c.id === commentId)) throw new Error('pending');
+      if (deviceDraft('comment', id)?.pendingId === commentId) writeDeviceDraft('comment', id, null);
+      if (S.ui.route === 'inbox') toast('Reply posted');
+      render();
+    } catch {
+      if (generation === getSessionGeneration())
+        toast(isRussian() ? 'Отправка не подтверждена. Черновик сохранён.' : 'Sending was not confirmed. Your draft is saved.', { kind: 'err' });
+    }
   }
 };
 handlers.A.delComment = el => {

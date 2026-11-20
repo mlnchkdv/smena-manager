@@ -1,3 +1,4 @@
+import { deviceDraft } from '../core/device-drafts.js';
 import { canEditProject, canCommentProject } from '../shared/project-access.js';
 import { isFavorite } from '../core/favorites.js';
 import { activityVerbForm } from '../shared/activity-copy.js';
@@ -190,7 +191,7 @@ export function drawerHtml(t) {
           ${
             commentable
               ? `<div class="row" style="align-items:flex-start;gap:10px;margin-top:8px">${av(D().me, 'md', false)}<div class="grow" style="position:relative">
-            <div class="cbox"><textarea id="d-cmt" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Leave a comment… type @ to mention" aria-label="Comment" rows="2" data-autosize>${esc(u.drafts[t.id] || '')}</textarea>
+            <div class="cbox"><textarea id="d-cmt" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Leave a comment… type @ to mention" aria-label="Comment" rows="2" data-autosize>${esc(deviceDraft('comment', t.id)?.text || '')}</textarea>
             <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><label class="ibtn ibtn-xs" ${editable ? '' : 'hidden'} data-tip="Attach file" style="cursor:pointer">${ic('paperclip', 14)}<input type="file" multiple hidden data-in="uploadFiles" data-task="${t.id}" data-project="${t.project}"></label><span class="sp"></span><span class="faint hide-m" style="font-size:11px">${MOD}+Enter</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Comment</button></div></div>
             ${mentionPicker(t.id)}
           </div></div>`
