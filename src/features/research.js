@@ -4,7 +4,8 @@ import { S } from '../core/store.js';
 import { researchRequest, downloadResearchZip, getActiveWorkspace, getSessionGeneration } from '../core/api.js';
 import { esc } from '../core/utils.js';
 import { ic } from '../core/icons.js';
-import { openModal } from '../overlays/modals.js';
+import { closeModal, openModal } from '../overlays/modals.js';
+import { toast } from '../ui/toast.js';
 import { go, render } from '../shell/render.js';
 import { renderKnowledgeMarkdown } from '../shared/knowledge-markdown.js';
 import { rw, researchKind, researchState, researchFailure, researchDate } from '../ui/research-copy.js';
@@ -12,7 +13,15 @@ import { researchTemplate, researchMetricDefaults, protocolResearchMetrics, repe
 import { RESEARCH_LIMITS } from '../shared/research.js';
 import { researchFormFields } from '../ui/research-form.js';
 import { researchEvidenceHtml, researchDisclosure } from '../ui/research-evidence.js';
-import { readPendingResearch, keepPendingResearch, clearPendingResearch } from '../core/research-pending.js';
+import {
+  readPendingResearch,
+  pendingResearchCommands,
+  keepPendingResearch,
+  clearPendingResearch,
+  listResearchDrafts,
+  keepResearchDraft,
+  clearResearchDraft,
+} from '../core/research-pending.js';
 import { researchComparisonHtml } from '../ui/research-comparison.js';
 import { researchMetricsHtml } from '../ui/research-metrics.js';
 import { RESEARCH_QUESTION_LABELS, researchReportMarkdown } from '../shared/research-report.js';
@@ -29,6 +38,10 @@ const active = model =>
   S.ui.params.tab === 'research' &&
   S.ui.research === model &&
   model.key === [getActiveWorkspace(), getSessionGeneration(), S.ui.params.id].join(':');
+
+window.addEventListener('storage', event => {
+  if (event.key?.startsWith('smena:research:') && S.ui.route === 'project' && S.ui.params.tab === 'research' && !S.ui.modals.length) render();
+});
 
 const researchLocation = (model, id) => ({ id: model.project, tab: 'research', ...(id ? { researchId: id } : {}) });
 async function loadResearch(model = state()) {
@@ -84,7 +97,190 @@ function resetRaw(m) {
   m.rawManifest = JSON.stringify(m.record.data.manifest || {}, null, 2);
   m.rawMetrics = JSON.stringify(m.record.data.metrics || [], null, 2);
 }
-function form(model, record, kind = 'experiment') {
+function formDraft(m) {
+  const { draftId: id, record, original, rawConfig, rawManifest, rawMetrics, metricSeed, nextState } = m;
+  return { id, record, original, rawConfig, rawManifest, rawMetrics, metricSeed, nextState, operationId: m.command?.operationId };
+}
+const draftStatus = m => m.draftError || (m.dirty ? rw('Draft saved on this device.', 'Черновик сохранён на этом устройстве.') : '');
+function saveFormDraft(m) {
+  m.dirty = true;
+  try {
+    keepResearchDraft(m.draftScope, formDraft(m));
+    m.draftError = '';
+  } catch {
+    m.draftError = rw(
+      'This device could not store the draft. Copy it before leaving.',
+      'Не удалось сохранить черновик на устройстве. Скопируйте его перед выходом.',
+    );
+  }
+  if (S.ui.modals.at(-1) === m) {
+    const status = document.querySelector('[data-research-draft-status]');
+    const recovery = status?.parentElement.querySelector('[data-research-draft-recovery]');
+    const message = draftStatus(m);
+    if (status && status.textContent !== message) status.textContent = message;
+    if (recovery) recovery.hidden = !m.draftError || m.saveRecovery;
+  }
+}
+
+function formDraftStatus(m) {
+  return `<div class="research-draft-feedback"><p data-research-draft-status role="status">${esc(draftStatus(m))}</p><div class="research-actions" data-research-draft-recovery ${m.draftError && !m.saveRecovery ? '' : 'hidden'}><button class="btn btn-secondary" data-a="researchRetryDraft" ${m.busy ? 'disabled' : ''}>${rw('Retry draft save', 'Повторить сохранение черновика')}</button><button class="btn btn-ghost" data-a="researchCopyDraft">${rw('Copy draft', 'Скопировать черновик')}</button></div>${m.draftExport ? `<label class="field">${rw('Select and copy this draft', 'Выделите и скопируйте черновик')}<textarea readonly class="textarea" data-research-draft-copy rows="4">${esc(m.draftExport)}</textarea></label>` : ''}</div>`;
+}
+
+function removableResearchDrafts(m) {
+  const pending = new Set(pendingResearchCommands(...m.draftScope).map(command => command.operationId));
+  return listResearchDrafts(m.draftScope).filter(item => item.id !== m.draftId && !pending.has(item.operationId));
+}
+
+function draftCleanupPanel(m) {
+  if (!m.draftCleanup) return '';
+  const drafts = removableResearchDrafts(m);
+  return `<section class="research-draft-cleanup" aria-labelledby="research-cleanup-heading"><h3 id="research-cleanup-heading" tabindex="-1">${rw('Other drafts on this device', 'Другие черновики на этом устройстве')}</h3><p class="hint">${rw('Free space by removing a draft you no longer need. Your current draft is kept open.', 'Освободите место, удалив ненужный черновик. Текущий черновик останется открытым.')}</p>${drafts.length ? `<ul>${drafts.map(draft => `<li><span>${esc(draft.record.title || rw('Untitled draft', 'Черновик без названия'))}</span><button class="btn btn-ghost" data-a="researchRemoveLocalDraft" data-id="${esc(draft.id)}" aria-pressed="${m.cleanupSelection === draft.id}">${rw('Select for removal', 'Выбрать для удаления')}</button></li>`).join('')}</ul>` : `<p>${rw('No other removable drafts in this project.', 'В этом проекте нет других черновиков, доступных для удаления.')}</p>`}${m.cleanupSelection ? `<div class="research-actions"><button class="btn btn-danger" data-a="researchConfirmRemoveLocalDraft">${rw('Remove selected draft from this device', 'Удалить выбранный черновик с устройства')}</button></div>` : ''}${m.cleanupMessage ? `<p role="status">${esc(m.cleanupMessage)}</p>` : ''}</section>`;
+}
+
+A.researchReviewLocalDrafts = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || !m.saveRecovery) return;
+  m.draftCleanup = true;
+  render();
+  document.getElementById('research-cleanup-heading')?.focus();
+};
+A.researchRemoveLocalDraft = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || !m.draftCleanup || !removableResearchDrafts(m).some(item => item.id === el.dataset.id)) return;
+  m.cleanupSelection = m.cleanupSelection === el.dataset.id ? '' : el.dataset.id;
+  render();
+};
+A.researchConfirmRemoveLocalDraft = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || !m.draftCleanup || !removableResearchDrafts(m).some(item => item.id === m.cleanupSelection)) return;
+  try {
+    clearResearchDraft(m.draftScope, m.cleanupSelection);
+    m.cleanupSelection = '';
+    m.cleanupMessage = rw('Draft removed. Try saving your record again.', 'Черновик удалён. Попробуйте сохранить запись ещё раз.');
+  } catch {
+    m.cleanupMessage = rw(
+      'The browser could not remove this draft. Copy your current draft before closing.',
+      'Браузер не смог удалить черновик. Скопируйте текущий черновик перед закрытием.',
+    );
+  }
+  render();
+  document.getElementById('research-cleanup-heading')?.focus();
+};
+
+A.researchRetryDraft = () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || m.busy || !m.draftError) return;
+  saveFormDraft(m);
+  render();
+  const status = document.querySelector('[data-research-draft-status]');
+  status?.setAttribute('tabindex', '-1');
+  status?.focus({ preventScroll: true });
+};
+A.researchCopyDraft = async () => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm') return;
+  const draft = JSON.stringify(formDraft(m), null, 2);
+  try {
+    await navigator.clipboard.writeText(draft);
+    if (S.ui.modals.at(-1) === m) toast(rw('Draft copied.', 'Черновик скопирован.'));
+  } catch {
+    if (S.ui.modals.at(-1) !== m) return;
+    m.draftExport = draft;
+    render();
+    const field = document.querySelector('[data-research-draft-copy]');
+    field?.focus();
+    field?.select();
+  }
+};
+
+function formClosePrompt(m) {
+  if (!m.closing) return '';
+  return `<aside class="research-error" aria-label="${rw('Unsaved research', 'Несохранённое исследование')}"><p role="status">${m.draftError || rw('Keep the draft on this device for later?', 'Оставить черновик на этом устройстве?')}</p><div class="research-actions"><button class="btn btn-primary" data-a="researchCloseDraft" data-choice="continue">${rw('Continue editing', 'Продолжить редактирование')}</button><button class="btn btn-secondary" data-a="researchCloseDraft" data-choice="keep">${rw('Keep draft', 'Сохранить черновик')}</button><button class="btn btn-ghost danger" data-a="researchCloseDraft" data-choice="discard">${rw('Discard draft', 'Удалить черновик')}</button></div></aside>`;
+}
+
+function conflictFields(m) {
+  const fields = [
+    ['title', rw('Title', 'Название')],
+    ['body', rw('Text', 'Текст')],
+    ['tags', rw('Tags', 'Теги')],
+    ...[...new Set([...Object.keys(m.record.data), ...Object.keys(m.latest.data)])].map(key => ['data.' + key, key]),
+  ];
+  return fields
+    .map(([key, label]) => {
+      const read = record => (key.startsWith('data.') ? record.data[key.slice(5)] : record[key]);
+      return { key, label, local: read(m.record), latest: read(m.latest) };
+    })
+    .filter(row => JSON.stringify(row.local) !== JSON.stringify(row.latest));
+}
+
+function conflictPanel(m) {
+  if (!m.stale) return '';
+  if (!m.latest)
+    return `<button class="btn btn-secondary" data-a="researchCompareLatest" ${m.busy ? 'disabled' : ''}>${rw('Compare with latest version', 'Сравнить со свежей версией')}</button>`;
+  const show = value => esc(typeof value === 'string' ? value : (JSON.stringify(value, null, 2) ?? '—'));
+  return `<section class="research-conflict"><h3>${rw('Choose the version of each changed field', 'Выберите версию каждого изменённого поля')}</h3>${conflictFields(
+    m,
+  )
+    .map(
+      ({ key, label, local, latest }) =>
+        `<fieldset><legend>${esc(label)}</legend>${[
+          ['local', rw('My draft', 'Мой черновик'), local],
+          ['latest', rw('Server version', 'На сервере'), latest],
+        ]
+          .map(
+            ([side, name, value]) =>
+              `<label><input type="radio" name="merge-${esc(key)}" data-in="researchMergeChoice" data-field="${esc(key)}" value="${side}" ${m.choices[key] === side ? 'checked' : ''}>${name}<pre>${show(value)}</pre></label>`,
+          )
+          .join('')}</fieldset>`,
+    )
+    .join(
+      '',
+    )}<button class="btn btn-secondary" data-a="researchApplyMerge" ${conflictFields(m).some(row => !m.choices[row.key]) ? 'disabled' : ''}>${rw('Apply choices to draft', 'Применить выбор к черновику')}</button></section>`;
+}
+A.researchCompareLatest = async () => {
+  const m = S.ui.modals.at(-1);
+  if (!m?.stale || m.busy) return;
+  m.busy = true;
+  render();
+  try {
+    const { record } = await researchRequest(m.project, '/records/' + encodeURIComponent(m.record.id));
+    if (m.generation !== getSessionGeneration() || !S.ui.modals.includes(m)) return;
+    m.latest = record;
+    m.choices = {};
+    m.error = '';
+  } catch (error) {
+    m.error = researchFailure(error);
+  } finally {
+    m.busy = false;
+    if (S.ui.modals.includes(m)) render();
+  }
+};
+IN.researchMergeChoice = el => {
+  const m = S.ui.modals.at(-1);
+  if (!m?.latest) return;
+  m.choices[el.dataset.field] = el.value;
+  render();
+};
+A.researchApplyMerge = () => {
+  const m = S.ui.modals.at(-1);
+  if (!m?.latest) return;
+  const fields = conflictFields(m);
+  if (fields.some(row => !m.choices[row.key])) return;
+  const merged = structuredClone(m.latest);
+  for (const row of fields.filter(row => m.choices[row.key] === 'local')) {
+    const nested = row.key.startsWith('data.');
+    const obj = nested ? merged.data : merged;
+    const key = nested ? row.key.slice(5) : row.key;
+    if (row.local === undefined) delete obj[key];
+    else obj[key] = structuredClone(row.local);
+  }
+  Object.assign(m, { record: merged, stale: false, latest: null, nextState: null, error: '' });
+  resetRaw(m);
+  saveFormDraft(m);
+  render();
+};
+
+function form(model, record, kind = 'experiment', draft = null) {
   const generation = getSessionGeneration();
   const m = {
     type: 'researchForm',
@@ -92,18 +288,68 @@ function form(model, record, kind = 'experiment') {
     generation,
     record: structuredClone(record || seedTemplate(kind, model)),
     original: !!record,
-    draftId: crypto.randomUUID(),
+    draftId: draft?.id || crypto.randomUUID(),
+    draftScope: [getActiveWorkspace(), model.catalog?.actorId, model.project],
     reviewers: model.catalog?.reviewers || [],
     render: (m, H) =>
-      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no"><fieldset ${m.busy || m.command ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${m.error ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : rw('Save record', 'Сохранить запись')}</button></div>`,
+      `${H(m.original ? rw('Edit research record', 'Изменить запись исследования') : rw('New research record', 'Новая запись исследования'))}<div class="modal-b research-form" translate="no">${formDraftStatus(m)}${formClosePrompt(m)}<fieldset ${m.busy || m.stale || m.command || m.closing ? 'disabled' : ''}>${researchFormFields(m)}</fieldset>${m.templatePending ? `<div class="research-error" role="alert"><p>${rw('Replace the draft body and properties with this template? The title is kept.', 'Заменить описание и свойства черновика выбранным шаблоном? Название сохранится.')}</p><button class="btn btn-secondary" data-a="researchApplyTemplate">${rw('Replace draft', 'Заменить черновик')}</button><button class="btn btn-ghost" data-a="researchCancelTemplate">${rw('Keep draft', 'Оставить черновик')}</button></div>` : ''}${conflictPanel(m)}${draftCleanupPanel(m)}${m.error && !m.saveRecovery ? `<p role="alert">${esc(m.error)}</p>` : ''}</div><div class="modal-f research-form-footer" translate="no">${m.saveRecovery ? `<div class="research-save-recovery"><p role="alert">${esc(m.error)}</p><div class="research-actions"><button class="btn btn-secondary" data-a="researchCopyDraft">${rw('Copy draft', 'Скопировать черновик')}</button><button class="btn btn-secondary" data-a="researchReviewLocalDrafts">${rw('Manage drafts on this device', 'Управлять черновиками на устройстве')}</button></div></div>` : ''}<button class="btn btn-secondary" data-a="closeModal" ${m.busy ? 'disabled' : ''}>${rw('Cancel', 'Отмена')}</button><button class="btn btn-primary" data-a="researchSave" ${m.busy || m.stale ? 'disabled' : ''}>${m.busy ? rw('Saving…', 'Сохраняем…') : m.saveRecovery ? rw('Retry saving', 'Повторить сохранение') : rw('Save record', 'Сохранить запись')}</button></div>`,
   };
   resetRaw(m);
   m.metricSeed = m.original ? '' : JSON.stringify(m.record.data.metrics || []);
+  if (draft) {
+    const { rawConfig, rawManifest, rawMetrics, metricSeed, nextState } = draft;
+    Object.assign(m, { original: draft.original, rawConfig, rawManifest, rawMetrics, metricSeed, nextState, dirty: true });
+  }
+  m.beforeClose = () => {
+    if (m.command || m.allowClose) return true;
+    if (m.busy) return false;
+    if (!m.dirty) return true;
+    m.closing = true;
+    render();
+    document.querySelector('.research-form [data-choice="continue"]')?.focus();
+    return false;
+  };
   m.onClose = () => m.referenceController?.abort();
   openModal(m);
   if (['run', 'article', 'handoff'].includes(m.record.kind)) void loadReferences(m);
   return m;
 }
+A.researchCloseDraft = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'researchForm' || !m.closing || m.busy) return;
+  if (el.dataset.choice === 'continue') {
+    m.closing = false;
+    m.afterDraftClose = null;
+    render();
+    document.querySelector('.research-form [data-field="title"]')?.focus();
+    return;
+  }
+  try {
+    if (el.dataset.choice === 'discard') clearResearchDraft(m.draftScope, m.draftId);
+    else {
+      saveFormDraft(m);
+      if (m.draftError) return render();
+    }
+  } catch {
+    m.draftError = rw('Could not remove the draft from this device.', 'Не удалось удалить черновик с этого устройства.');
+    return render();
+  }
+  m.allowClose = true;
+  closeModal();
+  m.afterDraftClose?.();
+};
+
+window.addEventListener('beforeunload', event => {
+  if (!S.ui.modals.some(m => m.type === 'researchForm' && m.dirty && m.draftError)) return;
+  event.preventDefault();
+  event.returnValue = '';
+});
+A.researchResumeDraft = el => {
+  const model = state();
+  if (!model.catalog?.canEdit || model.unsent || model.pending) return;
+  const draft = listResearchDrafts([getActiveWorkspace(), model.catalog.actorId, model.project]).find(item => item.id === el.dataset.id);
+  if (draft) form(model, draft.record, draft.record.kind, draft);
+};
 IN.researchField = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'researchForm' || m.busy) return;
@@ -136,6 +382,7 @@ IN.researchField = el => {
       }
     }
   }
+  saveFormDraft(m);
 };
 async function loadProtocolMetrics(m, explicit) {
   const protocolId = m.record.data.protocolId;
@@ -165,6 +412,7 @@ async function loadProtocolMetrics(m, explicit) {
     m.protocolMetricMessage = fromProtocol.length
       ? rw('Protocol metrics checked. Existing measurements are kept.', 'Метрики протокола проверены. Введённые измерения сохранены.')
       : rw('This protocol has no metric definitions. Profile metrics are available.', 'В протоколе нет определений метрик. Доступны метрики профиля.');
+    if (m.dirty || explicit) saveFormDraft(m);
   } catch (error) {
     if (current()) m.protocolMetricMessage = researchFailure(error);
   } finally {
@@ -180,7 +428,9 @@ A.researchProtocolMetrics = () => {
 };
 IN.researchRaw = el => {
   const m = S.ui.modals.at(-1);
-  if (m?.type === 'researchForm' && !m.busy) m[{ config: 'rawConfig', manifest: 'rawManifest', metrics: 'rawMetrics' }[el.dataset.field]] = el.value;
+  if (m?.type !== 'researchForm' || m.busy) return;
+  m[{ config: 'rawConfig', manifest: 'rawManifest', metrics: 'rawMetrics' }[el.dataset.field]] = el.value;
+  saveFormDraft(m);
 };
 IN.researchFileQuery = el => {
   const m = S.ui.modals.at(-1);
@@ -198,6 +448,7 @@ IN.researchMetric = el => {
     metric.scope ||= 'scene';
     metric.aggregation ||= 'mean';
   } else metric.value = null;
+  saveFormDraft(m);
   if (key === 'status') render();
 };
 A.researchAddMetric = () => {
@@ -212,12 +463,14 @@ A.researchAddMetric = () => {
     reason: rw('Not measured yet', 'Ещё не измерено'),
     origin: 'team',
   });
+  saveFormDraft(m);
   render();
 };
 A.researchRemoveMetric = el => {
   const m = S.ui.modals.at(-1);
   if (m?.type !== 'researchForm' || m.busy || m.command) return;
   m.record.data.metrics.splice(Number(el.dataset.index), 1);
+  saveFormDraft(m);
   render();
 };
 A.researchCompare = () => {
@@ -319,6 +572,7 @@ A.researchAttachFile = el => {
   if (m.record.data.artifacts.some(item => item.fileId === el.dataset.id))
     m.record.data.artifacts = m.record.data.artifacts.filter(item => item.fileId !== el.dataset.id);
   else m.record.data.artifacts.push({ fileId: el.dataset.id, role: 'evidence' });
+  saveFormDraft(m);
   render();
 };
 IN.researchTemplate = el => {
@@ -339,6 +593,7 @@ A.researchApplyTemplate = () => {
   resetRaw(m);
   m.metricSeed = JSON.stringify(m.record.data.metrics || []);
   render();
+  saveFormDraft(m);
   if (['run', 'article', 'handoff'].includes(m.record.kind) && !m.references) void loadReferences(m);
 };
 A.researchCancelTemplate = () => {
@@ -484,12 +739,12 @@ A.researchEnable = async () => {
 };
 A.researchSave = async () => {
   const m = S.ui.modals.at(-1);
-  if (m?.type !== 'researchForm' || m.busy || m.generation !== getSessionGeneration()) return;
+  if (m?.type !== 'researchForm' || m.busy || m.stale || m.closing || m.generation !== getSessionGeneration()) return;
   const model = state(),
     workspace = getActiveWorkspace(),
     actorId = model.catalog?.actorId;
   if (model.project !== m.project || !actorId) return;
-  if (model.pending || model.savingForm || (model.unsent && model.unsent.operationId !== m.command?.operationId)) {
+  if (model.pending || model.savingForm) {
     m.error = rw('Finish the previous save before saving this record.', 'Завершите предыдущее сохранение перед записью этой формы.');
     render();
     return;
@@ -514,6 +769,7 @@ A.researchSave = async () => {
   m.busy = true;
   model.savingForm = true;
   m.error = '';
+  m.saveRecovery = false;
   render();
   const draft = { kind: m.record.kind, title: m.record.title, body: m.record.body, data: m.record.data, tags: m.record.tags || [] };
   m.command ||= {
@@ -528,6 +784,7 @@ A.researchSave = async () => {
   try {
     keepPendingResearch(workspace, actorId, m.project, m.command);
     stored = true;
+    saveFormDraft(m);
     model.unsent = m.command;
     const result = await researchRequest(m.project, '/commands', m.command);
     accepted = true;
@@ -540,6 +797,11 @@ A.researchSave = async () => {
       throw new Error('RESEARCH_READBACK_PENDING');
     if (m.generation !== getSessionGeneration()) return;
     clearPendingResearch(workspace, actorId, m.project, m.command.operationId);
+    try {
+      clearResearchDraft(m.draftScope, m.draftId);
+    } catch {
+      /* The server confirmed the record. */
+    }
     model.unsent = null;
     model.rows = null;
     if (!active(model)) return;
@@ -551,12 +813,19 @@ A.researchSave = async () => {
     go('project', researchLocation(model, result.record.id));
     await loadResearch(model);
   } catch (error) {
+    if (error.code === 'RESEARCH_STALE') m.stale = true;
+    m.saveRecovery = !stored;
     m.error = stored
       ? researchFailure(error)
-      : rw(
-          'Could not keep a recovery copy on this device. Check available storage and retry.',
-          'Не удалось сохранить копию для восстановления на этом устройстве. Проверьте свободное место и повторите.',
-        );
+      : error.message === 'RESEARCH_DRAFT_LIMIT'
+        ? rw(
+            'The recovery copy is too large. Copy the draft and shorten the record before retrying.',
+            'Копия для восстановления слишком большая. Скопируйте черновик и сократите запись перед повтором.',
+          )
+        : rw(
+            'The record was not sent. The browser could not store its recovery copy.',
+            'Запись не отправлена. Браузер не смог сохранить копию для восстановления.',
+          );
     if (!stored || (!accepted && error.status >= 400 && error.status < 500 && ![401, 403, 408, 429].includes(error.status))) {
       clearPendingResearch(workspace, actorId, m.project, m.command.operationId);
       if (model.unsent?.operationId === m.command?.operationId) model.unsent = null;
@@ -568,9 +837,9 @@ A.researchSave = async () => {
     if (m.generation === getSessionGeneration() && active(model)) render();
   }
 };
-A.researchRecover = async () => {
+A.researchRecover = async el => {
   const m = state();
-  const command = m.unsent;
+  const command = pendingResearchCommands(getActiveWorkspace(), m.catalog.actorId, m.project).find(item => item.operationId === el.dataset.operation);
   if (!command || m.pending || m.savingForm) return;
   const workspace = getActiveWorkspace(),
     actorId = m.catalog.actorId,
@@ -582,7 +851,23 @@ A.researchRecover = async () => {
     const status = await researchRequest(m.project, '/operations/' + encodeURIComponent(command.operationId));
     if (generation !== getSessionGeneration()) return;
     const result = status.state === 'completed' ? status : await researchRequest(m.project, '/commands', command);
+    const verified = await researchRequest(m.project, '/records/' + encodeURIComponent(result.record.id));
+    if (generation !== getSessionGeneration()) return;
+    if (
+      verified.record.revision < result.record.revision ||
+      (verified.record.revision === result.record.revision && verified.record.body !== result.record.body)
+    )
+      throw new Error('RESEARCH_READBACK_PENDING');
     clearPendingResearch(workspace, actorId, m.project, command.operationId);
+    const draftScope = [workspace, actorId, m.project];
+    const draft = listResearchDrafts(draftScope).find(item => item.operationId === command.operationId);
+    if (draft) {
+      try {
+        clearResearchDraft(draftScope, draft.id);
+      } catch {
+        /* The server confirmed the record. */
+      }
+    }
     if (m.unsent?.operationId === command.operationId) m.unsent = null;
     m.error = '';
     m.rows = null;
@@ -594,7 +879,17 @@ A.researchRecover = async () => {
     }
     await loadResearch(m);
   } catch (error) {
-    if (active(m)) m.error = researchFailure(error);
+    if (!active(m)) return;
+    m.error = researchFailure(error);
+    if (error.code === 'RESEARCH_STALE' && command.action === 'update') {
+      const draft = listResearchDrafts([workspace, actorId, m.project]).find(item => item.operationId === command.operationId);
+      if (draft) {
+        clearPendingResearch(workspace, actorId, m.project, command.operationId);
+        const editor = form(m, draft.record, draft.record.kind, draft);
+        editor.stale = true;
+        editor.error = m.error;
+      }
+    }
   } finally {
     m.pending = false;
     if (active(m)) render();
@@ -648,6 +943,7 @@ A.researchDraftArticle = async () => {
     m.record.title = source.title + rw(' · findings', ' · результаты');
     m.record.body = researchReportMarkdown(source, runs, rw(false, true), { includeTitle: false });
     m.record.data.experimentId = source.kind === 'experiment' ? source.id : source.data.experimentId || '';
+    saveFormDraft(m);
     render();
   } catch (error) {
     if (current()) model.error = researchFailure(error);
@@ -785,6 +1081,7 @@ A.researchRestoreVersion = el => {
   const restored = { ...older, revision: m.current.revision };
   const draft = form(state(), restored);
   draft.record.data.amendment = rw('Based on revision ', 'На основе редакции ') + older.revision;
+  saveFormDraft(draft);
   render();
 };
 A.researchTransition = el => {
@@ -792,6 +1089,7 @@ A.researchTransition = el => {
   if (!model.selected) return;
   const m = form(model, model.selected);
   m.nextState = el.dataset.state;
+  saveFormDraft(m);
   render();
 };
 A.researchRepeat = () => {
@@ -801,6 +1099,7 @@ A.researchRepeat = () => {
   const m = form(model, null, 'run');
   m.record = repeatResearchRun(source, { russian: rw(false, true), ownerId: model.catalog.actorId });
   resetRaw(m);
+  saveFormDraft(m);
   render();
 };
 A.researchLatestInputs = () => {
@@ -808,6 +1107,7 @@ A.researchLatestInputs = () => {
   if (m?.type !== 'researchForm' || m.busy || m.command || m.record.data.state !== 'planned') return;
   delete m.record.data.datasetVersion;
   delete m.record.data.protocolVersion;
+  saveFormDraft(m);
   render();
 };
 const recordActionLabels = {
@@ -924,6 +1224,12 @@ function researchCreateActions(view) {
   return `<div class="row"><button class="btn btn-secondary" data-a="researchNew" data-kind="observation">${ic('notebook-pen', 16)}${rw('Quick note', 'Быстрая запись')}</button><button class="btn btn-primary" data-a="researchNew" data-kind="experiment">${ic('plus', 16)}${rw('New experiment', 'Новый эксперимент')}</button></div>`;
 }
 
+function researchDrafts(model) {
+  if (!model.catalog?.canEdit || model.unsent) return '';
+  const drafts = listResearchDrafts([getActiveWorkspace(), model.catalog.actorId, model.project]);
+  if (!drafts.length) return '';
+  return `<details class="research-technical" ${disclosureAttributes('research:local-drafts')}><summary>${rw('Drafts on this device', 'Черновики на этом устройстве')} · ${drafts.length}</summary><div class="research-list">${drafts.map(draft => `<button class="research-list-item" data-a="researchResumeDraft" data-id="${esc(draft.id)}"><span>${esc(draft.record.title || rw('Untitled draft', 'Черновик без названия'))}</span><span class="hint">${esc(researchKind(draft.record.kind))}</span></button>`).join('')}</div></details>`;
+}
 export function researchHtml() {
   const m = state();
   const requested = S.ui.params.researchId || '';
@@ -937,9 +1243,14 @@ export function researchHtml() {
   }
   if (!m.rows && !m.loading && !m.error) void loadResearch(m);
   if (!m.catalog && m.loading) return `<div class="research-page" role="status">${rw('Loading research…', 'Загружаем исследования…')}</div>`;
-  const recovery = m.unsent
-    ? `<div class="research-error" role="status"><span>${rw('A previous save needs confirmation. The exact operation is kept on this device.', 'Предыдущее сохранение требует подтверждения. Исходная операция сохранена на этом устройстве.')}</span><button class="btn btn-secondary" data-a="researchRecover" ${m.pending ? 'disabled' : ''}>${rw('Check and resume save', 'Проверить и завершить')}</button></div>`
-    : '';
+  const operations = m.catalog ? pendingResearchCommands(getActiveWorkspace(), m.catalog.actorId, m.project) : [];
+  m.unsent = operations[0] || null;
+  const recovery = operations
+    .map(
+      command =>
+        `<div class="research-error" role="status"><strong>${esc(command.record?.title || researchKind(command.record?.kind || 'experiment'))}</strong><span>${rw('A previous save needs confirmation. The exact operation is kept on this device.', 'Предыдущее сохранение требует подтверждения. Исходная операция сохранена на этом устройстве.')}</span><button class="btn btn-secondary" data-a="researchRecover" data-operation="${esc(command.operationId)}" ${m.pending ? 'disabled' : ''}>${rw('Check and resume save', 'Проверить и завершить')}</button></div>`,
+    )
+    .join('');
   const error = m.error
     ? `<div class="research-error" role="alert">${esc(m.error)}<button class="btn btn-secondary" data-a="researchRefresh">${rw('Retry', 'Повторить')}</button></div>`
     : '';
@@ -948,10 +1259,10 @@ export function researchHtml() {
     return `<section class="research-page research-empty" translate="no"><h2>${rw('Research journal', 'Журнал исследований')}</h2><p>${rw('Keep hypotheses, runs, evidence and decisions together in this project.', 'Соберите гипотезы, запуски, доказательства и решения в этом проекте.')}</p>${m.catalog.canConfigure ? `<button class="btn btn-primary" data-a="researchEnable" ${m.pending ? 'disabled' : ''}>${rw('Enable research for this project', 'Включить исследования для проекта')}</button>` : `<p>${rw('Ask the project owner to enable the journal.', 'Попросите руководителя проекта включить журнал.')}</p>`}${error}</section>`;
   if (requested) {
     if (m.selected?.id === requested)
-      return `<section class="research-page" translate="no">${recovery}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
+      return `<section class="research-page" translate="no">${recovery}${researchDrafts(m)}${error}${details(m.selected, m.catalog.canEdit)}</section>`;
     return `<section class="research-page" translate="no">${recovery}<button class="btn btn-ghost" data-a="researchBack">${rw('All research', 'Все исследования')}</button>${m.recordError?.id === requested ? `<div class="research-error" role="alert">${esc(m.recordError.message)}<button class="btn btn-secondary" data-a="researchRefresh">${rw('Retry', 'Повторить')}</button></div>` : `<p role="status">${rw('Loading record…', 'Загружаем запись…')}</p>`}</section>`;
   }
-  return `<section class="research-page" translate="no">${recovery}<header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
+  return `<section class="research-page" translate="no">${recovery}${researchDrafts(m)}<header class="research-toolbar"><div class="seg" role="group" aria-label="${rw('Research views', 'Представления исследований')}">${[
     ['experiments', rw('Experiments', 'Эксперименты')],
     ['journal', rw('Journal', 'Журнал')],
     ['materials', rw('Materials', 'Материалы')],

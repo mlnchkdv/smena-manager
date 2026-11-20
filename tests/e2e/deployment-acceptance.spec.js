@@ -320,6 +320,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
       await page.locator('.modal [data-a="closeModal"]').first().click();
+      if (width === 320) await page.locator('[data-a="researchCloseDraft"][data-choice="discard"]').click();
       if (width === 320 || width === 1366) {
         await page.goto('/e2e-team/files');
         await page.locator('.topsearch').click();
