@@ -202,3 +202,8 @@
     display: none;
   }
 }
+
+.home-deadline-more[open] > summary .when-closed,
+.home-deadline-more:not([open]) > summary .when-open {
+  display: none;
+}

@@ -1,4 +1,5 @@
 /* ---------- HOME ---------- */
+import { disclosureAttributes } from '../ui/disclosure.js';
 import { appLocationPath } from '../shared/app-location.js';
 import { TODAY, diffD, esc, fmtFullDate, iso, parse } from '../core/utils.js';
 import { completedWithin } from '../shared/work-list-intent.js';
@@ -52,6 +53,8 @@ export function pageHome() {
     );
     return { lab, ts };
   };
+  const deadlineRow = t =>
+    `<button type="button" class="row home-deadline-task" data-a="openTask" data-id="${t.id}"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span><span class="trunc grow" translate="no">${esc(t.title)}</span>${prIcon(t.priority, 13)}${av(t.assignee, 'sm', false)}</button>`;
   const dls = [dl('Today', 0, 0), dl('Tomorrow', 1, 1), dl('This week', 2, 7)];
   return `<div class="page home-page layout-dashboard${!cur.length ? ' home-work-empty' : ''}">
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span><span class="home-greeting-context"> · Here's what's happening across your workspace.</span></p></div>
@@ -103,17 +106,7 @@ ${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 
               .filter(g => g.ts.length)
               .map(
                 g => `<div style="margin-bottom:10px"><div class="row" style="font-size:11.5px;font-weight:600;color:var(--text-2);margin-bottom:4px">${g.lab}<span class="faint" style="font-weight:500">${g.ts.length}</span></div>
-            ${
-              g.ts.length
-                ? g.ts
-                    .slice(0, 4)
-                    .map(
-                      t =>
-                        `<button type="button" class="row home-deadline-task" data-a="openTask" data-id="${t.id}"><span class="pdot" style="--c:${pColor(proj(t.project))}"></span><span class="trunc grow" translate="no">${esc(t.title)}</span>${prIcon(t.priority, 13)}${av(t.assignee, 'sm', false)}</button>`,
-                    )
-                    .join('') + (g.ts.length > 4 ? `<div class="faint" style="font-size:11.5px;padding-left:16px">+${g.ts.length - 4} more</div>` : '')
-                : `<div class="faint" style="font-size:12.5px;padding:4px 0 2px">Nothing due</div>`
-            }</div>`,
+            ${g.ts.slice(0, 4).map(deadlineRow).join('')}${g.ts.length > 4 ? `<details class="home-deadline-more" ${disclosureAttributes('home:deadlines:' + g.lab)}><summary class="btn btn-ghost btn-sm" translate="no"><span class="when-closed">${isRussian() ? 'Показать ещё ' + (g.ts.length - 4) : 'Show ' + (g.ts.length - 4) + ' more'}</span><span class="when-open">${isRussian() ? 'Свернуть' : 'Show less'}</span></summary>${g.ts.slice(4).map(deadlineRow).join('')}</details>` : ''}</div>`,
               )
               .join('') || '<p class="hint">Nothing due</p>'
           }

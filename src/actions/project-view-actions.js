@@ -78,7 +78,7 @@ A.delView = el => {
 A.goTasks = el => {
   const { f: kind, project, assignee, status } = el.dataset;
   const projects = el.dataset.projects?.split(',').filter(id => visibleProjects().some(p => p.id === id && canSee(p)));
-  if (el.dataset.projects && !projects.length) return;
+  if (projects && !projects.length) return;
   if (project && !visibleProjects().some(p => p.id === project && canSee(p))) return;
   if (assignee && !D().members.some(m => m.id === assignee)) return;
   applyWorkListIntent(viewOf('tasks'), { kind, project, projects, assignee, status });

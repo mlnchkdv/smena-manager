@@ -647,3 +647,21 @@
     color: var(--red);
   }
 }
+
+@media (max-width: 640px) {
+  .task-check-target,
+  .mini-complete-target {
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  :is(.task-check-target, .mini-complete-target) > .check::before {
+    content: '';
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
