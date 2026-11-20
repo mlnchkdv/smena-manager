@@ -727,3 +727,7 @@
     row-gap: 4px;
   }
 }
+
+.knowledge-query-chips .excess-condition {
+  border-color: var(--red);
+}

@@ -27,15 +27,12 @@ export function knowledgeQueryContext(folder, label) {
   };
   return `<section class="knowledge-query-context" aria-label="${kc('Search scope', 'Область поиска')}" translate="no"><div class="knowledge-query-scope"><span>${kc('Search scope', 'Область поиска')}:</span><strong>${esc(label)}</strong>${folder !== 'all' ? `<button class="ibtn" data-a="clearKnowledgeScope" aria-label="${kc('Search all folders', 'Искать во всех папках')}" title="${kc('Search all folders', 'Искать во всех папках')}">${ic('x', 13)}</button>` : ''}</div>${collection ? `<p class="hint">${kc('Collection', 'Подборка')}: ${esc(collection.name)}${collection.query !== S.ui.knowledgeQuery ? ` · ${kc('Modified query', 'Запрос изменён')}` : ''}<button class="ibtn" data-a="clearKnowledgeCollection" aria-label="${kc('Clear collection context', 'Убрать контекст подборки')}">${ic('x', 12)}</button></p>` : ''}${
     tokens.length
-      ? `<details ${knowledgeDisclosure('catalog', 'query-conditions')}><summary>${kc('Conditions', 'Условия')} · ${Math.min(16, tokens.length)} · ${kc('all must match', 'должны совпасть все')}</summary><div class="knowledge-query-chips">${tokens
-          .slice(0, 16)
+      ? `<details ${knowledgeDisclosure('catalog', 'query-conditions')}><summary>${kc('Conditions', 'Условия')} · ${tokens.length} · ${tokens.length > 16 ? kc('limit: 16', 'максимум 16') : kc('all must match', 'должны совпасть все')}</summary><div class="knowledge-query-chips">${tokens
           .map(
             token =>
-              `<button data-a="removeKnowledgeQueryToken" data-index="${token.index}" title="${esc(token.raw)}" aria-label="${esc(kc('Remove condition', 'Убрать условие') + ': ' + name(token))}"><span>${esc(name(token))}</span>${ic('x', 12)}</button>`,
+              `<button class="${token.index >= 16 ? 'excess-condition' : ''}" data-a="removeKnowledgeQueryToken" data-index="${token.index}" title="${esc(token.raw)}" aria-label="${esc(kc('Remove condition', 'Убрать условие') + ': ' + name(token))}"><span>${token.index >= 16 ? kc('Extra condition', 'Лишнее условие') + ' · ' : ''}${esc(name(token))}</span>${ic('x', 12)}</button>`,
           )
-          .join(
-            '',
-          )}</div>${tokens.length > 16 ? `<p class="hint">${kc('Only the first 16 conditions are applied.', 'Применяются только первые 16 условий.')}</p>` : ''}</details>`
+          .join('')}</div></details>`
       : ''
   }</section>`;
 }

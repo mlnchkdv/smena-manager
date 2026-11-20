@@ -66,7 +66,10 @@ export function searchAll(query, options = {}) {
       if (options.totals) options.totals.research = value.data.total;
       if (options.offsets) options.offsets.research = value.data.offset;
     }
-  } else research.clear();
+  } else {
+    research.clear();
+    result.researchStatus = query.length > 500 ? 'too-long' : 'local';
+  }
   if (fileCatalogInfo()?.mode === 'demand') {
     if (!clean) {
       files.clear();

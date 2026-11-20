@@ -41,7 +41,7 @@ import { KNOWLEDGE_FILE_ACCEPT } from '../shared/knowledge-import.js';
 import { createKnowledgeFolderIndex, knowledgeFolderRows } from '../shared/knowledge-folder-index.js';
 import { knowledgeFolderCards } from '../ui/knowledge-folder-cards.js';
 import { knowledgeDisclosure } from '../ui/knowledge-disclosure.js';
-import { knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
+import { tokenizeKnowledgeQuery, knowledgeQueryErrorMessage } from '../shared/knowledge-query.js';
 import { DEFAULT_KNOWLEDGE_PANE_WIDTH, knowledgeFolderOverlay } from '../shared/knowledge-layout.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 
@@ -204,7 +204,11 @@ export function pageKnowledge() {
   const titleCounts = new Map();
   for (const note of notes) titleCounts.set(note.title, (titleCounts.get(note.title) || 0) + 1);
   const searchStatus = indexed?.syntaxError
-    ? knowledgeQueryErrorMessage(indexed.syntaxError, isRussian() ? 'ru' : 'en')
+    ? indexed.syntaxError === 'too_many_terms'
+      ? isRussian()
+        ? `В запросе ${tokenizeKnowledgeQuery(S.ui.knowledgeQuery).tokens.length} условий, максимум 16. Удалите лишние условия.`
+        : `Your query has ${tokenizeKnowledgeQuery(S.ui.knowledgeQuery).tokens.length} conditions. Remove extra conditions to reach the limit of 16.`
+      : knowledgeQueryErrorMessage(indexed.syntaxError, isRussian() ? 'ru' : 'en')
     : indexed?.pending
       ? 'Searching knowledge…'
       : indexed?.error

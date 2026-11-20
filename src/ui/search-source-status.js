@@ -20,21 +20,25 @@ export function sourceSearchStatus(result, scope = 'all') {
       const value = result[status],
         ru = isRussian();
       const text =
-        key === 'files' && result.fileErrorCode === 'INVALID_SEARCH'
+        value === 'too-long'
           ? ru
-            ? 'Для поиска файлов используйте не более 500 символов.'
-            : 'Use up to 500 characters for file search.'
-          : value === 'error'
+            ? 'Сократите запрос до 500 символов для поиска по исследованиям.'
+            : 'Shorten your query to 500 characters to search research records.'
+          : key === 'files' && result.fileErrorCode === 'INVALID_SEARCH'
             ? ru
-              ? 'Поиск недоступен. Обновите данные и повторите.'
-              : 'Search unavailable. Refresh data and retry.'
-            : value === 'local'
+              ? 'Для поиска файлов используйте не более 500 символов.'
+              : 'Use up to 500 characters for file search.'
+            : value === 'error'
               ? ru
-                ? 'Поиск только в загруженных материалах.'
-                : 'Search covers downloaded materials only.'
-              : ru
-                ? 'Поиск в полном каталоге…'
-                : 'Searching the complete catalog…';
+                ? 'Поиск недоступен. Обновите данные и повторите.'
+                : 'Search unavailable. Refresh data and retry.'
+              : value === 'local'
+                ? ru
+                  ? 'Поиск только в загруженных материалах.'
+                  : 'Search covers downloaded materials only.'
+                : ru
+                  ? 'Поиск в полном каталоге…'
+                  : 'Searching the complete catalog…';
       return `<p class="hint search-result-status" role="${value === 'error' ? 'alert' : 'status'}" translate="no"><strong>${esc(t(label))}</strong> · ${text}${value === 'error' ? ` <button class="btn btn-ghost btn-sm" data-a="retryRemoteSearchSources">${ru ? 'Обновить и повторить' : 'Refresh and retry'}</button>` : ''}</p>`;
     })
     .join('');
