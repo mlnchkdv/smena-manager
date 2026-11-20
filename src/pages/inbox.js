@@ -206,7 +206,7 @@ export function inboxPreview(n) {
       ${context.start ? history(Math.max(0, context.start - 8), context.end, isRussian() ? 'Предыдущие сообщения' : 'Earlier messages') : ''}
       ${context.items.map(c => `<section class="inbox-comment ${c.id === context.target ? 'is-target' : ''}" ${c.id === context.target ? `aria-label="${isRussian() ? 'Сообщение из уведомления' : 'Message from notification'}"` : ''}>${commentHtml(c)}</section>`).join('')}
       ${context.end < context.total ? history(context.start, Math.min(context.total, context.end + 8), isRussian() ? 'Следующие сообщения' : 'Later messages') : ''}
-      <div style="margin-top:10px;position:relative"><div class="cbox"><textarea id="inbox-reply" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Reply… use @ to mention" aria-label="Reply">${esc(S.ui.drafts[t.id] || '')}</textarea>
+      <div style="margin-top:10px;position:relative"><div class="cbox"><textarea id="inbox-reply" data-in="draft" data-id="${t.id}" data-key-mod-enter="postComment" placeholder="Reply… use @ to mention" aria-label="Reply">${esc(deviceDraft('comment', t.id)?.text || '')}</textarea>
       <div class="row"><button class="ibtn ibtn-xs" data-a="insertAt" data-id="${t.id}" data-tip="Mention someone" aria-label="Mention">${ic('at-sign', 14)}</button><span class="sp"></span><span class="faint" style="font-size:11.5px">${MOD}+Enter to send</span><button class="btn btn-primary btn-sm" data-a="postComment" data-id="${t.id}">Reply</button></div></div>${mentionPicker(t.id)}</div>
     </div>`;
 }
