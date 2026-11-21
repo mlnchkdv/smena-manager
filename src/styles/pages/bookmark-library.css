@@ -300,3 +300,39 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+@media (max-width: 640px) {
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 56px;
+    gap: 8px 12px;
+    align-content: start;
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-card > * {
+    grid-column: 1/-1;
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-card-top {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-thumbnail {
+    grid-column: 2;
+    grid-row: 1;
+    width: 56px;
+    height: 56px;
+    min-height: 0;
+    margin: 0;
+    border-radius: var(--r);
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-thumbnail-fallback {
+    padding: 0;
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-thumbnail-fallback small {
+    display: none;
+  }
+  .bookmark-library .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-preview-row {
+    grid-row: 2;
+    margin: 0;
+    padding: 0;
+  }
+}
