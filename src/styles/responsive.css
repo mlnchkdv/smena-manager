@@ -704,6 +704,7 @@
   .content .knowledge-main > .knowledge-content {
     padding-top: 0;
   }
+  .content .bookmark-library .bookmarks-head > div:first-child,
   .content .graph-title > h1,
   .content .teams-page .compact-page-head h1 {
     align-self: flex-start;
