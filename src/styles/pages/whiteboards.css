@@ -175,15 +175,15 @@
     flex: 1 0 320px;
     min-height: 320px;
   }
-  .whiteboard-page .project-whiteboard:not(.is-focused) > :not(.whiteboard-viewport, .whiteboard-outline, .whiteboard-board-area) {
+  .whiteboard-page .project-whiteboard:not(.is-focused) > :not(.whiteboard-stage, .whiteboard-outline, .whiteboard-board-area) {
     flex-shrink: 0;
   }
-  .whiteboard-page .project-whiteboard:not(.is-focused) > :is(.whiteboard-viewport, .whiteboard-outline, .whiteboard-board-area) {
+  .whiteboard-page .project-whiteboard:not(.is-focused) > :is(.whiteboard-stage, .whiteboard-outline, .whiteboard-board-area) {
     flex: 1;
     height: auto;
     min-height: 220px;
   }
-  .whiteboard-page .project-whiteboard:not(.is-focused) > .whiteboard-board-area > .whiteboard-viewport {
+  .whiteboard-page .project-whiteboard:not(.is-focused) > .whiteboard-board-area > .whiteboard-stage {
     height: auto;
   }
 }
@@ -445,5 +445,49 @@
 @media (max-width: 640px), (pointer: coarse) {
   .whiteboard-document-info h2 {
     padding-right: 96px;
+  }
+}
+
+.whiteboard-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.whiteboard-stage > .whiteboard-viewport {
+  flex: 1 0 auto;
+}
+.whiteboard-page .is-focused > .whiteboard-stage {
+  flex: 1;
+  min-height: 0;
+}
+@media (min-width: 901px) and (min-height: 501px) {
+  .whiteboard-page .whiteboard-stage > .whiteboard-viewport {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
+}
+@media (max-width: 640px) {
+  .whiteboard-stage > .whiteboard-navigation {
+    position: static;
+    flex: 0 0 auto;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px;
+    border: 0;
+    border-top: 1px solid var(--divider);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .whiteboard-page .project-whiteboard:not(.is-focused) .whiteboard-viewport {
+    height: clamp(180px, calc(100dvh - 236px), 750px);
+  }
+  .project-whiteboard[data-has-selection='true'] .whiteboard-toolbar > :is(.whiteboard-add, .whiteboard-count) {
+    display: none;
+  }
+  .project-whiteboard[data-has-selection='true'] .whiteboard-toolbar {
+    padding-block: 2px;
   }
 }
