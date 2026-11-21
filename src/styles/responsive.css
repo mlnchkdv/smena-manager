@@ -681,3 +681,21 @@
     scroll-padding-block: 8px;
   }
 }
+
+@media (max-width: 640px) {
+  .content :is(.files-page, .bookmark-library, .whiteboards-page, .graph-page:not(.is-focused), .knowledge-main) {
+    padding-inline: var(--gutter);
+    padding-top: 16px;
+  }
+  .content .research-page {
+    padding-inline: var(--gutter);
+  }
+  .content :is(.files-page-head, .whiteboards-heading, .graph-head, .bookmark-library .ph) {
+    align-items: flex-start;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+  .content :is(.files-page-head, .whiteboards-heading, .graph-head) h1 {
+    margin-top: 0;
+  }
+}
