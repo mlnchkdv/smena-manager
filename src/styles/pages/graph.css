@@ -1191,3 +1191,37 @@
     display: inline;
   }
 }
+
+@media (max-width: 640px) {
+  .graph-page:not(.is-focused) .graph-layout.has-detail .graph-detail {
+    position: fixed;
+    z-index: 8;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--bottom-nav-height, 64px) + 6px);
+    background: var(--surface);
+    min-height: 0;
+    max-height: 45dvh;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 8px 12px;
+  }
+  .graph-page:not(.is-focused) .graph-detail:not(.is-expanded) > :not(.graph-detail-primary),
+  .graph-page:not(.is-focused) .graph-detail:not(.is-expanded) .graph-detail-actions > :not([data-a='openRelatedEntity']) {
+    display: none;
+  }
+  .graph-page:not(.is-focused) .graph-detail-primary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 0;
+  }
+  .graph-page:not(.is-focused) .graph-detail-head {
+    grid-column: 1/-1;
+  }
+  .graph-page:not(.is-focused) .graph-detail h2 {
+    margin: 0;
+  }
+}

@@ -87,9 +87,11 @@ A.toggleGraphInteraction = () => {
   render();
 };
 A.clearGraphSelection = () => {
+  const key = S.ui.graphSelected;
   S.ui.graphSelected = '';
   S.ui.graphSelectionClosed = true;
   render();
+  if (key && S.ui.graphView === 'list') requestAnimationFrame(() => document.querySelector(`.graph-list-item[data-key="${CSS.escape(key)}"]`)?.focus());
 };
 A.toggleGraphSimple = () => {
   S.prefs.graphSimple = !S.prefs.graphSimple;
