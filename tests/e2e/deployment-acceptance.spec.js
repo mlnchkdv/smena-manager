@@ -221,6 +221,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
     (await page.request.post(researchRoot + '/commands', { data: { operationId: crypto.randomUUID(), action: 'enable', enabled: true } })).ok(),
   ).toBeTruthy();
   await page.goto(`/e2e-team/project/${researchProject}/research`);
+  await page.locator('.research-create > summary').click();
   await page.locator('[data-a="researchNew"][data-kind="observation"]').click();
   await page.locator('[data-in="researchField"][data-field="title"]').fill('CI research uncertain recovery');
   await page.locator('[data-in="researchField"][data-field="body"]').fill('Synthetic research journal / Служебный журнал. No scientific result.');
@@ -260,6 +261,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
   // A user may close a saving form and continue working. A late response must
   // stay with its original project instead of reopening a reader on another page.
   await page.locator('[data-a="researchBack"]').click();
+  await page.locator('.research-create > summary').click();
   await page.locator('[data-a="researchNew"][data-kind="observation"]').click();
   await page.locator('[data-in="researchField"][data-field="title"]').fill('CI research late response');
   await page.locator('[data-in="researchField"][data-field="body"]').fill('Synthetic late-response acceptance.');

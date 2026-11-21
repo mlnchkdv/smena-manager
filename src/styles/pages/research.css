@@ -280,3 +280,16 @@
   max-height: 12rem;
   overflow: auto;
 }
+
+.research-search {
+  align-items: center;
+}
+.research-list-menu {
+  flex: none;
+}
+.research-toolbar .research-create {
+  justify-self: start;
+}
+.research-scope:empty {
+  display: none;
+}
