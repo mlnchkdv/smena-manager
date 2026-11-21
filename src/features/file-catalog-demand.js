@@ -84,7 +84,8 @@ export function demandFilePage(options) {
         const session = getSessionGeneration();
         await readCatalogWithRevisionRefresh(
           async () => {
-            const page = await queryFileCatalog({ ...options, revision: S.ui.workspaceRevision });
+            const fence = options.offset ? { revision: S.ui.workspaceRevision } : { snapshot: 'latest' };
+            const page = await queryFileCatalog({ ...options, ...fence });
             if (session !== getSessionGeneration()) return;
             const ids = [
               ...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)]),

@@ -26,7 +26,10 @@ export function catalogQuery(database, user, options = {}) {
     countFolders = [],
     countsOnly = false,
   } = options;
-  if (revision !== database.revision)
+  // A new results list can start at the current snapshot. Counts and later
+  // pages still have to match the snapshot their caller is displaying.
+  const startAtLatest = options.snapshot === 'latest' && revision === undefined && offset === 0 && !countsOnly;
+  if (!startAtLatest && revision !== database.revision)
     throw Object.assign(new Error('The workspace changed after it was loaded. Refresh and retry.'), {
       statusCode: 409,
       code: 'REVISION_CONFLICT',
@@ -69,7 +72,7 @@ export function catalogQuery(database, user, options = {}) {
   const pages = Math.max(1, Math.ceil(results.length / limit));
   const page = Math.min(Math.floor(offset / limit), pages - 1);
   return structuredClone({
-    revision,
+    revision: database.revision,
     files: results.slice(page * limit, (page + 1) * limit).map(file => ({ id: file.id })),
     page,
     pages,

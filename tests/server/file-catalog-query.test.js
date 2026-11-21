@@ -49,6 +49,11 @@ test('query returns a bounded page, exact counts and no private identities, incl
     false,
   );
   assert.equal(catalogQuery(db, user, { revision: 7, project: 'secret' }).total, 0);
+  const latest = catalogQuery(db, user, { snapshot: 'latest', limit: 25 });
+  assert.equal(latest.revision, db.revision);
+  assert.equal(latest.total, page.total);
+  for (const extra of [{ offset: 25 }, { countsOnly: true }, { revision: 6 }])
+    assert.throws(() => catalogQuery(db, user, { snapshot: 'latest', ...extra }), { code: 'REVISION_CONFLICT' });
   const found = catalogQuery(db, user, { revision: 7, query: 'файл 1099', limit: 25 });
   assert.deepEqual(found.resultIds, ['f1099']);
   assert.equal(catalogQuery(db, user, { revision: 7, context: 'public' }).total, 1100);
