@@ -55,6 +55,7 @@ test('permission reference reflects source restrictions and has no unsupported b
   const context = {
     S,
     D: () => data,
+    isRussian: () => false,
     ROLES: ['Owner', 'Admin', 'Member', 'Guest'],
     workspaceRoleLabel: value => (value === 'Admin' ? 'Administrator' : value),
     esc: value => value,
@@ -68,11 +69,13 @@ test('permission reference reflects source restrictions and has no unsupported b
       .match(/aria-label="(Allowed|Not allowed)"/g);
   let html = context.permsTable();
   assert.doesNotMatch(html, /Billing|Delete workspace/);
-  assert.match(html, /<th scope="col">Administrator<\/th>/);
+  assert.match(html, /<th scope="col" class="other-role">Administrator<\/th>/);
   assert.equal(cells(html, 'Comment on tasks').at(-1), 'aria-label="Not allowed"');
   assert.equal(cells(html, 'Create projects')[2], 'aria-label="Not allowed"');
   assert.equal(cells(html, 'Archive this workspace').filter(cell => cell === 'aria-label="Allowed"').length, 0);
   assert.equal(cells(html, 'Clear workspace content').filter(cell => cell === 'aria-label="Allowed"').length, 2);
+  S.ui.permissionsRole = 'Admin';
+  assert.match(context.permsTable(), /<th scope="col" class="">Administrator<\/th>/);
   S.ui.activeWorkspace = 'owned';
   data.ws.permissions.createProjects = true;
   html = context.permsTable();
