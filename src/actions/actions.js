@@ -1642,6 +1642,10 @@ A.knowledgeStorageInspection = async () => {
 
 A.newWhiteboard = async el => (await import('../features/whiteboards.js')).newWhiteboard(el);
 
+IN.permissionsRole = el => {
+  S.ui.permissionsRole = el.value;
+  render();
+};
 IN.memberRoleFilter = el => {
   if (['all', 'Owner', 'Admin', 'Member', 'Guest'].includes(el.value)) {
     S.ui.memRole = el.value;

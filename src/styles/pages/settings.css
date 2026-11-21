@@ -962,3 +962,25 @@
 .team-task-pagination > span {
   margin-right: auto;
 }
+
+.permission-role-picker {
+  display: none;
+}
+@media (max-width: 640px) {
+  .permission-role-picker {
+    display: grid;
+    gap: 4px;
+    margin-block: 12px;
+  }
+  .permission-matrix .perm-t {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .permission-matrix .other-role {
+    display: none;
+  }
+  .permission-matrix th:first-child {
+    width: 65%;
+    overflow-wrap: anywhere;
+  }
+}

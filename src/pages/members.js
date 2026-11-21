@@ -101,14 +101,15 @@ export function permsTable() {
     ['Archive this workspace', archivable, archivable, 0, 0],
     ['Clear workspace content', 1, 1, 0, 0],
   ];
-  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details><div class="panel" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col">${esc(workspaceRoleLabel(r))}</th>`).join('')}</tr></thead><tbody>${rows
+  const selectedRole = ROLES.includes(S.ui.permissionsRole) ? S.ui.permissionsRole : 'Member';
+  return `<p class="muted">Permissions apply to the current workspace. Project visibility, commenting and editing also depend on project access.</p><details class="permission-notes"><summary>About workspace roles</summary><p class="hint">Creating a workspace makes you its owner; it does not change your role here. Guests have read-only project access.</p>${!archivable ? '<p class="hint">The original workspace cannot be archived.</p>' : ''}<p class="hint">Clearing content retains the workspace identity and member access. Archiving retains its content.</p></details><label class="permission-role-picker"><span>${isRussian() ? 'Роль' : 'Role'}</span><select class="select" data-in="permissionsRole">${ROLES.map(role => `<option value="${role}" ${role === selectedRole ? 'selected' : ''}>${esc(workspaceRoleLabel(role))}</option>`).join('')}</select></label><div class="panel permission-matrix" style="overflow-x:auto" role="region" aria-label="Role permissions" tabindex="0"><table class="perm-t" style="min-width:560px"><caption class="sr">Roles in the current workspace</caption><thead><tr><th scope="col" style="padding-left:14px">Permission</th>${ROLES.map(r => `<th scope="col" class="${r === selectedRole ? '' : 'other-role'}">${esc(workspaceRoleLabel(r))}</th>`).join('')}</tr></thead><tbody>${rows
     .map(
       r =>
         `<tr><th scope="row" style="padding-left:14px;text-align:left;font-weight:400">${r[0]}</th>${r
           .slice(1)
           .map(
-            v =>
-              `<td>${v ? `<span role="img" style="color:var(--green);display:inline-flex" aria-label="Allowed">${ic('check', 15)}</span>` : `<span role="img" class="faint" style="display:inline-flex" aria-label="Not allowed">${ic('minus', 15)}</span>`}</td>`,
+            (v, i) =>
+              `<td class="${ROLES[i] === selectedRole ? '' : 'other-role'}">${v ? `<span role="img" style="color:var(--green);display:inline-flex" aria-label="Allowed">${ic('check', 15)}</span>` : `<span role="img" class="faint" style="display:inline-flex" aria-label="Not allowed">${ic('minus', 15)}</span>`}</td>`,
           )
           .join('')}</tr>`,
     )
