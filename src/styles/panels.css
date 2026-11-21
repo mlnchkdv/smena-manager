@@ -456,3 +456,18 @@
   min-height: 0;
   padding-block: 24px;
 }
+
+.home-tab-short {
+  display: none;
+}
+@media (max-width: 480px) {
+  .home-tab-long {
+    display: none;
+  }
+  .home-tab-short {
+    display: inline;
+  }
+  .home-task-tabs .home-task-tab-label {
+    overflow-wrap: normal;
+  }
+}

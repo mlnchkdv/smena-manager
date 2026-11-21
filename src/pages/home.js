@@ -77,7 +77,7 @@ export function pageHome() {
             ]
               .map(
                 ([k, n]) =>
-                  `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}"><span class="home-task-tab-label">${n}</span><span class="faint num">${lists[k].length}</span></button>`,
+                  `<button role="tab" class="${tab === k ? 'on' : ''}" data-a="set" data-k="homeTab" data-v="${k}" ${k === 'upcoming' ? `aria-label="${isRussian() ? 'Предстоящие' : 'Upcoming'} · ${lists[k].length}"` : ''}><span class="home-task-tab-label">${k === 'upcoming' ? `<span class="home-tab-long">${n}</span><span class="home-tab-short" translate="no">${isRussian() ? 'Скоро' : 'Soon'}</span>` : n}</span><span class="faint num">${lists[k].length}</span></button>`,
               )
               .join('')}</div>
             <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="${personal ? 'mytasks' : 'tasks'}" data-tip="${personal ? 'Open My Tasks' : 'Tasks'}" aria-label="${personal ? 'Open My Tasks' : 'Tasks'}">${ic('arrow-up-right', 15)}</button></div></div>
