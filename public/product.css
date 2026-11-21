@@ -1439,3 +1439,13 @@ dd {
     margin-block: 12px;
   }
 }
+
+@media (max-width: 360px) {
+  .site-header {
+    padding-inline: 4px;
+    gap: 2px;
+  }
+  .site-header .header-actions {
+    gap: 2px;
+  }
+}
