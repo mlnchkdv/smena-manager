@@ -200,7 +200,8 @@ app.use('/api/public', anonymousPublicLinksRouter);
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
-    response.json({ workspaces: await listUserWorkspaces(request.user, request.configuredProfiles) });
+    const workspaces = await listUserWorkspaces(request.user, request.configuredProfiles, request.workspaceSnapshot);
+    response.json(request.query.session === '1' ? { user: request.user, workspaces } : { workspaces });
   } catch (error) {
     next(error);
   }

@@ -63,10 +63,10 @@ authRouter.get('/config', async (request, response) => {
   let workspaceStorageAvailable = false;
   try {
     configuredProfiles = getAccessProfiles().filter(profile => profile.active);
-    const database = await getWorkspaceDatabase({ catalog: 'metadata' }).catch(() => null);
+    const database = await getWorkspaceDatabase({ fields: ['members', '_workspaceDirectory'] }).catch(() => null);
     workspaceStorageAvailable = Boolean(database);
     profiles = database
-      ? await directoryLoginProfiles(configuredProfiles)
+      ? await directoryLoginProfiles(configuredProfiles, database)
       : mergeAccessProfiles(configuredProfiles, database).filter(profile => profile.active);
     profileCount = configuredProfiles.length;
   } catch (error) {

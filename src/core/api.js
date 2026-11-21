@@ -237,6 +237,12 @@ export async function loginWithGoogle(credential) {
   return result.user;
 }
 
+export async function getSessionDirectory(options = {}) {
+  const result = await request('/api/workspaces?session=1', options, true);
+  sessionAccount = result.user.id;
+  return result;
+}
+
 export async function getCurrentUser(options = {}) {
   const result = await request('/api/auth/me', options, true);
   sessionAccount = result.user?.id || '';

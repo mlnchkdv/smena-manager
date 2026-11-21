@@ -20,6 +20,10 @@ const coreFields = ['ws', 'members', 'revision', 'updatedAt', '_documentRevision
 const forbidden = () => Object.assign(new Error('You do not have access to this workspace.'), { statusCode: 403, code: 'WORKSPACE_FORBIDDEN' });
 export async function workspaceDirectoryEntries({ includeArchived = false } = {}) {
   const root = await inWorkspace('default', () => getWorkspaceDatabase({ fields: ['_workspaceDirectory'] }));
+  return directoryEntries(root, includeArchived);
+}
+
+function directoryEntries(root, includeArchived) {
   return (root._workspaceDirectory || []).filter(
     entry => entry?.id && entry?.url && !['provisioning', 'failed'].includes(entry.state) && (includeArchived || entry.state !== 'archived'),
   );
@@ -38,11 +42,12 @@ export function workspaceUser(data, identity, { legacy = false, configured = [] 
   throw forbidden();
 }
 
-export async function listUserWorkspaces(identity, configured = []) {
-  const entries = [{ id: 'default' }, ...(await workspaceDirectoryEntries({ includeArchived: true }))];
+export async function listUserWorkspaces(identity, configured = [], root) {
+  root ??= await inWorkspace('default', () => getWorkspaceDatabase({ fields: [...coreFields, '_workspaceDirectory'] }));
+  const entries = [{ id: 'default' }, ...directoryEntries(root, true)];
   const visible = await Promise.all(
     entries.map(async entry => {
-      const data = await readWorkspaceCore(entry.id);
+      const data = entry.id === 'default' ? root : await readWorkspaceCore(entry.id);
       let user;
       try {
         user = workspaceUser(data, identity, { legacy: entry.id === 'default', configured });
@@ -65,11 +70,11 @@ export async function listUserWorkspaces(identity, configured = []) {
   return visible.filter(Boolean);
 }
 
-export async function directoryLoginProfiles(configured) {
-  const root = await readWorkspaceCore('default');
+export async function directoryLoginProfiles(configured, root) {
+  root ??= await inWorkspace('default', () => getWorkspaceDatabase({ fields: ['members', '_workspaceDirectory'] }));
   const profiles = mergeAccessProfiles(configured, root);
   const emails = new Set(profiles.map(profile => profile.email));
-  for (const entry of await workspaceDirectoryEntries({ includeArchived: true })) {
+  for (const entry of directoryEntries(root, true)) {
     const data = await readWorkspaceCore(entry.id);
     for (const profile of workspaceAccessProfiles(data)) {
       if (emails.has(profile.email)) continue;

@@ -198,9 +198,11 @@ export async function requireAuth(request, response, next) {
   }
   try {
     let profile = result.profile;
-    const database = await getWorkspaceDatabase({ fields: ['members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs', '_workspaceDirectory'] });
+    const database = await getWorkspaceDatabase({
+      fields: ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs', '_workspaceDirectory'],
+    });
     if (result.dynamic) {
-      const profiles = await directoryLoginProfiles(getAccessProfiles());
+      const profiles = await directoryLoginProfiles(getAccessProfiles(), database);
       profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
       if (!profile && !(await listUserWorkspaces(result.profile, getAccessProfiles())).length) {
         response.status(401).json({ error: 'Account is unavailable.' });

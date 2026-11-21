@@ -2,6 +2,7 @@ import { resetSearchSession } from './search-history.js';
 import {
   clearSession,
   getAuthConfig,
+  getSessionDirectory,
   getCurrentUser,
   getPersonalPreferences,
   getFileUploadPolicy,
@@ -79,9 +80,9 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
   configureWorkspaceSync(S.ui.workspaceRevision, S.ui.currentUser?.role, data, resolvedDocuments, draftContext(S.ui.currentUser, data));
 }
 
-async function loadWorkspaceFor(user, phase = () => {}) {
+async function loadWorkspaceFor(user, phase = () => {}, directory) {
   phase('directory');
-  await selectInitialWorkspace(user, { read: bootstrapRead });
+  await selectInitialWorkspace(user, { read: bootstrapRead, directory });
   const generation = getSessionGeneration();
   phase('workspace');
   const [workspaceUser, resources] = await Promise.all([
@@ -185,13 +186,13 @@ async function restoreSession(phase) {
   phase('config');
   const cookieOnly = !getSessionToken();
   try {
-    const [config, user] = await Promise.all([
+    const [config, session] = await Promise.all([
       bootstrapRead(signal => getAuthConfig({ signal })),
       (async () => {
         phase('session');
         if (!cookieOnly) await migrateLegacySessionCookie();
         try {
-          return await bootstrapRead(signal => getCurrentUser({ allowCookieOnly: cookieOnly, signal }));
+          return await bootstrapRead(signal => getSessionDirectory({ allowCookieOnly: cookieOnly, signal }));
         } catch (error) {
           if (cookieOnly && error.status === 401) return null;
           throw error;
@@ -199,9 +200,9 @@ async function restoreSession(phase) {
       })(),
     ]);
     S.ui.authConfig = config;
-    if (!user) return null;
+    if (!session) return null;
     if (cookieOnly) setSessionToken('cookie');
-    return await loadWorkspaceFor(user, phase);
+    return await loadWorkspaceFor(session.user, phase, session.workspaces);
   } catch (error) {
     if (!cookieOnly && error.status === 401) clearSession();
     throw error;
