@@ -358,3 +358,21 @@
     min-width: 0;
   }
 }
+
+@media (max-width: 480px) {
+  .work-risk-strip {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .work-risk-strip > .btn {
+    height: auto;
+    min-height: 44px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+  }
+  .work-risk-strip > .btn b {
+    line-height: 1.2;
+  }
+}
