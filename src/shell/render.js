@@ -144,6 +144,7 @@ export function focusKey(el) {
   const parts = FKEYS.filter(k => d[k] != null).map(k => `[data-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}="${CSS.escape(d[k])}"]`);
   if (!parts.length) return null;
   const selector = el.tagName.toLowerCase() + parts.join('');
+  if (d.a === 'newProject' && el.closest('.content')) return '.content ' + selector;
   const surfaces = ['knowledge-drawer', 'drawer', 'modal', 'whiteboard-selection', 'graph-detail'];
   const surface = el.closest(surfaces.map(name => '.' + name).join(','));
   return surface && surface !== el ? `.${surfaces.find(name => surface.classList.contains(name))} ${selector}` : selector;
