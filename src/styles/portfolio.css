@@ -343,3 +343,18 @@
   color: var(--text-2);
   font-size: var(--fs-xs);
 }
+
+@media (max-width: 480px) {
+  .overview-page .ph.compact-page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .overview-page .ph.compact-page-head > .acts {
+    justify-content: flex-start;
+    width: auto;
+  }
+  .overview-page .overview-scope {
+    min-width: 0;
+  }
+}
