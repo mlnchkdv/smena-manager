@@ -44,8 +44,7 @@ export function fileDownloadProgress() {
 }
 
 export function fileSelectionBar(page, results = page, remote = null) {
-  if (!S.ui.fileSelecting)
-    return `${S.ui.fileSelectionNotice ? `<p class="hint" role="status">${t('Selection cleared because the view changed.')}</p>` : ''}${page.length ? `<button class="btn btn-secondary btn-sm" data-a="startFileSelection">${ic('list-checks', 16)}${t('Select')}</button>` : ''}`;
+  if (!S.ui.fileSelecting) return `${S.ui.fileSelectionNotice ? `<p class="hint" role="status">${t('Selection cleared because the view changed.')}</p>` : ''}`;
   const ids = S.ui.fileSelection || [];
   const files = D().files.filter(file => ids.includes(file.id));
   const pageIds = new Set(page.map(file => file.id));

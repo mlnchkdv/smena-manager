@@ -726,3 +726,17 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+
+.upload-path-summary {
+  min-width: 0;
+}
+.upload-path-summary > summary {
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upload-path-summary > span {
+  display: block;
+  overflow-wrap: anywhere;
+}

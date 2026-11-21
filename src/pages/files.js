@@ -220,7 +220,7 @@ export function pageFiles(projectId = null) {
 
 
 
-    ${uploadProject ? `<p class="file-upload-destination" translate="no">${document.documentElement.lang === 'ru' ? 'Место загрузки' : 'Upload destination'}: <strong>${esc(uploadPath)}</strong></p>` : ''}
+    ${uploadProject ? `<details class="file-upload-destination upload-path-summary" translate="no"><summary>${document.documentElement.lang === 'ru' ? 'Место загрузки' : 'Upload destination'}: <strong>${esc(currentFolder?.name || proj(uploadProject)?.name || uploadPath)}</strong></summary><span>${esc(uploadPath)}</span></details>` : ''}
     ${fileCollectionPanel()}
     ${uploadsHtml()}
     ${collectionToolbar(
@@ -264,7 +264,7 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error)}
+    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error, !S.ui.fileSelecting && window.items.length > 0)}
     ${remote?.countsError ? `<p class="hint" role="alert">${tr('File counts are unavailable.')} <button class="btn btn-ghost btn-sm" data-a="retryFileCatalog">${tr('Try again')}</button></p>` : ''}
     <section class="files-operations" aria-label="File operations">
     ${fileDownloadProgress()}
