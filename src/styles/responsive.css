@@ -665,3 +665,19 @@
     transform: translate(-50%, -50%);
   }
 }
+
+@media (pointer: coarse) and (max-height: 500px) {
+  .overview-page .work-risk-strip > button,
+  .research-form-dialog :is(input:not([type='checkbox']):not([type='radio']), select, .select-btn, textarea),
+  .research-form-dialog .modal-f button {
+    min-height: 44px;
+  }
+  .modal.research-form-dialog {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px);
+  }
+  .research-form-dialog .modal-b {
+    min-height: 0;
+    overflow-y: auto;
+    scroll-padding-block: 8px;
+  }
+}
