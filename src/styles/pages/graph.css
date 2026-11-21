@@ -1225,3 +1225,28 @@
     margin: 0;
   }
 }
+
+@media (max-width: 640px) {
+  .graph-page .graph-toolbar:has(.graph-display-trigger) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+  }
+  .graph-page .graph-toolbar .graph-search {
+    flex: 1 1 100%;
+  }
+  .graph-page .graph-toolbar .graph-display-trigger {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+  .graph-page .graph-toolbar .graph-display-trigger > span {
+    display: none;
+  }
+  .graph-page .graph-toolbar .seg {
+    display: inline-flex;
+    flex-flow: row nowrap;
+    margin-inline-start: auto;
+  }
+}
