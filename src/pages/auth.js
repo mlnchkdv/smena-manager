@@ -33,6 +33,11 @@ export function renderAuth() {
   const s = S.ui.auth;
   const e = S.ui.errors;
   if (s === 'onboarding') return renderOnboarding();
+  if (s === 'restoring' && ['workspace', 'drafts'].includes(S.ui.bootstrapStage) && location.pathname.split('/').at(-1) === 'bookmarks') {
+    return authShell(
+      `<section class="auth-card" role="status" aria-busy="true"><h1>${isRussian() ? 'Закладки' : 'Bookmarks'}</h1><p class="sub">${isRussian() ? 'Загружаем каталог…' : 'Loading bookmarks…'}</p></section>`,
+    );
+  }
   if (s === 'restoring')
     return authShell(
       `<div class="auth-card auth-card-loading" role="status" aria-live="polite">

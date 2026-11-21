@@ -35,6 +35,7 @@ import { emptyWorkspace } from '../shared/empty-workspace.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 import { DOCUMENT_NAMES, mergeWorkspaceDocuments, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { loadWorkspaceResources } from '../shared/workspace-load.js';
+import { selectInitialWorkspace } from './workspace-selection.js';
 import { bootstrapRead } from '../shared/bootstrap-read.js';
 
 const CONFLICT_RECOVERY_KEY = 'smena.recovery.conflict.v1';
@@ -80,18 +81,21 @@ export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
 
 async function loadWorkspaceFor(user, phase = () => {}) {
   phase('directory');
-  await (await import('./workspace-selection.js')).selectInitialWorkspace(user, { read: bootstrapRead });
+  await selectInitialWorkspace(user, { read: bootstrapRead });
   const generation = getSessionGeneration();
   phase('workspace');
-  user = await bootstrapRead(signal => getCurrentUser({ signal }));
-  const resources = await loadWorkspaceResources({
-    getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal })),
-    getWorkspaceDocument: name => bootstrapRead(signal => getWorkspaceDocument(name, { signal })),
-    getPersonalPreferences: () => bootstrapRead(signal => getPersonalPreferences({ signal })),
-    getFileUploadPolicy: () => bootstrapRead(signal => getFileUploadPolicy({ signal })),
-  });
-  if (generation !== getSessionGeneration())
+  const [workspaceUser, resources] = await Promise.all([
+    bootstrapRead(signal => getCurrentUser({ signal })),
+    loadWorkspaceResources({
+      getWorkspace: () => bootstrapRead(signal => getWorkspace({ signal })),
+      getWorkspaceDocument: name => bootstrapRead(signal => getWorkspaceDocument(name, { signal })),
+      getPersonalPreferences: () => bootstrapRead(signal => getPersonalPreferences({ signal })),
+      getFileUploadPolicy: () => bootstrapRead(signal => getFileUploadPolicy({ signal })),
+    }),
+  ]);
+  if (user.id !== workspaceUser.id || generation !== getSessionGeneration())
     throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
+  user = workspaceUser;
   let { snapshot } = resources;
   phase('drafts');
   const { documentSnapshots, personal, filePolicy } = resources;
@@ -166,6 +170,7 @@ async function loadWorkspaceFor(user, phase = () => {}) {
 export async function restoreSessionAndWorkspace({ onStage = () => {} } = {}) {
   let stage = 'config';
   const phase = value => {
+    performance.mark('smena:bootstrap:' + value);
     stage = value;
     onStage(value);
   };
@@ -178,27 +183,27 @@ export async function restoreSessionAndWorkspace({ onStage = () => {} } = {}) {
 }
 async function restoreSession(phase) {
   phase('config');
-  S.ui.authConfig = await bootstrapRead(signal => getAuthConfig({ signal }));
-  phase('session');
-  if (!getSessionToken()) {
-    // The local marker may be unavailable in private/in-app browser contexts,
-    // while the HttpOnly session cookie is still valid. Ask the server before
-    // showing the login screen so a reload does not sign the user out.
-    try {
-      const user = await bootstrapRead(signal => getCurrentUser({ allowCookieOnly: true, signal }));
-      setSessionToken('cookie');
-      return await loadWorkspaceFor(user, phase);
-    } catch (error) {
-      if (error.status === 401) return null;
-      throw error;
-    }
-  }
+  const cookieOnly = !getSessionToken();
   try {
-    await migrateLegacySessionCookie();
-    const user = await bootstrapRead(signal => getCurrentUser({ signal }));
+    const [config, user] = await Promise.all([
+      bootstrapRead(signal => getAuthConfig({ signal })),
+      (async () => {
+        phase('session');
+        if (!cookieOnly) await migrateLegacySessionCookie();
+        try {
+          return await bootstrapRead(signal => getCurrentUser({ allowCookieOnly: cookieOnly, signal }));
+        } catch (error) {
+          if (cookieOnly && error.status === 401) return null;
+          throw error;
+        }
+      })(),
+    ]);
+    S.ui.authConfig = config;
+    if (!user) return null;
+    if (cookieOnly) setSessionToken('cookie');
     return await loadWorkspaceFor(user, phase);
   } catch (error) {
-    if (error.status === 401) clearSession();
+    if (!cookieOnly && error.status === 401) clearSession();
     throw error;
   }
 }

@@ -436,6 +436,7 @@ window.addEventListener('popstate', event => {
   const saved = user && !S.ui.needsOnboarding ? workHistoryContext(history.state) : null;
   const work = restoreWorkContext(saved, { location: Boolean(S.ui.drawer && saved?.drawer === S.ui.drawer) });
   render();
+  if (user && !S.ui.needsOnboarding) performance.mark('smena:bootstrap:ready');
   restoreView?.();
   restoreWorkScroll(work);
   if (user && !S.ui.needsOnboarding) {
