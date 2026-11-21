@@ -1401,3 +1401,41 @@ dd {
     display: none;
   }
 }
+
+.product-nav-toggle {
+  display: none;
+}
+@media (max-width: 600px) {
+  .site-header {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .site-header .product-nav-toggle:not([hidden]) {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 20px;
+    border-radius: 8px;
+  }
+  .product-nav-toggle:not([hidden]) + nav {
+    display: none;
+  }
+  .product-nav-toggle[aria-expanded='true'] + nav {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .hero {
+    padding-top: 20px;
+  }
+  .hero .eyebrow {
+    margin-bottom: 12px;
+  }
+  .hero-lead {
+    margin-block: 12px;
+  }
+}

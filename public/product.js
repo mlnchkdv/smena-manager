@@ -657,3 +657,23 @@ for (const canvas of document.querySelectorAll('[data-product-canvas]')) {
   new ResizeObserver(fit).observe(stage);
   draw();
 }
+
+const navigationToggle = document.querySelector('.product-nav-toggle');
+if (navigationToggle) {
+  const navigation = document.getElementById(navigationToggle.getAttribute('aria-controls'));
+  navigationToggle.hidden = false;
+  const closeNavigation = () => navigationToggle.setAttribute('aria-expanded', 'false');
+  navigationToggle.addEventListener('click', () =>
+    navigationToggle.setAttribute('aria-expanded', String(navigationToggle.getAttribute('aria-expanded') !== 'true')),
+  );
+  navigation.addEventListener('click', closeNavigation);
+  document.addEventListener('pointerdown', event => {
+    if (!navigation.contains(event.target) && !navigationToggle.contains(event.target)) closeNavigation();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && navigationToggle.getAttribute('aria-expanded') === 'true') {
+      closeNavigation();
+      navigationToggle.focus();
+    }
+  });
+}

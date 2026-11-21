@@ -35,7 +35,10 @@
     <a class="skip-link" href="#main">К содержимому</a>
     <header class="site-header">
       <a class="brand" href="/product.html" aria-label="smena.team"><img src="/favicon.svg" width="36" height="36" alt="" /><span>smena.team</span></a>
-      <nav aria-label="Навигация по странице">
+      <button hidden class="product-nav-toggle" type="button" aria-controls="product-navigation" aria-expanded="false" aria-label="Навигация">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="product-navigation" aria-label="Навигация по странице">
         <a href="#features">Возможности</a><a href="#workflow">Как это работает</a><a href="#start">Начать работу</a>
       </nav>
       <div class="header-actions">
@@ -50,9 +53,7 @@
           smena.team <span aria-hidden="true">/</span> <a href="https://smena.agency" target="_blank" rel="noopener noreferrer">Продукт smena.agency</a>
         </p>
         <h1>От первой идеи<br />до общего результата.</h1>
-        <p class="hero-lead">
-          Проекты, знания и материалы рядом. smena.team помогает команде планировать работу, сохранять контекст и превращать идеи в понятные действия.
-        </p>
+        <p class="hero-lead">Планируйте проекты, ведите заметки и собирайте материалы в одном пространстве команды.</p>
         <div class="cta-row">
           <a class="button primary" href="#demo">Посмотреть демо<span aria-hidden="true">↗</span></a
           ><a
