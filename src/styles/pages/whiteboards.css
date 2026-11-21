@@ -471,13 +471,14 @@
 }
 @media (max-width: 640px) {
   .whiteboard-stage > .whiteboard-navigation {
+    order: -1;
     position: static;
     flex: 0 0 auto;
     justify-content: center;
     gap: 4px;
     padding: 2px;
     border: 0;
-    border-top: 1px solid var(--divider);
+    border-bottom: 1px solid var(--divider);
     border-radius: 0;
     box-shadow: none;
   }
