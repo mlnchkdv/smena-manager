@@ -183,7 +183,7 @@ export function projectModal(m, H) {
   <form class="modal-b" data-submit="submitProject">
     <div class="row" style="gap:10px;align-items:flex-start">
       <span class="project-appearance-preview" aria-hidden="true">${pIcon(f, 'lg', 18)}</span>
-      <div class="field grow"><label class="label" for="p-name">Project name</label><input class="input ${err ? 'is-error' : ''}" id="p-name" data-in="pform" data-f="name" value="${esc(f.name)}" placeholder="e.g. Website Redesign" autofocus aria-invalid="${!!err}">${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
+      <div class="field grow"><label class="label" for="p-name">Project name</label><input class="input ${err ? 'is-error' : ''}" id="p-name" data-in="pform" data-f="name" value="${esc(f.name)}" placeholder="e.g. Website Redesign" autofocus aria-invalid="${!!err}" ${err ? 'aria-describedby="project-name-error"' : ''}>${err ? `<span class="err" id="project-name-error">${ic('circle-alert', 12)}${err}</span>` : ''}</div>
     </div>
     <div class="field"><label class="label" for="p-desc">Description</label><textarea class="textarea" id="p-desc" data-in="pform" data-f="desc" rows="2" placeholder="What is this project about?">${esc(f.desc)}</textarea></div>
     <div class="row" style="gap:12px;flex-wrap:wrap">
