@@ -1,7 +1,20 @@
 import { S, canSee, proj, task } from './store.js';
 import { getActiveWorkspace } from './api.js';
 
-const taskRoutes = new Set(['tasks', 'mytasks', 'calendar', 'timeline', 'activity', 'project', 'overview', 'search', 'graph']);
+const taskRoutes = new Set([
+  'tasks',
+  'mytasks',
+  'inbox',
+  'notifications',
+  'home',
+  'calendar',
+  'timeline',
+  'activity',
+  'project',
+  'overview',
+  'search',
+  'graph',
+]);
 const calendar = ['calDate', 'calMode', 'calAgendaAnchor'];
 const timeline = ['tlPresentation', 'tlZoom', 'tlGroup', 'tlAnchor', 'tlAnchorKey'];
 const activity = ['actFilter', 'actFrom', 'actTo', 'actPeriod', 'actProject', 'actQuery', 'actWho'];
@@ -60,7 +73,11 @@ export function captureWorkContext() {
             ? timeline
             : route === 'activity'
               ? activity
-              : [];
+              : route === 'inbox'
+                ? ['inboxCat', 'inboxQuery', 'inboxSel', 'inboxUnread', 'inboxWindow']
+                : route === 'notifications'
+                  ? ['notifFilter']
+                  : [];
   const positions = [...document.querySelectorAll('.content, .content [data-keep]')].map(el => [
     el.matches('.content') ? null : el.dataset.keep,
     el.scrollTop,
