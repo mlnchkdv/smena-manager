@@ -150,7 +150,7 @@ test('an ordinary member creates and configures owned workspaces without gaining
         await member.setViewportSize({ width, height });
         await expect(member.locator('#ws-name')).toBeEditable();
         await expect(member.locator('#ws-url')).toHaveAttribute('readonly', '');
-        expect((await member.locator('#ws-url').boundingBox()).width).toBeGreaterThan(240);
+        await expect.poll(async () => (await member.locator('#ws-url').boundingBox())?.width ?? 0).toBeGreaterThan(240);
         await expect(member.locator('.workspace-copy-link')).toHaveAttribute('data-text', new URL(`/${ownEntry.url}`, member.url()).href);
         expect(await member.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
       }
