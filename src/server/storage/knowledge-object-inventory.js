@@ -153,10 +153,26 @@ export function localKnowledgeInventory(storage) {
       if (!before.isFile() || before.isSymbolicLink() || before.size !== expected.bytes || (snapshot && stamp(before) !== expected.stamp)) throw fail();
       const handle = await fs.open(target, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
       try {
-        const opened = await handle.stat();
-        if (opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw fail();
+        // Windows can report dev=0 for a path and the volume ID for its handle.
+        // Compare the full-width file index, and retain the device check wherever available.
+        const opened = await handle.stat({ bigint: true });
+        const verifyPath = async () => {
+          const entry = await fs.lstat(target, { bigint: true });
+          if (
+            !entry.isFile() ||
+            entry.ino !== opened.ino ||
+            entry.size !== opened.size ||
+            entry.mtimeNs !== opened.mtimeNs ||
+            entry.ctimeNs !== opened.ctimeNs ||
+            (entry.dev !== opened.dev && !(process.platform === 'win32' && entry.dev === 0n))
+          )
+            throw fail();
+        };
+        if (Number(opened.ino) !== before.ino || Number(opened.size) !== before.size) throw fail();
+        await verifyPath();
         const buffer = await bounded(handle.createReadStream({ autoClose: false }), signal, limitFor(scope));
-        if (stamp(await handle.stat()) !== stamp(before)) throw fail('KNOWLEDGE_INVENTORY_CHANGED');
+        await verifyPath();
+        if (stamp(await fs.lstat(target)) !== stamp(before)) throw fail('KNOWLEDGE_INVENTORY_CHANGED');
         return verified(buffer, expected);
       } finally {
         await handle.close();
