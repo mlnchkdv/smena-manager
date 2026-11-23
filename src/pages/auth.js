@@ -24,7 +24,7 @@ export function authShell(inner, topRight = '') {
       '',
     )}</div><button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
     <div class="auth-c">${inner}</div>
-    <div class="auth-foot" style="padding:18px;font-size:12px"><span class="faint">© 2026 ${PRODUCT_NAME} · <a href="${isRussian() ? '/product.html' : '/product-en.html'}" translate="no">${isRussian() ? 'Возможности smena.team' : 'Explore smena.team'}</a> · <a href="${isRussian() ? '/terms.html' : '/terms.html#english'}">Terms</a> · <a href="${isRussian() ? '/privacy.html' : '/privacy.html#english'}">Privacy</a></span></div></div>`;
+    <div class="auth-foot" style="padding:18px;font-size:12px"><span class="faint">© 2026 ${PRODUCT_NAME} · <a href="${isRussian() ? '/product.html' : '/product-en.html'}" translate="no">${isRussian() ? 'Возможности smena.team' : 'Explore smena.team'}</a> · <a href="${isRussian() ? '/terms.html' : '/terms-en.html'}">Terms</a> · <a href="${isRussian() ? '/privacy.html' : '/privacy-en.html'}">Privacy</a></span></div></div>`;
 }
 export const ferr = k => (S.ui.errors[k] ? `<span class="err" id="${k}-err">${ic('circle-alert', 12)}${S.ui.errors[k]}</span>` : '');
 export const icls = k => (S.ui.errors[k] ? 'is-error' : '');

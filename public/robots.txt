@@ -9,6 +9,8 @@ Allow: /product-system.css
 Allow: /product-share.png
 Allow: /favicon.svg
 Allow: /about.html
+Allow: /terms-en.html
+Allow: /privacy-en.html
 Allow: /terms.html
 Allow: /privacy.html
 Allow: /legal.css
