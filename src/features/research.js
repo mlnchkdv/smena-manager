@@ -1179,6 +1179,26 @@ function researchReadingActions(record, canEdit) {
   const announcement = `${error ? `<p role="alert">${esc(error)}</p>` : ''}${message ? `<p role="status" class="hint">${esc(message)}</p>` : ''}${save}`;
   return `<details class="research-technical" ${researchDisclosure(record, 'reading-tools')}><summary>${rw('History, review and export', 'История, проверка и экспорт')}</summary><div class="research-actions"><button class="btn btn-secondary" data-a="researchHistory">${rw('History', 'История')}</button><button class="btn btn-secondary" data-a="${stale ? 'researchReloadExport' : 'researchExport'}" ${busy ? 'disabled aria-busy="true"' : ''}>${download}</button>${article}${model.catalog.canReview && record.review?.status !== 'reviewed' && !record.archived ? recordActionButton(record, 'review', 'btn-secondary') : ''}</div>${announcement}<p class="hint">${rw('ZIP contains Markdown, HTML, JSON, revision objects and checksums. Media bytes stay in Files; file access is unchanged.', 'ZIP содержит Markdown, HTML, JSON, объекты редакций и контрольные суммы. Медиа остаются в «Файлах» с текущими правами доступа.')}</p></details>`;
 }
+function runConditions(record) {
+  if (record.kind !== 'run') return '';
+  const plan = record.plan || {};
+  const inputs = [
+    ['experiment', rw('Hypothesis', 'Гипотеза')],
+    ['dataset', rw('Dataset', 'Набор данных')],
+    ['protocol', rw('Protocol', 'Протокол')],
+  ].map(([key, label]) => {
+    const version = plan[key],
+      id = version?.id || record.data[key + 'Id'];
+    if (!id) return '';
+    return `<div><dt>${label}</dt><dd>${version ? `${rw('Revision at launch', 'Редакция при запуске')} ${esc(version.revision)} · ` : ''}<button class="btn btn-ghost btn-sm" data-a="researchOpen" data-id="${esc(id)}">${rw('Open current record', 'Открыть текущую запись')}</button></dd></div>`;
+  });
+  const revision = plan.codeRevision || record.data.codeRevision;
+  if (revision) inputs.push(`<div><dt>${rw('Code revision', 'Версия кода')}</dt><dd translate="no">${esc(revision)}</dd></div>`);
+  if (record.data.seed != null) inputs.push(`<div><dt>Seed</dt><dd>${esc(record.data.seed)}</dd></div>`);
+  return inputs.some(Boolean)
+    ? `<details class="research-technical" ${researchDisclosure(record, 'inputs')}><summary>${rw('Run conditions', 'Условия запуска')}</summary><dl class="research-properties">${inputs.join('')}</dl></details>`
+    : '';
+}
 function details(record, canEdit) {
   const data = record.data;
   const editing = canEdit && !record.archived;
@@ -1196,7 +1216,7 @@ function details(record, canEdit) {
           )
           .join('')}</div></details>`
       : ''
-  }${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}${recordActionButton(record, 'archive', 'btn-ghost')}</div>` : ''}`;
+  }${runConditions(record)}${researchMetricsHtml(record)}${researchEvidenceHtml(record)}<details class="research-technical" ${researchDisclosure(record, 'passport')}><summary>${rw('Record details', 'Паспорт записи')}</summary><dl class="research-properties"><div><dt>ID</dt><dd>${esc(record.id)}</dd></div><div><dt>${rw('Last updated', 'Изменено')}</dt><dd>${esc(researchDate(record.updatedAt, true))}</dd></div></dl><pre class="research-code">${esc(JSON.stringify({ data: record.data, plan: record.plan || null }, null, 2))}</pre></details>${editing ? `<div class="research-actions">${record.kind === 'run' ? `<button class="btn btn-secondary" data-a="researchRepeat">${rw('Repeat as new run', 'Повторить новым запуском')}</button>` : ''}${recordActionButton(record, 'archive', 'btn-ghost')}</div>` : ''}`;
 }
 const materialKinds = ['source', 'dataset', 'protocol', 'article', 'review', 'handoff'];
 
