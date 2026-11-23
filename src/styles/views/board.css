@@ -343,6 +343,15 @@
   flex-shrink: 0;
 }
 @media (max-width: 640px), (pointer: coarse) {
+  .kcard .meta {
+    flex-wrap: wrap;
+    gap: 2px 4px;
+  }
+  .kcard .meta button.m {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    justify-content: center;
+  }
   .chipsbar :is(.chip, .filter-chip-main) {
     min-height: 44px;
   }
