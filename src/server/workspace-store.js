@@ -14,6 +14,7 @@ import { WORKSPACE_TRANSPORT_MAX_BYTES, workspaceCapacity, workspaceTransportByt
 import { validateWorkspaceData, validateDocumentInput } from '../shared/workspace-schema.js';
 import { DOCUMENT_NAMES, workspaceCoreData, workspaceDocumentData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, resetWorkspaceDocumentStore } from './workspace-document-store.js';
+import { workspaceAuditEvents } from './workspace-audit.js';
 import { membershipAuditEntries, validateMembershipTransition } from '../shared/workspace-membership.js';
 import { mergeClientWorkspace } from './workspace-policy.js';
 import { captureWhiteboardHistory } from './whiteboard-history.js';
@@ -556,6 +557,8 @@ async function mutateInsideLock(mutator, expectedRevision, options = {}) {
   else
     for (const project of nextData.projects || [])
       project.seq = Math.max(Number(project.seq) || 0, Number(current.projects?.find(item => item.id === project.id)?.seq) || 0);
+  const events = workspaceAuditEvents(current, nextData, options.actorMemberId, new Date().toISOString());
+  nextData._adminEvents = [...(current._adminEvents || []), ...events].slice(-500);
   const membershipActivity = membershipAuditEntries(current, nextData, options.actorMemberId, current.revision + 1);
   if (membershipActivity.length) nextData.activity = [...membershipActivity, ...(nextData.activity || [])];
   if (options.actorMemberId) {

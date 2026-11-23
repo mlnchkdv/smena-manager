@@ -116,6 +116,10 @@ A.viewAccessEvents = async () => {
     type: 'accessEvents',
     render: (_m, H) => {
       const kinds = {
+        member: T('Member', 'Участник'),
+        project: T('Project', 'Проект'),
+        bookmark: T('Bookmark', 'Закладка'),
+        task: T('Task', 'Задача'),
         file: T('File', 'Файл'),
         note: T('Note', 'Заметка'),
         'file-folder': T('File folder', 'Папка файлов'),
@@ -123,6 +127,10 @@ A.viewAccessEvents = async () => {
       };
       if (generation !== getSessionGeneration()) return H(T('Workspace changed', 'Пространство изменилось'));
       const objects = {
+        member: D().members,
+        project: D().projects,
+        bookmark: D().links,
+        task: D().tasks,
         file: D().files,
         note: D().knowledgeNotes,
         'note-folder': D().knowledgeFolders,
@@ -132,10 +140,17 @@ A.viewAccessEvents = async () => {
         .map(e => {
           const actor = D().members.find(row => row.id === e.actorId)?.name || e.actorId;
           const object = objects[e.kind]?.find(row => row.id === e.targetId);
-          return `<li><strong>${esc(actor)}</strong> · ${e.event === 'issued' ? T('Granted public access', 'Открыл(а) публичный доступ') : T('Revoked public access', 'Отозвал(а) публичный доступ')}<br>${kinds[e.kind] || ''} · ${esc(object?.title || object?.name || e.targetId)} · ${esc(fmtTimestamp(e.at))}</li>`;
+          const label = {
+            issued: T('Granted public access', 'Выдан публичный доступ'),
+            revoked: T('Revoked public access', 'Отозван публичный доступ'),
+            role: T('Changed role', 'Изменена роль'),
+            trashed: T('Moved to trash', 'В корзину'),
+            restored: T('Restored', 'Восстановлено'),
+          }[e.event];
+          return `<li><strong>${esc(actor)}</strong> · ${label || ''}${e.event === 'role' ? ' · ' + esc(e.from) + ' → ' + esc(e.to) : ''}<br>${kinds[e.kind] || ''} · ${esc(object?.title || object?.name || e.targetId)} · ${esc(fmtTimestamp(e.at))}</li>`;
         })
         .join('');
-      return `${H(T('Public access history', 'История публичного доступа'))}<div class="modal-b" translate="no">${modal.error ? T('Could not load history. Reopen to retry.', 'Не удалось загрузить историю. Откройте её повторно.') : modal.events ? (links ? `<ul>${links}</ul>` : T('No public access changes recorded yet.', 'Изменений публичного доступа пока нет.')) : T('Loading…', 'Загрузка…')}</div>`;
+      return `${H(T('Access and recovery history', 'История доступа и восстановления'))}<div class="modal-b" translate="no">${modal.error ? T('Could not load history. Reopen to retry.', 'Не удалось загрузить историю. Откройте её повторно.') : modal.events ? (links ? `<ul>${links}</ul>` : T('No changes recorded yet.', 'Изменений пока нет.')) : T('Loading…', 'Загрузка…')}</div>`;
     },
   };
   openModal(modal);
@@ -181,7 +196,7 @@ export function pageActivity() {
   const b = {};
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
-    <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div>${S.ui.currentUser?.role === 'admin' ? `<button class="btn btn-secondary" data-a="viewAccessEvents" translate="no">${T('Public access history', 'История публичного доступа')}</button>` : ''}</div>
+    <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div>${S.ui.currentUser?.role === 'admin' ? `<button class="btn btn-secondary" data-a="viewAccessEvents" translate="no">${T('Access and recovery history', 'История доступа и восстановления')}</button>` : ''}</div>
     <div class="activity-filters"><div class="activity-type-wide">${segmentedControl({
       label: 'Activity filters',
       key: 'actFilter',
