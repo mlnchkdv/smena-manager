@@ -42,6 +42,25 @@ export async function probeMonitor({ secret, fetcher = fetch, disk = () => fs.st
   else if (ram.available < 256 * 1024 ** 2 || ram.available / ram.total < 0.03) issues.push('memory_low');
   return { at: new Date().toISOString(), ok: !issues.length, issues: [...new Set(issues)], diskAvailableBytes: available };
 }
+export async function publishMonitorHeartbeat(result, endpoint, fetcher = fetch) {
+  if (!endpoint) return;
+  const url = new URL(endpoint);
+  if (url.protocol !== 'https:' || url.username || url.password) throw Error('Configure an HTTPS monitor receiver.');
+  const response = await fetcher(url, {
+    method: 'POST',
+    redirect: 'error',
+    signal: AbortSignal.timeout(10000),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      service: 'smena.team',
+      at: result.at,
+      ok: result.ok,
+      issues: result.issues,
+      runbook: 'https://github.com/mlnchkdv/smena-manager/blob/main/deploy/vps/README.md#independent-operational-monitor--независимый-мониторинг',
+    }),
+  });
+  if (!response.ok) throw Error('External monitor receiver did not acknowledge the heartbeat.');
+}
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   try {
     const result = await probeMonitor({ secret: process.env.MONITOR_SECRET });
@@ -49,6 +68,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     await fs.writeFile(file + '.tmp', JSON.stringify(result) + '\n', { mode: 0o600 });
     await fs.rename(file + '.tmp', file);
     console.log(JSON.stringify(result));
+    await publishMonitorHeartbeat(result, process.env.MONITOR_HEARTBEAT_URL);
     if (!result.ok) process.exitCode = 1;
   } catch {
     console.error('Independent monitor failed. Inspect configuration and local service journals.');

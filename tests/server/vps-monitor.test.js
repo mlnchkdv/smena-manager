@@ -1,3 +1,4 @@
+import { publishMonitorHeartbeat } from '../../deploy/vps/monitor.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { probeMonitor, hostMemory } from '../../deploy/vps/monitor.mjs';
@@ -42,4 +43,25 @@ test('Linux monitoring uses reclaimable MemAvailable instead of free pages; unre
     null,
   );
   assert.equal((await hostMemory({ ...options, read: async () => 'MemAvailable: 999999999999999999999 kB' })).available, null);
+});
+
+test('external monitor sends only diagnostic fields and requires receiver acknowledgement', async () => {
+  const probe = { at: 'now', ok: false, issues: ['backup_stale'], diskAvailableBytes: 123 };
+  let calls = 0;
+  const receive = async (_url, options) => {
+    calls++;
+    const body = JSON.parse(options.body);
+    assert.deepEqual(body.issues, ['backup_stale']);
+    assert.ok(!Object.hasOwn(body, 'diskAvailableBytes'));
+    assert.equal(options.redirect, 'error');
+    return { ok: true };
+  };
+  await publishMonitorHeartbeat(probe, '', receive);
+  assert.equal(calls, 0);
+  await publishMonitorHeartbeat(probe, 'https://receiver.example.test/event', receive);
+  assert.equal(calls, 1);
+  await assert.rejects(
+    publishMonitorHeartbeat(probe, 'https://receiver.example.test/event', async () => ({ ok: false })),
+    /acknowledge/u,
+  );
 });
