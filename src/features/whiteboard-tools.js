@@ -1,6 +1,7 @@
 import { A } from '../actions/actions.js';
 import { D, S } from '../core/store.js';
 import { currentWhiteboard, whiteboardState, whiteboardScope, wbText as T } from '../core/whiteboard-state.js';
+import { whiteboardOf } from '../shared/project-whiteboard.js';
 import { canEditWhiteboard } from '../shared/whiteboards.js';
 import { openModal, closeModal } from '../overlays/modals.js';
 import { ic } from '../core/icons.js';
@@ -11,6 +12,8 @@ import '../styles/whiteboard-tools.css';
 const toggles = new Set(['whiteboardToggleMinimap', 'whiteboardToggleAspect', 'whiteboardToggleGuides']);
 const commands = new Set([
   ...toggles,
+  'whiteboardEdit',
+  'whiteboardOpenSelectedMaterial',
   'whiteboardUndo',
   'whiteboardToggleSelection',
   'whiteboardRedo',
@@ -41,7 +44,14 @@ A.openWhiteboardTools = () => {
       const state = whiteboardState(board.id),
         editable = !board.archived && canEditWhiteboard(D(), board, D().me, S.ui.currentUser?.role);
       const command = (action, icon, en, ru, extra = '') => `<button class="btn btn-ghost" data-a="${action}" ${extra}>${ic(icon, 16)}${T(en, ru)}</button>`;
-      const content = `<section class="diagram-tools-section"><h3>${T('Canvas options', 'Параметры холста')}</h3>${command('whiteboardToggleLayers', 'layers', 'Layers', 'Слои')}${command('whiteboardToggleMinimap', 'map', 'Minimap', 'Миникарта', `aria-pressed="${!!state.minimap}"`)}${command('whiteboardToggleAspect', 'ratio', 'Keep proportions (corners)', 'Сохранять пропорции (углы)', `aria-pressed="${!!state.resizeAspect}"`)}${command('whiteboardToggleGuides', 'scan-line', 'Alignment guides', 'Направляющие', `aria-pressed="${!!state.resizeGuides}"`)}</section><section class="diagram-tools-section"><h3>${T('Editing and history', 'Правки и история')}</h3>${editable ? command('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled') + command('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`) + command('whiteboardTemplates', 'layout-template', 'Canvas templates', 'Шаблоны холста') + command('whiteboardRedo', 'redo-2', 'Redo', 'Повторить', state.redo.length ? '' : 'disabled') + command('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}${command('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${command('whiteboardPresentation', 'presentation', 'Present frames', 'Показать рамки')}</section>${diagramViewsControl('board', board.id, true)}${whiteboardPortableControl(editable, true)}`;
+      const selected = whiteboardOf(board).nodes.find(node => node.id === state.selected);
+      const selectedActions = selected
+        ? [
+            editable ? command('whiteboardEdit', 'pencil', 'Edit size and position', 'Изменить размер и положение', 'data-size="true"') : '',
+            selected.type === 'material' ? command('whiteboardOpenSelectedMaterial', 'external-link', 'Open linked material', 'Открыть материал') : '',
+          ].join('')
+        : '';
+      const content = `${selectedActions ? `<section class="diagram-tools-section"><h3>${T('Selected card', 'Выбранная карточка')}</h3>${selectedActions}</section>` : ''}<section class="diagram-tools-section"><h3>${T('Canvas options', 'Параметры холста')}</h3>${command('whiteboardToggleLayers', 'layers', 'Layers', 'Слои')}${command('whiteboardToggleMinimap', 'map', 'Minimap', 'Миникарта', `aria-pressed="${!!state.minimap}"`)}${command('whiteboardToggleAspect', 'ratio', 'Keep proportions (corners)', 'Сохранять пропорции (углы)', `aria-pressed="${!!state.resizeAspect}"`)}${command('whiteboardToggleGuides', 'scan-line', 'Alignment guides', 'Направляющие', `aria-pressed="${!!state.resizeGuides}"`)}</section><section class="diagram-tools-section"><h3>${T('Editing and history', 'Правки и история')}</h3>${editable ? command('whiteboardUndo', 'undo-2', 'Undo', 'Отменить', state.undo.length ? '' : 'disabled') + command('whiteboardToggleSelection', 'square-check', 'Select cards', 'Выбрать карточки', `aria-pressed="${!!state.multiSelect}"`) + command('whiteboardTemplates', 'layout-template', 'Canvas templates', 'Шаблоны холста') + command('whiteboardRedo', 'redo-2', 'Redo', 'Повторить', state.redo.length ? '' : 'disabled') + command('whiteboardPaste', 'clipboard-paste', 'Paste cards', 'Вставить карточки') : ''}${command('whiteboardHistory', 'history', 'Whiteboard history', 'История холста')}${command('whiteboardPresentation', 'presentation', 'Present frames', 'Показать рамки')}</section>${diagramViewsControl('board', board.id, true)}${whiteboardPortableControl(editable, true)}`;
       return `${H(T('Whiteboard tools', 'Инструменты холста'))}<div class="modal-b whiteboard-tools-dialog" translate="no">${content.replace(/data-a="([^"]+)"/g, 'data-a="whiteboardToolAction" data-command="$1"')}</div><div class="modal-f"><button class="btn btn-secondary" data-a="closeModal">${T('Close', 'Закрыть')}</button></div>`;
     },
   });

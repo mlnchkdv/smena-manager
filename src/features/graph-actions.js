@@ -72,7 +72,8 @@ A.refineGraphSelection = () => {
   render();
   requestAnimationFrame(() => {
     document.querySelector('#graph-filters')?.scrollIntoView({ block: 'nearest' });
-    document.querySelector('#graph-filters .select-btn')?.focus({ preventScroll: true });
+    const select = document.querySelector('#graph-filters [data-field="graphProject"]');
+    (select?.nextElementSibling?.matches('.select-btn') ? select.nextElementSibling : select)?.focus({ preventScroll: true });
   });
 };
 A.toggleGraphFocus = () => {

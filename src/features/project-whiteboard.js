@@ -162,7 +162,7 @@ function modalForm(m, H) {
     const material = m.nodeType === 'material';
     const locked = m.id && whiteboardLockedIds(board).has(m.id);
     const geometry = (key, label, min, max) => field(key, label, m[key], 'number', `min="${min}" max="${max}" ${locked ? 'disabled' : ''}`);
-    body = `${material ? `<p class="whiteboard-form-file" translate="no">${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="4" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}<details class="whiteboard-card-options" ${material ? 'open' : ''}><summary>${T('Color, size and position', 'Цвет, размер и положение')}</summary>${colorField(m)}${locked ? `<p class="hint">${T('Position and size are locked.', 'Положение и размер зафиксированы.')}</p>` : ''}<div class="whiteboard-form-grid">${geometry('x', 'X', -50000, 50000)}${geometry('y', 'Y', -50000, 50000)}${geometry('width', T('Width', 'Ширина'), 160, 2000)}${geometry('height', T('Height', 'Высота'), 100, 2000)}</div></details>`;
+    body = `${material ? `<p class="whiteboard-form-file" translate="no">${esc(whiteboardLabel(m.base))}</p>` : `${field('title', T('Title', 'Название'), m.title, 'text', 'maxlength="120" autofocus')}${m.nodeType !== 'group' ? `<label class="field">${T('Text', 'Текст')}<textarea class="textarea" rows="4" data-in="whiteboardField" data-field="text" maxlength="6000">${esc(m.text)}</textarea></label>` : ''}`}<details class="whiteboard-card-options" ${material || m.showSize ? 'open' : ''}><summary>${T('Color, size and position', 'Цвет, размер и положение')}</summary>${colorField(m)}${locked ? `<p class="hint">${T('Position and size are locked.', 'Положение и размер зафиксированы.')}</p>` : ''}<div class="whiteboard-form-grid">${geometry('x', 'X', -50000, 50000)}${geometry('y', 'Y', -50000, 50000)}${geometry('width', T('Width', 'Ширина'), 160, 2000)}${geometry('height', T('Height', 'Высота'), 100, 2000)}</div></details>`;
   }
   if (m.kind === 'node' && m.nodeType === 'shape') body = whiteboardShapePicker(m.shape, m.shapePickerOpen ?? !m.id) + body;
   if (m.kind === 'node' && m.nodeType === 'material') {
@@ -297,6 +297,7 @@ A.whiteboardEdit = el => {
       mediaTime: node.media?.seconds == null ? '' : formatWhiteboardTime(node.media.seconds),
       kind: 'node',
       nodeType: type,
+      showSize: el.dataset.size === 'true',
       base: structuredClone(node),
     });
   }
@@ -1264,6 +1265,7 @@ function stopSpacePan() {
   spacePan = false;
   viewport?.removeAttribute('data-space-pan');
 }
+A.whiteboardOpenSelectedMaterial = () => openWhiteboardCard(whiteboardState().selected);
 function openWhiteboardCard(id) {
   const node = visibleBoard().nodes.find(node => node.id === id);
   if (!node) return;
