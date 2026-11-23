@@ -1,21 +1,23 @@
 name: Deployment smoke
 
 on:
+  schedule:
+    - cron: '7,37 * * * *'
   repository_dispatch:
     types: [vercel.deployment.success]
   workflow_dispatch:
     inputs:
       url:
-        description: Public Vercel deployment origin (read-only checks)
+        description: Public deployment origin (read-only checks)
         required: true
-        default: https://smena-manager.vercel.app
+        default: https://smena.team
 
 permissions:
   contents: read
 
 jobs:
   smoke:
-    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.environment == 'production'
+    if: github.event_name != 'repository_dispatch' || github.event.client_payload.environment == 'production'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -24,8 +26,8 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Check public frontend, API, sign-in and access protection
-        run: node scripts/smoke-deployment.js
+        run: node scripts/smoke-deployment.js "$DEPLOYMENT_URL" --allow-custom-origin
         env:
           # Immutable deployment URLs may be SSO-protected even in production.
           # Check the public alias without bypass credentials or redirects.
-          DEPLOYMENT_URL: ${{ inputs.url || 'https://smena-manager.vercel.app' }}
+          DEPLOYMENT_URL: ${{ inputs.url || (github.event_name == 'repository_dispatch' && 'https://smena-manager.vercel.app') || 'https://smena.team' }}
