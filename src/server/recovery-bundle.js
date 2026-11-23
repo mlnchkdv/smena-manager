@@ -2,6 +2,10 @@ import crypto from 'node:crypto';
 import { once } from 'node:events';
 import { validateWorkspaceData } from '../shared/workspace-schema.js';
 
+import { expandKnowledgeVersions } from './knowledge-version-blobs.js';
+import { expandKnowledgeBodies } from './knowledge-body-store.js';
+import { exportRecoveryResearch, verifyRecoveryResearch } from './recovery-research.js';
+
 const MAX_ASSET_BYTES = 100 * 1024 * 1024;
 const storageKey = file => (file.storageFileId ? `id:${file.storageFileId}` : `name:${file.storageName}`);
 
@@ -13,7 +17,8 @@ function collectAssets(value, found = new Map()) {
 }
 
 export async function writeRecoveryBundle(database, storage, output, options = {}) {
-  const data = structuredClone(database);
+  const data = await expandKnowledgeVersions(await expandKnowledgeBodies(structuredClone(database), storage), storage);
+  const research = await exportRecoveryResearch(data, storage);
   delete data._notificationOutbox;
   delete data._fileGc;
   delete data._fileRegistry;
@@ -31,7 +36,7 @@ export async function writeRecoveryBundle(database, storage, output, options = {
   };
   const json = JSON.stringify(data);
   await write(
-    `{"format":"smena-recovery","version":1,"exportedAt":${JSON.stringify(new Date().toISOString())},"data":${json},"dataSha256":${JSON.stringify(crypto.createHash('sha256').update(json).digest('hex'))},"assets":[`,
+    `{"format":"smena-recovery","version":${Object.keys(research).length ? 2 : 1},"exportedAt":${JSON.stringify(new Date().toISOString())},"data":${json},"dataSha256":${JSON.stringify(crypto.createHash('sha256').update(json).digest('hex'))},"assets":[`,
   );
   let total = 0;
   let index = 0;
@@ -62,16 +67,18 @@ export async function writeRecoveryBundle(database, storage, output, options = {
     }
     await write(`","bytes":${bytes},"sha256":${JSON.stringify(hash.digest('hex'))}}`);
   }
-  await write(']}');
+  await write(Object.keys(research).length ? `],"research":${JSON.stringify(research)}}` : ']}');
   output.end();
   return { assets: assets.size, bytes: total };
 }
 
 export function validateRecoveryBundle(bundle) {
-  if (bundle?.format !== 'smena-recovery' || bundle.version !== 1 || !Array.isArray(bundle.assets)) throw new TypeError('Unsupported recovery bundle.');
+  if (bundle?.format !== 'smena-recovery' || ![1, 2].includes(bundle.version) || !Array.isArray(bundle.assets))
+    throw new TypeError('Unsupported recovery bundle.');
   validateWorkspaceData(bundle.data);
   if (crypto.createHash('sha256').update(JSON.stringify(bundle.data)).digest('hex') !== bundle.dataSha256)
     throw new TypeError('Recovery workspace integrity check failed.');
+  verifyRecoveryResearch(bundle.data, bundle.research ?? {});
   const assets = new Map();
   let total = 0;
   for (const asset of bundle.assets) {
@@ -123,6 +130,7 @@ export async function restoreRecoveryBundle(bundle, storage) {
     remap(data);
     data._notificationOutbox = [];
     data._fileGc = [];
+    for (const [hash, text] of Object.entries(bundle.research || {})) await storage.writeResearchObject(text, hash);
     await storage.saveDatabase(data);
     return { files: assets.size, tasks: data.tasks.length, projects: data.projects.length };
   } catch (error) {
