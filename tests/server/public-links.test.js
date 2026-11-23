@@ -199,11 +199,15 @@ test('anonymous links expose only explicit targets, stream ranges, enforce live 
     );
     now += 86400001;
     await assert.rejects(registry.verify(expiring.path.split('/').at(-1).split('?')[0]), { statusCode: 404 });
+    const ownerLink = await create('note', 'note', null, sessions[0]);
     const memberLink = await create('note', 'note', null, sessions[1]);
     await change(value => {
       value.members.find(row => row.id === 'editor-member').status = 'deactivated';
     });
     assert.equal((await fetch(origin + memberLink.path)).status, 404);
+    const staleSession = await manage('POST', '', { kind: 'note', targetId: 'note' }, sessions[1]);
+    assert.ok([401, 403].includes(staleSession.status), 'offboarded session must lose management access');
+    assert.equal((await fetch(origin + ownerLink.path)).status, 200);
     process.env.SMENA_PUBLIC_LINKS_ENABLED = 'false';
     assert.equal((await fetch(origin + expiring.path)).status, 503);
   } finally {
