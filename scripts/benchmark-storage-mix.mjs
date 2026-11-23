@@ -1,3 +1,8 @@
+import process from 'node:process';
+import { Buffer } from 'node:buffer';
+import console from 'node:console';
+import { performance } from 'node:perf_hooks';
+import { setInterval, clearInterval } from 'node:timers';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

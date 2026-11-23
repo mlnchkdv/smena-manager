@@ -1,7 +1,7 @@
 // Moderated first-use session. Output contains only durations and enumerated outcomes.
 import { createInterface } from 'node:readline/promises';
 import { performance } from 'node:perf_hooks';
-import { stdin, stdout, stderr } from 'node:process';
+import process, { stdin, stdout, stderr } from 'node:process';
 
 const ru = process.argv.includes('--ru');
 const words = (en, russian) => (ru ? russian : en);
