@@ -8,7 +8,7 @@ import { PROJECT_AUTOMATION_FIELDS, validateStoredProjectAutomations } from '../
 const SCOPES = {
   knowledge: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch'],
   knowledgeApi: ['knowledgeNotes', 'knowledgeFolders', '_documentRevisions', '_knowledgeSearch', '_integrationOperations', '_integrationAudit'],
-  knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeSearch'],
+  knowledgeTrash: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeSearch', '_adminEvents'],
   knowledgeMigration: ['knowledgeNotes', 'trash', '_documentRevisions', '_knowledgeMigration', '_knowledgeStorageVersion', '_knowledgeSearch'],
   knowledgeImport: ['knowledgeNotes', '_documentRevisions', '_knowledgeImports', '_knowledgeSearch'],
   bookmarks: ['links', 'linkFolders', '_documentRevisions'],

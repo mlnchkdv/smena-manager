@@ -264,6 +264,10 @@ test('note trash and restore publish membership and immutable body references at
   await updateKnowledgeTrash('restore', item.id, 1, profile('editor'));
   current = await getWorkspaceDatabase();
   assert.equal(current.trash.length, 0);
+  assert.deepEqual(
+    current._adminEvents.filter(event => event.targetId === 'a').map(event => event.event),
+    ['trashed', 'restored'],
+  );
   assert.equal((await readKnowledgeNote('a', profile('editor'))).note.formatted_markdown, source.knowledgeNotes[0].formatted_markdown);
 });
 

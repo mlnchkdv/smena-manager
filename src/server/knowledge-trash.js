@@ -1,3 +1,4 @@
+import { workspaceAuditEvents } from './workspace-audit.js';
 import { randomUUID } from 'node:crypto';
 import { getWorkspaceDatabase, mutateWorkspaceMetadata } from './workspace-store.js';
 import { getStorageProvider } from './storage/index.js';
@@ -60,7 +61,15 @@ export async function updateKnowledgeTrash(operation, input, expectedRevision, p
           return data;
         },
         base.revision,
-        { role: 'admin', scope: 'knowledgeTrash' },
+        {
+          role: 'admin',
+          scope: 'knowledgeTrash',
+          finalize(next, previous) {
+            const actor = knowledgeActor(previous, profile, profiles, { write: true });
+            const events = workspaceAuditEvents(previous, next, actor.id, new Date().toISOString());
+            next._adminEvents = [...(previous._adminEvents || []), ...events].slice(-500);
+          },
+        },
       );
       return { revision: saved.revision, documentRevision: saved._documentRevisions.knowledge.revision };
     } catch (failure) {
