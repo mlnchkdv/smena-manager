@@ -209,6 +209,12 @@ test('two users exchange assignment and mention notifications in Russian and Eng
   await expect(editorRow).toContainText('Доступ активен');
   await signIn(editor, 'e2e-editor-access-id-2026-secure');
 
+  await admin.goto('/e2e-team/activity');
+  await admin.locator('[data-a="viewAccessEvents"]').click();
+  await expect(admin.getByRole('dialog')).toContainText('Изменена роль');
+  await expect(admin.getByRole('dialog')).toContainText('E2E Редактор');
+  await admin.keyboard.press('Escape');
+  await expect(admin.getByRole('dialog')).toHaveCount(0);
   await adminContext.close();
   await editorContext.close();
 });

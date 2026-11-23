@@ -1,6 +1,6 @@
 import { activityMatcher, activityRangeValid } from '../shared/activity-view.js';
 import { calendarDate } from '../shared/calendar-time.js';
-import { isRussian } from '../core/i18n.js';
+import { isRussian, t } from '../core/i18n.js';
 const T = (en, ru) => (isRussian() ? ru : en);
 /* ---------- ACTIVITY ---------- */
 import { collectionView, collectionPage, saveCollectionView, resetCollectionView } from '../core/collection-view-state.js';
@@ -147,7 +147,7 @@ A.viewAccessEvents = async () => {
             trashed: T('Moved to trash', 'В корзину'),
             restored: T('Restored', 'Восстановлено'),
           }[e.event];
-          return `<li><strong>${esc(actor)}</strong> · ${label || ''}${e.event === 'role' ? ' · ' + esc(e.from) + ' → ' + esc(e.to) : ''}<br>${kinds[e.kind] || ''} · ${esc(object?.title || object?.name || e.targetId)} · ${esc(fmtTimestamp(e.at))}</li>`;
+          return `<li><strong>${esc(actor)}</strong> · ${label || ''}${e.event === 'role' ? ' · ' + esc(t(e.from)) + ' → ' + esc(t(e.to)) : ''}<br>${kinds[e.kind] || ''} · ${esc(object?.name || object?.title || e.targetId)} · ${esc(fmtTimestamp(e.at))}</li>`;
         })
         .join('');
       return `${H(T('Access and recovery history', 'История доступа и восстановления'))}<div class="modal-b" translate="no">${modal.error ? T('Could not load history. Reopen to retry.', 'Не удалось загрузить историю. Откройте её повторно.') : modal.events ? (links ? `<ul>${links}</ul>` : T('No changes recorded yet.', 'Изменений пока нет.')) : T('Loading…', 'Загрузка…')}</div>`;

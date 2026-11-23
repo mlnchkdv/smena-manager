@@ -49,6 +49,8 @@ export function modalHtml(m) {
     case 'bookmarkViewer':
     case 'bookmarkArchiveSearch':
       return wrap('lg bookmark-viewer-dialog', m.render(m, H));
+    case 'accessEvents':
+      return wrap('md', m.render(m, H));
     case 'activityPreset':
       return wrap('sm', m.render(m, H));
     case 'whiteboardReader':
