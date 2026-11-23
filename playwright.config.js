@@ -4,9 +4,11 @@ const runId = `${process.pid}-${Date.now()}`;
 const clientPort = Number(process.env.E2E_CLIENT_PORT || 5198);
 const apiPort = Number(process.env.E2E_API_PORT || 3198);
 const engineSmokeMatch =
-  process.env.E2E_EXTENDED_BROWSERS === 'true'
-    ? /(?:cross-browser-smoke|workspace-smoke|deployment-acceptance|public-oauth-pages)\.spec\.js/
-    : /(?:cross-browser-smoke|deployment-acceptance|public-oauth-pages)\.spec\.js/;
+  process.env.E2E_DEPLOYMENT_GATE === 'true'
+    ? /(?:cross-browser-smoke|workspace-smoke|deployment-acceptance|public-oauth-pages|member-workspaces|knowledge-workflows)\.spec\.js/
+    : process.env.E2E_EXTENDED_BROWSERS === 'true'
+      ? /(?:cross-browser-smoke|workspace-smoke|deployment-acceptance|public-oauth-pages)\.spec\.js/
+      : /(?:cross-browser-smoke|deployment-acceptance|public-oauth-pages)\.spec\.js/;
 export default defineConfig({
   outputDir: `.data/e2e/${runId}/results`,
   testDir: './tests/e2e',
