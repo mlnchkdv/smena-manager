@@ -46,6 +46,12 @@ export function pageHome() {
     ),
   };
   const cur = lists[tab].slice(0, 7);
+  const nextTask =
+    personal &&
+    sortTasks(
+      mineAll.filter(t => t.status !== 'done' && t.due),
+      { f: 'due', dir: 1 },
+    )[0];
   const dl = (lab, a, b) => {
     const ts = sortTasks(
       open.filter(t => t.due && diffD(parse(t.due), TODAY) >= a && diffD(parse(t.due), TODAY) <= b),
@@ -60,6 +66,7 @@ export function pageHome() {
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${fmtFullDate(TODAY)}</span><span class="home-greeting-context"> · Here's what's happening across your workspace.</span></p></div>
       ${S.ui.currentUser?.role === 'viewer' ? '' : `<div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}Invite member</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}New project</button><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button></div>`}</div>
     <div class="seg home-view-switch" role="group" aria-label="Home view"><button data-a="setHomeView" data-view="personal" aria-pressed="${personal}" class="${personal ? 'on' : ''}">My work</button><button data-a="setHomeView" data-view="team" aria-pressed="${!personal}" class="${!personal ? 'on' : ''}">Team overview</button></div>
+    ${nextTask ? `<section class="card"><h2>${isRussian() ? 'Ближайшая личная задача' : 'Your next task'}</h2>${deadlineRow(nextTask)}<small>${esc(fmtFullDate(parse(nextTask.due)))}</small></section>` : ''}
     <details class="home-team-summary" ${personal ? '' : 'open'}><summary>Workspace summary</summary><div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}Active projects</span><span class="v">${activeP.length}</span><span class="d">${activeP.filter(p => p.status === 'risk').length} at risk</span></button>
       <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}Open tasks</span><span class="v">${open.length}</span><span class="d">${open.filter(t => t.assignee === D().me).length} assigned to you</span></button>
