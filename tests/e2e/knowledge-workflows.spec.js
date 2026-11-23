@@ -611,3 +611,60 @@ async function signInKnowledge(page) {
   await expect(page.locator('.shell')).toBeVisible();
   await waitSaved(page);
 }
+
+test('large note opens matches and version history without losing reading context', async ({ page }, testInfo) => {
+  await signInKnowledge(page);
+  const query = 'maturitymarker';
+  const source = Array.from({ length: 256 }, (_, i) => '## Section ' + i + '\n\n' + 'Research observations. '.repeat(96)).join('\n\n');
+  async function save(body) {
+    const snapshot = (await (await page.request.get('/api/workspace-documents/knowledge')).json()).data;
+    const note = { id: 'timed-note', title: 'Long document', formatted_markdown: body, updatedAt: new Date().toISOString() };
+    const response = await page.request.put('/api/workspace-documents/knowledge', {
+      data: { revision: snapshot.revision, data: { knowledgeFolders: [], knowledgeNotes: [note] } },
+    });
+    expect(response.ok(), await response.text()).toBeTruthy();
+  }
+  await save('Previous edition.\n\n' + source);
+  await save(query + '\n\n' + source);
+  const results = [];
+  for (const [language, width] of [
+    ['Русский', 320],
+    ['Русский', 390],
+    ['English (US)', 320],
+    ['English (US)', 390],
+  ]) {
+    await page.setViewportSize({ width, height: 760 });
+    await page.goto('/e2e-team/settings/language');
+    await page.locator('select[data-k="lang"]').selectOption(language);
+    await waitSaved(page);
+    await page.goto('/e2e-team/knowledge');
+    await page.locator('[data-in="knowledgeQuery"]').fill(query);
+    const open = page.locator('.knowledge-preview-card[data-id="timed-note"] .knowledge-preview-open');
+    await open.waitFor();
+    const start = Date.now();
+    await open.click();
+    await expect(page.locator('.knowledge-quick-content').first()).toContainText(query);
+    const bodyMs = Date.now() - start;
+    const hit = page.locator('mark[data-knowledge-match]').first();
+    await expect(hit).toBeVisible();
+    const matchMs = Date.now() - start;
+    const scroller = page.locator('.knowledge-drawer-body');
+    await scroller.evaluate(el => {
+      el.scrollTop = 1000;
+    });
+    await page.locator('.knowledge-reader-actions > summary').click();
+    const top = await scroller.evaluate(el => el.scrollTop);
+    const versionStart = Date.now();
+    await page.locator('[data-a="viewKnowledgeHistory"]').click();
+    await openHistoryRow(page, 'first');
+    const versionMs = Date.now() - versionStart;
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.modal')).toHaveCount(0);
+    await expect(page.locator('.knowledge-find')).toContainText(query);
+    await expect.poll(async () => Math.abs((await scroller.evaluate(el => el.scrollTop)) - top)).toBeLessThan(4);
+    results.push({ language, width, bodyMs, matchMs, versionMs, sourceBytes: Buffer.byteLength(source) });
+  }
+  const output = testInfo.outputPath('note-timings.json');
+  await fs.writeFile(output, JSON.stringify(results));
+  await testInfo.attach('note-timings.json', { path: output, contentType: 'application/json' });
+});
