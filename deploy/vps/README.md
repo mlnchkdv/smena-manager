@@ -483,3 +483,7 @@ such a release, requires one legacy stop/start. Later updates retain the socket.
 Do not restart/stop the socket during routine updates. Validate a controlled
 read/write cutover before claiming uninterrupted availability under production
 load. Reference: [systemd socket activation](https://www.freedesktop.org/software/systemd/man/latest/systemd.socket.html).
+
+## Moderated first-use pilot
+
+With the participant's agreement, run `node scripts/pilot-activation.mjs --ru > pilot-session.json` (omit `--ru` for English). Start when the invitation is available. The participant accepts access, locates their project and completes a task or saves a material. The observer presses Enter after each milestone or selects the first blocker. The local JSON contains the locale, elapsed seconds and fixed outcome categories. Store each session separately outside the repository. Compare the first blocked step and median time per completed stage across sessions.
