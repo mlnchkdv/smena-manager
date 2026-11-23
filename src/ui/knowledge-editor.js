@@ -35,7 +35,20 @@ export function noteUtilities(note) {
 A.viewKnowledgeHistory = el => {
   const id = el.dataset.id;
   if (!D().knowledgeNotes.some(n => n.id === id)) return;
+  const reader = () => document.querySelector(`.knowledge-drawer-body[data-reading-note="${CSS.escape(id)}"]`);
+  const scrollTop = reader()?.scrollTop;
+  const find = S.ui.knowledgeFind;
+  const matchIndex = find?.index;
+  const pane = reader()?.querySelector('.knowledge-editor')?.dataset.pane;
+  if (pane) captureKnowledgeEditorPosition();
   openModal({
+    onClose() {
+      const body = reader();
+      if (!body || S.ui.knowledgeFind !== find) return;
+      if (find && find.noteId === id) find.index = matchIndex;
+      if (pane) restoreKnowledgeEditorPosition(pane);
+      if (scrollTop != null) body.scrollTop = scrollTop;
+    },
     type: 'knowledgeTool',
     render: (_m, H) => {
       const note = D().knowledgeNotes.find(n => n.id === id);
