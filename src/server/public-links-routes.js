@@ -65,6 +65,16 @@ async function targetFor(target, user, profiles = []) {
 }
 
 export const publicLinksManagementRouter = express.Router();
+publicLinksManagementRouter.get('/events', async (request, response, next) => {
+  try {
+    const data = await getWorkspaceDatabase({ fields: ['members'] });
+    const actor = knowledgeActor(data, request.user, request.configuredProfiles);
+    if (workspaceMemberRole(actor) !== 'admin') throw publicLinkError('PUBLIC_LINK_FORBIDDEN', 403);
+    response.set('Cache-Control', 'private, no-store').json({ events: await publicLinksRegistry.events(workspaceScope()) });
+  } catch (error) {
+    next(error);
+  }
+});
 publicLinksManagementRouter.get('/', async (request, response, next) => {
   try {
     const target = targetInput(request.query);

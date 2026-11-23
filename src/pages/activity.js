@@ -4,7 +4,7 @@ import { isRussian } from '../core/i18n.js';
 const T = (en, ru) => (isRussian() ? ru : en);
 /* ---------- ACTIVITY ---------- */
 import { collectionView, collectionPage, saveCollectionView, resetCollectionView } from '../core/collection-view-state.js';
-import { dayBucket, esc } from '../core/utils.js';
+import { dayBucket, esc, fmtTimestamp } from '../core/utils.js';
 import { D, S, canSee, proj } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { activityFeed, activityGroupingControl } from '../ui/activity-feed.js';
@@ -109,6 +109,43 @@ A.resetActivityFilters = () => {
   render();
 };
 
+A.viewAccessEvents = async () => {
+  const { publicLinksRequest, getSessionGeneration } = await import('../core/api.js');
+  const generation = getSessionGeneration();
+  const modal = {
+    type: 'accessEvents',
+    render: (_m, H) => {
+      const kinds = {
+        file: T('File', 'Файл'),
+        note: T('Note', 'Заметка'),
+        'file-folder': T('File folder', 'Папка файлов'),
+        'note-folder': T('Note folder', 'Папка заметок'),
+      };
+      if (generation !== getSessionGeneration()) return H(T('Workspace changed', 'Пространство изменилось'));
+      const objects = {
+        file: D().files,
+        note: D().knowledgeNotes,
+        'note-folder': D().knowledgeFolders,
+        'file-folder': D().projects.flatMap(p => p.fileFolders || []),
+      };
+      const links = (modal.events || [])
+        .map(e => {
+          const actor = D().members.find(row => row.id === e.actorId)?.name || e.actorId;
+          const object = objects[e.kind]?.find(row => row.id === e.targetId);
+          return `<li><strong>${esc(actor)}</strong> · ${e.event === 'issued' ? T('Granted public access', 'Открыл(а) публичный доступ') : T('Revoked public access', 'Отозвал(а) публичный доступ')}<br>${kinds[e.kind] || ''} · ${esc(object?.title || object?.name || e.targetId)} · ${esc(fmtTimestamp(e.at))}</li>`;
+        })
+        .join('');
+      return `${H(T('Public access history', 'История публичного доступа'))}<div class="modal-b" translate="no">${modal.error ? T('Could not load history. Reopen to retry.', 'Не удалось загрузить историю. Откройте её повторно.') : modal.events ? (links ? `<ul>${links}</ul>` : T('No public access changes recorded yet.', 'Изменений публичного доступа пока нет.')) : T('Loading…', 'Загрузка…')}</div>`;
+    },
+  };
+  openModal(modal);
+  try {
+    modal.events = (await publicLinksRequest('/events')).events;
+  } catch {
+    modal.error = true;
+  }
+  if (generation === getSessionGeneration() && S.ui.modals.includes(modal)) render();
+};
 export function pageActivity() {
   const viewState = collectionView('activity', activityDefaults);
   if (S.ui.actPeriod) applyPreset(S.ui);
@@ -144,7 +181,7 @@ export function pageActivity() {
   const b = {};
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
-    <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div></div>
+    <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div>${S.ui.currentUser?.role === 'admin' ? `<button class="btn btn-secondary" data-a="viewAccessEvents" translate="no">${T('Public access history', 'История публичного доступа')}</button>` : ''}</div>
     <div class="activity-filters"><div class="activity-type-wide">${segmentedControl({
       label: 'Activity filters',
       key: 'actFilter',

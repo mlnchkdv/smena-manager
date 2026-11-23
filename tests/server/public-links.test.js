@@ -183,6 +183,11 @@ test('anonymous links expose only explicit targets, stream ranges, enforce live 
     const privateRegistry = await fs.readFile(path.join(directory, 'smena-manager-public-links.json'), 'utf8');
     assert.ok(!privateRegistry.includes(note.path.split('/').at(-1).split('?')[0]));
     await manage('DELETE', '/' + note.id);
+    assert.equal((await manage('GET', '/events', null, sessions[1])).status, 403);
+    const audit = await (await manage('GET', '/events')).json();
+    assert.ok(audit.events.some(e => e.targetId === 'note' && e.event === 'issued'));
+    assert.ok(audit.events.some(e => e.targetId === 'note' && e.event === 'revoked' && e.actorId === 'owner'));
+    assert.ok(!JSON.stringify(audit).includes(note.id));
     assert.equal((await fetch(origin + note.path)).status, 404);
     await change(value => {
       value.knowledgeNotes[0].title = 'Restored content';

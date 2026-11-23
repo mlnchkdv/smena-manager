@@ -21,6 +21,11 @@ const dto = record => ({
   path: `/api/public/${record.id}.${signature(record)}?lang=${record.locale}`,
 });
 
+function recordEvent(data, record, actorId, event, at) {
+  const { workspaceId, kind, targetId, projectId } = record;
+  data.events = [...(data.events || []).slice(-999), { workspaceId, kind, targetId, projectId, actorId, event, at }];
+}
+
 // Deliberately separate from workspace documents and their backup/restore cycle.
 export class PublicLinksRegistry {
   constructor({ provider = () => getStorageProvider('default'), now = () => Date.now() } = {}) {
@@ -45,6 +50,13 @@ export class PublicLinksRegistry {
     const pending = this.queue.then(run, run);
     this.queue = pending.catch(() => {});
     return pending;
+  }
+  async events(workspaceId) {
+    const data = await readPublicLinkRegistry(this.provider());
+    return (data.events || [])
+      .filter(row => row.workspaceId === workspaceId)
+      .slice(-100)
+      .reverse();
   }
   async list(workspaceId, target, actor) {
     secret();
@@ -79,6 +91,7 @@ export class PublicLinksRegistry {
         expiresAt: days ? new Date(this.now() + days * 86400000).toISOString() : null,
       };
       data.records.push(record);
+      recordEvent(data, record, member.id, 'issued', record.createdAt);
       return dto(record);
     });
   }
@@ -86,7 +99,10 @@ export class PublicLinksRegistry {
     return this.mutate(data => {
       const record = data.records.find(row => row.id === id && row.workspaceId === workspaceId && (row.memberId === actor.id || actor.admin));
       if (!record) throw publicLinkError();
-      record.revokedAt ||= new Date(this.now()).toISOString();
+      if (!record.revokedAt) {
+        record.revokedAt = new Date(this.now()).toISOString();
+        recordEvent(data, record, actor.id, 'revoked', record.revokedAt);
+      }
       return { id: record.id, revokedAt: record.revokedAt };
     });
   }
