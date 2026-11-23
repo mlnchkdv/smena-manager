@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { KNOWLEDGE_BODY_KIND, KNOWLEDGE_BODY_MAX_BYTES, externalKnowledgeBody, validKnowledgeBodyRef } from '../shared/knowledge-body.js';
 import { noteCardExcerpt } from '../shared/knowledge-search.js';
-import { cacheSearchValue } from './knowledge-search-cache.js';
+import { cacheSearchValue, cachedSearchValue } from './knowledge-search-cache.js';
 import { indexKnowledgeBodyLinks } from '../shared/knowledge-body-links.js';
 
 export const knowledgeBodyError = (code = 'KNOWLEDGE_BODY_INTEGRITY', statusCode = 503) =>
@@ -26,10 +26,12 @@ export async function storeKnowledgeBody(storage, note) {
   return { ...metadata, bodyLinks: indexKnowledgeBodyLinks(note.formatted_markdown, sha256), bodyRef: { kind: KNOWLEDGE_BODY_KIND, sha256, bytes } };
 }
 
-export async function loadKnowledgeBody(storage, note) {
+export async function loadKnowledgeBody(storage, note, { cacheBodies = false } = {}) {
   if (!externalKnowledgeBody(note)) return { ...note };
   if (!validKnowledgeBodyRef(note.bodyRef)) throw knowledgeBodyError();
-  const text = await storage.readKnowledgeBody(note.bodyRef.sha256);
+  const key = 'verified-body:' + note.bodyRef.sha256;
+  const cached = cacheBodies ? cachedSearchValue(storage, key) : undefined;
+  const text = cached ?? (await storage.readKnowledgeBody(note.bodyRef.sha256));
   if (typeof text !== 'string' || Buffer.byteLength(text) !== note.bodyRef.bytes || digest(text) !== note.bodyRef.sha256) throw knowledgeBodyError();
   let object;
   try {
@@ -38,6 +40,7 @@ export async function loadKnowledgeBody(storage, note) {
     throw knowledgeBodyError();
   }
   if (object.format !== 'smena-knowledge-body-v1' || object.noteId !== note.id || typeof object.formatted_markdown !== 'string') throw knowledgeBodyError();
+  if (cacheBodies && cached === undefined) cacheSearchValue(storage, key, text, text.length * 2);
   const metadata = { ...note };
   delete metadata.bodyRef;
   delete metadata.bodyPreview;
@@ -73,15 +76,15 @@ export async function stageKnowledgeBodyWindow(data, storage, ids, { signal } = 
   return { ...data, knowledgeNotes };
 }
 
-export async function expandKnowledgeBodies(data, storage, { ids, includeTrash = true } = {}) {
+export async function expandKnowledgeBodies(data, storage, { ids, includeTrash = true, cacheBodies = false } = {}) {
   const selected = ids && new Set(ids);
   const needsBody = note => externalKnowledgeBody(note) && (!selected || selected.has(note.id));
   if (!data.knowledgeNotes?.some(needsBody) && !(includeTrash && data.trash?.some(item => item.kind === 'note' && needsBody(item.data?.note)))) return data;
-  const expand = note => (!selected || selected.has(note.id) ? loadKnowledgeBody(storage, note) : note);
+  const expand = note => (!selected || selected.has(note.id) ? loadKnowledgeBody(storage, note, { cacheBodies }) : note);
   const next = { ...data };
   if (Array.isArray(data.knowledgeNotes)) {
     next.knowledgeNotes = [];
-    for (const note of data.knowledgeNotes) next.knowledgeNotes.push(await expand(note));
+    for (let i = 0; i < data.knowledgeNotes.length; i += 4) next.knowledgeNotes.push(...(await Promise.all(data.knowledgeNotes.slice(i, i + 4).map(expand))));
   }
   if (includeTrash && Array.isArray(data.trash)) {
     next.trash = [];

@@ -935,7 +935,7 @@ app.get('/api/workspace-documents/:name', async (request, response, next) => {
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
     const legacy = await getWorkspaceDatabase({ catalog: 'metadata' });
-    response.json({ data: await getWorkspaceDocument(request.params.name, legacy) });
+    response.json({ data: await getWorkspaceDocument(request.params.name, legacy, { cacheBodies: true }) });
   } catch (error) {
     next(error);
   }

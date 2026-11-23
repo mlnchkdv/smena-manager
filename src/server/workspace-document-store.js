@@ -37,12 +37,12 @@ function projectDocument(name, database) {
   };
 }
 
-export async function getWorkspaceDocument(name, aggregate) {
+export async function getWorkspaceDocument(name, aggregate, { cacheBodies = false } = {}) {
   assertName(name);
   // Reusing the core snapshot makes backup/revision projections coherent.
   const current = aggregate?._aggregateVersion === 1 ? aggregate : await getWorkspaceDatabase();
   return structuredClone(
-    projectDocument(name, name === 'knowledge' ? await expandKnowledgeBodies(current, getStorageProvider(), { includeTrash: false }) : current),
+    projectDocument(name, name === 'knowledge' ? await expandKnowledgeBodies(current, getStorageProvider(), { includeTrash: false, cacheBodies }) : current),
   );
 }
 
