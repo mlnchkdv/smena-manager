@@ -61,6 +61,36 @@ test('query returns a bounded page, exact counts and no private identities, incl
     assert.throws(() => catalogQuery(db, user, options));
 });
 
+test('page boundaries survive unrelated changes and restart when a file moves across visited pages', () => {
+  const db = data(),
+    actor = { id: 'm', role: 'editor' };
+  const query = (offset, boundary) => catalogQuery(db, actor, { revision: 7, sort: 'date', limit: 25, offset, boundary });
+  const second = query(25);
+  const forward = { end: 50, version: second.nextPrefix };
+  db.revision++;
+  const third = query(50, forward);
+  assert.equal(third.restarted, false);
+  assert.equal(third.page, 2);
+  assert.equal(third.startPrefix, second.nextPrefix);
+  const backward = { end: 50, version: third.startPrefix };
+  assert.deepEqual(query(25, backward).files, second.files);
+  const item = db.files.find(f => f.id === third.files[0].id);
+  item.name = 'Updated';
+  assert.deepEqual(query(50, forward).files, third.files);
+  item.at = 3000;
+  for (const [offset, boundary] of [
+    [50, forward],
+    [25, backward],
+  ]) {
+    const fresh = query(offset, boundary);
+    assert.equal(fresh.page, 0);
+    assert.equal(fresh.restarted, true);
+    assert.equal(fresh.files[0].id, item.id);
+  }
+  db.files = db.files.filter(f => f.at < 50);
+  assert.equal(query(50, forward).page, 0);
+});
+
 test('partial-client deletion stores all unloaded project/task files in recoverable trash', () => {
   const current = data();
   const incoming = { projects: [current.projects[1]], tasks: [], trash: [{ id: 'trash', kind: 'project', data: { project: current.projects[0], files: [] } }] };

@@ -1,5 +1,6 @@
 import { registerRussianLabels } from '../core/i18n.js';
 registerRussianLabels({
+  'The file list changed. Showing the updated first page.': 'Список файлов изменился. Открыта первая страница обновлённого списка.',
   Select: 'Выбрать',
   'Selection cleared because the view changed.': 'Выбор снят после изменения представления.',
   'Upload files or choose existing ones.': 'Загрузите файлы или выберите существующие.',

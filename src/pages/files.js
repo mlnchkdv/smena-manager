@@ -150,18 +150,21 @@ export function pageFiles(projectId = null) {
   const pageSize = S.ui.filePageSize || 100;
   const pageKey = `files:${projectId || 'workspace'}:${projectFilter}:${currentFolder?.id || ''}:${Boolean(S.ui.fileRecursive)}:${typeFilter}:${sort}:${query}:${pageSize}`;
   restoreFileContextPage(pageKey, (projectId || requestedProject === projectFilter) && (!requestedFolder || !!currentFolder));
-  const remote = demandFilePage({
-    context: projectId || 'all',
-    project: projectFilter,
-    folder: currentFolder?.id || '',
-    recursive: Boolean(S.ui.fileRecursive),
-    type: typeFilter,
-    query,
-    sort,
-    limit: pageSize,
-    offset: (S.ui.listPages?.[pageKey] || 0) * pageSize,
-    countFolders: visibleFileFolderKeys(projectFilter, currentFolder, index),
-  });
+  const remote = demandFilePage(
+    {
+      context: projectId || 'all',
+      project: projectFilter,
+      folder: currentFolder?.id || '',
+      recursive: Boolean(S.ui.fileRecursive),
+      type: typeFilter,
+      query,
+      sort,
+      limit: pageSize,
+      offset: (S.ui.listPages?.[pageKey] || 0) * pageSize,
+      countFolders: visibleFileFolderKeys(projectFilter, currentFolder, index),
+    },
+    pageKey,
+  );
   if (remote) files = (remote.files || []).map(file => index.files.find(item => item.id === file.id)).filter(Boolean);
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }

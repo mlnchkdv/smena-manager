@@ -2,6 +2,10 @@ import { createFileIndex, filterIndexedFiles } from '../shared/file-index.js';
 import { canReadProject } from '../shared/project-access.js';
 import { memberForProfile } from '../shared/member-identity.js';
 import { workspaceMemberRole } from '../shared/workspace-access.js';
+import { fileCatalogVersion } from './file-catalog-version.js';
+
+// Only the ordered IDs preceding the next page determine its boundary.
+const prefixVersion = (rows, end) => fileCatalogVersion(rows.slice(0, end).map(file => file.id));
 
 export function currentCatalogUser(database, user) {
   const member = memberForProfile(database, user);
@@ -29,7 +33,15 @@ export function catalogQuery(database, user, options = {}) {
   // A new results list can start at the current snapshot. Counts and later
   // pages still have to match the snapshot their caller is displaying.
   const startAtLatest = options.snapshot === 'latest' && revision === undefined && offset === 0 && !countsOnly;
-  if (!startAtLatest && revision !== database.revision)
+  const boundary = options.boundary;
+  const hasBoundary =
+    !countsOnly &&
+    offset > 0 &&
+    boundary &&
+    (boundary.end === offset || boundary.end === offset + limit) &&
+    typeof boundary.version === 'string' &&
+    /^[a-f0-9]{64}$/.test(boundary.version);
+  if (!startAtLatest && !hasBoundary && revision !== database.revision)
     throw Object.assign(new Error('The workspace changed after it was loaded. Refresh and retry.'), {
       statusCode: 409,
       code: 'REVISION_CONFLICT',
@@ -70,12 +82,18 @@ export function catalogQuery(database, user, options = {}) {
   if (countsOnly) return structuredClone({ revision, folderCounts });
   const results = filterIndexedFiles(index, { project, folder, recursive, type, query, sort });
   const pages = Math.max(1, Math.ceil(results.length / limit));
-  const page = Math.min(Math.floor(offset / limit), pages - 1);
+  const boundaryVersion = hasBoundary ? prefixVersion(results, boundary.end) : null;
+  const restarted = Boolean(hasBoundary && (offset >= results.length || boundaryVersion !== boundary.version));
+  const page = restarted ? 0 : Math.min(Math.floor(offset / limit), pages - 1);
+  const versionAt = end => (end === boundary?.end && boundaryVersion ? boundaryVersion : prefixVersion(results, end));
   return structuredClone({
     revision: database.revision,
     files: results.slice(page * limit, (page + 1) * limit).map(file => ({ id: file.id })),
     page,
     pages,
+    restarted,
+    startPrefix: page > 0 ? versionAt(page * limit) : null,
+    nextPrefix: page + 1 < pages ? versionAt((page + 1) * limit) : null,
     total: results.length,
     allTotal: summary.files.length,
     totalBytes: summary.totalBytes,

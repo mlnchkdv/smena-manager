@@ -10,6 +10,7 @@ import { catalogLoadError } from '../shared/catalog-errors.js';
 import { backgroundRender } from './background-render.js';
 import { readCatalogWithRevisionRefresh } from '../shared/catalog-revision-retry.js';
 import { waitForPersonalPreferences } from '../core/personal-preferences.js';
+import { toast } from '../ui/toast.js';
 
 let loaded,
   pending = '',
@@ -66,7 +67,7 @@ function pageWithCounts(page, options) {
     countsError: !!missing.length && countsFailure === requestKey,
   };
 }
-export function demandFilePage(options) {
+export function demandFilePage(options, pageKey) {
   if (fileCatalogInfo()?.mode !== 'demand') return null;
   const rowOptions = filePageOptions(options);
   const key = JSON.stringify([context(), rowOptions]);
@@ -75,6 +76,14 @@ export function demandFilePage(options) {
   if (loaded?.key === key) return pageWithCounts(loaded.page, options);
   if (pending !== key && failed !== key && !pending) {
     pending = key;
+    const previous = loaded?.scope === scope && loaded.pageKey === pageKey ? loaded.page : null;
+    let boundary;
+    if (options.offset && previous) {
+      const start = previous.page * options.limit;
+      if (start + options.limit === options.offset && previous.nextPrefix) boundary = { end: options.offset, version: previous.nextPrefix };
+      if (start - options.limit === options.offset && previous.startPrefix) boundary = { end: start, version: previous.startPrefix };
+    }
+    let restarted = false;
     queueMicrotask(async () => {
       try {
         await queueWorkspaceSync(S.data);
@@ -85,7 +94,7 @@ export function demandFilePage(options) {
         await readCatalogWithRevisionRefresh(
           async () => {
             const fence = options.offset ? { revision: S.ui.workspaceRevision } : { snapshot: 'latest' };
-            const page = await queryFileCatalog({ ...options, ...fence });
+            const page = await queryFileCatalog({ ...options, ...fence, boundary });
             if (session !== getSessionGeneration()) return;
             const ids = [
               ...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)]),
@@ -98,7 +107,23 @@ export function demandFilePage(options) {
               throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
             applyExternalCoreSnapshot(snapshot, base);
             counts.seed(context(), page.folderCounts);
-            loaded = { key: JSON.stringify([context(), rowOptions]), scope, query, page, revision: S.ui.workspaceRevision };
+            let actualOptions = rowOptions;
+            if (page.restarted) {
+              if (document.querySelector('.files-page')?.dataset.previewPageKey !== pageKey || S.ui.listPages?.[pageKey] * options.limit !== options.offset)
+                return;
+              S.ui.listPages[pageKey] = 0;
+              actualOptions = { ...rowOptions, offset: 0 };
+              restarted = true;
+              toast('The file list changed. Showing the updated first page.', { kind: 'info', ms: 6500 });
+            }
+            loaded = {
+              key: JSON.stringify([context(), actualOptions]),
+              scope,
+              pageKey,
+              query: JSON.stringify(actualOptions),
+              page,
+              revision: S.ui.workspaceRevision,
+            };
             error = failed = '';
           },
           async () => {
@@ -120,7 +145,7 @@ export function demandFilePage(options) {
         pending = '';
         backgroundRender(() => {
           const input = document.activeElement;
-          const draft = ['files-page-jump', 'files-folder-page-jump'].includes(input?.id) ? { id: input.id, value: input.value } : null;
+          const draft = !restarted && ['files-page-jump', 'files-folder-page-jump'].includes(input?.id) ? { id: input.id, value: input.value } : null;
           render();
           // A completed query must not erase a page number typed while the
           // response was in flight, before the user presses Enter.
