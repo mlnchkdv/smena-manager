@@ -43,7 +43,7 @@ jobs:
       - name: Critical deployment acceptance (RU/EN, desktop/mobile)
         env:
           E2E_EXTENDED_BROWSERS: true
-        run: npx playwright test --project=${{ matrix.browser }} --grep "deployment acceptance|core task flow and responsive shell|mobile navigation keeps focus"
+        run: npx playwright test --project=${{ matrix.browser }} --grep "deployment acceptance|core task flow and responsive shell|mobile navigation keeps focus|an ordinary member creates and configures owned workspaces|quick capture preserves text when its file upload fails"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
