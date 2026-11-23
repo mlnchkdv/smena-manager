@@ -36,6 +36,17 @@ if (tabs.length) {
       select(tabs[index], true, true);
     });
   }
+  const selectFromHash = () => {
+    const requested = tabs.find(tab => tab.hash === location.hash);
+    if (requested) select(requested, true);
+  };
+  window.addEventListener('hashchange', selectFromHash);
+  document.querySelectorAll('.hero-paths a').forEach(link =>
+    link.addEventListener('click', () => {
+      const tab = tabs.find(tab => tab.hash === link.hash);
+      if (tab) select(tab, true);
+    }),
+  );
   select(tabs.find(tab => tab.hash === location.hash) || tabs[0]);
 }
 
