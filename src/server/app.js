@@ -55,7 +55,7 @@ import {
 } from './notification-delivery.js';
 import { runNotificationCleanup } from './notification-cleanup.js';
 import { notificationRecipient } from '../shared/notification-model.js';
-import { DOCUMENT_NAMES, workspaceCoreData } from '../shared/workspace-documents.js';
+import { DOCUMENT_NAMES, WORKSPACE_DOCUMENTS, workspaceCoreData } from '../shared/workspace-documents.js';
 import { getWorkspaceDocument, replaceWorkspaceDocument } from './workspace-document-store.js';
 import { listAuthSessions, revokeAuthSession, revokeOtherAuthSessions } from './auth-session-store.js';
 import { runAutomaticWorkspaceBackup } from './automatic-backups.js';
@@ -934,7 +934,9 @@ app.post('/api/knowledge/imports/:id/entries', requireRole('admin', 'editor'), a
 app.get('/api/workspace-documents/:name', async (request, response, next) => {
   try {
     if (!DOCUMENT_NAMES.includes(request.params.name)) return response.status(404).json({ error: 'Workspace document not found.', code: 'DOCUMENT_NOT_FOUND' });
-    const legacy = await getWorkspaceDatabase({ catalog: 'metadata' });
+    const legacy = await getWorkspaceDatabase({
+      fields: ['_aggregateVersion', '_documentRevisions', 'createdAt', 'updatedAt', ...WORKSPACE_DOCUMENTS[request.params.name]],
+    });
     response.json({ data: await getWorkspaceDocument(request.params.name, legacy, { cacheBodies: true }) });
   } catch (error) {
     next(error);
