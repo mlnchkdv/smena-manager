@@ -1250,3 +1250,29 @@
     margin-inline-start: auto;
   }
 }
+@media (max-width: 640px) {
+  .graph-page .graph-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .graph-page .graph-toolbar .graph-search {
+    flex: 1 1 130px;
+    min-width: 0;
+    width: auto;
+    grid-column: auto;
+  }
+  .graph-toolbar:not(.options-open) > :is(.graph-display-trigger, .seg) {
+    display: none;
+  }
+  .graph-page .graph-filter-toggle {
+    width: auto;
+    min-width: 44px;
+  }
+  .graph-page .graph-stage:not(:has(.graph-list)) .graph-surface {
+    min-height: 280px;
+  }
+  .graph-page:not(:has(.graph-toolbar.options-open)) .graph-controls button:not(.graph-touch-control):not([data-a='graphFit']) {
+    display: none;
+  }
+}
