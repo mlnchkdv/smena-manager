@@ -90,6 +90,9 @@ export function disclosureOpen(key) {
 export function disclosureAttributes(key) {
   return `data-ui-disclosure="${esc(key)}" ${disclosureOpen(key) ? 'open' : ''}`;
 }
+export function forgetDisclosure(key) {
+  expanded.delete(key);
+}
 export function resetDisclosures(except = '') {
   disclosureOpen('');
   document.querySelectorAll('[data-ui-disclosure]').forEach(menu => {

@@ -10,7 +10,7 @@ import { render } from '../shell/render.js';
 import { esc, fmtTimestamp } from '../core/utils.js';
 import { refreshWorkspaceFromServer } from '../core/bootstrap.js';
 import { toast } from '../ui/toast.js';
-import { disclosureAttributes } from '../ui/disclosure.js';
+import { disclosureAttributes, forgetDisclosure } from '../ui/disclosure.js';
 import { bookmarkArchiveView, bookmarkArchiveUrl } from '../ui/bookmark-archive.js';
 
 const words = (en, ru) => (isRussian() ? ru : en);
@@ -319,6 +319,7 @@ A.removeBookmarkArchiveOffline = async () => {
 A.viewBookmarkPage = async el => {
   const link = D().links?.find(row => row.id === el.dataset.id);
   if (!link || !normalizedPageUrl(link.url)) return;
+  forgetDisclosure('bookmark:tools:' + link.id);
   const m = {
     type: 'bookmarkViewer',
     id: link.id,
