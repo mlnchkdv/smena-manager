@@ -7,6 +7,8 @@ const NOUNS = {
   result: { en: ['result', 'results'], ru: ['результат', 'результата', 'результатов'] },
   attachment: { en: ['attachment', 'attachments'], ru: ['вложение', 'вложения', 'вложений'] },
   comment: { en: ['comment', 'comments'], ru: ['комментарий', 'комментария', 'комментариев'] },
+  member: { en: ['member', 'members'], ru: ['участник', 'участника', 'участников'] },
+  project: { en: ['project', 'projects'], ru: ['проект', 'проекта', 'проектов'] },
   team: { en: ['team', 'teams'], ru: ['команда', 'команды', 'команд'] },
   folder: { en: ['folder', 'folders'], ru: ['папка', 'папки', 'папок'] },
   note: { en: ['note', 'notes'], ru: ['заметка', 'заметки', 'заметок'] },

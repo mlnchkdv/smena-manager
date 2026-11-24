@@ -120,7 +120,7 @@ export function teamsGrid() {
     .map(t => {
       const ms = D().members.filter(m => m.team === t.id);
       const ps = visibleProjects().filter(p => p.team === t.id);
-      return `<div class="pcard" data-a="go" data-r="team" data-id="${t.id}" role="link" tabindex="0"><div class="row"><span class="picon" style="--c:${t.c}">${ic(t.icon, 15)}</span><b style="font-weight:600;font-size:14px" translate="no">${esc(t.name)}</b></div><div class="desc" translate="no">${esc(teamDescription(t.desc))}</div><div class="foot"><span class="row" style="gap:4px">${ic('users', 12)}${ms.length} members</span><span class="row" style="gap:4px">${ic('folder', 12)}${ps.length} projects</span><span class="sp"></span>${avStack(
+      return `<div class="pcard" data-a="go" data-r="team" data-id="${t.id}" role="link" tabindex="0"><div class="row"><span class="picon" style="--c:${t.c}">${ic(t.icon, 15)}</span><b style="font-weight:600;font-size:14px" translate="no">${esc(t.name)}</b></div>${t.desc && !['No description yet.', 'Описания пока нет.'].includes(t.desc) ? `<div class="desc" translate="no">${esc(t.desc)}</div>` : ''}<div class="foot"><span class="row" style="gap:4px">${ic('users', 12)}${uiCount(ms.length, 'member')}</span><span class="row" style="gap:4px">${ic('folder', 12)}${uiCount(ps.length, 'project')}</span><span class="sp"></span>${avStack(
         ms.map(m => m.id),
         4,
       )}</div></div>`;
