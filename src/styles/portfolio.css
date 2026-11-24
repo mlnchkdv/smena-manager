@@ -376,3 +376,38 @@
     line-height: 1.2;
   }
 }
+.portfolio-search-toggle {
+  display: none;
+}
+@media (max-width: 640px) {
+  .overview-page .work-risk-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .overview-page .work-risk-strip > .btn {
+    flex-direction: column;
+    justify-content: center;
+    white-space: normal;
+    line-height: 1.15;
+    padding: 4px;
+    font-size: 12px;
+  }
+  .portfolio-totals {
+    grid-column: 1/-1;
+  }
+  .portfolio-search-toggle {
+    display: inline-flex;
+  }
+  .portfolio-heading .portfolio-controls {
+    flex-basis: auto;
+    width: auto;
+  }
+  .portfolio-controls:not(.with-search) > .inwrap {
+    display: none;
+  }
+  .portfolio-mobile-card details summary {
+    min-height: 36px;
+    align-content: center;
+  }
+}
