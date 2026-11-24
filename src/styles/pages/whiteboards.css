@@ -499,7 +499,9 @@
   .whiteboard-document-heading .canvas-toolbar-toggle {
     display: inline-flex;
   }
-  .whiteboard-page:not(.show-toolbox) .project-whiteboard[data-has-selection='false']:not(.is-focused):not(:has(.whiteboard-outline)) > .whiteboard-toolbar {
+  .whiteboard-page:not(.show-toolbox)
+    .project-whiteboard:not(.is-focused):not(:has(.whiteboard-outline)):is([data-has-selection='false'], :has(> .whiteboard-context))
+    > .whiteboard-toolbar {
     display: none;
   }
   .whiteboard-document-heading p {
