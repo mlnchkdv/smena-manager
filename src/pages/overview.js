@@ -110,9 +110,9 @@ export function pageOverview() {
     .slice(0, 5);
   return `<div class="page overview-page layout-dashboard">
     <div class="ph compact-page-head"><div><h1>Team overview</h1><p class="page-description">Projects, workload and upcoming milestones.</p></div><div class="acts"><label class="overview-scope"><span class="sr">Project scope</span><select class="select" data-in="portfolioScope" aria-label="Project scope">${[
-      ['active', 'Active projects'],
+      ['active', isRussian() ? 'Активные' : 'Active'],
       ['all', 'All projects'],
-      ['complete', 'Completed projects'],
+      ['complete', isRussian() ? 'Завершённые' : 'Completed'],
     ]
       .map(([key, label]) => `<option value="${key}" ${S.ui.portfolioScope === key ? 'selected' : ''}>${t(label)}</option>`)
       .join(
