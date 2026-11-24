@@ -1,5 +1,6 @@
 import { activityMatcher, activityRangeValid } from '../shared/activity-view.js';
 import { calendarDate } from '../shared/calendar-time.js';
+import { ic } from '../core/icons.js';
 import { isRussian, t } from '../core/i18n.js';
 const T = (en, ru) => (isRussian() ? ru : en);
 /* ---------- ACTIVITY ---------- */

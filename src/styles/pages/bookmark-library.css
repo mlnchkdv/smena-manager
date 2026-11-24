@@ -296,8 +296,12 @@
     gap: 8px 12px;
     align-content: start;
 
-    & > * { grid-column: 1 / -1; }
-    & .bookmark-card-top { grid-area: 1 / 1; }
+    & > * {
+      grid-column: 1 / -1;
+    }
+    & .bookmark-card-top {
+      grid-area: 1 / 1;
+    }
     & .bookmark-thumbnail {
       grid-area: 1 / 2;
       width: 48px;
@@ -306,8 +310,12 @@
       margin: 0;
       border-radius: var(--r);
     }
-    & .bookmark-thumbnail-fallback { padding: 0; }
-    & .bookmark-thumbnail-fallback small { display: none; }
+    & .bookmark-thumbnail-fallback {
+      padding: 0;
+    }
+    & .bookmark-thumbnail-fallback small {
+      display: none;
+    }
   }
 }
 

@@ -803,7 +803,10 @@
   padding: 4px;
 }
 @media (max-width: 1024px) {
-  .whiteboard-context-title .input { width: 100%; max-width: none; }
+  .whiteboard-context-title .input {
+    width: 100%;
+    max-width: none;
+  }
   .whiteboard-context:has(.whiteboard-context-title:focus-within) .whiteboard-context-actions {
     display: none;
   }

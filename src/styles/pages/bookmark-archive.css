@@ -1,9 +1,17 @@
-
-.bookmark-copy-tools > summary { cursor: pointer; padding-block: 10px; }
-.bookmark-copy-tools[open] > .bookmark-viewer-toolbar { margin-block: 8px; }
+.bookmark-copy-tools > summary {
+  cursor: pointer;
+  padding-block: 10px;
+}
+.bookmark-copy-tools[open] > .bookmark-viewer-toolbar {
+  margin-block: 8px;
+}
 @media (max-width: 640px) {
-  .bookmark-viewer-heading[data-saved-copy] .bookmark-viewer-url { display: none; }
-  .bookmark-viewer-dialog:has(.bookmark-copy-tools) .modal-b { gap: 8px; }
+  .bookmark-viewer-heading[data-saved-copy] .bookmark-viewer-url {
+    display: none;
+  }
+  .bookmark-viewer-dialog:has(.bookmark-copy-tools) .modal-b {
+    gap: 8px;
+  }
 }
 .bookmark-archive-actions {
   display: flex;
