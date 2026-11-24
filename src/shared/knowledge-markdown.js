@@ -1,7 +1,7 @@
 import { materialLink } from './material-links.js';
 import { Marked } from 'marked';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
-import { markdownText } from './markdown-text.js';
+import { markdownText, sameReadingTitle } from './markdown-text.js';
 
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const textHtml = value => escape(value).replace(/&amp;((?:#\d+|#x[\da-f]+|[a-z][\da-z]+);)/gi, '&$1');
@@ -249,7 +249,7 @@ export function renderKnowledgeMarkdown(source, options = {}) {
               depth === 0 &&
               token === tokens.find(item => item.type !== 'space' && item.type !== 'def') &&
               options.readerTitle &&
-              markdownText(token.text).normalize('NFKC') === options.readerTitle.trim().normalize('NFKC');
+              sameReadingTitle(token.text, options.readerTitle);
             return `<h${level}${duplicatesTitle ? ' class="sr"' : ''} data-knowledge-heading="${escape(anchor)}" tabindex="-1">${inlines(token.tokens)}</h${level}>`;
           }
           case 'paragraph':

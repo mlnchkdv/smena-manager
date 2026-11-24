@@ -1,6 +1,6 @@
 import { parseKnowledgeQuery, matchesKnowledgeRules } from './knowledge-query.js';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
-import { firstMarkdownParagraph, markdownText } from './markdown-text.js';
+import { firstMarkdownParagraph, markdownText, sameReadingTitle } from './markdown-text.js';
 export { searchTerms } from './search-query.js';
 
 export const searchableNote = note =>
@@ -90,14 +90,18 @@ export function knowledgeExcerpt(note, query, length = 180) {
 }
 // Catalog copy only: never rewrite source text or suppress actual search matches.
 export function noteCardExcerpt(note, query) {
-  if (note.bodyPending && !Object.hasOwn(note, 'formatted_markdown')) return String(note.summary || note.bodyPreview || '').slice(0, 180);
+  if (note.bodyPending && !Object.hasOwn(note, 'formatted_markdown')) {
+    const preview = String(note.summary || note.bodyPreview || '').slice(0, 180);
+    if (query || !note.title || note.sourceFormat === 'text') return preview;
+    for (const boundary of preview.matchAll(/\s+/gu)) {
+      if (sameReadingTitle(preview.slice(0, boundary.index), note.title)) return preview.slice(boundary.index).trim();
+    }
+    return sameReadingTitle(preview, note.title) ? '' : preview;
+  }
   if (!query && note.sourceFormat !== 'text') {
     const opening = knowledgeDisplayParts(note).body.slice(0, 4096);
     const heading = opening.match(/^\s{0,3}#{1,6}[ \t]+([^\n]+)|^([^\n]+)\r?\n(?:={3,}|-{3,})[ \t]*(?:\n|$)/);
-    const title = String(note.title || '')
-      .trim()
-      .normalize('NFKC');
-    if (heading && markdownText((heading[1] || heading[2]).replace(/\s+#+\s*$/, '')).normalize('NFKC') === title) {
+    if (heading && sameReadingTitle((heading[1] || heading[2]).replace(/\s+#+\s*$/, ''), note.title)) {
       const paragraph = firstMarkdownParagraph(opening.slice(heading[0].length));
       if (paragraph) return paragraph.length > 180 ? paragraph.slice(0, 180) + '…' : paragraph;
     }

@@ -133,3 +133,12 @@ test('reading removes only a matching first Markdown title without mutating sour
     assert.equal(knowledgeReadingSource({ ...note, title: 'Other' }), source);
   }
 });
+
+test('digest reader folds only equivalent opening titles and preserves dated and section anchors', () => {
+  const title = 'Gaussian Splatting — дайджест за ноябрь',
+    source = '# Gaussian Splatting — еженедельный дайджест за ноябрь\n\nАбзац\n\n## Эксперимент';
+  const html = renderKnowledgeMarkdown(source, { readerTitle: title });
+  assert.match(html, /class="sr" data-knowledge-heading="gaussian-splatting-еженедельный-дайджест-за-ноябрь"/);
+  assert.match(html, /<h3 data-knowledge-heading="эксперимент"/);
+  assert.doesNotMatch(renderKnowledgeMarkdown(source, { readerTitle: 'Gaussian Splatting — дайджест за октябрь' }), /class="sr"/);
+});

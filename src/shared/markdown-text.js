@@ -38,3 +38,14 @@ export function redundantMarkdownSummary(summary, source) {
   const description = normalize(summary);
   return !!description && text.startsWith(description);
 }
+
+// Imported weekly digests may omit the cadence in their catalog title.
+export function sameReadingTitle(heading, title) {
+  const key = value =>
+    markdownText(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/еженедельный\s+дайджест/gu, 'дайджест')
+      .replace(/\bweekly\s+digest\b/gu, 'digest');
+  return Boolean(title) && key(heading) === key(title);
+}
