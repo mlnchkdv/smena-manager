@@ -29,6 +29,7 @@ let knowledgeGridKeyboard, knowledgeGridKeyboardLoading;
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
+import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { updateCompactSearch } from '../ui/compact-search.js';
 import { captureWorkContext, restoreWorkContext, restoreWorkScroll, saveWorkHistory } from '../core/work-navigation.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
@@ -303,6 +304,34 @@ export function render() {
     const column = board.querySelector('[data-drop-col="' + CSS.escape(board.dataset.initialColumn) + '"]');
     if (column)
       board.scrollLeft = column.getBoundingClientRect().left - board.getBoundingClientRect().left - parseFloat(getComputedStyle(board).paddingLeft || 0);
+  }
+  if (board && matchMedia('(max-width: 640px)').matches) {
+    let touched = false;
+    board.addEventListener(
+      'pointerdown',
+      () => {
+        touched = true;
+      },
+      { passive: true },
+    );
+    board.addEventListener(
+      'wheel',
+      () => {
+        touched = true;
+      },
+      { passive: true },
+    );
+    board.addEventListener('scrollend', () => {
+      if (!touched) return;
+      touched = false;
+      const left = board.getBoundingClientRect().left + parseFloat(getComputedStyle(board).paddingLeft || 0);
+      const columns = [...board.querySelectorAll('[data-drop-col]')];
+      const nearest = columns.reduce(
+        (best, column) => (Math.abs(column.getBoundingClientRect().left - left) < Math.abs(best.getBoundingClientRect().left - left) ? column : best),
+        columns[0],
+      );
+      if (nearest) writeLayoutPreference('board-column:' + board.dataset.boardKey, nearest.dataset.dropCol);
+    });
   }
   if (fid) {
     const el = document.getElementById(fid);
