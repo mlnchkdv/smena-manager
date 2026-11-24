@@ -35,7 +35,10 @@
     <a class="skip-link" href="#main">К содержимому</a>
     <header class="site-header">
       <a class="brand" href="/product.html" aria-label="smena.team"><img src="/favicon.svg" width="36" height="36" alt="" /><span>smena.team</span></a>
-      <nav aria-label="Навигация по странице">
+      <button type="button" class="product-nav-toggle" hidden aria-label="Меню" aria-controls="product-navigation" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="product-navigation" aria-label="Навигация по странице">
         <a href="#features">Возможности</a><a href="#workflow">Как это работает</a><a href="#start">Начать работу</a>
       </nav>
       <div class="header-actions">
@@ -2385,7 +2388,10 @@
           ></a>
         </p>
       </div>
-      <nav aria-label="Справочные ссылки">
+      <button type="button" class="product-nav-toggle" hidden aria-label="Меню" aria-controls="product-navigation" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="product-navigation" aria-label="Справочные ссылки">
         <a href="/mcp-setup.html">Подключение MCP</a><a href="/privacy.html">Конфиденциальность</a><a href="/terms.html">Условия</a
         ><a href="mailto:hello@smena.agency">hello@smena.agency</a>
       </nav>

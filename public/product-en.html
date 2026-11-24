@@ -35,7 +35,12 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a class="brand" href="/product-en.html" aria-label="smena.team"><img src="/favicon.svg" width="36" height="36" alt="" /><span>smena.team</span></a>
-      <nav aria-label="Page navigation"><a href="#features">Features</a><a href="#workflow">How it works</a><a href="#start">Get started</a></nav>
+      <button type="button" class="product-nav-toggle" hidden aria-label="Menu" aria-controls="product-navigation" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="product-navigation" aria-label="Page navigation">
+        <a href="#features">Features</a><a href="#workflow">How it works</a><a href="#start">Get started</a>
+      </nav>
       <div class="header-actions">
         <button class="theme-toggle" type="button" data-product-theme aria-label="Dark theme" aria-pressed="false"><span aria-hidden="true">◐</span></button
         ><a class="language" href="/product.html" lang="ru" hreflang="ru" aria-label="Русский">RU</a
@@ -2347,7 +2352,10 @@
           ></a>
         </p>
       </div>
-      <nav aria-label="Reference links">
+      <button type="button" class="product-nav-toggle" hidden aria-label="Menu" aria-controls="product-navigation" aria-expanded="false">
+        <span aria-hidden="true">☰</span>
+      </button>
+      <nav id="product-navigation" aria-label="Reference links">
         <a href="/mcp-setup-en.html">Connect MCP</a><a href="/privacy-en.html">Privacy</a><a href="/terms-en.html">Terms</a
         ><a href="mailto:hello@smena.agency">hello@smena.agency</a>
       </nav>

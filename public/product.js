@@ -710,7 +710,22 @@ if (navigationToggle) {
   navigationToggle.addEventListener('click', () =>
     navigationToggle.setAttribute('aria-expanded', String(navigationToggle.getAttribute('aria-expanded') !== 'true')),
   );
-  navigation.addEventListener('click', closeNavigation);
+  const compact = matchMedia('(max-width: 1050px)');
+  const actions = navigation.parentElement.querySelector('.header-actions');
+  const signIn = actions.querySelector('.button');
+  const arrange = () => {
+    closeNavigation();
+    if (compact.matches) navigation.append(themeButton, languageLink);
+    else {
+      actions.insertBefore(themeButton, signIn);
+      actions.insertBefore(languageLink, signIn);
+    }
+  };
+  arrange();
+  compact.addEventListener('change', arrange);
+  navigation.addEventListener('click', event => {
+    if (event.target.closest('a')) closeNavigation();
+  });
   document.addEventListener('pointerdown', event => {
     if (!navigation.contains(event.target) && !navigationToggle.contains(event.target)) closeNavigation();
   });
