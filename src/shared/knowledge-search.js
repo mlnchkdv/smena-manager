@@ -1,6 +1,6 @@
 import { parseKnowledgeQuery, matchesKnowledgeRules } from './knowledge-query.js';
 import { knowledgeDisplayParts } from './knowledge-frontmatter.js';
-import { markdownText } from './markdown-text.js';
+import { firstMarkdownParagraph, markdownText } from './markdown-text.js';
 export { searchTerms } from './search-query.js';
 
 export const searchableNote = note =>
@@ -91,6 +91,17 @@ export function knowledgeExcerpt(note, query, length = 180) {
 // Catalog copy only: never rewrite source text or suppress actual search matches.
 export function noteCardExcerpt(note, query) {
   if (note.bodyPending && !Object.hasOwn(note, 'formatted_markdown')) return String(note.summary || note.bodyPreview || '').slice(0, 180);
+  if (!query && note.sourceFormat !== 'text') {
+    const opening = knowledgeDisplayParts(note).body.slice(0, 4096);
+    const heading = opening.match(/^\s{0,3}#{1,6}[ \t]+([^\n]+)|^([^\n]+)\r?\n(?:={3,}|-{3,})[ \t]*(?:\n|$)/);
+    const title = String(note.title || '')
+      .trim()
+      .normalize('NFKC');
+    if (heading && markdownText((heading[1] || heading[2]).replace(/\s+#+\s*$/, '')).normalize('NFKC') === title) {
+      const paragraph = firstMarkdownParagraph(opening.slice(heading[0].length));
+      if (paragraph) return paragraph.length > 180 ? paragraph.slice(0, 180) + '…' : paragraph;
+    }
+  }
   if (query || note.summary || note.sourceFormat === 'text') return knowledgeExcerpt(note, query);
   const body = String(note.formatted_markdown || '').replace(
     /^# (?:Новая заметка\r?\n\r?\nДобавьте сюда знания, регламент или рабочие договорённости команды\.|New note\r?\n\r?\nAdd team knowledge, guidelines, or working agreements here\.)\s*/u,

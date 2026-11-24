@@ -245,7 +245,12 @@ export function renderKnowledgeMarkdown(source, options = {}) {
               suffix = 1;
             while (headings.has(anchor)) anchor = `${slug}-${suffix++}`;
             headings.add(anchor);
-            return `<h${level} data-knowledge-heading="${escape(anchor)}" tabindex="-1">${inlines(token.tokens)}</h${level}>`;
+            const duplicatesTitle =
+              depth === 0 &&
+              token === tokens.find(item => item.type !== 'space' && item.type !== 'def') &&
+              options.readerTitle &&
+              markdownText(token.text).normalize('NFKC') === options.readerTitle.trim().normalize('NFKC');
+            return `<h${level}${duplicatesTitle ? ' class="sr"' : ''} data-knowledge-heading="${escape(anchor)}" tabindex="-1">${inlines(token.tokens)}</h${level}>`;
           }
           case 'paragraph':
           case 'text': {
