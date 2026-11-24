@@ -9,6 +9,9 @@
   .bookmark-viewer-heading[data-saved-copy] .bookmark-viewer-url {
     display: none;
   }
+  .bookmark-viewer-dialog:has(.bookmark-copy-tools) {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+  }
   .bookmark-viewer-dialog:has(.bookmark-copy-tools) .modal-b {
     gap: 8px;
   }
