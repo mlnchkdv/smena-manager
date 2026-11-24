@@ -1449,3 +1449,37 @@ dd {
     gap: 2px;
   }
 }
+.hero-actions .button.secondary {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.demo-section > .hero-paths {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .hero.wrap {
+    padding-block: 16px 12px;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 8vw, 42px);
+    line-height: 1.04;
+  }
+  .hero .hero-lead {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-block: 10px;
+  }
+  .hero-actions {
+    gap: 2px;
+  }
+  .hero-actions .button.secondary {
+    min-height: 40px;
+    padding-block: 4px;
+  }
+  .demo-section.wrap {
+    padding-top: 12px;
+  }
+}
