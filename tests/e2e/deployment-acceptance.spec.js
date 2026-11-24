@@ -148,7 +148,7 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
       await expect(archiveFrame.contentFrame().getByRole('heading', { name: 'Saved page' })).toBeVisible();
       await expect(viewer.locator('[data-in="bookmarkCaptureMode"]')).toBeHidden();
       const frame = await viewer.locator('.bookmark-archive-frame').boundingBox();
-      expect(frame.y).toBeLessThan(height - 100);
+      expect(frame.y).toBeLessThan(width === 320 ? height / 2 : height - 100);
       if (width === 1366) {
         const originalFrame = await archiveFrame.elementHandle();
         await viewer.getByRole('button', { name: lang === 'ru' ? 'Расширить просмотр' : 'Expand viewer' }).click();
@@ -156,7 +156,8 @@ test('deployment acceptance opens a saved research ZIP and bookmark archive on d
       }
       if (width === 320) {
         await page.route(snapshotUrl + '/document*download=1', route => route.fulfill({ status: 503, json: { code: 'UNAVAILABLE' } }), { times: 1 });
-        await viewer.locator('.bookmark-archive-actions [data-a="downloadBookmarkArchive"]').click();
+        await viewer.locator('.bookmark-copy-tools > summary').click();
+        await viewer.getByRole('button', { name: lang === 'ru' ? 'Скачать HTML' : 'Download HTML', exact: true }).click();
         const retry = viewer.getByRole('alert').getByRole('button');
         await expect(retry).toBeVisible();
         await expect(archiveFrame).toBeVisible();
