@@ -482,3 +482,36 @@
     display: none;
   }
 }
+@media (max-width: 640px) {
+  .cal-navigation .cal-settings-toggle {
+    width: auto;
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .cal-navigation h2 {
+    word-break: normal;
+    overflow-wrap: normal;
+  }
+}
+@media (max-width: 420px) {
+  .cal .cal-navigation {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 8px;
+  }
+  .cal-navigation > h2 {
+    grid-area: 1/1;
+    white-space: normal;
+  }
+  .cal-navigation > .cal-settings-toggle {
+    grid-area: 1/2;
+    justify-self: end;
+  }
+  .cal-navigation > [data-a='calNav'] {
+    grid-area: 2/1;
+    justify-self: start;
+  }
+  .cal-navigation > .row {
+    grid-area: 2/2;
+  }
+}

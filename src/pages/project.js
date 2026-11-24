@@ -100,7 +100,8 @@ export function taskViewBody(type, ts, key, p) {
       `<div class="list-wrap">${noTasks ? emptyAll : !ts.length ? emptyFilter : listHtml(groupTasks(ts, v.group), key, { project: p.id })}</div>`
     );
   if (type === 'table') return viewToolbar(key, { cols: true, compact: true, right: addBtn }) + (noTasks ? emptyAll : tableHtml(ts, key, p));
-  if (type === 'calendar') return viewToolbar(key, { group: false, compact: true, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
+  if (type === 'calendar')
+    return viewToolbar(key, { group: false, compact: true, calendar: true, right: addBtn }) + calendarHtml(ts, { key, project: p.id, events: true });
   if (type === 'timeline') return viewToolbar(key, { group: false, sort: false, right: addBtn, extra: tlControls(key) }) + timelineHtml(ts, key, p);
   return page404();
 }

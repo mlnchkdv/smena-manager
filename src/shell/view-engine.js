@@ -218,7 +218,7 @@ export function viewToolbar(key, opt = {}) {
   return `<div class="toolbar ${compact ? 'task-controls-toolbar' : ''}" role="toolbar">
     <div class="inwrap">${ic('search', 13)}<input class="input search-sm" id="vq-${key}" data-in="viewQ" data-key="${key}" placeholder="Search tasks" value="${esc(v.q)}" aria-label="Search tasks">${v.q ? `<button class="ibtn search-clear" data-a="clearSearchInput" data-input="vq-${esc(key)}" aria-label="Clear search">${ic('x', 14)}</button>` : ''}</div>
     <button class="btn btn-ghost ${v.filters.length ? 'on' : ''}" data-a="pop" data-pop="filter" data-key="${key}">${ic('list-filter', 14)}Filter${v.filters.length ? ` <span class="badge accent" style="height:16px;padding:0 5px">${v.filters.length}</span>` : ''}</button>
-    ${compact ? `<details class="ui-menu task-view-options" ${disclosureAttributes(`task-controls:${key}`)}><summary class="btn btn-secondary" aria-label="View options" title="View options">${ic('settings-2', 15)}</summary><div>${secondary}</div></details>` : secondary}
+    ${compact && !(opt.calendar && matchMedia('(max-width:640px)').matches) ? `<details class="ui-menu task-view-options" ${disclosureAttributes(`task-controls:${key}`)}><summary class="btn btn-secondary" aria-label="View options" title="View options">${ic('settings-2', 15)}</summary><div>${secondary}</div></details>` : secondary}
     ${opt.extra || ''}
     <span class="sp"></span>
     ${opt.right || ''}

@@ -100,7 +100,7 @@ export function calendarHtml(ts, opt = {}) {
       <div class="cal-navigation">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
-      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('View options')}" aria-expanded="${!!S.ui.calendarControlsOpen}">${ic('sliders-horizontal', 16)}</button>
+      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('View options')}" aria-expanded="${!!S.ui.calendarControlsOpen}"> ${ic('sliders-horizontal', 16)}<span>${t('View')}</span></button>
       </div>
       <span class="sp"></span>
       ${
@@ -152,5 +152,5 @@ export function pageWsCalendar() {
   const key = 'cal';
   const v = viewOf(key);
   return `<div class="page flush calendar-page"><div class="ph"><div><h1>Calendar</h1><p>Deadlines and events across every project.</p></div><div class="acts"><button class="btn btn-primary" data-a="newTask" aria-label="New task">${ic('plus', 14)}<span class="hide-m">New task</span></button></div></div>
-  ${viewToolbar(key, { group: false, compact: true })}${calendarHtml(applyView(allTasks(), v), { key, events: true })}</div>`;
+  ${viewToolbar(key, { group: false, compact: true, calendar: true })}${calendarHtml(applyView(allTasks(), v), { key, events: true })}</div>`;
 }
