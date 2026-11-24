@@ -228,12 +228,12 @@ export function pageActivity() {
     ]
       .map(([value, name]) => `<option value="${value}" ${f === value ? 'selected' : ''}>${name}</option>`)
       .join('')}</select></label>
-    <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Object or project', 'Объект или проект')}" value="${esc(query)}"><label class="activity-project"><span class="sr">${T('Project', 'Проект')}</span><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All projects', 'Все проекты')}</option>${D()
+    <input class="input" data-in="actQuery" aria-label="${T('Search activity', 'Поиск по активности')}" placeholder="${T('Search activity', 'Поиск событий')}" value="${esc(query)}"><label class="activity-project"><span class="hint">${T('Project', 'Проект')}</span><select class="select" data-in="actProject" aria-label="${T('Project', 'Проект')}"><option value="all">${T('All', 'Все')}</option>${D()
       .projects.filter(canSee)
       .map(p => `<option value="${esc(p.id)}" ${project === p.id ? 'selected' : ''} translate="no">${esc(p.name)}</option>`)
       .join(
         '',
-      )}</select></label><label class="activity-person"><span class="sr">${T('Person', 'Участник')}</span><select class="select" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
+      )}</select></label><label class="activity-person"><span class="hint">${T('Person', 'Участник')}</span><select class="select" data-in="actWho" aria-label="Filter by person"><option value="all">${T('All', 'Все')}</option>${D()
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join('')}</select></label></div><div class="activity-condition-chips">${[
       [f !== 'all' && 'actFilter', t({ status: 'Status changes', comments: 'Comments', projects: 'Projects' }[f] || 'All')],
