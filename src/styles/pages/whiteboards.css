@@ -492,3 +492,23 @@
     padding-block: 2px;
   }
 }
+.canvas-toolbar-toggle {
+  display: none;
+}
+@media (max-width: 640px) {
+  .whiteboard-document-heading .canvas-toolbar-toggle {
+    display: inline-flex;
+  }
+  .whiteboard-page:not(.show-toolbox) .project-whiteboard[data-has-selection='false']:not(.is-focused):not(:has(.whiteboard-outline)) > .whiteboard-toolbar {
+    display: none;
+  }
+  .whiteboard-document-heading p {
+    display: none;
+  }
+  .whiteboard-page .whiteboard-document-heading {
+    margin-bottom: 4px;
+  }
+  .whiteboard-page .project-whiteboard {
+    margin-top: 4px;
+  }
+}
