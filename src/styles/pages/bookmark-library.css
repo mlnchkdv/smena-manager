@@ -370,3 +370,16 @@
     inset-inline-end: 0;
   }
 }
+
+button.bookmark-save-state {
+  cursor: pointer;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .bookmark-preview-row :is(button, a) {
+    min-height: 44px;
+    align-content: center;
+  }
+}

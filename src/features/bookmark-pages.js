@@ -342,6 +342,7 @@ A.viewBookmarkPage = async el => {
   };
   openModal(m);
   await Promise.all([loadPage(m), watchArchive(m)]);
+  if (el.dataset.capture && currentViewer(m) && !m.snapshots.length) await A.saveBookmarkPage();
 };
 IN.bookmarkSnapshot = async el => {
   const m = S.ui.modals.at(-1);
