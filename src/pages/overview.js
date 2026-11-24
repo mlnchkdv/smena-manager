@@ -61,8 +61,8 @@ A.resetPortfolioFilters = () => {
 function projectLink(project, content, className = '') {
   return `<a class="${className}" href="${esc(appLocationPath(D(), { route: 'project', params: { id: project.id, tab: 'overview' } }))}" data-a="go" data-r="project" data-id="${esc(project.id)}" data-tab="overview" translate="no">${content}</a>`;
 }
-function taskCount(row, kind, count, label) {
-  return `<button class="portfolio-count${kind === 'overdue' && count ? ' bad' : ''}" data-a="goTasks" data-f="${kind}" data-project="${esc(row.project.id)}" aria-label="${esc(t(label) + ': ' + count + ' · ' + row.project.name)}" title="${esc(t(label))}">${count}</button>`;
+function taskCount(row, kind, count, label, showLabel = false) {
+  return `<button class="portfolio-count${kind === 'overdue' && count ? ' bad' : ''}" data-a="goTasks" data-f="${kind}" data-project="${esc(row.project.id)}" aria-label="${esc(t(label) + ': ' + count + ' · ' + row.project.name)}" title="${esc(t(label))}">${showLabel ? esc(t(label)) + ' · ' : ''}${count}</button>`;
 }
 function nextMilestone(row, today) {
   const timing = portfolioMilestoneTiming(row.next, today, isRussian());
@@ -72,7 +72,7 @@ function nextMilestone(row, today) {
 }
 function projectSignals(row, mobileDate) {
   const reasons = [];
-  if (mobileDate && row.overdue) reasons.push(`<span>${t('Overdue tasks')}: ${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</span>`);
+  if (mobileDate && row.overdue) return `<div class="portfolio-signals">${taskCount(row, 'overdue', row.overdue, 'Overdue tasks', true)}</div>`;
   if (mobileDate && row.next?.date < mobileDate)
     reasons.push(`<span>${isRussian() ? 'Просрочен этап' : 'Overdue milestone'} · ${esc(row.next.name || t('Unnamed milestone'))}</span>`);
   if (row.unassigned) reasons.push(`<span>${t('Without assignee')}: ${taskCount(row, 'unassigned', row.unassigned, 'Without assignee')}</span>`);
@@ -143,7 +143,7 @@ export function pageOverview() {
               '<button class="btn btn-secondary" data-a="go" data-r="projects">All projects</button>',
             )
           : `
-      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}${pStatus(row.project.status)}</div>${projectSignals(row, today)}<div>${projectDueHtml(row.project, { icon: true })}</div><details ${disclosureAttributes('portfolio-detail:' + row.project.id)}><summary>${isRussian() ? 'Подробности' : 'Details'}</summary><div class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num" title="${row.total ? t('Progress') : t('No tasks yet')}">${row.total ? row.progress + '%' : '—'}</b></div>${nextMilestone(row, today)}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue tasks')} ${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</span></div></details></article>`).join('')}</div>
+      <div class="portfolio-cards">${window.items.map(row => `<article class="portfolio-mobile-card"><div class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'grow portfolio-project-name')}</div>${projectSignals(row, today)}<div>${projectDueHtml(row.project, { icon: true })}</div><details ${disclosureAttributes('portfolio-detail:' + row.project.id)}><summary>${isRussian() ? 'Подробности' : 'Details'}</summary><div class="row portfolio-owner">${pStatus(row.project.status)}${av(row.project.lead, 'sm', false)}<span class="grow" translate="no">${esc(mem(row.project.lead)?.name || '—')}</span><b class="num" title="${row.total ? t('Progress') : t('No tasks yet')}">${row.total ? row.progress + '%' : '—'}</b></div>${nextMilestone(row, today)}${row.overdue ? projectSignals(row) : ''}<div class="portfolio-card-counts"><span>${t('Open tasks')} ${taskCount(row, 'open', row.open, 'Open tasks')}</span><span>${t('Overdue tasks')} ${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</span></div></details></article>`).join('')}</div>
       <div class="portfolio-table-wrap" role="region" aria-label="Portfolio" tabindex="0"><table class="perm-t overview-portfolio-table"><thead><tr><th>Project</th><th>Lead</th><th>Status</th><th>Progress</th><th>Open tasks</th><th>${t('Overdue tasks')}</th><th>Due</th></tr></thead><tbody>${window.items.map(row => `<tr><td><span class="row">${pIcon(row.project, '', 14)}${projectLink(row.project, esc(row.project.name), 'portfolio-project-name')}</span>${nextMilestone(row, today)}${projectSignals(row)}</td><td><span class="row portfolio-owner">${av(row.project.lead, 'sm', false)}<span translate="no">${esc(mem(row.project.lead)?.name || '—')}</span></span></td><td>${pStatus(row.project.status)}</td><td><span class="row">${row.total ? `${progBar(row.progress)}<span class="num">${row.progress}%</span>` : `<span class="hint">${t('No tasks yet')}</span>`}</span></td><td>${taskCount(row, 'open', row.open, 'Open tasks')}</td><td>${taskCount(row, 'overdue', row.overdue, 'Overdue tasks')}</td><td>${projectDueHtml(row.project)}</td></tr>`).join('')}</tbody></table></div>`
       }
       ${paginationHtml(window, pageKey)}

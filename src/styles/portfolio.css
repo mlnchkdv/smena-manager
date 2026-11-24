@@ -411,3 +411,15 @@
     align-content: center;
   }
 }
+
+@media (max-width: 640px) {
+  .portfolio-mobile-card .portfolio-signals .portfolio-count {
+    width: auto;
+    padding-inline: 8px;
+    text-align: start;
+    min-height: 44px;
+  }
+  .portfolio-mobile-card .portfolio-owner {
+    flex-wrap: wrap;
+  }
+}
