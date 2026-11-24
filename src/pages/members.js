@@ -51,7 +51,7 @@ export function pageMembers() {
     <div class="tabs" role="tablist" aria-label="Members" style="margin-bottom:14px">${[
       ['members', 'Members'],
       ['teams', 'Teams'],
-      ['roles', 'Roles & permissions'],
+      ['roles', isRussian() ? 'Роли и права' : 'Roles & access'],
     ]
       .map(
         ([k, n]) =>
