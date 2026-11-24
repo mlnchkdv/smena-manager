@@ -1940,6 +1940,29 @@
   }
 }
 
+.knowledge-card-tag-list {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.knowledge-card-tag-list .knowledge-tag {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.knowledge-card-tag-list summary {
+  cursor: pointer;
+  color: var(--text-2);
+  padding: 4px;
+}
+.knowledge-card-tag-list details[open] > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 .knowledge-type-fields {
   margin-block: 12px;
   padding: 10px;
