@@ -147,7 +147,7 @@ export function timelineHtml(ts, key, p) {
       const w = Math.max(dw, (diffD(parse(t.due), parse(s)) + 1) * dw);
       const c = g === 'status' || g === 'none' ? pColor(pp) : `var(--st-${t.status})`;
       const inside = w > 110;
-      return `<div class="tl-rowbg" style="top:${y}px"></div><div class="bar ${t.status === 'done' ? 'done' : ''}" style="--c:${c};left:${x}px;top:${y + 7}px;width:${w}px" data-bar="${t.id}" data-dw="${dw}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)} · ${fmtDate(s)} → ${fmtDate(t.due)}"><span class="pf" style="width:${taskProg(t)}%"></span>${inside ? `${av(t.assignee, 'sm', false)}<span class="trunc" translate="no">${esc(t.title)}</span>` : ''}</div>${inside ? '' : `<div class="bar-lbl" style="left:${x + w + 8}px;top:${y + 10}px" translate="no">${esc(t.title)}</div>`}`;
+      return `<div class="tl-rowbg" style="top:${y}px"></div><div class="bar ${t.status === 'done' ? 'done' : ''}" style="--c:${c};left:${x}px;top:${y + 7}px;width:${w}px" data-event-date="${esc(t.due)}" data-bar="${t.id}" data-dw="${dw}" data-a="openTask" data-id="${t.id}" data-ctx="task" title="${esc(t.title)} · ${fmtDate(s)} → ${fmtDate(t.due)}"><span class="pf" style="width:${taskProg(t)}%"></span>${inside ? `${av(t.assignee, 'sm', false)}<span class="trunc" translate="no">${esc(t.title)}</span>` : ''}</div>${inside ? '' : `<div class="bar-lbl" style="left:${x + w + 8}px;top:${y + 10}px" translate="no">${esc(t.title)}</div>`}`;
     })
     .join('');
   // dependency paths
@@ -186,6 +186,7 @@ export function timelineHtml(ts, key, p) {
   const todayX = diffD(TODAY, rs) * dw;
   return `<div class="tl" style="--tl-row-height:${RH}px" data-tl-today="${todayX}" data-tl-anchor="${X(S.ui.tlAnchor || iso(TODAY))}" data-tl-key="${key}">
     <div class="tl-left"><div class="tl-head">Task</div><div class="tl-rows" id="tl-rows">${left}<div style="height:40px"></div></div></div>
+    <button class="btn btn-secondary tl-nearest" data-a="tlLocate" hidden>${isRussian() ? 'К ближайшему событию' : 'Nearest event'}</button>
     <div class="tl-right" id="tl-right" data-keep="tl:${key}:${S.ui.tlZoom}:${S.ui.tlAnchor || ''}">
       <div class="tl-head" style="width:${W}px"><div class="tl-months">${months.map(m => `<div style="width:${m.n * dw}px"><span>${MONL[m.d.getMonth()]} ${m.d.getFullYear()}</span></div>`).join('')}</div><div class="tl-days">${days}</div></div>
       <div class="tl-grid" style="width:${W}px;height:${H + 40}px">
@@ -217,7 +218,7 @@ export function msLane(ms, X, dw, y) {
       const overdue = !complete && diffD(parse(pt.date), TODAY) < 0;
       const color = complete ? 'var(--green)' : overdue ? 'var(--red)' : first.p ? pColor(first.p) : '';
       const state = complete ? ' · Completed' : overdue ? ' · Overdue' : '';
-      return `<div class="ms-w ${complete ? 'done' : overdue ? 'overdue' : ''}" style="left:${pt.x - 6}px;top:${y + 9}px" data-tip="${esc(tip + state)}" tabindex="0" aria-label="Milestone: ${esc(tip + state)}"><span class="ms" style="${color ? `background:${color}` : ''}"></span>${label}</div>`;
+      return `<div class="ms-w ${complete ? 'done' : overdue ? 'overdue' : ''}" style="left:${pt.x - 6}px;top:${y + 9}px" data-event-date="${esc(pt.date)}" data-tip="${esc(tip + state)}" tabindex="0" aria-label="Milestone: ${esc(tip + state)}"><span class="ms" style="${color ? `background:${color}` : ''}"></span>${label}</div>`;
     })
     .join('');
 }
@@ -231,9 +232,31 @@ export function tlAfter() {
   r.scrollLeft = !S.ui.tlResetPosition && savedPosition ? savedPosition.left : Math.max(0, +$('.tl').dataset.tlAnchor - 160);
   r.scrollTop = !S.ui.tlResetPosition && savedPosition ? savedPosition.top : 0;
   S.ui.tlResetPosition = false;
+  const nearest = r.parentElement.querySelector('.tl-nearest');
+  const events = Array.from(r.querySelectorAll('[data-event-date]'), el => ({
+    date: el.dataset.eventDate,
+    start: el.offsetLeft,
+    end: el.offsetLeft + (el.matches('.bar') ? el.offsetWidth : 12),
+  }));
+  const updateNearest = () => {
+    const start = r.scrollLeft,
+      end = start + r.clientWidth;
+    let distance = Infinity;
+    for (const event of events) {
+      const gap = Math.max(start - event.end, event.start - end, 0);
+      if (gap < distance) {
+        distance = gap;
+        nearest.dataset.date = event.date;
+      }
+      if (!gap) break;
+    }
+    nearest.hidden = !Number.isFinite(distance) || distance === 0;
+  };
+  updateNearest();
   rememberTimelinePosition(r);
   r.onscroll = () => {
     if (!r.isConnected) return;
+    updateNearest();
     l.scrollTop = r.scrollTop;
     rememberTimelinePosition(r);
   };

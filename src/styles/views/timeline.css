@@ -262,6 +262,19 @@
   overflow: visible;
 }
 
+.tl {
+  position: relative;
+}
+.tl-nearest {
+  position: absolute;
+  top: 58px;
+  right: 8px;
+  z-index: 4;
+}
+.tl-nearest[hidden] {
+  display: none;
+}
+
 .tl-agenda .tl-anchor {
   color: var(--accent);
   background: var(--accent-soft);
@@ -280,7 +293,7 @@
   }
 }
 @media (min-width: 641px) and (max-width: 1024px) {
-  .tl .tl-row[data-a="openTask"] {
+  .tl .tl-row[data-a='openTask'] {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-rows: 44px 44px;
@@ -298,8 +311,12 @@
     justify-self: start;
     min-height: 44px;
   }
-  .tl-row .av { grid-area: 2 / 3; }
-  .tl-row > .num { display: none; }
+  .tl-row .av {
+    grid-area: 2 / 3;
+  }
+  .tl-row > .num {
+    display: none;
+  }
 }
 .tl-task-title {
   min-width: 0;
