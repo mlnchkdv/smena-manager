@@ -1464,6 +1464,7 @@ dd {
     padding-block: 16px 12px;
   }
   .hero h1 {
+    margin-bottom: 10px;
     font-size: clamp(30px, 8vw, 42px);
     line-height: 1.04;
   }
@@ -1481,5 +1482,11 @@ dd {
   }
   .demo-section.wrap {
     padding-top: 12px;
+  }
+}
+@media (max-width: 600px) {
+  .demo-section .section-caption {
+    gap: 4px;
+    margin-bottom: 10px;
   }
 }
