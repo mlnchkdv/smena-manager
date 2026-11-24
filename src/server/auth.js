@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { sessionCookieToken } from './session-cookie.js';
+import { sessionCookieToken, setSessionCookie } from './session-cookie.js';
 import { reportProviderError } from './provider-safety.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -166,6 +166,7 @@ export async function createTrackedSession(profile, request, authMethod, respons
     expiresAt: verified.expiresAt,
     ...sessionDetailsFromRequest(request, authMethod),
   });
+  if (response) setSessionCookie(response, token, verified.expiresAt);
   if (session) {
     // Identify a browser only for grouping this account's sign-in notices.
     const previous = request.get('cookie')?.match(/(?:^|;\s*)smena_login_browser=([a-f0-9]{32})(?:;|$)/)?.[1];

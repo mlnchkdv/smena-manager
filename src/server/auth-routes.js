@@ -95,7 +95,6 @@ authRouter.post('/google', rateLimit, async (request, response) => {
     const profile = await authenticateGoogleCredential(request.body?.credential, { profiles });
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
     const token = await createTrackedSession(profile, request, 'google', response);
-    setSessionCookie(response, token, verifySession(token).expiresAt);
     response.json({ valid: true, token, user: publicProfile(profile) });
   } catch (error) {
     loginRateLimiter.recordFailure(request.loginRateLimitKey);
@@ -118,7 +117,6 @@ authRouter.post('/validate', requireAccessIdLogin, rateLimit, async (request, re
     }
     loginRateLimiter.recordSuccess(request.loginRateLimitKey);
     const token = await createTrackedSession(profile, request, 'access_id', response);
-    setSessionCookie(response, token, verifySession(token).expiresAt);
     response.json({ valid: true, token, user: publicProfile(profile) });
   } catch (error) {
     next(error);
