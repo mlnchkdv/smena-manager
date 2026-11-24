@@ -687,6 +687,13 @@
   font-size: var(--fs-xs);
   margin-bottom: 16px;
 }
+.knowledge-reader-info > summary {
+  cursor: pointer;
+  padding: 10px 4px;
+}
+.knowledge-reader-info[open] {
+  flex-basis: 100%;
+}
 .knowledge-byline {
   display: flex;
   align-items: baseline;
