@@ -249,9 +249,8 @@ A.setKnowledgePresentation = () => {
   render();
 };
 A.clearSearchInput = el => {
-  if (!['search-page-q', 'bookmark-search'].includes(el.dataset.input)) return;
   const input = document.getElementById(el.dataset.input);
-  if (!input) return;
+  if (!input?.matches('#search-page-q,#bookmark-search,input[data-in="viewQ"]')) return;
   input.value = '';
   input.dispatchEvent(new Event('input', { bubbles: true }));
   document.getElementById(el.dataset.input)?.focus({ preventScroll: true });

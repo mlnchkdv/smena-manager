@@ -88,3 +88,13 @@
     display: none;
   }
 }
+
+@media (max-width: 640px) {
+  .compact-search-bar .compact-search-field:focus-within > :is(.search-clear, .workspace-file-search-clear, .knowledge-search-clear, .graph-search-clear) {
+    position: static;
+    transform: none;
+    flex: 0 0 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+}
