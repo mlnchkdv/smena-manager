@@ -212,6 +212,26 @@
 .cev .trunc {
   flex: 1;
 }
+@container calendar-day (max-width: 135px) {
+  .cev :is(.cal-item-project, .av),
+  .cev.calendar-plan-item small {
+    display: none;
+  }
+  .cev:has(.trunc) {
+    height: auto;
+    min-height: 36px;
+    padding-inline: 3px;
+    gap: 3px;
+  }
+  .cev .trunc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+}
 .cev.done {
   opacity: 0.55;
 }
