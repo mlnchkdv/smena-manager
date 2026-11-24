@@ -330,7 +330,11 @@ export function render() {
         (best, column) => (Math.abs(column.getBoundingClientRect().left - left) < Math.abs(best.getBoundingClientRect().left - left) ? column : best),
         columns[0],
       );
-      if (nearest) writeLayoutPreference('board-column:' + board.dataset.boardKey, nearest.dataset.dropCol);
+      if (nearest) {
+        writeLayoutPreference('board-column:' + board.dataset.boardKey, nearest.dataset.dropCol);
+        const select = board.previousElementSibling?.querySelector('select[data-in="boardColumnChoice"]');
+        if (select) select.value = nearest.dataset.dropCol;
+      }
     });
   }
   if (fid) {

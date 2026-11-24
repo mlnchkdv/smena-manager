@@ -14,7 +14,7 @@ import { applyView, groupTasks, viewOf, viewToolbar } from '../shell/view-engine
 import { listHtml } from '../components/task-list.js';
 import { page404, stateDenied } from './errors.js';
 import { projActivity, projOverview } from '../views/project-overview.js';
-import { boardHtml } from '../views/board.js';
+import { boardEmptyOption, boardHtml } from '../views/board.js';
 import { tableHtml } from '../views/table.js';
 import { calendarHtml } from '../views/calendar.js';
 import { timelineHtml, tlControls } from '../views/timeline.js';
@@ -93,7 +93,11 @@ export function taskViewBody(type, ts, key, p) {
     'No tasks match these filters.',
     `<button class="btn btn-secondary btn-sm" data-a="clearFilters" data-key="${key}">Clear filters</button>`,
   );
-  if (type === 'board') return viewToolbar(key, { group: false, compact: true, right: addBtn }) + (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }));
+  if (type === 'board')
+    return (
+      viewToolbar(key, { moreOptions: boardEmptyOption(key), group: false, compact: true, right: addBtn }) +
+      (noTasks ? emptyAll : boardHtml(ts, key, { project: p.id }))
+    );
   if (type === 'list')
     return (
       viewToolbar(key, { compact: true, right: addBtn }) +
