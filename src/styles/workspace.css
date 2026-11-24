@@ -996,3 +996,12 @@
     margin-left: 0;
   }
 }
+
+@media (max-width: 440px) {
+  #mnav-btn {
+    display: none;
+  }
+  .topbar .workspace-context {
+    max-width: none;
+  }
+}

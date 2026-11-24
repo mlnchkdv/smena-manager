@@ -1364,11 +1364,11 @@ test('file folders preserve uploads and moves through reload and archive on mobi
       language === 'Русский' ? 'Загрузить файлы' : 'Upload files',
     );
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
-    await page.locator('#mnav-btn').click();
+    await page.locator('[data-a=openMnav]:visible').first().click();
     await expect(page.locator('.side')).toHaveAttribute('role', 'dialog');
     await expect(page.locator('.main')).toHaveAttribute('inert', '');
     await page.keyboard.press('Escape');
-    await expect(page.locator('#mnav-btn')).toBeFocused();
+    await expect(page.locator('[data-a=openMnav]:visible').first()).toBeFocused();
     await expect(page.locator('.side')).toHaveAttribute('inert', '');
     const folder = page.locator('.files-folder-tile', { hasText: folderA });
     await folder.locator('summary').click();

@@ -308,9 +308,9 @@ export function renderBottomNav() {
   const r = S.ui.route;
   const unread = myNotifications().some(n => !n.read && n.type !== 'update');
   const b = (route, label, icon, extra = '') =>
-    `<button class="${r === route ? 'on' : ''}" data-a="go" data-r="${route}">${ic(icon, 19)}<span>${label}</span>${extra}</button>`;
+    `<button class="${r === route ? 'on' : ''}" data-a="go" data-r="${route}" aria-label="${esc(tr(label))}">${ic(icon, 19)}<span translate="no">${esc(tr(route === 'mytasks' ? 'Tasks' : label))}</span>${extra}</button>`;
   return `<nav class="bottomnav" aria-label="Primary">
     ${b('home', 'Home', 'house')}${b('mytasks', 'My Tasks', 'circle-check')}${b('projects', 'Projects', 'folder-kanban')}${b('inbox', 'Inbox', 'inbox', unread ? '<span class="bdot"></span>' : '')}
-    <button data-a="openMnav">${ic('ellipsis', 19)}<span>More</span></button>
+    <button id="bottom-menu-trigger" data-a="openMnav">${ic('ellipsis', 19)}<span>More</span></button>
   </nav>`;
 }

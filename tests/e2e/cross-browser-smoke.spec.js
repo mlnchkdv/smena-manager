@@ -719,16 +719,16 @@ test('mobile navigation keeps focus visible after route changes and resizing in 
     for (const width of [320, 390]) {
       await page.setViewportSize({ width, height: 844 });
       for (const route of ['files', 'knowledge', 'whiteboards', 'graph']) {
-        await page.locator('#mnav-btn').click();
+        await page.locator('[data-a=openMnav]:visible').first().click();
         await expect(page.locator('.side')).toHaveAttribute('aria-modal', 'true');
         await page.locator(`.side [data-a="go"][data-r="${route}"]`).click();
         await expect(page.locator('.side')).toHaveAttribute('aria-hidden', 'true');
         await expect(page.locator('#main-content')).toBeFocused();
         await expectNoPageOverflow(page);
       }
-      await page.locator('#mnav-btn').click();
+      await page.locator('[data-a=openMnav]:visible').first().click();
       await page.keyboard.press('Escape');
-      await expect(page.locator('#mnav-btn')).toBeFocused();
+      await expect(page.locator('[data-a=openMnav]:visible').first()).toBeFocused();
     }
     await page.setViewportSize({ width: 1366, height: 768 });
     await expect(page.locator('.side')).not.toHaveAttribute('inert', '');

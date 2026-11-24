@@ -1699,7 +1699,8 @@ export function setPersonalFavorite(kind, record) {
   }
 }
 
-A.openMnav = () => {
+A.openMnav = el => {
+  S.ui.mobileNavOpener = el?.id;
   S.ui.mnav = true;
   render();
   document.querySelector('.mobile-nav-close')?.focus();
@@ -1708,7 +1709,7 @@ IN.settingsSection = el => go('settings', { sec: el.value });
 A.closeMnav = () => {
   S.ui.mnav = false;
   render();
-  document.querySelector('#mnav-btn')?.focus();
+  document.getElementById(S.ui.mobileNavOpener || 'mnav-btn')?.focus();
 };
 A.toggleExpand = el => {
   S.ui.expanded[el.dataset.id] = !S.ui.expanded[el.dataset.id];
