@@ -517,3 +517,24 @@
     margin-top: 4px;
   }
 }
+@media (max-width: 900px) {
+  .whiteboard-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - var(--bottom-nav-height, 0px));
+  }
+  .whiteboard-page > :not(.project-whiteboard),
+  .whiteboard-page .project-whiteboard > :not(.whiteboard-stage, .whiteboard-board-area) {
+    flex-shrink: 0;
+  }
+  .whiteboard-page .project-whiteboard:not(.is-focused),
+  .whiteboard-page .project-whiteboard:not(.is-focused) :is(.whiteboard-board-area, .whiteboard-stage) {
+    flex: 1 1 0;
+    min-height: 140px;
+  }
+  .whiteboard-page .project-whiteboard:not(.is-focused) .whiteboard-stage > .whiteboard-viewport {
+    flex: 1 1 0;
+    height: auto;
+    min-height: 100px;
+  }
+}
