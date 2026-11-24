@@ -97,7 +97,8 @@ export function timelineHtml(ts, key, p) {
     if (g !== 'none') rows.push({ type: 'g', G });
     G.tasks.sort((a, b) => ((a.start || a.due) > (b.start || b.due) ? 1 : -1)).forEach(t => rows.push({ type: 't', t }));
   });
-  const RH = innerWidth <= 640 || matchMedia('(pointer: coarse)').matches ? 48 : 36;
+  const tabletRows = matchMedia('(min-width: 641px) and (max-width: 1024px)').matches;
+  const RH = tabletRows ? 90 : innerWidth <= 640 || matchMedia('(pointer: coarse)').matches ? 48 : 36;
   const H = rows.length * RH;
   const W = nDays * dw;
   const rowY = {};
