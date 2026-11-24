@@ -45,6 +45,7 @@ export function pageHome() {
       { f: 'updated', dir: 1 },
     ),
   };
+  const emptyPersonal = personal && Object.values(lists).every(items => !items.length);
   const cur = lists[tab].slice(0, 7);
   const nextTask =
     personal &&
@@ -77,7 +78,7 @@ export function pageHome() {
       <div class="stack">
         <section class="panel home-task-panel" aria-labelledby="h-mytasks">
           <div class="panel-h"><h2 id="h-mytasks">${personal ? 'My tasks' : 'Team tasks'}</h2>
-            <div class="acts"><div class="seg home-task-tabs" role="tablist" aria-labelledby="h-mytasks">${[
+            <div class="acts"><div ${emptyPersonal ? 'hidden style="display:none"' : ''} class="seg home-task-tabs" role="tablist" aria-labelledby="h-mytasks">${[
               ['upcoming', 'Upcoming'],
               ['overdue', 'Overdue'],
               ['completed', 'Completed'],
@@ -88,7 +89,7 @@ export function pageHome() {
               )
               .join('')}</div>
             <button class="ibtn ibtn-sm hide-m" data-a="go" data-r="${personal ? 'mytasks' : 'tasks'}" data-tip="${personal ? 'Open My Tasks' : 'Tasks'}" aria-label="${personal ? 'Open My Tasks' : 'Tasks'}">${ic('arrow-up-right', 15)}</button></div></div>
-${cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : tab === 'completed' ? 'No completed tasks' : 'No upcoming tasks', tab === 'overdue' ? (personal ? 'Every task assigned to you is on schedule.' : 'No overdue team tasks.') : tab === 'completed' ? 'Completed tasks will appear here.' : personal && open.length ? (isRussian() ? `В пространстве ${uiCount(open.length, 'task')} в работе. Посмотрите задачи команды.` : `${uiCount(open.length, 'task')} open in your workspace. Explore the team's work.`) : 'Open tasks without overdue deadlines will appear here.', `${tab !== 'overdue' && lists.overdue.length ? `<button class="btn btn-secondary" data-a="set" data-k="homeTab" data-v="overdue"><span>View overdue tasks</span> (${lists.overdue.length})</button>` : personal && open.length ? '<button class="btn btn-secondary" data-a="setHomeView" data-view="team">Team overview</button>' : '<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>'}`, 'sm')}
+${emptyPersonal ? `<div class="home-personal-empty"><span>${isRussian() ? 'Предстоящих задач нет' : 'No upcoming tasks'}</span><button class="btn btn-secondary btn-sm" data-a="go" data-r="tasks">${isRussian() ? 'Посмотреть задачи команды' : 'View team tasks'}</button></div>` : cur.length ? cur.map(t => miniRow(t, { av: false })).join('') : empty(tab === 'overdue' ? 'circle-check' : 'list-checks', tab === 'overdue' ? 'Nothing overdue' : tab === 'completed' ? 'No completed tasks' : 'No upcoming tasks', tab === 'overdue' ? (personal ? 'Every task assigned to you is on schedule.' : 'No overdue team tasks.') : tab === 'completed' ? 'Completed tasks will appear here.' : personal && open.length ? (isRussian() ? `В пространстве ${uiCount(open.length, 'task')} в работе. Посмотрите задачи команды.` : `${uiCount(open.length, 'task')} open in your workspace. Explore the team's work.`) : 'Open tasks without overdue deadlines will appear here.', `${tab !== 'overdue' && lists.overdue.length ? `<button class="btn btn-secondary" data-a="set" data-k="homeTab" data-v="overdue"><span>View overdue tasks</span> (${lists.overdue.length})</button>` : personal && open.length ? '<button class="btn btn-secondary" data-a="setHomeView" data-view="team">Team overview</button>' : '<button class="btn btn-secondary" data-a="go" data-r="tasks">Browse workspace tasks</button>'}`, 'sm')}
           ${lists[tab].length > 7 ? `<button class="addrow" style="padding-left:14px;border-top:1px solid var(--divider);border-bottom:0" data-a="go" data-r="${personal ? 'mytasks' : 'tasks'}">View all ${lists[tab].length} tasks ${ic('arrow-right', 13)}</button>` : ''}
         </section>
         <section class="panel">

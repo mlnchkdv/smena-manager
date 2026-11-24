@@ -808,6 +808,15 @@
   cursor: pointer;
 }
 
+.home-personal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
 .project-status-link {
   padding: 4px;
   border-radius: var(--r-sm);
