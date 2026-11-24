@@ -1029,27 +1029,18 @@
 .product-demo .board-column-nav {
   display: none;
 }
-.product-demo .board-view-options {
-  padding: 4px var(--gutter);
-  display: flex;
-  justify-content: flex-end;
-}
-.product-demo .board-view-options .btn {
-  white-space: normal;
-  text-align: start;
-}
 @media (max-width: 640px) {
   .product-demo .board-column-nav {
     display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    min-width: 0;
+    align-items: center;
+    gap: 8px;
     padding: 4px var(--gutter);
+    font-size: var(--fs-sm);
   }
-  .product-demo .board-column-nav .btn {
-    flex: 0 0 auto;
+  .product-demo .board-column-nav select {
     min-height: 44px;
-    gap: 6px;
+    width: auto;
+    max-width: 65%;
   }
 }
 .product-demo .board {
@@ -2977,5 +2968,18 @@
   .product-demo .bookmark-head-more > div {
     inset-inline-start: auto;
     inset-inline-end: 0;
+  }
+}
+
+.product-demo button.bookmark-save-state {
+  cursor: pointer;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .product-demo .bookmark-preview-row :is(button, a) {
+    min-height: 44px;
+    align-content: center;
   }
 }
