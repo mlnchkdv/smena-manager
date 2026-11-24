@@ -55,13 +55,17 @@ test('deployment acceptance: public capabilities demos work in both languages on
       const text = (en, russian) => (ru ? russian : en);
       await expect(page.locator('footer a[href="https://smena.agency"] .agency-wordmark')).toBeVisible();
       await expect(page.locator('a[href^="/about.html"]')).toHaveCount(0);
+      const chooseScenario = async label => {
+        if (width <= 480) await page.getByRole('combobox', { name: text('Demo scenario', 'Сценарий демо') }).selectOption({ label });
+        else await page.getByRole('tab', { name: label, exact: true }).click();
+      };
       const project = page.getByRole('tabpanel').filter({ visible: true });
       await project.locator('[data-demo-action="task"]').first().click();
       const dialog = page.locator('dialog[open]');
       await dialog.getByRole('combobox').selectOption('1');
       await dialog.getByRole('button', { name: text('Apply in demo', 'Применить в демо'), exact: true }).click();
       await expect(project.locator('.bcol').nth(1).locator('.kcard')).toHaveCount(2);
-      await page.getByRole('tab', { name: text('Bookmarks', 'Закладки'), exact: true }).click();
+      await chooseScenario(text('Bookmarks', 'Закладки'));
       const bookmarks = page.getByRole('tabpanel').filter({ visible: true });
       await bookmarks.locator('[data-demo-action="archive"]').first().click();
       await expect(dialog.frameLocator('iframe').locator('h1')).toHaveText(text('Work with context.', 'Работайте с контекстом.'));
@@ -70,11 +74,11 @@ test('deployment acceptance: public capabilities demos work in both languages on
       await dialog.getByRole('button', { name: text('Text', 'Текст'), exact: true }).click();
       await expect(dialog.locator('.example-archive-text')).toBeVisible();
       await page.keyboard.press('Escape');
-      await page.getByRole('tab', { name: text('Files', 'Файлы'), exact: true }).click();
+      await chooseScenario(text('Files', 'Файлы'));
       await page.getByRole('tabpanel').filter({ visible: true }).locator('[data-kind="MP4"]').click();
       await expect(dialog.locator('video')).toHaveAttribute('src', '/product-demo.mp4');
       await page.keyboard.press('Escape');
-      await page.getByRole('tab', { name: text('Graph', 'Граф'), exact: true }).click();
+      await chooseScenario(text('Graph', 'Граф'));
       const graph = page.getByRole('tabpanel').filter({ visible: true });
       await graph.locator('[data-demo-physics]').click();
       await expect(graph.locator('[data-demo-physics]')).toHaveAttribute('aria-pressed', 'true');
@@ -82,7 +86,7 @@ test('deployment acceptance: public capabilities demos work in both languages on
       const before = Number(await node.locator('circle').getAttribute('cx'));
       await node.press('ArrowRight');
       expect(Number(await node.locator('circle').getAttribute('cx'))).toBeGreaterThan(before);
-      await page.getByRole('tab', { name: text('Research', 'Исследования'), exact: true }).click();
+      await chooseScenario(text('Research', 'Исследования'));
       const demo = page.getByRole('tabpanel').filter({ visible: true });
       await demo.locator('[data-stage="runs"]').click();
       await expect(demo.locator('[data-demo-research-view="runs"]')).toContainText('A · 100% → B · 75%');
