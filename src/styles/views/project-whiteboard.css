@@ -1604,3 +1604,19 @@
   max-height: min(420px, calc(100dvh - 24px));
   overflow-y: auto;
 }
+
+.whiteboard-menu-heading {
+  display: block;
+  padding: 6px 8px;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+@media (max-width: 640px) {
+  .project-whiteboard[data-has-selection='true'] .whiteboard-toolbar > :is([data-a='whiteboardUndo'], [data-a='whiteboardToggleSelection']) {
+    display: none;
+  }
+  .whiteboard-context-actions [data-a='whiteboardDeselect'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
