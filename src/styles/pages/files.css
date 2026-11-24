@@ -1266,3 +1266,44 @@
     overflow-wrap: anywhere;
   }
 }
+.workspace-file-table-wrap {
+  container-type: inline-size;
+}
+@container (max-width: 900px) {
+  @media (min-width: 641px) {
+    .workspace-file-table {
+      table-layout: fixed;
+      min-width: 0;
+    }
+    .workspace-file-table :is(td, th):nth-child(n + 3):nth-child(-n + 6) {
+      display: none;
+    }
+    .workspace-file-table :is(td, th):nth-child(2) {
+      width: 26%;
+    }
+    .workspace-file-table :is(td, th):last-child {
+      width: 56px;
+    }
+    .workspace-file-table .workspace-file-name {
+      min-width: 0;
+    }
+    .file-row-details {
+      display: block;
+    }
+    .file-row-details summary {
+      cursor: pointer;
+      padding-block: 6px;
+      color: var(--text-2);
+    }
+    .file-row-details dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 4px 8px;
+    }
+    .file-row-details dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+}
