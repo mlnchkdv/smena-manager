@@ -13,10 +13,8 @@ export function bookmarkArchiveView(m, russian) {
   const html = page.format === 'html';
   const url = m.selected !== 'live' ? bookmarkArchiveUrl(m.id, m.selected) : '';
   const controls = html
-    ? `<div class="bookmark-archive-actions"><div class="seg" role="group" aria-label="${T('Archive view', 'Вид архива')}"><button data-a="bookmarkArchiveView" data-value="html" aria-pressed="${m.archiveView !== 'text'}" class="${m.archiveView !== 'text' ? 'on' : ''}">${T('Saved HTML', 'Сохранённый HTML')}</button><button data-a="bookmarkArchiveView" data-value="text" aria-pressed="${m.archiveView === 'text'}" class="${m.archiveView === 'text' ? 'on' : ''}">${T('Read text', 'Читать текст')}</button></div><button class="btn btn-secondary btn-sm" data-a="downloadBookmarkArchive" data-id="${esc(m.selected)}">${T('Download HTML', 'Скачать HTML')}</button></div>`
-    : url
-      ? `<button class="btn btn-secondary btn-sm" data-a="downloadBookmarkArchive" data-id="${esc(m.selected)}">${T('Download text as HTML', 'Скачать текст в HTML')}</button>`
-      : '';
+    ? `<div class="bookmark-archive-actions"><div class="seg" role="group" aria-label="${T('Archive view', 'Вид архива')}"><button data-a="bookmarkArchiveView" data-value="html" aria-pressed="${m.archiveView !== 'text'}" class="${m.archiveView !== 'text' ? 'on' : ''}">${T('Saved HTML', 'Сохранённый HTML')}</button><button data-a="bookmarkArchiveView" data-value="text" aria-pressed="${m.archiveView === 'text'}" class="${m.archiveView === 'text' ? 'on' : ''}">${T('Read text', 'Читать текст')}</button></div></div>`
+    : '';
   const capture = page.capture;
   const omitted = Object.entries(capture?.unsupported || {}).filter(([, count]) => count > 0);
   const names = {
