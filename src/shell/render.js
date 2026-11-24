@@ -29,6 +29,7 @@ let knowledgeGridKeyboard, knowledgeGridKeyboardLoading;
 import { refreshKnowledgeFind } from '../ui/knowledge-find.js';
 import { refreshKnowledgeOutline } from '../ui/knowledge-outline.js';
 import { captureReaderPosition, restoreReaderPosition } from '../ui/knowledge-reader-position.js';
+import { updateCompactSearch } from '../ui/compact-search.js';
 import { captureWorkContext, restoreWorkContext, restoreWorkScroll, saveWorkHistory } from '../core/work-navigation.js';
 import { NAVIGATION_ITEMS } from '../shared/sidebar-preferences.js';
 import { needsTaskWorkflowCommands, prepareTaskWorkflowCommands } from '../core/task-workflow-loader.js';
@@ -522,6 +523,7 @@ export function afterRender() {
     sidebar?.setAttribute('aria-modal', 'true');
     sidebar?.setAttribute('aria-label', tr('Folders'));
   }
+  updateCompactSearch();
   refreshThumbnails();
   selectMenu.close();
   enhanceSelects();

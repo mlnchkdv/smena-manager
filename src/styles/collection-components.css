@@ -58,3 +58,33 @@
 .catalog-criterion svg {
   flex-shrink: 0;
 }
+.compact-search-done {
+  display: none;
+}
+@media (max-width: 640px) {
+  .compact-search-bar:has(.compact-search-field:focus-within) > :not(.compact-search-field) {
+    display: none;
+  }
+  .compact-search-bar > .compact-search-field:focus-within {
+    display: flex;
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    grid-column: 1/-1;
+    align-items: center;
+  }
+  .compact-search-field:focus-within > .input {
+    min-width: 0;
+    flex: 1;
+    width: 0;
+  }
+  .compact-search-field:focus-within > .compact-search-done {
+    position: static;
+    display: inline-flex;
+    flex: none;
+    min-height: 44px;
+  }
+  .compact-search-field:focus-within :is(.files-search-help, .search-help) {
+    display: none;
+  }
+}
