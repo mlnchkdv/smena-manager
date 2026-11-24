@@ -36,7 +36,24 @@ if (tabs.length) {
       select(tabs[index], true, true);
     });
   }
+  const focusDemo = () => {
+    const active = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
+    active.focus({ preventScroll: true });
+    active.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+  };
+  document.querySelectorAll('a[href="#demo"]').forEach(link =>
+    link.addEventListener('click', event => {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (location.hash !== '#demo') history.pushState(null, '', '#demo');
+      focusDemo();
+    }),
+  );
   const selectFromHash = () => {
+    if (location.hash === '#demo') {
+      focusDemo();
+      return;
+    }
     const requested = tabs.find(tab => tab.hash === location.hash);
     if (requested) select(requested, true);
   };
@@ -48,6 +65,7 @@ if (tabs.length) {
     }),
   );
   select(tabs.find(tab => tab.hash === location.hash) || tabs[0]);
+  if (location.hash === '#demo') focusDemo();
 }
 
 const russian = document.documentElement.lang === 'ru';
