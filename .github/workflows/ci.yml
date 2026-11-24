@@ -27,7 +27,8 @@ jobs:
   e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # WebKit's OS dependencies can take most of a 15-minute job on a fresh runner.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +41,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 18
       - name: Critical deployment acceptance (RU/EN, desktop/mobile)
+        timeout-minutes: 15
         env:
           E2E_DEPLOYMENT_GATE: true
         run: npx playwright test --project=${{ matrix.browser }} --grep "deployment acceptance|core task flow and responsive shell|mobile navigation keeps focus|an ordinary member creates and configures owned workspaces|quick capture preserves text when its file upload fails"
