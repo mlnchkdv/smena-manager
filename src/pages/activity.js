@@ -237,6 +237,7 @@ export function pageActivity() {
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
       .join('')}</select></label></div><div class="activity-condition-chips">${[
       [f !== 'all' && 'actFilter', t({ status: 'Status changes', comments: 'Comments', projects: 'Projects' }[f] || 'All')],
+      [query && 'actQuery', query],
       [project !== 'all' && 'actProject', proj(project)?.name],
       [who !== 'all' && 'actWho', D().members.find(m => m.id === who)?.name],
       [from && 'actFrom', from],
