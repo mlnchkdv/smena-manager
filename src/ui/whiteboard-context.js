@@ -57,10 +57,11 @@ export function whiteboardContext(board, state, editable) {
   const lock = node?.locked
     ? action('whiteboardPositionLock', 'lock-open', T('Unlock position', 'Разблокировать положение'), 'menu')
     : action('whiteboardPositionLock', 'lock-keyhole', T('Lock position', 'Зафиксировать положение'), 'menu', 'data-locked="true"');
+  const focusCard = (kind = 'icon') => action('whiteboardFocusCard', 'scan', T('Zoom to card', 'Приблизить карточку'), kind);
   const secondary =
     !editable || edge
       ? ''
-      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div><strong class="whiteboard-menu-heading" translate="no">${T('Selected card', 'Выбранная карточка')}</strong>${lock}${whiteboardLayerActions(board, ids)}${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline && !node.locked ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
+      : `<details class="ui-menu whiteboard-context-menu" ${disclosureAttributes('whiteboard-context:' + state.id + ':' + node.id)}><summary class="ibtn" aria-label="${T('Card actions', 'Действия с карточкой')}" title="${T('Card actions', 'Действия с карточкой')}">${ic('ellipsis', 16)}</summary><div><strong class="whiteboard-menu-heading" translate="no">${T('Selected card', 'Выбранная карточка')}</strong>${action('whiteboardConnectStart', 'move-right', T('Connect', 'Связать'), 'menu')}${!state.outline ? focusCard('menu') : ''}${color}${lock}${whiteboardLayerActions(board, ids)}${mediaActions}${editInline ? action('whiteboardReadCard', 'book-open', openLabel, 'menu') : action('whiteboardEdit', 'pencil', T('Card settings', 'Настройки карточки'), 'menu')}${!state.outline && !node.locked ? action('whiteboardResizeFocus', 'scaling', T('Resize card', 'Изменить размер'), 'menu') : ''}${['text', 'shape'].includes(node.type) ? action('whiteboardExtract', 'file-plus', T('Create from card text', 'Создать из текста карточки'), 'menu') : ''}</div></details>`;
   const primary = editInline
     ? action('whiteboardEdit', 'pencil', T('Edit card', 'Редактировать карточку'), 'primary')
     : node
@@ -68,7 +69,7 @@ export function whiteboardContext(board, state, editable) {
       : '';
   return `<aside class="whiteboard-context" ${media ? `data-media-kind="${esc(media)}"` : ''} aria-label="${T('Selection tools', 'Инструменты выделения')}" translate="no">
     <span class="whiteboard-context-kind" title="${esc(name)}">${ic(edge ? 'move-right' : media === 'image' ? 'image' : node.type === 'material' ? 'file-text' : node.type === 'group' ? 'square-dashed' : 'sticky-note', 16)}</span>${title}
-    <div class="whiteboard-context-actions">${primary}${node && editable ? action('whiteboardConnectStart', 'move-right', T('Connect', 'Связать'), 'connect') : ''}${node && !state.outline ? action('whiteboardFocusCard', 'scan', T('Zoom to card', 'Приблизить карточку')) : ''}${materialLink}${color}${edge && editable ? action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'), 'primary') : ''}${secondary}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>
+    <div class="whiteboard-context-actions">${primary}${node && !editable && !state.outline ? focusCard() : ''}${materialLink}${edge ? color : ''}${edge && editable ? action('whiteboardEditEdge', 'sliders-horizontal', T('Connection settings', 'Настройки связи'), 'primary') : ''}${secondary}${action('whiteboardDeselect', 'x', T('Clear selection', 'Снять выделение'))}</div>
   </aside>`;
 }
 

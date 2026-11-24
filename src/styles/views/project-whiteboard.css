@@ -798,6 +798,17 @@
   }
 }
 
+.whiteboard-context-menu .whiteboard-context-color {
+  display: block;
+  padding: 4px;
+}
+@media (max-width: 1024px) {
+  .whiteboard-context-title .input { width: 100%; max-width: none; }
+  .whiteboard-context:has(.whiteboard-context-title:focus-within) .whiteboard-context-actions {
+    display: none;
+  }
+}
+
 .whiteboard-selection {
   flex-wrap: wrap;
 }
