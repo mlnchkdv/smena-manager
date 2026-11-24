@@ -4,7 +4,7 @@ export function inboxEventGroups(notifications) {
   for (const notification of notifications) {
     const signIn = !notification.by && notification.type === 'security' && notification.text === 'New sign-in detected' && notification.snippet?.trim();
     const key = signIn
-      ? JSON.stringify(['sign-in', notification.workspaceId || notification.workspace, notification.recipient, signIn])
+      ? JSON.stringify(['sign-in', notification.workspaceId || notification.workspace, notification.recipient, notification.browserGroup || null, signIn])
       : notification.read === true && !notification.by
         ? notification.type === 'security'
           ? JSON.stringify(['security', notification.workspaceId || notification.workspace || ''])

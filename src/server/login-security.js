@@ -13,6 +13,7 @@ function loginNotification(profile, memberId, session) {
     text: 'New sign-in detected',
     snippet: `${session.device} · ${session.authMethod === 'google' ? 'Google' : session.authMethod === 'access_id' ? 'Access ID' : 'Existing session'}`,
     sessionId: session.id,
+    browserGroup: session.browserGroup,
     at: Date.now(),
     read: false,
   };

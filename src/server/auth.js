@@ -155,7 +155,7 @@ export function verifySession(token) {
   return { error: 'Account is unavailable.' };
 }
 
-export async function createTrackedSession(profile, request, authMethod) {
+export async function createTrackedSession(profile, request, authMethod, response) {
   const token = createSession(profile);
   const verified = verifySession(token);
   const session = await registerAuthSession({
@@ -167,7 +167,21 @@ export async function createTrackedSession(profile, request, authMethod) {
     ...sessionDetailsFromRequest(request, authMethod),
   });
   if (session) {
-    await recordLoginSecurityNotification(profile, session).catch(error => {
+    // Identify a browser only for grouping this account's sign-in notices.
+    const previous = request.get('cookie')?.match(/(?:^|;\s*)smena_login_browser=([a-f0-9]{32})(?:;|$)/)?.[1];
+    const browser = previous || crypto.randomBytes(16).toString('hex');
+    response?.cookie('smena_login_browser', browser, {
+      path: '/api/auth',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: Boolean(process.env.VERCEL) || process.env.NODE_ENV === 'production',
+      maxAge: 90 * 86400000,
+    });
+    const browserGroup = crypto
+      .createHmac('sha256', sessionSecret())
+      .update(JSON.stringify(['login-browser', profile.id, browser]))
+      .digest('hex');
+    await recordLoginSecurityNotification(profile, { ...session, browserGroup }).catch(error => {
       reportProviderError('[Security] Login notification failed', error);
     });
   }

@@ -5,6 +5,16 @@ import { emailNotificationMessage } from '../../src/server/email-notifications.j
 import { pushMessagePayload } from '../../src/server/push-subscriptions.js';
 import { inboxEventGroups } from '../../src/shared/inbox-groups.js';
 
+test('matching browser descriptions on different installations keep separate sign-in groups', () => {
+  const base = { recipient: 'u', type: 'security', text: 'New sign-in detected', snippet: 'Windows · Chrome · Google', read: false };
+  const rows = ['one', 'two', 'one', undefined].map((browserGroup, i) => ({ ...base, id: String(i), browserGroup }));
+  const groups = inboxEventGroups(rows);
+  assert.deepEqual(
+    groups.map(g => [g.notification.id, ...g.earlier.map(n => n.id)]),
+    [['0', '2'], ['1'], ['3']],
+  );
+});
+
 test('inbox groups only identical system events without losing unread rows or chronology', () => {
   const rows = [
     { id: 'new', type: 'system', text: 'warning', snippet: 'a', read: false },
