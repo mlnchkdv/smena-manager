@@ -321,6 +321,10 @@
   color: var(--text-2);
   font-size: var(--fs-2xs);
 }
+.workspace-file-table .workspace-file-project {
+  min-height: 44px;
+  min-width: 44px;
+}
 .workspace-file-project > span {
   width: 7px;
   height: 7px;
