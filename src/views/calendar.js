@@ -10,7 +10,7 @@ import { fxc, render } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { calendarItemsForView } from '../core/calendar-data.js';
 import { calendarPlanItem } from '../ui/calendar-plan-item.js';
-import { t } from '../core/i18n.js';
+import { isRussian, t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 
@@ -100,7 +100,7 @@ export function calendarHtml(ts, opt = {}) {
       <div class="cal-navigation">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
-      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('View options')}" aria-expanded="${!!S.ui.calendarControlsOpen}"> ${ic('sliders-horizontal', 16)}<span>${t('View')}</span></button>
+      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('Calendar view')}" aria-expanded="${!!S.ui.calendarControlsOpen}"> ${ic('sliders-horizontal', 16)}<span translate="no">${isRussian() ? 'Вид' : 'View'}</span></button>
       </div>
       <span class="sp"></span>
       ${
