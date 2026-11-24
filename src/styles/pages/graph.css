@@ -1272,7 +1272,7 @@
   .graph-page .graph-stage:not(:has(.graph-list)) .graph-surface {
     min-height: 280px;
   }
-  .graph-page:not(:has(.graph-toolbar.options-open)) .graph-controls button:not(.graph-touch-control):not([data-a='graphFit']) {
+  .graph-page:not(.is-focused):not(:has(.graph-toolbar.options-open)) .graph-controls button:not(.graph-touch-control):not([data-command='fit']) {
     display: none;
   }
 }
