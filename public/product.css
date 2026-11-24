@@ -1393,6 +1393,21 @@ dd {
   }
 }
 
+.demo-picker {
+  display: none;
+}
+@media (max-width: 480px) {
+  .demo-picker {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    scroll-margin-top: 110px;
+  }
+  .demo-picker + .demo-tabs {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) {
   .site-header nav a {
     min-height: 44px;

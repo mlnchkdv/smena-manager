@@ -3,7 +3,21 @@ const tablist = document.querySelector('.demo-tabs');
 const tabs = [...(tablist?.querySelectorAll('a') || [])];
 if (tabs.length) {
   tablist.setAttribute('role', 'tablist');
+  const picker = document.createElement('select');
+  picker.className = 'select demo-picker';
+  picker.setAttribute('aria-label', document.documentElement.lang.startsWith('ru') ? 'Сценарий демо' : 'Demo scenario');
+  for (const tab of tabs) picker.add(new Option(tab.textContent.trim(), tab.hash));
+  tablist.before(picker);
+  picker.addEventListener('change', () =>
+    select(
+      tabs.find(tab => tab.hash === picker.value),
+      false,
+      true,
+    ),
+  );
+  const focusTarget = tab => (picker.getClientRects().length ? picker : tab);
   function select(tab, focus = false, updateUrl = false) {
+    picker.value = tab.hash;
     for (const item of tabs) {
       const selected = item === tab;
       item.setAttribute('aria-selected', String(selected));
@@ -11,7 +25,7 @@ if (tabs.length) {
       document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
       document.getElementById(item.getAttribute('aria-controls')).classList.toggle('demo-is-active', selected);
     }
-    if (focus) tab.focus();
+    if (focus) focusTarget(tab).focus();
     if (updateUrl) history.replaceState(null, '', tab.hash);
   }
   for (const tab of tabs) {
@@ -38,8 +52,9 @@ if (tabs.length) {
   }
   const focusDemo = () => {
     const active = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
-    active.focus({ preventScroll: true });
-    active.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
+    const target = focusTarget(active);
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
   };
   document.querySelectorAll('a[href="#demo"]').forEach(link =>
     link.addEventListener('click', event => {
