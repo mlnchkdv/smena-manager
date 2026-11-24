@@ -1227,3 +1227,42 @@
   border-radius: 8px;
   background: #fff;
 }
+
+.file-row-details {
+  display: none;
+}
+@media (max-width: 640px) {
+  .workspace-file-table tr[data-ctx='file'] > td:first-child {
+    display: block;
+    grid-column: 1;
+  }
+  .workspace-file-table tr[data-ctx='file'] > td:not(:first-child):not(.workspace-file-actions) {
+    display: none;
+  }
+  .workspace-file-table .workspace-file-actions {
+    align-self: start;
+  }
+  .file-row-details {
+    display: block;
+    margin-top: 2px;
+  }
+  .file-row-details summary {
+    cursor: pointer;
+    align-content: center;
+    min-height: 32px;
+    color: var(--text-2);
+  }
+  .file-row-details dl {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+  }
+  .file-row-details dt {
+    color: var(--text-3);
+  }
+  .file-row-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
