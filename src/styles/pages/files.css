@@ -1307,3 +1307,13 @@
     }
   }
 }
+@media (max-width: 850px), (pointer: coarse) {
+  .workspace-file-table .workspace-file-folder,
+  .workspace-file-card .workspace-file-folder {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    max-width: 100%;
+  }
+}
