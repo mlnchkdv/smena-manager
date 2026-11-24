@@ -9,8 +9,8 @@ test('file view preferences validate values and are isolated by account and work
     writeFileView(storage, key, { view: 'list', sort: 'name', pageSize: 25, folderLayout: 'compact', foldersCollapsed: true, query: 'must not persist' }),
   );
   assert.deepEqual(readFileView(storage, key), { view: 'list', sort: 'name', pageSize: 25, folderLayout: 'compact', foldersCollapsed: true });
-  assert.equal(readFileView(storage, fileViewKey('other', 'w')).view, 'grid');
-  assert.equal(readFileView(storage, fileViewKey('u', 'other')).view, 'grid');
+  assert.equal(readFileView(storage, fileViewKey('other', 'w')).view, 'auto');
+  assert.equal(readFileView(storage, fileViewKey('u', 'other')).view, 'auto');
   assert.notEqual(fileViewKey('a:b', 'c'), fileViewKey('a', 'b:c'));
   assert.equal(memory.get(key).includes('must not persist'), false);
 });

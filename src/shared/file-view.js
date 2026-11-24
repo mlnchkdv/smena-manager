@@ -1,6 +1,6 @@
 export function normalizeFileView(value = {}) {
   return {
-    view: value?.view === 'list' ? 'list' : 'grid',
+    view: ['list', 'grid'].includes(value?.view) ? value.view : 'auto',
     sort: ['date', 'name', 'size', 'project'].includes(value?.sort) ? value.sort : 'date',
     pageSize: [25, 50, 100].includes(value?.pageSize) ? value.pageSize : 100,
     folderLayout: value?.folderLayout === 'compact' ? 'compact' : 'tiles',

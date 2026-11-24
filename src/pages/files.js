@@ -10,7 +10,7 @@ import { D, S, canSee, mem, pColor, proj, task, visibleProjects } from '../core/
 import { FT, av, empty, filePrev, fsize } from '../ui/helpers.js';
 import { listWindow } from '../shared/list-window.js';
 import { paginationHtml } from '../ui/pagination.js';
-import { t as tr } from '../core/i18n.js';
+import { isRussian, t as tr } from '../core/i18n.js';
 import { canEditProject } from '../shared/project-access.js';
 import { activeFileFolder, fileFolderPath } from '../shared/file-organization.js';
 import { createFileIndex, filterIndexedFiles, normalizeFileSearch } from '../shared/file-index.js';
@@ -134,7 +134,7 @@ export function pageFiles(projectId = null) {
   if (!currentFolder) S.ui.fileFolder = null;
   syncFileSelection(allFiles, projectId);
   const sort = S.ui.fileSort || 'date';
-  const view = S.ui.fileView || 'grid';
+  const preference = S.ui.fileView || 'auto';
   const uploadProject =
     currentFolder || projectFilter !== 'all'
       ? writableIds.has(projectFilter)
@@ -169,6 +169,8 @@ export function pageFiles(projectId = null) {
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
     : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
+  const imageCatalog = typeFilter === 'img' || (window.total === window.items.length && window.total > 0 && window.items.every(file => file.type === 'img'));
+  const view = preference === 'auto' ? (imageCatalog ? 'grid' : 'list') : preference;
   rememberFileContextPage(pageKey, window.page, !remote || (!remote.loading && !remote.error));
   const allTotal = remote?.allTotal ?? (remote?.loading ? '—' : allFiles.length);
   const totalBytes = remote?.totalBytes ?? (remote?.loading ? null : index.totalBytes);
@@ -223,7 +225,6 @@ export function pageFiles(projectId = null) {
 
 
 
-    ${uploadProject ? `<details class="file-upload-destination upload-path-summary" translate="no"><summary>${document.documentElement.lang === 'ru' ? 'Место загрузки' : 'Upload destination'}: <strong>${esc(currentFolder?.name || proj(uploadProject)?.name || uploadPath)}</strong></summary><span>${esc(uploadPath)}</span></details>` : ''}
     ${fileCollectionPanel()}
     ${uploadsHtml()}
     ${collectionToolbar(
@@ -246,12 +247,13 @@ export function pageFiles(projectId = null) {
         .map(([value, label]) => `<option value="${value}" ${sort === value ? 'selected' : ''}>${label}</option>`)
         .join('')}</select>
       <div class="seg files-view-switch" role="group" aria-label="File view">${[
+        ['auto', 'sparkles', isRussian() ? 'Автоматически' : 'Automatic view'],
         ['grid', 'layout-grid', 'Grid view'],
         ['list', 'list', 'List view'],
       ]
         .map(
           ([value, icon, label]) =>
-            `<button class="${view === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${label}" aria-pressed="${view === value}">${ic(icon, 13)}</button>`,
+            `<button class="${preference === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${label}" aria-pressed="${preference === value}">${ic(icon, 13)}</button>`,
         )
         .join('')}</div></div></details>
     `,

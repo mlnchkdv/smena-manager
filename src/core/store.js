@@ -134,7 +134,7 @@ export const S = {
     calMode: 'month',
     tlZoom: 'week',
     tlGroup: 'status',
-    fileView: 'grid',
+    fileView: 'auto',
     fileQ: '',
     fileType: 'all',
     fileSort: 'date',
