@@ -4,7 +4,7 @@ import { ic } from '../core/icons.js';
 import { S, myNotifications, proj, task } from '../core/store.js';
 import { empty } from '../ui/helpers.js';
 import { notifIcon, notifText, notifSnippet } from './inbox.js';
-import { notificationReadButton } from '../ui/notification-controls.js';
+import { notificationReadButton, signInGroup } from '../ui/notification-controls.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 import { inboxEventGroups } from '../shared/inbox-groups.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
@@ -17,7 +17,7 @@ function notificationRow(n) {
   const contextId = `notification-${esc(n.id)}`;
   return `<div class="nrow notification-item ${n.read ? '' : 'unread'}"><button type="button" class="notification-open" data-a="openNotif" data-id="${esc(n.id)}">
     ${notifIcon(n)}<span class="grow notification-copy"><span class="notification-title" id="${contextId}">${notifText(n)}</span><span class="notification-snippet muted trunc" translate="no">${notifSnippet(n)}</span><span class="notification-meta faint">${p ? `<span translate="no">${esc(p.name)}</span> · ` : ''}${ago(n.at)}</span></span>
-    ${n.read ? '' : '<span role="img" style="width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:8px" aria-label="Unread"></span>'}
+    ${n.read ? '' : '<span role="img" class="notification-unread-dot" aria-label="Unread"></span>'}
     </button>${notificationReadButton(n, contextId)}</div>`;
 }
 
@@ -51,9 +51,10 @@ export function pageNotifications() {
             .map(
               ([b, list]) =>
                 `<div class="day-h">${b}</div><div class="panel" style="overflow:hidden">${list
-                  .map(
-                    ({ notification, earlier }) =>
-                      `${notificationRow(notification)}${earlier.length ? `<details class="notification-system-history" ${disclosureAttributes(`notification-history:${notification.id}`)}><summary><span>Earlier system events</span><span class="num">${earlier.length}</span></summary>${earlier.map(notificationRow).join('')}</details>` : ''}`,
+                  .map(({ notification, earlier, signIn }) =>
+                    signIn && earlier.length
+                      ? signInGroup(notification, earlier, notificationRow)
+                      : `${notificationRow(notification)}${earlier.length ? `<details class="notification-system-history" ${disclosureAttributes(`notification-history:${notification.id}`)}><summary><span>Earlier system events</span><span class="num">${earlier.length}</span></summary>${earlier.map(notificationRow).join('')}</details>` : ''}`,
                   )
                   .join('')}</div>`,
             )

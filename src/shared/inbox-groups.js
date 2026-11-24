@@ -2,9 +2,10 @@ export function inboxEventGroups(notifications) {
   const groups = [],
     system = new Map();
   for (const notification of notifications) {
-    // Unread events remain first-class rows, even when their diagnostic repeats.
-    const key =
-      notification.read === true && !notification.by
+    const signIn = !notification.by && notification.type === 'security' && notification.text === 'New sign-in detected' && notification.snippet?.trim();
+    const key = signIn
+      ? JSON.stringify(['sign-in', notification.workspaceId || notification.workspace, notification.recipient, signIn])
+      : notification.read === true && !notification.by
         ? notification.type === 'security'
           ? JSON.stringify(['security', notification.workspaceId || notification.workspace || ''])
           : notification.type === 'system'
@@ -20,7 +21,12 @@ export function inboxEventGroups(notifications) {
         : null;
     if (key && system.has(key)) system.get(key).earlier.push(notification);
     else {
-      const group = { notification, earlier: [], securityHistory: notification.type === 'security' && notification.read === true && !notification.by };
+      const group = {
+        notification,
+        earlier: [],
+        signIn: !!signIn,
+        securityHistory: !signIn && notification.type === 'security' && notification.read === true && !notification.by,
+      };
       groups.push(group);
       if (key) system.set(key, group);
     }

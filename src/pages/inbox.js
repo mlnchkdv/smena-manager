@@ -16,7 +16,7 @@ import { readLayoutPreference, writeLayoutPreference } from '../core/view-layout
 import { A, IN } from '../actions/actions.js';
 IN.inboxCategory = el => A.set({ dataset: { k: 'inboxCat', v: el.value } });
 import { render } from '../shell/render.js';
-import { notificationReadButton } from '../ui/notification-controls.js';
+import { notificationReadButton, signInGroup } from '../ui/notification-controls.js';
 import { notificationWorkflow } from '../ui/notification-workflow.js';
 import { inboxCategoryMatches } from '../shared/notification-workflow.js';
 
@@ -94,13 +94,15 @@ export function pageInbox() {
           ${
             ns.length
               ? inboxEventGroups(ns)
-                  .map(({ notification, earlier, securityHistory }) =>
-                    securityHistory
-                      ? `<details class="inbox-system-history" ${[notification, ...earlier].some(n => sel?.id === n.id) ? 'open' : ''}><summary>${isRussian() ? 'Прочитанная история входов' : 'Read sign-in history'} · ${earlier.length + 1}</summary>${[notification, ...earlier].map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
-                      : inboxItem(notification, sel?.id === notification.id) +
-                        (earlier.length
-                          ? `<details class="inbox-system-history" ${earlier.some(n => sel?.id === n.id) ? 'open' : ''}><summary><span>Earlier system events</span> · ${earlier.length}${earlier.some(n => !n.read) ? ' · <span>Unread</span>' : ''}</summary>${earlier.map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
-                          : ''),
+                  .map(({ notification, earlier, securityHistory, signIn }) =>
+                    signIn && earlier.length
+                      ? signInGroup(notification, earlier, n => inboxItem(n, sel?.id === n.id), sel?.id)
+                      : securityHistory
+                        ? `<details class="inbox-system-history" ${[notification, ...earlier].some(n => sel?.id === n.id) ? 'open' : ''}><summary>${isRussian() ? 'Прочитанная история входов' : 'Read sign-in history'} · ${earlier.length + 1}</summary>${[notification, ...earlier].map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
+                        : inboxItem(notification, sel?.id === notification.id) +
+                          (earlier.length
+                            ? `<details class="inbox-system-history" ${earlier.some(n => sel?.id === n.id) ? 'open' : ''}><summary><span>Earlier system events</span> · ${earlier.length}${earlier.some(n => !n.read) ? ' · <span>Unread</span>' : ''}</summary>${earlier.map(n => inboxItem(n, sel?.id === n.id)).join('')}</details>`
+                            : ''),
                   )
                   .join('')
               : empty(
@@ -162,7 +164,7 @@ export function inboxItem(n, on) {
   const contextId = `inbox-notification-${esc(n.id)}`;
   return `<div class="notification-item inbox-item ${on ? 'selected' : ''}">
     <button type="button" class="notification-open" data-a="selNotif" data-id="${esc(n.id)}" ${on ? 'aria-current="true"' : ''}>
-    ${!n.read ? '<span style="position:absolute;left:6px;top:22px;width:6px;height:6px;border-radius:50%;background:var(--accent)" aria-label="Unread"></span>' : ''}
+    ${!n.read ? '<span class="notification-unread-dot" aria-label="Unread"></span>' : ''}
     ${notifIcon(n)}
     <span class="grow notification-copy">
       <span class="notification-title" id="${contextId}">${notifText(n)}</span>

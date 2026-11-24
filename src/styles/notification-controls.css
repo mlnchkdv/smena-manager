@@ -1,3 +1,21 @@
+.notification-sign-ins > summary {
+  padding: 12px var(--gutter);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.notification-sign-ins small {
+  display: block;
+  color: var(--text-2);
+}
+.notification-unread-dot {
+  position: absolute;
+  inset-inline-start: 3px;
+  top: 22px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
 .notification-item {
   display: flex;
   align-items: flex-start;
