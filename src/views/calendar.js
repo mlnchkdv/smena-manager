@@ -5,7 +5,8 @@ import { startOfWeek } from '../core/calendar-layout.js';
 import { ic } from '../core/icons.js';
 import { S, allTasks, pColor, proj } from '../core/store.js';
 import { av, prIcon, stIcon } from '../ui/helpers.js';
-import { fxc } from '../shell/render.js';
+import { A } from '../actions/actions.js';
+import { fxc, render } from '../shell/render.js';
 import { applyView, viewOf, viewToolbar } from '../shell/view-engine.js';
 import { calendarItemsForView } from '../core/calendar-data.js';
 import { calendarPlanItem } from '../ui/calendar-plan-item.js';
@@ -13,6 +14,10 @@ import { t } from '../core/i18n.js';
 import { disclosureAttributes } from '../ui/disclosure.js';
 import { segmentedControl } from '../ui/segmented-control.js';
 
+A.toggleCalendarControls = () => {
+  S.ui.calendarControlsOpen = !S.ui.calendarControlsOpen;
+  render();
+};
 export function calendarHtml(ts, opt = {}) {
   const cur = parse(S.ui.calDate);
   const mode = calendarMode();
@@ -90,12 +95,12 @@ export function calendarHtml(ts, opt = {}) {
   }
   const projs = [...new Set(ts.map(t => t.project))].map(proj).filter(Boolean);
   const layerCount = [1, 2, 4, 8].filter(bit => (S.prefs.calendarLayers ?? 3) & bit).length;
-  return `<div class="cal">
+  return `<div class="cal ${S.ui.calendarControlsOpen ? 'controls-open' : ''}">
     <div class="toolbar cal-toolbar" style="gap:8px">
       <div class="cal-navigation">
       <button class="btn btn-secondary btn-sm" data-a="calNav" data-d="0">Today</button>
       <div class="row" style="gap:0"><button class="ibtn ibtn-sm" data-a="calNav" data-d="-1" aria-label="Previous">${ic('chevron-left', 16)}</button><button class="ibtn ibtn-sm" data-a="calNav" data-d="1" aria-label="Next">${ic('chevron-right', 16)}</button></div>
-      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2>
+      <h2 style="font-size:15px;font-weight:600;margin:0 4px;letter-spacing:-.01em" aria-live="polite">${label}</h2><button class="ibtn cal-settings-toggle" data-a="toggleCalendarControls" aria-label="${t('View options')}" aria-expanded="${!!S.ui.calendarControlsOpen}">${ic('sliders-horizontal', 16)}</button>
       </div>
       <span class="sp"></span>
       ${

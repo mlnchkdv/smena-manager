@@ -24,3 +24,29 @@
     grid-row: 1;
   }
 }
+.activity-controls-toggle,
+.activity-condition-chips {
+  display: none;
+}
+@media (max-width: 640px) {
+  .activity-page .activity-controls-toggle {
+    display: inline-flex;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .activity-filters.controls-open .activity-type-narrow {
+    grid-row: auto;
+    grid-column: auto;
+  }
+  .activity-filters:not(.controls-open) > :not(input):not(.activity-controls-toggle) {
+    display: none;
+  }
+  .activity-filters:not(.controls-open) ~ .activity-context-bar .activity-date-options {
+    display: none;
+  }
+  .activity-condition-chips:not(:empty) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

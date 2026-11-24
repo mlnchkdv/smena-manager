@@ -467,3 +467,18 @@
     display: none;
   }
 }
+.cal-settings-toggle {
+  display: none;
+}
+@media (max-width: 640px) {
+  .cal .cal-settings-toggle {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .cal:not(.controls-open) > .cal-toolbar > :not(.cal-navigation) {
+    display: none;
+  }
+  .task-controls-toolbar:has(~ .cal:not(.controls-open)) {
+    display: none;
+  }
+}

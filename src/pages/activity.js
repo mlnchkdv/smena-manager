@@ -104,6 +104,17 @@ A.deleteActivityPreset = el => {
   );
   render();
 };
+A.toggleActivityControls = () => {
+  S.ui.activityControlsOpen = !S.ui.activityControlsOpen;
+  render();
+};
+A.removeActivityCondition = el => {
+  const key = el.dataset.field;
+  if (!Object.hasOwn(activityDefaults, key)) return;
+  S.ui[key] = activityDefaults[key];
+  if (key === 'actFrom' || key === 'actTo') S.ui.actPeriod = '';
+  render();
+};
 A.resetActivityFilters = () => {
   resetCollectionView(collectionView('activity', activityDefaults));
   render();
@@ -197,17 +208,19 @@ export function pageActivity() {
   page.items.forEach(a => (b[dayBucket(a.at)] ||= []).push(a));
   return `<div class="page activity-page layout-reading">
     <div class="ph"><div><h1>Activity</h1><p>Everything that's changed across the workspace.</p></div>${S.ui.currentUser?.role === 'admin' ? `<button class="btn btn-secondary" data-a="viewAccessEvents" translate="no">${T('Access and recovery history', 'История доступа и восстановления')}</button>` : ''}</div>
-    <div class="activity-filters"><div class="activity-type-wide">${segmentedControl({
-      label: 'Activity filters',
-      key: 'actFilter',
-      value: f,
-      items: [
-        ['all', 'All'],
-        ['status', 'Status changes'],
-        ['comments', 'Comments'],
-        ['projects', 'Projects'],
-      ],
-    })}</div><label class="activity-type-narrow"><span class="sr">${T('Event type', 'Тип событий')}</span><select class="select" data-in="actType" aria-label="${T('Event type', 'Тип событий')}">${[
+    <div class="activity-filters ${S.ui.activityControlsOpen ? 'controls-open' : ''}"><button class="btn btn-secondary activity-controls-toggle" data-a="toggleActivityControls" aria-expanded="${!!S.ui.activityControlsOpen}">${t('Filters')}</button><div class="activity-type-wide">${segmentedControl(
+      {
+        label: 'Activity filters',
+        key: 'actFilter',
+        value: f,
+        items: [
+          ['all', 'All'],
+          ['status', 'Status changes'],
+          ['comments', 'Comments'],
+          ['projects', 'Projects'],
+        ],
+      },
+    )}</div><label class="activity-type-narrow"><span class="sr">${T('Event type', 'Тип событий')}</span><select class="select" data-in="actType" aria-label="${T('Event type', 'Тип событий')}">${[
       ['all', 'All'],
       ['status', 'Status changes'],
       ['comments', 'Comments'],
@@ -222,9 +235,21 @@ export function pageActivity() {
         '',
       )}</select></label><label class="activity-person"><span class="sr">${T('Person', 'Участник')}</span><select class="select" data-in="actWho" aria-label="Filter by person"><option value="all">Everyone</option>${D()
       .members.map(m => `<option value="${m.id}" ${who === m.id ? 'selected' : ''}>${esc(m.name)}</option>`)
+      .join('')}</select></label></div><div class="activity-condition-chips">${[
+      [f !== 'all' && 'actFilter', t({ status: 'Status changes', comments: 'Comments', projects: 'Projects' }[f] || 'All')],
+      [project !== 'all' && 'actProject', proj(project)?.name],
+      [who !== 'all' && 'actWho', D().members.find(m => m.id === who)?.name],
+      [from && 'actFrom', from],
+      [to && 'actTo', to],
+    ]
+      .filter(([key]) => key)
+      .map(
+        ([key, value]) =>
+          `<button class="btn btn-ghost btn-sm" data-a="removeActivityCondition" data-field="${key}" aria-label="${esc(T('Remove filter', 'Снять фильтр') + ' · ' + value)}">${esc(value)} ×</button>`,
+      )
       .join(
         '',
-      )}</select></label></div><div class="activity-context-bar"><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="activity-date-fields"><div class="activity-date-presets"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button></div><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details>${f !== 'all' || who !== 'all' || from || to || query || project !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>' : ''}${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
+      )}</div><div class="activity-context-bar"><details class="activity-date-options" ${disclosureAttributes('activity-period')}><summary>${T('Period', 'Период')}${from || to ? ' · ' + esc(from || '…') + ' → ' + esc(to || '…') : ''}</summary><div class="activity-date-fields"><div class="activity-date-presets"><button class="btn btn-secondary btn-sm" id="activity-period-today" data-a="activityPeriod" data-days="1">${T('Today', 'Сегодня')}</button><button class="btn btn-secondary btn-sm" id="activity-period-week" data-a="activityPeriod" data-days="7">${T('Last 7 days', 'Последние 7 дней')}</button></div><label class="field"><span>From date</span><input id="activity-from" type="date" class="input" data-in="actFrom" ${dateError} value="${esc(from)}" max="${esc(to)}"></label><label class="field"><span>To date</span><input id="activity-to" type="date" class="input" data-in="actTo" ${dateError} value="${esc(to)}" min="${esc(from)}"></label><button class="btn btn-ghost btn-sm" data-a="resetActivityDates">Clear dates</button></div></details>${f !== 'all' || who !== 'all' || from || to || query || project !== 'all' ? '<button class="btn btn-ghost btn-sm" data-a="resetActivityFilters">Reset filters</button>' : ''}${invalidRange ? '' : `<p class="hint" role="status"><span>Results</span>: ${page.total}</p>`}
     <details class="ui-menu" data-anchor-end ${disclosureAttributes('activity:presets')}><summary class="btn btn-secondary" translate="no">${T('Saved filters', '\u041c\u043e\u0438 \u0444\u0438\u043b\u044c\u0442\u0440\u044b')} · ${presets().length}</summary><div translate="no"><button class="btn btn-ghost" data-a="saveActivityPreset">${T('Save current filters', '\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0442\u0435\u043a\u0443\u0449\u0438\u0435 \u0444\u0438\u043b\u044c\u0442\u0440\u044b')}</button>${presets()
       .map(
         row =>
