@@ -231,14 +231,14 @@ export function pageFiles(projectId = null) {
       `
       <div class="inwrap workspace-file-search has-search-help">${ic('search', 14)}<input class="input" id="workspace-file-q" data-in="fileQ" placeholder="Search files" value="${esc(S.ui.fileQ || '')}" aria-label="Search files">${query ? `<button class="ibtn workspace-file-search-clear" data-a="clearFileQuery" aria-label="Clear search" title="Clear search">${ic('x', 14)}</button>` : ''}<details class="ui-menu files-search-help"><summary class="ibtn" aria-label="File search tips" title="File search tips">${ic('info', 14)}</summary><div><p>Use quotes for an exact phrase, for example "Report 2".</p><p>Words must all match. Search includes names, folders, projects and people.</p></div></details></div>
       <details class="files-filter-options ${(document.querySelector('.main')?.clientWidth || innerWidth) <= 850 ? 'ui-menu is-mobile' : 'is-desktop'}" ${(document.querySelector('.main')?.clientWidth || innerWidth) > 850 || S.ui.fileFiltersOpen ? 'open' : ''}><summary id="files-filter-toggle" class="btn btn-secondary" aria-controls="files-filter-fields" aria-label="${filterSummaryLabel('File filters', criteria)}" title="${filterSummaryLabel('File filters', criteria)}">${ic('filter', 14)}<span class="hide-m">Filters</span>${criteria.length ? `<span class="cnt">${criteria.length}</span>` : ''}</summary><div id="files-filter-fields">
-      ${projectId ? '' : `<label class="sr" for="workspace-file-project">Filter by project</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
-      <label class="sr" for="workspace-file-type">Filter by type</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
+      ${projectId ? '' : `<label class="file-filter-caption" for="workspace-file-project" translate="no">${isRussian() ? 'Проект' : 'Project'}</label><select class="select" id="workspace-file-project" data-in="fileProject"><option value="all">All projects</option>${projects.map(project => `<option value="${project.id}" ${projectFilter === project.id ? 'selected' : ''} translate="no">${esc(project.name)}</option>`).join('')}</select>`}
+      <label class="file-filter-caption" for="workspace-file-type" translate="no">${isRussian() ? 'Тип' : 'Type'}</label><select class="select" id="workspace-file-type" data-in="fileType"><option value="all">All types</option>${Object.entries(
         FT,
       )
         .filter(([key]) => key !== 'other')
         .map(([key, meta]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${meta.n}</option>`)
         .join('')}<option value="other" ${typeFilter === 'other' ? 'selected' : ''}>Other files</option></select>
-      <label class="sr" for="workspace-file-sort">Sort files</label><select class="select" id="workspace-file-sort" data-in="fileSort">${[
+      <label class="file-filter-caption" for="workspace-file-sort" translate="no">${isRussian() ? 'Сортировка' : 'Sort'}</label><select class="select" id="workspace-file-sort" data-in="fileSort">${[
         ['date', 'Newest'],
         ['name', 'Name'],
         ['size', 'Size'],
@@ -246,7 +246,7 @@ export function pageFiles(projectId = null) {
       ]
         .map(([value, label]) => `<option value="${value}" ${sort === value ? 'selected' : ''}>${label}</option>`)
         .join('')}</select>
-      <span class="file-view-caption hint">${isRussian() ? 'Отображение' : 'Layout'}</span><div class="seg files-view-switch" role="group" aria-label="File view">${[
+      <span class="file-view-caption hint">${isRussian() ? 'Вид' : 'View'}</span><div class="seg files-view-switch" role="group" aria-label="File view">${[
         ['auto', 'sparkles', isRussian() ? 'Автоматически' : 'Automatic view'],
         ['grid', 'layout-grid', 'Grid view'],
         ['list', 'list', 'List view'],

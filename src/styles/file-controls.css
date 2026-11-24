@@ -400,6 +400,19 @@
   position: relative;
   z-index: 12;
 }
+.files-filter-options.is-desktop .file-filter-caption {
+  position: absolute;
+  clip-path: inset(50%);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.files-filter-options.is-mobile .file-filter-caption {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-2);
+  margin-bottom: -6px;
+}
 .files-filter-options > summary {
   list-style: none;
 }
