@@ -87,3 +87,25 @@
     margin: 0;
   }
 }
+.content .page.projects-catalog {
+  max-width: var(--layout-catalog);
+  margin-inline: auto;
+}
+@media (max-width: 640px) {
+  .content :is(.files-page, .bookmarks-page, .whiteboards-page, .projects-catalog) {
+    padding-inline: 16px;
+  }
+  .content :is(.files-page, .bookmarks-page, .whiteboards-page, .projects-catalog, .knowledge-content-head, .overview-page, .graph-page) h1,
+  .content h1.search-page-title {
+    font-size: 22px;
+    line-height: 28px;
+    letter-spacing: -0.025em;
+  }
+  .content .whiteboard-document-heading h1 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .content .whiteboard-page {
+    padding-inline: 8px;
+  }
+}
