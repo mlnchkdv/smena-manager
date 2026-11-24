@@ -120,3 +120,11 @@
   width: auto;
   min-height: 44px;
 }
+
+@media (max-width: 640px) {
+  .favorites-page .ph h1,
+  .archive-page .ph h1 {
+    font-size: 22px;
+    line-height: 28px;
+  }
+}
