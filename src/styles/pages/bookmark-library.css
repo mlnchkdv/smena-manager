@@ -336,3 +336,37 @@
     padding: 0;
   }
 }
+.bookmark-library {
+  container: bookmark-catalog / inline-size;
+}
+.bookmark-head-more {
+  display: none;
+}
+@container bookmark-catalog (max-width:850px) {
+  .bookmark-library .bookmarks-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .bookmarks-head .bookmark-capture-wide,
+  .bookmarks-head .page-description {
+    display: none;
+  }
+  .bookmarks-head .bookmark-head-more {
+    display: block;
+  }
+  .bookmarks-head .row.acts {
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .bookmarks-head .acts > .btn {
+    width: auto;
+    flex: none;
+  }
+  .bookmark-head-more > div {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+}
