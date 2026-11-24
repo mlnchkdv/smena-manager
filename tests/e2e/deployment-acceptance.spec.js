@@ -298,7 +298,7 @@ test('deployment acceptance persists sessions and materials in RU/EN at desktop 
     for (const width of [1366, 768, 390, 320]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto('/e2e-team/files');
-      await expect(page.locator('.workspace-file-card', { hasText: 'CI deployment.txt' })).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('[data-a="previewFile"]', { hasText: 'CI deployment.txt' })).toBeVisible({ timeout: 15000 });
       await page.goto('/e2e-team/knowledge');
       await page.locator('.knowledge-preview-open', { hasText: 'CI deployment note' }).click();
       await expect(page.locator('.knowledge-quick-content')).toContainText('Проверка сохранения / Persistence check');

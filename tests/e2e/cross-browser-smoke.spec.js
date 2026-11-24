@@ -212,6 +212,9 @@ test('post audit optional deadlines file preview navigation and collection contr
       expect(response.status()).toBe(201);
     }
     await page.goto('/e2e-team/files');
+    const gridView = page.locator('[data-k="fileView"][data-v="grid"]');
+    if (!(await gridView.isVisible())) await page.locator('#files-filter-toggle').click();
+    await gridView.click();
     await page.locator('[data-in="fileQ"]').fill(prefix);
     await expect(page.locator('.workspace-file-open')).toHaveCount(2);
     await page.locator('.workspace-file-card [data-a="toggleFavoriteMaterial"]').first().click();
