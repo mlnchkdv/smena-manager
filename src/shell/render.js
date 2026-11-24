@@ -297,6 +297,12 @@ export function render() {
       el.scrollLeft = l;
     }
   });
+  const board = document.querySelector('.board[data-initial-column]');
+  if (board && matchMedia('(max-width: 640px)').matches && !keep.some(([key]) => key === board.dataset.keep)) {
+    const column = board.querySelector('[data-drop-col="' + CSS.escape(board.dataset.initialColumn) + '"]');
+    if (column)
+      board.scrollLeft = column.getBoundingClientRect().left - board.getBoundingClientRect().left - parseFloat(getComputedStyle(board).paddingLeft || 0);
+  }
   if (fid) {
     const el = document.getElementById(fid);
     if (el && el !== document.activeElement) {
