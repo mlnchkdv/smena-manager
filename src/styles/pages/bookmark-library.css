@@ -289,6 +289,28 @@
   }
 }
 
+@media (min-width: 641px) {
+  .bookmark-grid:not(.is-list):not(.is-compact) .bookmark-card:has(.bookmark-thumbnail img:not(.is-decoded)) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 8px 12px;
+    align-content: start;
+
+    & > * { grid-column: 1 / -1; }
+    & .bookmark-card-top { grid-area: 1 / 1; }
+    & .bookmark-thumbnail {
+      grid-area: 1 / 2;
+      width: 48px;
+      height: 48px;
+      min-height: 0;
+      margin: 0;
+      border-radius: var(--r);
+    }
+    & .bookmark-thumbnail-fallback { padding: 0; }
+    & .bookmark-thumbnail-fallback small { display: none; }
+  }
+}
+
 .bookmark-draft-row {
   display: flex;
   align-items: center;
