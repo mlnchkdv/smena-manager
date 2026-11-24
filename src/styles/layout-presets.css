@@ -109,3 +109,14 @@
     padding-inline: 8px;
   }
 }
+
+.archive-material-kind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.archive-material-kind select {
+  width: auto;
+  min-height: 44px;
+}
