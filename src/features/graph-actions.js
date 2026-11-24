@@ -66,6 +66,10 @@ A.graphControl = el => window.dispatchEvent(new CustomEvent('smena:graph-control
 A.toggleGraphFilters = () => {
   S.ui.graphFiltersOpen = !S.ui.graphFiltersOpen;
   render();
+  if (matchMedia('(max-width:640px)').matches) {
+    const selector = S.ui.graphFiltersOpen ? '#graph-filters .select-btn, #graph-filters select' : '.graph-filter-toggle';
+    [...document.querySelectorAll(selector)].find(el => el.getBoundingClientRect().width)?.focus({ preventScroll: true });
+  }
 };
 A.refineGraphSelection = () => {
   S.ui.graphFiltersOpen = true;

@@ -42,7 +42,7 @@ function graphFilters(ui, center) {
       .join('')}</select></label>
     <div class="graph-filter-checks"><label class="row"><input type="checkbox" data-in="graphCheck" data-field="graphConnected" ${ui.graphConnected === 'yes' ? 'checked' : ''}>Connected only</label><label class="row"><input type="checkbox" data-in="graphCheck" data-field="graphArchive" ${ui.graphArchive === 'yes' ? 'checked' : ''}>Include archived</label></div>
     ${center ? `<label class="field graph-depth"><span class="label">Depth</span><select class="select" data-in="graphFilter" data-field="graphDepth" aria-label="Depth"><option value="1" ${String(ui.graphDepth || 1) === '1' ? 'selected' : ''}>1</option><option value="2" ${String(ui.graphDepth) === '2' ? 'selected' : ''}>2</option></select></label>` : ''}
-    <button class="btn btn-ghost btn-sm" data-a="resetGraphFilters">Clear filters</button>
+    <button class="btn btn-ghost btn-sm" data-a="resetGraphFilters">Clear filters</button><button class="btn btn-primary graph-filter-return" data-a="toggleGraphFilters">${isRussian() ? 'Показать граф' : 'Show graph'}</button>
   </div>`;
 }
 

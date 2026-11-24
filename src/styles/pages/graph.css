@@ -1276,3 +1276,27 @@
     display: none;
   }
 }
+.graph-filter-return {
+  display: none;
+}
+@media (max-width: 640px) {
+  .graph-page #graph-filters:not([hidden]) {
+    position: fixed;
+    z-index: 40;
+    inset: auto 8px calc(76px + env(safe-area-inset-bottom));
+    max-height: 55dvh;
+    overflow: auto;
+    background: var(--surface);
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+    scroll-margin-block: 0;
+  }
+  .graph-filter-panel .graph-filter-return {
+    display: inline-flex;
+    position: sticky;
+    bottom: 0;
+    grid-column: 1/-1;
+  }
+}
