@@ -1,3 +1,8 @@
+@media (max-width: 640px) {
+  .activity-page:has(.activity-filters:not(.controls-open)) :is(.activity-presets, .activity-grouping) {
+    display: none;
+  }
+}
 .activity-type-wide {
   grid-column: 1 / -1;
   justify-self: start;
