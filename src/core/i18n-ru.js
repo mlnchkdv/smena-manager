@@ -79,8 +79,7 @@ export const RU = {
   'Folder path': 'Путь к папке',
   'Unknown status': 'Неизвестный статус',
   'Team tasks': 'Задачи команды',
-  'Your list is empty. Explore workspace tasks or switch to Team overview.':
-    'Ваш список пуст. Посмотрите задачи пространства или переключитесь на обзор команды.',
+  'No tasks assigned to you yet': 'Вам пока не назначены задачи',
   'More properties': 'Дополнительные поля',
   'Go to comments': 'К комментариям',
   'Board columns': 'Колонки доски',
