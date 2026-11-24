@@ -506,6 +506,9 @@
     display: none;
   }
   .whiteboard-page .whiteboard-document-heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    gap: 4px;
     margin-bottom: 4px;
   }
   .whiteboard-page .project-whiteboard {
