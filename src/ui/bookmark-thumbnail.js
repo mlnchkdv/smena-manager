@@ -19,3 +19,17 @@ document.addEventListener(
   },
   true,
 );
+document.addEventListener(
+  'load',
+  async event => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || !image.closest('.bookmark-thumbnail')) return;
+    try {
+      await image.decode();
+      if (image.naturalWidth) image.classList.add('is-decoded');
+    } catch {
+      /* The domain remains visible when decoding fails. */
+    }
+  },
+  true,
+);
