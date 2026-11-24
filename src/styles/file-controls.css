@@ -740,3 +740,18 @@
   display: block;
   overflow-wrap: anywhere;
 }
+
+.files-filter-options.is-desktop .file-view-caption,
+.files-filter-options.is-desktop .files-view-switch button span {
+  display: none;
+}
+.files-filter-options.is-mobile .files-view-switch {
+  width: 100%;
+}
+.files-filter-options.is-mobile .files-view-switch button {
+  flex: 1 1 auto;
+  width: auto;
+  padding-inline: 4px;
+  gap: 3px;
+  min-height: 44px;
+}

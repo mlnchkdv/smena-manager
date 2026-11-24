@@ -106,7 +106,7 @@ function fileTable(files) {
     .map(file => {
       const meta = fileMeta(file);
       const author = mem(file.by);
-      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}${fileMatchHint(file)}</div></div><details class="file-row-details" ${disclosureAttributes(`file-row:${file.id}`)}><summary>${esc(meta.n)} · ${esc(file.size || formatBytes(file.bytes))}<span class="sr"> · ${tr('Details')}</span></summary><dl><dt>${tr('Project')}</dt><dd>${projectChip(file) || '—'}</dd><dt>${tr('Uploaded by')}</dt><dd>${esc(author?.name || tr('Unknown member'))}</dd><dt>${tr('Date')}</dt><dd>${ago(file.at)}</dd></dl></details></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(meta.n)}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 14)}</button></td></tr>`;
+      return `<tr data-ctx="file" data-id="${file.id}"><td data-label="${tr('Name')}"><div class="workspace-file-title">${fileSelectButton(file)}<div class="min0 grow"><button class="workspace-file-name" data-a="previewFile" data-id="${file.id}" title="${esc(file.name)}"><span class="ftype" style="--c:${meta.c}">${ic(meta.i, 14)}</span><span class="trunc" translate="no">${esc(file.name)}</span></button>${folderChip(file)}${fileMatchHint(file)}</div></div><details class="file-row-details" ${disclosureAttributes(`file-row:${file.id}`)}><summary>${esc(tr(meta.n))} · ${esc(file.size || formatBytes(file.bytes))}<span class="sr"> · ${tr('Details')}</span></summary><dl><dt>${tr('Project')}</dt><dd>${projectChip(file) || '—'}</dd><dt>${tr('Uploaded by')}</dt><dd>${esc(author?.name || tr('Unknown member'))}</dd><dt>${tr('Date')}</dt><dd>${ago(file.at)}</dd></dl></details></td><td data-label="${tr('Project')}">${projectChip(file) || '—'}</td><td data-label="${tr('Type')}" class="muted">${esc(tr(meta.n))}</td><td data-label="${tr('Size')}" class="num muted">${esc(file.size || formatBytes(file.bytes))}</td><td data-label="${tr('Uploaded by')}"><span class="row workspace-file-author">${av(file.by, 'sm', false)}<span class="trunc" ${author ? 'translate="no"' : ''}>${esc(author?.name || 'Unknown member')}</span></span></td><td data-label="${tr('Date')}" class="muted">${ago(file.at)}</td><td class="workspace-file-actions"><button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="file" data-id="${file.id}" aria-label="${actionLabel('File options', file.name, fileContext(file))}" title="${actionLabel('File options', file.name, fileContext(file))}">${ic('ellipsis', 14)}</button></td></tr>`;
     })
     .join('')}</tbody></table></div>`;
 }
@@ -246,14 +246,14 @@ export function pageFiles(projectId = null) {
       ]
         .map(([value, label]) => `<option value="${value}" ${sort === value ? 'selected' : ''}>${label}</option>`)
         .join('')}</select>
-      <div class="seg files-view-switch" role="group" aria-label="File view">${[
+      <span class="file-view-caption hint">${isRussian() ? 'Отображение' : 'Layout'}</span><div class="seg files-view-switch" role="group" aria-label="File view">${[
         ['auto', 'sparkles', isRussian() ? 'Автоматически' : 'Automatic view'],
         ['grid', 'layout-grid', 'Grid view'],
         ['list', 'list', 'List view'],
       ]
         .map(
           ([value, icon, label]) =>
-            `<button class="${preference === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${label}" aria-pressed="${preference === value}">${ic(icon, 13)}</button>`,
+            `<button class="${preference === value ? 'on' : ''}" data-a="set" data-k="fileView" data-v="${value}" aria-label="${esc(tr(label))}" aria-pressed="${preference === value}">${ic(icon, 13)}<span translate="no">${(isRussian() ? { auto: 'Авто', grid: 'Плитка', list: 'Список' } : { auto: 'Auto', grid: 'Grid', list: 'List' })[value]}</span></button>`,
         )
         .join('')}</div></div></details>
     `,
