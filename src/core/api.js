@@ -298,7 +298,16 @@ async function readCatalogSnapshot(result, generation = sessionGeneration, signa
   }
 }
 
-export const queryFileCatalog = options => request('/api/files/catalog/query', { method: 'POST', body: JSON.stringify(options) }, true);
+const pendingCatalogQueries = new Set();
+export async function queryFileCatalog(options) {
+  const query = request('/api/files/catalog/query', { method: 'POST', body: JSON.stringify(options) }, true);
+  pendingCatalogQueries.add(query);
+  try {
+    return await query;
+  } finally {
+    pendingCatalogQueries.delete(query);
+  }
+}
 export const queryFileFolderCounts = options => request('/api/files/catalog/counts', { method: 'POST', body: JSON.stringify(options) }, true);
 export const queryWorkspaceGraph = options => request('/api/graph/query', { method: 'POST', body: JSON.stringify(options) }, true);
 export async function loadWhiteboardDocument(id) {
@@ -328,6 +337,18 @@ export async function loadCompleteFileCatalog() {
 }
 
 export async function getWorkspaceRevision() {
+  // Give the visible page priority over a background revision probe. A stuck
+  // search or continuous typing must never starve external changes or revocations.
+  if (pendingCatalogQueries.size) {
+    const generation = sessionGeneration;
+    let timer;
+    try {
+      await Promise.race([Promise.allSettled(pendingCatalogQueries), new Promise(resolve => (timer = setTimeout(resolve, 2_000)))]);
+    } finally {
+      clearTimeout(timer);
+    }
+    assertSessionGeneration(generation);
+  }
   const result = await request(
     '/api/workspace/revision',
     { ...(revisionCache?.etag ? { headers: { 'If-None-Match': revisionCache.etag } } : {}), returnMeta: true },
