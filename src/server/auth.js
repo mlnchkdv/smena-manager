@@ -9,7 +9,7 @@ import { memberForProfile } from '../shared/member-identity.js';
 import { ensureAuthSession, registerAuthSession, sessionDetailsFromRequest } from './auth-session-store.js';
 import { recordLoginSecurityNotification } from './login-security.js';
 import { directoryLoginProfiles, listUserWorkspaces } from './workspace-directory.js';
-import { workspaceScope } from './workspace-context.js';
+import { catalogRequestRoots, workspaceScope } from './workspace-context.js';
 
 const SESSION_PREFIX = 'smena_sess_';
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -234,14 +234,23 @@ export async function requireAuth(request, response, next) {
       }
       if (member) profile = { ...profile, role: workspaceMemberRole(member), ...(member.profileEditedAt ? { name: member.name, title: member.title } : {}) };
     }
-    const activeSession = await ensureAuthSession({
-      id: result.sessionId,
-      userId: profile.id,
-      createdAt: result.issuedAt,
-      lastSeenAt: Date.now(),
-      expiresAt: result.expiresAt,
-      ...sessionDetailsFromRequest(request),
-    });
+    // A catalog read must validate the live session before returning rows. Only
+    // last-seen bookkeeping can run after the response on the persistent VPS.
+    const afterResponse =
+      catalogRequestRoots() && !process.env.VERCEL
+        ? touch => response.once('close', () => void touch().catch(error => reportProviderError('[Auth] Session activity update failed', error)))
+        : undefined;
+    const activeSession = await ensureAuthSession(
+      {
+        id: result.sessionId,
+        userId: profile.id,
+        createdAt: result.issuedAt,
+        lastSeenAt: Date.now(),
+        expiresAt: result.expiresAt,
+        ...sessionDetailsFromRequest(request),
+      },
+      afterResponse,
+    );
     if (!activeSession) {
       response.status(401).json({ error: 'Session has been signed out.', code: 'SESSION_REVOKED' });
       return;

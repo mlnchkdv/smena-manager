@@ -127,6 +127,7 @@ export class AuthSessionRegistry {
     this.cache = null;
     this.cacheAt = 0;
     this.queue = Promise.resolve();
+    this.pendingTouches = new Map();
   }
 
   async read(force = false) {
@@ -184,21 +185,35 @@ export class AuthSessionRegistry {
     });
   }
 
-  async ensure(details) {
+  async ensure(details, afterResponse) {
     const candidate = normalizeRecord(details);
     if (!candidate || candidate.kind) return null;
     const cached = (await this.read(true)).find(record => record.kind !== 'login-limit' && record.id === candidate.id && record.userId === candidate.userId);
     // Only the sign-in endpoint can register a session. A missing record must
     // never resurrect an old, revoked or previously evicted signed token.
     if (!cached || cached.revokedAt) return null;
-    if (cached && this.now() - new Date(cached.lastSeenAt).getTime() < this.touchIntervalMs) return publicRecord(cached, candidate.id);
-    return this.mutate((records, now) => {
+    if (this.now() - Date.parse(cached.lastSeenAt) < this.touchIntervalMs) return publicRecord(cached, candidate.id);
+    if (afterResponse) {
+      afterResponse(() => this.touch(candidate));
+      return publicRecord(cached, candidate.id);
+    }
+    return this.touch(candidate);
+  }
+
+  touch(candidate) {
+    const key = JSON.stringify([candidate.userId, candidate.id]);
+    const pending = this.pendingTouches.get(key);
+    if (pending) return pending;
+    const write = this.mutate((records, now) => {
       const existing = records.find(record => record.id === candidate.id && record.userId === candidate.userId);
       if (!existing || existing.revokedAt) return { changed: false, records, value: null };
+      if (now - Date.parse(existing.lastSeenAt) < this.touchIntervalMs) return { changed: false, records, value: publicRecord(existing, candidate.id) };
       const nextRecord = { ...existing, lastSeenAt: new Date(now).toISOString() };
       const next = [nextRecord, ...records.filter(record => record.id !== candidate.id)];
       return { changed: true, records: next, value: publicRecord(nextRecord, candidate.id) };
-    });
+    }).finally(() => this.pendingTouches.delete(key));
+    this.pendingTouches.set(key, write);
+    return write;
   }
 
   async list(userId, currentSessionId) {
@@ -253,7 +268,7 @@ export class AuthSessionRegistry {
 const registry = new AuthSessionRegistry();
 
 export const registerAuthSession = details => registry.register(details);
-export const ensureAuthSession = details => registry.ensure(details);
+export const ensureAuthSession = (details, afterResponse) => registry.ensure(details, afterResponse);
 export const listAuthSessions = (userId, currentSessionId) => registry.list(userId, currentSessionId);
 export const revokeAuthSession = (userId, sessionId) => registry.revoke(userId, sessionId);
 export const revokeOtherAuthSessions = (userId, currentSessionId) => registry.revokeOthers(userId, currentSessionId);

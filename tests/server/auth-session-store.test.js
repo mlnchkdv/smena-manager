@@ -124,3 +124,34 @@ test('session registry lists only the user sessions and enforces revocation', as
   const touched = await registry.ensure(details('current', 'user-1', Date.parse('2026-10-17T12:00:00.000Z')));
   assert.equal(touched.lastSeenAt, '2026-10-17T12:02:00.000Z');
 });
+
+test('a catalog read validates revocation immediately and coalesces only deferred activity writes', async () => {
+  let now = Date.now(),
+    writes = 0;
+  const provider = new MemorySessionStorage();
+  const persist = provider.saveAuthSessions.bind(provider);
+  provider.saveAuthSessions = async rows => {
+    writes++;
+    await persist(rows);
+  };
+  const registry = new AuthSessionRegistry({ provider: () => provider, now: () => now, touchIntervalMs: 1000 });
+  const session = details('catalog', 'member', now);
+  await registry.register(session);
+  now += 1500;
+  const callbacks = [];
+  const defer = task => callbacks.push(task);
+  await Promise.all([registry.ensure(session, defer), registry.ensure(session, defer)]);
+  assert.equal(writes, 1);
+  assert.equal(callbacks.length, 2);
+  await Promise.all(callbacks.map(task => task()));
+  assert.equal(writes, 2);
+  assert.equal(provider.sessions[0].lastSeenAt, new Date(now).toISOString());
+  now += 1500;
+  callbacks.length = 0;
+  await registry.ensure(session, defer);
+  await registry.revoke('member', session.id);
+  assert.equal(await callbacks[0](), null);
+  assert.equal(await registry.ensure(session, defer), null);
+  assert.equal(callbacks.length, 1);
+  assert.equal(writes, 3);
+});
