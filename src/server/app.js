@@ -18,7 +18,7 @@ import { readKnowledgeCatalogPage } from './knowledge-catalog-pages.js';
 import { applyKnowledgeCatalogDelta } from './knowledge-catalog-delta.js';
 import { updateKnowledgeTrash } from './knowledge-trash.js';
 import { readKnowledgeMigration, startKnowledgeMigration, stepKnowledgeMigration } from './knowledge-migration.js';
-import { inWorkspace } from './workspace-context.js';
+import { withCatalogRequest, inWorkspace } from './workspace-context.js';
 import { dispatchWorkspaceAutomation, runWorkspaceAutomationBatch } from './workspace-automation.js';
 import { authRouter } from './auth-routes.js';
 import {
@@ -197,6 +197,7 @@ app.get('/api/monitor/readiness', async (request, response, next) => {
 app.use('/api/v1', publicApiRouter);
 app.use('/api/v1', publicApiError);
 app.use('/api/public', anonymousPublicLinksRouter);
+app.post('/api/files/catalog/query', (_request, _response, next) => withCatalogRequest(next));
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {

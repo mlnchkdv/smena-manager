@@ -1,3 +1,4 @@
+import { catalogRequestRoots } from '../workspace-context.js';
 import { drive } from '@googleapis/drive';
 import { driveResearchObjects } from './research-objects.js';
 import { JWT, OAuth2Client } from 'google-auth-library';
@@ -281,13 +282,19 @@ export class GoogleDriveStorageProvider {
     const fileId = await this.findDatabaseFile();
     options.signal?.throwIfAborted();
     if (!fileId) return null;
-    const response = await this.readVersionedJson(fileId);
+    const roots = catalogRequestRoots();
+    const pinned = roots?.get(this);
+    const reuse = pinned?.fileId === fileId;
+    const response = reuse ? pinned.response : await this.readVersionedJson(fileId);
     const etag = responseHeader(response, 'etag');
-    this.databaseEtag = etag;
-    this.lastSyncAt = new Date().toISOString();
+    if (!reuse) {
+      if (typeof response.data === 'string') roots?.set(this, { fileId, response });
+      this.databaseEtag = etag;
+      this.lastSyncAt = new Date().toISOString();
+    }
     const raw = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
     const root = await materializeKnowledgeMetadata(raw, this, options);
-    this.catalogRoot = root;
+    if (!reuse) this.catalogRoot = root;
     return rememberStorageVersion(root, etag);
   }
 

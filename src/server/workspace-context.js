@@ -18,3 +18,9 @@ export function workspaceState(factory) {
     return states.get(key);
   };
 }
+
+// Only the read-only catalog POST uses this scope. Authorization and search
+// see the same Drive root; the next HTTP request obtains a fresh validator.
+const catalogRequest = new AsyncLocalStorage();
+export const withCatalogRequest = next => catalogRequest.run(new Map(), next);
+export const catalogRequestRoots = () => catalogRequest.getStore();

@@ -1,3 +1,4 @@
+import { withCatalogRequest } from '../../src/server/workspace-context.js';
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';
 import { createHash } from 'node:crypto';
@@ -675,4 +676,23 @@ test('repeated workspace root reads revalidate Drive metadata and only reuse mat
   assert.equal(downloads, 4);
   unavailable = true;
   await assert.rejects(provider.readVersionedJson('root'), /unavailable/);
+});
+
+test('catalog authorization and query share one fresh root per request and storage provider', async () => {
+  let reads = 0;
+  const provider = () => {
+    const storage = new GoogleDriveStorageProvider();
+    storage.initialized = true;
+    storage.databaseFileId = 'root';
+    storage.readVersionedJson = async () => ({ data: JSON.stringify({ revision: ++reads }), headers: { etag: String(reads) } });
+    return storage;
+  };
+  const a = provider(),
+    b = provider();
+  await withCatalogRequest(async () => {
+    assert.equal((await a.readDatabaseRoot()).revision, 1);
+    assert.equal((await b.readDatabaseRoot()).revision, 2);
+    assert.equal((await a.readDatabaseRoot()).revision, 1);
+  });
+  assert.equal(await withCatalogRequest(async () => (await a.readDatabaseRoot()).revision), 3);
 });
