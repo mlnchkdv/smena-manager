@@ -22,6 +22,23 @@ export function installHtmlReaderPosition() {
     },
     { passive: true },
   );
+  // A section jump belongs to the document, not the catalog's Back stack.
+  addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest?.('a[href^="#"]');
+    const hash = link?.getAttribute('href');
+    if (!hash || hash.length < 2 || (link.target && link.target !== '_self')) return;
+    let target;
+    try {
+      target = document.getElementById(decodeURIComponent(hash.slice(1)));
+    } catch {
+      return;
+    }
+    if (target) {
+      event.preventDefault();
+      location.replace(hash);
+    }
+  });
   addEventListener('message', event => {
     if (event.source !== parent || event.data?.type !== 'smena:reader-restore') return;
     const { section, offset, y } = event.data;
