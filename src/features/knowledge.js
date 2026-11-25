@@ -1,6 +1,8 @@
 import { writeLayoutPreference } from '../core/view-layout-preferences.js';
 import { folderDestinationLocation } from '../shared/knowledge-folder-shortcuts.js';
-import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles } from '../actions/actions.js';
+import { A, IN, confirmDlg, moveToTrash, importKnowledgeFiles, handleFiles } from '../actions/actions.js';
+import { canEditProject } from '../shared/project-access.js';
+import { visibleProjects, canSee } from '../core/store.js';
 import { createAsyncContextAction } from '../shared/async-context-action.js';
 import { getSessionGeneration } from '../core/api.js';
 import { knowledgeVersionState, loadKnowledgeVersion } from '../core/knowledge-version-state.js';
@@ -604,6 +606,63 @@ A.knowledgeFolderNavPage = el => {
   document.querySelector('.knowledge-folders')?.scrollTo(0, 0);
 };
 const isFileDrag = event => [...(event.dataTransfer?.types || [])].includes('Files');
+const writableDropProjects = () =>
+  visibleProjects().filter(project => !project.archived && canSee(project) && canEditProject(project, D().me, S.ui.currentUser?.role));
+const dropText = (en, ru) => (isRussian() ? ru : en);
+function reviewKnowledgeDrop(files, folder) {
+  if (!['admin', 'editor'].includes(S.ui.currentUser?.role) || knowledgeEditBlocked() || S.ui.atomicOperation || S.ui.modals.length) return;
+  const html = files.filter(file => /\.html?$/i.test(file.name));
+  if (!html.length) return importKnowledgeFiles(files, folder);
+  const other = files.filter(file => !html.includes(file));
+  openModal({
+    type: 'knowledgeTool',
+    html,
+    other,
+    folder,
+    owner: S.ui.currentUser.id,
+    workspace: D().ws.id || D().ws.url,
+    render: (m, H) =>
+      H(dropText('HTML files', 'HTML-файлы')) +
+      `<div class="modal-b" translate="no"><p>${dropText('Upload HTML to Files to keep the original page.', 'Загрузите HTML в раздел «Файлы», чтобы сохранить страницу в исходном виде.')}</p><ul class="upload-review-list">${m.html.map(file => '<li><strong>' + esc(file.name) + '</strong></li>').join('')}</ul>
+      ${m.other.length ? '<p>' + dropText('Other files for note import', 'Другие файлы для импорта заметок') + ': ' + m.other.length + '</p>' : ''}
+      ${writableDropProjects().length ? '' : '<p role="status">' + dropText('A writable project is required.', 'Нужен проект с правом загрузки файлов.') + '</p>'}</div>
+      <div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${dropText('Cancel', 'Отмена')}</button>
+      ${m.other.length ? '<button class="btn btn-secondary" data-a="reviewDroppedNotes">' + dropText('Review other files as notes', 'Проверить остальные как заметки') + '</button>' : ''}
+      <button class="btn btn-primary" data-a="uploadDroppedHtml" ${m.pending || !writableDropProjects().length ? 'disabled' : ''}>${dropText('Upload to Files', 'Загрузить в «Файлы»')}</button></div>`,
+  });
+}
+function currentDrop() {
+  const m = S.ui.modals.at(-1);
+  return m?.html && m.owner === S.ui.currentUser?.id && m.workspace === (D().ws.id || D().ws.url) ? m : null;
+}
+A.reviewDroppedNotes = () => {
+  const m = currentDrop();
+  if (!m || m.pending) return;
+  closeModal();
+  return importKnowledgeFiles(m.other, m.folder);
+};
+A.uploadDroppedHtml = async () => {
+  const m = currentDrop();
+  if (!m || m.pending) return;
+  const projects = writableDropProjects();
+  const project = projects.find(p => p.id === S.ui.fileUploadProject) || projects[0];
+  if (!project) return;
+  m.pending = true;
+  render();
+  try {
+    await handleFiles(m.html, {
+      project: project.id,
+      onReviewAccepted: () => {
+        if (currentDrop() !== m) return;
+        closeModal();
+        if (m.other.length) void importKnowledgeFiles(m.other, m.folder);
+      },
+    });
+  } finally {
+    m.pending = false;
+    if (currentDrop() === m) render();
+  }
+};
 // Capture external files before the generic task-attachment handlers.
 document.addEventListener(
   'dragover',
@@ -631,7 +690,7 @@ document.addEventListener(
     event.stopImmediatePropagation();
     shell.classList.remove('knowledge-file-over');
     const folder = event.target.closest?.('[data-a="setKnowledgeFolder"]')?.dataset.folder || S.ui.knowledgeFolder;
-    void importKnowledgeFiles(Array.from(event.dataTransfer.files), folder);
+    void reviewKnowledgeDrop(Array.from(event.dataTransfer.files), folder);
   },
   true,
 );

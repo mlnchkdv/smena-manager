@@ -710,6 +710,7 @@ export async function enqueueFiles(files, ctx) {
       }
     });
     if (!accepted || !valid() || generation !== before) return [];
+    ctx.onReviewAccepted?.();
   } catch (error) {
     toast(error.message, { kind: 'err' });
     return [];
