@@ -155,7 +155,7 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     const denseGraph = graph.nodes.length > 80 || graph.edges.length > 160;
     const elements = [
       ...graph.nodes.map(node => ({
-        data: { id: node.key, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
+        data: { id: node.key, title: node.title, label: node.title.length > 46 ? node.title.slice(0, 45) + '…' : node.title, ...glyphs[node.kind] },
         position: positions.get(node.key),
         classes: [selected && !neighbors.has(node.key) ? 'muted' : '', denseGraph ? 'dense' : '', simple ? 'simple' : '', node.cluster ? 'aggregate' : '']
           .filter(Boolean)
@@ -299,9 +299,22 @@ export function mountGraph(graph, selected, center, onSelect, simple = false, ph
     });
     const cy = instance;
     const current = () => instance === cy && !cy.destroyed() && container.isConnected;
+    let labelLimit;
     const updateDensity = () => {
       if (!current() || !cy.renderer()) return;
       const zoom = instance.zoom();
+      const limit = cy.width() < 800 ? (zoom < 0.85 ? 14 : zoom < 1.5 ? 22 : 34) : 46;
+      if (limit !== labelLimit) {
+        labelLimit = limit;
+        cy.batch(() =>
+          cy.nodes().forEach(node => {
+            const title = node.data('title');
+            if (typeof title !== 'string') return;
+            const letters = Array.from(title);
+            node.data('label', letters.length > limit ? letters.slice(0, limit - 1).join('') + '…' : title);
+          }),
+        );
+      }
       const semantic = graphSemanticView({ width: cy.width(), height: cy.height(), nodes: graph.nodes.length, zoom });
       container.dataset.graphSemanticView = !simple && semantic.overview ? 'overview' : 'detail';
       cy.batch(() =>
