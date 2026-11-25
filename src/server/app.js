@@ -197,7 +197,10 @@ app.get('/api/monitor/readiness', async (request, response, next) => {
 app.use('/api/v1', publicApiRouter);
 app.use('/api/v1', publicApiError);
 app.use('/api/public', anonymousPublicLinksRouter);
-app.post('/api/files/catalog/query', (_request, _response, next) => withCatalogRequest(next));
+app.post('/api/files/catalog/query', (_request, response, next) => {
+  response.locals.catalogStart = performance.now();
+  withCatalogRequest(next);
+});
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {

@@ -260,6 +260,7 @@ export async function requireAuth(request, response, next) {
     request.workspaceSnapshot = database;
     request.sessionId = result.sessionId;
     request.authSession = activeSession;
+    if (response.locals?.catalogStart !== undefined) response.locals.catalogAuthenticated = performance.now();
     next();
   } catch (error) {
     next(error);

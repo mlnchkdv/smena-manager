@@ -219,7 +219,9 @@ fileRouter.post('/archive', urlencoded({ extended: false, limit: '128kb', parame
 fileRouter.post('/catalog/query', async (request, response, next) => {
   try {
     const query = request.body;
+    const start = performance.now();
     const page = await queryWorkspaceFileCatalog(request.user, query);
+    const found = performance.now();
     // Resolve only visible result IDs, against the same authorized catalog revision.
     if (query.recordsAtRevision === page.revision && !query.countsOnly) {
       const known = new Set(Array.isArray(query.knownFileIds) ? query.knownFileIds.slice(0, 100) : []);
@@ -228,6 +230,18 @@ fileRouter.post('/catalog/query', async (request, response, next) => {
         const records = await getWorkspaceFileCatalogPage(request.user, { revision: page.revision, ids });
         if (records.nextOffset === null) page.records = records.files;
       } else page.records = [];
+    }
+    const { catalogStart, catalogAuthenticated } = response.locals;
+    if (catalogAuthenticated !== undefined) {
+      response.setHeader(
+        'Server-Timing',
+        [
+          `auth;dur=${(catalogAuthenticated - catalogStart).toFixed(1)}`,
+          `workspace;dur=${(start - catalogAuthenticated).toFixed(1)}`,
+          `search;dur=${(found - start).toFixed(1)}`,
+          `rows;dur=${(performance.now() - found).toFixed(1)}`,
+        ].join(', '),
+      );
     }
     response.json(page);
   } catch (error) {
