@@ -165,7 +165,9 @@ export function pageFiles(projectId = null) {
     },
     pageKey,
   );
-  if (remote) files = (remote.files || []).map(file => index.files.find(item => item.id === file.id)).filter(Boolean);
+  if (remote?.knownIds) files = files.filter(file => remote.knownIds.has(file.id)).slice(0, pageSize);
+  else if (remote) files = (remote.files || []).map(file => index.files.find(item => item.id === file.id)).filter(Boolean);
+  const provisional = !!(remote?.knownIds && files.length);
   const window = remote
     ? { items: files, page: remote.page || 0, pages: remote.pages || 1, total: remote.total || 0 }
     : listWindow(files, S.ui.listPages?.[pageKey], pageSize);
@@ -275,11 +277,11 @@ export function pageFiles(projectId = null) {
     ${fileDownloadProgress()}
     ${fileTransferPanel()}
     ${activeExports ? exportPanel : ''}</section>
-    ${fileSelectionBar(window.items, files, remote)}
+    ${provisional ? '' : fileSelectionBar(window.items, files, remote)}
     ${remote?.refreshing ? `<div class="catalog-context-status" role="status"><span>${tr(remote.error || 'Updating files. The last loaded page remains visible.')}</span>${remote.error ? '<button class="btn btn-secondary btn-sm" data-a="retryFileCatalog">Try again</button>' : ''}</div>` : ''}
     ${
-      remote?.loading && !remote.refreshing
-        ? filePagePending(remote, view)
+      remote?.loading && !remote.refreshing && !provisional
+        ? filePagePending(remote, view, !filtered)
         : files.length
           ? view === 'grid'
             ? `<div class="fgrid workspace-file-grid">${window.items.map(fileCard).join('')}</div>`

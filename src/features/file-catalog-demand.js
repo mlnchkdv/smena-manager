@@ -158,7 +158,11 @@ export function demandFilePage(options, pageKey) {
     });
   }
   const previous = loaded?.scope === scope && loaded.revision === S.ui.workspaceRevision && loaded.query === query ? loaded.page : null;
-  return { ...(previous || {}), loading: true, refreshing: !!previous, error: failed === key ? error : '' };
+  const knownIds =
+    options.query && !options.offset && !previous && loaded?.scope === scope && loaded.revision === S.ui.workspaceRevision && failed !== key
+      ? new Set(loaded.page.files.map(file => file.id))
+      : null;
+  return { ...(previous || {}), knownIds, loading: true, refreshing: !!previous, error: failed === key ? error : '' };
 }
 A.retryFileCatalog = () => {
   failed = error = '';
