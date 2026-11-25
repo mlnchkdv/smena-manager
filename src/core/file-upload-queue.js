@@ -113,7 +113,7 @@ fileModalRenderers.uploadReview = (m, H) => {
   const duplicates = m.entries.length - new Set(m.entries.map(job => (m.preserve ? job.relativePath : job.name).toLocaleLowerCase())).size;
   return (
     H(text('Review upload', 'Проверка загрузки')) +
-    `<div class="modal-b" translate="no" ${m.starting ? 'inert' : ''}><p class="file-upload-destination"><strong>${summary}</strong> · ${fsize(bytes)}</p><label class="field upload-review-target">${text('Project and folder', 'Проект и папка')}<select class="select" data-in="uploadReviewTarget" ${m.ctx.task ? 'disabled' : ''}>${D()
+    `<div class="modal-b" translate="no" ${m.starting ? 'inert' : ''}><p class="file-upload-destination"><strong>${summary}</strong> · ${fsize(bytes)}</p><p class="file-upload-destination">${text('Upload to', 'Загрузить в')} · <strong>${esc([proj(m.ctx.project)?.name, ...fileFolderPath(proj(m.ctx.project), m.ctx.folderId).map(folder => folder.name)].filter(Boolean).join(' / '))}</strong></p><label class="field upload-review-target">${text('Project and folder', 'Проект и папка')}<select class="select" data-in="uploadReviewTarget" ${m.ctx.task ? 'disabled' : ''}>${D()
       .projects.filter(project => !project.archived && canEditProject(project, D().me, S.ui.currentUser?.role))
       .flatMap(project =>
         [
