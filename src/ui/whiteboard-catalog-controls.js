@@ -21,7 +21,7 @@ export function whiteboardCatalogControls(state, project, projects, labelled = f
       'sort',
       T('Sort', 'Сортировка'),
       [
-        ['updated', T('Recently updated', 'Недавно обновлённые')],
+        ['updated', T('Last updated', 'По обновлению')],
         ['name', T('Name', 'Название')],
       ],
       state.sort,
@@ -39,7 +39,7 @@ export function whiteboardCatalogControls(state, project, projects, labelled = f
   return controls
     .map(
       ([field, label, options, value]) =>
-        `${labelled ? `<label class="field"><span>${label}</span>` : ''}<select class="select" aria-label="${label}" data-in="whiteboardsFilter" data-field="${field}">${options.map(([v, name]) => `<option value="${esc(v)}" ${v === value ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select>${labelled ? '</label>' : ''}`,
+        `<label class="field${labelled ? '' : ' whiteboard-inline-filter'}"><span>${label}</span><select class="select" aria-label="${label}" data-in="whiteboardsFilter" data-field="${field}">${options.map(([v, name]) => `<option value="${esc(v)}" ${v === value ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label>`,
     )
     .join('');
 }
