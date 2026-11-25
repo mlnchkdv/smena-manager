@@ -4,6 +4,17 @@ import { workspacePayload } from './workspace-snapshot.js';
 import { mergeWorkspaceData } from '../shared/workspace-merge.js';
 import { createDraftJournal } from './offline-drafts.js';
 
+// Core snapshots assembled after uploads can contain the same collections in a different order.
+function snapshotHash(data) {
+  return JSON.stringify(
+    Object.fromEntries(
+      Object.keys(data)
+        .sort()
+        .map(key => [key, data[key]]),
+    ),
+  );
+}
+
 function browserNotify(detail) {
   if (typeof window === 'undefined' || typeof CustomEvent === 'undefined') return;
   window.dispatchEvent(new CustomEvent('smena:sync-status', { detail }));
@@ -47,7 +58,7 @@ export function createWorkspaceSync(options = {}) {
     enabled = role === 'admin' || role === 'editor';
     pending = null;
     retryDelay = 1_000;
-    confirmedHash = data ? JSON.stringify(data) : null;
+    confirmedHash = data ? snapshotHash(data) : null;
     confirmedData = data ? structuredClone(data) : null;
     pendingHash = null;
     activeHash = null;
@@ -91,7 +102,7 @@ export function createWorkspaceSync(options = {}) {
       const remote = acknowledgedData(snapshot, data);
       const rebased = mergeWorkspaceData(base, data, remote);
       if (rebased.conflicts.length) throw error;
-      if (JSON.stringify(rebased.data) === JSON.stringify(remote)) return { snapshot, rebased: true };
+      if (snapshotHash(rebased.data) === snapshotHash(remote)) return { snapshot, rebased: true };
       return { snapshot: await writeWorkspace(rebased.data, nextRevision), rebased: true };
     }
   }
@@ -127,7 +138,7 @@ export function createWorkspaceSync(options = {}) {
         if (writeGeneration !== generation) return;
         revision = Number(snapshot.revision);
         const canonical = acknowledgedData(snapshot, data);
-        confirmedHash = JSON.stringify(canonical);
+        confirmedHash = snapshotHash(canonical);
         confirmedData = structuredClone(canonical);
         if (pending) {
           const merged = mergeWorkspaceData(data, pending, canonical);
@@ -136,7 +147,7 @@ export function createWorkspaceSync(options = {}) {
             return;
           }
           pending = merged.data;
-          pendingHash = JSON.stringify(pending);
+          pendingHash = snapshotHash(pending);
           if (pendingHash === confirmedHash) pending = pendingHash = null;
         }
         if (writeJournal) {
@@ -222,7 +233,7 @@ export function createWorkspaceSync(options = {}) {
 
   function queue(data) {
     if (!enabled) return Promise.resolve();
-    const dataHash = JSON.stringify(data);
+    const dataHash = snapshotHash(data);
     if (dataHash === activeHash) {
       pending = pendingHash = null;
       if (journal) void journal.save({ base: confirmedData, local: data, revision }).catch(error => notify({ status: 'recovery_unavailable', error }));
@@ -246,7 +257,7 @@ export function createWorkspaceSync(options = {}) {
   }
 
   function isClean(data) {
-    return !pending && !activePromise && !conflict && !lastError && confirmedHash !== null && JSON.stringify(data) === confirmedHash;
+    return !pending && !activePromise && !conflict && !lastError && confirmedHash !== null && snapshotHash(data) === confirmedHash;
   }
 
   function getConflict() {

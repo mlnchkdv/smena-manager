@@ -307,6 +307,25 @@ test('workspace sync stops instead of overwriting a revision conflict', async ()
   assert.equal(statuses.at(-1).currentRevision, 8);
 });
 
+test('a file registration that changes collection key order stays clean without another write', async () => {
+  let writes = 0;
+  const sync = createWorkspaceSync({
+    writeWorkspace: async (data, revision) => {
+      writes++;
+      return { ws: data.ws, files: data.files, revision: revision + 1 };
+    },
+    notify: () => {},
+  });
+  const ws = { id: 'team' };
+  sync.configure(1, 'editor', { files: [], ws });
+  const local = { files: [{ id: 'one' }, { id: 'two' }], ws };
+  await sync.queue(local);
+  assert.equal(sync.isClean(local), true);
+  await sync.queue(local);
+  assert.equal(writes, 1);
+  assert.equal(sync.isClean({ ...local, files: [...local.files].reverse() }), false);
+});
+
 test('workspace sync reports when the current data is safe to refresh', async () => {
   const data = { tasks: [{ id: 't1', title: 'Original' }] };
   const sync = createWorkspaceSync({
