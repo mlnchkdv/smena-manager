@@ -834,6 +834,12 @@ handlers.A.continueFilePreviewPage = el => {
     heading.scrollIntoView({ block: 'start' });
   }
 };
+handlers.A.toggleHtmlInteraction = el => {
+  const m = S.ui.modals.at(-1);
+  if (m?.type !== 'filePreview' || m.preview?.kind !== 'html' || el.dataset.id !== m.file.id) return;
+  m.interactiveHtml = !m.interactiveHtml;
+  render();
+};
 handlers.A.stepFilePreview = el => {
   const m = S.ui.modals.at(-1),
     context = m?.previewContext;

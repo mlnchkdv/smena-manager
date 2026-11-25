@@ -55,10 +55,11 @@ function keepConnected(root, html, retained) {
 }
 
 export function replaceReadingMarkup(root, html, retained = []) {
-  for (const node of root.querySelectorAll('iframe[data-bookmark-archive-frame]')) {
-    const key = CSS.escape(node.dataset.bookmarkArchiveFrame);
-    const selector = `iframe[data-bookmark-archive-frame="${key}"]`;
-    if (html.includes(`data-bookmark-archive-frame="${esc(node.dataset.bookmarkArchiveFrame)}"`)) retained.push({ node, selector });
+  for (const attribute of ['data-bookmark-archive-frame', 'data-html-preview-frame']) {
+    for (const node of root.querySelectorAll(`iframe[${attribute}]`)) {
+      const key = node.getAttribute(attribute);
+      if (html.includes(`${attribute}="${esc(key)}"`)) retained.push({ node, selector: `iframe[${attribute}="${CSS.escape(key)}"]` });
+    }
   }
   if (!retained.length || !keepConnected(root, html, retained)) root.innerHTML = html;
 }

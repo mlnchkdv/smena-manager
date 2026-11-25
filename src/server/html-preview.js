@@ -4,6 +4,10 @@ export const HTML_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
 export const HTML_PREVIEW_CSP =
   "sandbox; default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
 
+// Both the response and the embedding iframe enforce an opaque origin.
+export const INTERACTIVE_HTML_PREVIEW_CSP =
+  "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
+
 export function decodeHtml(buffer, mimeType = '') {
   const declared = /charset\s*=\s*["']?([^\s;"'/>]+)/i.exec(mimeType + ' ' + buffer.subarray(0, 4096).toString('latin1'))?.[1];
   const charset = buffer[0] === 255 && buffer[1] === 254 ? 'utf-16le' : buffer[0] === 254 && buffer[1] === 255 ? 'utf-16be' : declared || 'utf-8';

@@ -103,6 +103,7 @@ registerManagementActions(
       'previewFile',
       'continueFilePreviewPage',
       'stepFilePreview',
+      'toggleHtmlInteraction',
       'chooseStoredFiles',
       'downloadStoredFile',
       'pickMention',

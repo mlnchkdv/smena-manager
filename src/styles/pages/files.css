@@ -1223,6 +1223,21 @@
   }
 }
 
+.html-preview-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px;
+}
+.html-preview-mode .hint {
+  flex: 1 1 240px;
+  margin: 0;
+}
+.html-preview-mode button {
+  min-height: 44px;
+  white-space: normal;
+}
 .document-preview-frame {
   width: 100%;
   height: min(68dvh, 800px);

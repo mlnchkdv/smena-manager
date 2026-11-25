@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP } from '../../src/server/html-preview.js';
+import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP, INTERACTIVE_HTML_PREVIEW_CSP } from '../../src/server/html-preview.js';
 import { app } from '../../src/server/app.js';
 import { memberSharingFixture } from '../fixtures/member-sharing.js';
 
@@ -35,6 +35,16 @@ test('HTML preview requires the current account, project access and bounded stor
     assert.equal(result.status, 200, await result.clone().text());
     assert.equal(result.headers.get('content-security-policy'), HTML_PREVIEW_CSP);
     assert.match(await result.text(), /Saved report/);
+    const interactiveUrl = origin + route + '&mode=interactive';
+    assert.equal((await call(route + '&mode=interactive')).status, 403);
+    const frameHeaders = { 'Sec-Fetch-Dest': 'iframe', 'Sec-Fetch-Site': 'same-origin', Authorization: 'Bearer ' + fixture.sessions[1] };
+    const interactive = await fetch(interactiveUrl, { headers: frameHeaders });
+    assert.equal(interactive.status, 200);
+    assert.equal(interactive.headers.get('content-security-policy'), INTERACTIVE_HTML_PREVIEW_CSP);
+    assert.match(INTERACTIVE_HTML_PREVIEW_CSP, /^sandbox allow-scripts;/);
+    assert.doesNotMatch(INTERACTIVE_HTML_PREVIEW_CSP, /allow-same-origin|unsafe-eval/);
+    assert.match(await interactive.text(), /<script>/);
+    assert.equal((await fetch(interactiveUrl.replace('/file?', '/private-file?'), { headers: frameHeaders })).status, 404);
     assert.equal((await call('/api/html-previews/private-file?account=member-profile')).status, 404);
   } finally {
     await new Promise(resolve => server.close(resolve));

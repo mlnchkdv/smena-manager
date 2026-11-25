@@ -1,4 +1,4 @@
-import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
+import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP, INTERACTIVE_HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -519,6 +519,8 @@ fileRouter.post('/upload-complete', requireRole('admin', 'editor'), async (reque
 export async function renderHtmlFilePreview(request, response, next) {
   try {
     if (request.query.account !== request.user.id) return response.sendStatus(403);
+    const interactive = request.query.mode === 'interactive';
+    if (interactive && (request.get('Sec-Fetch-Dest') !== 'iframe' || request.get('Sec-Fetch-Site') !== 'same-origin')) return response.sendStatus(403);
     const data = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = data.files?.find(row => row.id === request.params.id && !row.archived);
     const project = data.projects?.find(row => row.id === file?.project);
@@ -537,10 +539,15 @@ export async function renderHtmlFilePreview(request, response, next) {
       }
       chunks.push(chunk);
     }
+    const source = decodeHtml(Buffer.concat(chunks), file.mimeType);
     response
-      .set({ 'Content-Security-Policy': HTML_PREVIEW_CSP, 'Referrer-Policy': 'no-referrer' })
+      .set({
+        'Content-Security-Policy': interactive ? INTERACTIVE_HTML_PREVIEW_CSP : HTML_PREVIEW_CSP,
+        'Referrer-Policy': 'no-referrer',
+        'Cache-Control': 'private, no-store',
+      })
       .type('html')
-      .send(htmlPreviewDocument(decodeHtml(Buffer.concat(chunks), file.mimeType)));
+      .send(interactive ? source : htmlPreviewDocument(source));
   } catch (error) {
     next(error);
   }
