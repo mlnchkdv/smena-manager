@@ -158,7 +158,7 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
     if (owner !== S.ui.currentUser?.id || workspace !== (D().ws.id || D().ws.url)) return;
     const payload = { notes: [...(previous?.payload.notes || []), ...review.payload.notes] };
     let retryIndex = 0;
-    const entries = previous ? previous.entries.map(entry => (entry.error ? review.entries[retryIndex++] : entry)) : review.entries;
+    const entries = previous ? previous.entries.map(entry => (entry.retryable ? review.entries[retryIndex++] : entry)) : review.entries;
     if (jsonByteLength({ payload }) > WORKSPACE_TRANSPORT_MAX_BYTES - 4096) throw new Error('The import file must be smaller than 4 MB.');
     S.ui.knowledgeMobileFolders = false;
     S.ui.importPreview = {
@@ -167,8 +167,8 @@ export async function importKnowledgeFiles(files, folderId = S.ui.knowledgeFolde
       files: previous?.files || Array.from(files),
       batches: Math.ceil((previous?.files || files).length / 50),
       destination,
-      policy: 'copy',
-      result: mergePortableWorkspace(D(), payload),
+      policy: previous?.policy || 'copy',
+      result: mergePortableWorkspace(D(), payload, { conflictPolicy: previous?.policy || 'copy' }),
       busy: false,
     };
     openModal({ type: 'portableImport' });
@@ -197,7 +197,7 @@ A.cancelKnowledgeImport = () => S.ui.knowledgeImportAbort?.abort();
 A.retryKnowledgeImport = () => {
   const previous = S.ui.importPreview;
   if (!previous?.files || previous.busy) return;
-  const failed = previous.files.filter((_, index) => previous.entries[index]?.error);
+  const failed = previous.files.filter((_, index) => previous.entries[index]?.retryable);
   if (!failed.length) return;
   closeModal();
   return importKnowledgeFiles(failed, previous.destination, previous);

@@ -53,7 +53,7 @@ export async function reviewKnowledgeImport(files, options = {}) {
       entries.push({ name: file.name, id: note.id });
     } catch (error) {
       if (error.name === 'AbortError' || options.signal?.aborted) throw error;
-      entries.push({ name: file.name, error: error.message });
+      entries.push({ name: file.name, error: error.message, retryable: error.message === 'The file could not be read.' });
     }
     options.onProgress?.(entries.length, items.length);
   }
