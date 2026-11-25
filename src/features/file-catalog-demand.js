@@ -91,7 +91,10 @@ export function demandFilePage(options, pageKey) {
     queueMicrotask(async () => {
       try {
         await queueWorkspaceSync(S.data);
-        await waitForPersonalPreferences();
+        // A new search reads the server's latest page. Only a revision-fenced
+        // request needs the pending preference write to finish before sending it.
+        const latestSearch = options.query && !options.offset;
+        if (!latestSearch) await waitForPersonalPreferences();
         if (ownerScope() !== scope) return;
         if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
         const session = getSessionGeneration();
@@ -99,6 +102,7 @@ export function demandFilePage(options, pageKey) {
           async () => {
             const fence = options.offset ? { revision: S.ui.workspaceRevision } : { snapshot: 'latest' };
             const page = await queryFileCatalog({ ...options, ...fence, boundary });
+            if (latestSearch && page.revision !== S.ui.workspaceRevision) await waitForPersonalPreferences();
             if (session !== getSessionGeneration()) return;
             const ids = [
               ...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)]),
@@ -111,7 +115,8 @@ export function demandFilePage(options, pageKey) {
               options.query &&
               loaded?.scope === scope &&
               loaded.revision === fileRevision() &&
-              S.ui.workspaceRevision === page.revision &&
+              page.revision >= fileRevision() &&
+              page.revision <= S.ui.workspaceRevision &&
               ids.every(id => S.data.files.some(file => file.id === id));
             if (!reuseSearchRows) {
               const base = structuredClone(S.data);
