@@ -1264,9 +1264,9 @@ A.setSearch = el => {
 /* workspace, account, prototype controls */
 
 /* modals */
-A.closeModal = () => closeModal();
+A.closeModal = () => closeModal(true);
 A.closeModalBg = (el, e) => {
-  if (e.target === el) closeModal();
+  if (e.target === el) closeModal(true);
 };
 A.confirmOk = async () => {
   const m = S.ui.modals[S.ui.modals.length - 1];

@@ -103,7 +103,15 @@ export function syncBrowserLocation(options = {}) {
   if (S.ui.restoringFilePath === location.pathname) return;
   const path = appLocationPath(D(), S.ui);
   if (`${location.pathname}${location.search}` === path && !location.hash) return;
-  window.history[options.push ? 'pushState' : 'replaceState']({ smena: true, ...(options.taskFromWork ? { taskFromWork: true } : {}) }, '', path);
+  window.history[options.push ? 'pushState' : 'replaceState'](
+    {
+      smena: true,
+      ...(options.fromFileCatalog || (history.state?.fromFileCatalog && S.ui.modals.at(-1)?.type === 'filePreview') ? { fromFileCatalog: true } : {}),
+      ...(options.taskFromWork ? { taskFromWork: true } : {}),
+    },
+    '',
+    path,
+  );
 }
 
 /* One-shot motion flags: read by templates during the next render, then cleared, so full re-renders never replay them. */

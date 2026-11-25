@@ -166,7 +166,7 @@ document.addEventListener('keydown', e => {
       return;
     }
     if (S.ui.modals.length) {
-      closeModal();
+      closeModal(true);
       return;
     }
     if (S.ui.subOpen) {

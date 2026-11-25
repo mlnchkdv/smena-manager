@@ -1,6 +1,6 @@
 import { $$ } from '../core/utils.js';
 import { S } from '../core/store.js';
-import { focusKey, render } from '../shell/render.js';
+import { focusKey, render, syncBrowserLocation } from '../shell/render.js';
 export { TEMPLATES, SHORTCUTS } from './modal-data.js';
 export const fileModalRenderers = {};
 export const workspaceModalRenderers = {};
@@ -8,6 +8,7 @@ export function openModal(m) {
   S.ui.modalOpeners = S.ui.modalOpeners || [];
   S.ui.modalOpeners[S.ui.modals.length] = S.ui.popOpener && S.ui.pop ? S.ui.popOpener : focusKey(document.activeElement);
   S.ui.modals.push(m);
+  if (m.type === 'filePreview' && m.previewContext?.pageKey) syncBrowserLocation({ push: true, fromFileCatalog: true });
   S.ui.pop = null;
   render();
   setTimeout(() => {
@@ -30,7 +31,11 @@ export function openModal(m) {
     (af || last?.querySelector('input,textarea,button'))?.focus();
   }, 30);
 }
-export function closeModal() {
+export function closeModal(returnToCatalog = false) {
+  if (returnToCatalog === true && S.ui.modals.at(-1)?.type === 'filePreview' && history.state?.fromFileCatalog) {
+    history.back();
+    return;
+  }
   if (S.ui.modals.at(-1)?.beforeClose?.() === false) return;
   // A nested preflight review must settle while its parent import owns the lock.
   // The parent remains protected from dismissal until the operation completes.

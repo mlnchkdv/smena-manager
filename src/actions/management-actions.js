@@ -854,8 +854,8 @@ handlers.A.stepFilePreview = el => {
   const id = context.ids[context.ids.indexOf(m.file.id) + Number(el.dataset.direction)];
   const file = D().files.find(f => f.id === id);
   if (!file || !entityAllowed(D(), `file:${id}`, graphOptions(), true)) return;
-  closeModal();
-  openModal({ type: 'filePreview', file, tid: file.task, previewContext: context });
+  S.ui.modals[S.ui.modals.length - 1] = { type: 'filePreview', file, tid: file.task, previewContext: context };
+  render();
 };
 handlers.A.chooseStoredFiles = async el => {
   const input = document.getElementById(el.dataset.picker);
