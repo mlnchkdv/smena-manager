@@ -21,7 +21,7 @@ export function openModal(m) {
     const active = document.activeElement;
     if (last.contains(active) && active.matches('input,textarea,select,[contenteditable],.select-btn,[role="combobox"]')) return;
     if (document.querySelector('.select-menu')?.contains(active)) return;
-    if (m.type === 'knowledgeMove' && matchMedia('(max-width:640px)').matches) {
+    if (last.classList.contains('html-reader') || (m.type === 'knowledgeMove' && matchMedia('(max-width:640px)').matches)) {
       const heading = last?.querySelector('h2');
       heading?.setAttribute('tabindex', '-1');
       heading?.focus({ preventScroll: true });

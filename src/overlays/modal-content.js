@@ -357,7 +357,7 @@ export function filePreviewModal(m, H) {
     const action = m.interactiveHtml ? (isRussian() ? 'Выключить скрипты' : 'Disable scripts') : isRussian() ? 'Включить скрипты' : 'Enable scripts';
     const hint = isRussian() ? 'Включайте скрипты только для файлов из доверенного источника.' : 'Enable scripts only for files from a trusted source.';
     return `<header class="html-reader-bar">
-      <h2 id="mt-filePreview" title="${esc(f.name)}" translate="no">${esc(f.name)}</h2>
+      <h2 id="mt-filePreview" tabindex="-1" title="${esc(f.name)}" translate="no">${esc(f.name)}</h2>
       ${navigation}
       <button type="button" id="html-reader-mode" class="btn btn-secondary html-reader-mode" data-a="toggleHtmlInteraction" data-id="${esc(f.id)}" title="${hint}" translate="no">${ic(m.interactiveHtml ? 'shield-check' : 'code', 15)}${action}</button>
       <details class="ui-menu html-reader-menu" ${disclosureAttributes('html-reader:' + m.previewInstance)}><summary class="ibtn" aria-label="More actions" title="${tr('More actions')}">${ic('ellipsis', 18)}</summary><div>
@@ -365,7 +365,7 @@ export function filePreviewModal(m, H) {
       ${f.storageName ? `<button class="btn btn-ghost" data-a="downloadStoredFile" data-id="${esc(f.id)}">${ic('download', 15)}Download</button>` : ''}
       ${fileActions}${related}</div></details>
       <button class="ibtn html-reader-close" data-a="closeModal" aria-label="Close" title="${tr('Close')}">${ic('x', 18)}</button>
-    </header><iframe class="document-preview-frame" data-html-preview-frame="${esc(m.previewInstance)}-${m.interactiveHtml ? 'interactive' : 'safe'}" title="${esc(f.name)}" src="${esc(preview.url + '&reader=1' + (m.interactiveHtml ? '&mode=interactive' : ''))}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>`;
+    </header><span id="html-reader-keys" class="sr" translate="no">${isRussian() ? 'В документе Escape переводит фокус на кнопку закрытия.' : 'Inside the document, Escape focuses the close button.'}</span><iframe aria-describedby="html-reader-keys" class="document-preview-frame" data-html-preview-frame="${esc(m.previewInstance)}-${m.interactiveHtml ? 'interactive' : 'safe'}" title="${esc(f.name)}" src="${esc(preview.url + '&reader=1' + (m.interactiveHtml ? '&mode=interactive' : ''))}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>`;
   }
   const content = ['video', 'audio'].includes(preview.kind)
     ? `<${preview.kind} controls playsinline preload="metadata" data-file-player="${esc(f.id)}" data-file-preview-key="${esc(m.previewInstance)}" ${m.initialTime != null ? `data-media-start="${m.initialTime}"` : ''} src="${esc(preview.url)}" aria-label="${esc(f.name)}" class="file-preview-player"></${preview.kind}>${m.initialTime != null ? `<p class="hint" data-media-start-status role="status">${isRussian() ? 'Начальная позиция' : 'Start position'}: ${m.initialTime} ${isRussian() ? 'с. Если она выходит за длительность, откроется конец файла.' : 's. Positions beyond the duration open near the end.'}</p>` : ''}<p class="hint" data-media-fallback hidden>${isRussian() ? 'Браузер не может воспроизвести этот формат. Скачайте файл.' : 'This browser cannot play this format. Download the file.'}</p>`

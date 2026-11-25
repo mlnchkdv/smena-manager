@@ -29,5 +29,10 @@ export function installHtmlReaderPosition() {
     const heading = headings[section];
     scrollTo({ top: heading ? scrollY + heading.getBoundingClientRect().top + offset : y, behavior: 'instant' });
   });
+  addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
+      parent.postMessage({ type: 'smena:reader-exit-focus' }, '*');
+    }
+  });
   parent.postMessage({ type: 'smena:reader-ready' }, '*');
 }
