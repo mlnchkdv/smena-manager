@@ -188,6 +188,7 @@ export function pageFiles(projectId = null) {
   const readOnly = !uploadProject;
   const filtered = Boolean(query || typeFilter !== 'all' || projectFilter !== 'all');
   const searched = Boolean(query || typeFilter !== 'all');
+  const emptySearch = searched && !remote?.loading && window.total === 0;
   const maxSize = fsize(S.ui.filePolicy?.maxFileSizeBytes || 4 * 1024 * 1024);
   const exportPanel = fileExportsPanel();
   const activeExports =
@@ -272,7 +273,7 @@ export function pageFiles(projectId = null) {
         ? ''
         : `<label class="dropzone workspace-files-dropzone" data-dropzone="${uploadProject}" data-folder="${currentFolder?.id || ''}">${ic('upload-cloud', 18)}<span>Drop files here or <span class="link">browse</span> — up to ${maxSize} each</span><input type="file" multiple hidden data-in="uploadFiles" data-project="${uploadProject}" data-folder="${currentFolder?.id || ''}"></label>`
     }
-    ${fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error, !S.ui.fileSelecting && window.items.length > 0)}
+    ${emptySearch ? '' : fileFolderBrowser(projects, projectFilter, currentFolder, files.length > 0, index, !!(remote?.countsLoading || remote?.loading) && !remote.error, !S.ui.fileSelecting && window.items.length > 0)}
     ${remote?.countsError ? `<p class="hint" role="alert">${tr('File counts are unavailable.')} <button class="btn btn-ghost btn-sm" data-a="retryFileCatalog">${tr('Try again')}</button></p>` : ''}
     <section class="files-operations" aria-label="File operations">
     ${fileDownloadProgress()}
@@ -301,7 +302,14 @@ export function pageFiles(projectId = null) {
                         ? 'Access to these files is unavailable.'
                         : 'Create a project first',
               searched
-                ? 'Change the search or filters. Other folders or projects may contain files.'
+                ? [
+                    query ? '«' + S.ui.fileQ.trim() + '»' : '',
+                    proj(projectFilter)?.name,
+                    currentFolder?.name,
+                    projectFilter === 'all' ? (isRussian() ? 'Все проекты' : 'All projects') : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
                 : projects.length
                   ? readOnly
                     ? 'Editors can upload the first shared file.'
@@ -318,6 +326,6 @@ export function pageFiles(projectId = null) {
               1,
             )
     }
-    <div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>
+    ${window.total > 0 && !provisional ? `<div class="files-pagination"><label class="files-page-size"><span>Files per page</span><select class="select" id="files-page-size" data-in="filePageSize" aria-label="Files per page">${[25, 50, 100].map(size => `<option value="${size}" ${size === pageSize ? 'selected' : ''}>${size}</option>`).join('')}</select></label>${paginationHtml(window, pageKey)}${window.pages > 1 ? `<label class="files-page-size"><span>Go to page</span><input class="input files-page-input" id="files-page-jump" aria-label="Go to file page" type="number" min="1" max="${window.pages}" value="${window.page + 1}" data-key-enter="filePageJump" data-key="${esc(pageKey)}"></label>` : ''}</div>` : ''}
   </div>`;
 }
