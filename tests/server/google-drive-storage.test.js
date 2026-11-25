@@ -640,43 +640,44 @@ test('Google Drive backups stay in the dedicated folder and can be restored', as
   assert.equal(deletedRequest.fileId, 'backup-1');
 });
 
-test('repeated workspace root reads revalidate Drive metadata and only reuse matching verified bytes', async () => {
-  const provider = new GoogleDriveStorageProvider();
-  provider.databaseFileId = 'root';
-  let text = '{"revision":1}',
-    etag = 'v1',
-    unavailable = false,
-    validations = 0,
-    downloads = 0;
-  provider.versionClient = {
-    files: {
-      get: async () => {
-        validations++;
-        if (unavailable) throw new Error('unavailable');
-        return { data: { etag, md5Checksum: createHash('md5').update(text).digest('hex') } };
+for (const field of ['databaseFileId', 'authSessionsFileId'])
+  test(`Drive revalidates ${field} before reusing identical bytes`, async () => {
+    const provider = new GoogleDriveStorageProvider();
+    provider[field] = 'root';
+    let text = '{"revision":1}',
+      etag = 'v1',
+      unavailable = false,
+      validations = 0,
+      downloads = 0;
+    provider.versionClient = {
+      files: {
+        get: async () => {
+          validations++;
+          if (unavailable) throw new Error('unavailable');
+          return { data: { etag, md5Checksum: createHash('md5').update(text).digest('hex') } };
+        },
       },
-    },
-  };
-  provider.client = {
-    files: {
-      get: async () => {
-        downloads++;
-        return { data: text };
+    };
+    provider.client = {
+      files: {
+        get: async () => {
+          downloads++;
+          return { data: text };
+        },
       },
-    },
-  };
-  for (let i = 0; i < 2; i++) assert.equal((await provider.readVersionedJson('root')).data, text);
-  assert.equal(validations, 2);
-  assert.equal(downloads, 1);
-  text = '{"revision":2}';
-  assert.equal((await provider.readVersionedJson('root')).data, text);
-  etag = 'v2';
-  assert.equal((await provider.readVersionedJson('root')).headers.etag, etag);
-  await provider.readVersionedJson('other');
-  assert.equal(downloads, 4);
-  unavailable = true;
-  await assert.rejects(provider.readVersionedJson('root'), /unavailable/);
-});
+    };
+    for (let i = 0; i < 2; i++) assert.equal((await provider.readVersionedJson('root')).data, text);
+    assert.equal(validations, 2);
+    assert.equal(downloads, 1);
+    text = '{"revision":2}';
+    assert.equal((await provider.readVersionedJson('root')).data, text);
+    etag = 'v2';
+    assert.equal((await provider.readVersionedJson('root')).headers.etag, etag);
+    await provider.readVersionedJson('other');
+    assert.equal(downloads, 4);
+    unavailable = true;
+    await assert.rejects(provider.readVersionedJson('root'), /unavailable/);
+  });
 
 test('catalog authorization and query share one fresh root per request and storage provider', async () => {
   let reads = 0;

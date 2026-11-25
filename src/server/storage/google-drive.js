@@ -189,14 +189,15 @@ export class GoogleDriveStorageProvider {
       if (!etag || !metadata.data.md5Checksum)
         throw Object.assign(new Error('Storage version is missing. Reload before saving.'), { statusCode: 503, code: 'STORAGE_VERSION_MISSING' });
       const checksum = metadata.data.md5Checksum;
-      const cached = this.validatedRoot;
-      if (fileId === this.databaseFileId && cached?.fileId === fileId && cached.etag === etag && cached.checksum === checksum)
-        return { data: cached.text, headers: { etag } };
+      // Session authorization always reads the live validator too. Only the
+      // second download of identical registry bytes can be skipped.
+      const cacheSlot = fileId === this.databaseFileId ? 'validatedRoot' : fileId === this.authSessionsFileId ? 'validatedSessions' : null;
+      const cached = cacheSlot && this[cacheSlot];
+      if (cached?.fileId === fileId && cached.etag === etag && cached.checksum === checksum) return { data: cached.text, headers: { etag } };
 
       const media = await this.client.files.get({ fileId, alt: 'media', supportsAllDrives: true }, { responseType: 'text' });
       if (typeof media.data === 'string' && createHash('md5').update(media.data).digest('hex') === checksum) {
-        if (fileId === this.databaseFileId)
-          this.validatedRoot = Buffer.byteLength(media.data) <= 4 * 1024 * 1024 ? { fileId, etag, checksum, text: media.data } : null;
+        if (cacheSlot) this[cacheSlot] = Buffer.byteLength(media.data) <= 4 * 1024 * 1024 ? { fileId, etag, checksum, text: media.data } : null;
         return { data: media.data, headers: { etag } };
       }
     }
