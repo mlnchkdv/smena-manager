@@ -1,16 +1,43 @@
 // Serialized into the isolated document. Keep this function self-contained.
 export function installHtmlReaderPosition() {
-  const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6'));
+  const selector = 'h1,h2,h3,h4,h5,h6';
+  let sections;
+  function getSections() {
+    if (sections) return sections;
+    const trail = [];
+    sections = Array.from(document.querySelectorAll(selector), heading => {
+      const level = Number(heading.tagName[1]);
+      trail.length = level - 1;
+      const label = heading.textContent.trim().replace(/\s+/g, ' ').slice(0, 128);
+      const key = heading.id ? '#' + heading.id.slice(0, 160) : JSON.stringify([...trail.map(entry => entry?.label), label]);
+      const entry = { heading, key, label };
+      trail.push(entry);
+      return { heading, path: trail.filter(Boolean).map(entry => entry.key) };
+    });
+    return sections;
+  }
+  new MutationObserver(changes => {
+    if (
+      changes.some(
+        change =>
+          change.target.parentElement?.closest(selector) ||
+          change.target.closest?.(selector) ||
+          [...change.addedNodes, ...change.removedNodes].some(node => node.matches?.(selector) || node.querySelector?.(selector)),
+      )
+    )
+      sections = null;
+  }).observe(document.body, { childList: true, characterData: true, subtree: true });
   let scheduled = false;
   function report() {
     scheduled = false;
+    const headings = getSections();
     let section = -1;
     for (let index = 0; index < headings.length; index++) {
-      if (headings[index].getBoundingClientRect().top > 1) break;
+      if (headings[index].heading.getBoundingClientRect().top > 1) break;
       section = index;
     }
-    const offset = section < 0 ? scrollY : -headings[section].getBoundingClientRect().top;
-    parent.postMessage({ type: 'smena:reader-position', section, offset, y: scrollY }, '*');
+    const offset = section < 0 ? scrollY : -headings[section].heading.getBoundingClientRect().top;
+    parent.postMessage({ type: 'smena:reader-position', path: headings[section]?.path || [], offset, y: scrollY }, '*');
   }
   addEventListener(
     'scroll',
@@ -41,15 +68,25 @@ export function installHtmlReaderPosition() {
   });
   addEventListener('message', event => {
     if (event.source !== parent || event.data?.type !== 'smena:reader-restore') return;
-    const { section, offset, y } = event.data;
-    if (!Number.isInteger(section) || !Number.isFinite(offset) || !Number.isFinite(y)) return;
-    const heading = headings[section];
-    scrollTo({ top: heading ? scrollY + heading.getBoundingClientRect().top + offset : y, behavior: 'instant' });
+    const { path, offset, y } = event.data;
+    if (!Array.isArray(path) || !Number.isFinite(offset) || !Number.isFinite(y)) return;
+    const headings = getSections();
+    for (let index = path.length - 1; index >= 0; index--) {
+      const match = headings.find(entry => entry.path.at(-1) === path[index]);
+      if (match) {
+        const delta = index === path.length - 1 ? offset : 0;
+        scrollTo({ top: scrollY + match.heading.getBoundingClientRect().top + delta, behavior: 'instant' });
+        return;
+      }
+    }
+    scrollTo({ top: y, behavior: 'instant' });
   });
   addEventListener('keydown', event => {
     if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
       parent.postMessage({ type: 'smena:reader-exit-focus' }, '*');
     }
   });
-  parent.postMessage({ type: 'smena:reader-ready' }, '*');
+  const ready = () => requestAnimationFrame(() => parent.postMessage({ type: 'smena:reader-ready' }, '*'));
+  if (document.readyState === 'complete') ready();
+  else addEventListener('load', ready, { once: true });
 }
