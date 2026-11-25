@@ -38,6 +38,14 @@ test('HTML preview requires the current account, project access and bounded stor
     const interactiveUrl = origin + route + '&mode=interactive';
     assert.equal((await call(route + '&mode=interactive')).status, 403);
     const frameHeaders = { 'Sec-Fetch-Dest': 'iframe', 'Sec-Fetch-Site': 'same-origin', Authorization: 'Bearer ' + fixture.sessions[1] };
+    const reader = await fetch(origin + route + '&reader=1', { headers: frameHeaders });
+    const policy = reader.headers.get('content-security-policy');
+    const nonce = /script-src 'nonce-([^']+)'/.exec(policy)?.[1];
+    assert.ok(nonce);
+    assert.doesNotMatch(policy, /allow-same-origin|script-src 'unsafe-inline'/);
+    const document = await reader.text();
+    assert.equal((document.match(/<script\b/g) || []).length, 1);
+    assert.ok(document.includes(`nonce="${nonce}"`));
     const interactive = await fetch(interactiveUrl, { headers: frameHeaders });
     assert.equal(interactive.status, 200);
     assert.equal(interactive.headers.get('content-security-policy'), INTERACTIVE_HTML_PREVIEW_CSP);

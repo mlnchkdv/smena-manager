@@ -1,5 +1,6 @@
 import { htmlPreviewDocument, decodeHtml, HTML_PREVIEW_CSP, INTERACTIVE_HTML_PREVIEW_CSP, HTML_PREVIEW_MAX_BYTES } from './html-preview.js';
 import crypto from 'node:crypto';
+import { installHtmlReaderPosition } from '../shared/html-reader-frame.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -520,7 +521,9 @@ export async function renderHtmlFilePreview(request, response, next) {
   try {
     if (request.query.account !== request.user.id) return response.sendStatus(403);
     const interactive = request.query.mode === 'interactive';
-    if (interactive && (request.get('Sec-Fetch-Dest') !== 'iframe' || request.get('Sec-Fetch-Site') !== 'same-origin')) return response.sendStatus(403);
+    const reader = request.query.reader === '1';
+    if ((interactive || reader) && (request.get('Sec-Fetch-Dest') !== 'iframe' || request.get('Sec-Fetch-Site') !== 'same-origin'))
+      return response.sendStatus(403);
     const data = await getWorkspaceFileSnapshot(request.user, request.params.id);
     const file = data.files?.find(row => row.id === request.params.id && !row.archived);
     const project = data.projects?.find(row => row.id === file?.project);
@@ -540,14 +543,19 @@ export async function renderHtmlFilePreview(request, response, next) {
       chunks.push(chunk);
     }
     const source = decodeHtml(Buffer.concat(chunks), file.mimeType);
+    const nonce = reader ? crypto.randomBytes(18).toString('base64') : '';
+    const script = reader ? `<script nonce="${nonce}">(${installHtmlReaderPosition.toString()})()</script>` : '';
+    const safePolicy = reader
+      ? HTML_PREVIEW_CSP.replace('sandbox;', 'sandbox allow-scripts;').replace("script-src 'none'", `script-src 'nonce-${nonce}'`)
+      : HTML_PREVIEW_CSP;
     response
       .set({
-        'Content-Security-Policy': interactive ? INTERACTIVE_HTML_PREVIEW_CSP : HTML_PREVIEW_CSP,
+        'Content-Security-Policy': interactive ? INTERACTIVE_HTML_PREVIEW_CSP : safePolicy,
         'Referrer-Policy': 'no-referrer',
         'Cache-Control': 'private, no-store',
       })
       .type('html')
-      .send(interactive ? source : htmlPreviewDocument(source));
+      .send((interactive ? source : htmlPreviewDocument(source)) + script);
   } catch (error) {
     next(error);
   }

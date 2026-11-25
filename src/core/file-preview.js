@@ -7,6 +7,20 @@ import { isRussian } from './i18n.js';
 
 const previews = new Map();
 
+window.addEventListener('message', event => {
+  if (event.origin !== 'null' || !event.data?.type?.startsWith?.('smena:reader-')) return;
+  const modal = S.ui.modals.at(-1);
+  if (modal?.preview?.kind !== 'html') return;
+  const frame = document.querySelector('.html-reader iframe');
+  if (!frame || frame.contentWindow !== event.source) return;
+  const { type, section, offset, y } = event.data;
+  if (type === 'smena:reader-ready' && modal.readingPosition) {
+    event.source.postMessage({ type: 'smena:reader-restore', ...modal.readingPosition }, '*');
+  } else if (type === 'smena:reader-position' && Number.isSafeInteger(section) && Number.isFinite(offset) && Number.isFinite(y)) {
+    modal.readingPosition = { section, offset, y };
+  }
+});
+
 export async function imagePreviewSize(url) {
   const image = new Image();
   image.src = url;
