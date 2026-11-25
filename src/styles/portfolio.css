@@ -422,4 +422,34 @@
   .portfolio-mobile-card .portfolio-owner {
     flex-wrap: wrap;
   }
+  .portfolio-cards .portfolio-mobile-card {
+    gap: 2px;
+    padding: 4px 12px;
+  }
+  .portfolio-mobile-card details summary {
+    min-height: 44px;
+  }
+  .overview-page .portfolio-heading {
+    gap: 4px;
+    padding-block: 4px;
+  }
+  .overview-page .work-risk-strip {
+    margin-bottom: 4px;
+  }
+}
+.portfolio-card-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: var(--fs-sm);
+}
+@media (max-width: 400px) {
+  .portfolio-controls [data-a='portfolioAttention'] > span {
+    display: none;
+  }
+  .portfolio-controls [data-a='portfolioAttention'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
