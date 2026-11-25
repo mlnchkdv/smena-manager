@@ -15,6 +15,13 @@ test('HTML exports preserve formatting inside a scriptless network-isolated docu
   assert.match(HTML_PREVIEW_CSP, /sandbox; default-src 'none'; script-src 'none'/);
 });
 
+test('safe preview keeps local section links and presents unavailable destinations as text', () => {
+  const html = htmlPreviewDocument(
+    '<a href="#part">Contents</a><a href="#missing">Missing</a><a href="https://example.org">Outside</a><h2 id="part">Part</h2>',
+  );
+  assert.match(html, /<a href="#part">Contents<\/a>/);
+  assert.match(html, /<span>Missing<\/span><span>Outside<\/span>/);
+});
 test('HTML decoding respects exported Cyrillic encodings and UTF-16 BOM', () => {
   const bytes = Buffer.concat([Buffer.from('<meta charset="windows-1251"><p>'), Buffer.from([0xcf, 0xf0, 0xe8, 0xe2, 0xe5, 0xf2]), Buffer.from('</p>')]);
   assert.match(decodeHtml(bytes), /Привет/);

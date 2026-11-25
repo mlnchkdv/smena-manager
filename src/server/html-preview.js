@@ -1,3 +1,5 @@
+import { parseDocument } from 'htmlparser2';
+import { findAll } from 'domutils';
 import sanitizeHtml from '../../.generated/sanitizer.mjs';
 
 export const HTML_PREVIEW_MAX_BYTES = 5 * 1024 * 1024;
@@ -22,13 +24,28 @@ export function decodeHtml(buffer, mimeType = '') {
 // Original CSS is useful for exported reports; external resources, forms,
 // frames, links and active markup cannot reach the network or the parent app.
 export function htmlPreviewDocument(source) {
+  const ids = new Set(findAll(node => !!node.attribs.id, parseDocument(String(source)).children).map(node => node.attribs.id));
   const content = sanitizeHtml(String(source), {
     allowedTags: [...sanitizeHtml.defaults.allowedTags, 'style', 'img', 'hr', 'section', 'article', 'header', 'footer', 'main', 'figure', 'figcaption'],
     allowedAttributes: {
       '*': ['style', 'class', 'id', 'lang', 'dir'],
+      a: ['href'],
       img: ['src', 'alt', 'width', 'height'],
       td: ['colspan', 'rowspan'],
       th: ['colspan', 'rowspan'],
+    },
+    transformTags: {
+      a(tagName, attrs) {
+        const href = attrs.href || '';
+        if (href.startsWith('#') && href.length > 1) {
+          try {
+            if (ids.has(decodeURIComponent(href.slice(1)))) return { tagName, attribs: attrs };
+          } catch {
+            /* Invalid fragment encoding. */
+          }
+        }
+        return { tagName: 'span', attribs: attrs.id ? { id: attrs.id } : {} };
+      },
     },
     allowedSchemes: ['data'],
     allowedSchemesByTag: { img: ['data'] },
