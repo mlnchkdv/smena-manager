@@ -625,10 +625,11 @@ function reviewKnowledgeDrop(files, folder) {
       H(dropText('HTML files', 'HTML-файлы')) +
       `<div class="modal-b" translate="no"><p>${dropText('Upload HTML to Files to keep the original page.', 'Загрузите HTML в раздел «Файлы», чтобы сохранить страницу в исходном виде.')}</p><ul class="upload-review-list">${m.html.map(file => '<li><strong>' + esc(file.name) + '</strong></li>').join('')}</ul>
       ${m.other.length ? '<p>' + dropText('Other files for note import', 'Другие файлы для импорта заметок') + ': ' + m.other.length + '</p>' : ''}
-      ${writableDropProjects().length ? '' : '<p role="status">' + dropText('A writable project is required.', 'Нужен проект с правом загрузки файлов.') + '</p>'}</div>
-      <div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${dropText('Cancel', 'Отмена')}</button>
-      ${m.other.length ? '<button class="btn btn-secondary" data-a="reviewDroppedNotes">' + dropText('Review other files as notes', 'Проверить остальные как заметки') + '</button>' : ''}
-      <button class="btn btn-primary" data-a="uploadDroppedHtml" ${m.pending || !writableDropProjects().length ? 'disabled' : ''}>${dropText('Upload to Files', 'Загрузить в «Файлы»')}</button></div>`,
+      ${writableDropProjects().length ? '' : '<p role="status">' + dropText('A writable project is required.', 'Нужен проект с правом загрузки файлов.') + '</p>'}
+      ${m.queued ? '<p role="status">' + (m.pending ? dropText('After the HTML upload finishes, review the remaining files as notes.', 'После загрузки HTML откроется проверка остальных файлов для импорта заметок.') : dropText('Check the upload queue, then review the remaining files as notes.', 'Проверьте очередь загрузки, затем перейдите к остальным файлам.')) + '</p>' : ''}</div>
+      <div class="modal-f" translate="no"><button class="btn btn-secondary" data-a="closeModal">${m.queued ? dropText('Close', 'Закрыть') : dropText('Cancel', 'Отмена')}</button>
+      ${m.other.length && !m.pending ? '<button class="btn btn-secondary" data-a="reviewDroppedNotes">' + dropText('Review other files as notes', 'Проверить остальные как заметки') + '</button>' : ''}
+      ${m.queued ? '<button class="btn btn-secondary" data-a="openUploadQueue">' + dropText('Upload queue', 'Очередь загрузки') + '</button>' : `<button class="btn btn-primary" data-a="uploadDroppedHtml" ${m.pending || !writableDropProjects().length ? 'disabled' : ''}>${dropText('Upload to Files', 'Загрузить в «Файлы»')}</button>`}</div>`,
   });
 }
 function currentDrop() {
@@ -650,17 +651,22 @@ A.uploadDroppedHtml = async () => {
   m.pending = true;
   render();
   try {
-    await handleFiles(m.html, {
+    const uploaded = await handleFiles(m.html, {
       project: project.id,
       onReviewAccepted: () => {
         if (currentDrop() !== m) return;
-        closeModal();
-        if (m.other.length) void importKnowledgeFiles(m.other, m.folder);
+        m.queued = true;
+        if (!m.other.length) closeModal();
+        else render();
       },
     });
+    if (m.queued && currentDrop() === m && uploaded.length === m.html.length && m.other.length) {
+      closeModal();
+      await importKnowledgeFiles(m.other, m.folder);
+    }
   } finally {
     m.pending = false;
-    if (currentDrop() === m) render();
+    if (S.ui.modals.includes(m)) render();
   }
 };
 // Capture external files before the generic task-attachment handlers.
