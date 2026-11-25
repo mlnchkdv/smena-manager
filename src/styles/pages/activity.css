@@ -34,6 +34,20 @@
   display: none;
 }
 @media (max-width: 640px) {
+  .activity-page > .ph {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+  }
+  .activity-page > .ph > .ui-menu {
+    width: auto;
+    justify-self: end;
+  }
+  .activity-page > .ph > .ui-menu > summary {
+    width: 44px;
+    height: 44px;
+  }
   .activity-page .activity-controls-toggle {
     display: inline-flex;
     grid-column: 2;
