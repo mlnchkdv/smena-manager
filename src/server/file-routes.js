@@ -337,22 +337,7 @@ fileRouter.post('/upload', requireRole('admin', 'editor'), receiveSingleFile, as
     const filename = storageFilename(metadata.name);
     assertFileTarget(await getWorkspaceDatabase({ fields: ['projects', 'tasks', 'members'] }), request.user, projectId, taskId, folderId);
     stored = await getStorageProvider().uploadFile(filename, { path: request.file.path, size: metadata.size }, metadata.mimeType);
-    let fileRecord;
-    const data = await mutateWorkspaceCatalogCommand(
-      (database, actor = request.user) => {
-        fileRecord = appendFileRecord(database, actor, metadata, stored, projectId, taskId, folderId);
-        return database;
-      },
-      revision,
-      {
-        role: request.user.role,
-        user: request.user,
-        demand: request.get('x-smena-file-catalog') === 'demand',
-        project: projectId,
-        physicalKey: `id:${stored.fileId}`,
-      },
-    );
-    response.status(201).json({ file: fileRecord, data });
+    response.status(201).json(await registerStoredUpload(request, metadata, stored, { projectId, taskId, folderId }, revision));
   } catch (error) {
     // A timed-out conditional write may already have published the reference.
     // Never destroy uploaded content based solely on an unconfirmed response.
@@ -485,30 +470,34 @@ export async function completeResumableFileUpload(request) {
   if (request.expectedSha256 && stored.sha256 !== request.expectedSha256)
     throw Object.assign(new Error('Upload checksum mismatch.'), { statusCode: 409, code: 'UPLOAD_CHECKSUM_MISMATCH' });
   const metadata = { name: ticket.name, size: ticket.size, mimeType: ticket.mimeType };
+  return registerStoredUpload(request, metadata, stored, ticket);
+}
+
+async function registerStoredUpload(request, metadata, stored, target, initialRevision) {
   let fileRecord;
   let data;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const current = await getWorkspaceUploadSnapshot(`id:${stored.fileId}`);
-    assertFileTarget(current, request.user, ticket.projectId, ticket.taskId, ticket.folderId);
-    const existing = current.files?.find(item => item.storageFileId === stored.fileId);
-    if (existing) {
-      fileRecord = existing;
-      data = current;
-      break;
+    let revision = initialRevision;
+    if (attempt || revision === undefined) {
+      const current = await getWorkspaceUploadSnapshot(`id:${stored.fileId}`);
+      assertFileTarget(current, request.user, target.projectId, target.taskId, target.folderId);
+      const existing = current.files?.find(item => item.storageFileId === stored.fileId);
+      if (existing) return { file: existing, data: current };
+      revision = current.revision;
     }
     try {
       data = await mutateWorkspaceCatalogCommand(
         async (database, actor = request.user) => {
           if (request.authorizeCatalogWrite) await request.authorizeCatalogWrite(database);
-          fileRecord = appendFileRecord(database, actor, metadata, stored, ticket.projectId, ticket.taskId, ticket.folderId);
+          fileRecord = appendFileRecord(database, actor, metadata, stored, target.projectId, target.taskId, target.folderId);
           return database;
         },
-        current.revision,
+        revision,
         {
           role: request.user.role,
           user: request.user,
           demand: request.get('x-smena-file-catalog') === 'demand',
-          project: ticket.projectId,
+          project: target.projectId,
           physicalKey: `id:${stored.fileId}`,
         },
       );

@@ -66,7 +66,8 @@ test('authenticated editors can upload and range-download a workspace file', asy
 
   const form = new FormData();
   form.append('file', new Blob(['0123456789'], { type: 'text/plain' }), 'notes.txt');
-  form.append('revision', String(prepared.revision));
+  // A concurrent workspace write after the picker opened must not require sending the bytes again.
+  form.append('revision', String(prepared.revision - 1));
   form.append('project', 'p1');
   form.append('folderId', 'folder-a');
   const uploadedResponse = await fetch(`${origin}/api/files/upload`, {
