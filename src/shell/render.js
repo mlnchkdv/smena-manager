@@ -300,12 +300,13 @@ export function render() {
     }
   });
   const board = document.querySelector('.board[data-initial-column]');
-  if (board && matchMedia('(max-width: 640px)').matches && !keep.some(([key]) => key === board.dataset.keep)) {
+  const compactBoard = board && matchMedia('(max-width: 1024px)').matches;
+  if (compactBoard && !keep.some(([key]) => key === board.dataset.keep)) {
     const column = board.querySelector('[data-drop-col="' + CSS.escape(board.dataset.initialColumn) + '"]');
     if (column)
       board.scrollLeft = column.getBoundingClientRect().left - board.getBoundingClientRect().left - parseFloat(getComputedStyle(board).paddingLeft || 0);
   }
-  if (board && matchMedia('(max-width: 640px)').matches) {
+  if (compactBoard) {
     let touched = false;
     board.addEventListener(
       'pointerdown',
