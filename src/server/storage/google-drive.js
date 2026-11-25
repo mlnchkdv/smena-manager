@@ -471,11 +471,12 @@ export class GoogleDriveStorageProvider {
     const options = conditionalWriteOptions({ expectedEtag: snapshot.version });
     const logical = patchCatalogMetadata(snapshot.root, baseline, next, scope, memberId);
     const stored = await stageKnowledgeMetadata(logical, this, snapshot.root, { unchangedKnowledge: !scope.startsWith('knowledge') });
+    const text = JSON.stringify(stored, null, 2);
     const updated = await this.updateVersionedJson(
       {
         fileId: snapshot.fileId,
         requestBody: { appProperties: { smenaRevision: String(next.revision) } },
-        media: { mimeType: 'application/json', body: Readable.from([JSON.stringify(stored, null, 2)]) },
+        media: { mimeType: 'application/json', body: Readable.from([text]) },
         supportsAllDrives: true,
       },
       options,
@@ -483,6 +484,11 @@ export class GoogleDriveStorageProvider {
     this.databaseEtag = responseHeader(updated, 'etag');
     this.catalogRoot = stored;
     this.lastSyncAt = new Date().toISOString();
+    // The next read still checks the live ETag and checksum, including changes from other writers.
+    this.validatedRoot =
+      this.databaseEtag && Buffer.byteLength(text) <= 4 * 1024 * 1024
+        ? { fileId: snapshot.fileId, etag: this.databaseEtag, checksum: createHash('md5').update(text).digest('hex'), text }
+        : null;
     rememberStorageVersion(next, this.databaseEtag);
     this.metadataRoots.delete(baseline);
     // Preference responses pass through project ACL projection and demand

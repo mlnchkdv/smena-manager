@@ -171,6 +171,8 @@ test('Drive metadata publication reads only the root, uses its bound ETag and ca
   assert.deepEqual(published._fileCatalog.shards, f.root._fileCatalog.shards);
   assert.equal(Object.hasOwn(published, 'files'), false);
   assert.equal(storageVersion(next), '"root-10"');
+  assert.equal(provider.validatedRoot.etag, storageVersion(next));
+  assert.deepEqual(JSON.parse(provider.validatedRoot.text), published);
   await assert.rejects(provider.saveDatabaseMetadata(next, baseline, { scope: 'preferences', memberId: 'me' }), { code: 'STORAGE_VERSION_MISSING' });
 });
 
