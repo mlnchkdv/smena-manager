@@ -56,27 +56,28 @@ export function timelineHtml(ts, key, p) {
     const anchor = S.ui.tlAnchor || iso(TODAY);
     const anchorKey = timelineContextKey(key, anchor, items);
     const anchored = timelineAnchorPage(items, anchor);
+    if (anchored.afterLast) items.sort((a, b) => b.date.localeCompare(a.date));
     S.ui.listPages ||= {};
     if (S.ui.tlAnchorKey !== anchorKey) {
       S.ui.tlAnchorKey = anchorKey;
-      S.ui.listPages.timeline = anchored.page;
+      S.ui.listPages.timeline = anchored.afterLast ? 0 : anchored.page;
     }
     const page = listWindow(items, S.ui.listPages.timeline, 60);
     const nextIndex = page.items.findIndex(item => item.date >= anchor);
-    const focusIndex = nextIndex < 0 ? Math.max(0, page.items.length - 1) : nextIndex;
+    const focusIndex = anchored.afterLast ? 0 : nextIndex < 0 ? Math.max(0, page.items.length - 1) : nextIndex;
     const nearest = page.items[focusIndex]?.date;
     const anchorHint =
       nearest && nearest !== anchor && !anchored.afterLast
         ? `<p class="hint" role="status" translate="no">${isRussian() ? 'Ближайшие события к дате' : 'Nearest events to'} ${fmtDate(anchor, true)}</p>`
         : '';
-    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}"><p class="hint">Chronological order</p>${anchorHint}${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
+    return `<div class="tl-agenda" data-keep="timeline-agenda:${key}">${anchored.afterLast ? '' : '<p class="hint">Chronological order</p>'}${anchorHint}${anchored.afterLast ? '<p class="hint" role="status">No later items. Showing the nearest earlier items.</p>' : ''}${
       page.items
         .map((item, i) => {
           const m = item.milestone;
           const project = m?.p || proj(item.task?.project);
           const focused = i === focusIndex ? ' data-tl-focus tabindex="-1"' : '';
           const groupStart = i === 0 || page.items[i - 1].date !== item.date;
-          return `${groupStart ? `<h3 class="hint"${focused}>${fmtDate(item.date, true)}</h3>` : ''}<button class="tl-agenda-item"${groupStart ? '' : focused} ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span><span class="num">${fmtDate(item.date)}</span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
+          return `${groupStart ? `<h3 class="hint"${focused}>${fmtDate(item.date, true)}</h3>` : ''}<button class="tl-agenda-item"${groupStart ? '' : focused} ${m ? `data-a="go" data-r="project" data-id="${project?.id || ''}" data-tab="overview"` : `data-a="openTask" data-id="${item.task.id}"`}><span>${m ? ic('diamond', 15) : stIcon(item.task.status, 15)}</span><span class="grow min0"><strong translate="no">${esc(m?.name || item.task.title)}</strong><span class="hint" translate="no">${esc(project?.name || '')}</span></span>${m ? '' : av(item.task.assignee, 'sm', false)}</button>`;
         })
         .join('') || empty('calendar', 'Nothing on the timeline', 'Give tasks a start and due date to see them here.')
     }${paginationHtml(page, 'timeline')}</div>`;
