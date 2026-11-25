@@ -99,13 +99,25 @@ export function demandFilePage(options, pageKey) {
             const ids = [
               ...new Set([...page.files.map(file => file.id), ...(S.ui.fileSelection || []), ...S.ui.modals.filter(m => m.file).map(m => m.file.id)]),
             ];
-            const base = structuredClone(S.data);
-            const snapshot = await loadFileIdentities(ids, true);
-            if (session !== getSessionGeneration()) return;
+            if (ownerScope() !== scope) return;
             if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
-            if (snapshot.revision !== page.revision)
-              throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
-            applyExternalCoreSnapshot(snapshot, base);
+            // The server has already filtered this page for the current account.
+            // A search within its loaded revision needs no second workspace download.
+            const reuseSearchRows =
+              options.query &&
+              loaded?.scope === scope &&
+              loaded.revision === page.revision &&
+              S.ui.workspaceRevision === page.revision &&
+              ids.every(id => S.data.files.some(file => file.id === id));
+            if (!reuseSearchRows) {
+              const base = structuredClone(S.data);
+              const snapshot = await loadFileIdentities(ids, true);
+              if (session !== getSessionGeneration() || ownerScope() !== scope) return;
+              if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
+              if (snapshot.revision !== page.revision)
+                throw Object.assign(new Error('The workspace changed. Retry loading files.'), { code: 'REVISION_CONFLICT' });
+              applyExternalCoreSnapshot(snapshot, base);
+            }
             counts.seed(context(), page.folderCounts);
             let actualOptions = rowOptions;
             if (page.restarted) {
