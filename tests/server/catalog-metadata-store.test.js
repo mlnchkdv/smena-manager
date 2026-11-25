@@ -547,6 +547,18 @@ test('HTTP demand preferences preserve ACL-filtered file totals/relations while 
     assert.equal(body.preferences.lang, lang);
   }
   assert.equal(f.reads.full, 0);
+  const receipt = await fetch(`${origin}/api/preferences`, {
+    method: 'PUT',
+    headers: { ...headers, Prefer: 'return=minimal' },
+    body: JSON.stringify({ preferences: { lang: 'English (US)' } }),
+  });
+  assert.equal(receipt.status, 200);
+  const ack = await receipt.json();
+  assert.equal(ack.revision, ack.previousRevision + 1);
+  assert.equal(ack.member.locale, 'en');
+  assert.equal(ack.preferences.lang, 'English (US)');
+  assert.equal(Object.hasOwn(ack, 'data'), false);
+  assert.equal(Object.hasOwn(ack, 'fileCatalog'), false);
   const forbidden = await fetch(`${origin}/api/preferences`, { method: 'PUT', headers, body: JSON.stringify({ profile: { role: 'Owner' } }) });
   assert.equal(forbidden.status, 400);
   const document = await fetch(`${origin}/api/workspace-documents/knowledge`, {
@@ -555,7 +567,7 @@ test('HTTP demand preferences preserve ACL-filtered file totals/relations while 
     body: JSON.stringify({ data: { knowledgeNotes: [], knowledgeFolders: [] }, revision: 2 }),
   });
   assert.equal(document.status, 403);
-  assert.equal(f.reads.writes, 2);
+  assert.equal(f.reads.writes, 3);
   delete headers['X-Smena-File-Catalog'];
   const legacy = await fetch(`${origin}/api/preferences`, { method: 'PUT', headers, body: JSON.stringify({ preferences: { lang: 'Русский' } }) });
   assert.equal(legacy.status, 200);

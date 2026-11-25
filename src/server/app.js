@@ -305,7 +305,17 @@ app.put('/api/preferences', async (request, response, next) => {
           scope: 'preferences',
           memberId: member.id,
         });
-        return response.json({ data, preferences: data._userPrefs?.[member.id] || {} });
+        const preferences = data._userPrefs?.[member.id] || {};
+        if (request.get('Prefer') === 'return=minimal' && request.body.preferences && Object.keys(request.body).length === 1) {
+          const savedMember = data.members.find(entry => entry.id === member.id);
+          return response.json({
+            preferences,
+            previousRevision: current.revision,
+            revision: data.revision,
+            member: { id: member.id, locale: savedMember.locale, timeZone: savedMember.timeZone },
+          });
+        }
+        return response.json({ data, preferences });
       } catch (error) {
         if (error.code !== 'REVISION_CONFLICT' || attempt === 2) throw error;
       }

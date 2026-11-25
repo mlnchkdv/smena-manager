@@ -1,4 +1,4 @@
-import { getSessionGeneration, savePersonalSettings } from './api.js';
+import { getSessionGeneration, savePersonalPreferences } from './api.js';
 import { createDraftJournal } from './offline-drafts.js';
 import { personalPreferenceData } from '../shared/personal-settings.js';
 
@@ -17,7 +17,7 @@ const publishBrowser = detail => {
 };
 
 export function createPersonalPreferenceSync(options = {}) {
-  const write = options.write || savePersonalSettings;
+  const write = options.write || savePersonalPreferences;
   const createJournal = options.createJournal || createDraftJournal;
   const notify = options.notify || browserNotify;
   const schedule = options.schedule || setTimeout;
@@ -83,7 +83,7 @@ export function createPersonalPreferenceSync(options = {}) {
               preferences: Object.fromEntries(
                 sharedKeys.filter(key => Object.hasOwn(result?.preferences || confirmed, key)).map(key => [key, (result?.preferences || confirmed)[key]]),
               ),
-              revision: result?.data?.revision,
+              revision: result?.revision ?? result?.data?.revision,
               at: Date.now(),
             });
             retryDelay = 1000;

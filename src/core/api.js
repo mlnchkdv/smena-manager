@@ -210,6 +210,8 @@ export const advanceFileExport = id => request(`/api/files/exports/${encodeURICo
 export const cancelFileExport = id => request(`/api/files/exports/${encodeURIComponent(id)}`, { method: 'DELETE' }, true);
 export const prepareFileArchive = (ids, revision, signal) =>
   request('/api/files/archive/preflight', { method: 'POST', body: JSON.stringify({ ids, revision }), signal }, true);
+export const savePersonalPreferences = data =>
+  request('/api/preferences', { method: 'PUT', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(data), catalogHydration: false }, true);
 export const savePersonalSettings = data => request('/api/preferences', { method: 'PUT', body: JSON.stringify(data) }, true);
 export const retryNotificationDelivery = () => request('/api/notifications/retry', { method: 'POST' }, true);
 export const reviewNotificationDelivery = body => request('/api/notifications/review', { method: 'POST', body: JSON.stringify(body) }, true);
