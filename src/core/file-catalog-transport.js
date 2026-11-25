@@ -33,6 +33,19 @@ export function advancePreferenceCatalog(previousRevision, revision, files, sess
   return true;
 }
 
+// Install complete records from the same revision as the writable baseline.
+export function takeFilePageRecords(page, ids, session) {
+  const base = baselines.get(page.revision);
+  if (session !== generation || manifest?.revision !== page.revision || !base?.partial || !Array.isArray(page.records)) return null;
+  const rows = new Map(base.files.map(file => [file.id, file]));
+  for (const file of page.records) rows.set(file.id, file);
+  if (ids.some(id => !rows.has(id))) return null;
+  const files = ids.map(id => rows.get(id));
+  baselines.set(page.revision, { ...base, files: structuredClone(files) });
+  requestFileIdentities(ids, session, true);
+  return structuredClone(files);
+}
+
 export async function hydrateFileCatalog(result, request, session) {
   scope(session);
   if (!result.fileCatalog) return result.data;

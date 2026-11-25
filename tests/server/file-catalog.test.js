@@ -2,7 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileCatalogPage, fileCatalogChanges, applyFileCatalogChanges } from '../../src/shared/file-catalog.js';
 import { projectWorkspace, mergeClientWorkspace } from '../../src/server/workspace-policy.js';
-import { advancePreferenceCatalog, fileCatalogInfo, hydrateFileCatalog, catalogWrite, requestFileIdentities } from '../../src/core/file-catalog-transport.js';
+import {
+  takeFilePageRecords,
+  advancePreferenceCatalog,
+  fileCatalogInfo,
+  hydrateFileCatalog,
+  catalogWrite,
+  requestFileIdentities,
+} from '../../src/core/file-catalog-transport.js';
 
 test('catalog pages are bounded, scoped by project and pinned to one revision', () => {
   const data = { revision: 8, files: Array.from({ length: 321 }, (_, i) => ({ id: `f${i}`, project: i < 220 ? 'a' : 'b' })) };
@@ -140,4 +147,22 @@ test('only consecutive preference saves carry the loaded file baseline within it
   assert.equal(advancePreferenceCatalog(12, 13, files, 77), true);
   assert.equal(fileCatalogInfo().contentRevision, 11);
   assert.deepEqual(catalogWrite({ files }, 13, 77).fileChanges, { upsert: [], remove: [] });
+});
+
+test('turning pages binds complete records to the right session and revision before editing', async () => {
+  const session = 987;
+  const snapshot = { data: { revision: 21 }, fileCatalog: { mode: 'demand', total: 53 } };
+  await hydrateFileCatalog(snapshot, () => assert.fail(), session);
+  const record = { id: 'new', name: 'report', storageName: 'blob', versions: [{ id: 'v1' }] };
+  const page = { records: [record], revision: 21 };
+  assert.equal(takeFilePageRecords(page, ['new'], session + 1), null);
+  assert.equal(takeFilePageRecords({ ...page, revision: 22 }, ['new'], session), null);
+  assert.equal(takeFilePageRecords(page, ['missing'], session), null);
+  const files = takeFilePageRecords(page, ['new'], session);
+  assert.deepEqual(files, [record]);
+  const another = { id: 'next', storageName: 'another' };
+  assert.deepEqual(takeFilePageRecords({ ...page, records: [another] }, ['next', 'new'], session), [another, record]);
+  assert.deepEqual(catalogWrite({ files: [another] }, 21, session).fileChanges, { upsert: [], remove: [] });
+  files[0].name = 'edited';
+  assert.deepEqual(catalogWrite({ files }, 21, session).fileChanges, { upsert: files, remove: [] });
 });

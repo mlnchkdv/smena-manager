@@ -1,7 +1,7 @@
 import { S } from '../core/store.js';
 import { getSessionGeneration, queryFileCatalog, queryFileFolderCounts, loadFileIdentities } from '../core/api.js';
 import { filePageOptions, createFolderCountCache } from '../shared/file-page-cache.js';
-import { fileCatalogInfo } from '../core/file-catalog-transport.js';
+import { fileCatalogInfo, takeFilePageRecords } from '../core/file-catalog-transport.js';
 import { applyExternalCoreSnapshot } from '../core/bootstrap.js';
 import { workspaceSyncIsClean, queueWorkspaceSync } from '../core/workspace-sync.js';
 import { render } from '../shell/render.js';
@@ -101,7 +101,13 @@ export function demandFilePage(options, pageKey) {
         await readCatalogWithRevisionRefresh(
           async () => {
             const fence = options.offset ? { revision: S.ui.workspaceRevision } : { snapshot: 'latest' };
-            const page = await queryFileCatalog({ ...options, ...fence, boundary });
+            const page = await queryFileCatalog({
+              ...options,
+              ...fence,
+              boundary,
+              recordsAtRevision: S.ui.workspaceRevision,
+              knownFileIds: S.data.files.slice(0, 100).map(file => file.id),
+            });
             if (latestSearch && page.revision !== S.ui.workspaceRevision) await waitForPersonalPreferences();
             if (session !== getSessionGeneration()) return;
             const ids = [
@@ -120,7 +126,8 @@ export function demandFilePage(options, pageKey) {
               ids.every(id => S.data.files.some(file => file.id === id));
             if (!reuseSearchRows) {
               const base = structuredClone(S.data);
-              const snapshot = await loadFileIdentities(ids, true);
+              const files = page.revision === S.ui.workspaceRevision ? takeFilePageRecords(page, ids, session) : null;
+              const snapshot = files ? { ...base, revision: page.revision, files } : await loadFileIdentities(ids, true);
               if (session !== getSessionGeneration() || ownerScope() !== scope) return;
               if (!workspaceSyncIsClean(S.data)) throw new Error('Save changes before loading another file page.');
               if (snapshot.revision !== page.revision)
