@@ -113,6 +113,7 @@ export const FT = {
   audio: { c: '#C48A1E', i: 'music', n: 'Audio' },
   sheet: { c: '#3D8E5F', i: 'file-spreadsheet', n: 'Spreadsheet' },
   doc: { c: '#3B82C4', i: 'file-text', n: 'Document' },
+  html: { c: '#C48A1E', i: 'file-code', n: 'HTML' },
   code: { c: '#C48A1E', i: 'file-code', n: 'Code' },
   other: { c: '#6B7280', i: 'file', n: 'File' },
 };

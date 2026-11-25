@@ -1,4 +1,5 @@
 // Build once per render: no persistent cache can outlive a sync or ACL change.
+import { isHtmlFile } from './file-preview-policy.js';
 import { searchTerms } from './search-query.js';
 export const normalizeFileSearch = value =>
   String(value || '')
@@ -88,7 +89,7 @@ export function filterIndexedFiles(index, { project = 'all', folder = null, recu
       file =>
         (project === 'all' || file.project === project) &&
         (!folder || file.folderId === folder || (recursive && index.folderPath(file.project, file.folderId).some(item => item.id === folder))) &&
-        (type === 'all' || file.type === type) &&
+        (type === 'all' || file.type === type || ((type === 'html' || type === 'code') && isHtmlFile(file))) &&
         terms.every(term => index.search.get(file.id).includes(term)),
     )
     .sort((left, right) => {

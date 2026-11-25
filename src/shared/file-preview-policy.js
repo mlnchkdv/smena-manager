@@ -2,13 +2,20 @@ const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp
 const TEXT_TYPES = new Set(['text/plain', 'text/csv', 'text/markdown', 'application/json']);
 
 import { safeMedia } from './media-policy.js';
+export function isHtmlFile(file) {
+  const mime = String(file?.mimeType || '')
+    .toLowerCase()
+    .split(';')[0]
+    .trim();
+  return ['text/html', 'application/xhtml+xml'].includes(mime) || /\.html?$/i.test(file?.name || '');
+}
 export function filePreviewPolicy(file) {
   const media = safeMedia(file);
   if (media && file.storageName && Number.isSafeInteger(file.bytes) && file.bytes > 0) return { kind: media.kind, maxBytes: 20 * 1024 ** 2 };
   const mime = String(file?.mimeType || '')
     .toLowerCase()
     .split(';')[0];
-  const html = ['text/html', 'application/xhtml+xml'].includes(mime) || /\.html?$/i.test(file?.name || '');
+  const html = isHtmlFile(file);
   const kind = html ? 'html' : IMAGE_TYPES.has(mime) ? 'image' : TEXT_TYPES.has(mime) ? 'text' : mime === 'application/pdf' ? 'pdf' : null;
   const maxBytes = kind === 'html' ? 5 * 1024 ** 2 : kind === 'image' || kind === 'pdf' ? 20 * 1024 * 1024 : 1024 * 1024;
   if (!file?.storageName || !kind || !Number.isFinite(file.bytes) || file.bytes < 0 || file.bytes > maxBytes) return { kind: null, maxBytes };

@@ -1,3 +1,4 @@
+import { isHtmlFile } from '../shared/file-preview-policy.js';
 /* ---------------- MODALS ---------------- */
 import { MOD, TODAY, ago, diffD, esc, fmtDate, parse } from '../core/utils.js';
 import { ic } from '../core/icons.js';
@@ -343,7 +344,7 @@ export function filePreviewModal(m, H) {
   const context = m.previewContext,
     at = context?.ids.indexOf(f.id) ?? -1;
   const path = [proj(f.project)?.name, ...fileFolderPath(proj(f.project), f.folderId).map(folder => folder.name)].filter(Boolean).join(' / ');
-  const t = FT[f.type] || FT.other;
+  const t = isHtmlFile(f) ? FT.html : FT[f.type] || FT.other;
   const preview = m.preview;
   const metadata = `<p translate="no">${esc(path)}</p><p>${tr(t.n)} · ${f.size} · ${tr('Uploaded by')} <span translate="no">${esc(mem(f.by)?.name || tr('You'))}</span> ${ago(f.at)}</p>${context ? `<p>${isRussian() ? 'Страница каталога' : 'Catalog page'} ${Number(context.page || 0) + 1} / ${context.pages || 1}</p>${context.page > 0 && at === 0 ? `<button class="btn btn-secondary btn-sm" data-a="continueFilePreviewPage" data-page="${context.page - 1}">${isRussian() ? 'К предыдущей странице результатов' : 'Previous result page'}</button>` : ''}${at === context.ids.length - 1 && context.page + 1 < context.pages ? `<button class="btn btn-secondary btn-sm" data-a="continueFilePreviewPage" data-page="${context.page + 1}">${isRussian() ? 'К следующей странице результатов' : 'Next result page'}</button>` : ''}` : ''}`;
   const navigation =

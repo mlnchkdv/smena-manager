@@ -1,3 +1,4 @@
+import { isHtmlFile } from '../shared/file-preview-policy.js';
 import { materialLocationLabel } from '../shared/material-location-label.js';
 import { fileCollectionPanel } from '../ui/file-collection.js';
 import { materialFavorite } from '../ui/material-favorite.js';
@@ -43,7 +44,7 @@ function formatBytes(value) {
 }
 
 function fileMeta(file) {
-  return FT[file.type] || FT.other;
+  return isHtmlFile(file) ? FT.html : FT[file.type] || FT.other;
 }
 function fileMatchHint(file) {
   const terms = searchTerms(normalizeFileSearch(S.ui.fileQ || ''));
@@ -87,9 +88,9 @@ function fileCard(file) {
     .split('.')
     .pop()
     .toLowerCase();
-  const textual = ['txt', 'md', 'markdown', 'json', 'csv', 'log'].includes(extension);
+  const textual = isHtmlFile(file) || ['txt', 'md', 'markdown', 'json', 'csv', 'log'].includes(extension);
   const preview = textual
-    ? `<span class="workspace-file-text-type" aria-hidden="true">${ic(fileMeta(file).i, 23)}<small translate="no">${esc(extension === 'markdown' ? 'MD' : extension.toUpperCase())}</small></span>`
+    ? `<span class="workspace-file-text-type" aria-hidden="true">${ic(fileMeta(file).i, 23)}<small translate="no">${esc(isHtmlFile(file) ? 'HTML' : extension === 'markdown' ? 'MD' : extension.toUpperCase())}</small></span>`
     : filePrev(file);
   return `<article aria-labelledby="file-card-title-${esc(file.id)}" class="fcard workspace-file-card${textual ? ' textual' : ''}" data-ctx="file" data-id="${file.id}">
     ${fileSelectButton(file)}
