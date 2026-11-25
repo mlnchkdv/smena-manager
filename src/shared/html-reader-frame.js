@@ -28,8 +28,17 @@ export function installHtmlReaderPosition() {
       sections = null;
   }).observe(document.body, { childList: true, characterData: true, subtree: true });
   let scheduled = false;
+  let restoredY = null;
+  function restore(top) {
+    scrollTo({ top, behavior: 'instant' });
+    // At the end of a document the browser can clamp the requested position.
+    // Keep the original reading anchor until the reader actually moves again.
+    restoredY = scrollY;
+  }
   function report() {
     scheduled = false;
+    if (restoredY !== null && Math.abs(scrollY - restoredY) < 1) return;
+    restoredY = null;
     const headings = getSections();
     let section = -1;
     for (let index = 0; index < headings.length; index++) {
@@ -75,11 +84,11 @@ export function installHtmlReaderPosition() {
       const match = headings.find(entry => entry.path.at(-1) === path[index]);
       if (match) {
         const delta = index === path.length - 1 ? offset : 0;
-        scrollTo({ top: scrollY + match.heading.getBoundingClientRect().top + delta, behavior: 'instant' });
+        restore(scrollY + match.heading.getBoundingClientRect().top + delta);
         return;
       }
     }
-    scrollTo({ top: y, behavior: 'instant' });
+    restore(y);
   });
   addEventListener('keydown', event => {
     if (event.key === 'Escape' && !event.defaultPrevented && !event.isComposing) {
