@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fileCatalogPage, fileCatalogChanges, applyFileCatalogChanges } from '../../src/shared/file-catalog.js';
 import { projectWorkspace, mergeClientWorkspace } from '../../src/server/workspace-policy.js';
-import { hydrateFileCatalog, catalogWrite, requestFileIdentities } from '../../src/core/file-catalog-transport.js';
+import { advancePreferenceCatalog, fileCatalogInfo, hydrateFileCatalog, catalogWrite, requestFileIdentities } from '../../src/core/file-catalog-transport.js';
 
 test('catalog pages are bounded, scoped by project and pinned to one revision', () => {
   const data = { revision: 8, files: Array.from({ length: 321 }, (_, i) => ({ id: `f${i}`, project: i < 220 ? 'a' : 'b' })) };
@@ -127,4 +127,17 @@ test('on-demand metadata follows byte-budget continuations and stale page baseli
   requestFileIdentities(['three'], 160, true);
   await hydrateFileCatalog(snapshot, async () => ({ revision: 30, total: 1, files: [{ id: 'three' }], nextOffset: null }), 160);
   assert.deepEqual(catalogWrite(first, 30, 160).fileChanges.remove, [], 'A late snapshot from the previous scope cannot delete the current scope');
+});
+
+test('only consecutive preference saves carry the loaded file baseline within its session', async () => {
+  const files = [{ id: 'a', name: 'Report' }];
+  requestFileIdentities(['a'], 77);
+  await hydrateFileCatalog({ data: { revision: 11 }, fileCatalog: { mode: 'demand', total: 2 } }, async () => ({ revision: 11, files, nextOffset: null }), 77);
+  assert.equal(advancePreferenceCatalog(11, 13, files, 77), false);
+  assert.equal(advancePreferenceCatalog(11, 12, files, 78), false);
+  assert.equal(advancePreferenceCatalog(11, 12, [{ id: 'other' }], 77), false);
+  assert.equal(advancePreferenceCatalog(11, 12, files, 77), true);
+  assert.equal(advancePreferenceCatalog(12, 13, files, 77), true);
+  assert.equal(fileCatalogInfo().contentRevision, 11);
+  assert.deepEqual(catalogWrite({ files }, 13, 77).fileChanges, { upsert: [], remove: [] });
 });

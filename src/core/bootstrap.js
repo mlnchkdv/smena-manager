@@ -20,7 +20,7 @@ import {
 } from './api.js';
 import { DEFAULT_PREFS, S, save, setWorkspaceBaseline } from './store.js';
 import { createDraftJournal, draftContext } from './offline-drafts.js';
-import { configurePersonalPreferences } from './personal-preferences.js';
+import { configurePersonalPreferences, waitForPersonalPreferences } from './personal-preferences.js';
 import { isEmptyWorkspace, workspacePayload } from './workspace-snapshot.js';
 import {
   configureCoreWorkspaceSync,
@@ -54,6 +54,22 @@ export function applyExternalCoreSnapshot(snapshot, base) {
   S.ui.workspaceRevision = Number(snapshot.revision);
   configureCoreWorkspaceSync(snapshot.revision, S.ui.currentUser?.role, canonical, draftContext(S.ui.currentUser, S.data));
   setWorkspaceBaseline({ ...S.data, ...canonical });
+}
+
+async function acceptPreferenceSave(ack) {
+  const session = getSessionGeneration();
+  const { advancePreferenceCatalog } = await import('./file-catalog-transport.js');
+  if (
+    getSessionGeneration() !== session ||
+    !ack?.member ||
+    ack.member.id !== S.data.me ||
+    ack.previousRevision !== S.ui.workspaceRevision ||
+    !workspaceSyncIsClean(S.data)
+  )
+    return;
+  if (!advancePreferenceCatalog(ack.previousRevision, ack.revision, S.data.files, session)) return;
+  const members = S.data.members.map(member => (member.id === ack.member.id ? { ...member, ...ack.member } : member));
+  applyExternalCoreSnapshot({ ...S.data, members, revision: ack.revision }, S.data);
 }
 
 export function applyWorkspaceSnapshot(snapshot, documentSnapshots = {}) {
@@ -119,7 +135,7 @@ async function loadWorkspaceFor(user, phase = () => {}, directory) {
   S.ui.currentUser = user;
   applyWorkspaceSnapshot(snapshot, documentSnapshots);
   Object.assign(S.prefs, DEFAULT_PREFS, personal.preferences);
-  const recoveredPreferences = await configurePersonalPreferences(user.id, S.prefs, draftContext(user, S.data));
+  const recoveredPreferences = await configurePersonalPreferences(user.id, S.prefs, draftContext(user, S.data), acceptPreferenceSave);
   if (!recoveredPreferences || S.ui.currentUser?.id !== user.id || generation !== getSessionGeneration())
     throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { staleSession: true, code: 'SESSION_CHANGED' });
   if (recoveredPreferences) Object.assign(S.prefs, recoveredPreferences);
@@ -233,16 +249,18 @@ export async function refreshWorkspaceFromServer(options = {}) {
   if (!S.ui.currentUser || !getSessionToken()) return { status: 'signed_out' };
   const force = options.force === true;
   const owner = S.ui.currentUser.id;
+  const session = getSessionGeneration();
+  const sessionChanged = () => getSessionGeneration() !== session || S.ui.currentUser?.id !== owner || !getSessionToken();
   if (force) {
     const user = await getCurrentUser();
-    if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
+    if (sessionChanged()) return { status: 'session_changed' };
     if (user.id !== owner) throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { status: 401, code: 'SESSION_ACCOUNT_CHANGED' });
     S.ui.currentUser = user;
   }
   const startingRevision = S.ui.workspaceRevision;
   if (!force) {
     const remote = await getWorkspaceRevision();
-    if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
+    if (sessionChanged()) return { status: 'session_changed' };
     if (remote.user) {
       if (remote.user.id !== owner)
         throw Object.assign(new Error('The signed-in account changed. Sign in again.'), { status: 401, code: 'SESSION_ACCOUNT_CHANGED' });
@@ -250,10 +268,13 @@ export async function refreshWorkspaceFromServer(options = {}) {
     }
     if (!workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
     const documentsCurrent = DOCUMENT_NAMES.every(name => Number(remote.documents?.[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));
-    if (Number(remote.revision) === Number(startingRevision || 0) && documentsCurrent) return { status: 'current' };
+    if (Number(remote.revision) !== Number(S.ui.workspaceRevision)) await waitForPersonalPreferences();
+    if (sessionChanged()) return { status: 'session_changed' };
+    if (Number(remote.revision) === Number(S.ui.workspaceRevision) && documentsCurrent) return { status: 'current' };
+    if (S.ui.workspaceRevision !== startingRevision || !workspaceSyncIsClean(S.data)) return { status: 'local_changes' };
   }
   const [snapshot, ...loadedDocuments] = await Promise.all([getWorkspace(), ...DOCUMENT_NAMES.map(name => getWorkspaceDocument(name))]);
-  if (S.ui.currentUser?.id !== owner || !getSessionToken()) return { status: 'session_changed' };
+  if (sessionChanged()) return { status: 'session_changed' };
   const documentSnapshots = Object.fromEntries(DOCUMENT_NAMES.map((name, index) => [name, loadedDocuments[index]]));
   if (!force && (!workspaceSyncIsClean(S.data) || S.ui.workspaceRevision !== startingRevision)) return { status: 'local_changes' };
   const documentsCurrent = DOCUMENT_NAMES.every(name => Number(documentSnapshots[name]?.revision || 0) === Number(S.ui.documentRevisions?.[name] || 0));

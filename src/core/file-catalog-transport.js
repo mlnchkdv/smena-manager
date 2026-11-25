@@ -20,6 +20,19 @@ export function requestFileIdentities(ids, session, replace = false) {
   if (replace) wanted = new Set();
   for (const id of ids) if (typeof id === 'string' && id) wanted.add(id);
 }
+// A preferences-only transaction cannot change file records, visibility or trash.
+export function advancePreferenceCatalog(previousRevision, revision, files, session) {
+  const base = baselines.get(previousRevision);
+  if (generation !== session || manifest?.revision !== previousRevision || !base?.partial || revision !== previousRevision + 1) return false;
+  const ids = new Set(base.files.map(file => file.id));
+  if (ids.size !== files.length || !files.every(file => ids.has(file.id))) return false;
+  baselines.set(revision, base);
+  while (baselines.size > 2) baselines.delete(baselines.keys().next().value);
+  manifest = { ...manifest, revision, contentRevision: manifest.contentRevision ?? previousRevision };
+  setFileCatalogInfo(manifest);
+  return true;
+}
+
 export async function hydrateFileCatalog(result, request, session) {
   scope(session);
   if (!result.fileCatalog) return result.data;

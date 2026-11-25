@@ -28,6 +28,7 @@ export function createPersonalPreferenceSync(options = {}) {
   let workspace;
   let generation = 0;
   let sessionAtConfigure;
+  let acceptSave;
   let confirmed = {};
   let desired = {};
   let lastInput = {};
@@ -76,6 +77,8 @@ export function createPersonalPreferenceSync(options = {}) {
           try {
             const result = await write({ preferences: patch });
             if (!current(run)) return;
+            await acceptSave?.(result);
+            if (!current(run)) return;
             confirmed = { ...confirmed, ...patch };
             publish({
               owner,
@@ -114,7 +117,7 @@ export function createPersonalPreferenceSync(options = {}) {
   }
 
   return {
-    async configure(id, preferences, context = {}) {
+    async configure(id, preferences, context = {}, onSaved) {
       generation += 1;
       const run = generation;
       if (retryTimer) cancel(retryTimer);
@@ -124,6 +127,7 @@ export function createPersonalPreferenceSync(options = {}) {
       owner = id;
       workspace = context.workspace;
       sessionAtConfigure = session();
+      acceptSave = onSaved;
       confirmed = personalPreferenceData(preferences);
       desired = { ...confirmed };
       lastInput = { ...confirmed };

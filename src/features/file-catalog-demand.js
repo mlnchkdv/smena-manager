@@ -17,7 +17,11 @@ let loaded,
   error = '',
   failed = '';
 const ownerScope = () => JSON.stringify([getSessionGeneration(), S.ui.currentUser?.id, S.ui.currentUser?.role, S.data.me, S.data.ws?.id || S.data.ws?.url]);
-const context = () => JSON.stringify([ownerScope(), S.ui.workspaceRevision]);
+const fileRevision = () => {
+  const catalog = fileCatalogInfo();
+  return catalog && catalog.revision === S.ui.workspaceRevision ? (catalog.contentRevision ?? catalog.revision) : S.ui.workspaceRevision;
+};
+const context = () => JSON.stringify([ownerScope(), fileRevision()]);
 const counts = createFolderCountCache();
 let countsPending = '',
   countsFailure = '';
@@ -106,7 +110,7 @@ export function demandFilePage(options, pageKey) {
             const reuseSearchRows =
               options.query &&
               loaded?.scope === scope &&
-              loaded.revision === page.revision &&
+              loaded.revision === fileRevision() &&
               S.ui.workspaceRevision === page.revision &&
               ids.every(id => S.data.files.some(file => file.id === id));
             if (!reuseSearchRows) {
@@ -134,7 +138,7 @@ export function demandFilePage(options, pageKey) {
               pageKey,
               query: JSON.stringify(actualOptions),
               page,
-              revision: S.ui.workspaceRevision,
+              revision: fileRevision(),
             };
             error = failed = '';
           },
@@ -169,9 +173,9 @@ export function demandFilePage(options, pageKey) {
       }
     });
   }
-  const previous = loaded?.scope === scope && loaded.revision === S.ui.workspaceRevision && loaded.query === query ? loaded.page : null;
+  const previous = loaded?.scope === scope && loaded.revision === fileRevision() && loaded.query === query ? loaded.page : null;
   const knownIds =
-    options.query && !options.offset && !previous && loaded?.scope === scope && loaded.revision === S.ui.workspaceRevision && failed !== key
+    options.query && !options.offset && !previous && loaded?.scope === scope && loaded.revision === fileRevision() && failed !== key
       ? new Set(loaded.page.files.map(file => file.id))
       : null;
   return { ...(previous || {}), knownIds, loading: true, refreshing: !!previous, error: failed === key ? error : '' };
