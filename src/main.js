@@ -425,13 +425,18 @@ window.addEventListener('popstate', event => {
   // Restore the secure cookie before offering a new sign-in.
   S.ui.auth = 'restoring';
   S.ui.authBusy = true;
-  render();
+  let stageFrame;
   let user = null;
   try {
     user = await restoreSessionAndWorkspace({
       onStage: stage => {
         S.ui.bootstrapStage = stage;
-        if (S.ui.auth === 'restoring') render();
+        // Several stages can start in one task. Let their network requests
+        // leave before painting the most recent status for this frame.
+        stageFrame ??= requestAnimationFrame(() => {
+          stageFrame = null;
+          if (S.ui.auth === 'restoring') render();
+        });
       },
     });
     S.ui.authBusy = false;
@@ -441,6 +446,8 @@ window.addEventListener('popstate', event => {
   } catch (error) {
     S.ui.authBusy = false;
     await (await import('./pages/workspace-recovery.js')).applyRecovery(error);
+  } finally {
+    cancelAnimationFrame(stageFrame);
   }
   const restoreView = user && !S.ui.needsOnboarding ? restoreDeploymentContext() : null;
   const saved = user && !S.ui.needsOnboarding ? workHistoryContext(history.state) : null;
