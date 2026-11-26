@@ -217,6 +217,10 @@ app.get('/api/files/:id/content', (_request, response, next) => {
   response.locals.fileReadStart = performance.now();
   withCatalogRequest(next);
 });
+app.get('/api/workspace', (request, _response, next) => {
+  if (request.get('x-smena-file-catalog') === 'demand' && /^[\w-]{1,180}$/.test(request.get('x-smena-open-file') || '')) return withCatalogRequest(next);
+  next();
+});
 app.use('/api', requireAuth);
 app.get('/api/workspaces', async (request, response, next) => {
   try {
