@@ -1968,6 +1968,10 @@ test('page three keeps the selected PDF and reading position across catalog chan
   expect((await writer.request.put('/api/workspace', { data: { revision: latest.revision, data: latest } })).ok()).toBeTruthy();
   await page.bringToFront();
   await page.setViewportSize({ width: 390, height: 844 });
+  // The other tab's write can replace the current catalog snapshot. Measure
+  // the return position against the page that already includes the rename.
+  await page.evaluate(() => dispatchEvent(new Event('focus')));
+  await expect(page.locator('.workspace-file-table [data-a="previewFile"][data-id="pdf-catalog-56"]')).toHaveText('PDF-catalog-056b.pdf', { timeout: 20000 });
   const content = page.locator('#main-content');
   for (const exit of ['close', 'escape', 'back']) {
     await opener.scrollIntoViewIfNeeded();
