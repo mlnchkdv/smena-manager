@@ -105,7 +105,7 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
     schemaVersion: 3,
     revision: 2,
     files: [
-      { id: 'f', project: 'p', name: 'New' },
+      { id: 'f', project: 'p', name: 'New', storageName: 'object.txt' },
       { id: 'private', project: 'secret', name: 'Hidden' },
     ],
   };
@@ -122,7 +122,14 @@ test('schema 3 publishes immutable catalog parts before one fenced root update a
   assert.deepEqual(reads, ['db'], 'Canonical reads also populate the verified immutable cache');
   assert.equal(reads.includes(root._fileCatalog.shards.find(part => part.project === 'secret').id), false, 'Private project part must not even be read');
   reads.length = 0;
-  const index = await provider.loadDatabaseCatalogIndex(() => ({ projects: new Set(['p']) }));
+  provider.catalogParts.clear();
+  provider.catalogPartBytes = 0;
+  const visiblePart = root._fileCatalog.shards.find(part => part.project === 'p');
+  const index = await provider.loadDatabaseCatalogIndex(() => ({ projects: new Set(['p']) }), { recordsAtRevision: data.revision });
+  assert.deepEqual(reads, ['db', visiblePart.id], 'A cold paginated read fetches the authorized full part only once');
+  reads.length = 0;
+  const resolved = await provider.loadDatabaseCatalog(() => ({ projects: new Set(['p']), ids: new Set(['f']) }));
+  assert.deepEqual(resolved.files, [data.files[0]]);
   assert.deepEqual(index.files, [{ id: 'f', project: 'p', name: 'New' }]);
   assert.equal(index._catalogIndex.length, 2, 'Folder counts retain the compact manifest index');
   assert.deepEqual(reads, ['db'], 'A verified immutable part is reused, but the root/ACL scope must be refreshed');

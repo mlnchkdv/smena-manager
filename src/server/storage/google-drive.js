@@ -524,7 +524,7 @@ export class GoogleDriveStorageProvider {
     };
   }
 
-  async loadDatabaseCatalog(select, projectFile, search = false, { signal } = {}) {
+  async loadDatabaseCatalog(select, projectFile, search = false, { signal, recordsAtRevision } = {}) {
     signal?.throwIfAborted();
     const root = await this.readDatabaseRoot({ knowledge: false, signal });
     if (!root) return null;
@@ -533,7 +533,16 @@ export class GoogleDriveStorageProvider {
       return rememberStorageVersion(projectFile ? { ...data, files: data.files.map(projectFile) } : data, storageVersion(root));
     }
     const core = catalogCore(root);
-    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part, signal), select(core), projectFile, search);
+    const scope = select(core);
+    let indexOnly = search;
+    if (search && Number.isSafeInteger(recordsAtRevision) && recordsAtRevision === root.revision && scope?.projects) {
+      const parts = root._fileCatalog.shards.filter(part => scope.projects.has(part.project));
+      // A small cold catalog fits in the verified part cache. Search its full
+      // records once so resolving the page does not require a second download.
+      const bytes = parts.reduce((sum, part) => sum + part.bytes, 0);
+      if (bytes <= 1024 * 1024 && parts.every(part => !part.search || !this.catalogParts.has(`${part.search.id}:${part.search.sha256}`))) indexOnly = false;
+    }
+    const files = await readCatalogShards(root, (id, part) => this.readCatalogPart(id, part, signal), scope, projectFile, indexOnly);
     return rememberStorageVersion({ ...core, _catalogIndex: core.files, files }, storageVersion(root));
   }
 

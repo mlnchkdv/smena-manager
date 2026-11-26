@@ -294,7 +294,10 @@ export async function queryWorkspaceFileCatalog(user, options, { signal } = {}) 
     const select = core => catalogReadScope(core, user, options.context !== 'all' && options.context ? options.context : options.project);
     const data =
       typeof storage.loadDatabaseCatalogIndex === 'function'
-        ? await storage.loadDatabaseCatalogIndex(select, { signal })
+        ? await storage.loadDatabaseCatalogIndex(select, {
+            signal,
+            recordsAtRevision: options.offset > 0 && !options.countsOnly ? options.recordsAtRevision : undefined,
+          })
         : await storage.loadDatabaseCatalog(select, undefined, false, { signal });
     signal?.throwIfAborted();
     if (!data) throw new Error('The configured storage does not contain a workspace database.');
