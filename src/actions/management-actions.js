@@ -1045,18 +1045,19 @@ handlers.A.pdfPreviewPage = el => {
   const page = Number(el.dataset.page ?? el.elements?.namedItem('page')?.value);
   if (Number.isInteger(page) && page >= 1 && page <= modal.preview.pages && page !== modal.preview.page) void changePdfPreviewPage(modal, page, render);
 };
-handlers.A.toggleFileReadingMode = el => {
+handlers.A.toggleFileReadingMode = () => {
   const modal = S.ui.modals.at(-1);
-  const region = el.closest('.modal')?.querySelector('.file-preview-content');
+  const toggle = document.getElementById('file-reading-mode');
+  const region = toggle?.closest('.modal')?.querySelector('.file-preview-content');
   if (!region || !['pdf', 'image', 'text'].includes(modal?.preview?.kind)) return;
   if (modal.preview.kind === 'text') {
     modal.unwrapped = !modal.unwrapped;
     region.dataset.unwrapped = String(modal.unwrapped);
-    el.setAttribute('aria-pressed', String(!modal.unwrapped));
+    toggle.setAttribute('aria-pressed', String(!modal.unwrapped));
   } else {
     modal.actualSize = !modal.actualSize;
     region.dataset.actualSize = String(modal.actualSize);
-    el.setAttribute('aria-pressed', String(modal.actualSize));
+    toggle.setAttribute('aria-pressed', String(modal.actualSize));
   }
 };
 handlers.A.bulkSet = el => {

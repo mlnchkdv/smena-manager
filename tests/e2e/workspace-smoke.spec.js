@@ -2055,6 +2055,9 @@ test('PDF previews render pages locally without document scripts in Russian and 
     await page.unroute('**/api/files/catalog/query');
     await notice.locator('button').click();
     await expect(notice).toHaveCount(0);
+    await page.goto('/e2e-team/file/' + thumbnail.id);
+    await page.locator('#file-reading-mode').click();
+    await expect(page.locator('.modal .file-preview-image')).toHaveCSS('width', '1px');
   }
 });
 

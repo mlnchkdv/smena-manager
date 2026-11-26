@@ -116,6 +116,7 @@ registerManagementActions(
       'clearSel',
       'listPage',
       'pdfPreviewPage',
+      'toggleFileReadingMode',
       'bulkSet',
       'bulkCyclePick',
       'bulkDelete',
