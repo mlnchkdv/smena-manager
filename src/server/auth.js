@@ -213,9 +213,26 @@ export async function requireAuth(request, response, next) {
   }
   try {
     let profile = result.profile;
-    const database = await getWorkspaceDatabase({
-      fields: ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs', '_workspaceDirectory'],
-    });
+    const details = {
+      id: result.sessionId,
+      userId: profile.id,
+      createdAt: result.issuedAt,
+      lastSeenAt: Date.now(),
+      expiresAt: result.expiresAt,
+      ...sessionDetailsFromRequest(request),
+    };
+    const catalogRead = Boolean(catalogRequestRoots()) && !process.env.VERCEL;
+    let touch;
+    // Both reads depend only on the verified identity. Keep the activity write
+    // unscheduled until the account and its live session have both passed.
+    const [database, checkedSession] = await Promise.all([
+      getWorkspaceDatabase({ fields: ['ws', 'members', 'revision', 'updatedAt', '_documentRevisions', '_userPrefs', '_workspaceDirectory'] }),
+      catalogRead
+        ? ensureAuthSession(details, task => {
+            touch = task;
+          })
+        : null,
+    ]);
     if (result.dynamic) {
       const profiles = await directoryLoginProfiles(getAccessProfiles(), database);
       profile = profiles.find(item => item.id === result.profile.id && item.email === result.profile.email);
@@ -234,27 +251,12 @@ export async function requireAuth(request, response, next) {
       }
       if (member) profile = { ...profile, role: workspaceMemberRole(member), ...(member.profileEditedAt ? { name: member.name, title: member.title } : {}) };
     }
-    // A catalog read must validate the live session before returning rows. Only
-    // last-seen bookkeeping can run after the response on the persistent VPS.
-    const afterResponse =
-      catalogRequestRoots() && !process.env.VERCEL
-        ? touch => response.once('close', () => void touch().catch(error => reportProviderError('[Auth] Session activity update failed', error)))
-        : undefined;
-    const activeSession = await ensureAuthSession(
-      {
-        id: result.sessionId,
-        userId: profile.id,
-        createdAt: result.issuedAt,
-        lastSeenAt: Date.now(),
-        expiresAt: result.expiresAt,
-        ...sessionDetailsFromRequest(request),
-      },
-      afterResponse,
-    );
+    const activeSession = catalogRead ? checkedSession : await ensureAuthSession(details);
     if (!activeSession) {
       response.status(401).json({ error: 'Session has been signed out.', code: 'SESSION_REVOKED' });
       return;
     }
+    if (touch) response.once('close', () => void touch().catch(error => reportProviderError('[Auth] Session activity update failed', error)));
     request.user = safeProfile(profile);
     request.configuredProfiles = getAccessProfiles();
     request.workspaceSnapshot = database;
