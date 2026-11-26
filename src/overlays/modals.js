@@ -14,7 +14,7 @@ export function openModal(m, opener) {
   S.ui.modals.push(m);
   if (m.type === 'filePreview' && m.previewContext?.pageKey) syncBrowserLocation({ push: true, fromFileCatalog: true });
   S.ui.pop = null;
-  render();
+  render(m.previewContext?.catalogReturn && m.file?.mimeType === 'application/pdf' ? m : undefined);
   setTimeout(() => {
     if (S.ui.modals.at(-1) !== m) return;
     const all = $$('.modal');

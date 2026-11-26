@@ -12,7 +12,7 @@ import { revealProjectView } from '../ui/project-view-picker.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth, authShell } from '../pages/auth.js';
-import { isRussian, t as tr, translateApp, loadRussianLabels, russianLabelsState } from '../core/i18n.js';
+import { isRussian, t as tr, translateApp, translateElement, loadRussianLabels, russianLabelsState } from '../core/i18n.js';
 import { normalizeTablists } from '../ui/tabs.js';
 import { resizeKnowledgeTitle } from '../ui/knowledge-title.js';
 import { captureKnowledgeDisclosures } from '../ui/knowledge-disclosure.js';
@@ -204,7 +204,7 @@ var knowledgeReadingRestorer;
 export function registerKnowledgeReadingRestorer(restorer) {
   knowledgeReadingRestorer = restorer;
 }
-export function render() {
+export function render(previewOnly) {
   if (isRussian() && russianLabelsState() !== 'ready') {
     applyPrefs();
     document.documentElement.lang = 'ru';
@@ -249,8 +249,11 @@ export function render() {
   // A selected PDF can start loading before the catalog redraw and the first
   // lazy dialog bundle. The dialog will reuse this modal's preview state.
   const modal = S.ui.modals.at(-1);
+  // Only an explicit preview-only update may reuse the catalog DOM. Sync,
+  // permission changes, routing and ordinary renders still rebuild the shell.
+  const keepCatalog = modal?.type === 'filePreview' && previewOnly === modal && !S.ui.auth && S.ui.route === 'files' && !!$('#main-content .files-page');
   if (!S.ui.auth && S.ui.currentUser && modal?.type === 'filePreview' && !modal.preview && filePreviewPolicy(modal.file).kind === 'pdf')
-    ensureFilePreview(modal, render);
+    ensureFilePreview(modal, () => render(modal));
   const restorePlayers = preserveFilePlayers();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';
@@ -292,16 +295,19 @@ export function render() {
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
   const restoreGraphSurface = graphSurfaceRestorer?.();
   const restoreKnowledgeSurface = knowledgeReadingRestorer?.();
-  const appHtml = S.ui.auth ? renderAuth() : renderShell();
-  if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#app'), appHtml);
-  else replaceReadingMarkup($('#app'), appHtml);
+  if (!keepCatalog) {
+    const appHtml = S.ui.auth ? renderAuth() : renderShell();
+    if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#app'), appHtml);
+    else replaceReadingMarkup($('#app'), appHtml);
+  }
   restoreGraphSurface?.();
   const layerHtml = renderLayer();
   if (restoreKnowledgeSurface) restoreKnowledgeSurface.replace($('#layer'), layerHtml);
   else replaceReadingMarkup($('#layer'), layerHtml);
   restoreKnowledgeSurface?.finish();
   restorePlayers();
-  translateApp();
+  if (keepCatalog) translateElement($('#layer'));
+  else translateApp();
   normalizeTablists();
   makeFocusable();
   // Focus keys may point to enhanced triggers; create them before restoration.
