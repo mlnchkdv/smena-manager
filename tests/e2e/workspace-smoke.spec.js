@@ -1862,6 +1862,33 @@ test('folder trees move safely and saved recursive filters survive reload in bot
   }
 });
 
+test.describe('file search clear control', () => {
+  test.use({ hasTouch: true });
+  test('accepts the next query immediately on phones and tablets', async ({ page }) => {
+    await signIn(page);
+    const input = page.locator('#workspace-file-q');
+    const clear = page.locator('[data-a="clearFileQuery"]');
+    for (const language of ['Русский', 'English (US)']) {
+      await page.goto('/e2e-team/settings/language');
+      await page.locator('select[data-k="lang"]').selectOption(language);
+      await waitForSaved(page);
+      await page.goto('/e2e-team/files');
+      for (const width of [390, 768]) {
+        await page.setViewportSize({ width, height: width === 390 ? 844 : 1024 });
+        for (const method of ['click', 'tap']) {
+          await test.step(`${language} · ${width}px · ${method}`, async () => {
+            await input.fill('photo');
+            await clear[method]();
+            await page.keyboard.type('report');
+            await expect(input).toBeFocused();
+            await expect(input).toHaveValue('report');
+          });
+        }
+      }
+    }
+  });
+});
+
 test('PDF previews render pages locally without document scripts in Russian and English on mobile', async ({ page, browserName }) => {
   await signIn(page);
   const current = (await (await page.request.get('/api/workspace')).json()).data;
