@@ -2023,6 +2023,10 @@ test('a delayed PDF cannot reopen after project access is withdrawn', async ({ p
   const gate = new Promise(resolve => {
     release = resolve;
   });
+  let allowDialog;
+  const dialogGate = new Promise(resolve => {
+    allowDialog = resolve;
+  });
   try {
     await signIn(member, 'e2e-editor-access-id-2026-secure');
     const path = '/api/files/' + file.id + '/content';
@@ -2036,8 +2040,22 @@ test('a delayed PDF cannot reopen after project access is withdrawn', async ({ p
       await gate;
       await route.fulfill({ response }).catch(() => {});
     });
+    let workerRequested = false;
+    const observeWorker = resource => {
+      if (/\/assets\/pdf\.worker-[^/]+\.js$/.test(new URL(resource.url()).pathname)) workerRequested = true;
+    };
+    context.on('request', observeWorker);
+    member.on('worker', observeWorker);
+    await member.route(/\/assets\/drawer-content-[^/]+\.js$/, async route => {
+      await dialogGate;
+      await route.continue();
+    });
     await member.goto('/e2e-team/file/' + file.id, { waitUntil: 'domcontentloaded' });
     expect(await captured).toBe(200);
+    // The content response is still held by gate. A serial worker startup
+    // would make a cold preview pay both network waits.
+    await expect.poll(() => workerRequested).toBe(true);
+    allowDialog();
     const latest = (await (await page.request.get('/api/workspace')).json()).data;
     const restricted = latest.projects.find(item => item.id === project.id);
     Object.assign(restricted, { private: true, access: 'private', lead: latest.me, members: [latest.me] });
@@ -2052,6 +2070,7 @@ test('a delayed PDF cannot reopen after project access is withdrawn', async ({ p
     await expect(member.locator('.shell')).toBeVisible();
     await expect(member.locator('body')).not.toContainText(file.name);
   } finally {
+    allowDialog();
     release();
     await context.close();
   }

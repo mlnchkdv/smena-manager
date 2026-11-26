@@ -1,4 +1,4 @@
-import { AnnotationMode, GlobalWorkerOptions, getDocument } from 'pdfjs-dist';
+import { AnnotationMode, GlobalWorkerOptions, PDFWorker, getDocument } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
@@ -6,7 +6,16 @@ const fonts = import.meta.glob('/node_modules/pdfjs-dist/standard_fonts/*.{pfb,t
 const assetMap = values => new Map(Object.entries(values).map(([path, url]) => [path.split('/').at(-1), url]));
 const fontAssets = assetMap(fonts);
 
-async function openPdf(blob, signal) {
+export function startPdfWorker(signal) {
+  signal.throwIfAborted();
+  const worker = new PDFWorker();
+  // getDocument observes this same promise under the page-render timeout.
+  // Initialization may already have failed before the download finishes.
+  void worker.promise.catch(() => {});
+  return worker;
+}
+
+async function openPdf(blob, signal, worker) {
   signal.throwIfAborted();
   // Only bundled font/CMap resources can be fetched. Document URLs, links,
   // JavaScript actions, XFA and interactive annotations are never mounted.
@@ -25,6 +34,7 @@ async function openPdf(blob, signal) {
   return {
     loading: getDocument({
       data,
+      worker,
       BinaryDataFactory: LocalBinaryDataFactory,
       useWorkerFetch: false,
       useWasm: false,
@@ -55,8 +65,8 @@ export async function readPdfPageCount(blob, signal) {
   }
 }
 
-export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false } = {}) {
-  const { loading } = await openPdf(blob, signal);
+export async function renderPdfPage(blob, pageNumber, signal, { thumbnail = false, worker } = {}) {
+  const { loading } = await openPdf(blob, signal, worker);
   let rendering;
   let canvas;
   const cancel = () => {

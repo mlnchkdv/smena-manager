@@ -19,7 +19,8 @@ import { captureKnowledgeDisclosures } from '../ui/knowledge-disclosure.js';
 import { PRODUCT_NAME } from '../shared/product.js';
 import { mountGoogleSignIn } from '../core/google-signin.js';
 import { appLocationPath } from '../shared/app-location.js';
-import { disposeClosedPreviews, preserveFilePlayers } from '../core/file-preview.js';
+import { filePreviewPolicy } from '../shared/file-preview-policy.js';
+import { disposeClosedPreviews, ensureFilePreview, preserveFilePlayers } from '../core/file-preview.js';
 import { closeActionMenus, positionActionMenus, captureActionMenuState } from '../ui/disclosure.js';
 import { refreshBookmarkReading } from '../ui/bookmark-reading.js';
 import { replaceReadingMarkup } from '../ui/knowledge-reading-surface.js';
@@ -245,6 +246,11 @@ export function render() {
     S.ui.uploads = [];
   }
   disposeClosedPreviews();
+  // A selected PDF can start loading before the catalog redraw and the first
+  // lazy dialog bundle. The dialog will reuse this modal's preview state.
+  const modal = S.ui.modals.at(-1);
+  if (!S.ui.auth && S.ui.currentUser && modal?.type === 'filePreview' && !modal.preview && filePreviewPolicy(modal.file).kind === 'pdf')
+    ensureFilePreview(modal, render);
   const restorePlayers = preserveFilePlayers();
   applyPrefs();
   document.documentElement.lang = isRussian() ? 'ru' : 'en';

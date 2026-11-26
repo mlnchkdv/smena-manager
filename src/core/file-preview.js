@@ -100,13 +100,17 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
       return;
     }
   }
-  queueMicrotask(async () => {
+  const signal = state.controller.signal;
+  // Start the renderer while the authorized content request is in flight. Each
+  // preview owns its first-page worker, including when either operation fails.
+  const workerReady = policy.kind === 'pdf' ? import('./pdf-preview.js').then(module => module.startPdfWorker(signal)) : null;
+  async function load() {
     try {
-      const { blob } = await downloadWorkspaceFile(modal.file.id, false, { signal: state.controller.signal, maxBytes: policy.maxBytes });
+      const [{ blob }, worker] = await Promise.all([downloadWorkspaceFile(modal.file.id, false, { signal, maxBytes: policy.maxBytes }), workerReady]);
       if (!previews.has(modal) || !S.ui.modals.includes(modal) || !previewScopeCurrent(state)) return;
       if (policy.kind === 'pdf') {
         state.pdf = blob;
-        await showPdfPage(modal, state, modal.initialPage || 1);
+        await showPdfPage(modal, state, modal.initialPage || 1, worker);
       } else if (['text', 'html'].includes(policy.kind)) modal.preview = { kind: 'text', text: await blob.text() };
       else {
         state.url = URL.createObjectURL(blob);
@@ -119,9 +123,17 @@ export function ensureFilePreview(modal, refresh, { measureImage = false } = {})
       modal.preview = [403, 404].includes(error.status)
         ? { kind: 'unavailable' }
         : { kind: 'error', message: policy.kind === 'pdf' ? 'PDF preview is unavailable. Download the file instead.' : error.message };
+    } finally {
+      // A denied or cancelled download can settle before the worker starts.
+      if (workerReady)
+        void workerReady.then(
+          worker => worker.destroy(),
+          () => {},
+        );
     }
     if (previews.has(modal) && S.ui.modals.includes(modal)) refresh();
-  });
+  }
+  void load();
 }
 
 // Preserve a live player through unrelated sync/queue renders, but never across
@@ -171,9 +183,9 @@ export function preserveFilePlayers() {
   };
 }
 
-async function showPdfPage(modal, state, number) {
+async function showPdfPage(modal, state, number, worker) {
   const { renderPdfPage } = await import('./pdf-preview.js');
-  const result = await renderPdfPage(state.pdf, number, state.controller.signal);
+  const result = await renderPdfPage(state.pdf, number, state.controller.signal, { worker });
   if (!previews.has(modal) || !previewScopeCurrent(state) || state.controller.signal.aborted) return;
   if (state.url) URL.revokeObjectURL(state.url);
   state.url = URL.createObjectURL(result.blob);
